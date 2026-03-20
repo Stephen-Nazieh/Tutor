@@ -43,7 +43,7 @@ export default function LessonBankPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     )
@@ -51,36 +51,32 @@ export default function LessonBankPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b sticky top-0 z-10 relative">
-        <div className="w-full px-4 sm:px-6 py-4 flex items-center justify-between">
+      <div className="relative sticky top-0 z-10 border-b bg-white">
+        <div className="flex w-full items-center justify-between px-4 py-4 sm:px-6">
           <Button variant="ghost" size="sm" asChild>
             <Link href="/tutor/dashboard">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard
             </Link>
           </Button>
-          <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-semibold flex items-center gap-2">
+          <h1 className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2 text-xl font-semibold">
             <BookOpen className="h-5 w-5" />
             Lesson Bank
           </h1>
-          <Button
-            className="gap-2"
-            onClick={() => builderRef.current?.save()}
-            disabled={saving}
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          <Button className="gap-2" onClick={() => builderRef.current?.save()} disabled={saving}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Save Library
           </Button>
         </div>
       </div>
-      <div className="w-full px-4 sm:px-6 py-6">
+      <div className="w-full px-4 py-6 sm:px-6">
         <CourseBuilder
           ref={builderRef}
           courseId="lesson-bank"
           courseName="Lesson Bank"
           initialModules={modules}
           lessonBankMode
-          onSave={(nextModules) => handleSave(nextModules)}
+          onSave={nextModules => handleSave(nextModules)}
         />
       </div>
     </div>

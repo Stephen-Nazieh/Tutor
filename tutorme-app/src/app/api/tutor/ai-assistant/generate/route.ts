@@ -13,7 +13,14 @@ import { generateWithFallback } from '@/lib/agents'
 import { z } from 'zod'
 import { randomUUID } from 'crypto'
 
-const GenerationTypes = ['explanation', 'example', 'analogy', 'simplification', 'activity', 'assessment'] as const
+const GenerationTypes = [
+  'explanation',
+  'example',
+  'analogy',
+  'simplification',
+  'activity',
+  'assessment',
+] as const
 
 const GenerateRequestSchema = z.object({
   type: z.enum(GenerationTypes),
@@ -119,12 +126,13 @@ Focus on measuring understanding, not just memorization.`,
   let prompt = typePrompts[params.type]
   if (params.context) prompt += `\n\nADDITIONAL CONTEXT: ${params.context}`
   if (params.language === 'zh') prompt += '\n\n请用中文回答。'
-  else if (params.language === 'both') prompt += '\n\nProvide the response in both English and Chinese (bilingual format).'
+  else if (params.language === 'both')
+    prompt += '\n\nProvide the response in both English and Chinese (bilingual format).'
   return prompt
 }
 
 function parseGeneratedContent(content: string, params: GenerateRequest): GeneratedContent {
-  const lines = content.split('\n').filter((l) => l.trim())
+  const lines = content.split('\n').filter(l => l.trim())
   let title = lines[0]?.replace(/^#+\s*/, '').slice(0, 100) || `${params.topic} - ${params.type}`
   title = title.replace(/\*\*/g, '').trim()
   return {
@@ -142,69 +150,79 @@ function parseGeneratedContent(content: string, params: GenerateRequest): Genera
   }
 }
 
-export const POST = withAuth(async (req: NextRequest, session) => {
-  const tutorId = session.user.id
-
-  try {
-    const { response: rateLimitResponse } = await withRateLimitPreset(req, 'aiGenerate')
-    if (rateLimitResponse) return rateLimitResponse
-
-    const body = await req.json()
-    const validation = GenerateRequestSchema.safeParse(body)
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: validation.error.format() },
-        { status: 400 }
-      )
-    }
-
-    const params = validation.data
-    const prompt = buildPrompt(params)
-    const result = await generateWithFallback(prompt, {
-      temperature: 0.7,
-      maxTokens: 2500,
-    })
-
-    const generated = parseGeneratedContent(result.content, params)
-
-    // TeachingMaterial table not in Drizzle schema; skip save
+export const POST = withAuth(
+  async (req: NextRequest, session) => {
+    const tutorId = session.user.id
 
     try {
-      await drizzleDb.insert(aIAssistantInsight).values({
-        id: randomUUID(),
-        sessionId: body.sessionId || 'temp',
-        type: 'content_suggestion',
-        title: `Generated ${params.type}: ${generated.title}`,
-        content: generated.content.slice(0, 200) + '...',
-        relatedData: {
-          generationType: params.type,
-          topic: params.topic,
-          subject: params.subject,
-          difficulty: params.difficulty,
-        },
-        applied: false,
-      })
-    } catch {
-      // continue
-    }
+      const { response: rateLimitResponse } = await withRateLimitPreset(req, 'aiGenerate')
+      if (rateLimitResponse) return rateLimitResponse
 
-    return NextResponse.json({
-      content: generated,
-      saved: false,
-      metadata: {
-        provider: result.provider,
-        latencyMs: result.latencyMs,
-        generatedAt: new Date().toISOString(),
-      },
-    })
-  } catch (error) {
-    console.error('Content generation error:', error)
-    return handleApiError(error, 'Failed to generate content', 'api/tutor/ai-assistant/generate/route.ts')
-  }
-}, { role: 'TUTOR' })
+      const body = await req.json()
+      const validation = GenerateRequestSchema.safeParse(body)
+
+      if (!validation.success) {
+        return NextResponse.json(
+          { error: 'Invalid request', details: validation.error.format() },
+          { status: 400 }
+        )
+      }
+
+      const params = validation.data
+      const prompt = buildPrompt(params)
+      const result = await generateWithFallback(prompt, {
+        temperature: 0.7,
+        maxTokens: 2500,
+      })
+
+      const generated = parseGeneratedContent(result.content, params)
+
+      // TeachingMaterial table not in Drizzle schema; skip save
+
+      try {
+        await drizzleDb.insert(aIAssistantInsight).values({
+          id: randomUUID(),
+          sessionId: body.sessionId || 'temp',
+          type: 'content_suggestion',
+          title: `Generated ${params.type}: ${generated.title}`,
+          content: generated.content.slice(0, 200) + '...',
+          relatedData: {
+            generationType: params.type,
+            topic: params.topic,
+            subject: params.subject,
+            difficulty: params.difficulty,
+          },
+          applied: false,
+        })
+      } catch {
+        // continue
+      }
+
+      return NextResponse.json({
+        content: generated,
+        saved: false,
+        metadata: {
+          provider: result.provider,
+          latencyMs: result.latencyMs,
+          generatedAt: new Date().toISOString(),
+        },
+      })
+    } catch (error) {
+      console.error('Content generation error:', error)
+      return handleApiError(
+        error,
+        'Failed to generate content',
+        'api/tutor/ai-assistant/generate/route.ts'
+      )
+    }
+  },
+  { role: 'TUTOR' }
+)
 
 // GET - List generated content (no TeachingMaterial table in Drizzle)
-export const GET = withAuth(async (_req: NextRequest, _session) => {
-  return NextResponse.json({ materials: [] })
-}, { role: 'TUTOR' })
+export const GET = withAuth(
+  async (_req: NextRequest, _session) => {
+    return NextResponse.json({ materials: [] })
+  },
+  { role: 'TUTOR' }
+)

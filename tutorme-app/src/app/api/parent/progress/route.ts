@@ -14,7 +14,7 @@ import {
   curriculumProgress,
   studentPerformance,
   userGamification,
-  achievement
+  achievement,
 } from '@/lib/db/schema'
 import cacheManager from '@/lib/cache-manager'
 
@@ -24,10 +24,7 @@ export const GET = withAuth(
   async (req: NextRequest, session) => {
     const family = await getFamilyAccountForParent(session)
     if (!family) {
-      return NextResponse.json(
-        { error: '未找到家庭账户' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: '未找到家庭账户' }, { status: 404 })
     }
 
     const cacheKey = `parent:progress:${family.id}`
@@ -35,11 +32,21 @@ export const GET = withAuth(
     if (cached) return NextResponse.json({ success: true, data: cached })
 
     if (family.studentIds.length === 0) {
-      const data = { children: [], overview: { totalLessons: 0, completedLessons: 0, averageScore: null } }
+      const data = {
+        children: [],
+        overview: { totalLessons: 0, completedLessons: 0, averageScore: null },
+      }
       return NextResponse.json({ success: true, data })
     }
 
-    const [enrollments, lessonProgress, allCurriculumProgress, performances, gamification, achievements] = await Promise.all([
+    const [
+      enrollments,
+      lessonProgress,
+      allCurriculumProgress,
+      performances,
+      gamification,
+      achievements,
+    ] = await Promise.all([
       drizzleDb.query.curriculumEnrollment.findMany({
         where: inArray(curriculumEnrollment.studentId, family.studentIds),
         with: {
@@ -47,8 +54,8 @@ export const GET = withAuth(
             with: {
               modules: {
                 with: {
-                  lessons: { columns: { id: true, title: true, order: true } }
-                }
+                  lessons: { columns: { id: true, title: true, order: true } },
+                },
               },
             },
           },
@@ -73,7 +80,9 @@ export const GET = withAuth(
       }),
     ])
 
-    const progressMap = new Map(lessonProgress.map((lp: any) => [`${lp.studentId}:${lp.lessonId}`, lp]))
+    const progressMap = new Map(
+      lessonProgress.map((lp: any) => [`${lp.studentId}:${lp.lessonId}`, lp])
+    )
 
     const children = family.members
       .filter((m: any) => ['child', 'children'].includes(m.relation.toLowerCase()) && m.userId)
@@ -105,11 +114,11 @@ export const GET = withAuth(
           courses,
           overallProgress: prog
             ? {
-              lessonsCompleted: prog.lessonsCompleted,
-              totalLessons: prog.totalLessons,
-              averageScore: prog.averageScore,
-              isCompleted: prog.isCompleted,
-            }
+                lessonsCompleted: prog.lessonsCompleted,
+                totalLessons: prog.totalLessons,
+                averageScore: prog.averageScore,
+                isCompleted: prog.isCompleted,
+              }
             : null,
           strengths: (perf?.strengths as string[]) || [],
           weaknesses: (perf?.weaknesses as string[]) || [],
@@ -124,8 +133,12 @@ export const GET = withAuth(
         }
       })
 
-    const totalLessons = children.flatMap((c: any) => c.courses).reduce((s: any, co: any) => s + co.totalLessons, 0)
-    const completedLessons = children.flatMap((c: any) => c.courses).reduce((s: any, co: any) => s + co.completedLessons, 0)
+    const totalLessons = children
+      .flatMap((c: any) => c.courses)
+      .reduce((s: any, co: any) => s + co.totalLessons, 0)
+    const completedLessons = children
+      .flatMap((c: any) => c.courses)
+      .reduce((s: any, co: any) => s + co.completedLessons, 0)
     const scores = children
       .map((c: any) => c.overallProgress?.averageScore)
       .filter((s): s is number => s != null)

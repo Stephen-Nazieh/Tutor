@@ -7,7 +7,14 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import crypto from 'crypto'
 import { eq, inArray } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { courseBatch, curriculum, curriculumLesson, curriculumModule, profile, user } from '@/lib/db/schema'
+import {
+  courseBatch,
+  curriculum,
+  curriculumLesson,
+  curriculumModule,
+  profile,
+  user,
+} from '@/lib/db/schema'
 import { POST as createCourse } from '@/app/api/tutor/courses/route'
 import { GET as listBatches, POST as createBatch } from '@/app/api/tutor/courses/[id]/batches/route'
 import { PATCH as updateBatch } from '@/app/api/tutor/courses/[id]/batches/[batchId]/route'
@@ -71,7 +78,9 @@ describe('Tutor courses and batches API integration', () => {
 
   afterAll(async () => {
     if (batchId) {
-      try { await drizzleDb.delete(courseBatch).where(eq(courseBatch.id, batchId)) } catch {}
+      try {
+        await drizzleDb.delete(courseBatch).where(eq(courseBatch.id, batchId))
+      } catch {}
     }
     if (courseId) {
       try {
@@ -79,9 +88,11 @@ describe('Tutor courses and batches API integration', () => {
           .select({ id: curriculumModule.id })
           .from(curriculumModule)
           .where(eq(curriculumModule.curriculumId, courseId))
-        const moduleIds = modules.map((m) => m.id)
+        const moduleIds = modules.map(m => m.id)
         if (moduleIds.length > 0) {
-          await drizzleDb.delete(curriculumLesson).where(inArray(curriculumLesson.moduleId, moduleIds))
+          await drizzleDb
+            .delete(curriculumLesson)
+            .where(inArray(curriculumLesson.moduleId, moduleIds))
         }
         await drizzleDb.delete(curriculumModule).where(eq(curriculumModule.curriculumId, courseId))
         await drizzleDb.delete(curriculum).where(eq(curriculum.id, courseId))
@@ -148,9 +159,12 @@ describe('Tutor courses and batches API integration', () => {
         schedule: [{ dayOfWeek: 'Tuesday', startTime: '10:00', durationMinutes: 60 }],
       }),
     })
-    const res = await updateBatch(req as any, {
-      params: Promise.resolve({ id: courseId, batchId }),
-    } as any)
+    const res = await updateBatch(
+      req as any,
+      {
+        params: Promise.resolve({ id: courseId, batchId }),
+      } as any
+    )
     expect(res.status).toBe(200)
     const data = await res.json()
     expect(data.batch.difficulty).toBe('advanced')

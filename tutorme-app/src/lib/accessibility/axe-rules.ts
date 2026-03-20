@@ -7,12 +7,7 @@
  */
 
 /** WCAG 2.1 Level A and AA tags for axe-core withTags() */
-export const WCAG_2_1_AA_TAGS = [
-  'wcag2a',
-  'wcag2aa',
-  'wcag21a',
-  'wcag21aa',
-] as const
+export const WCAG_2_1_AA_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] as const
 
 /** Axe rules configuration namespace */
 export const AxeRules = {
@@ -23,10 +18,7 @@ export const AxeRules = {
   BEST_PRACTICE: ['best-practice'] as const,
 
   /** Combined: WCAG 2.1 AA + best practice */
-  WCAG2_1_AA_AND_BEST_PRACTICE: [
-    ...WCAG_2_1_AA_TAGS,
-    'best-practice',
-  ] as const,
+  WCAG2_1_AA_AND_BEST_PRACTICE: [...WCAG_2_1_AA_TAGS, 'best-practice'] as const,
 } as const
 
 /** Minimum touch target size per WCAG 2.1 Success Criterion 2.5.5 (Level AAA, but recommended for mobile) */

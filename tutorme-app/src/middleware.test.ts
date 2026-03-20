@@ -63,13 +63,17 @@ describe('middleware auth boundaries', () => {
   })
 
   it('allows student role on locale student route', async () => {
-    const res = await middleware(buildReq('/en/student/dashboard', { role: 'STUDENT', tosAccepted: true }))
+    const res = await middleware(
+      buildReq('/en/student/dashboard', { role: 'STUDENT', tosAccepted: true })
+    )
     expect(res.status).toBe(200)
     expect(res.headers.get('X-Content-Type-Options')).toBe('nosniff')
   })
 
   it('blocks student role on locale tutor route', async () => {
-    const res = await middleware(buildReq('/en/tutor/dashboard', { role: 'STUDENT', tosAccepted: true }))
+    const res = await middleware(
+      buildReq('/en/tutor/dashboard', { role: 'STUDENT', tosAccepted: true })
+    )
     expect(res.status).toBe(307)
     expect(res.headers.get('location')).toContain('/login')
   })

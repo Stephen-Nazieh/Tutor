@@ -55,15 +55,17 @@ export default function TutorTrainingPage() {
           <CardHeader>
             <CardTitle className="text-2xl">Training Sessions</CardTitle>
             <CardDescription>
-              Run live training sessions for tutors, staff, or cohorts. Schedule a session or jump into a live room.
+              Run live training sessions for tutors, staff, or cohorts. Schedule a session or jump
+              into a live room.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3 sm:flex-row">
-            <Button
-              className="gap-2"
-              onClick={() => router.push('/tutor/classes')}
-            >
-              {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+            <Button className="gap-2" onClick={() => router.push('/tutor/classes')}>
+              {starting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
               Open Live Sessions
             </Button>
           </CardContent>

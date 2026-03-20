@@ -1,6 +1,6 @@
 /**
  * Tutor Orchestration Toolbar Component
- * 
+ *
  * Provides tutor controls for pushing exemplars, spotlighting, and bulk operations.
  */
 
@@ -8,16 +8,7 @@
 
 import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { 
-  MonitorUp, 
-  Users,
-  Lock,
-  Unlock,
-  Eraser,
-  Eye,
-  Send,
-  ChevronDown
-} from 'lucide-react'
+import { MonitorUp, Users, Lock, Unlock, Eraser, Eye, Send, ChevronDown } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -81,24 +72,17 @@ export function TutorOrchestrationToolbar({
   }, [])
 
   const handleToggleStudent = useCallback((studentId: string) => {
-    setSelectedStudents(prev => 
-      prev.includes(studentId) 
-        ? prev.filter(id => id !== studentId)
-        : [...prev, studentId]
+    setSelectedStudents(prev =>
+      prev.includes(studentId) ? prev.filter(id => id !== studentId) : [...prev, studentId]
     )
   }, [])
 
   return (
-    <div className={cn('bg-white border rounded-lg p-2 shadow-sm', className)}>
+    <div className={cn('rounded-lg border bg-white p-2 shadow-sm', className)}>
       <div className="flex items-center gap-2">
         {/* Push Exemplar */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          onClick={onPushExemplar}
-        >
-          <Send className="w-4 h-4" />
+        <Button variant="outline" size="sm" className="gap-2" onClick={onPushExemplar}>
+          <Send className="h-4 w-4" />
           Push Exemplar
         </Button>
 
@@ -106,11 +90,11 @@ export function TutorOrchestrationToolbar({
         <Dialog open={showStudentSelector} onOpenChange={setShowStudentSelector}>
           <DialogTrigger asChild>
             <Button
-              variant={spotlightStudentId ? "default" : "outline"}
+              variant={spotlightStudentId ? 'default' : 'outline'}
               size="sm"
               className="gap-2"
             >
-              <Eye className="w-4 h-4" />
+              <Eye className="h-4 w-4" />
               {spotlightStudentId ? 'Viewing Student' : 'Spotlight'}
             </Button>
           </DialogTrigger>
@@ -128,15 +112,15 @@ export function TutorOrchestrationToolbar({
                 </Button>
               </div>
 
-              <div className="border rounded-lg max-h-64 overflow-y-auto">
+              <div className="max-h-64 overflow-y-auto rounded-lg border">
                 {/* Online Students */}
-                <div className="px-3 py-2 bg-green-50 text-xs font-medium text-green-700">
+                <div className="bg-green-50 px-3 py-2 text-xs font-medium text-green-700">
                   Online ({onlineStudents.length})
                 </div>
-                {onlineStudents.map((student) => (
+                {onlineStudents.map(student => (
                   <label
                     key={student.id}
-                    className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                    className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-gray-50"
                   >
                     <input
                       type="checkbox"
@@ -145,28 +129,24 @@ export function TutorOrchestrationToolbar({
                       className="rounded"
                     />
                     <span className="text-sm">{student.name}</span>
-                    <span className="text-xs text-green-600 ml-auto">● Online</span>
+                    <span className="ml-auto text-xs text-green-600">● Online</span>
                   </label>
                 ))}
 
                 {/* Offline Students */}
                 {offlineStudents.length > 0 && (
                   <>
-                    <div className="px-3 py-2 bg-gray-50 text-xs font-medium text-gray-500">
+                    <div className="bg-gray-50 px-3 py-2 text-xs font-medium text-gray-500">
                       Offline ({offlineStudents.length})
                     </div>
-                    {offlineStudents.map((student) => (
+                    {offlineStudents.map(student => (
                       <label
                         key={student.id}
-                        className="flex items-center gap-3 px-3 py-2 opacity-50 cursor-not-allowed"
+                        className="flex cursor-not-allowed items-center gap-3 px-3 py-2 opacity-50"
                       >
-                        <input
-                          type="checkbox"
-                          disabled
-                          className="rounded"
-                        />
+                        <input type="checkbox" disabled className="rounded" />
                         <span className="text-sm">{student.name}</span>
-                        <span className="text-xs text-gray-400 ml-auto">Offline</span>
+                        <span className="ml-auto text-xs text-gray-400">Offline</span>
                       </label>
                     ))}
                   </>
@@ -202,35 +182,35 @@ export function TutorOrchestrationToolbar({
         {/* Lock Controls */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-            >
-              {lockedLayers.length > 0 ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+            <Button variant="outline" size="sm" className="gap-2">
+              {lockedLayers.length > 0 ? (
+                <Lock className="h-4 w-4" />
+              ) : (
+                <Unlock className="h-4 w-4" />
+              )}
               {lockedLayers.length > 0 ? `Locked (${lockedLayers.length})` : 'Lock'}
-              <ChevronDown className="w-3 h-3" />
+              <ChevronDown className="h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onLockLayers(['student-personal'])}>
-              <Lock className="w-4 h-4 mr-2" />
+              <Lock className="mr-2 h-4 w-4" />
               Lock Student Boards
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onUnlockLayers(['student-personal'])}>
-              <Unlock className="w-4 h-4 mr-2" />
+              <Unlock className="mr-2 h-4 w-4" />
               Unlock Student Boards
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onToggleGlobalMute}>
               {isGloballyMuted ? (
                 <>
-                  <Unlock className="w-4 h-4 mr-2" />
+                  <Unlock className="mr-2 h-4 w-4" />
                   Unmute All
                 </>
               ) : (
                 <>
-                  <Lock className="w-4 h-4 mr-2" />
+                  <Lock className="mr-2 h-4 w-4" />
                   Mute All
                 </>
               )}
@@ -245,38 +225,35 @@ export function TutorOrchestrationToolbar({
           className="gap-2 text-red-600 hover:text-red-700"
           onClick={onClearAll}
         >
-          <Eraser className="w-4 h-4" />
+          <Eraser className="h-4 w-4" />
           Clear All
         </Button>
       </div>
 
       {/* Active Operations Summary */}
       {(spotlightStudentId || lockedLayers.length > 0 || isGloballyMuted) && (
-        <div className="mt-2 pt-2 border-t flex flex-wrap gap-2">
+        <div className="mt-2 flex flex-wrap gap-2 border-t pt-2">
           {spotlightStudentId && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">
-              <Eye className="w-3 h-3" />
+            <span className="inline-flex items-center gap-1 rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
+              <Eye className="h-3 w-3" />
               Spotlight Active
-              <button 
-                onClick={onStopSpotlight}
-                className="ml-1 hover:text-blue-900"
-              >
+              <button onClick={onStopSpotlight} className="ml-1 hover:text-blue-900">
                 ×
               </button>
             </span>
           )}
           {lockedLayers.map(layer => (
-            <span 
+            <span
               key={layer}
-              className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded"
+              className="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-700"
             >
-              <Lock className="w-3 h-3" />
+              <Lock className="h-3 w-3" />
               {layer.replace('-', ' ')}
             </span>
           ))}
           {isGloballyMuted && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded">
-              <Lock className="w-3 h-3" />
+            <span className="inline-flex items-center gap-1 rounded bg-red-100 px-2 py-0.5 text-xs text-red-700">
+              <Lock className="h-3 w-3" />
               Globally Muted
             </span>
           )}

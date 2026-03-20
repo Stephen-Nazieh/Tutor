@@ -2,24 +2,24 @@
  * ============================================================================
  * LIVE MONITOR AGENT - MONITORING PROMPTS
  * ============================================================================
- * 
- * UI LOCATION: 
+ *
+ * UI LOCATION:
  * - /tutor/live-class/[sessionId] - Real-time monitoring panel
  * - Alert notifications during live class
- * 
+ *
  * EDIT THIS FILE to change how live monitoring works.
  */
 
-import { Student, LiveSession } from '../../shared-data';
+import { Student, LiveSession } from '../../shared-data'
 
 export interface StudentActivity {
-  studentId: string;
-  messagesCount: number;
-  videoOn: boolean;
-  screenActive: boolean;
-  lastActivity: Date;
-  quizResponses: number;
-  chatSentiment: 'positive' | 'neutral' | 'negative' | 'confused';
+  studentId: string
+  messagesCount: number
+  videoOn: boolean
+  screenActive: boolean
+  lastActivity: Date
+  quizResponses: number
+  chatSentiment: 'positive' | 'neutral' | 'negative' | 'confused'
 }
 
 /**
@@ -31,17 +31,19 @@ export function buildEngagementAnalysisPrompt(
   sessionTopic: string,
   duration: number // minutes elapsed
 ): string {
-  const activitySummary = activities.map(a => {
-    const inactive = (Date.now() - a.lastActivity.getTime()) > 5 * 60 * 1000; // 5 min
-    return `
+  const activitySummary = activities
+    .map(a => {
+      const inactive = Date.now() - a.lastActivity.getTime() > 5 * 60 * 1000 // 5 min
+      return `
 - Student ${a.studentId}:
   - Messages: ${a.messagesCount}
   - Video: ${a.videoOn ? 'ON' : 'OFF'}
   - Active: ${a.screenActive ? 'YES' : 'NO'}
   - Sentiment: ${a.chatSentiment}
   - ${inactive ? 'INACTIVE >5min' : 'Recently active'}
-`;
-  }).join('\n');
+`
+    })
+    .join('\n')
 
   return `Analyze student engagement in a live class.
 
@@ -72,7 +74,7 @@ For each student, calculate engagement score (0-100) based on:
   "suggestion": "One sentence suggestion for tutor"
 }
 
-Analyze now:`;
+Analyze now:`
 }
 
 /**
@@ -118,7 +120,7 @@ Signs of understanding:
   "shouldAlertTutor": boolean
 }
 
-Detect now:`;
+Detect now:`
 }
 
 /**
@@ -165,7 +167,7 @@ Format as JSON:
       "expectedOutcome": "what should improve"
     }
   ]
-}`;
+}`
 }
 
 /**
@@ -178,11 +180,11 @@ export function buildParticipationBalancePrompt(
 ): string {
   const participationList = Array.from(participationCounts.entries())
     .map(([id, count]) => `- ${id}: ${count} messages`)
-    .join('\n');
-  
-  const avgParticipation = Array.from(participationCounts.values())
-    .reduce((a, b) => a + b, 0) / participationCounts.size;
-  
+    .join('\n')
+
+  const avgParticipation =
+    Array.from(participationCounts.values()).reduce((a, b) => a + b, 0) / participationCounts.size
+
   return `Analyze participation balance in a live class.
 
 DURATION: ${totalDuration} minutes
@@ -204,7 +206,7 @@ ${participationList}
   "suggestions": [
     "Direct suggestion for tutor to balance participation"
   ]
-}`;
+}`
 }
 
 /**
@@ -215,11 +217,11 @@ export function buildClassSummaryPrompt(
   session: LiveSession,
   activities: StudentActivity[]
 ): string {
-  const avgEngagement = Array.from(session.engagement.values())
-    .reduce((a, b) => a + b, 0) / session.engagement.size;
-  
-  const alertCount = session.confusionAlerts.length;
-  
+  const avgEngagement =
+    Array.from(session.engagement.values()).reduce((a, b) => a + b, 0) / session.engagement.size
+
+  const alertCount = session.confusionAlerts.length
+
   return `Generate end-of-class summary for tutor.
 
 SESSION: ${session.subject}
@@ -235,5 +237,5 @@ CONFUSION ALERTS: ${alertCount}
 4. Most confusing topics
 5. One recommendation for next class
 
-Keep it concise and actionable.`;
+Keep it concise and actionable.`
 }

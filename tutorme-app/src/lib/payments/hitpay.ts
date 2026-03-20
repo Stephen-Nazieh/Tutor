@@ -12,7 +12,7 @@ import type {
   PaymentResponse,
   PaymentGateway,
   WebhookResult,
-  RefundResponse
+  RefundResponse,
 } from './types'
 
 const SANDBOX_BASE = 'https://api.sandbox.hit-pay.com'
@@ -31,27 +31,31 @@ export class HitpayGateway implements PaymentGateway {
     }
 
     const base = getBaseUrl()
-    const defaultRedirect = process.env.PAYMENT_SUCCESS_URL || `${process.env.NEXT_PUBLIC_APP_URL || ''}/payment/success`
+    const defaultRedirect =
+      process.env.PAYMENT_SUCCESS_URL || `${process.env.NEXT_PUBLIC_APP_URL || ''}/payment/success`
     const redirectUrl = request.successUrl ?? defaultRedirect
-    const webhookUrl = process.env.HITPAY_WEBHOOK_URL || `${process.env.NEXT_PUBLIC_APP_URL || ''}/api/payments/webhooks/hitpay`
+    const webhookUrl =
+      process.env.HITPAY_WEBHOOK_URL ||
+      `${process.env.NEXT_PUBLIC_APP_URL || ''}/api/payments/webhooks/hitpay`
 
     const body = {
       amount: request.amount,
       currency: request.currency.toLowerCase(),
       email: request.studentEmail,
       purpose: request.description,
-      reference_number: request.bookingId ?? (request.curriculumId ? `course:${request.curriculumId}` : 'payment'),
+      reference_number:
+        request.bookingId ?? (request.curriculumId ? `course:${request.curriculumId}` : 'payment'),
       redirect_url: redirectUrl,
-      webhook: webhookUrl
+      webhook: webhookUrl,
     }
 
     const res = await fetch(`${base}/v1/payment-requests`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-BUSINESS-API-KEY': apiKey
+        'X-BUSINESS-API-KEY': apiKey,
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     })
 
     if (!res.ok) {
@@ -75,7 +79,7 @@ export class HitpayGateway implements PaymentGateway {
     return {
       paymentId,
       checkoutUrl,
-      status: data.status || 'pending'
+      status: data.status || 'pending',
     }
   }
 
@@ -122,7 +126,7 @@ export class HitpayGateway implements PaymentGateway {
       canceled: 'cancelled',
       cancelled: 'cancelled',
       partially_refunded: 'partially_refunded',
-      refunded: 'refunded'
+      refunded: 'refunded',
     }
     const normalizedStatus = status ? statusMap[status.toLowerCase()] || status : 'unknown'
 
@@ -130,7 +134,7 @@ export class HitpayGateway implements PaymentGateway {
       success: true,
       paymentId,
       eventType: 'payment_request.completed',
-      status: normalizedStatus
+      status: normalizedStatus,
     }
   }
 
@@ -150,9 +154,9 @@ export class HitpayGateway implements PaymentGateway {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-BUSINESS-API-KEY': apiKey
+        'X-BUSINESS-API-KEY': apiKey,
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     })
 
     if (!res.ok) {
@@ -160,7 +164,7 @@ export class HitpayGateway implements PaymentGateway {
       return {
         refundId: '',
         status: 'failed',
-        error: `Hitpay refund failed: ${res.status} ${text}`
+        error: `Hitpay refund failed: ${res.status} ${text}`,
       }
     }
 
@@ -168,7 +172,7 @@ export class HitpayGateway implements PaymentGateway {
     return {
       refundId: data.id || '',
       status: data.status || 'succeeded',
-      amountRefunded: data.amount_refunded
+      amountRefunded: data.amount_refunded,
     }
   }
 }

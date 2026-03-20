@@ -30,7 +30,7 @@ import {
   PartyPopper,
   User,
   CheckCircle,
-  BarChart3
+  BarChart3,
 } from 'lucide-react'
 
 // --- TYPES ---
@@ -97,8 +97,12 @@ function AssignmentsTab() {
   const [stats, setStats] = useState({ pending: 0, submitted: 0, overdue: 0, total: 0 })
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('all')
-  
-  const [activeTask, setActiveTask] = useState<{ id: string; title: string; questions: TaskQuestion[] } | null>(null)
+
+  const [activeTask, setActiveTask] = useState<{
+    id: string
+    title: string
+    questions: TaskQuestion[]
+  } | null>(null)
   const [takingQuiz, setTakingQuiz] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [startTime, setStartTime] = useState<number>(0)
@@ -148,7 +152,11 @@ function AssignmentsTab() {
     }
   }
 
-  const handleQuizComplete = async (results: { score: number; answers: Record<string, any>; questionResults?: QuestionResultItem[] }) => {
+  const handleQuizComplete = async (results: {
+    score: number
+    answers: Record<string, any>
+    questionResults?: QuestionResultItem[]
+  }) => {
     if (!activeTask) return
     setSubmitting(true)
     const timeSpentSec = Math.round((Date.now() - startTime) / 1000)
@@ -193,49 +201,73 @@ function AssignmentsTab() {
 
   const parseDocumentSource = (raw?: string | null) => {
     if (!raw) return null
-    try { return JSON.parse(raw) } catch { return null }
+    try {
+      return JSON.parse(raw)
+    } catch {
+      return null
+    }
   }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'submitted': return <CheckCircle2 className="h-5 w-5 text-green-500" />
-      case 'overdue': return <AlertCircle className="h-5 w-5 text-red-500" />
-      default: return <Clock className="h-5 w-5 text-amber-500" />
+      case 'submitted':
+        return <CheckCircle2 className="h-5 w-5 text-green-500" />
+      case 'overdue':
+        return <AlertCircle className="h-5 w-5 text-red-500" />
+      default:
+        return <Clock className="h-5 w-5 text-amber-500" />
     }
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'submitted': return <Badge className="bg-green-100 text-green-700 border-green-200">Submitted</Badge>
-      case 'overdue': return <Badge variant="destructive">Overdue</Badge>
-      default: return <Badge className="bg-amber-100 text-amber-700 border-amber-200">Pending</Badge>
+      case 'submitted':
+        return <Badge className="border-green-200 bg-green-100 text-green-700">Submitted</Badge>
+      case 'overdue':
+        return <Badge variant="destructive">Overdue</Badge>
+      default:
+        return <Badge className="border-amber-200 bg-amber-100 text-amber-700">Pending</Badge>
     }
   }
 
   const getTypeBadge = (type: string) => {
-    const color = type === 'quiz' ? 'bg-blue-100 text-blue-700' :
-      type === 'assignment' || type === 'homework' ? 'bg-purple-100 text-purple-700' :
-        type === 'project' ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-gray-700'
+    const color =
+      type === 'quiz'
+        ? 'bg-blue-100 text-blue-700'
+        : type === 'assignment' || type === 'homework'
+          ? 'bg-purple-100 text-purple-700'
+          : type === 'project'
+            ? 'bg-teal-100 text-teal-700'
+            : 'bg-gray-100 text-gray-700'
     return <Badge className={`${color} border-0 capitalize`}>{type}</Badge>
   }
 
-  const filtered = activeTab === 'all' ? assignments : assignments.filter((a) => a.status === activeTab)
+  const filtered =
+    activeTab === 'all' ? assignments : assignments.filter(a => a.status === activeTab)
 
   if (takingQuiz && activeTask) {
-    const quizQuestions = activeTask.questions.map((q) => ({
+    const quizQuestions = activeTask.questions.map(q => ({
       id: q.id,
-      type: (q.type === 'mcq' || q.type === 'multiple_choice' ? 'multiple_choice' : 'short_answer') as 'multiple_choice' | 'short_answer',
+      type: (q.type === 'mcq' || q.type === 'multiple_choice'
+        ? 'multiple_choice'
+        : 'short_answer') as 'multiple_choice' | 'short_answer',
       question: q.question,
       options: q.options,
       rubric: q.rubric?.join('; '),
     }))
-    return <QuizModal questions={quizQuestions} onComplete={handleQuizComplete} onClose={handleCloseQuiz} />
+    return (
+      <QuizModal
+        questions={quizQuestions}
+        onComplete={handleQuizComplete}
+        onClose={handleCloseQuiz}
+      />
+    )
   }
 
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
@@ -297,38 +329,51 @@ function AssignmentsTab() {
               <TabsTrigger value="overdue">Overdue ({stats.overdue})</TabsTrigger>
             </TabsList>
 
-            <TabsContent value={activeTab} className="space-y-3 mt-0">
+            <TabsContent value={activeTab} className="mt-0 space-y-3">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                 </div>
               ) : filtered.length === 0 ? (
-                <div className="text-center py-12">
-                  <ClipboardList className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <div className="py-12 text-center">
+                  <ClipboardList className="mx-auto mb-4 h-12 w-12 text-gray-300" />
                   <h3 className="text-lg font-medium text-gray-700">No assignments</h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {activeTab === 'all' ? 'No tasks have been assigned yet' : `No ${activeTab} assignments`}
+                  <p className="mt-1 text-sm text-gray-500">
+                    {activeTab === 'all'
+                      ? 'No tasks have been assigned yet'
+                      : `No ${activeTab} assignments`}
                   </p>
                 </div>
               ) : (
-                filtered.map((assignment) => (
-                  <div key={assignment.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-4 min-w-0">
+                filtered.map(assignment => (
+                  <div
+                    key={assignment.id}
+                    className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-gray-50"
+                  >
+                    <div className="flex min-w-0 items-center gap-4">
                       {getStatusIcon(assignment.status)}
                       <div className="min-w-0">
-                        <h3 className="font-medium text-gray-900 truncate">{assignment.title}</h3>
-                        <p className="text-sm text-gray-500 line-clamp-1">{assignment.description}</p>
-                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        <h3 className="truncate font-medium text-gray-900">{assignment.title}</h3>
+                        <p className="line-clamp-1 text-sm text-gray-500">
+                          {assignment.description}
+                        </p>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-2">
                           {getTypeBadge(assignment.type)}
-                          <Badge variant="outline" className="capitalize text-xs">{assignment.difficulty}</Badge>
+                          <Badge variant="outline" className="text-xs capitalize">
+                            {assignment.difficulty}
+                          </Badge>
                           {assignment.questionCount > 0 && (
-                            <span className="text-xs text-gray-400">{assignment.questionCount} questions</span>
+                            <span className="text-xs text-gray-400">
+                              {assignment.questionCount} questions
+                            </span>
                           )}
                           {parseDocumentSource(assignment.documentSource)?.fileName && (
-                            <Badge variant="outline" className="text-xs">Source file</Badge>
+                            <Badge variant="outline" className="text-xs">
+                              Source file
+                            </Badge>
                           )}
                           {assignment.dueDate && (
-                            <span className="text-xs text-gray-400 flex items-center gap-1">
+                            <span className="flex items-center gap-1 text-xs text-gray-400">
                               <Calendar className="h-3 w-3" />
                               {new Date(assignment.dueDate).toLocaleDateString()}
                             </span>
@@ -336,20 +381,31 @@ function AssignmentsTab() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 ml-4 flex-shrink-0">
+                    <div className="ml-4 flex flex-shrink-0 items-center gap-3">
                       {assignment.status === 'submitted' && assignment.score !== null && (
-                        <span className={`font-bold text-lg ${assignment.score >= 80 ? 'text-green-600' : assignment.score >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
+                        <span
+                          className={`text-lg font-bold ${assignment.score >= 80 ? 'text-green-600' : assignment.score >= 60 ? 'text-amber-600' : 'text-red-600'}`}
+                        >
                           {Math.round(assignment.score)}%
                         </span>
                       )}
                       {getStatusBadge(assignment.status)}
                       {assignment.status === 'pending' && (
-                        <Button size="sm" onClick={() => handleStartTask(assignment.id)} className="gap-1">
+                        <Button
+                          size="sm"
+                          onClick={() => handleStartTask(assignment.id)}
+                          className="gap-1"
+                        >
                           Start <ArrowRight className="h-3 w-3" />
                         </Button>
                       )}
                       {assignment.status === 'overdue' && (
-                        <Button size="sm" variant="outline" onClick={() => handleStartTask(assignment.id)} className="gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleStartTask(assignment.id)}
+                          className="gap-1"
+                        >
                           Submit Late <ArrowRight className="h-3 w-3" />
                         </Button>
                       )}
@@ -374,7 +430,9 @@ function QuizzesTab() {
 
   const fetchQuizzes = useCallback(async () => {
     try {
-      const res = await fetch(`/api/student/quizzes?status=${activeTab === 'completed' ? 'completed' : activeTab}`)
+      const res = await fetch(
+        `/api/student/quizzes?status=${activeTab === 'completed' ? 'completed' : activeTab}`
+      )
       if (res.ok) {
         const data = await res.json()
         setQuizzes(data.quizzes)
@@ -386,28 +444,41 @@ function QuizzesTab() {
     }
   }, [activeTab])
 
-  useEffect(() => { fetchQuizzes() }, [fetchQuizzes])
+  useEffect(() => {
+    fetchQuizzes()
+  }, [fetchQuizzes])
 
   const getStatusBadge = (status: StudentQuiz['status']) => {
     switch (status) {
-      case 'available': return <Badge className="bg-green-100 text-green-700">Available</Badge>
-      case 'completed': return <Badge className="bg-blue-100 text-blue-700">Completed</Badge>
-      case 'overdue': return <Badge className="bg-red-100 text-red-700">Overdue</Badge>
-      case 'upcoming': return <Badge className="bg-yellow-100 text-yellow-700">Upcoming</Badge>
-      case 'locked': return <Badge variant="secondary">Locked</Badge>
-      default: return <Badge variant="outline">{status}</Badge>
+      case 'available':
+        return <Badge className="bg-green-100 text-green-700">Available</Badge>
+      case 'completed':
+        return <Badge className="bg-blue-100 text-blue-700">Completed</Badge>
+      case 'overdue':
+        return <Badge className="bg-red-100 text-red-700">Overdue</Badge>
+      case 'upcoming':
+        return <Badge className="bg-yellow-100 text-yellow-700">Upcoming</Badge>
+      case 'locked':
+        return <Badge variant="secondary">Locked</Badge>
+      default:
+        return <Badge variant="outline">{status}</Badge>
     }
   }
 
   const getTypeLabel = (type: string) => {
-    const labels: Record<string, string> = { practice: 'Practice', graded: 'Graded', diagnostic: 'Diagnostic', survey: 'Survey' }
+    const labels: Record<string, string> = {
+      practice: 'Practice',
+      graded: 'Graded',
+      diagnostic: 'Diagnostic',
+      survey: 'Survey',
+    }
     return labels[type] || type
   }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     )
   }
@@ -424,15 +495,17 @@ function QuizzesTab() {
         <TabsContent value={activeTab}>
           {quizzes.length === 0 ? (
             <Card className="p-12 text-center">
-              <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No quizzes found</h3>
+              <FileText className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+              <h3 className="mb-2 text-lg font-medium">No quizzes found</h3>
               <p className="text-muted-foreground">
-                {activeTab === 'available' ? 'You have no quizzes available right now.' : "You haven't completed any quizzes yet."}
+                {activeTab === 'available'
+                  ? 'You have no quizzes available right now.'
+                  : "You haven't completed any quizzes yet."}
               </p>
             </Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
-              {quizzes.map((quiz) => (
+              {quizzes.map(quiz => (
                 <Card key={quiz.id} className={quiz.status === 'completed' ? 'opacity-75' : ''}>
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
@@ -444,37 +517,58 @@ function QuizzesTab() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="mb-4 flex flex-wrap gap-2">
                       <Badge variant="outline">{quiz.totalQuestions} questions</Badge>
                       <Badge variant="outline">{quiz.totalPoints} points</Badge>
                       {quiz.timeLimit && (
-                        <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />{quiz.timeLimit} min</Badge>
+                        <Badge variant="outline">
+                          <Clock className="mr-1 h-3 w-3" />
+                          {quiz.timeLimit} min
+                        </Badge>
                       )}
                     </div>
                     {quiz.dueDate && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                        <Calendar className="w-4 h-4" />
+                      <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
                         Due {new Date(quiz.dueDate).toLocaleDateString()}
                       </div>
                     )}
                     {quiz.attemptsMade > 0 && (
-                      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
+                      <div className="mb-4 rounded-lg bg-gray-50 p-3">
+                        <div className="mb-2 flex items-center justify-between">
                           <span className="text-sm font-medium">Attempts: {quiz.attemptsMade}</span>
-                          {quiz.bestScore !== undefined && <span className="text-sm">Best: <span className="font-bold text-green-600">{quiz.bestScore}%</span></span>}
+                          {quiz.bestScore !== undefined && (
+                            <span className="text-sm">
+                              Best:{' '}
+                              <span className="font-bold text-green-600">{quiz.bestScore}%</span>
+                            </span>
+                          )}
                         </div>
-                        {quiz.bestScore !== undefined && <Progress value={quiz.bestScore} className="h-2" />}
+                        {quiz.bestScore !== undefined && (
+                          <Progress value={quiz.bestScore} className="h-2" />
+                        )}
                       </div>
                     )}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">{quiz.attemptsMade} / {quiz.allowedAttempts} attempts</span>
+                      <span className="text-sm text-muted-foreground">
+                        {quiz.attemptsMade} / {quiz.allowedAttempts} attempts
+                      </span>
                       {quiz.canAttempt ? (
-                        <Button size="sm" onClick={() => router.push(`/student/quizzes/${quiz.id}`)}>
-                          <Play className="w-4 h-4 mr-2" />{quiz.attemptsMade > 0 ? 'Retake' : 'Start'}
+                        <Button
+                          size="sm"
+                          onClick={() => router.push(`/student/quizzes/${quiz.id}`)}
+                        >
+                          <Play className="mr-2 h-4 w-4" />
+                          {quiz.attemptsMade > 0 ? 'Retake' : 'Start'}
                         </Button>
                       ) : quiz.status === 'completed' ? (
-                        <Button variant="outline" size="sm" onClick={() => router.push(`/student/quizzes/${quiz.id}`)}>
-                          <BarChart3 className="w-4 h-4 mr-2" />Review
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/student/quizzes/${quiz.id}`)}
+                        >
+                          <BarChart3 className="mr-2 h-4 w-4" />
+                          Review
                         </Button>
                       ) : (
                         <Badge variant="secondary">Not Available</Badge>
@@ -500,23 +594,37 @@ function MissedLessonsTab() {
   useEffect(() => {
     setLoading(true)
     fetch(`/api/student/missed-classes?filter=${filter}`)
-      .then((r) => r.json())
-      .then((res) => { if (res.success) setSessions(res.data.sessions) })
+      .then(r => r.json())
+      .then(res => {
+        if (res.success) setSessions(res.data.sessions)
+      })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [filter])
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr)
-    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    return d.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   }
 
   return (
     <div className="space-y-6">
       {/* Filter Tabs */}
       <div className="flex gap-2">
-        {(['all', 'week', 'month'] as const).map((f) => (
-          <Button key={f} variant={filter === f ? 'default' : 'outline'} size="sm" onClick={() => setFilter(f)} className="capitalize">
+        {(['all', 'week', 'month'] as const).map(f => (
+          <Button
+            key={f}
+            variant={filter === f ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setFilter(f)}
+            className="capitalize"
+          >
             {f === 'all' ? 'All Time' : f === 'week' ? 'This Week' : 'This Month'}
           </Button>
         ))}
@@ -525,40 +633,70 @@ function MissedLessonsTab() {
       {/* Content */}
       {loading ? (
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => <Card key={i}><CardContent className="pt-6"><Skeleton className="h-20" /></CardContent></Card>)}
+          {[1, 2, 3].map(i => (
+            <Card key={i}>
+              <CardContent className="pt-6">
+                <Skeleton className="h-20" />
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : sessions.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <PartyPopper className="w-12 h-12 mx-auto mb-3 text-green-400" />
+            <PartyPopper className="mx-auto mb-3 h-12 w-12 text-green-400" />
             <h3 className="font-semibold text-gray-900">No missed classes!</h3>
-            <p className="text-sm text-gray-500 mt-1">Great job — you&apos;ve been attending all your classes.</p>
+            <p className="mt-1 text-sm text-gray-500">
+              Great job — you&apos;ve been attending all your classes.
+            </p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
-          {sessions.map((session) => (
-            <Card key={session.id} className="hover:shadow-sm transition-shadow">
-              <CardContent className="pt-5 pb-5">
+          {sessions.map(session => (
+            <Card key={session.id} className="transition-shadow hover:shadow-sm">
+              <CardContent className="pb-5 pt-5">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium truncate">{session.title}</h3>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex items-center gap-2">
+                      <h3 className="truncate font-medium">{session.title}</h3>
                       {session.leftEarly && (
-                        <Badge variant="outline" className="text-xs border-amber-200 text-amber-700">Left early</Badge>
+                        <Badge
+                          variant="outline"
+                          className="border-amber-200 text-xs text-amber-700"
+                        >
+                          Left early
+                        </Badge>
                       )}
                     </div>
                     <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
-                      <span className="flex items-center gap-1"><User className="w-3.5 h-3.5" />{session.tutorName}</span>
-                      <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{formatDate(session.scheduledAt)}</span>
-                      {session.duration && <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{session.duration} min</span>}
+                      <span className="flex items-center gap-1">
+                        <User className="h-3.5 w-3.5" />
+                        {session.tutorName}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5" />
+                        {formatDate(session.scheduledAt)}
+                      </span>
+                      {session.duration && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3.5 w-3.5" />
+                          {session.duration} min
+                        </span>
+                      )}
                     </div>
-                    <Badge variant="secondary" className="mt-2 text-xs">{session.subject}</Badge>
+                    <Badge variant="secondary" className="mt-2 text-xs">
+                      {session.subject}
+                    </Badge>
                   </div>
                   <div className="flex-shrink-0">
                     {session.hasRecording ? (
                       <a href={session.recordingUrl!} target="_blank" rel="noopener noreferrer">
-                        <Button size="sm" className="gap-1.5"><Play className="w-3.5 h-3.5" />Watch<ExternalLink className="w-3 h-3" /></Button>
+                        <Button size="sm" className="gap-1.5">
+                          <Play className="h-3.5 w-3.5" />
+                          Watch
+                          <ExternalLink className="h-3 w-3" />
+                        </Button>
                       </a>
                     ) : (
                       <Badge variant="secondary">No recording</Badge>
@@ -581,15 +719,23 @@ function LessonReplaysTab() {
 
   useEffect(() => {
     fetch('/api/student/lesson-replays')
-      .then((res) => res.json())
-      .then((payload) => { if (payload.success) setSessions(payload.data.sessions || []) })
+      .then(res => res.json())
+      .then(payload => {
+        if (payload.success) setSessions(payload.data.sessions || [])
+      })
       .finally(() => setLoading(false))
   }, [])
 
   if (loading) {
     return (
       <div className="space-y-4">
-        {[1, 2, 3].map((i) => <Card key={i}><CardContent className="pt-6"><Skeleton className="h-20" /></CardContent></Card>)}
+        {[1, 2, 3].map(i => (
+          <Card key={i}>
+            <CardContent className="pt-6">
+              <Skeleton className="h-20" />
+            </CardContent>
+          </Card>
+        ))}
       </div>
     )
   }
@@ -599,37 +745,46 @@ function LessonReplaysTab() {
       {sessions.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <Video className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+            <Video className="mx-auto mb-3 h-12 w-12 text-gray-400" />
             <h3 className="font-semibold text-gray-900">No lesson replays yet</h3>
-            <p className="text-sm text-gray-500 mt-1">Attend live classes to see replays here.</p>
+            <p className="mt-1 text-sm text-gray-500">Attend live classes to see replays here.</p>
           </CardContent>
         </Card>
       ) : (
-        sessions.map((session) => (
+        sessions.map(session => (
           <Card key={session.id}>
-            <CardContent className="pt-5 pb-5 space-y-3">
+            <CardContent className="space-y-3 pb-5 pt-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h3 className="font-medium">{session.title}</h3>
-                  <p className="text-sm text-muted-foreground">{session.subject} · {session.tutorName}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {session.subject} · {session.tutorName}
+                  </p>
                 </div>
-                <Badge variant="outline" className="gap-1"><CheckCircle className="h-3.5 w-3.5" />Replay</Badge>
+                <Badge variant="outline" className="gap-1">
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  Replay
+                </Badge>
               </div>
-              <div className="text-xs text-muted-foreground flex gap-3">
+              <div className="flex gap-3 text-xs text-muted-foreground">
                 <span>Tasks: {session.taskCount}</span>
                 <span>Submitted: {session.submittedCount}</span>
                 <span>Status: {session.replayStatus}</span>
               </div>
               {session.summaryPreview && (
-                <div className="rounded-md border bg-muted/30 p-2.5 text-xs flex gap-2">
-                  <FileText className="h-3.5 w-3.5 mt-0.5" />
+                <div className="flex gap-2 rounded-md border bg-muted/30 p-2.5 text-xs">
+                  <FileText className="mt-0.5 h-3.5 w-3.5" />
                   <span>{session.summaryPreview}</span>
                 </div>
               )}
               <div className="flex gap-2">
                 {session.hasRecording && session.recordingUrl ? (
                   <a href={session.recordingUrl} target="_blank" rel="noreferrer">
-                    <Button size="sm" className="gap-1.5"><Play className="w-3.5 h-3.5" />Watch Replay<ExternalLink className="w-3 h-3" /></Button>
+                    <Button size="sm" className="gap-1.5">
+                      <Play className="h-3.5 w-3.5" />
+                      Watch Replay
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
                   </a>
                 ) : (
                   <Badge variant="secondary">Recording processing</Badge>
@@ -649,35 +804,35 @@ export default function StudentWorkPage() {
   const [activeTab, setActiveTab] = useState('assignments')
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
           <ClipboardList className="h-6 w-6" />
           My Work
         </h1>
-        <p className="text-gray-600 mt-1">
+        <p className="mt-1 text-gray-600">
           Manage your assignments, quizzes, missed lessons, and lesson replays
         </p>
       </div>
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+        <TabsList className="grid w-full max-w-2xl grid-cols-4">
           <TabsTrigger value="assignments">
-            <ClipboardList className="w-4 h-4 mr-2" />
+            <ClipboardList className="mr-2 h-4 w-4" />
             Assignments
           </TabsTrigger>
           <TabsTrigger value="quizzes">
-            <FileText className="w-4 h-4 mr-2" />
+            <FileText className="mr-2 h-4 w-4" />
             Quizzes
           </TabsTrigger>
           <TabsTrigger value="missed">
-            <Video className="w-4 h-4 mr-2" />
+            <Video className="mr-2 h-4 w-4" />
             Missed Lessons
           </TabsTrigger>
           <TabsTrigger value="replays">
-            <Play className="w-4 h-4 mr-2" />
+            <Play className="mr-2 h-4 w-4" />
             Replays
           </TabsTrigger>
         </TabsList>

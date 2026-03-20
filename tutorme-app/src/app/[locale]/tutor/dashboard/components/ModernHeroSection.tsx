@@ -29,10 +29,16 @@ import {
   BookOpen,
   Award,
   Video,
-  Plus
+  Plus,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 
 interface ModernHeroSectionProps {
   stats?: {
@@ -58,7 +64,7 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
   const { data: session } = useSession()
   const [greeting, setGreeting] = useState('Good morning')
   const [currentTime, setCurrentTime] = useState(new Date())
-  const [selectedDay, setSelectedDay] = useState<{date: Date, events: ClassEvent[]} | null>(null)
+  const [selectedDay, setSelectedDay] = useState<{ date: Date; events: ClassEvent[] } | null>(null)
   const [username, setUsername] = useState<string | null>(null)
 
   useEffect(() => {
@@ -73,28 +79,48 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
 
   useEffect(() => {
     let active = true
-    fetchTutorUsername().then((u) => {
+    fetchTutorUsername().then(u => {
       if (active) setUsername(u)
     })
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [])
 
   // Generate mock class events for the 7-day calendar
   const generateClassEvents = (date: Date): ClassEvent[] => {
     const dayOfWeek = date.getDay()
     const events: ClassEvent[] = []
-    
+
     // Add some scheduled classes based on day
     if (dayOfWeek === 1 || dayOfWeek === 3) {
-      events.push({ id: '1', title: 'Mathematics', time: '3:00 PM - 4:00 PM', duration: 60, subject: 'Mathematics' })
+      events.push({
+        id: '1',
+        title: 'Mathematics',
+        time: '3:00 PM - 4:00 PM',
+        duration: 60,
+        subject: 'Mathematics',
+      })
     }
     if (dayOfWeek === 2 || dayOfWeek === 4) {
-      events.push({ id: '2', title: 'Physics', time: '2:00 PM - 3:30 PM', duration: 90, subject: 'Physics' })
+      events.push({
+        id: '2',
+        title: 'Physics',
+        time: '2:00 PM - 3:30 PM',
+        duration: 90,
+        subject: 'Physics',
+      })
     }
     if (dayOfWeek === 5) {
-      events.push({ id: '3', title: 'Chemistry', time: '10:00 AM - 11:00 AM', duration: 60, subject: 'Chemistry' })
+      events.push({
+        id: '3',
+        title: 'Chemistry',
+        time: '10:00 AM - 11:00 AM',
+        duration: 60,
+        subject: 'Chemistry',
+      })
     }
-    
+
     return events
   }
 
@@ -111,7 +137,7 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
     })
   }
 
@@ -119,7 +145,7 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     })
   }
 
@@ -127,11 +153,11 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
     return (
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-background via-secondary to-card p-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/3" />
-          <div className="h-4 bg-muted/70 rounded w-1/4" />
-          <div className="grid grid-cols-4 gap-4 mt-8">
+          <div className="h-8 w-1/3 rounded bg-muted" />
+          <div className="h-4 w-1/4 rounded bg-muted/70" />
+          <div className="mt-8 grid grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-24 bg-muted/60 rounded-xl" />
+              <div key={i} className="h-24 rounded-xl bg-muted/60" />
             ))}
           </div>
         </div>
@@ -140,28 +166,30 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
   }
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-background via-secondary to-card p-8 shadow-2xl border border-border">
+    <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-background via-secondary to-card p-8 shadow-2xl">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-40">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-primary/20 rounded-full mix-blend-multiply filter blur-[100px] animate-pulse opacity-50" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/40 rounded-full mix-blend-multiply filter blur-[100px] animate-pulse delay-1000 opacity-50" />
-        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-secondary/40 rounded-full mix-blend-multiply filter blur-[100px] animate-pulse delay-2000 opacity-50" />
+        <div className="absolute left-0 top-0 h-96 w-96 animate-pulse rounded-full bg-primary/20 opacity-50 mix-blend-multiply blur-[100px] filter" />
+        <div className="absolute right-0 top-0 h-96 w-96 animate-pulse rounded-full bg-accent/40 opacity-50 mix-blend-multiply blur-[100px] filter delay-1000" />
+        <div className="delay-2000 absolute bottom-0 left-1/2 h-96 w-96 animate-pulse rounded-full bg-secondary/40 opacity-50 mix-blend-multiply blur-[100px] filter" />
       </div>
 
       {/* Content */}
       <div className="relative z-10">
         {/* Header Row */}
-        <div className="flex items-start justify-between mb-8">
+        <div className="mb-8 flex items-start justify-between">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-5 h-5 text-primary" />
-              <span className="text-muted-foreground text-sm font-medium">
-                {greeting}, @{username ?? session?.user?.name ?? session?.user?.email?.split('@')[0] ?? 'username'}
+            <div className="mb-2 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <span className="text-sm font-medium text-muted-foreground">
+                {greeting}, @
+                {username ??
+                  session?.user?.name ??
+                  session?.user?.email?.split('@')[0] ??
+                  'username'}
               </span>
             </div>
-            <h1 className="text-4xl font-bold text-foreground mb-2">
-              Welcome Back!
-            </h1>
+            <h1 className="mb-2 text-4xl font-bold text-foreground">Welcome Back!</h1>
             <p className="text-muted-foreground">
               {formatDate(currentTime)} • {formatTime(currentTime)}
             </p>
@@ -169,84 +197,91 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
         </div>
 
         {/* One Week Calendar Schedule */}
-        <div className="grid grid-cols-7 gap-2 mb-8 bg-card/70 backdrop-blur-md border border-border rounded-2xl p-4 shadow-2xl">
+        <div className="mb-8 grid grid-cols-7 gap-2 rounded-2xl border border-border bg-card/70 p-4 shadow-2xl backdrop-blur-md">
           {Array.from({ length: 7 }, (_, i) => {
-            const d = new Date(currentTime);
-            d.setDate(currentTime.getDate() + i);
-            const dayClasses = getDayClasses(d);
-            const hasClasses = dayClasses.length > 0;
-            
+            const d = new Date(currentTime)
+            d.setDate(currentTime.getDate() + i)
+            const dayClasses = getDayClasses(d)
+            const hasClasses = dayClasses.length > 0
+
             return (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 onClick={() => handleDayClick(d)}
-                className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-accent/40 transition-colors cursor-pointer group"
+                className="group flex cursor-pointer flex-col items-center justify-center rounded-xl p-2 transition-colors hover:bg-accent/40"
               >
-                <span className="text-muted-foreground text-xs font-medium mb-1">
+                <span className="mb-1 text-xs font-medium text-muted-foreground">
                   {d.toLocaleDateString('en-US', { weekday: 'short' })}
                 </span>
-                <span className={cn(
-                  "text-lg font-bold w-8 h-8 flex items-center justify-center rounded-full mt-1",
-                  i === 0 ? "bg-primary text-primary-foreground shadow-md shadow-primary/30" : "text-foreground group-hover:bg-accent/30"
-                )}>
+                <span
+                  className={cn(
+                    'mt-1 flex h-8 w-8 items-center justify-center rounded-full text-lg font-bold',
+                    i === 0
+                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/30'
+                      : 'text-foreground group-hover:bg-accent/30'
+                  )}
+                >
                   {d.getDate()}
                 </span>
                 {/* Show class times instead of dots */}
-                <div className="flex flex-col items-center mt-2 gap-0.5">
+                <div className="mt-2 flex flex-col items-center gap-0.5">
                   {dayClasses.slice(0, 1).map((cls, idx) => (
-                    <span key={idx} className="text-[10px] text-primary font-medium">
+                    <span key={idx} className="text-[10px] font-medium text-primary">
                       {cls.time}
                     </span>
                   ))}
                   {dayClasses.length > 1 && (
-                    <span className="text-[8px] text-muted-foreground">+{dayClasses.length - 1} more</span>
+                    <span className="text-[8px] text-muted-foreground">
+                      +{dayClasses.length - 1} more
+                    </span>
                   )}
                   {!hasClasses && (
-                    <div className="flex gap-1 h-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/60" />
+                    <div className="flex h-1.5 gap-1">
+                      <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
                     </div>
                   )}
                 </div>
               </div>
-            );
+            )
           })}
         </div>
 
         {/* Day Detail Modal */}
         <Dialog open={!!selectedDay} onOpenChange={() => setSelectedDay(null)}>
-          <DialogContent className="sm:max-w-md border border-border bg-card">
+          <DialogContent className="border border-border bg-card sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
                 {selectedDay?.date.toLocaleDateString('en-US', {
                   weekday: 'long',
                   month: 'long',
-                  day: 'numeric'
+                  day: 'numeric',
                 })}
               </DialogTitle>
               <DialogDescription>
-                {selectedDay && selectedDay.events.length > 0 
+                {selectedDay && selectedDay.events.length > 0
                   ? `${selectedDay.events.length} class${selectedDay.events.length > 1 ? 'es' : ''} scheduled`
-                  : 'No classes scheduled'
-                }
+                  : 'No classes scheduled'}
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-3 py-4">
-              {selectedDay?.events.map((event) => (
-                <div key={event.id} className="flex items-center gap-3 p-3 bg-muted/60 rounded-lg">
-                  <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center">
-                    <BookOpen className="w-5 h-5 text-primary" />
+              {selectedDay?.events.map(event => (
+                <div key={event.id} className="flex items-center gap-3 rounded-lg bg-muted/60 p-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15">
+                    <BookOpen className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-foreground">{event.title}</p>
-                    <p className="text-sm text-muted-foreground">{event.time} • {event.duration} min</p>
+                    <p className="text-sm text-muted-foreground">
+                      {event.time} • {event.duration} min
+                    </p>
                   </div>
                 </div>
               ))}
-              
+
               {(!selectedDay || selectedDay.events.length === 0) && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Calendar className="w-12 h-12 mx-auto mb-3 text-muted-foreground/60" />
+                <div className="py-8 text-center text-muted-foreground">
+                  <Calendar className="mx-auto mb-3 h-12 w-12 text-muted-foreground/60" />
                   <p>No classes scheduled for this day</p>
                 </div>
               )}
@@ -257,31 +292,31 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
         {/* Action Bar */}
         <div className="flex flex-wrap items-center gap-4">
           <Button
-            className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium shadow-lg border-0"
+            className="border-0 bg-primary font-medium text-primary-foreground shadow-lg hover:bg-primary/90"
             onClick={onCreateCourse}
           >
-            <Award className="w-4 h-4 mr-2" />
+            <Award className="mr-2 h-4 w-4" />
             Create Course
           </Button>
           <Button
             variant="outline"
-            className="text-foreground border-border bg-card/60 hover:bg-muted/60"
+            className="border-border bg-card/60 text-foreground hover:bg-muted/60"
             onClick={() => toast.info('Coming soon...')}
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Create Class
           </Button>
           <Button
             variant="outline"
-            className="text-foreground border-border bg-card/60 hover:bg-muted/60"
+            className="border-border bg-card/60 text-foreground hover:bg-muted/60"
             onClick={() => toast.info('Coming soon...')}
           >
-            <Video className="w-4 h-4 mr-2" />
+            <Video className="mr-2 h-4 w-4" />
             Go Live
           </Button>
           <div className="flex-1" />
           <div className="flex items-center gap-2 text-base font-medium text-green-600">
-            <Clock className="w-5 h-5" />
+            <Clock className="h-5 w-5" />
             <span>Next class in 2h 15m</span>
           </div>
         </div>
@@ -302,24 +337,34 @@ interface StatCardProps {
 
 function StatCard({ icon: Icon, label, value, sublabel, trend, trendUp, color }: StatCardProps) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl bg-card/70 backdrop-blur-md border border-border p-4 hover:bg-muted/60 transition-all cursor-pointer shadow-2xl">
-      <div className={cn("absolute top-0 right-0 w-20 h-20 bg-gradient-to-br opacity-20 rounded-bl-full", color)} />
+    <div className="group relative cursor-pointer overflow-hidden rounded-2xl border border-border bg-card/70 p-4 shadow-2xl backdrop-blur-md transition-all hover:bg-muted/60">
+      <div
+        className={cn(
+          'absolute right-0 top-0 h-20 w-20 rounded-bl-full bg-gradient-to-br opacity-20',
+          color
+        )}
+      />
       <div className="relative">
-        <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center mb-3", color)}>
-          <Icon className="w-5 h-5 text-primary-foreground" />
+        <div
+          className={cn(
+            'mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br',
+            color
+          )}
+        >
+          <Icon className="h-5 w-5 text-primary-foreground" />
         </div>
-        <p className="text-muted-foreground text-xs font-medium mb-1">{label}</p>
+        <p className="mb-1 text-xs font-medium text-muted-foreground">{label}</p>
         <div className="flex items-end justify-between">
           <p className="text-2xl font-bold text-foreground">{value}</p>
-          {sublabel && (
-            <p className="text-muted-foreground text-xs">{sublabel}</p>
-          )}
+          {sublabel && <p className="text-xs text-muted-foreground">{sublabel}</p>}
           {trend && (
-            <div className={cn(
-              "flex items-center text-xs font-medium",
-              trendUp ? "text-primary" : "text-destructive"
-            )}>
-              <TrendingUp className={cn("w-3 h-3 mr-0.5", !trendUp && "rotate-180")} />
+            <div
+              className={cn(
+                'flex items-center text-xs font-medium',
+                trendUp ? 'text-primary' : 'text-destructive'
+              )}
+            >
+              <TrendingUp className={cn('mr-0.5 h-3 w-3', !trendUp && 'rotate-180')} />
               {trend}
             </div>
           )}

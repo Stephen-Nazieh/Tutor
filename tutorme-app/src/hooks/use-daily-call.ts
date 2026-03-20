@@ -22,14 +22,14 @@ let instanceCount = 0
 export function useDailyCall(options: UseDailyCallOptions = {}) {
   const callRef = useRef<DailyCall | null>(globalCallInstance)
   const instanceId = useRef(++instanceCount)
-  
+
   const [state, setState] = useState<VideoCallState>({
     isJoined: false,
     isAudioEnabled: false,
     isVideoEnabled: false,
     isScreenSharing: false,
     participants: [],
-    error: null
+    error: null,
   })
 
   // Initialize Daily call object
@@ -39,9 +39,9 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
       callRef.current = globalCallInstance
       return
     }
-    
+
     let call: DailyCall | null = null
-    
+
     try {
       call = DailyIframe.createCallObject()
       globalCallInstance = call
@@ -52,7 +52,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     }
 
     // Listen for participant events
-    call.on('participant-joined', (event) => {
+    call.on('participant-joined', event => {
       const participant = mapDailyParticipant(event.participant)
       options.onParticipantJoined?.(participant)
       updateParticipants()
@@ -62,13 +62,13 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
       updateParticipants()
     })
 
-    call.on('participant-left', (event) => {
+    call.on('participant-left', event => {
       const participant = mapDailyParticipant(event.participant)
       options.onParticipantLeft?.(participant)
       updateParticipants()
     })
 
-    call.on('error', (event) => {
+    call.on('error', event => {
       setState(prev => ({ ...prev, error: event.errorMsg }))
       options.onError?.(new Error(event.errorMsg))
     })
@@ -92,7 +92,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
 
     const participantsMap = call.participants()
     const participants = Object.values(participantsMap).map(mapDailyParticipant)
-    
+
     setState(prev => ({ ...prev, participants }))
   }, [])
 
@@ -105,7 +105,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
         isJoined: true,
         isAudioEnabled: false,
         isVideoEnabled: false,
-        error: null
+        error: null,
       }))
       return
     }
@@ -118,7 +118,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
         isJoined: true,
         isAudioEnabled: false,
         isVideoEnabled: false,
-        error: null
+        error: null,
       }))
       return
     }
@@ -128,7 +128,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
         url,
         token,
         audioSource: false,
-        videoSource: false
+        videoSource: false,
       })
 
       setState(prev => ({
@@ -136,7 +136,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
         isJoined: true,
         isAudioEnabled: false,
         isVideoEnabled: false,
-        error: null
+        error: null,
       }))
     } catch (error) {
       console.error('Daily join error:', error)
@@ -147,7 +147,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
         isJoined: true,
         isAudioEnabled: false,
         isVideoEnabled: false,
-        error: null
+        error: null,
       }))
     }
   }, [])
@@ -160,14 +160,14 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     call.destroy()
     globalCallInstance = null
     callRef.current = null
-    
+
     setState(prev => ({
       ...prev,
       isJoined: false,
       isAudioEnabled: false,
       isVideoEnabled: false,
       isScreenSharing: false,
-      participants: []
+      participants: [],
     }))
   }, [])
 
@@ -231,7 +231,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     startScreenShare,
     stopScreenShare,
     startRecording,
-    stopRecording
+    stopRecording,
   }
 }
 
@@ -242,6 +242,6 @@ function mapDailyParticipant(participant: DailyParticipant): VideoParticipant {
     name: participant.user_name || 'Anonymous',
     isScreenSharing: participant.screen,
     isAudioEnabled: participant.audio,
-    isVideoEnabled: participant.video
+    isVideoEnabled: participant.video,
   }
 }

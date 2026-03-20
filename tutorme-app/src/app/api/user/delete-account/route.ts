@@ -8,12 +8,7 @@ import { eq } from 'drizzle-orm'
 import crypto from 'crypto'
 import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  deletionRequest,
-  user as userTable,
-  profile,
-  consentLog,
-} from '@/lib/db/schema'
+import { deletionRequest, user as userTable, profile, consentLog } from '@/lib/db/schema'
 import { logDeletion } from '@/lib/compliance/audit'
 
 export const POST = withAuth(async (req: NextRequest, session) => {
@@ -71,7 +66,8 @@ export const POST = withAuth(async (req: NextRequest, session) => {
 
     return NextResponse.json({
       success: true,
-      message: 'Your deletion request has been submitted. Your account will be deleted within 30 days per GDPR Art.17. You will receive a confirmation email.',
+      message:
+        'Your deletion request has been submitted. Your account will be deleted within 30 days per GDPR Art.17. You will receive a confirmation email.',
       requestId: req_record.id,
     })
   } catch (error) {

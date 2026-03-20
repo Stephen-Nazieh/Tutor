@@ -41,17 +41,14 @@ export function useAdminContext() {
   return context
 }
 
-function AdminLayoutContent({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const params = useParams<{ locale?: string }>()
   const localePrefix = params?.locale ? `/${params.locale}` : ''
   const adminLoginPath = `${localePrefix}/admin/login`
-  const isPublicAdminRoute = pathname.endsWith('/admin/login') || pathname.endsWith('/admin/forgot-password')
+  const isPublicAdminRoute =
+    pathname.endsWith('/admin/login') || pathname.endsWith('/admin/forgot-password')
   const isTopologyRoute = pathname.endsWith('/admin/topology')
   const [session, setSession] = useState<AdminSession | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -64,7 +61,7 @@ function AdminLayoutContent({
         const res = await fetch('/api/admin/auth/session', {
           credentials: 'include',
         })
-        
+
         if (res.ok) {
           const data = await res.json()
           setSession(data.session)
@@ -107,7 +104,7 @@ function AdminLayoutContent({
     return (
       <div className="flex h-screen w-full items-center justify-center bg-slate-50">
         <div className="text-center">
-          <Loader2 className="h-10 w-10 animate-spin text-blue-600 mx-auto" />
+          <Loader2 className="mx-auto h-10 w-10 animate-spin text-blue-600" />
           <p className="mt-4 text-sm text-slate-500">Loading...</p>
         </div>
       </div>
@@ -136,17 +133,15 @@ function AdminLayoutContent({
         <AdminHeader collapsed={sidebarCollapsed} />
         <main
           className={cn(
-            "pt-16 transition-all duration-300",
-            isTopologyRoute ? "fixed inset-0 pt-16" : ""
+            'pt-16 transition-all duration-300',
+            isTopologyRoute ? 'fixed inset-0 pt-16' : ''
           )}
-          style={{ 
-            marginLeft: isTopologyRoute ? 0 : (sidebarCollapsed ? '64px' : '256px'),
+          style={{
+            marginLeft: isTopologyRoute ? 0 : sidebarCollapsed ? '64px' : '256px',
             left: isTopologyRoute ? (sidebarCollapsed ? '64px' : '256px') : undefined,
           }}
         >
-          <div className={cn(
-            isTopologyRoute ? "h-full w-full p-0 bg-slate-950" : "p-6"
-          )}>
+          <div className={cn(isTopologyRoute ? 'h-full w-full bg-slate-950 p-0' : 'p-6')}>
             {children}
           </div>
         </main>
@@ -155,11 +150,7 @@ function AdminLayoutContent({
   )
 }
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AdminLayoutContent>{children}</AdminLayoutContent>

@@ -20,10 +20,7 @@ export const GET = withAuth(
     try {
       const family = await getFamilyAccountForParent(session)
       if (!family) {
-        return NextResponse.json(
-          { error: '未找到家庭账户' },
-          { status: 404 }
-        )
+        return NextResponse.json({ error: '未找到家庭账户' }, { status: 404 })
       }
 
       const { searchParams } = new URL(req.url)
@@ -35,12 +32,10 @@ export const GET = withAuth(
       if (cached) return NextResponse.json({ success: true, data: cached })
 
       const payments = await fetchFamilyPayments(family, { studentId })
-      const completed = payments.filter((p) =>
-        ['COMPLETED', 'completed', 'paid'].includes(p.status)
-      )
+      const completed = payments.filter(p => ['COMPLETED', 'completed', 'paid'].includes(p.status))
 
       const trends = aggregateSpendingByPeriod(
-        completed.map((p) => ({
+        completed.map(p => ({
           amount: p.amount,
           createdAt: p.createdAt,
           type: p.type,
@@ -50,7 +45,7 @@ export const GET = withAuth(
 
       const feeRate = getPlatformFeeRate()
       const monthlySummaries = computeMonthlySpendingSummary(
-        completed.map((p) => ({
+        completed.map(p => ({
           amount: p.amount,
           createdAt: p.createdAt,
           type: p.type,

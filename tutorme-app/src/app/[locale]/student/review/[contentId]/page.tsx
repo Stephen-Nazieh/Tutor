@@ -18,7 +18,7 @@ import {
   BookOpen,
   ArrowRight,
   Trophy,
-  BarChart3
+  BarChart3,
 } from 'lucide-react'
 
 interface ReviewSession {
@@ -50,7 +50,11 @@ export default function ReviewPage() {
   const [mode, setMode] = useState<'select' | 'flashcard' | 'quiz' | 'complete'>('select')
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [showAnswer, setShowAnswer] = useState(false)
-  const [results, setResults] = useState<{ easy: number; medium: number; hard: number }>({ easy: 0, medium: 0, hard: 0 })
+  const [results, setResults] = useState<{ easy: number; medium: number; hard: number }>({
+    easy: 0,
+    medium: 0,
+    hard: 0,
+  })
   const [flashcards, setFlashcards] = useState<Flashcard[]>([])
 
   useEffect(() => {
@@ -79,11 +83,36 @@ export default function ReviewPage() {
 
   // Mock flashcards generator - in real app, fetch from API
   const generateMockFlashcards = (): Flashcard[] => [
-    { id: '1', front: 'What is the primary function of mitochondria?', back: 'To produce ATP (energy) through cellular respiration', difficulty: 'medium' },
-    { id: '2', front: 'Define photosynthesis', back: 'The process by which plants convert light energy into chemical energy (glucose)', difficulty: 'easy' },
-    { id: '3', front: 'What is the difference between mitosis and meiosis?', back: 'Mitosis produces 2 identical daughter cells; Meiosis produces 4 genetically different cells', difficulty: 'hard' },
-    { id: '4', front: 'Name the 4 nitrogenous bases in DNA', back: 'Adenine (A), Thymine (T), Guanine (G), Cytosine (C)', difficulty: 'easy' },
-    { id: '5', front: 'What is natural selection?', back: 'The process where organisms better adapted to their environment tend to survive and reproduce more', difficulty: 'medium' }
+    {
+      id: '1',
+      front: 'What is the primary function of mitochondria?',
+      back: 'To produce ATP (energy) through cellular respiration',
+      difficulty: 'medium',
+    },
+    {
+      id: '2',
+      front: 'Define photosynthesis',
+      back: 'The process by which plants convert light energy into chemical energy (glucose)',
+      difficulty: 'easy',
+    },
+    {
+      id: '3',
+      front: 'What is the difference between mitosis and meiosis?',
+      back: 'Mitosis produces 2 identical daughter cells; Meiosis produces 4 genetically different cells',
+      difficulty: 'hard',
+    },
+    {
+      id: '4',
+      front: 'Name the 4 nitrogenous bases in DNA',
+      back: 'Adenine (A), Thymine (T), Guanine (G), Cytosine (C)',
+      difficulty: 'easy',
+    },
+    {
+      id: '5',
+      front: 'What is natural selection?',
+      back: 'The process where organisms better adapted to their environment tend to survive and reproduce more',
+      difficulty: 'medium',
+    },
   ]
 
   const handleStartReview = (selectedMode: 'quick' | 'full' | 'quiz') => {
@@ -92,7 +121,7 @@ export default function ReviewPage() {
 
   const handleCardRating = (rating: 'easy' | 'medium' | 'hard') => {
     setResults(prev => ({ ...prev, [rating]: prev[rating] + 1 }))
-    
+
     if (currentCardIndex < flashcards.length - 1) {
       setCurrentCardIndex(prev => prev + 1)
       setShowAnswer(false)
@@ -106,14 +135,14 @@ export default function ReviewPage() {
       // Calculate performance score
       const total = results.easy + results.medium + results.hard + 1 // +1 for current card
       const performance = Math.round(
-        ((results.easy * 100) + (results.medium * 70) + (results.hard * 40)) / total
+        (results.easy * 100 + results.medium * 70 + results.hard * 40) / total
       )
 
       // Record review completion
       await fetch('/api/student/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contentId, performance })
+        body: JSON.stringify({ contentId, performance }),
       })
 
       setMode('complete')
@@ -138,9 +167,9 @@ export default function ReviewPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
           <p className="mt-2 text-gray-600">Loading review session...</p>
         </div>
       </div>
@@ -151,11 +180,11 @@ export default function ReviewPage() {
   if (mode === 'select') {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto p-6">
+        <div className="mx-auto max-w-4xl p-6">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-6">
+          <div className="mb-6 flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => router.push('/student/dashboard')}>
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="h-5 w-5" />
             </Button>
             <div>
               <h1 className="text-2xl font-bold">Review Session</h1>
@@ -164,22 +193,29 @@ export default function ReviewPage() {
           </div>
 
           {/* Retention Status */}
-          <Card className={cn("mb-6 border-2", getRetentionBg(session?.currentRetention || 50))}>
+          <Card className={cn('mb-6 border-2', getRetentionBg(session?.currentRetention || 50))}>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Current Retention</p>
-                  <p className={cn("text-3xl font-bold", getRetentionColor(session?.currentRetention || 50))}>
+                  <p
+                    className={cn(
+                      'text-3xl font-bold',
+                      getRetentionColor(session?.currentRetention || 50)
+                    )}
+                  >
                     {session?.currentRetention || 0}%
                   </p>
                 </div>
-                <div className="p-4 bg-white rounded-full">
-                  <Brain className={cn("w-8 h-8", getRetentionColor(session?.currentRetention || 50))} />
+                <div className="rounded-full bg-white p-4">
+                  <Brain
+                    className={cn('h-8 w-8', getRetentionColor(session?.currentRetention || 50))}
+                  />
                 </div>
               </div>
               <Progress value={session?.currentRetention || 0} className="mt-4 h-2" />
-              <p className="text-sm mt-2 text-gray-600">
-                {session?.currentRetention && session.currentRetention >= 60 
+              <p className="mt-2 text-sm text-gray-600">
+                {session?.currentRetention && session.currentRetention >= 60
                   ? 'Your memory of this content is stable. A quick review will keep it fresh.'
                   : 'This content needs attention. We recommend a thorough review.'}
               </p>
@@ -187,42 +223,45 @@ export default function ReviewPage() {
           </Card>
 
           {/* Review Mode Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="cursor-pointer hover:border-blue-300 transition-colors" onClick={() => handleStartReview('quick')}>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Card
+              className="cursor-pointer transition-colors hover:border-blue-300"
+              onClick={() => handleStartReview('quick')}
+            >
               <CardContent className="pt-6">
-                <div className="p-3 bg-blue-50 rounded-full w-fit mb-4">
-                  <Clock className="w-6 h-6 text-blue-600" />
+                <div className="mb-4 w-fit rounded-full bg-blue-50 p-3">
+                  <Clock className="h-6 w-6 text-blue-600" />
                 </div>
-                <h3 className="font-semibold text-lg mb-2">Quick Review</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  5-minute rapid flashcard session
-                </p>
+                <h3 className="mb-2 text-lg font-semibold">Quick Review</h3>
+                <p className="mb-4 text-sm text-gray-500">5-minute rapid flashcard session</p>
                 <Badge variant="outline">5 min</Badge>
               </CardContent>
             </Card>
 
-            <Card className="cursor-pointer hover:border-purple-300 transition-colors" onClick={() => handleStartReview('full')}>
+            <Card
+              className="cursor-pointer transition-colors hover:border-purple-300"
+              onClick={() => handleStartReview('full')}
+            >
               <CardContent className="pt-6">
-                <div className="p-3 bg-purple-50 rounded-full w-fit mb-4">
-                  <BookOpen className="w-6 h-6 text-purple-600" />
+                <div className="mb-4 w-fit rounded-full bg-purple-50 p-3">
+                  <BookOpen className="h-6 w-6 text-purple-600" />
                 </div>
-                <h3 className="font-semibold text-lg mb-2">Full Review</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  Complete content recap with examples
-                </p>
+                <h3 className="mb-2 text-lg font-semibold">Full Review</h3>
+                <p className="mb-4 text-sm text-gray-500">Complete content recap with examples</p>
                 <Badge variant="outline">15-20 min</Badge>
               </CardContent>
             </Card>
 
-            <Card className="cursor-pointer hover:border-green-300 transition-colors" onClick={() => handleStartReview('quiz')}>
+            <Card
+              className="cursor-pointer transition-colors hover:border-green-300"
+              onClick={() => handleStartReview('quiz')}
+            >
               <CardContent className="pt-6">
-                <div className="p-3 bg-green-50 rounded-full w-fit mb-4">
-                  <BarChart3 className="w-6 h-6 text-green-600" />
+                <div className="mb-4 w-fit rounded-full bg-green-50 p-3">
+                  <BarChart3 className="h-6 w-6 text-green-600" />
                 </div>
-                <h3 className="font-semibold text-lg mb-2">Practice Quiz</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  Test your knowledge with questions
-                </p>
+                <h3 className="mb-2 text-lg font-semibold">Practice Quiz</h3>
+                <p className="mb-4 text-sm text-gray-500">Test your knowledge with questions</p>
                 <Badge variant="outline">10-15 min</Badge>
               </CardContent>
             </Card>
@@ -231,7 +270,7 @@ export default function ReviewPage() {
           {/* Back to Content */}
           <div className="mt-8 text-center">
             <Button variant="outline" onClick={() => router.push(`/student/content/${contentId}`)}>
-              <BookOpen className="w-4 h-4 mr-2" />
+              <BookOpen className="mr-2 h-4 w-4" />
               Back to Content
             </Button>
           </div>
@@ -247,11 +286,11 @@ export default function ReviewPage() {
 
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-2xl mx-auto p-6">
+        <div className="mx-auto max-w-2xl p-6">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="mb-6 flex items-center justify-between">
             <Button variant="ghost" onClick={() => setMode('select')}>
-              <ChevronLeft className="w-4 h-4 mr-2" />
+              <ChevronLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
             <div className="flex items-center gap-2">
@@ -265,46 +304,50 @@ export default function ReviewPage() {
           <Progress value={progress} className="mb-6 h-2" />
 
           {/* Flashcard */}
-          <Card className="min-h-[300px] flex flex-col">
-            <CardContent className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+          <Card className="flex min-h-[300px] flex-col">
+            <CardContent className="flex flex-1 flex-col items-center justify-center p-8 text-center">
               {!showAnswer ? (
                 <>
                   <Badge variant="outline" className="mb-4">
-                    {currentCard.difficulty === 'easy' ? 'Basic' : currentCard.difficulty === 'medium' ? 'Intermediate' : 'Advanced'}
+                    {currentCard.difficulty === 'easy'
+                      ? 'Basic'
+                      : currentCard.difficulty === 'medium'
+                        ? 'Intermediate'
+                        : 'Advanced'}
                   </Badge>
-                  <h3 className="text-xl font-medium mb-4">{currentCard.front}</h3>
+                  <h3 className="mb-4 text-xl font-medium">{currentCard.front}</h3>
                   <Button onClick={() => setShowAnswer(true)} className="mt-4">
                     Show Answer
                   </Button>
                 </>
               ) : (
                 <>
-                  <p className="text-lg text-gray-700 mb-6">{currentCard.back}</p>
+                  <p className="mb-6 text-lg text-gray-700">{currentCard.back}</p>
                   <div className="w-full">
-                    <p className="text-sm text-gray-500 mb-3">How well did you know this?</p>
+                    <p className="mb-3 text-sm text-gray-500">How well did you know this?</p>
                     <div className="grid grid-cols-3 gap-3">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="border-red-200 hover:bg-red-50"
                         onClick={() => handleCardRating('hard')}
                       >
-                        <XCircle className="w-4 h-4 mr-2 text-red-500" />
+                        <XCircle className="mr-2 h-4 w-4 text-red-500" />
                         Hard
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="border-yellow-200 hover:bg-yellow-50"
                         onClick={() => handleCardRating('medium')}
                       >
-                        <RotateCcw className="w-4 h-4 mr-2 text-yellow-500" />
+                        <RotateCcw className="mr-2 h-4 w-4 text-yellow-500" />
                         Medium
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="border-green-200 hover:bg-green-50"
                         onClick={() => handleCardRating('easy')}
                       >
-                        <CheckCircle2 className="w-4 h-4 mr-2 text-green-500" />
+                        <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />
                         Easy
                       </Button>
                     </div>
@@ -332,46 +375,51 @@ export default function ReviewPage() {
     const accuracy = Math.round((correct / totalCards) * 100)
 
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md w-full mx-auto p-6">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="mx-auto w-full max-w-md p-6">
           <Card className="text-center">
-            <CardContent className="pt-8 pb-8">
-              <div className="p-4 bg-green-50 rounded-full w-fit mx-auto mb-4">
-                <Trophy className="w-12 h-12 text-green-600" />
+            <CardContent className="pb-8 pt-8">
+              <div className="mx-auto mb-4 w-fit rounded-full bg-green-50 p-4">
+                <Trophy className="h-12 w-12 text-green-600" />
               </div>
-              <h2 className="text-2xl font-bold mb-2">Review Complete!</h2>
-              <p className="text-gray-500 mb-6">
+              <h2 className="mb-2 text-2xl font-bold">Review Complete!</h2>
+              <p className="mb-6 text-gray-500">
                 Great job! You've strengthened your memory of this content.
               </p>
 
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="p-3 bg-gray-50 rounded-lg">
+              <div className="mb-6 grid grid-cols-3 gap-4">
+                <div className="rounded-lg bg-gray-50 p-3">
                   <p className="text-2xl font-bold text-green-600">{results.easy}</p>
                   <p className="text-xs text-gray-500">Easy</p>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="rounded-lg bg-gray-50 p-3">
                   <p className="text-2xl font-bold text-yellow-600">{results.medium}</p>
                   <p className="text-xs text-gray-500">Medium</p>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="rounded-lg bg-gray-50 p-3">
                   <p className="text-2xl font-bold text-red-600">{results.hard}</p>
                   <p className="text-xs text-gray-500">Hard</p>
                 </div>
               </div>
 
-              <div className="p-4 bg-blue-50 rounded-lg mb-6">
+              <div className="mb-6 rounded-lg bg-blue-50 p-4">
                 <p className="text-sm text-blue-700">
-                  Your next review for this content is scheduled in {session?.currentRetention && session.currentRetention > 80 ? '7 days' : '3 days'}
+                  Your next review for this content is scheduled in{' '}
+                  {session?.currentRetention && session.currentRetention > 80 ? '7 days' : '3 days'}
                 </p>
               </div>
 
               <div className="flex gap-3">
-                <Button variant="outline" className="flex-1" onClick={() => router.push('/student/dashboard')}>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => router.push('/student/dashboard')}
+                >
                   Dashboard
                 </Button>
                 <Button className="flex-1" onClick={() => router.push('/student/scores')}>
                   View Scores
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </CardContent>

@@ -6,9 +6,25 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
-import { Plus, Settings, BookOpen, Library, ChevronRight, Sparkles, Video, Info, X } from 'lucide-react'
+import {
+  Plus,
+  Settings,
+  BookOpen,
+  Library,
+  ChevronRight,
+  Sparkles,
+  Video,
+  Info,
+  X,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 import {
@@ -26,18 +42,18 @@ function DashboardSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="w-full space-y-6">
-        <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-24 bg-gray-200 rounded animate-pulse" />
+        <div className="h-8 w-1/3 animate-pulse rounded bg-gray-200" />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-24 animate-pulse rounded bg-gray-200" />
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="h-64 bg-gray-200 rounded animate-pulse" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <div className="h-64 animate-pulse rounded bg-gray-200" />
           </div>
           <div className="space-y-6">
-            <div className="h-48 bg-gray-200 rounded animate-pulse" />
+            <div className="h-48 animate-pulse rounded bg-gray-200" />
           </div>
         </div>
       </div>
@@ -61,7 +77,7 @@ function TutorDashboardContent() {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [scheduleDate, setScheduleDate] = useState<Date | null>(null)
   const [themeId, setThemeId] = useState('current')
-  const selectedTheme = DASHBOARD_THEMES.find((theme) => theme.id === themeId) ?? DASHBOARD_THEMES[0]
+  const selectedTheme = DASHBOARD_THEMES.find(theme => theme.id === themeId) ?? DASHBOARD_THEMES[0]
   const themeStyle = getThemeStyle(selectedTheme)
 
   useEffect(() => {
@@ -71,13 +87,17 @@ function TutorDashboardContent() {
   const [stats, setStats] = useState(defaultStats)
   const [classes, setClasses] = useState<UpcomingClass[]>([])
   const [students, setStudents] = useState<StudentNeedingAttention[]>([])
-  const [allStudents, setAllStudents] = useState<Array<{ id: string; name: string; email: string; courseCount: number; classCount: number }>>([])
+  const [allStudents, setAllStudents] = useState<
+    Array<{ id: string; name: string; email: string; courseCount: number; classCount: number }>
+  >([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [oneAccountTipDismissed, setOneAccountTipDismissed] = useState(true)
   useEffect(() => {
     try {
-      setOneAccountTipDismissed(localStorage.getItem('tutor-dashboard-one-account-tip-dismissed') === '1')
+      setOneAccountTipDismissed(
+        localStorage.getItem('tutor-dashboard-one-account-tip-dismissed') === '1'
+      )
     } catch {
       setOneAccountTipDismissed(false)
     }
@@ -87,7 +107,7 @@ function TutorDashboardContent() {
     setOneAccountTipDismissed(true)
     try {
       localStorage.setItem('tutor-dashboard-one-account-tip-dismissed', '1')
-    } catch { }
+    } catch {}
   }
 
   const fetchData = useCallback(async () => {
@@ -160,33 +180,36 @@ function TutorDashboardContent() {
     try {
       const stored = localStorage.getItem('tutor-dashboard-theme')
       if (stored) setThemeId(stored)
-    } catch { }
+    } catch {}
   }, [])
 
-  const handleClassCreated = useCallback((classData?: { id: string;[key: string]: unknown }) => {
-    if (classData) {
-      // Add the new class to the list immediately
-      const newClass: UpcomingClass = {
-        id: classData.id,
-        title: (classData.title as string) || 'New Class',
-        subject: (classData.subject as string) || '',
-        scheduledAt: (classData.scheduledAt as string) || new Date().toISOString(),
-        duration: (classData.durationMinutes as number) || 60,
-        maxStudents: (classData.maxStudents as number) || 50,
-        enrolledStudents: 0,
-        status: (classData.status as string) || 'scheduled',
+  const handleClassCreated = useCallback(
+    (classData?: { id: string; [key: string]: unknown }) => {
+      if (classData) {
+        // Add the new class to the list immediately
+        const newClass: UpcomingClass = {
+          id: classData.id,
+          title: (classData.title as string) || 'New Class',
+          subject: (classData.subject as string) || '',
+          scheduledAt: (classData.scheduledAt as string) || new Date().toISOString(),
+          duration: (classData.durationMinutes as number) || 60,
+          maxStudents: (classData.maxStudents as number) || 50,
+          enrolledStudents: 0,
+          status: (classData.status as string) || 'scheduled',
+        }
+        setClasses(prev => [newClass, ...prev])
+        // Update stats
+        setStats(prev => ({
+          ...prev,
+          totalClasses: prev.totalClasses + 1,
+          upcomingClasses: prev.upcomingClasses + 1,
+        }))
+      } else {
+        fetchData()
       }
-      setClasses(prev => [newClass, ...prev])
-      // Update stats
-      setStats(prev => ({
-        ...prev,
-        totalClasses: prev.totalClasses + 1,
-        upcomingClasses: prev.upcomingClasses + 1,
-      }))
-    } else {
-      fetchData()
-    }
-  }, [fetchData])
+    },
+    [fetchData]
+  )
 
   const handleRemoveClass = useCallback(async (classId: string) => {
     try {
@@ -222,30 +245,33 @@ function TutorDashboardContent() {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     })
   }
 
   return (
     <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-4 pb-4 lg:flex-row lg:items-center lg:justify-end">
           <div className="flex items-center gap-2">
             <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Theme</span>
             <Select
               value={themeId}
-              onValueChange={(value) => {
+              onValueChange={value => {
                 setThemeId(value)
                 try {
                   localStorage.setItem('tutor-dashboard-theme', value)
-                } catch { }
+                } catch {}
               }}
             >
               <SelectTrigger className="h-8 w-[200px] border-border bg-card text-foreground">
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
               <SelectContent className="max-h-72">
-                {DASHBOARD_THEMES.map((theme) => (
+                {DASHBOARD_THEMES.map(theme => (
                   <SelectItem key={theme.id} value={theme.id}>
                     {theme.name}
                   </SelectItem>
@@ -254,77 +280,80 @@ function TutorDashboardContent() {
             </Select>
           </div>
         </div>
-      {/* Modern Hero Section */}
-      <div className="mb-8">
-        <ModernHeroSection
-          stats={stats}
-          loading={loading}
-          onCreateCourse={() => router.push('/tutor/courses/new')}
-        />
-      </div>
-
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm">
-          {error}
-          <Button variant="outline" size="sm" className="ml-2" onClick={() => { setLoading(true); fetchData(); }}>
-            Retry
-          </Button>
+        {/* Modern Hero Section */}
+        <div className="mb-8">
+          <ModernHeroSection
+            stats={stats}
+            loading={loading}
+            onCreateCourse={() => router.push('/tutor/courses/new')}
+          />
         </div>
-      )}
 
-      {/* Modern Grid Layout - Full Width */}
-      <div className="mb-8">
-        <UpcomingClassesCard
-          classes={classes}
-          formatDate={formatDate}
-          loading={loading}
-          onCreateClassClick={() => setShowCreateDialog(true)}
-          onRemoveClass={handleRemoveClass}
+        {error && (
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+            {error}
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-2"
+              onClick={() => {
+                setLoading(true)
+                fetchData()
+              }}
+            >
+              Retry
+            </Button>
+          </div>
+        )}
+
+        {/* Modern Grid Layout - Full Width */}
+        <div className="mb-8">
+          <UpcomingClassesCard
+            classes={classes}
+            formatDate={formatDate}
+            loading={loading}
+            onCreateClassClick={() => setShowCreateDialog(true)}
+            onRemoveClass={handleRemoveClass}
+          />
+        </div>
+
+        <div className="mb-8 space-y-4">
+          <Card className="border border-border bg-card/95 shadow-xl backdrop-blur-md">
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 gap-6 divide-y divide-gray-100 md:grid-cols-3 md:divide-x md:divide-y-0">
+                <div className="py-2 text-center md:py-0">
+                  <h3 className="text-lg font-medium text-gray-500">Active Courses</h3>
+                  <p className="mt-2 text-4xl font-bold text-blue-600">{stats.totalClasses}</p>
+                </div>
+                <div className="py-2 text-center md:px-6 md:py-0">
+                  <h3 className="text-lg font-medium text-gray-500">Active Students</h3>
+                  <p className="mt-2 text-4xl font-bold text-green-600">{stats.totalStudents}</p>
+                </div>
+                <div className="py-2 text-center md:px-6 md:py-0">
+                  <h3 className="text-lg font-medium text-gray-500">Engagement Rate</h3>
+                  <p className="mt-2 text-4xl font-bold text-purple-600">85%</p>
+                  <p className="mt-1 text-sm text-gray-400">Task/Assessment completion</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="mb-8">
+          <InteractiveCalendar initialView="week" dayClickMode="availability" loading={loading} />
+        </div>
+
+        {/* Create Class Dialog */}
+        <CreateClassDialog
+          open={showCreateDialog}
+          onOpenChange={open => {
+            setShowCreateDialog(open)
+            if (!open) setScheduleDate(null)
+          }}
+          onClassCreated={handleClassCreated}
+          redirectToClass={false}
+          initialDate={scheduleDate}
         />
-      </div>
-
-      <div className="space-y-4 mb-8">
-        <Card className="border border-border shadow-xl bg-card/95 backdrop-blur-md">
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-gray-100">
-              <div className="text-center py-2 md:py-0">
-                <h3 className="text-lg font-medium text-gray-500">Active Courses</h3>
-                <p className="text-4xl font-bold mt-2 text-blue-600">{stats.totalClasses}</p>
-              </div>
-              <div className="text-center py-2 md:py-0 md:px-6">
-                <h3 className="text-lg font-medium text-gray-500">Active Students</h3>
-                <p className="text-4xl font-bold mt-2 text-green-600">{stats.totalStudents}</p>
-              </div>
-              <div className="text-center py-2 md:py-0 md:px-6">
-                <h3 className="text-lg font-medium text-gray-500">Engagement Rate</h3>
-                <p className="text-4xl font-bold mt-2 text-purple-600">85%</p>
-                <p className="text-sm text-gray-400 mt-1">Task/Assessment completion</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="mb-8">
-        <InteractiveCalendar
-          initialView="week"
-          dayClickMode="availability"
-          loading={loading}
-        />
-      </div>
-
-      {/* Create Class Dialog */}
-      <CreateClassDialog
-        open={showCreateDialog}
-        onOpenChange={(open) => {
-          setShowCreateDialog(open)
-          if (!open) setScheduleDate(null)
-        }}
-        onClassCreated={handleClassCreated}
-        redirectToClass={false}
-        initialDate={scheduleDate}
-      />
-
       </div>
     </div>
   )

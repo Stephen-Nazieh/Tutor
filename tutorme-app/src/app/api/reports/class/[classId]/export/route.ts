@@ -34,7 +34,7 @@ async function getClassExportData(classId: string): Promise<ClassExportData | nu
     .from(curriculumEnrollment)
     .where(eq(curriculumEnrollment.curriculumId, classId))
 
-  const studentIds = enrollmentsRows.map((r) => r.studentId)
+  const studentIds = enrollmentsRows.map(r => r.studentId)
   const studentsWithProfile =
     studentIds.length > 0
       ? await drizzleDb
@@ -47,7 +47,7 @@ async function getClassExportData(classId: string): Promise<ClassExportData | nu
           .leftJoin(profile, eq(profile.userId, user.id))
           .where(inArray(user.id, studentIds))
       : []
-  const studentMap = new Map(studentsWithProfile.map((s) => [s.id, s]))
+  const studentMap = new Map(studentsWithProfile.map(s => [s.id, s]))
 
   const students: StudentExportData[] = []
   let totalScore = 0
@@ -94,21 +94,44 @@ async function getClassExportData(classId: string): Promise<ClassExportData | nu
 
   const scoreDistribution = [
     { range: '0-59', count: students.filter(s => s.averageScore < 60).length },
-    { range: '60-69', count: students.filter(s => s.averageScore >= 60 && s.averageScore < 70).length },
-    { range: '70-79', count: students.filter(s => s.averageScore >= 70 && s.averageScore < 80).length },
-    { range: '80-89', count: students.filter(s => s.averageScore >= 80 && s.averageScore < 90).length },
+    {
+      range: '60-69',
+      count: students.filter(s => s.averageScore >= 60 && s.averageScore < 70).length,
+    },
+    {
+      range: '70-79',
+      count: students.filter(s => s.averageScore >= 70 && s.averageScore < 80).length,
+    },
+    {
+      range: '80-89',
+      count: students.filter(s => s.averageScore >= 80 && s.averageScore < 90).length,
+    },
     { range: '90-100', count: students.filter(s => s.averageScore >= 90).length },
   ]
 
   const clusterDistribution = [
-    { name: '优秀', count: advancedCount, percentage: totalStudents > 0 ? (advancedCount / totalStudents) * 100 : 0 },
-    { name: '中等', count: intermediateCount, percentage: totalStudents > 0 ? (intermediateCount / totalStudents) * 100 : 0 },
-    { name: '需帮助', count: strugglingCount, percentage: totalStudents > 0 ? (strugglingCount / totalStudents) * 100 : 0 },
+    {
+      name: '优秀',
+      count: advancedCount,
+      percentage: totalStudents > 0 ? (advancedCount / totalStudents) * 100 : 0,
+    },
+    {
+      name: '中等',
+      count: intermediateCount,
+      percentage: totalStudents > 0 ? (intermediateCount / totalStudents) * 100 : 0,
+    },
+    {
+      name: '需帮助',
+      count: strugglingCount,
+      percentage: totalStudents > 0 ? (strugglingCount / totalStudents) * 100 : 0,
+    },
   ]
 
   const sortedStudents = [...students].sort((a, b) => b.averageScore - a.averageScore)
   const topPerformers = sortedStudents.slice(0, 10)
-  const needsAttention = sortedStudents.filter(s => s.cluster === 'struggling' || s.averageScore < 60).slice(0, 10)
+  const needsAttention = sortedStudents
+    .filter(s => s.cluster === 'struggling' || s.averageScore < 60)
+    .slice(0, 10)
 
   return {
     classInfo: {
@@ -136,70 +159,67 @@ async function getClassExportData(classId: string): Promise<ClassExportData | nu
   }
 }
 
-export const GET = withAuth(async (req: NextRequest, _session, context) => {
-  const classId = await getParamAsync(context?.params, 'classId')
-  if (!classId) {
-    return NextResponse.json(
-      { success: false, error: 'Class ID required' },
-      { status: 400 }
-    )
-  }
-  const { searchParams } = new URL(req.url)
-  const format = searchParams.get('format') || 'pdf'
+export const GET = withAuth(
+  async (req: NextRequest, _session, context) => {
+    const classId = await getParamAsync(context?.params, 'classId')
+    if (!classId) {
+      return NextResponse.json({ success: false, error: 'Class ID required' }, { status: 400 })
+    }
+    const { searchParams } = new URL(req.url)
+    const format = searchParams.get('format') || 'pdf'
 
-  try {
-    const data = await getClassExportData(classId)
+    try {
+      const data = await getClassExportData(classId)
 
-    if (!data) {
+      if (!data) {
+        return NextResponse.json({ success: false, error: 'Class not found' }, { status: 404 })
+      }
+
+      switch (format.toLowerCase()) {
+        case 'pdf': {
+          const pdfBuffer = generateClassReportPDF(data)
+          return new NextResponse(pdfBuffer as any, {
+            headers: {
+              'Content-Type': 'application/pdf',
+              'Content-Disposition': `attachment; filename="class-report-${classId}.pdf"`,
+            },
+          })
+        }
+
+        case 'excel':
+        case 'xlsx': {
+          const excelBuffer = await generateClassReportExcel(data)
+          return new NextResponse(excelBuffer as any, {
+            headers: {
+              'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              'Content-Disposition': `attachment; filename="class-report-${classId}.xlsx"`,
+            },
+          })
+        }
+
+        case 'csv': {
+          const csvData = generateCSV(data.students as unknown as Record<string, unknown>[])
+          return new NextResponse(csvData, {
+            headers: {
+              'Content-Type': 'text/csv',
+              'Content-Disposition': `attachment; filename="class-report-${classId}.csv"`,
+            },
+          })
+        }
+
+        default:
+          return NextResponse.json(
+            { success: false, error: 'Invalid format. Use pdf, excel, or csv' },
+            { status: 400 }
+          )
+      }
+    } catch (error) {
+      console.error('Error generating export:', error)
       return NextResponse.json(
-        { success: false, error: 'Class not found' },
-        { status: 404 }
+        { success: false, error: 'Failed to generate export' },
+        { status: 500 }
       )
     }
-
-    switch (format.toLowerCase()) {
-      case 'pdf': {
-        const pdfBuffer = generateClassReportPDF(data)
-        return new NextResponse(pdfBuffer as any, {
-          headers: {
-            'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="class-report-${classId}.pdf"`,
-          },
-        })
-      }
-
-      case 'excel':
-      case 'xlsx': {
-        const excelBuffer = generateClassReportExcel(data)
-        return new NextResponse(excelBuffer as any, {
-          headers: {
-            'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition': `attachment; filename="class-report-${classId}.xlsx"`,
-          },
-        })
-      }
-
-      case 'csv': {
-        const csvData = generateCSV(data.students as unknown as Record<string, unknown>[])
-        return new NextResponse(csvData, {
-          headers: {
-            'Content-Type': 'text/csv',
-            'Content-Disposition': `attachment; filename="class-report-${classId}.csv"`,
-          },
-        })
-      }
-
-      default:
-        return NextResponse.json(
-          { success: false, error: 'Invalid format. Use pdf, excel, or csv' },
-          { status: 400 }
-        )
-    }
-  } catch (error) {
-    console.error('Error generating export:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to generate export' },
-      { status: 500 }
-    )
-  }
-}, { role: 'TUTOR' })
+  },
+  { role: 'TUTOR' }
+)

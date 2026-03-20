@@ -25,7 +25,10 @@ describe('GET /api/reports/students/[studentId]', () => {
     mocks.getServerSession.mockResolvedValue(null)
     const req = new Request('http://localhost/api/reports/students/s1')
 
-    const res = await GET(req as NextRequest, { params: Promise.resolve({ studentId: 's1' }) } as any)
+    const res = await GET(
+      req as NextRequest,
+      { params: Promise.resolve({ studentId: 's1' }) } as any
+    )
 
     expect(res.status).toBe(401)
     expect(await res.json()).toEqual({ error: 'Unauthorized - Please log in' })

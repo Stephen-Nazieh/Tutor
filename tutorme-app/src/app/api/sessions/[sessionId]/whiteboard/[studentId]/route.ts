@@ -9,13 +9,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { whiteboard, whiteboardPage, profile, liveSession, sessionParticipant } from '@/lib/db/schema'
+import {
+  whiteboard,
+  whiteboardPage,
+  profile,
+  liveSession,
+  sessionParticipant,
+} from '@/lib/db/schema'
 import { eq, and, asc } from 'drizzle-orm'
 
 export const GET = withAuth(async (req: NextRequest, session, context) => {
   const sessionId = await getParamAsync(context?.params, 'sessionId')
   const studentId = await getParamAsync(context?.params, 'studentId')
-  if (!sessionId || !studentId) return NextResponse.json({ error: 'Session and student ID required' }, { status: 400 })
+  if (!sessionId || !studentId)
+    return NextResponse.json({ error: 'Session and student ID required' }, { status: 400 })
   const userId = session.user.id
   const userRole = session.user.role
 
@@ -35,7 +42,9 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     const [participant] = await drizzleDb
       .select({ id: sessionParticipant.id })
       .from(sessionParticipant)
-      .where(and(eq(sessionParticipant.sessionId, sessionId), eq(sessionParticipant.studentId, userId)))
+      .where(
+        and(eq(sessionParticipant.sessionId, sessionId), eq(sessionParticipant.studentId, userId))
+      )
       .limit(1)
     if (!participant) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -55,18 +64,12 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     .limit(1)
 
   if (!whiteboardRow) {
-    return NextResponse.json(
-      { error: 'Whiteboard not found' },
-      { status: 404 }
-    )
+    return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
   }
 
   if (userRole === 'TUTOR') {
     if (whiteboardRow.visibility === 'private') {
-      return NextResponse.json(
-        { error: 'Whiteboard is private' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'Whiteboard is private' }, { status: 403 })
     }
   } else {
     if (studentId === userId) {
@@ -80,10 +83,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       })
     }
     if (whiteboardRow.visibility !== 'public') {
-      return NextResponse.json(
-        { error: 'Whiteboard is not public' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'Whiteboard is not public' }, { status: 403 })
     }
   }
 

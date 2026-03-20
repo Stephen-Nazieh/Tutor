@@ -29,10 +29,7 @@ const IMAGES: Record<SandboxLanguage, string> = {
 /**
  * Run code in a Docker container. Network disabled, read-only, memory/CPU limited.
  */
-export async function runInSandbox(
-  language: SandboxLanguage,
-  code: string
-): Promise<RunResult> {
+export async function runInSandbox(language: SandboxLanguage, code: string): Promise<RunResult> {
   if (code.length > MAX_CODE_LENGTH) {
     return {
       stdout: '',
@@ -63,7 +60,7 @@ export async function runInSandbox(
     ...getRunnerArgs(language),
   ]
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     let settled = false
     const once = (result: RunResult) => {
       if (settled) return
@@ -96,7 +93,7 @@ export async function runInSandbox(
       stderr += chunk.toString()
     })
 
-    proc.on('error', (err) => {
+    proc.on('error', err => {
       once({
         stdout: '',
         stderr: '',
@@ -106,7 +103,7 @@ export async function runInSandbox(
       })
     })
 
-    proc.on('close', (code) => {
+    proc.on('close', code => {
       once({
         stdout: truncate(stdout, 32 * 1024),
         stderr: truncate(stderr, 32 * 1024),
@@ -115,7 +112,7 @@ export async function runInSandbox(
       })
     })
 
-    proc.stdin?.write(code, (err) => {
+    proc.stdin?.write(code, err => {
       if (err) {
         once({
           stdout: '',

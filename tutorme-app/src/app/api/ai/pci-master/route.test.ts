@@ -55,7 +55,11 @@ describe('/api/ai/pci-master', () => {
       conversationId: 'c1',
       parsed: null,
     })
-    mocks.generateWithFallback.mockResolvedValue({ content: 'fallback', provider: 'kimi', latencyMs: 10 })
+    mocks.generateWithFallback.mockResolvedValue({
+      content: 'fallback',
+      provider: 'kimi',
+      latencyMs: 10,
+    })
   })
 
   afterEach(() => {

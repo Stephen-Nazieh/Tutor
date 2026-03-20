@@ -7,7 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { toast } from 'sonner'
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import { REGIONS } from '@/lib/tutoring/categories-new'
@@ -46,12 +52,14 @@ export default function TutorSettings() {
   ]
   const timeZoneOptions = useMemo(() => {
     if (typeof Intl !== 'undefined' && 'supportedValuesOf' in Intl) {
-      return (Intl as unknown as { supportedValuesOf: (value: 'timeZone') => string[] }).supportedValuesOf('timeZone')
+      return (
+        Intl as unknown as { supportedValuesOf: (value: 'timeZone') => string[] }
+      ).supportedValuesOf('timeZone')
     }
     return ['UTC', 'Asia/Shanghai', 'America/New_York', 'Europe/London']
   }, [])
   const selectedTaxRegion = useMemo(
-    () => REGIONS.find((region) => region.id === taxRegion),
+    () => REGIONS.find(region => region.id === taxRegion),
     [taxRegion]
   )
   const taxCountryOptions = useMemo(
@@ -66,9 +74,12 @@ export default function TutorSettings() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-12">
-      <header className="bg-white border-b shadow-sm sticky top-0 z-10 safe-top">
+      <header className="safe-top sticky top-0 z-10 border-b bg-white shadow-sm">
         <div className="mx-auto flex w-full items-center justify-between gap-4 px-6 py-4">
-          <Link href="/tutor/dashboard" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900">
+          <Link
+            href="/tutor/dashboard"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900"
+          >
             <ArrowLeft className="h-4 w-4" />
             Back to dashboard
           </Link>
@@ -76,11 +87,11 @@ export default function TutorSettings() {
         </div>
       </header>
 
-      <main className="mx-auto w-full px-6 py-8 space-y-6">
+      <main className="mx-auto w-full space-y-6 px-6 py-8">
         <Card className="border border-[#E2E8F0] shadow-sm">
           <CardHeader
             className="cursor-pointer select-none pb-3"
-            onClick={() => setSecurityOpen((prev) => !prev)}
+            onClick={() => setSecurityOpen(prev => !prev)}
           >
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg text-[#1F2933]">Security and Login</CardTitle>
@@ -116,8 +127,8 @@ export default function TutorSettings() {
               </div>
               <div className="space-y-2">
                 <Label className="text-[#1F2933]">Login activity</Label>
-                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 text-sm text-[#1F2933] space-y-2">
-                  {loginActivity.map((item) => (
+                <div className="space-y-2 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 text-sm text-[#1F2933]">
+                  {loginActivity.map(item => (
                     <div key={item.id} className="flex items-center justify-between">
                       <span>{item.label}</span>
                       <span className="text-xs text-[#64748B]">Verified</span>
@@ -132,7 +143,7 @@ export default function TutorSettings() {
         <Card className="border border-[#E2E8F0] shadow-sm">
           <CardHeader
             className="cursor-pointer select-none pb-3"
-            onClick={() => setBillingOpen((prev) => !prev)}
+            onClick={() => setBillingOpen(prev => !prev)}
           >
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg text-[#1F2933]">Billing and Payment</CardTitle>
@@ -159,14 +170,14 @@ export default function TutorSettings() {
                   <Label className="text-[#1F2933]">Billing address</Label>
                   <Input
                     value={billingAddress}
-                    onChange={(e) => setBillingAddress(e.target.value)}
+                    onChange={e => setBillingAddress(e.target.value)}
                     className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
                     placeholder="Street, city, postal code"
                   />
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-3">
+              <div className="space-y-3 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
                 <div className="text-sm font-semibold text-[#1F2933]">Subscription Plan</div>
                 <div className="grid gap-3 md:grid-cols-3">
                   <div className="space-y-1">
@@ -211,7 +222,9 @@ export default function TutorSettings() {
                     className="border-[#F59E0B] text-[#92400E] hover:bg-[#FDE68A]"
                     onClick={() => {
                       if (confirm('Are you sure you want to cancel your subscription?')) {
-                        toast.message('Thank you for being with us. We hope you return another time.')
+                        toast.message(
+                          'Thank you for being with us. We hope you return another time.'
+                        )
                       }
                     }}
                   >
@@ -269,7 +282,7 @@ export default function TutorSettings() {
         <Card className="border border-[#E2E8F0] shadow-sm">
           <CardHeader
             className="cursor-pointer select-none pb-3"
-            onClick={() => setTaxOpen((prev) => !prev)}
+            onClick={() => setTaxOpen(prev => !prev)}
           >
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg text-[#1F2933]">Tax Information</CardTitle>
@@ -287,7 +300,7 @@ export default function TutorSettings() {
                   <Label className="text-[#1F2933]">Region</Label>
                   <Select
                     value={taxRegion}
-                    onValueChange={(value) => {
+                    onValueChange={value => {
                       setTaxRegion(value)
                       setTaxCountry('')
                     }}
@@ -296,7 +309,7 @@ export default function TutorSettings() {
                       <SelectValue placeholder="Select region" />
                     </SelectTrigger>
                     <SelectContent className="max-h-72">
-                      {REGIONS.map((region) => (
+                      {REGIONS.map(region => (
                         <SelectItem key={region.id} value={region.id}>
                           {region.name}
                         </SelectItem>
@@ -306,16 +319,14 @@ export default function TutorSettings() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[#1F2933]">Country</Label>
-                  <Select
-                    value={taxCountry}
-                    onValueChange={setTaxCountry}
-                    disabled={!taxRegion}
-                  >
+                  <Select value={taxCountry} onValueChange={setTaxCountry} disabled={!taxRegion}>
                     <SelectTrigger className="border-[#E2E8F0] bg-white">
-                      <SelectValue placeholder={taxRegion ? 'Select country' : 'Select region first'} />
+                      <SelectValue
+                        placeholder={taxRegion ? 'Select country' : 'Select region first'}
+                      />
                     </SelectTrigger>
                     <SelectContent className="max-h-72">
-                      {taxCountryOptions.map((country) => (
+                      {taxCountryOptions.map(country => (
                         <SelectItem key={country.code} value={country.code}>
                           {country.name}
                         </SelectItem>
@@ -327,7 +338,7 @@ export default function TutorSettings() {
                   <Label className="text-[#1F2933]">Legal Name</Label>
                   <Input
                     value={taxLegalName}
-                    onChange={(e) => setTaxLegalName(e.target.value)}
+                    onChange={e => setTaxLegalName(e.target.value)}
                     className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
                     placeholder="Legal name"
                   />
@@ -336,7 +347,7 @@ export default function TutorSettings() {
                   <Label className="text-[#1F2933]">Address</Label>
                   <Input
                     value={taxAddress}
-                    onChange={(e) => setTaxAddress(e.target.value)}
+                    onChange={e => setTaxAddress(e.target.value)}
                     className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
                     placeholder="Registered address"
                   />
@@ -345,7 +356,7 @@ export default function TutorSettings() {
                   <Label className="text-[#1F2933]">Tax ID (optional)</Label>
                   <Input
                     value={taxId}
-                    onChange={(e) => setTaxId(e.target.value)}
+                    onChange={e => setTaxId(e.target.value)}
                     className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
                     placeholder="Tax ID"
                   />
@@ -392,7 +403,7 @@ export default function TutorSettings() {
         <Card className="border border-[#E2E8F0] shadow-sm">
           <CardHeader
             className="cursor-pointer select-none pb-3"
-            onClick={() => setAccountOpen((prev) => !prev)}
+            onClick={() => setAccountOpen(prev => !prev)}
           >
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg text-[#1F2933]">Account Management</CardTitle>
@@ -425,7 +436,7 @@ export default function TutorSettings() {
                       <SelectValue placeholder="Language" />
                     </SelectTrigger>
                     <SelectContent className="max-h-72">
-                      {languageOptions.map((language) => (
+                      {languageOptions.map(language => (
                         <SelectItem key={language} value={language}>
                           {language}
                         </SelectItem>
@@ -440,7 +451,7 @@ export default function TutorSettings() {
                       <SelectValue placeholder="Time zone" />
                     </SelectTrigger>
                     <SelectContent className="max-h-72">
-                      {timeZoneOptions.map((zone) => (
+                      {timeZoneOptions.map(zone => (
                         <SelectItem key={zone} value={zone}>
                           {zone}
                         </SelectItem>
@@ -449,17 +460,20 @@ export default function TutorSettings() {
                   </Select>
                 </div>
               </div>
-              <div className="rounded-2xl border border-[#FCA5A5]/40 bg-[#FEF2F2] p-4 space-y-3">
+              <div className="space-y-3 rounded-2xl border border-[#FCA5A5]/40 bg-[#FEF2F2] p-4">
                 <div className="text-sm font-semibold text-[#991B1B]">Delete Account (GDPR)</div>
                 <p className="text-sm text-[#7F1D1D]">
-                  Permanently delete your account and personal data. You can reactivate within two months if you change your mind.
+                  Permanently delete your account and personal data. You can reactivate within two
+                  months if you change your mind.
                 </p>
                 <Button
                   variant="outline"
                   className="border-[#DC2626] text-[#991B1B] hover:bg-[#FEE2E2]"
                   onClick={() => {
                     if (confirm('Are you sure you want to delete your account permanently?')) {
-                      toast.message('Account deletion requested. Your account will be dormant for 2 months, and you can reactivate within this time.')
+                      toast.message(
+                        'Account deletion requested. Your account will be dormant for 2 months, and you can reactivate within this time.'
+                      )
                     }
                   }}
                 >

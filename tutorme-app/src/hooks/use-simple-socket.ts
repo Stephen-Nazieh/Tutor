@@ -1,6 +1,6 @@
 /**
  * Simple Socket.io Hook
- * 
+ *
  * Provides a basic socket connection for room-based features.
  * Used by the Live Class Whiteboard system.
  */
@@ -23,7 +23,7 @@ export function useSimpleSocket(roomId: string, options: SimpleSocketOptions = {
     if (!roomId) return
 
     const connect = async () => {
-      const token = await import('@/lib/socket-auth').then((m) => m.getSocketToken())
+      const token = await import('@/lib/socket-auth').then(m => m.getSocketToken())
       if (!token) return
       const socket = io({
         path: '/api/socket',
@@ -36,29 +36,29 @@ export function useSimpleSocket(roomId: string, options: SimpleSocketOptions = {
       })
       socketRef.current = socket
 
-    socket.on('connect', () => {
-      setIsConnected(true)
-      setSocketInstance(socket)
+      socket.on('connect', () => {
+        setIsConnected(true)
+        setSocketInstance(socket)
 
-      if (roomId && options.userId && options.role) {
-        socket.emit('join_class', {
-          roomId,
-          userId: options.userId,
-          name: options.name || options.role,
-          role: options.role,
-        })
-      }
-    })
+        if (roomId && options.userId && options.role) {
+          socket.emit('join_class', {
+            roomId,
+            userId: options.userId,
+            name: options.name || options.role,
+            role: options.role,
+          })
+        }
+      })
 
-    socket.on('disconnect', () => {
-      setIsConnected(false)
-      setSocketInstance(null)
-    })
+      socket.on('disconnect', () => {
+        setIsConnected(false)
+        setSocketInstance(null)
+      })
 
-    socket.on('connect_error', (err) => {
-      console.warn('Socket connection error:', err?.message || err)
-      setIsConnected(false)
-    })
+      socket.on('connect_error', err => {
+        console.warn('Socket connection error:', err?.message || err)
+        setIsConnected(false)
+      })
     }
     connect()
     return () => {
@@ -69,6 +69,6 @@ export function useSimpleSocket(roomId: string, options: SimpleSocketOptions = {
 
   return {
     socket: socketInstance,
-    isConnected
+    isConnected,
   }
 }

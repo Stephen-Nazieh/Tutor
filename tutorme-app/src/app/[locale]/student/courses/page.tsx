@@ -4,10 +4,10 @@ import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { UserNav } from "@/components/user-nav"
-import { toast } from "sonner"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { UserNav } from '@/components/user-nav'
+import { toast } from 'sonner'
 import {
   Users,
   CheckCircle,
@@ -19,9 +19,9 @@ import {
   ExternalLink,
   ArrowLeft,
   Loader2,
-  Plus
-} from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+  Plus,
+} from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import {
   GraduationCap,
   Calculator,
@@ -30,7 +30,7 @@ import {
   Palette,
   Globe,
   Search,
-  MessageCircle
+  MessageCircle,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import {
@@ -39,7 +39,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from '@/components/ui/select'
 import {
   Dialog,
   DialogContent,
@@ -47,18 +47,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog"
+} from '@/components/ui/dialog'
 
 // Loading fallback for Suspense
 function CoursesPageSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse" />
-        <div className="h-12 bg-gray-200 rounded animate-pulse" />
+      <div className="mx-auto max-w-7xl space-y-6">
+        <div className="h-8 w-1/3 animate-pulse rounded bg-gray-200" />
+        <div className="h-12 animate-pulse rounded bg-gray-200" />
         <div className="grid gap-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-32 bg-gray-200 rounded animate-pulse" />
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-32 animate-pulse rounded bg-gray-200" />
           ))}
         </div>
       </div>
@@ -81,21 +81,21 @@ interface Subject {
 }
 
 const subjectIcons: Record<string, React.ReactNode> = {
-  english: <Languages className="w-6 h-6" />,
-  math: <Calculator className="w-6 h-6" />,
-  precalculus: <Calculator className="w-6 h-6" />,
-  'ap-calculus-ab': <Calculator className="w-6 h-6" />,
-  'ap-calculus-bc': <Calculator className="w-6 h-6" />,
-  'ap-statistics': <Calculator className="w-6 h-6" />,
-  ielts: <GraduationCap className="w-6 h-6" />,
-  toefl: <GraduationCap className="w-6 h-6" />,
-  'sat-math': <Calculator className="w-6 h-6" />,
-  'sat-english': <BookOpen className="w-6 h-6" />,
-  'ib-math': <Calculator className="w-6 h-6" />,
-  'ib-english': <BookOpen className="w-6 h-6" />,
-  music: <Music className="w-6 h-6" />,
-  art: <Palette className="w-6 h-6" />,
-  geography: <Globe className="w-6 h-6" />,
+  english: <Languages className="h-6 w-6" />,
+  math: <Calculator className="h-6 w-6" />,
+  precalculus: <Calculator className="h-6 w-6" />,
+  'ap-calculus-ab': <Calculator className="h-6 w-6" />,
+  'ap-calculus-bc': <Calculator className="h-6 w-6" />,
+  'ap-statistics': <Calculator className="h-6 w-6" />,
+  ielts: <GraduationCap className="h-6 w-6" />,
+  toefl: <GraduationCap className="h-6 w-6" />,
+  'sat-math': <Calculator className="h-6 w-6" />,
+  'sat-english': <BookOpen className="h-6 w-6" />,
+  'ib-math': <Calculator className="h-6 w-6" />,
+  'ib-english': <BookOpen className="h-6 w-6" />,
+  music: <Music className="h-6 w-6" />,
+  art: <Palette className="h-6 w-6" />,
+  geography: <Globe className="h-6 w-6" />,
 }
 
 const subjectColors: Record<string, { bg: string; text: string; border: string }> = {
@@ -103,7 +103,11 @@ const subjectColors: Record<string, { bg: string; text: string; border: string }
   math: { bg: 'bg-purple-500', text: 'text-purple-600', border: 'border-purple-200' },
   precalculus: { bg: 'bg-indigo-500', text: 'text-indigo-600', border: 'border-indigo-200' },
   'ap-calculus-ab': { bg: 'bg-violet-500', text: 'text-violet-600', border: 'border-violet-200' },
-  'ap-calculus-bc': { bg: 'bg-fuchsia-500', text: 'text-fuchsia-600', border: 'border-fuchsia-200' },
+  'ap-calculus-bc': {
+    bg: 'bg-fuchsia-500',
+    text: 'text-fuchsia-600',
+    border: 'border-fuchsia-200',
+  },
   'ap-statistics': { bg: 'bg-pink-500', text: 'text-pink-600', border: 'border-pink-200' },
   ielts: { bg: 'bg-red-600', text: 'text-red-600', border: 'border-red-200' },
   toefl: { bg: 'bg-blue-700', text: 'text-blue-700', border: 'border-blue-200' },
@@ -118,44 +122,139 @@ const subjectColors: Record<string, { bg: string; text: string; border: string }
 
 const allSubjects: Subject[] = [
   {
-    id: '1', name: 'English', code: 'english', category: 'Language Arts', description: 'Language arts, writing, grammar, and literature analysis', level: 'Middle School - High School', difficulty: 'Intermediate', estimatedHours: 120,
+    id: '1',
+    name: 'English',
+    code: 'english',
+    category: 'Language Arts',
+    description: 'Language arts, writing, grammar, and literature analysis',
+    level: 'Middle School - High School',
+    difficulty: 'Intermediate',
+    estimatedHours: 120,
   },
   {
-    id: '2', name: 'Mathematics', code: 'math', category: 'Mathematics', description: 'Algebra, geometry, and foundational problem solving', level: 'Middle School - High School', difficulty: 'Intermediate', estimatedHours: 150,
+    id: '2',
+    name: 'Mathematics',
+    code: 'math',
+    category: 'Mathematics',
+    description: 'Algebra, geometry, and foundational problem solving',
+    level: 'Middle School - High School',
+    difficulty: 'Intermediate',
+    estimatedHours: 150,
   },
   {
-    id: '3', name: 'Pre-calculus', code: 'precalculus', category: 'Mathematics', description: 'Functions, trigonometry, and preparation for calculus', level: 'High School', difficulty: 'Advanced', estimatedHours: 100, prerequisites: ['Mathematics'],
+    id: '3',
+    name: 'Pre-calculus',
+    code: 'precalculus',
+    category: 'Mathematics',
+    description: 'Functions, trigonometry, and preparation for calculus',
+    level: 'High School',
+    difficulty: 'Advanced',
+    estimatedHours: 100,
+    prerequisites: ['Mathematics'],
   },
   {
-    id: '4', name: 'AP Calculus AB', code: 'ap-calculus-ab', category: 'Mathematics', description: 'Limits, derivatives, integrals, and the Fundamental Theorem', level: 'High School (AP)', difficulty: 'AP', estimatedHours: 140, prerequisites: ['Pre-calculus'],
+    id: '4',
+    name: 'AP Calculus AB',
+    code: 'ap-calculus-ab',
+    category: 'Mathematics',
+    description: 'Limits, derivatives, integrals, and the Fundamental Theorem',
+    level: 'High School (AP)',
+    difficulty: 'AP',
+    estimatedHours: 140,
+    prerequisites: ['Pre-calculus'],
   },
   {
-    id: '5', name: 'AP Calculus BC', code: 'ap-calculus-bc', category: 'Mathematics', description: 'All AB topics plus series, parametric, and polar calculus', level: 'High School (AP)', difficulty: 'AP', estimatedHours: 160, prerequisites: ['Pre-calculus', 'AP Calculus AB (recommended)'],
+    id: '5',
+    name: 'AP Calculus BC',
+    code: 'ap-calculus-bc',
+    category: 'Mathematics',
+    description: 'All AB topics plus series, parametric, and polar calculus',
+    level: 'High School (AP)',
+    difficulty: 'AP',
+    estimatedHours: 160,
+    prerequisites: ['Pre-calculus', 'AP Calculus AB (recommended)'],
   },
   {
-    id: '6', name: 'AP Statistics', code: 'ap-statistics', category: 'Mathematics', description: 'Data analysis, probability, and statistical inference', level: 'High School (AP)', difficulty: 'AP', estimatedHours: 120, prerequisites: ['Mathematics'],
+    id: '6',
+    name: 'AP Statistics',
+    code: 'ap-statistics',
+    category: 'Mathematics',
+    description: 'Data analysis, probability, and statistical inference',
+    level: 'High School (AP)',
+    difficulty: 'AP',
+    estimatedHours: 120,
+    prerequisites: ['Mathematics'],
   },
   {
-    id: '10', name: 'IELTS', code: 'ielts', category: 'Test Preparation', description: 'International English Language Testing System preparation', level: 'High School - Adult', difficulty: 'Advanced', estimatedHours: 80, prerequisites: ['English'],
+    id: '10',
+    name: 'IELTS',
+    code: 'ielts',
+    category: 'Test Preparation',
+    description: 'International English Language Testing System preparation',
+    level: 'High School - Adult',
+    difficulty: 'Advanced',
+    estimatedHours: 80,
+    prerequisites: ['English'],
   },
   {
-    id: '11', name: 'TOEFL', code: 'toefl', category: 'Test Preparation', description: 'Test of English as a Foreign Language preparation', level: 'High School - Adult', difficulty: 'Advanced', estimatedHours: 80, prerequisites: ['English'],
+    id: '11',
+    name: 'TOEFL',
+    code: 'toefl',
+    category: 'Test Preparation',
+    description: 'Test of English as a Foreign Language preparation',
+    level: 'High School - Adult',
+    difficulty: 'Advanced',
+    estimatedHours: 80,
+    prerequisites: ['English'],
   },
   {
-    id: '13', name: 'SAT Math', code: 'sat-math', category: 'Test Preparation', description: 'SAT Mathematics preparation covering algebra, problem solving, and data analysis', level: 'High School', difficulty: 'Advanced', estimatedHours: 100, prerequisites: ['Mathematics'],
+    id: '13',
+    name: 'SAT Math',
+    code: 'sat-math',
+    category: 'Test Preparation',
+    description: 'SAT Mathematics preparation covering algebra, problem solving, and data analysis',
+    level: 'High School',
+    difficulty: 'Advanced',
+    estimatedHours: 100,
+    prerequisites: ['Mathematics'],
   },
   {
-    id: '14', name: 'SAT English', code: 'sat-english', category: 'Test Preparation', description: 'SAT Reading and Writing preparation with grammar and comprehension focus', level: 'High School', difficulty: 'Advanced', estimatedHours: 100, prerequisites: ['English'],
+    id: '14',
+    name: 'SAT English',
+    code: 'sat-english',
+    category: 'Test Preparation',
+    description: 'SAT Reading and Writing preparation with grammar and comprehension focus',
+    level: 'High School',
+    difficulty: 'Advanced',
+    estimatedHours: 100,
+    prerequisites: ['English'],
   },
   {
-    id: '15', name: 'IB Math', code: 'ib-math', category: 'International Baccalaureate', description: 'International Baccalaureate Mathematics at Standard and Higher Levels', level: 'High School (IB)', difficulty: 'Advanced', estimatedHours: 180, prerequisites: ['Mathematics'],
+    id: '15',
+    name: 'IB Math',
+    code: 'ib-math',
+    category: 'International Baccalaureate',
+    description: 'International Baccalaureate Mathematics at Standard and Higher Levels',
+    level: 'High School (IB)',
+    difficulty: 'Advanced',
+    estimatedHours: 180,
+    prerequisites: ['Mathematics'],
   },
   {
-    id: '16', name: 'IB English', code: 'ib-english', category: 'International Baccalaureate', description: 'International Baccalaureate English Language and Literature', level: 'High School (IB)', difficulty: 'Advanced', estimatedHours: 160, prerequisites: ['English'],
+    id: '16',
+    name: 'IB English',
+    code: 'ib-english',
+    category: 'International Baccalaureate',
+    description: 'International Baccalaureate English Language and Literature',
+    level: 'High School (IB)',
+    difficulty: 'Advanced',
+    estimatedHours: 160,
+    prerequisites: ['English'],
   },
 ]
 
-const lumaCardClass = 'border border-[#E6D9FF] bg-gradient-to-br from-[#FFF7ED] via-white to-[#E0F2FE] shadow-[0_12px_32px_rgba(99,102,241,0.14)]'
+const lumaCardClass =
+  'border border-[#E6D9FF] bg-gradient-to-br from-[#FFF7ED] via-white to-[#E0F2FE] shadow-[0_12px_32px_rgba(99,102,241,0.14)]'
 
 // Inner component that uses searchParams
 function CoursesPageContent() {
@@ -175,30 +274,34 @@ function CoursesPageContent() {
   const [removingSubjectCode, setRemovingSubjectCode] = useState<string | null>(null)
 
   // --- FAVORITES STATE ---
-  const [favoriteTutors, setFavoriteTutors] = useState<Array<{
-    id: string
-    name: string
-    username: string
-    bio: string
-    specialties: string[]
-    courseCount: number
-    averageRating?: number
-    totalReviewCount?: number
-  }>>([])
-  const [favoriteCourses, setFavoriteCourses] = useState<Array<{
-    id: string
-    name: string
-    description: string | null
-    subject: string
-    difficulty: string
-    estimatedHours: number
-    moduleCount: number
-    lessonCount: number
-    tutorName?: string
-    tutorUsername?: string
-    rating?: number
-    reviewCount?: number
-  }>>([])
+  const [favoriteTutors, setFavoriteTutors] = useState<
+    Array<{
+      id: string
+      name: string
+      username: string
+      bio: string
+      specialties: string[]
+      courseCount: number
+      averageRating?: number
+      totalReviewCount?: number
+    }>
+  >([])
+  const [favoriteCourses, setFavoriteCourses] = useState<
+    Array<{
+      id: string
+      name: string
+      description: string | null
+      subject: string
+      difficulty: string
+      estimatedHours: number
+      moduleCount: number
+      lessonCount: number
+      tutorName?: string
+      tutorUsername?: string
+      rating?: number
+      reviewCount?: number
+    }>
+  >([])
   const [favoritesLoading, setFavoritesLoading] = useState(false)
 
   const loadFavorites = useCallback(async () => {
@@ -346,7 +449,8 @@ function CoursesPageContent() {
   }
 
   const filteredSubjects = subjects.filter(subject => {
-    const matchesSearch = subject.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch =
+      subject.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       subject.description.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesCategory = categoryFilter === 'all' || subject.category === categoryFilter
     const matchesDifficulty = difficultyFilter === 'all' || subject.difficulty === difficultyFilter
@@ -354,23 +458,34 @@ function CoursesPageContent() {
   })
 
   // Helper functions
-  const getSubjectIcon = (code: string) => subjectIcons[code.toLowerCase()] || <BookOpen className="w-6 h-6" />
+  const getSubjectIcon = (code: string) =>
+    subjectIcons[code.toLowerCase()] || <BookOpen className="h-6 w-6" />
 
-  const getSubjectColors = (code: string) => subjectColors[code.toLowerCase()] || {
-    bg: 'bg-blue-500',
-    text: 'text-blue-600',
-    border: 'border-blue-200'
-  }
+  const getSubjectColors = (code: string) =>
+    subjectColors[code.toLowerCase()] || {
+      bg: 'bg-blue-500',
+      text: 'text-blue-600',
+      border: 'border-blue-200',
+    }
 
   // Standard categories matching the Course details page
-  const categories = ['all', 'Academic', 'Test Preparation', 'Language Arts', 'Mathematics', 'Science', 'Humanities', 'Arts']
+  const categories = [
+    'all',
+    'Academic',
+    'Test Preparation',
+    'Language Arts',
+    'Mathematics',
+    'Science',
+    'Humanities',
+    'Arts',
+  ]
   const difficulties = ['all', 'Beginner', 'Intermediate', 'Advanced', 'AP']
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
           <p className="mt-2 text-gray-600">Loading courses...</p>
         </div>
       </div>
@@ -380,12 +495,12 @@ function CoursesPageContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="border-b bg-white">
+        <div className="container mx-auto flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-4">
             <Link href="/student/dashboard">
               <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-1" />
+                <ArrowLeft className="mr-1 h-4 w-4" />
                 Back
               </Button>
             </Link>
@@ -401,7 +516,6 @@ function CoursesPageContent() {
         </div>
 
         <div className="space-y-10">
-
           <section className="space-y-8">
             {/* Favorite Tutors section removed */}
 
@@ -409,90 +523,101 @@ function CoursesPageContent() {
               <div className="flex items-center justify-between">
                 <h4 className="text-lg font-semibold text-slate-800">Favorite Courses</h4>
                 {favoriteCourses.length > 0 && (
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{favoriteCourses.length}</span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs">
+                    {favoriteCourses.length}
+                  </span>
                 )}
               </div>
-                {favoritesLoading ? (
-                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {[1, 2, 3].map((i) => (
-                      <Card key={i} className="animate-pulse">
-                        <CardHeader className="space-y-3">
-                          <div className="h-6 w-2/3 rounded bg-muted" />
-                          <div className="h-4 w-1/2 rounded bg-muted" />
-                        </CardHeader>
-                      </Card>
-                    ))}
-                  </div>
-                ) : favoriteCourses.length === 0 ? (
-                  <Card>
-                    <CardContent className="py-12 text-center">
-                      <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-medium mb-2">No favorite courses yet</h3>
-                      <p className="text-muted-foreground mb-4">Browse courses and click the heart icon to save them here.</p>
-                      <Button asChild>
-                        <Link href="/curriculum">Explore Courses</Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {favoriteCourses.map((course) => (
-                      <Card key={course.id} className={`relative ${lumaCardClass}`}>
-                        <button
-                          onClick={() => removeFavoriteCourse(course.id)}
-                          className="absolute top-3 right-3 p-2 rounded-full hover:bg-muted transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
-                        </button>
-                        <CardHeader>
-                          <div className="pr-8">
-                            <CardTitle className="text-lg">{course.name}</CardTitle>
-                            <CardDescription>{course.subject}</CardDescription>
-                          </div>
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {course.description || 'No description available.'}
-                          </p>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline">{course.difficulty}</Badge>
-                            {course.estimatedHours > 0 && <Badge variant="outline">{course.estimatedHours} hours</Badge>}
-                          </div>
-                          {course.rating && (
-                            <div className="flex items-center gap-1">
-                              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                              <span className="font-medium">{course.rating.toFixed(1)}</span>
-                              <span className="text-muted-foreground text-sm">({course.reviewCount} reviews)</span>
-                            </div>
+              {favoritesLoading ? (
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {[1, 2, 3].map(i => (
+                    <Card key={i} className="animate-pulse">
+                      <CardHeader className="space-y-3">
+                        <div className="h-6 w-2/3 rounded bg-muted" />
+                        <div className="h-4 w-1/2 rounded bg-muted" />
+                      </CardHeader>
+                    </Card>
+                  ))}
+                </div>
+              ) : favoriteCourses.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <BookOpen className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                    <h3 className="mb-2 text-lg font-medium">No favorite courses yet</h3>
+                    <p className="mb-4 text-muted-foreground">
+                      Browse courses and click the heart icon to save them here.
+                    </p>
+                    <Button asChild>
+                      <Link href="/curriculum">Explore Courses</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {favoriteCourses.map(course => (
+                    <Card key={course.id} className={`relative ${lumaCardClass}`}>
+                      <button
+                        onClick={() => removeFavoriteCourse(course.id)}
+                        className="absolute right-3 top-3 rounded-full p-2 transition-colors hover:bg-muted"
+                      >
+                        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
+                      </button>
+                      <CardHeader>
+                        <div className="pr-8">
+                          <CardTitle className="text-lg">{course.name}</CardTitle>
+                          <CardDescription>{course.subject}</CardDescription>
+                        </div>
+                        <p className="line-clamp-2 text-sm text-muted-foreground">
+                          {course.description || 'No description available.'}
+                        </p>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline">{course.difficulty}</Badge>
+                          {course.estimatedHours > 0 && (
+                            <Badge variant="outline">{course.estimatedHours} hours</Badge>
                           )}
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <BookOpen className="h-4 w-4" />
-                              {course.moduleCount} modules
+                        </div>
+                        {course.rating && (
+                          <div className="flex items-center gap-1">
+                            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                            <span className="font-medium">{course.rating.toFixed(1)}</span>
+                            <span className="text-sm text-muted-foreground">
+                              ({course.reviewCount} reviews)
                             </span>
-                            <span>{course.lessonCount} lessons</span>
                           </div>
-                          {course.tutorName && (
-                            <p className="text-sm">
-                              By{' '}
-                              <Link href={course.tutorUsername ? `/u/${course.tutorUsername}` : '#'} className="text-indigo-600 hover:text-indigo-800">
-                                {course.tutorName}
-                              </Link>
-                            </p>
-                          )}
-                          <div className="flex items-center justify-between pt-2 border-t">
-                            <Button asChild size="sm">
-                              <Link href={`/curriculum/${course.id}`}>
-                                View Course
-                                <ExternalLink className="ml-1 h-3 w-3" />
-                              </Link>
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+                        )}
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <BookOpen className="h-4 w-4" />
+                            {course.moduleCount} modules
+                          </span>
+                          <span>{course.lessonCount} lessons</span>
+                        </div>
+                        {course.tutorName && (
+                          <p className="text-sm">
+                            By{' '}
+                            <Link
+                              href={course.tutorUsername ? `/u/${course.tutorUsername}` : '#'}
+                              className="text-indigo-600 hover:text-indigo-800"
+                            >
+                              {course.tutorName}
+                            </Link>
+                          </p>
+                        )}
+                        <div className="flex items-center justify-between border-t pt-2">
+                          <Button asChild size="sm">
+                            <Link href={`/curriculum/${course.id}`}>
+                              View Course
+                              <ExternalLink className="ml-1 h-3 w-3" />
+                            </Link>
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
 
@@ -503,7 +628,7 @@ function CoursesPageContent() {
             </div>
             {/* Filters removed */}
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredSubjects.map(subject => {
                 const colors = getSubjectColors(subject.code)
                 const isEnrolled = enrolledIds.includes(subject.id)
@@ -511,12 +636,12 @@ function CoursesPageContent() {
                 return (
                   <Card
                     key={subject.id}
-                    className={`${lumaCardClass} hover:shadow-xl transition-all ${colors.border} ${isEnrolled ? 'opacity-70' : ''}`}
+                    className={`${lumaCardClass} transition-all hover:shadow-xl ${colors.border} ${isEnrolled ? 'opacity-70' : ''}`}
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg text-white ${colors.bg}`}>
+                          <div className={`rounded-lg p-2 text-white ${colors.bg}`}>
                             {getSubjectIcon(subject.code)}
                           </div>
                           <div>
@@ -526,20 +651,16 @@ function CoursesPageContent() {
                             </Badge>
                           </div>
                         </div>
-                        {isEnrolled && (
-                          <CheckCircle className="w-5 h-5 text-green-500" />
-                        )}
+                        {isEnrolled && <CheckCircle className="h-5 w-5 text-green-500" />}
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-gray-600 mb-3">
-                        {subject.description}
-                      </p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+                      <p className="mb-3 text-sm text-gray-600">{subject.description}</p>
+                      <div className="mb-3 flex items-center gap-4 text-xs text-gray-500">
                         <span>{subject.level}</span>
                       </div>
                       {subject.prerequisites && (
-                        <p className="text-xs text-orange-600 mb-3">
+                        <p className="mb-3 text-xs text-orange-600">
                           Requires: {subject.prerequisites.join(', ')}
                         </p>
                       )}
@@ -558,17 +679,21 @@ function CoursesPageContent() {
                                 variant="outline"
                                 size="sm"
                                 className="border-purple-200 hover:bg-purple-50 hover:text-purple-700"
-                                onClick={() => router.push(`/student/courses?subject=${subject.code}`)}
+                                onClick={() =>
+                                  router.push(`/student/courses?subject=${subject.code}`)
+                                }
                               >
-                                <Users className="w-3 h-3 mr-1" />
+                                <Users className="mr-1 h-3 w-3" />
                                 Human tutor
                               </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => router.push(`/student/subjects/${subject.code}/chat`)}
+                                onClick={() =>
+                                  router.push(`/student/subjects/${subject.code}/chat`)
+                                }
                               >
-                                <MessageCircle className="w-3 h-3 mr-1" />
+                                <MessageCircle className="mr-1 h-3 w-3" />
                                 AI tutor
                               </Button>
                             </div>
@@ -580,17 +705,14 @@ function CoursesPageContent() {
                               disabled={removingSubjectCode === subject.code}
                             >
                               {removingSubjectCode === subject.code ? (
-                                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
                               ) : null}
                               Remove
                             </Button>
                           </>
                         ) : (
-                          <Button
-                            className="w-full"
-                            onClick={() => setSelectedSubject(subject)}
-                          >
-                            <Plus className="w-4 h-4 mr-1" />
+                          <Button className="w-full" onClick={() => setSelectedSubject(subject)}>
+                            <Plus className="mr-1 h-4 w-4" />
                             Add Subject
                           </Button>
                         )}
@@ -603,7 +725,7 @@ function CoursesPageContent() {
           </section>
 
           {/* Enroll Dialog */}
-          <Dialog open={!!selectedSubject} onOpenChange={(open) => !open && setSelectedSubject(null)}>
+          <Dialog open={!!selectedSubject} onOpenChange={open => !open && setSelectedSubject(null)}>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Enroll in {selectedSubject?.name}</DialogTitle>
@@ -612,8 +734,13 @@ function CoursesPageContent() {
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setSelectedSubject(null)}>Cancel</Button>
-                <Button onClick={() => selectedSubject && handleEnroll(selectedSubject)} disabled={enrolling}>
+                <Button variant="outline" onClick={() => setSelectedSubject(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => selectedSubject && handleEnroll(selectedSubject)}
+                  disabled={enrolling}
+                >
                   {enrolling ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -628,10 +755,9 @@ function CoursesPageContent() {
           </Dialog>
         </div>
       </main>
-    </div >
+    </div>
   )
 }
-
 
 // Main export wrapped in Suspense
 export default function CoursesPage() {

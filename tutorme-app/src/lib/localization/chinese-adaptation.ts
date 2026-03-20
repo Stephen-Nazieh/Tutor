@@ -175,7 +175,7 @@ export function toChineseCasualNumeral(num: number): string {
   const str = num.toString()
   return str
     .split('')
-    .map((d) => CHINESE_CASUAL_NUMERALS[parseInt(d, 10)])
+    .map(d => CHINESE_CASUAL_NUMERALS[parseInt(d, 10)])
     .join('')
 }
 
@@ -221,7 +221,10 @@ export function formatChineseNumber(
     if (num >= 100000000) return (num / 100000000).toFixed(1) + '亿'
     if (num >= 10000) return (num / 10000).toFixed(1) + '万'
   }
-  const formatted = num.toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+  const formatted = num.toLocaleString('zh-CN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })
   return formal ? toChineseFormalNumeral(num) : formatted
 }
 
@@ -321,11 +324,14 @@ export const COMMUNICATION_PATTERNS = {
 } as const
 
 /** Generate formal email greeting */
-export function getFormalEmailGreeting(name: string, honorific: keyof typeof CHINESE_HONORIFICS): string {
-  return CHINESE_EMAIL_TEMPLATE.GREETING.replace('{honorific}', CHINESE_HONORIFICS[honorific]).replace(
-    '{name}',
-    name
-  )
+export function getFormalEmailGreeting(
+  name: string,
+  honorific: keyof typeof CHINESE_HONORIFICS
+): string {
+  return CHINESE_EMAIL_TEMPLATE.GREETING.replace(
+    '{honorific}',
+    CHINESE_HONORIFICS[honorific]
+  ).replace('{name}', name)
 }
 
 // =============================================================================

@@ -44,9 +44,9 @@ export function escapeHtml(input: string): string {
     '>': '&gt;',
     '"': '&quot;',
     "'": '&#39;',
-    '/': '&#x2F;'
+    '/': '&#x2F;',
   }
-  return input.replace(/[&<>"'/]/g, (c) => map[c] ?? c)
+  return input.replace(/[&<>"'/]/g, c => map[c] ?? c)
 }
 
 /**

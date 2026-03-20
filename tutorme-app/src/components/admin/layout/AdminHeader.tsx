@@ -36,7 +36,11 @@ export function AdminHeader({ collapsed }: AdminHeaderProps) {
   }
 
   const userInitials = session?.name
-    ? session.name.split(' ').map(n => n[0]).join('').toUpperCase()
+    ? session.name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
     : session?.email?.[0].toUpperCase() || 'A'
 
   return (
@@ -63,15 +67,13 @@ export function AdminHeader({ collapsed }: AdminHeaderProps) {
             <Button variant="ghost" className="flex items-center gap-2">
               <Avatar className="h-8 w-8">
                 <AvatarImage src="" />
-                <AvatarFallback className="bg-blue-100 text-blue-700 text-sm">
+                <AvatarFallback className="bg-blue-100 text-sm text-blue-700">
                   {userInitials}
                 </AvatarFallback>
               </Avatar>
-              <div className="text-left hidden sm:block">
+              <div className="hidden text-left sm:block">
                 <p className="text-sm font-medium">{session?.name || session?.email}</p>
-                <p className="text-xs text-muted-foreground">
-                  {session?.roles?.join(', ')}
-                </p>
+                <p className="text-xs text-muted-foreground">{session?.roles?.join(', ')}</p>
               </div>
             </Button>
           </DropdownMenuTrigger>

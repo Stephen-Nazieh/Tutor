@@ -60,9 +60,18 @@ const CANVAS_WIDTH = 1200
 const CANVAS_HEIGHT = 800
 
 const COLORS = [
-  '#000000', '#ef4444', '#f97316', '#f59e0b', '#84cc16',
-  '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef',
-  '#f43f5e', '#78716c',
+  '#000000',
+  '#ef4444',
+  '#f97316',
+  '#f59e0b',
+  '#84cc16',
+  '#22c55e',
+  '#06b6d4',
+  '#3b82f6',
+  '#8b5cf6',
+  '#d946ef',
+  '#f43f5e',
+  '#78716c',
 ]
 
 const STROKE_WIDTHS = [1, 2, 3, 5, 8, 12]
@@ -78,7 +87,7 @@ interface RemoteCursor {
 
 export function MathWhiteboardContainer({
   sessionId,
-  className = ''
+  className = '',
 }: MathWhiteboardContainerProps) {
   const { data: session } = useSession()
   const userId = session?.user?.id || 'anonymous'
@@ -145,8 +154,10 @@ export function MathWhiteboardContainer({
   const remoteCursors = useMemo<RemoteCursor[]>(
     () =>
       participants
-        .filter((participant) => participant.userId && participant.userId !== userId && participant.cursor)
-        .map((participant) => ({
+        .filter(
+          participant => participant.userId && participant.userId !== userId && participant.cursor
+        )
+        .map(participant => ({
           userId: participant.userId || participant.name,
           name: participant.name,
           color: participant.color,
@@ -157,9 +168,8 @@ export function MathWhiteboardContainer({
   )
 
   // Selected element for properties panel
-  const selectedElement = selectedIds.length === 1
-    ? elements.find(el => el.id === selectedIds[0])
-    : null
+  const selectedElement =
+    selectedIds.length === 1 ? elements.find(el => el.id === selectedIds[0]) : null
 
   // Zoom handlers
   const handleZoomIn = useCallback(() => {
@@ -238,51 +248,57 @@ export function MathWhiteboardContainer({
   }, [])
 
   // Create elements
-  const handleEquationCreate = useCallback((latex: string) => {
-    if (!pendingPosition) return
+  const handleEquationCreate = useCallback(
+    (latex: string) => {
+      if (!pendingPosition) return
 
-    const element: EquationElement = {
-      id: `eq-${Date.now()}`,
-      type: 'equation',
-      authorId: userId,
-      layer: 0,
-      locked: false,
-      x: snapToGrid ? Math.round(pendingPosition.x / 20) * 20 : pendingPosition.x,
-      y: snapToGrid ? Math.round(pendingPosition.y / 20) * 20 : pendingPosition.y,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      version: 1,
-      lastModified: Date.now(),
-      modifiedBy: userId,
-      latex,
-      fontSize: toolSettings.fontSize,
-      color: toolSettings.strokeColor,
-    }
+      const element: EquationElement = {
+        id: `eq-${Date.now()}`,
+        type: 'equation',
+        authorId: userId,
+        layer: 0,
+        locked: false,
+        x: snapToGrid ? Math.round(pendingPosition.x / 20) * 20 : pendingPosition.x,
+        y: snapToGrid ? Math.round(pendingPosition.y / 20) * 20 : pendingPosition.y,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        version: 1,
+        lastModified: Date.now(),
+        modifiedBy: userId,
+        latex,
+        fontSize: toolSettings.fontSize,
+        color: toolSettings.strokeColor,
+      }
 
-    createElement(element)
-    setShowEquationEditor(false)
-    setPendingPosition(null)
-    setActiveTool('select')
-    setIsEditing(false)
-  }, [pendingPosition, userId, toolSettings, createElement, snapToGrid])
+      createElement(element)
+      setShowEquationEditor(false)
+      setPendingPosition(null)
+      setActiveTool('select')
+      setIsEditing(false)
+    },
+    [pendingPosition, userId, toolSettings, createElement, snapToGrid]
+  )
 
-  const handleGraphCreate = useCallback((graphElement: GraphElement) => {
-    if (!pendingPosition) return
+  const handleGraphCreate = useCallback(
+    (graphElement: GraphElement) => {
+      if (!pendingPosition) return
 
-    const element: GraphElement = {
-      ...graphElement,
-      id: `graph-${Date.now()}`,
-      x: snapToGrid ? Math.round(pendingPosition.x / 20) * 20 : pendingPosition.x,
-      y: snapToGrid ? Math.round(pendingPosition.y / 20) * 20 : pendingPosition.y,
-    }
+      const element: GraphElement = {
+        ...graphElement,
+        id: `graph-${Date.now()}`,
+        x: snapToGrid ? Math.round(pendingPosition.x / 20) * 20 : pendingPosition.x,
+        y: snapToGrid ? Math.round(pendingPosition.y / 20) * 20 : pendingPosition.y,
+      }
 
-    createElement(element)
-    setShowGraphEditor(false)
-    setPendingPosition(null)
-    setActiveTool('select')
-    setIsEditing(false)
-  }, [pendingPosition, createElement, snapToGrid])
+      createElement(element)
+      setShowGraphEditor(false)
+      setPendingPosition(null)
+      setActiveTool('select')
+      setIsEditing(false)
+    },
+    [pendingPosition, createElement, snapToGrid]
+  )
 
   // PDF handlers
   const handlePdfUpload = useCallback((file: File, url: string) => {
@@ -324,9 +340,12 @@ export function MathWhiteboardContainer({
   }, [pdfUrl, elements, pdfPage])
 
   // Image upload handler
-  const handleImageUpload = useCallback((element: AnyMathElement) => {
-    createElement(element)
-  }, [createElement])
+  const handleImageUpload = useCallback(
+    (element: AnyMathElement) => {
+      createElement(element)
+    },
+    [createElement]
+  )
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
@@ -348,16 +367,11 @@ export function MathWhiteboardContainer({
   // Loading state
   if (isConnecting) {
     return (
-      <div className={`flex items-center justify-center h-full bg-slate-50 ${className}`}>
+      <div className={`flex h-full items-center justify-center bg-slate-50 ${className}`}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600" />
           <p className="mt-4 text-sm text-slate-600">Connecting to math whiteboard...</p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-4"
-            onClick={enableLocalMode}
-          >
+          <Button variant="outline" size="sm" className="mt-4" onClick={enableLocalMode}>
             Work Offline
           </Button>
         </div>
@@ -367,23 +381,17 @@ export function MathWhiteboardContainer({
 
   if (!isConnected && !isLocalMode) {
     return (
-      <div className={`flex items-center justify-center h-full bg-slate-50 ${className}`}>
-        <div className="text-center max-w-md px-4">
-          <p className="text-red-600 font-medium">Connection failed</p>
-          <p className="text-sm text-slate-600 mt-2">{error || 'Could not connect to the collaborative server.'}</p>
-          <div className="flex gap-2 justify-center mt-4">
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => window.location.reload()}
-            >
+      <div className={`flex h-full items-center justify-center bg-slate-50 ${className}`}>
+        <div className="max-w-md px-4 text-center">
+          <p className="font-medium text-red-600">Connection failed</p>
+          <p className="mt-2 text-sm text-slate-600">
+            {error || 'Could not connect to the collaborative server.'}
+          </p>
+          <div className="mt-4 flex justify-center gap-2">
+            <Button variant="default" size="sm" onClick={() => window.location.reload()}>
               Refresh
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={enableLocalMode}
-            >
+            <Button variant="outline" size="sm" onClick={enableLocalMode}>
               Work Offline
             </Button>
           </div>
@@ -396,7 +404,7 @@ export function MathWhiteboardContainer({
     tool,
     icon: Icon,
     title,
-    disabled = false
+    disabled = false,
   }: {
     tool: ToolType
     icon: any
@@ -411,33 +419,33 @@ export function MathWhiteboardContainer({
       title={title}
       className="h-9 w-9 p-0"
     >
-      <Icon className="w-4 h-4" />
+      <Icon className="h-4 w-4" />
     </Button>
   )
 
   return (
-    <div className={`flex flex-col h-full bg-slate-50 ${className}`}>
+    <div className={`flex h-full flex-col bg-slate-50 ${className}`}>
       {/* Header Toolbar */}
-      <div className="flex items-center justify-between px-4 py-2 bg-white border-b">
+      <div className="flex items-center justify-between border-b bg-white px-4 py-2">
         {/* Left: Tools */}
         <div className="flex items-center gap-1">
           <ToolButton tool="select" icon={MousePointer} title="Select (V)" />
           <ToolButton tool="hand" icon={Hand} title="Pan (H)" />
           <ToolButton tool="laser" icon={Target} title="Laser (F)" />
-          <div className="w-px h-6 bg-slate-300 mx-1" />
+          <div className="mx-1 h-6 w-px bg-slate-300" />
           <ToolButton tool="pen" icon={Pencil} title="Pen (P)" />
           <ToolButton tool="eraser" icon={Eraser} title="Eraser (E)" />
-          <div className="w-px h-6 bg-slate-300 mx-1" />
+          <div className="mx-1 h-6 w-px bg-slate-300" />
           <ToolButton tool="rectangle" icon={Square} title="Rectangle (R)" />
           <ToolButton tool="circle" icon={Circle} title="Circle (C)" />
           <ToolButton tool="line" icon={Minus} title="Line (L)" />
           <ToolButton tool="arrow" icon={ArrowRight} title="Arrow (A)" />
-          <div className="w-px h-6 bg-slate-300 mx-1" />
+          <div className="mx-1 h-6 w-px bg-slate-300" />
           <ToolButton tool="text" icon={Type} title="Text (T)" />
           <ToolButton tool="equation" icon={FunctionSquare} title="Equation (Q)" />
           <ToolButton tool="graph" icon={Grid3x3} title="Graph (G)" />
 
-          <div className="w-px h-6 bg-slate-300 mx-2" />
+          <div className="mx-2 h-6 w-px bg-slate-300" />
 
           {/* Image Upload */}
           <ImageUpload onImageUpload={handleImageUpload} />
@@ -450,7 +458,7 @@ export function MathWhiteboardContainer({
             disabled={!canEdit}
             className="h-9 px-2"
           >
-            <FileUp className="w-4 h-4 mr-1" />
+            <FileUp className="mr-1 h-4 w-4" />
             PDF
           </Button>
 
@@ -462,12 +470,12 @@ export function MathWhiteboardContainer({
               disabled={!canEdit || isExporting}
               className="h-9 px-2"
             >
-              <FileDown className="w-4 h-4 mr-1" />
+              <FileDown className="mr-1 h-4 w-4" />
               {isExporting ? 'Exporting...' : 'Export'}
             </Button>
           )}
 
-          <div className="w-px h-6 bg-slate-300 mx-2" />
+          <div className="mx-2 h-6 w-px bg-slate-300" />
 
           {/* Color Picker */}
           <div className="relative">
@@ -479,18 +487,21 @@ export function MathWhiteboardContainer({
               className="h-9 w-9 p-0"
               style={{
                 backgroundColor: toolSettings.strokeColor,
-                borderColor: '#cbd5e1'
+                borderColor: '#cbd5e1',
               }}
             >
-              <Palette className="w-4 h-4" style={{ color: toolSettings.strokeColor === '#000000' ? 'white' : 'black' }} />
+              <Palette
+                className="h-4 w-4"
+                style={{ color: toolSettings.strokeColor === '#000000' ? 'white' : 'black' }}
+              />
             </Button>
 
             {showColorPicker && (
-              <div className="absolute top-full left-0 mt-2 p-2 bg-white border rounded-lg shadow-lg z-50 grid grid-cols-6 gap-1">
+              <div className="absolute left-0 top-full z-50 mt-2 grid grid-cols-6 gap-1 rounded-lg border bg-white p-2 shadow-lg">
                 {COLORS.map(color => (
                   <button
                     key={color}
-                    className="w-6 h-6 rounded border"
+                    className="h-6 w-6 rounded border"
                     style={{ backgroundColor: color }}
                     onClick={() => {
                       setToolSettings({ strokeColor: color })
@@ -503,12 +514,15 @@ export function MathWhiteboardContainer({
           </div>
 
           {/* Stroke Width */}
-          <div className="flex items-center gap-1 ml-2">
+          <div className="ml-2 flex items-center gap-1">
             {STROKE_WIDTHS.map(width => (
               <button
                 key={width}
-                className={`w-6 h-6 rounded flex items-center justify-center ${toolSettings.strokeWidth === width ? 'bg-blue-100 border border-blue-500' : 'hover:bg-slate-100'
-                  }`}
+                className={`flex h-6 w-6 items-center justify-center rounded ${
+                  toolSettings.strokeWidth === width
+                    ? 'border border-blue-500 bg-blue-100'
+                    : 'hover:bg-slate-100'
+                }`}
                 onClick={() => setToolSettings({ strokeWidth: width })}
                 disabled={!canEdit}
               >
@@ -517,7 +531,7 @@ export function MathWhiteboardContainer({
                   style={{
                     width: Math.min(width, 16),
                     height: Math.min(width, 16),
-                    backgroundColor: toolSettings.strokeColor
+                    backgroundColor: toolSettings.strokeColor,
                   }}
                 />
               </button>
@@ -529,12 +543,14 @@ export function MathWhiteboardContainer({
         <div className="flex items-center gap-3">
           {isLocalMode ? (
             <Badge variant="outline" className="gap-1 border-amber-500 text-amber-600">
-              <div className="w-2 h-2 rounded-full bg-amber-500" />
+              <div className="h-2 w-2 rounded-full bg-amber-500" />
               Local Mode
             </Badge>
           ) : (
             <Badge variant={isConnected ? 'default' : 'destructive'} className="gap-1">
-              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`} />
+              <div
+                className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}
+              />
               {isConnected ? 'Live' : 'Offline'}
             </Badge>
           )}
@@ -545,7 +561,7 @@ export function MathWhiteboardContainer({
               size="sm"
               onClick={() => setLock(!isLocked)}
             >
-              {isLocked ? <Lock className="w-4 h-4 mr-1" /> : <Unlock className="w-4 h-4 mr-1" />}
+              {isLocked ? <Lock className="mr-1 h-4 w-4" /> : <Unlock className="mr-1 h-4 w-4" />}
               {isLocked ? 'Locked' : 'Unlocked'}
             </Button>
           )}
@@ -571,22 +587,17 @@ export function MathWhiteboardContainer({
             className="h-9 px-2"
             title="Snap to Grid"
           >
-            <Magnet className="w-4 h-4" />
+            <Magnet className="h-4 w-4" />
           </Button>
 
           <Badge variant="outline" className="gap-1">
-            <Users className="w-3 h-3" />
+            <Users className="h-3 w-3" />
             {participants.length}
           </Badge>
 
           {selectedIds.length > 0 && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDeleteSelected}
-            >
-              <Trash2 className="w-4 h-4 mr-1" />
-              ({selectedIds.length})
+            <Button variant="destructive" size="sm" onClick={handleDeleteSelected}>
+              <Trash2 className="mr-1 h-4 w-4" />({selectedIds.length})
             </Button>
           )}
 
@@ -596,16 +607,12 @@ export function MathWhiteboardContainer({
             onClick={handleClearAll}
             disabled={!canEdit || elements.length === 0}
           >
-            <Trash2 className="w-4 h-4 mr-1" />
+            <Trash2 className="mr-1 h-4 w-4" />
             Clear
           </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExport}
-          >
-            <Download className="w-4 h-4 mr-1" />
+          <Button variant="outline" size="sm" onClick={handleExport}>
+            <Download className="mr-1 h-4 w-4" />
             Export
           </Button>
 
@@ -616,10 +623,10 @@ export function MathWhiteboardContainer({
             onClick={() => setShowShortcuts(!showShortcuts)}
             className="h-9 w-9 p-0"
           >
-            <Command className="w-4 h-4" />
+            <Command className="h-4 w-4" />
           </Button>
 
-          <div className="w-px h-6 bg-slate-300 mx-1" />
+          <div className="mx-1 h-6 w-px bg-slate-300" />
 
           {/* Undo/Redo */}
           <Button
@@ -629,7 +636,7 @@ export function MathWhiteboardContainer({
             disabled={!canUndo}
             title="Undo (Ctrl+Z)"
           >
-            <Undo2 className="w-4 h-4" />
+            <Undo2 className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
@@ -638,16 +645,16 @@ export function MathWhiteboardContainer({
             disabled={!canRedo}
             title="Redo (Ctrl+Y)"
           >
-            <Redo2 className="w-4 h-4" />
+            <Redo2 className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
       {/* Main Canvas Area */}
-      <div className="flex-1 relative overflow-hidden">
+      <div className="relative flex-1 overflow-hidden">
         {/* PDF Page Manager */}
         {pdfUrl && (
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
+          <div className="absolute left-1/2 top-2 z-10 -translate-x-1/2">
             <PdfPageManager
               totalPages={pdfTotalPages}
               currentPage={pdfPage}
@@ -662,7 +669,7 @@ export function MathWhiteboardContainer({
         {selectedElement && (
           <ElementPropertiesPanel
             element={selectedElement}
-            onUpdate={(changes) => updateElement(selectedElement.id, changes)}
+            onUpdate={changes => updateElement(selectedElement.id, changes)}
             onDelete={() => deleteElement(selectedElement.id)}
             onDuplicate={handleDuplicateElement}
             onClose={clearSelection}
@@ -670,10 +677,14 @@ export function MathWhiteboardContainer({
         )}
 
         <div className="absolute inset-0 overflow-auto p-4">
-          <div className="relative shadow-lg w-[1200px] h-[800px] mx-auto">
+          <div className="relative mx-auto h-[800px] w-[1200px] shadow-lg">
             {/* Background Template */}
             <div className="absolute inset-0">
-              <BackgroundTemplates type={backgroundType} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />
+              <BackgroundTemplates
+                type={backgroundType}
+                width={CANVAS_WIDTH}
+                height={CANVAS_HEIGHT}
+              />
             </div>
 
             {/* PDF Overlay */}
@@ -684,7 +695,7 @@ export function MathWhiteboardContainer({
                   pageNumber={pdfPage}
                   width={CANVAS_WIDTH}
                   height={CANVAS_HEIGHT}
-                  onPageRender={(info) => setPdfTotalPages(info.totalPages)}
+                  onPageRender={info => setPdfTotalPages(info.totalPages)}
                 />
               </div>
             )}
@@ -730,7 +741,7 @@ export function MathWhiteboardContainer({
 
             {/* Selection info */}
             {selectedIds.length > 0 && (
-              <div className="absolute -top-8 left-0 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+              <div className="absolute -top-8 left-0 rounded bg-blue-600 px-2 py-1 text-xs text-white">
                 {selectedIds.length} selected
               </div>
             )}
@@ -738,20 +749,22 @@ export function MathWhiteboardContainer({
         </div>
 
         {/* Zoom Controls */}
-        <div className="absolute bottom-4 left-4 flex flex-col gap-1 bg-white rounded-lg shadow border p-1">
-          <Button variant="ghost" size="icon" className="w-8 h-8" onClick={handleZoomIn}>
-            <ZoomIn className="w-4 h-4" />
+        <div className="absolute bottom-4 left-4 flex flex-col gap-1 rounded-lg border bg-white p-1 shadow">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleZoomIn}>
+            <ZoomIn className="h-4 w-4" />
           </Button>
-          <div className="text-center text-xs py-1">{zoom}%</div>
-          <Button variant="ghost" size="icon" className="w-8 h-8" onClick={handleZoomOut}>
-            <ZoomOut className="w-4 h-4" />
+          <div className="py-1 text-center text-xs">{zoom}%</div>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleZoomOut}>
+            <ZoomOut className="h-4 w-4" />
           </Button>
         </div>
 
         {/* Tool hint */}
-        <div className="absolute bottom-4 right-4 bg-white/90 rounded-lg shadow border px-3 py-2 text-xs text-slate-600 max-w-xs">
-          <div className="font-medium">Current Tool: <span className="capitalize">{activeTool}</span></div>
-          <div className="text-slate-400 mt-1">
+        <div className="absolute bottom-4 right-4 max-w-xs rounded-lg border bg-white/90 px-3 py-2 text-xs text-slate-600 shadow">
+          <div className="font-medium">
+            Current Tool: <span className="capitalize">{activeTool}</span>
+          </div>
+          <div className="mt-1 text-slate-400">
             {activeTool === 'select' && 'Click to select, drag to move'}
             {activeTool === 'hand' && 'Drag to pan the canvas'}
             {activeTool === 'laser' && 'Move mouse to point, others can see'}
@@ -766,8 +779,8 @@ export function MathWhiteboardContainer({
             {activeTool === 'graph' && 'Click to insert function graph'}
           </div>
           {snapToGrid && (
-            <div className="text-blue-500 mt-1 flex items-center gap-1">
-              <Magnet className="w-3 h-3" />
+            <div className="mt-1 flex items-center gap-1 text-blue-500">
+              <Magnet className="h-3 w-3" />
               Snap to grid enabled
             </div>
           )}
@@ -775,7 +788,7 @@ export function MathWhiteboardContainer({
       </div>
 
       {/* Bottom: Page Navigation */}
-      <div className="flex items-center justify-between px-4 py-2 bg-white border-t">
+      <div className="flex items-center justify-between border-t bg-white px-4 py-2">
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -783,10 +796,10 @@ export function MathWhiteboardContainer({
             disabled={currentPage === 0}
             onClick={() => changePage(currentPage - 1)}
           >
-            <ChevronLeft className="w-4 h-4 mr-1" />
+            <ChevronLeft className="mr-1 h-4 w-4" />
             Previous
           </Button>
-          <span className="text-sm text-slate-600 min-w-[100px] text-center">
+          <span className="min-w-[100px] text-center text-sm text-slate-600">
             Page {currentPage + 1} of {totalPages}
           </span>
           <Button
@@ -796,7 +809,7 @@ export function MathWhiteboardContainer({
             onClick={() => changePage(currentPage + 1)}
           >
             Next
-            <ChevronRight className="w-4 h-4 ml-1" />
+            <ChevronRight className="ml-1 h-4 w-4" />
           </Button>
         </div>
 
@@ -804,12 +817,12 @@ export function MathWhiteboardContainer({
           <span>{elements.length} elements</span>
           {snapToGrid && (
             <Badge variant="secondary" className="gap-1">
-              <Magnet className="w-3 h-3" />
+              <Magnet className="h-3 w-3" />
               Snap
             </Badge>
           )}
           <span className="flex items-center gap-1">
-            <Calculator className="w-4 h-4" />
+            <Calculator className="h-4 w-4" />
             Math Whiteboard
           </span>
         </div>
@@ -817,7 +830,7 @@ export function MathWhiteboardContainer({
 
       {/* Equation Editor Overlay */}
       {showEquationEditor && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="relative">
             <button
               onClick={() => {
@@ -828,7 +841,7 @@ export function MathWhiteboardContainer({
               }}
               className="absolute -top-10 right-0 text-white hover:text-slate-300"
             >
-              <X className="w-6 h-6" />
+              <X className="h-6 w-6" />
             </button>
             <EquationEditor
               onSubmit={handleEquationCreate}
@@ -845,7 +858,7 @@ export function MathWhiteboardContainer({
 
       {/* Graph Editor Overlay */}
       {showGraphEditor && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="relative">
             <button
               onClick={() => {
@@ -856,7 +869,7 @@ export function MathWhiteboardContainer({
               }}
               className="absolute -top-10 right-0 text-white hover:text-slate-300"
             >
-              <X className="w-6 h-6" />
+              <X className="h-6 w-6" />
             </button>
             <GraphEditor
               onSubmit={handleGraphCreate}
@@ -873,22 +886,20 @@ export function MathWhiteboardContainer({
 
       {/* PDF Uploader Overlay */}
       {showPdfUploader && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="relative w-[500px]">
             <button
               onClick={() => setShowPdfUploader(false)}
               className="absolute -top-10 right-0 text-white hover:text-slate-300"
             >
-              <X className="w-6 h-6" />
+              <X className="h-6 w-6" />
             </button>
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Upload PDF</h3>
-              <PdfUploader
-                onPdfUpload={handlePdfUpload}
-                className="w-full"
-              />
-              <p className="text-xs text-slate-500 mt-4">
-                Upload a PDF worksheet to annotate. Students will see the PDF and can draw on top of it.
+            <div className="rounded-lg bg-white p-6 shadow-lg">
+              <h3 className="mb-4 text-lg font-semibold">Upload PDF</h3>
+              <PdfUploader onPdfUpload={handlePdfUpload} className="w-full" />
+              <p className="mt-4 text-xs text-slate-500">
+                Upload a PDF worksheet to annotate. Students will see the PDF and can draw on top of
+                it.
               </p>
             </div>
           </div>
@@ -897,22 +908,25 @@ export function MathWhiteboardContainer({
 
       {/* Keyboard Shortcuts Help Modal */}
       {showShortcuts && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-[500px] max-h-[80vh] overflow-auto">
-            <div className="flex items-center justify-between mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="max-h-[80vh] w-[500px] overflow-auto rounded-lg bg-white p-6 shadow-lg">
+            <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-semibold">Keyboard Shortcuts</h3>
               <button
                 onClick={() => setShowShortcuts(false)}
                 className="text-slate-400 hover:text-slate-600"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" />
               </button>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              {KEYBOARD_SHORTCUTS.map((shortcut) => (
-                <div key={shortcut.key} className="flex items-center justify-between p-2 bg-slate-50 rounded">
+              {KEYBOARD_SHORTCUTS.map(shortcut => (
+                <div
+                  key={shortcut.key}
+                  className="flex items-center justify-between rounded bg-slate-50 p-2"
+                >
                   <span className="text-sm text-slate-600">{shortcut.description}</span>
-                  <kbd className="px-2 py-1 bg-white border rounded text-xs font-mono">
+                  <kbd className="rounded border bg-white px-2 py-1 font-mono text-xs">
                     {shortcut.key}
                   </kbd>
                 </div>

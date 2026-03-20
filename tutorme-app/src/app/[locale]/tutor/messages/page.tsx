@@ -10,16 +10,14 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from 'sonner'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { 
-  MessageSquare, 
-  Send, 
-  Loader2, 
-  Users,
-  Bell,
-  Search,
-  ChevronRight
-} from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { MessageSquare, Send, Loader2, Users, Bell, Search, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
 
@@ -68,7 +66,7 @@ export default function CommunicationCenterPage() {
 
   // Theme state with localStorage persistence
   const [themeId, setThemeId] = useState('current')
-  const selectedTheme = DASHBOARD_THEMES.find((theme) => theme.id === themeId) ?? DASHBOARD_THEMES[0]
+  const selectedTheme = DASHBOARD_THEMES.find(theme => theme.id === themeId) ?? DASHBOARD_THEMES[0]
   const themeStyle = getThemeStyle(selectedTheme)
 
   useEffect(() => {
@@ -148,11 +146,21 @@ export default function CommunicationCenterPage() {
         const data = await res.json()
         setMessages(prev => [...prev, data.message])
         // Update last message in conversations list
-        setConversations(prev => prev.map(c => 
-          c.id === selectedConversation.id 
-            ? { ...c, lastMessage: { content, createdAt: new Date().toISOString(), read: true, senderId: 'me' } }
-            : c
-        ))
+        setConversations(prev =>
+          prev.map(c =>
+            c.id === selectedConversation.id
+              ? {
+                  ...c,
+                  lastMessage: {
+                    content,
+                    createdAt: new Date().toISOString(),
+                    read: true,
+                    senderId: 'me',
+                  },
+                }
+              : c
+          )
+        )
       } else {
         toast.error('Failed to send message')
         setInputMessage(content)
@@ -165,7 +173,7 @@ export default function CommunicationCenterPage() {
     }
   }
 
-  const filteredConversations = conversations.filter(c => 
+  const filteredConversations = conversations.filter(c =>
     c.otherParticipant.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
@@ -173,8 +181,11 @@ export default function CommunicationCenterPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background text-foreground w-full px-4 sm:px-6 lg:px-8 py-8" style={themeStyle}>
-        <div className="flex items-center justify-center h-64">
+      <div
+        className="min-h-screen w-full bg-background px-4 py-8 text-foreground sm:px-6 lg:px-8"
+        style={themeStyle}
+      >
+        <div className="flex h-64 items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </div>
@@ -182,7 +193,10 @@ export default function CommunicationCenterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground w-full px-4 sm:px-6 lg:px-8 py-8" style={themeStyle}>
+    <div
+      className="min-h-screen w-full bg-background px-4 py-8 text-foreground sm:px-6 lg:px-8"
+      style={themeStyle}
+    >
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
@@ -194,7 +208,7 @@ export default function CommunicationCenterPage() {
               <SelectValue placeholder="Select theme" />
             </SelectTrigger>
             <SelectContent>
-              {DASHBOARD_THEMES.map((theme) => (
+              {DASHBOARD_THEMES.map(theme => (
                 <SelectItem key={theme.id} value={theme.id}>
                   {theme.name}
                 </SelectItem>
@@ -204,40 +218,38 @@ export default function CommunicationCenterPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+      <div className="grid h-[600px] grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Conversations List */}
-        <Card className="lg:col-span-1 overflow-hidden flex flex-col bg-card border-border">
+        <Card className="flex flex-col overflow-hidden border-border bg-card lg:col-span-1">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center justify-between text-foreground">
+            <CardTitle className="flex items-center justify-between text-base text-foreground">
               Conversations
-              {totalUnread > 0 && (
-                <Badge className="bg-red-500">{totalUnread}</Badge>
-              )}
+              {totalUnread > 0 && <Badge className="bg-red-500">{totalUnread}</Badge>}
             </CardTitle>
             <div className="relative mt-2">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search messages..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 text-sm bg-background border-input"
+                onChange={e => setSearchQuery(e.target.value)}
+                className="border-input bg-background pl-9 text-sm"
               />
             </div>
           </CardHeader>
-          <CardContent className="p-0 flex-1 overflow-hidden">
+          <CardContent className="flex-1 overflow-hidden p-0">
             <ScrollArea className="h-full">
               <div className="divide-y divide-border">
                 {filteredConversations.length === 0 ? (
                   <div className="p-4 text-center text-muted-foreground">
-                    <MessageSquare className="w-10 h-10 mx-auto mb-2 text-muted" />
+                    <MessageSquare className="mx-auto mb-2 h-10 w-10 text-muted" />
                     <p className="text-sm">No conversations yet</p>
                   </div>
                 ) : (
-                  filteredConversations.map((conv) => (
+                  filteredConversations.map(conv => (
                     <button
                       key={conv.id}
                       onClick={() => setSelectedConversation(conv)}
-                      className={`w-full p-4 text-left hover:bg-accent transition-colors flex items-center gap-3 ${
+                      className={`flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-accent ${
                         selectedConversation?.id === conv.id ? 'bg-accent' : ''
                       }`}
                     >
@@ -246,18 +258,16 @@ export default function CommunicationCenterPage() {
                           {conv.otherParticipant.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-sm truncate text-foreground">
+                          <span className="truncate text-sm font-medium text-foreground">
                             {conv.otherParticipant.name}
                           </span>
                           {conv.unreadCount > 0 && (
-                            <Badge className="bg-red-500 text-xs ml-2">
-                              {conv.unreadCount}
-                            </Badge>
+                            <Badge className="ml-2 bg-red-500 text-xs">{conv.unreadCount}</Badge>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground truncate">
+                        <p className="truncate text-xs text-muted-foreground">
                           {conv.lastMessage?.content || 'No messages yet'}
                         </p>
                       </div>
@@ -270,10 +280,10 @@ export default function CommunicationCenterPage() {
         </Card>
 
         {/* Chat Area */}
-        <Card className="lg:col-span-2 flex flex-col overflow-hidden bg-card border-border">
+        <Card className="flex flex-col overflow-hidden border-border bg-card lg:col-span-2">
           {selectedConversation ? (
             <>
-              <CardHeader className="pb-3 border-b border-border">
+              <CardHeader className="border-b border-border pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
@@ -291,60 +301,64 @@ export default function CommunicationCenterPage() {
                   <Link href={`/tutor/reports/${selectedConversation.otherParticipant.id}`}>
                     <Button variant="ghost" size="sm">
                       View Profile
-                      <ChevronRight className="w-4 h-4 ml-1" />
+                      <ChevronRight className="ml-1 h-4 w-4" />
                     </Button>
                   </Link>
                 </div>
               </CardHeader>
 
-              <CardContent className="flex-1 p-0 flex flex-col">
+              <CardContent className="flex flex-1 flex-col p-0">
                 <ScrollArea className="flex-1 p-4">
                   <div className="space-y-4">
                     {messages.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <MessageSquare className="w-12 h-12 mx-auto mb-3 text-muted" />
+                      <div className="py-8 text-center text-muted-foreground">
+                        <MessageSquare className="mx-auto mb-3 h-12 w-12 text-muted" />
                         <p>No messages yet</p>
                         <p className="text-sm">Start the conversation!</p>
                       </div>
                     ) : (
-                      messages.map((msg) => (
+                      messages.map(msg => (
                         <div
                           key={msg.id}
                           className={`flex gap-3 ${
-                            msg.senderId === 'me' || msg.sender.profile?.name === 'You' 
-                              ? 'flex-row-reverse' 
+                            msg.senderId === 'me' || msg.sender.profile?.name === 'You'
+                              ? 'flex-row-reverse'
                               : ''
                           }`}
                         >
                           <Avatar className="h-8 w-8 shrink-0">
-                            <AvatarFallback className={`text-xs ${
-                              msg.senderId === 'me' || msg.sender.profile?.name === 'You'
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-muted'
-                            }`}>
+                            <AvatarFallback
+                              className={`text-xs ${
+                                msg.senderId === 'me' || msg.sender.profile?.name === 'You'
+                                  ? 'bg-primary text-primary-foreground'
+                                  : 'bg-muted'
+                              }`}
+                            >
                               {(msg.sender.profile?.name || 'U').charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                           <div
-                            className={`max-w-[70%] p-3 rounded-lg text-sm ${
+                            className={`max-w-[70%] rounded-lg p-3 text-sm ${
                               msg.senderId === 'me' || msg.sender.profile?.name === 'You'
                                 ? 'bg-primary text-primary-foreground'
                                 : 'bg-muted text-muted-foreground'
                             }`}
                           >
                             <p>{renderMentions(msg.content)}</p>
-                            <span className={`text-xs mt-1 block ${
-                              msg.senderId === 'me' || msg.sender.profile?.name === 'You'
-                                ? 'text-primary-foreground/70'
-                                : 'text-muted-foreground'
-                            }`}>
+                            <span
+                              className={`mt-1 block text-xs ${
+                                msg.senderId === 'me' || msg.sender.profile?.name === 'You'
+                                  ? 'text-primary-foreground/70'
+                                  : 'text-muted-foreground'
+                              }`}
+                            >
                               {new Date(msg.createdAt).toLocaleTimeString([], {
                                 hour: '2-digit',
                                 minute: '2-digit',
                               })}
-                              {msg.read && (msg.senderId === 'me' || msg.sender.profile?.name === 'You') && (
-                                ' • Read'
-                              )}
+                              {msg.read &&
+                                (msg.senderId === 'me' || msg.sender.profile?.name === 'You') &&
+                                ' • Read'}
                             </span>
                           </div>
                         </div>
@@ -354,13 +368,13 @@ export default function CommunicationCenterPage() {
                   </div>
                 </ScrollArea>
 
-                <div className="p-4 border-t border-border">
+                <div className="border-t border-border p-4">
                   <div className="flex gap-2">
                     <MentionInput
                       placeholder="Type a message..."
                       value={inputMessage}
                       onChange={setInputMessage}
-                      onKeyDown={(e) => {
+                      onKeyDown={e => {
                         if (e.key === 'Enter' && !e.shiftKey && !sending) {
                           e.preventDefault()
                           sendMessage()
@@ -369,10 +383,7 @@ export default function CommunicationCenterPage() {
                       disabled={sending}
                       className="flex-1"
                     />
-                    <Button 
-                      onClick={sendMessage} 
-                      disabled={sending || !inputMessage.trim()}
-                    >
+                    <Button onClick={sendMessage} disabled={sending || !inputMessage.trim()}>
                       {sending ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
@@ -384,8 +395,8 @@ export default function CommunicationCenterPage() {
               </CardContent>
             </>
           ) : (
-            <CardContent className="flex-1 flex flex-col items-center justify-center text-gray-500">
-              <MessageSquare className="w-16 h-16 mb-4 text-gray-300" />
+            <CardContent className="flex flex-1 flex-col items-center justify-center text-gray-500">
+              <MessageSquare className="mb-4 h-16 w-16 text-gray-300" />
               <p className="text-lg font-medium">Select a conversation</p>
               <p className="text-sm">Choose a conversation from the list to start messaging</p>
             </CardContent>

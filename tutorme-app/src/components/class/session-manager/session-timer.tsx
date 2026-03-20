@@ -12,11 +12,11 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { 
-  Clock, 
-  Play, 
-  Pause, 
-  SkipForward, 
+import {
+  Clock,
+  Play,
+  Pause,
+  SkipForward,
   RotateCcw,
   CheckCircle2,
   Circle,
@@ -26,35 +26,35 @@ import {
   Plus,
   X,
   GripVertical,
-  Sparkles
+  Sparkles,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface AgendaItem {
   id: string
   title: string
-  duration: number           // in minutes
+  duration: number // in minutes
   type: 'intro' | 'content' | 'activity' | 'discussion' | 'quiz' | 'break' | 'wrapup'
   status: 'pending' | 'active' | 'completed' | 'skipped'
-  actualDuration?: number    // actual time spent
+  actualDuration?: number // actual time spent
   description?: string
-  aiSuggestion?: string      // AI-generated suggestion for this segment
+  aiSuggestion?: string // AI-generated suggestion for this segment
 }
 
 export interface SessionTimerProps {
   agenda: AgendaItem[]
-  totalSessionDuration: number  // in minutes
+  totalSessionDuration: number // in minutes
   onAgendaChange?: (agenda: AgendaItem[]) => void
   onPhaseComplete?: (phaseId: string) => void
   onTimeWarning?: (message: string) => void
 }
 
-export function SessionTimer({ 
-  agenda: initialAgenda, 
+export function SessionTimer({
+  agenda: initialAgenda,
   totalSessionDuration,
   onAgendaChange,
   onPhaseComplete,
-  onTimeWarning
+  onTimeWarning,
 }: SessionTimerProps) {
   const [agenda, setAgenda] = useState<AgendaItem[]>(initialAgenda)
   const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0)
@@ -72,8 +72,8 @@ export function SessionTimer({
 
   // Calculate current phase progress
   const currentPhase = agenda[currentPhaseIndex]
-  const currentPhaseProgress = currentPhase 
-    ? ((currentPhase.duration * 60 - timeRemaining) / (currentPhase.duration * 60)) * 100 
+  const currentPhaseProgress = currentPhase
+    ? ((currentPhase.duration * 60 - timeRemaining) / (currentPhase.duration * 60)) * 100
     : 0
 
   // Timer effect
@@ -112,7 +112,7 @@ export function SessionTimer({
     const updatedAgenda = [...agenda]
     updatedAgenda[currentPhaseIndex].status = 'completed'
     updatedAgenda[currentPhaseIndex].actualDuration = updatedAgenda[currentPhaseIndex].duration
-    
+
     onPhaseComplete?.(agenda[currentPhaseIndex].id)
 
     // Move to next phase
@@ -134,7 +134,7 @@ export function SessionTimer({
   const handleSkipPhase = useCallback(() => {
     const updatedAgenda = [...agenda]
     updatedAgenda[currentPhaseIndex].status = 'skipped'
-    
+
     const nextIndex = currentPhaseIndex + 1
     if (nextIndex < agenda.length) {
       updatedAgenda[nextIndex].status = 'active'
@@ -149,8 +149,8 @@ export function SessionTimer({
   const handleReset = useCallback(() => {
     const resetAgenda = agenda.map((item, index) => ({
       ...item,
-      status: index === 0 ? 'active' : 'pending' as const,
-      actualDuration: undefined
+      status: index === 0 ? 'active' : ('pending' as const),
+      actualDuration: undefined,
     }))
     setAgenda(resetAgenda)
     onAgendaChange?.(resetAgenda)
@@ -160,19 +160,22 @@ export function SessionTimer({
     setIsRunning(false)
   }, [agenda, totalSessionDuration, onAgendaChange])
 
-  const handleAddPhase = useCallback((title: string, duration: number, type: AgendaItem['type']) => {
-    const newPhase: AgendaItem = {
-      id: `phase-${Date.now()}`,
-      title,
-      duration,
-      type,
-      status: 'pending'
-    }
-    const updatedAgenda = [...agenda, newPhase]
-    setAgenda(updatedAgenda)
-    onAgendaChange?.(updatedAgenda)
-    setShowAddPhase(false)
-  }, [agenda, onAgendaChange])
+  const handleAddPhase = useCallback(
+    (title: string, duration: number, type: AgendaItem['type']) => {
+      const newPhase: AgendaItem = {
+        id: `phase-${Date.now()}`,
+        title,
+        duration,
+        type,
+        status: 'pending',
+      }
+      const updatedAgenda = [...agenda, newPhase]
+      setAgenda(updatedAgenda)
+      onAgendaChange?.(updatedAgenda)
+      setShowAddPhase(false)
+    },
+    [agenda, onAgendaChange]
+  )
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -182,45 +185,61 @@ export function SessionTimer({
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'intro': return 'bg-blue-500'
-      case 'content': return 'bg-purple-500'
-      case 'activity': return 'bg-green-500'
-      case 'discussion': return 'bg-yellow-500'
-      case 'quiz': return 'bg-red-500'
-      case 'break': return 'bg-gray-500'
-      case 'wrapup': return 'bg-indigo-500'
-      default: return 'bg-gray-500'
+      case 'intro':
+        return 'bg-blue-500'
+      case 'content':
+        return 'bg-purple-500'
+      case 'activity':
+        return 'bg-green-500'
+      case 'discussion':
+        return 'bg-yellow-500'
+      case 'quiz':
+        return 'bg-red-500'
+      case 'break':
+        return 'bg-gray-500'
+      case 'wrapup':
+        return 'bg-indigo-500'
+      default:
+        return 'bg-gray-500'
     }
   }
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'intro': return '👋'
-      case 'content': return '📚'
-      case 'activity': return '🎯'
-      case 'discussion': return '💬'
-      case 'quiz': return '❓'
-      case 'break': return '☕'
-      case 'wrapup': return '✅'
-      default: return '📝'
+      case 'intro':
+        return '👋'
+      case 'content':
+        return '📚'
+      case 'activity':
+        return '🎯'
+      case 'discussion':
+        return '💬'
+      case 'quiz':
+        return '❓'
+      case 'break':
+        return '☕'
+      case 'wrapup':
+        return '✅'
+      default:
+        return '📝'
     }
   }
 
   // AI pacing suggestion
   const pacingSuggestion = useCallback(() => {
     if (!currentPhase) return null
-    
+
     const elapsed = currentPhase.duration * 60 - timeRemaining
     const expectedProgress = elapsed / (currentPhase.duration * 60)
-    
+
     if (expectedProgress > 0.8 && timeRemaining > 120) {
       return "You're ahead of schedule! Consider extending discussion."
     }
     if (expectedProgress < 0.5 && timeRemaining < 60) {
-      return "Running behind. Consider summarizing key points."
+      return 'Running behind. Consider summarizing key points.'
     }
     if (currentPhase.type === 'content' && elapsed > 300 && timeRemaining > 180) {
-      return "Students may need a break soon. Consider an activity."
+      return 'Students may need a break soon. Consider an activity.'
     }
     return null
   }, [currentPhase, timeRemaining])
@@ -228,32 +247,41 @@ export function SessionTimer({
   const suggestion = pacingSuggestion()
 
   return (
-    <div className="w-full bg-slate-900 border-b border-slate-700">
+    <div className="w-full border-b border-slate-700 bg-slate-900">
       {/* Main Timer Bar */}
       <div className="px-4 py-3">
         <div className="flex items-center gap-4">
           {/* Current Phase Info */}
-          <div className="flex items-center gap-3 min-w-[200px]">
-            <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center text-lg", getTypeColor(currentPhase?.type || 'content'))}>
+          <div className="flex min-w-[200px] items-center gap-3">
+            <div
+              className={cn(
+                'flex h-10 w-10 items-center justify-center rounded-lg text-lg',
+                getTypeColor(currentPhase?.type || 'content')
+              )}
+            >
               {getTypeIcon(currentPhase?.type || 'content')}
             </div>
             <div>
-              <p className="text-sm font-medium text-white">{currentPhase?.title || 'No active phase'}</p>
+              <p className="text-sm font-medium text-white">
+                {currentPhase?.title || 'No active phase'}
+              </p>
               <div className="flex items-center gap-2 text-xs text-slate-400">
-                <span>Phase {currentPhaseIndex + 1} of {totalPhases}</span>
-                {currentPhase?.duration && (
-                  <span>• {currentPhase.duration} min</span>
-                )}
+                <span>
+                  Phase {currentPhaseIndex + 1} of {totalPhases}
+                </span>
+                {currentPhase?.duration && <span>• {currentPhase.duration} min</span>}
               </div>
             </div>
           </div>
 
           {/* Timer Display */}
           <div className="flex items-center gap-3">
-            <div className={cn(
-              "text-3xl font-mono font-bold tabular-nums",
-              timeRemaining < 60 ? 'text-red-400 animate-pulse' : 'text-white'
-            )}>
+            <div
+              className={cn(
+                'font-mono text-3xl font-bold tabular-nums',
+                timeRemaining < 60 ? 'animate-pulse text-red-400' : 'text-white'
+              )}
+            >
               {formatTime(timeRemaining)}
             </div>
             <div className="text-xs text-slate-500">
@@ -266,9 +294,9 @@ export function SessionTimer({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
+                  <Button
+                    variant="outline"
+                    size="icon"
                     onClick={() => setIsRunning(!isRunning)}
                     className="h-9 w-9"
                   >
@@ -284,9 +312,9 @@ export function SessionTimer({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
+                  <Button
+                    variant="outline"
+                    size="icon"
                     onClick={handleSkipPhase}
                     disabled={currentPhaseIndex >= agenda.length - 1}
                     className="h-9 w-9"
@@ -303,12 +331,7 @@ export function SessionTimer({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    onClick={handleReset}
-                    className="h-9 w-9"
-                  >
+                  <Button variant="outline" size="icon" onClick={handleReset} className="h-9 w-9">
                     <RotateCcw className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -321,12 +344,12 @@ export function SessionTimer({
 
           {/* Progress Bar */}
           <div className="flex-1">
-            <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+            <div className="mb-1 flex items-center justify-between text-xs text-slate-400">
               <span>Session Progress</span>
               <span>{Math.round(progress)}%</span>
             </div>
-            <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-              <div 
+            <div className="h-2 overflow-hidden rounded-full bg-slate-700">
+              <div
                 className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
                 style={{ width: `${progress}%` }}
               />
@@ -338,7 +361,7 @@ export function SessionTimer({
             variant="outline"
             size="sm"
             onClick={() => setExpanded(!expanded)}
-            className="border-slate-600 bg-slate-700/90 text-slate-200 hover:bg-slate-600 hover:text-white shrink-0"
+            className="shrink-0 border-slate-600 bg-slate-700/90 text-slate-200 hover:bg-slate-600 hover:text-white"
           >
             {expanded ? 'Hide' : 'Show'} Agenda
           </Button>
@@ -346,7 +369,7 @@ export function SessionTimer({
 
         {/* AI Suggestion */}
         {suggestion && (
-          <div className="mt-3 flex items-center gap-2 text-xs text-yellow-400 bg-yellow-900/20 border border-yellow-800/50 rounded-lg px-3 py-2">
+          <div className="mt-3 flex items-center gap-2 rounded-lg border border-yellow-800/50 bg-yellow-900/20 px-3 py-2 text-xs text-yellow-400">
             <Sparkles className="h-3 w-3" />
             <span>{suggestion}</span>
           </div>
@@ -355,16 +378,16 @@ export function SessionTimer({
 
       {/* Expanded Agenda Timeline */}
       {expanded && (
-        <div className="px-4 pb-4 border-t border-slate-800">
+        <div className="border-t border-slate-800 px-4 pb-4">
           <div className="flex items-center justify-between py-3">
             <h3 className="text-sm font-medium text-white">Session Agenda</h3>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowAddPhase(!showAddPhase)}
               className="h-7 text-xs"
             >
-              <Plus className="h-3 w-3 mr-1" />
+              <Plus className="mr-1 h-3 w-3" />
               Add Phase
             </Button>
           </div>
@@ -383,7 +406,7 @@ export function SessionTimer({
                 isPast={index < currentPhaseIndex}
                 getTypeColor={getTypeColor}
                 getTypeIcon={getTypeIcon}
-                onUpdate={(updated) => {
+                onUpdate={updated => {
                   const updatedAgenda = [...agenda]
                   updatedAgenda[index] = updated
                   setAgenda(updatedAgenda)
@@ -415,15 +438,15 @@ interface AgendaPhaseRowProps {
   onRemove: () => void
 }
 
-function AgendaPhaseRow({ 
-  phase, 
-  index, 
-  isActive, 
+function AgendaPhaseRow({
+  phase,
+  index,
+  isActive,
   isPast,
   getTypeColor,
   getTypeIcon,
   onUpdate,
-  onRemove
+  onRemove,
 }: AgendaPhaseRowProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editTitle, setEditTitle] = useState(phase.title)
@@ -436,41 +459,45 @@ function AgendaPhaseRow({
 
   if (isEditing) {
     return (
-      <div className="flex items-center gap-2 p-2 bg-slate-800 rounded-lg">
+      <div className="flex items-center gap-2 rounded-lg bg-slate-800 p-2">
         <input
           value={editTitle}
-          onChange={(e) => setEditTitle(e.target.value)}
-          className="flex-1 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white"
+          onChange={e => setEditTitle(e.target.value)}
+          className="flex-1 rounded border border-slate-600 bg-slate-700 px-2 py-1 text-sm text-white"
         />
         <input
           type="number"
           value={editDuration}
-          onChange={(e) => setEditDuration(parseInt(e.target.value) || 0)}
-          className="w-16 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white"
+          onChange={e => setEditDuration(parseInt(e.target.value) || 0)}
+          className="w-16 rounded border border-slate-600 bg-slate-700 px-2 py-1 text-sm text-white"
         />
         <span className="text-xs text-slate-400">min</span>
-        <Button size="sm" variant="ghost" className="h-7" onClick={handleSave}>Save</Button>
-        <Button size="sm" variant="ghost" className="h-7" onClick={() => setIsEditing(false)}>Cancel</Button>
+        <Button size="sm" variant="ghost" className="h-7" onClick={handleSave}>
+          Save
+        </Button>
+        <Button size="sm" variant="ghost" className="h-7" onClick={() => setIsEditing(false)}>
+          Cancel
+        </Button>
       </div>
     )
   }
 
   return (
-    <div 
+    <div
       className={cn(
-        "flex items-center gap-3 p-2 rounded-lg transition-colors",
-        isActive ? "bg-blue-900/30 border border-blue-800/50" : "bg-slate-800 hover:bg-slate-700",
-        isPast && "opacity-50"
+        'flex items-center gap-3 rounded-lg p-2 transition-colors',
+        isActive ? 'border border-blue-800/50 bg-blue-900/30' : 'bg-slate-800 hover:bg-slate-700',
+        isPast && 'opacity-50'
       )}
     >
       {/* Status Icon */}
-      <div className="w-5 h-5 flex items-center justify-center">
+      <div className="flex h-5 w-5 items-center justify-center">
         {phase.status === 'completed' ? (
           <CheckCircle2 className="h-4 w-4 text-green-500" />
         ) : phase.status === 'active' ? (
-          <div className={cn("w-3 h-3 rounded-full animate-pulse", getTypeColor(phase.type))} />
+          <div className={cn('h-3 w-3 animate-pulse rounded-full', getTypeColor(phase.type))} />
         ) : phase.status === 'skipped' ? (
-          <div className="text-slate-500 text-xs">⦻</div>
+          <div className="text-xs text-slate-500">⦻</div>
         ) : (
           <Circle className="h-4 w-4 text-slate-600" />
         )}
@@ -480,11 +507,10 @@ function AgendaPhaseRow({
       <div className="text-sm">{getTypeIcon(phase.type)}</div>
 
       {/* Title */}
-      <div className="flex-1 min-w-0">
-        <p className={cn(
-          "text-sm truncate",
-          isActive ? "text-white font-medium" : "text-slate-300"
-        )}>
+      <div className="min-w-0 flex-1">
+        <p
+          className={cn('truncate text-sm', isActive ? 'font-medium text-white' : 'text-slate-300')}
+        >
           {phase.title}
         </p>
         {phase.actualDuration && phase.actualDuration !== phase.duration && (
@@ -495,14 +521,17 @@ function AgendaPhaseRow({
       </div>
 
       {/* Duration */}
-      <div className="text-xs text-slate-400">
-        {phase.duration}m
-      </div>
+      <div className="text-xs text-slate-400">{phase.duration}m</div>
 
       {/* Actions */}
       {!isActive && !isPast && (
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100">
-          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setIsEditing(true)}>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-6 w-6"
+            onClick={() => setIsEditing(true)}
+          >
             <GripVertical className="h-3 w-3 text-slate-500" />
           </Button>
           <Button size="icon" variant="ghost" className="h-6 w-6" onClick={onRemove}>
@@ -536,44 +565,50 @@ function AddPhaseForm({ onAdd, onCancel }: AddPhaseFormProps) {
   ]
 
   return (
-    <div className="p-3 bg-slate-800 rounded-lg mb-3 space-y-3">
+    <div className="mb-3 space-y-3 rounded-lg bg-slate-800 p-3">
       <input
         placeholder="Phase title..."
         value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm text-white placeholder:text-slate-500"
+        onChange={e => setTitle(e.target.value)}
+        className="w-full rounded border border-slate-600 bg-slate-700 px-3 py-2 text-sm text-white placeholder:text-slate-500"
       />
-      
+
       <div className="flex gap-2">
         <div className="flex-1">
-          <label className="text-[10px] text-slate-500 mb-1 block">Duration (min)</label>
+          <label className="mb-1 block text-[10px] text-slate-500">Duration (min)</label>
           <input
             type="number"
             value={duration}
-            onChange={(e) => setDuration(parseInt(e.target.value) || 0)}
-            className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white"
+            onChange={e => setDuration(parseInt(e.target.value) || 0)}
+            className="w-full rounded border border-slate-600 bg-slate-700 px-2 py-1 text-sm text-white"
           />
         </div>
         <div className="flex-[2]">
-          <label className="text-[10px] text-slate-500 mb-1 block">Type</label>
+          <label className="mb-1 block text-[10px] text-slate-500">Type</label>
           <select
             value={type}
-            onChange={(e) => setType(e.target.value as AgendaItem['type'])}
-            className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white"
+            onChange={e => setType(e.target.value as AgendaItem['type'])}
+            className="w-full rounded border border-slate-600 bg-slate-700 px-2 py-1 text-sm text-white"
           >
             {phaseTypes.map(t => (
-              <option key={t.value} value={t.value}>{t.icon} {t.label}</option>
+              <option key={t.value} value={t.value}>
+                {t.icon} {t.label}
+              </option>
             ))}
           </select>
         </div>
       </div>
 
       <div className="flex gap-2">
-        <Button variant="outline" size="sm" className="flex-1" onClick={onCancel}>Cancel</Button>
-        <Button 
-          size="sm" 
-          className="flex-1" 
-          onClick={() => { if (title) onAdd(title, duration, type); }}
+        <Button variant="outline" size="sm" className="flex-1" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          size="sm"
+          className="flex-1"
+          onClick={() => {
+            if (title) onAdd(title, duration, type)
+          }}
           disabled={!title}
         >
           Add Phase

@@ -2,21 +2,21 @@
  * ============================================================================
  * CONTENT GENERATOR - QUIZ GENERATION PROMPTS
  * ============================================================================
- * 
+ *
  * UI LOCATION: /tutor/courses/[id]/builder - "Generate Questions" button
- * 
+ *
  * EDIT THIS FILE to change how quizzes are generated.
  */
 
-import { Curriculum, Student } from '../../shared-data';
+import { Curriculum, Student } from '../../shared-data'
 
 export interface QuizGenerationRequest {
-  subject: string;
-  topic: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-  numQuestions: number;
-  questionTypes: ('multiple_choice' | 'short_answer' | 'essay' | 'math')[];
-  targetStudent?: Student;
+  subject: string
+  topic: string
+  difficulty: 'easy' | 'medium' | 'hard'
+  numQuestions: number
+  questionTypes: ('multiple_choice' | 'short_answer' | 'essay' | 'math')[]
+  targetStudent?: Student
 }
 
 /**
@@ -76,7 +76,7 @@ Return ONLY a JSON array of questions in this format:
   }
 ]
 
-Generate ${request.numQuestions} questions now:`;
+Generate ${request.numQuestions} questions now:`
 }
 
 /**
@@ -95,14 +95,15 @@ ${originalQuestion}
 
 GUIDELINES:
 - Keep the same concept/topic
-- ${targetDifficulty === 'easier' 
-    ? 'Break into simpler steps, provide more context, reduce computation' 
-    : 'Add complexity, remove hints, require multiple steps, add edge cases'
+- ${
+    targetDifficulty === 'easier'
+      ? 'Break into simpler steps, provide more context, reduce computation'
+      : 'Add complexity, remove hints, require multiple steps, add edge cases'
   }
 - Maintain educational value
 - Keep similar length
 
-Return the adjusted question in the same format.`;
+Return the adjusted question in the same format.`
 }
 
 /**
@@ -132,17 +133,14 @@ CONTENT REQUIREMENTS:
 - Suggest hands-on activity if applicable
 
 FORMAT:
-Return structured markdown with clear section headers.`;
+Return structured markdown with clear section headers.`
 }
 
 /**
  * Prompt for generating similar questions
  * TRIGGERED BY: "Generate More Like This" button
  */
-export function buildSimilarQuestionPrompt(
-  exampleQuestion: string,
-  count: number
-): string {
+export function buildSimilarQuestionPrompt(exampleQuestion: string, count: number): string {
   return `Generate ${count} new questions similar to this one:
 
 EXAMPLE:
@@ -155,5 +153,5 @@ REQUIREMENTS:
 - Different numbers/scenarios
 - Different wording
 
-Return as JSON array.`;
+Return as JSON array.`
 }

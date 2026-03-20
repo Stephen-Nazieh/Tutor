@@ -37,10 +37,7 @@ async function getHandler(req: NextRequest, session: Session) {
       .limit(1)
 
     if (!aiEnrollment) {
-      return NextResponse.json(
-        { error: 'Not enrolled in English tutor' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Not enrolled in English tutor' }, { status: 404 })
     }
 
     // Get student's curriculum enrollment
@@ -51,10 +48,7 @@ async function getHandler(req: NextRequest, session: Session) {
       .limit(1)
 
     if (!enrollmentRow) {
-      return NextResponse.json(
-        { error: 'No curriculum assigned' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'No curriculum assigned' }, { status: 404 })
     }
 
     const [curriculumRow] = await drizzleDb
@@ -64,10 +58,7 @@ async function getHandler(req: NextRequest, session: Session) {
       .limit(1)
 
     if (!curriculumRow) {
-      return NextResponse.json(
-        { error: 'No curriculum assigned' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'No curriculum assigned' }, { status: 404 })
     }
 
     const modulesList = await drizzleDb
@@ -76,7 +67,16 @@ async function getHandler(req: NextRequest, session: Session) {
       .where(eq(curriculumModule.curriculumId, curriculumRow.id))
       .orderBy(asc(curriculumModule.order))
 
-    const lessonsByModule = new Map<string, { id: string; title: string; order: number; learningObjectives: string[]; keyConcepts: string[] }[]>()
+    const lessonsByModule = new Map<
+      string,
+      {
+        id: string
+        title: string
+        order: number
+        learningObjectives: string[]
+        keyConcepts: string[]
+      }[]
+    >()
     for (const mod of modulesList) {
       const lessons = await drizzleDb
         .select({
@@ -101,10 +101,7 @@ async function getHandler(req: NextRequest, session: Session) {
         .limit(1)
 
       if (!lessonRow) {
-        return NextResponse.json(
-          { error: 'Lesson not found' },
-          { status: 404 }
-        )
+        return NextResponse.json({ error: 'Lesson not found' }, { status: 404 })
       }
 
       const [moduleRow] = await drizzleDb
@@ -138,8 +135,14 @@ async function getHandler(req: NextRequest, session: Session) {
     }
 
     // Otherwise, recommend lessons based on progress
-    let currentLesson: { id: string; title: string; order: number; learningObjectives: string[]; keyConcepts: string[] } | null = null
-    let currentModule: typeof modulesList[0] | null = null
+    let currentLesson: {
+      id: string
+      title: string
+      order: number
+      learningObjectives: string[]
+      keyConcepts: string[]
+    } | null = null
+    let currentModule: (typeof modulesList)[0] | null = null
 
     for (const mod of modulesList) {
       const lessons = lessonsByModule.get(mod.id) ?? []
@@ -170,7 +173,10 @@ async function getHandler(req: NextRequest, session: Session) {
       currentLesson = lastLessons[0] ?? null
     }
 
-    const totalLessons = modulesList.reduce((acc, m) => acc + (lessonsByModule.get(m.id)?.length ?? 0), 0)
+    const totalLessons = modulesList.reduce(
+      (acc, m) => acc + (lessonsByModule.get(m.id)?.length ?? 0),
+      0
+    )
 
     return NextResponse.json({
       context: 'recommended_lesson',
@@ -180,19 +186,26 @@ async function getHandler(req: NextRequest, session: Session) {
         subject: curriculumRow.subject,
         description: curriculumRow.description,
       },
-      currentLesson: currentLesson && currentModule ? {
-        id: currentLesson.id,
-        title: currentLesson.title,
-        moduleTitle: currentModule.title,
-        learningObjectives: currentLesson.learningObjectives,
-        keyConcepts: currentLesson.keyConcepts,
-      } : null,
+      currentLesson:
+        currentLesson && currentModule
+          ? {
+              id: currentLesson.id,
+              title: currentLesson.title,
+              moduleTitle: currentModule.title,
+              learningObjectives: currentLesson.learningObjectives,
+              keyConcepts: currentLesson.keyConcepts,
+            }
+          : null,
       modulesCount: modulesList.length,
       totalLessons,
     })
   } catch (error) {
     console.error('Get lesson context error:', error)
-    return handleApiError(error, 'Failed to get lesson context', 'api/ai-tutor/lesson-context/route.ts')
+    return handleApiError(
+      error,
+      'Failed to get lesson context',
+      'api/ai-tutor/lesson-context/route.ts'
+    )
   }
 }
 
@@ -205,10 +218,7 @@ async function postHandler(req: NextRequest, session: Session) {
     const { sessionId, lessonId } = body
 
     if (!sessionId || !lessonId) {
-      return NextResponse.json(
-        { error: 'Session ID and Lesson ID required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Session ID and Lesson ID required' }, { status: 400 })
     }
 
     // Create or update AI interaction session with lesson context (subjectCode stores lesson reference)
@@ -221,7 +231,11 @@ async function postHandler(req: NextRequest, session: Session) {
     return NextResponse.json({ success: true, session: tutoringSession ?? null })
   } catch (error) {
     console.error('Link session to lesson error:', error)
-    return handleApiError(error, 'Failed to link session to lesson', 'api/ai-tutor/lesson-context/route.ts')
+    return handleApiError(
+      error,
+      'Failed to link session to lesson',
+      'api/ai-tutor/lesson-context/route.ts'
+    )
   }
 }
 

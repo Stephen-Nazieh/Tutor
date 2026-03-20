@@ -19,7 +19,7 @@ import {
   ArrowLeft,
   FileText,
   Compass,
-  Briefcase
+  Briefcase,
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -37,19 +37,21 @@ const navItems: NavItem[] = [
   { href: '/student/help', label: 'Help', icon: HelpCircle },
 ]
 
-export default function StudentLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [comingSoon, setComingSoon] = useState<null | 'ai-tutor' | 'worlds'>(null)
   const isLiveClassRoute = pathname.includes('/student/live/')
   const isTutorDirectoryRoute = pathname.startsWith('/student/tutors')
-  const liveSessionId = isLiveClassRoute ? pathname.split('/student/live/')[1]?.split('/')[0] || '' : ''
+  const liveSessionId = isLiveClassRoute
+    ? pathname.split('/student/live/')[1]?.split('/')[0] || ''
+    : ''
   const liveClassNavItems: NavItem[] = [
-    { href: liveSessionId ? `/student/live/${liveSessionId}` : '/student/live', label: 'Live Whiteboard', icon: Video },
+    {
+      href: liveSessionId ? `/student/live/${liveSessionId}` : '/student/live',
+      label: 'Live Whiteboard',
+      icon: Video,
+    },
     { href: '/student/assignments', label: 'Visible Tasks', icon: ClipboardList },
     { href: '/student/pdf-tutoring', label: 'PDF Tutoring', icon: FileText },
     { href: '/student/live/join', label: 'Leave Class', icon: ArrowLeft },
@@ -58,9 +60,12 @@ export default function StudentLayout({
   if (isTutorDirectoryRoute) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <header className="bg-white border-b sticky top-0 z-40">
-          <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
-            <Link href="/student/dashboard" className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900">
+        <header className="sticky top-0 z-40 border-b bg-white">
+          <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+            <Link
+              href="/student/dashboard"
+              className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900"
+            >
               <ArrowLeft className="h-4 w-4" />
               Back to dashboard
             </Link>
@@ -68,36 +73,40 @@ export default function StudentLayout({
               <Link href="/student/notifications">
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-5 w-5" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                  <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
                 </Button>
               </Link>
               <UserNav />
             </div>
           </div>
         </header>
-        <main className="px-4 sm:px-6 lg:px-8 py-6">{children}</main>
+        <main className="px-4 py-6 sm:px-6 lg:px-8">{children}</main>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="flex min-h-screen bg-gray-50">
       {/* Left Navigation Sidebar - Desktop */}
-      <aside className="w-64 bg-white border-r sticky top-0 h-screen hidden lg:flex flex-col z-40">
-        <div className="p-4 border-b flex items-center justify-between">
-          <Link href="/student/dashboard" className="inline-flex items-center" aria-label="Student dashboard">
+      <aside className="sticky top-0 z-40 hidden h-screen w-64 flex-col border-r bg-white lg:flex">
+        <div className="flex items-center justify-between border-b p-4">
+          <Link
+            href="/student/dashboard"
+            className="inline-flex items-center"
+            aria-label="Student dashboard"
+          >
             <span className="sr-only">Dashboard</span>
           </Link>
         </div>
 
-        <nav className="flex-1 p-4 overflow-y-auto space-y-2">
+        <nav className="flex-1 space-y-2 overflow-y-auto p-4">
           {isLiveClassRoute ? (
             <div>
-              <p className="px-3 mb-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <p className="mb-1.5 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
                 Live Class
               </p>
               <div className="space-y-0.5">
-                {liveClassNavItems.map((item) => {
+                {liveClassNavItems.map(item => {
                   const Icon = item.icon
                   const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
                   return (
@@ -105,72 +114,70 @@ export default function StudentLayout({
                       key={`${item.label}:${item.href}`}
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors',
                         isActive
-                          ? "bg-blue-50 text-blue-700 font-medium"
-                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                          ? 'bg-blue-50 font-medium text-blue-700'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                       )}
                     >
                       <Icon className="h-5 w-5 flex-shrink-0" />
-                      <span className="font-medium text-sm">{item.label}</span>
+                      <span className="text-sm font-medium">{item.label}</span>
                     </Link>
                   )
                 })}
               </div>
             </div>
           ) : (
-            navItems.map((item) => {
+            navItems.map(item => {
               const Icon = item.icon
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
               const isComingSoon = item.href === '/student/ai-tutor'
               const isDisabled = item.href === '/student/dashboard-details'
-              return (
-                isDisabled ? (
-                  <button
-                    key={item.href}
-                    type="button"
-                    disabled
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-left w-full text-gray-400 cursor-not-allowed"
-                  >
-                    <Icon className="h-5 w-5 flex-shrink-0" />
-                    <span className="font-medium text-sm">{item.label}</span>
-                  </button>
-                ) : isComingSoon ? (
-                  <button
-                    key={item.href}
-                    type="button"
-                    onClick={() => setComingSoon('ai-tutor')}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left w-full",
-                      isActive
-                        ? "bg-blue-50 text-blue-700 font-medium"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                    )}
-                  >
-                    <Icon className="h-5 w-5 flex-shrink-0" />
-                    <span className="font-medium text-sm">{item.label}</span>
-                  </button>
-                ) : (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
-                      isActive
-                        ? "bg-blue-50 text-blue-700 font-medium"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                    )}
-                  >
-                    <Icon className="h-5 w-5 flex-shrink-0" />
-                    <span className="font-medium text-sm">{item.label}</span>
-                  </Link>
-                )
+              return isDisabled ? (
+                <button
+                  key={item.href}
+                  type="button"
+                  disabled
+                  className="flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-left text-gray-400"
+                >
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </button>
+              ) : isComingSoon ? (
+                <button
+                  key={item.href}
+                  type="button"
+                  onClick={() => setComingSoon('ai-tutor')}
+                  className={cn(
+                    'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors',
+                    isActive
+                      ? 'bg-blue-50 font-medium text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  )}
+                >
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </button>
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors',
+                    isActive
+                      ? 'bg-blue-50 font-medium text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  )}
+                >
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </Link>
               )
             })
           )}
         </nav>
 
-        <div className="p-4 border-t space-y-2">
+        <div className="space-y-2 border-t p-4">
           <div className="pt-2">
             <UserNav />
           </div>
@@ -178,17 +185,17 @@ export default function StudentLayout({
       </aside>
 
       {/* Mobile Navigation Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b z-50">
-        <div className="flex items-center justify-between h-16 px-4">
+      <div className="fixed left-0 right-0 top-0 z-50 border-b bg-white lg:hidden">
+        <div className="flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
+            <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
-            <Link href="/student/dashboard" className="inline-flex items-center" aria-label="Student dashboard">
+            <Link
+              href="/student/dashboard"
+              className="inline-flex items-center"
+              aria-label="Student dashboard"
+            >
               <span className="sr-only">Dashboard</span>
             </Link>
           </div>
@@ -200,15 +207,15 @@ export default function StudentLayout({
 
       {/* Mobile Navigation Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-16 bg-white z-40 p-4 overflow-y-auto">
+        <div className="fixed inset-0 top-16 z-40 overflow-y-auto bg-white p-4 lg:hidden">
           <nav className="space-y-3">
             {isLiveClassRoute ? (
               <div>
-                <p className="px-3 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
                   Live Class
                 </p>
                 <div className="space-y-0.5">
-                  {liveClassNavItems.map((item) => {
+                  {liveClassNavItems.map(item => {
                     const Icon = item.icon
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
                     return (
@@ -217,10 +224,10 @@ export default function StudentLayout({
                         href={item.href}
                         onClick={() => setMobileMenuOpen(false)}
                         className={cn(
-                          "flex items-center gap-3 px-3 py-3 rounded-lg transition-colors",
+                          'flex items-center gap-3 rounded-lg px-3 py-3 transition-colors',
                           isActive
-                            ? "bg-blue-50 text-blue-700 font-medium"
-                            : "text-gray-600 hover:bg-gray-100"
+                            ? 'bg-blue-50 font-medium text-blue-700'
+                            : 'text-gray-600 hover:bg-gray-100'
                         )}
                       >
                         <Icon className="h-5 w-5" />
@@ -231,56 +238,54 @@ export default function StudentLayout({
                 </div>
               </div>
             ) : (
-              navItems.map((item) => {
+              navItems.map(item => {
                 const Icon = item.icon
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
                 const isComingSoon = item.href === '/student/ai-tutor'
                 const isDisabled = item.href === '/student/dashboard-details'
-                return (
-                  isDisabled ? (
-                    <button
-                      key={item.href}
-                      type="button"
-                      disabled
-                      className="flex items-center gap-3 px-3 py-3 rounded-lg text-left w-full text-gray-400 cursor-not-allowed"
-                    >
-                      <Icon className="h-5 w-5" />
-                      <span className="font-medium">{item.label}</span>
-                    </button>
-                  ) : isComingSoon ? (
-                    <button
-                      key={item.href}
-                      type="button"
-                      onClick={() => {
-                        setComingSoon('ai-tutor')
-                        setMobileMenuOpen(false)
-                      }}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left w-full",
-                        isActive
-                          ? "bg-blue-50 text-blue-700 font-medium"
-                          : "text-gray-600 hover:bg-gray-100"
-                      )}
-                    >
-                      <Icon className="h-5 w-5" />
-                      <span className="font-medium">{item.label}</span>
-                    </button>
-                  ) : (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-3 rounded-lg transition-colors",
-                        isActive
-                          ? "bg-blue-50 text-blue-700 font-medium"
-                          : "text-gray-600 hover:bg-gray-100"
-                      )}
-                    >
-                      <Icon className="h-5 w-5" />
-                      <span className="font-medium">{item.label}</span>
-                    </Link>
-                  )
+                return isDisabled ? (
+                  <button
+                    key={item.href}
+                    type="button"
+                    disabled
+                    className="flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-3 text-left text-gray-400"
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </button>
+                ) : isComingSoon ? (
+                  <button
+                    key={item.href}
+                    type="button"
+                    onClick={() => {
+                      setComingSoon('ai-tutor')
+                      setMobileMenuOpen(false)
+                    }}
+                    className={cn(
+                      'flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors',
+                      isActive
+                        ? 'bg-blue-50 font-medium text-blue-700'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </button>
+                ) : (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={cn(
+                      'flex items-center gap-3 rounded-lg px-3 py-3 transition-colors',
+                      isActive
+                        ? 'bg-blue-50 font-medium text-blue-700'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
                 )
               })
             )}
@@ -289,11 +294,13 @@ export default function StudentLayout({
       )}
 
       {/* Main Content */}
-      <main className={cn("flex-1 min-h-screen", isLiveClassRoute ? "pt-16 lg:pt-0" : "pt-16 lg:pt-0")}>
+      <main
+        className={cn('min-h-screen flex-1', isLiveClassRoute ? 'pt-16 lg:pt-0' : 'pt-16 lg:pt-0')}
+      >
         {children}
       </main>
 
-      <Dialog open={comingSoon !== null} onOpenChange={(open) => !open && setComingSoon(null)}>
+      <Dialog open={comingSoon !== null} onOpenChange={open => !open && setComingSoon(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
@@ -304,22 +311,18 @@ export default function StudentLayout({
             {comingSoon === 'ai-tutor' ? (
               <>
                 <p>
-                  AI Tutor will provide Socratic-style guidance, personalized practice prompts,
-                  and instant feedback while keeping you on track.
+                  AI Tutor will provide Socratic-style guidance, personalized practice prompts, and
+                  instant feedback while keeping you on track.
                 </p>
-                <p>
-                  You&apos;ll get step-by-step hints, adaptive practice, and session summaries.
-                </p>
+                <p>You&apos;ll get step-by-step hints, adaptive practice, and session summaries.</p>
               </>
             ) : (
               <>
                 <p>
-                  Worlds will unlock themed learning paths, progress milestones, and rewards
-                  as you complete lessons and challenges.
+                  Worlds will unlock themed learning paths, progress milestones, and rewards as you
+                  complete lessons and challenges.
                 </p>
-                <p>
-                  Each world is tailored to your goals and will surface curated practice.
-                </p>
+                <p>Each world is tailored to your goals and will surface curated practice.</p>
               </>
             )}
           </div>

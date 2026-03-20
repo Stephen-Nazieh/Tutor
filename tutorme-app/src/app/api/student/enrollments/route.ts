@@ -23,10 +23,7 @@ export const POST = withAuth(async (req, session) => {
   const { curriculumId } = body
 
   if (!curriculumId || typeof curriculumId !== 'string') {
-    return NextResponse.json(
-      { error: 'Curriculum ID is required' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'Curriculum ID is required' }, { status: 400 })
   }
 
   const [curriculumRow] = await drizzleDb
@@ -45,7 +42,7 @@ export const POST = withAuth(async (req, session) => {
       .from(payment)
       .where(inArray(payment.status, ['COMPLETED', 'PENDING']))
 
-    const hasPayment = payments.some((p) => {
+    const hasPayment = payments.some(p => {
       const meta = p.metadata as { curriculumId?: string; studentId?: string } | null
       return meta?.curriculumId === curriculumId && meta?.studentId === session.user.id
     })
@@ -67,16 +64,16 @@ export const POST = withAuth(async (req, session) => {
     .select({ id: curriculumModule.id })
     .from(curriculumModule)
     .where(eq(curriculumModule.curriculumId, curriculumId))
-  const moduleIds = moduleRows.map((m) => m.id)
+  const moduleIds = moduleRows.map(m => m.id)
   const totalLessons =
     moduleIds.length === 0
       ? 0
-      : (
+      : ((
           await drizzleDb
             .select({ count: sql<number>`count(*)::int` })
             .from(curriculumLesson)
             .where(inArray(curriculumLesson.moduleId, moduleIds))
-        )[0]?.count ?? 0
+        )[0]?.count ?? 0)
 
   const [existingProgress] = await drizzleDb
     .select()
@@ -154,7 +151,7 @@ export const GET = withAuth(async (req, session) => {
     .orderBy(desc(curriculumEnrollment.enrolledAt))
 
   const moduleCounts = await Promise.all(
-    enrollmentsRows.map(async (row) => {
+    enrollmentsRows.map(async row => {
       const [{ count }] = await drizzleDb
         .select({ count: sql<number>`count(*)::int` })
         .from(curriculumModule)
@@ -162,9 +159,9 @@ export const GET = withAuth(async (req, session) => {
       return { curriculumId: row.curriculumId, moduleCount: count ?? 0 }
     })
   )
-  const moduleCountByCurriculum = new Map(moduleCounts.map((m) => [m.curriculumId, m.moduleCount]))
+  const moduleCountByCurriculum = new Map(moduleCounts.map(m => [m.curriculumId, m.moduleCount]))
 
-  const enrollments = enrollmentsRows.map((row) => ({
+  const enrollments = enrollmentsRows.map(row => ({
     ...row.enrollment,
     curriculum: {
       id: row.curriculumId,

@@ -278,43 +278,45 @@ Platform commission on tutoring classes, tutor subscription fees, and institutio
 7. If asked about web access: You have knowledge about Solocorn but cannot browse live websites
 8. For investment inquiries: Direct to the contact form on the website
 9. If unsure about something: Say you don't know rather than making things up
-10. Use conversation history for context — remember what was discussed earlier`;
+10. Use conversation history for context — remember what was discussed earlier`
 
 export const GREETING_RESPONSES: Record<string, string> = {
   en: "Hello! I'm Solocorn AI. I can answer questions about our platform, features, pricing, and how we help schools and teachers. What would you like to know?",
-  'zh-CN': "您好！我是Solocorn AI。我可以回答关于我们平台、功能、定价以及如何帮助学校和教师的问题。您想了解什么？",
-  'zh-HK': "您好！我是Solocorn AI。我可以回答關於我哋平台、功能、定價以及如何幫助學校同教師嘅問題。您想了解乜嘢？",
-  es: "¡Hola! Soy Solocorn AI. Puedo responder preguntas sobre nuestra plataforma, características, precios y cómo ayudamos a escuelas y profesores. ¿Qué le gustaría saber?",
-  fr: "Bonjour ! Je suis Solocorn AI. Je peux répondre aux questions sur notre plateforme, nos fonctionnalités, nos tarifs et comment nous aidons les écoles et les enseignants. Que souhaitez-vous savoir ?",
-  de: "Hallo! Ich bin Solocorn AI. Ich kann Fragen zu unserer Plattform, Funktionen, Preisen und wie wir Schulen und Lehrern helfen, beantworten. Was möchten Sie wissen?",
-  ja: "こんにちは！Solocorn AIです。プラットフォーム、機能、価格、および学校や教師を支援する方法についてご質問にお答えできます。何を知りたいですか？",
-  ko: "안녕하세요! Solocorn AI입니다. 플랫폼, 기능, 가격 및 학교와 교사를 돕는 방법에 대해 질문에 답변할 수 있습니다. 무엇을 알고 싶으신가요?",
-  pt: "Olá! Sou o Solocorn AI. Posso responder perguntas sobre nossa plataforma, recursos, preços e como ajudamos escolas e professores. O que você gostaria de saber?",
-  hi: "नमस्ते! मैं Solocorn AI हूं। मैं हमारे प्लेटफॉर्म, सुविधाओं, मूल्य निर्धारण और हम स्कूलों और शिक्षकों की मदद कैसे करते हैं, इसके बारे में प्रश्नों के उत्तर दे सकता हूं। आप क्या जानना चाहेंगे?"
-};
+  'zh-CN':
+    '您好！我是Solocorn AI。我可以回答关于我们平台、功能、定价以及如何帮助学校和教师的问题。您想了解什么？',
+  'zh-HK':
+    '您好！我是Solocorn AI。我可以回答關於我哋平台、功能、定價以及如何幫助學校同教師嘅問題。您想了解乜嘢？',
+  es: '¡Hola! Soy Solocorn AI. Puedo responder preguntas sobre nuestra plataforma, características, precios y cómo ayudamos a escuelas y profesores. ¿Qué le gustaría saber?',
+  fr: 'Bonjour ! Je suis Solocorn AI. Je peux répondre aux questions sur notre plateforme, nos fonctionnalités, nos tarifs et comment nous aidons les écoles et les enseignants. Que souhaitez-vous savoir ?',
+  de: 'Hallo! Ich bin Solocorn AI. Ich kann Fragen zu unserer Plattform, Funktionen, Preisen und wie wir Schulen und Lehrern helfen, beantworten. Was möchten Sie wissen?',
+  ja: 'こんにちは！Solocorn AIです。プラットフォーム、機能、価格、および学校や教師を支援する方法についてご質問にお答えできます。何を知りたいですか？',
+  ko: '안녕하세요! Solocorn AI입니다. 플랫폼, 기능, 가격 및 학교와 교사를 돕는 방법에 대해 질문에 답변할 수 있습니다. 무엇을 알고 싶으신가요?',
+  pt: 'Olá! Sou o Solocorn AI. Posso responder perguntas sobre nossa plataforma, recursos, preços e como ajudamos escolas e professores. O que você gostaria de saber?',
+  hi: 'नमस्ते! मैं Solocorn AI हूं। मैं हमारे प्लेटफॉर्म, सुविधाओं, मूल्य निर्धारण और हम स्कूलों और शिक्षकों की मदद कैसे करते हैं, इसके बारे में प्रश्नों के उत्तर दे सकता हूं। आप क्या जानना चाहेंगे?',
+}
 
 export const ERROR_RESPONSES: Record<string, string> = {
   en: "I'm having trouble connecting right now. Please try again in a moment.",
-  'zh-CN': "我目前连接有问题。请稍后再试。",
-  'zh-HK': "我而家連接有問題。請稍後再試。",
-  es: "Estoy teniendo problemas para conectarme ahora mismo. Por favor, inténtelo de nuevo en un momento.",
+  'zh-CN': '我目前连接有问题。请稍后再试。',
+  'zh-HK': '我而家連接有問題。請稍後再試。',
+  es: 'Estoy teniendo problemas para conectarme ahora mismo. Por favor, inténtelo de nuevo en un momento.',
   fr: "J'ai des problèmes de connexion en ce moment. Veuillez réessayer dans un moment.",
-  de: "Ich habe gerade Probleme mit der Verbindung. Bitte versuchen Sie es in einem Moment erneut.",
-  ja: "現在、接続に問題が発生しています。しばらくしてからもう一度お試しください。",
-  ko: "지금 연결에 문제가 있습니다. 잠시 후 다시 시도해 주세요.",
-  pt: "Estou tendo problemas para me conectar agora. Por favor, tente novamente em um momento.",
-  hi: "मुझे अभी कनेक्ट करने में परेशानी हो रही है। कृपया एक पल में फिर से प्रयास करें।"
-};
+  de: 'Ich habe gerade Probleme mit der Verbindung. Bitte versuchen Sie es in einem Moment erneut.',
+  ja: '現在、接続に問題が発生しています。しばらくしてからもう一度お試しください。',
+  ko: '지금 연결에 문제가 있습니다. 잠시 후 다시 시도해 주세요.',
+  pt: 'Estou tendo problemas para me conectar agora. Por favor, tente novamente em um momento.',
+  hi: 'मुझे अभी कनेक्ट करने में परेशानी हो रही है। कृपया एक पल में फिर से प्रयास करें।',
+}
 
 export const RATE_LIMIT_RESPONSES: Record<string, string> = {
   en: "You're sending messages too quickly. Please wait a moment before trying again.",
-  'zh-CN': "您发送消息的速度太快了。请稍等片刻后再试。",
-  'zh-HK': "您發送訊息嘅速度太快喇。請稍等片刻後再試。",
-  es: "Estás enviando mensajes demasiado rápido. Por favor, espera un momento antes de intentarlo de nuevo.",
-  fr: "Vous envoyez des messages trop rapidement. Veuillez attendre un moment avant de réessayer.",
-  de: "Sie senden Nachrichten zu schnell. Bitte warten Sie einen Moment, bevor Sie es erneut versuchen.",
-  ja: "メッセージの送信が速すぎます。もう一度お試しになる前にしばらくお待ちください。",
-  ko: "메시지를 너무 빨리 보내고 있습니다. 다시 시도하기 전에 잠시 기다려 주세요.",
-  pt: "Você está enviando mensagens muito rapidamente. Por favor, aguarde um momento antes de tentar novamente.",
-  hi: "आप बहुत जल्दी संदेश भेज रहे हैं। कृपया फिर से प्रयास करने से पहले एक पल प्रतीक्षा करें।"
-};
+  'zh-CN': '您发送消息的速度太快了。请稍等片刻后再试。',
+  'zh-HK': '您發送訊息嘅速度太快喇。請稍等片刻後再試。',
+  es: 'Estás enviando mensajes demasiado rápido. Por favor, espera un momento antes de intentarlo de nuevo.',
+  fr: 'Vous envoyez des messages trop rapidement. Veuillez attendre un moment avant de réessayer.',
+  de: 'Sie senden Nachrichten zu schnell. Bitte warten Sie einen Moment, bevor Sie es erneut versuchen.',
+  ja: 'メッセージの送信が速すぎます。もう一度お試しになる前にしばらくお待ちください。',
+  ko: '메시지를 너무 빨리 보내고 있습니다. 다시 시도하기 전에 잠시 기다려 주세요.',
+  pt: 'Você está enviando mensagens muito rapidamente. Por favor, aguarde um momento antes de tentar novamente.',
+  hi: 'आप बहुत जल्दी संदेश भेज रहे हैं। कृपया फिर से प्रयास करने से पहले एक पल प्रतीक्षा करें।',
+}

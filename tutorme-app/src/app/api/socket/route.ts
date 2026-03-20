@@ -17,7 +17,7 @@ export async function GET() {
   // This endpoint just confirms the socket server is available
   return NextResponse.json({
     status: 'Socket.io server initialized',
-    path: '/api/socket'
+    path: '/api/socket',
   })
 }
 

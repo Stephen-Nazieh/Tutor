@@ -6,7 +6,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
@@ -21,28 +21,24 @@ interface PaymentGatewaySelectorProps {
 
 const options: { value: GatewayOption; label: string; description: string }[] = [
   { value: 'HITPAY', label: 'HitPay', description: 'Card, PayNow, and more' },
-  { value: 'AIRWALLEX', label: 'Airwallex', description: 'Global payments' }
+  { value: 'AIRWALLEX', label: 'Airwallex', description: 'Global payments' },
 ]
 
 export function PaymentGatewaySelector({
   value = 'HITPAY',
   onChange,
   className,
-  disabled = false
+  disabled = false,
 }: PaymentGatewaySelectorProps) {
   return (
     <div className={cn('space-y-2', className)}>
       <Label>Payment method</Label>
-      <Select
-        value={value}
-        onValueChange={(v) => onChange?.(v as GatewayOption)}
-        disabled={disabled}
-      >
+      <Select value={value} onValueChange={v => onChange?.(v as GatewayOption)} disabled={disabled}>
         <SelectTrigger>
           <SelectValue placeholder="Choose payment method" />
         </SelectTrigger>
         <SelectContent>
-          {options.map((opt) => (
+          {options.map(opt => (
             <SelectItem key={opt.value} value={opt.value}>
               {opt.label} — {opt.description}
             </SelectItem>

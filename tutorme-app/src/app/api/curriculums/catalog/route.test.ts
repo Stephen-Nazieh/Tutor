@@ -6,7 +6,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { NextRequest } from 'next/server'
 
 const mocks = vi.hoisted(() => ({
-  selectItems: [] as Array<{ id: string; subject: string; name: string; code: string; createdAt: Date }>,
+  selectItems: [] as Array<{
+    id: string
+    subject: string
+    name: string
+    code: string
+    createdAt: Date
+  }>,
   handleApiError: vi.fn((error: unknown) => {
     throw error
   }),
@@ -35,8 +41,20 @@ describe('GET /api/curriculums/catalog', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.selectItems = [
-      { id: 'cat1', subject: 'english', name: 'IELTS', code: 'ielts', createdAt: new Date('2026-01-01') },
-      { id: 'cat2', subject: 'english', name: 'TOEFL', code: 'toefl', createdAt: new Date('2026-01-02') },
+      {
+        id: 'cat1',
+        subject: 'english',
+        name: 'IELTS',
+        code: 'ielts',
+        createdAt: new Date('2026-01-01'),
+      },
+      {
+        id: 'cat2',
+        subject: 'english',
+        name: 'TOEFL',
+        code: 'toefl',
+        createdAt: new Date('2026-01-02'),
+      },
     ]
   })
 
@@ -60,4 +78,3 @@ describe('GET /api/curriculums/catalog', () => {
     expect(data.curriculums).toHaveLength(2)
   })
 })
-

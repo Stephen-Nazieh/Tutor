@@ -9,7 +9,13 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { toast } from 'sonner'
 import {
   ChevronLeft,
@@ -25,7 +31,7 @@ import {
   AlertCircle,
   Brain,
   Zap,
-  Users
+  Users,
 } from 'lucide-react'
 import { SkillRadar } from '@/components/gamification/skill-radar'
 import { ConfidenceTracker } from '@/components/gamification/confidence-tracker'
@@ -90,7 +96,12 @@ interface SubjectProgressDetail {
   level: number
   streakDays: number
   skills: Record<string, number>
-  conceptMastery?: { concept: string; score: number; totalQuestions: number; correctAnswers: number }[]
+  conceptMastery?: {
+    concept: string
+    score: number
+    totalQuestions: number
+    correctAnswers: number
+  }[]
   recentLessons: { id: string; title: string; completed: boolean; score?: number }[]
   totalLessons: number
   completedLessons: number
@@ -109,7 +120,7 @@ function ProgressTabContent({
   setSelectedSubjectCode,
   subjectDetail,
   progressTabLoading,
-  onLoadSubjectList
+  onLoadSubjectList,
 }: {
   subjectList: SubjectListItem[]
   selectedSubjectCode: string | null
@@ -138,9 +149,9 @@ function ProgressTabContent({
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <BookOpen className="mx-auto mb-4 h-12 w-12 text-gray-300" />
           <h3 className="text-lg font-medium text-gray-700">No courses yet</h3>
-          <p className="text-sm text-gray-500 mt-1">Enroll in a course to see your progress here</p>
+          <p className="mt-1 text-sm text-gray-500">Enroll in a course to see your progress here</p>
           <Button className="mt-4" asChild>
             <Link href="/student/subjects/browse">Browse subjects</Link>
           </Button>
@@ -155,13 +166,13 @@ function ProgressTabContent({
         <span className="text-sm font-medium text-gray-600">Course:</span>
         <Select
           value={selectedSubjectCode ?? ''}
-          onValueChange={(v) => setSelectedSubjectCode(v || null)}
+          onValueChange={v => setSelectedSubjectCode(v || null)}
         >
           <SelectTrigger className="w-[240px]">
             <SelectValue placeholder="Select a course" />
           </SelectTrigger>
           <SelectContent>
-            {subjectList.map((s) => (
+            {subjectList.map(s => (
               <SelectItem key={s.id} value={s.subject}>
                 {s.name} ({s.progress}%)
               </SelectItem>
@@ -184,45 +195,45 @@ function ProgressTabContent({
         </Card>
       ) : (
         <>
-          <div className="grid md:grid-cols-4 gap-4">
+          <div className="grid gap-4 md:grid-cols-4">
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-blue-500" />
+                  <TrendingUp className="h-5 w-5 text-blue-500" />
                   <span className="text-sm text-gray-600">Progress</span>
                 </div>
-                <p className="text-3xl font-bold mt-2">{subjectDetail.progress}%</p>
+                <p className="mt-2 text-3xl font-bold">{subjectDetail.progress}%</p>
                 <Progress value={subjectDetail.progress} className="mt-2 h-2" />
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2">
-                  <Target className="w-5 h-5 text-purple-500" />
+                  <Target className="h-5 w-5 text-purple-500" />
                   <span className="text-sm text-gray-600">Confidence</span>
                 </div>
-                <p className="text-3xl font-bold mt-2">{subjectDetail.confidence}%</p>
-                <p className="text-xs text-gray-500 mt-1">Based on quiz performance</p>
+                <p className="mt-2 text-3xl font-bold">{subjectDetail.confidence}%</p>
+                <p className="mt-1 text-xs text-gray-500">Based on quiz performance</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2">
-                  <Award className="w-5 h-5 text-yellow-500" />
+                  <Award className="h-5 w-5 text-yellow-500" />
                   <span className="text-sm text-gray-600">Level</span>
                 </div>
-                <p className="text-3xl font-bold mt-2">{subjectDetail.level}</p>
-                <p className="text-xs text-gray-500 mt-1">{subjectDetail.xp} XP earned</p>
+                <p className="mt-2 text-3xl font-bold">{subjectDetail.level}</p>
+                <p className="mt-1 text-xs text-gray-500">{subjectDetail.xp} XP earned</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-blue-500" />
+                  <Clock className="h-5 w-5 text-blue-500" />
                   <span className="text-sm text-gray-600">Streak</span>
                 </div>
-                <p className="text-3xl font-bold mt-2">{subjectDetail.streakDays} days</p>
-                <p className="text-xs text-gray-500 mt-1">Keep it up!</p>
+                <p className="mt-2 text-3xl font-bold">{subjectDetail.streakDays} days</p>
+                <p className="mt-1 text-xs text-gray-500">Keep it up!</p>
               </CardContent>
             </Card>
           </div>
@@ -237,11 +248,11 @@ function ProgressTabContent({
             />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Brain className="w-5 h-5" />
+                  <Brain className="h-5 w-5" />
                   Skills Breakdown
                 </CardTitle>
               </CardHeader>
@@ -252,95 +263,123 @@ function ProgressTabContent({
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Zap className="w-5 h-5" />
+                  <Zap className="h-5 w-5" />
                   Confidence Tracker
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <ConfidenceTracker score={subjectDetail.confidence} weeklyChange={5} />
                 <div className="mt-4 space-y-2">
-                  <p className="text-sm text-gray-600 font-medium">Skill confidence</p>
-                  {Object.entries(subjectDetail.skills).slice(0, 4).map(([skill, score]) => (
-                    <div key={skill} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm capitalize">{skill.replace('_', ' ')}</span>
-                      <Badge variant={score >= 70 ? 'default' : score >= 50 ? 'secondary' : 'outline'}>
-                        {score}%
-                      </Badge>
-                    </div>
-                  ))}
+                  <p className="text-sm font-medium text-gray-600">Skill confidence</p>
+                  {Object.entries(subjectDetail.skills)
+                    .slice(0, 4)
+                    .map(([skill, score]) => (
+                      <div
+                        key={skill}
+                        className="flex items-center justify-between rounded bg-gray-50 p-2"
+                      >
+                        <span className="text-sm capitalize">{skill.replace('_', ' ')}</span>
+                        <Badge
+                          variant={score >= 70 ? 'default' : score >= 50 ? 'secondary' : 'outline'}
+                        >
+                          {score}%
+                        </Badge>
+                      </div>
+                    ))}
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {subjectDetail.subject.toLowerCase() === 'math' && subjectDetail.conceptMastery && subjectDetail.conceptMastery.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5" />
-                  Concept Mastery
-                </CardTitle>
-                <CardDescription>Track your understanding of key mathematical concepts</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {subjectDetail.conceptMastery.map((concept) => (
-                    <div key={concept.concept} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{concept.concept}</span>
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm text-gray-500">
-                            {concept.correctAnswers}/{concept.totalQuestions} correct
-                          </span>
-                          <span className={`px-2 py-1 rounded text-sm font-semibold ${getScoreColor(concept.score)}`}>
-                            {concept.score}%
-                          </span>
+          {subjectDetail.subject.toLowerCase() === 'math' &&
+            subjectDetail.conceptMastery &&
+            subjectDetail.conceptMastery.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5" />
+                    Concept Mastery
+                  </CardTitle>
+                  <CardDescription>
+                    Track your understanding of key mathematical concepts
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {subjectDetail.conceptMastery.map(concept => (
+                      <div key={concept.concept} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">{concept.concept}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm text-gray-500">
+                              {concept.correctAnswers}/{concept.totalQuestions} correct
+                            </span>
+                            <span
+                              className={`rounded px-2 py-1 text-sm font-semibold ${getScoreColor(concept.score)}`}
+                            >
+                              {concept.score}%
+                            </span>
+                          </div>
+                        </div>
+                        <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${getProgressColor(concept.score)}`}
+                            style={{ width: `${concept.score}%` }}
+                          />
                         </div>
                       </div>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-500 ${getProgressColor(concept.score)}`}
-                          style={{ width: `${concept.score}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5" />
+                <BookOpen className="h-5 w-5" />
                 Recent Lessons
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {subjectDetail.recentLessons.map((lesson) => (
-                  <div key={lesson.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                {subjectDetail.recentLessons.map(lesson => (
+                  <div
+                    key={lesson.id}
+                    className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
+                  >
                     <div className="flex items-center gap-3">
                       {lesson.completed ? (
-                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
                       ) : (
-                        <Circle className="w-5 h-5 text-gray-300" />
+                        <Circle className="h-5 w-5 text-gray-300" />
                       )}
-                      <span className={lesson.completed ? 'text-gray-900' : 'text-gray-500'}>{lesson.title}</span>
+                      <span className={lesson.completed ? 'text-gray-900' : 'text-gray-500'}>
+                        {lesson.title}
+                      </span>
                     </div>
                     {lesson.score != null && (
-                      <Badge variant={lesson.score >= 80 ? 'default' : 'secondary'}>{lesson.score}%</Badge>
+                      <Badge variant={lesson.score >= 80 ? 'default' : 'secondary'}>
+                        {lesson.score}%
+                      </Badge>
                     )}
                   </div>
                 ))}
               </div>
-              <div className="flex flex-wrap gap-2 mt-4">
+              <div className="mt-4 flex flex-wrap gap-2">
                 <Button variant="outline" asChild>
-                  <Link href={`/student/subjects/${encodeURIComponent(subjectDetail.subject)}/chat`}>Ask AI Tutor</Link>
+                  <Link
+                    href={`/student/subjects/${encodeURIComponent(subjectDetail.subject)}/chat`}
+                  >
+                    Ask AI Tutor
+                  </Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link href={`/student/classes?subject=${encodeURIComponent(subjectDetail.subject)}`}>View classes</Link>
+                  <Link
+                    href={`/student/classes?subject=${encodeURIComponent(subjectDetail.subject)}`}
+                  >
+                    View classes
+                  </Link>
                 </Button>
                 <Button variant="outline" asChild>
                   <Link href="/student/study-groups">Study groups</Link>
@@ -375,7 +414,7 @@ export default function ScoresPage() {
     averageScore: 0,
     totalQuizzes: 0,
     totalAssignments: 0,
-    studyHours: 0
+    studyHours: 0,
   })
   const [subjectList, setSubjectList] = useState<SubjectListItem[]>([])
   const [selectedSubjectCode, setSelectedSubjectCode] = useState<string | null>(null)
@@ -399,7 +438,14 @@ export default function ScoresPage() {
       const res = await fetch('/api/student/subjects')
       const data = await res.json()
       if (data.subjects) {
-        setSubjectList(data.subjects.map((s: SubjectListItem) => ({ id: s.id, name: s.name, subject: s.subject, progress: s.progress })))
+        setSubjectList(
+          data.subjects.map((s: SubjectListItem) => ({
+            id: s.id,
+            name: s.name,
+            subject: s.subject,
+            progress: s.progress,
+          }))
+        )
         if (data.subjects.length > 0 && !selectedSubjectCode) {
           setSelectedSubjectCode(data.subjects[0].subject)
         }
@@ -437,13 +483,15 @@ export default function ScoresPage() {
         setQuizzes(data.quizzes || [])
         setAssignments(data.assignments || [])
         setSkills(data.skills || [])
-        setOverallStats(data.overallStats || {
-          totalSubjects: 0,
-          averageScore: 0,
-          totalQuizzes: 0,
-          totalAssignments: 0,
-          studyHours: 0
-        })
+        setOverallStats(
+          data.overallStats || {
+            totalSubjects: 0,
+            averageScore: 0,
+            totalQuizzes: 0,
+            totalAssignments: 0,
+            studyHours: 0,
+          }
+        )
       } else {
         toast.error(data.error || 'Failed to load scores')
       }
@@ -457,20 +505,29 @@ export default function ScoresPage() {
 
   const getGradeColor = (grade: string) => {
     switch (grade.toUpperCase()) {
-      case 'A': return 'bg-green-500 hover:bg-green-600'
-      case 'B': return 'bg-blue-500 hover:bg-blue-600'
-      case 'C': return 'bg-yellow-500 hover:bg-yellow-600'
-      case 'D': return 'bg-orange-500 hover:bg-orange-600'
-      case 'F': return 'bg-red-500 hover:bg-red-600'
-      default: return 'bg-gray-500 hover:bg-gray-600'
+      case 'A':
+        return 'bg-green-500 hover:bg-green-600'
+      case 'B':
+        return 'bg-blue-500 hover:bg-blue-600'
+      case 'C':
+        return 'bg-yellow-500 hover:bg-yellow-600'
+      case 'D':
+        return 'bg-orange-500 hover:bg-orange-600'
+      case 'F':
+        return 'bg-red-500 hover:bg-red-600'
+      default:
+        return 'bg-gray-500 hover:bg-gray-600'
     }
   }
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'up': return <TrendingUp className="w-4 h-4 text-green-500" />
-      case 'down': return <TrendingUp className="w-4 h-4 text-red-500 rotate-180" />
-      default: return <div className="w-4 h-4 rounded-full bg-gray-300" />
+      case 'up':
+        return <TrendingUp className="h-4 w-4 text-green-500" />
+      case 'down':
+        return <TrendingUp className="h-4 w-4 rotate-180 text-red-500" />
+      default:
+        return <div className="h-4 w-4 rounded-full bg-gray-300" />
     }
   }
 
@@ -484,15 +541,15 @@ export default function ScoresPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto p-6">
-          <div className="flex items-center gap-4 mb-6">
+        <div className="mx-auto max-w-7xl p-6">
+          <div className="mb-6 flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => router.push('/student/dashboard')}>
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="h-5 w-5" />
             </Button>
             <h1 className="text-2xl font-bold">My Scores</h1>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map(i => (
               <Card key={i} className="animate-pulse">
                 <CardContent className="h-32" />
               </Card>
@@ -505,23 +562,23 @@ export default function ScoresPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="mx-auto max-w-7xl p-6">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="mb-6 flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.push('/student/dashboard')}>
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-3">
-            <Trophy className="w-8 h-8 text-yellow-500" />
+            <Trophy className="h-8 w-8 text-yellow-500" />
             <div>
               <h1 className="text-2xl font-bold">My Scores</h1>
-              <p className="text-gray-500 text-sm">View your performance across all subjects</p>
+              <p className="text-sm text-gray-500">View your performance across all subjects</p>
             </div>
           </div>
         </div>
 
         {/* Overall Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -529,8 +586,8 @@ export default function ScoresPage() {
                   <p className="text-sm text-gray-500">Average Score</p>
                   <p className="text-2xl font-bold">{overallStats.averageScore}%</p>
                 </div>
-                <div className="p-3 bg-blue-50 rounded-full">
-                  <BarChart3 className="w-6 h-6 text-blue-500" />
+                <div className="rounded-full bg-blue-50 p-3">
+                  <BarChart3 className="h-6 w-6 text-blue-500" />
                 </div>
               </div>
             </CardContent>
@@ -542,8 +599,8 @@ export default function ScoresPage() {
                   <p className="text-sm text-gray-500">Subjects</p>
                   <p className="text-2xl font-bold">{overallStats.totalSubjects}</p>
                 </div>
-                <div className="p-3 bg-green-50 rounded-full">
-                  <BookOpen className="w-6 h-6 text-green-500" />
+                <div className="rounded-full bg-green-50 p-3">
+                  <BookOpen className="h-6 w-6 text-green-500" />
                 </div>
               </div>
             </CardContent>
@@ -555,8 +612,8 @@ export default function ScoresPage() {
                   <p className="text-sm text-gray-500">Quizzes</p>
                   <p className="text-2xl font-bold">{overallStats.totalQuizzes}</p>
                 </div>
-                <div className="p-3 bg-purple-50 rounded-full">
-                  <Target className="w-6 h-6 text-purple-500" />
+                <div className="rounded-full bg-purple-50 p-3">
+                  <Target className="h-6 w-6 text-purple-500" />
                 </div>
               </div>
             </CardContent>
@@ -568,8 +625,8 @@ export default function ScoresPage() {
                   <p className="text-sm text-gray-500">Assignments</p>
                   <p className="text-2xl font-bold">{overallStats.totalAssignments}</p>
                 </div>
-                <div className="p-3 bg-orange-50 rounded-full">
-                  <CheckCircle2 className="w-6 h-6 text-orange-500" />
+                <div className="rounded-full bg-orange-50 p-3">
+                  <CheckCircle2 className="h-6 w-6 text-orange-500" />
                 </div>
               </div>
             </CardContent>
@@ -581,8 +638,8 @@ export default function ScoresPage() {
                   <p className="text-sm text-gray-500">Study Hours</p>
                   <p className="text-2xl font-bold">{overallStats.studyHours}h</p>
                 </div>
-                <div className="p-3 bg-yellow-50 rounded-full">
-                  <Clock className="w-6 h-6 text-yellow-600" />
+                <div className="rounded-full bg-yellow-50 p-3">
+                  <Clock className="h-6 w-6 text-yellow-600" />
                 </div>
               </div>
             </CardContent>
@@ -604,30 +661,34 @@ export default function ScoresPage() {
             {scores.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <Award className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <Award className="mx-auto mb-4 h-12 w-12 text-gray-300" />
                   <h3 className="text-lg font-medium text-gray-700">No scores yet</h3>
-                  <p className="text-sm text-gray-500 mt-1">Complete quizzes and assignments to see your scores</p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Complete quizzes and assignments to see your scores
+                  </p>
                   <Button className="mt-4" asChild>
                     <Link href="/student/subjects/browse">Start Learning</Link>
                   </Button>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {scores.map((score) => (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {scores.map(score => (
                   <Card key={score.id}>
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <div>
                           <CardTitle className="text-lg">{score.subjectName}</CardTitle>
-                          <CardDescription>Last activity: {new Date(score.lastActivity).toLocaleDateString()}</CardDescription>
+                          <CardDescription>
+                            Last activity: {new Date(score.lastActivity).toLocaleDateString()}
+                          </CardDescription>
                         </div>
                         <Badge className={getGradeColor(score.grade)}>{score.grade}</Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <div className="flex items-center justify-between mb-1">
+                        <div className="mb-1 flex items-center justify-between">
                           <span className="text-sm text-gray-500">Overall Score</span>
                           <div className="flex items-center gap-1">
                             <span className="font-medium">{score.percentage}%</span>
@@ -639,17 +700,21 @@ export default function ScoresPage() {
                       <Separator />
                       <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-center gap-2">
-                          <Target className="w-4 h-4 text-purple-500" />
+                          <Target className="h-4 w-4 text-purple-500" />
                           <div className="text-sm">
                             <span className="text-gray-500">Quizzes: </span>
-                            <span className="font-medium">{score.quizzesCompleted}/{score.quizzesTotal}</span>
+                            <span className="font-medium">
+                              {score.quizzesCompleted}/{score.quizzesTotal}
+                            </span>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
                           <div className="text-sm">
                             <span className="text-gray-500">Assignments: </span>
-                            <span className="font-medium">{score.assignmentsCompleted}/{score.assignmentsTotal}</span>
+                            <span className="font-medium">
+                              {score.assignmentsCompleted}/{score.assignmentsTotal}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -677,9 +742,11 @@ export default function ScoresPage() {
             {quizzes.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <Target className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <Target className="mx-auto mb-4 h-12 w-12 text-gray-300" />
                   <h3 className="text-lg font-medium text-gray-700">No quizzes completed yet</h3>
-                  <p className="text-sm text-gray-500 mt-1">Take quizzes to test your knowledge and track your progress</p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Take quizzes to test your knowledge and track your progress
+                  </p>
                   <Button className="mt-4" asChild>
                     <Link href="/student/subjects/browse">Browse Subjects</Link>
                   </Button>
@@ -687,7 +754,7 @@ export default function ScoresPage() {
               </Card>
             ) : (
               <div className="space-y-2">
-                {quizzes.map((quiz) => (
+                {quizzes.map(quiz => (
                   <Card key={quiz.id}>
                     <CardContent className="py-4">
                       <div className="flex items-center justify-between">
@@ -696,23 +763,26 @@ export default function ScoresPage() {
                             <h4 className="font-medium">{quiz.quizTitle}</h4>
                             <Badge variant="outline">{quiz.subject}</Badge>
                           </div>
-                          <p className="text-sm text-gray-500 mt-1">
-                            Completed {new Date(quiz.completedAt).toLocaleDateString()} • {formatTimeSpent(quiz.timeSpent)}
+                          <p className="mt-1 text-sm text-gray-500">
+                            Completed {new Date(quiz.completedAt).toLocaleDateString()} •{' '}
+                            {formatTimeSpent(quiz.timeSpent)}
                           </p>
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="text-right">
-                            <p className={`text-lg font-bold ${quiz.status === 'passed' ? 'text-green-600' : quiz.status === 'failed' ? 'text-red-600' : 'text-gray-600'}`}>
+                            <p
+                              className={`text-lg font-bold ${quiz.status === 'passed' ? 'text-green-600' : quiz.status === 'failed' ? 'text-red-600' : 'text-gray-600'}`}
+                            >
                               {quiz.score}/{quiz.maxScore}
                             </p>
                             <p className="text-xs text-gray-500">{quiz.percentage}%</p>
                           </div>
                           {quiz.status === 'passed' ? (
-                            <CheckCircle2 className="w-6 h-6 text-green-500" />
+                            <CheckCircle2 className="h-6 w-6 text-green-500" />
                           ) : quiz.status === 'failed' ? (
-                            <AlertCircle className="w-6 h-6 text-red-500" />
+                            <AlertCircle className="h-6 w-6 text-red-500" />
                           ) : (
-                            <Circle className="w-6 h-6 text-gray-400" />
+                            <Circle className="h-6 w-6 text-gray-400" />
                           )}
                         </div>
                       </div>
@@ -728,9 +798,11 @@ export default function ScoresPage() {
             {assignments.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <BookOpen className="mx-auto mb-4 h-12 w-12 text-gray-300" />
                   <h3 className="text-lg font-medium text-gray-700">No assignments yet</h3>
-                  <p className="text-sm text-gray-500 mt-1">Complete assignments to track your progress</p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Complete assignments to track your progress
+                  </p>
                   <Button className="mt-4" asChild>
                     <Link href="/student/subjects/browse">Find Assignments</Link>
                   </Button>
@@ -738,7 +810,7 @@ export default function ScoresPage() {
               </Card>
             ) : (
               <div className="space-y-2">
-                {assignments.map((assignment) => (
+                {assignments.map(assignment => (
                   <Card key={assignment.id}>
                     <CardContent className="py-4">
                       <div className="flex items-center justify-between">
@@ -747,7 +819,7 @@ export default function ScoresPage() {
                             <h4 className="font-medium">{assignment.assignmentTitle}</h4>
                             <Badge variant="outline">{assignment.subject}</Badge>
                           </div>
-                          <p className="text-sm text-gray-500 mt-1">
+                          <p className="mt-1 text-sm text-gray-500">
                             Due: {new Date(assignment.dueDate).toLocaleDateString()}
                           </p>
                         </div>
@@ -760,16 +832,18 @@ export default function ScoresPage() {
                               <p className="text-xs text-gray-500">Graded</p>
                             </div>
                           ) : (
-                            <Badge variant={assignment.status === 'submitted' ? 'default' : 'secondary'}>
+                            <Badge
+                              variant={assignment.status === 'submitted' ? 'default' : 'secondary'}
+                            >
                               {assignment.status === 'submitted' ? 'Submitted' : 'Pending'}
                             </Badge>
                           )}
                           {assignment.status === 'graded' ? (
-                            <CheckCircle2 className="w-6 h-6 text-green-500" />
+                            <CheckCircle2 className="h-6 w-6 text-green-500" />
                           ) : assignment.status === 'submitted' ? (
-                            <Clock className="w-6 h-6 text-yellow-500" />
+                            <Clock className="h-6 w-6 text-yellow-500" />
                           ) : (
-                            <Circle className="w-6 h-6 text-gray-400" />
+                            <Circle className="h-6 w-6 text-gray-400" />
                           )}
                         </div>
                       </div>
@@ -785,20 +859,22 @@ export default function ScoresPage() {
             {skills.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <Award className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <Award className="mx-auto mb-4 h-12 w-12 text-gray-300" />
                   <h3 className="text-lg font-medium text-gray-700">No skills data yet</h3>
-                  <p className="text-sm text-gray-500 mt-1">Practice and learn to develop your skills</p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Practice and learn to develop your skills
+                  </p>
                   <Button className="mt-4" asChild>
                     <Link href="/student/ai-tutor">Start with AI Tutor</Link>
                   </Button>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {skills.map((skill) => (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {skills.map(skill => (
                   <Card key={skill.name}>
                     <CardContent className="pt-6">
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="mb-2 flex items-center justify-between">
                         <span className="font-medium">{skill.name}</span>
                         <Badge variant="outline">Level {skill.level}</Badge>
                       </div>

@@ -1,6 +1,6 @@
 /**
  * Worlds Sidebar Component
- * 
+ *
  * Displays worlds and missions in the AI Tutor sidebar
  */
 
@@ -52,24 +52,20 @@ export function WorldsSidebar({
 
   const toggleWorld = (worldId: string) => {
     setExpandedWorlds(prev =>
-      prev.includes(worldId)
-        ? prev.filter(id => id !== worldId)
-        : [...prev, worldId]
+      prev.includes(worldId) ? prev.filter(id => id !== worldId) : [...prev, worldId]
     )
   }
 
   return (
-    <div className={cn('bg-white rounded-xl border flex flex-col h-full', className)}>
-      <div className="p-4 border-b">
+    <div className={cn('flex h-full flex-col rounded-xl border bg-white', className)}>
+      <div className="border-b p-4">
         <h3 className="font-semibold text-gray-800">Learning Worlds</h3>
-        <p className="text-xs text-gray-500 mt-1">
-          Choose a mission to start learning
-        </p>
+        <p className="mt-1 text-xs text-gray-500">Choose a mission to start learning</p>
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-2 space-y-1">
-          {worlds.map((world) => {
+        <div className="space-y-1 p-2">
+          {worlds.map(world => {
             const isExpanded = expandedWorlds.includes(world.id)
             const completedCount = world.missions.filter(
               m => m.userProgress?.status === 'COMPLETED'
@@ -82,19 +78,19 @@ export function WorldsSidebar({
                   onClick={() => world.isUnlocked && toggleWorld(world.id)}
                   disabled={!world.isUnlocked}
                   className={cn(
-                    'w-full flex items-center gap-2 p-2 rounded-lg transition-colors',
-                    world.isUnlocked
-                      ? 'hover:bg-gray-100'
-                      : 'opacity-50 cursor-not-allowed'
+                    'flex w-full items-center gap-2 rounded-lg p-2 transition-colors',
+                    world.isUnlocked ? 'hover:bg-gray-100' : 'cursor-not-allowed opacity-50'
                   )}
                 >
                   <span className="text-xl">{world.emoji}</span>
-                  
+
                   <div className="flex-1 text-left">
-                    <p className={cn(
-                      'font-medium text-sm',
-                      world.isUnlocked ? 'text-gray-800' : 'text-gray-500'
-                    )}>
+                    <p
+                      className={cn(
+                        'text-sm font-medium',
+                        world.isUnlocked ? 'text-gray-800' : 'text-gray-500'
+                      )}
+                    >
                       {world.name}
                     </p>
                     {world.isUnlocked && (
@@ -105,11 +101,11 @@ export function WorldsSidebar({
                   </div>
 
                   {!world.isUnlocked ? (
-                    <Lock className="w-4 h-4 text-gray-400" />
+                    <Lock className="h-4 w-4 text-gray-400" />
                   ) : (
                     <ChevronRight
                       className={cn(
-                        'w-4 h-4 text-gray-400 transition-transform',
+                        'h-4 w-4 text-gray-400 transition-transform',
                         isExpanded && 'rotate-90'
                       )}
                     />
@@ -119,7 +115,7 @@ export function WorldsSidebar({
                 {/* Missions list */}
                 {isExpanded && world.isUnlocked && (
                   <div className="ml-6 mt-1 space-y-1">
-                    {world.missions.map((mission) => (
+                    {world.missions.map(mission => (
                       <MissionItem
                         key={mission.id}
                         mission={mission}
@@ -148,35 +144,34 @@ function MissionItem({
   onClick: () => void
 }) {
   const status = mission.userProgress?.status || 'NOT_STARTED'
-  
-  const Icon = status === 'COMPLETED'
-    ? CheckCircle2
-    : status === 'IN_PROGRESS'
-    ? PlayCircle
-    : Circle
+
+  const Icon =
+    status === 'COMPLETED' ? CheckCircle2 : status === 'IN_PROGRESS' ? PlayCircle : Circle
 
   return (
     <button
       onClick={onClick}
       className={cn(
-        'w-full flex items-center gap-2 p-2 rounded-lg text-left transition-colors',
-        isActive
-          ? 'bg-blue-50 border border-blue-200'
-          : 'hover:bg-gray-50'
+        'flex w-full items-center gap-2 rounded-lg p-2 text-left transition-colors',
+        isActive ? 'border border-blue-200 bg-blue-50' : 'hover:bg-gray-50'
       )}
     >
-      <Icon className={cn(
-        'w-4 h-4 flex-shrink-0',
-        status === 'COMPLETED' && 'text-green-500',
-        status === 'IN_PROGRESS' && 'text-blue-500',
-        status === 'NOT_STARTED' && 'text-gray-400'
-      )} />
+      <Icon
+        className={cn(
+          'h-4 w-4 flex-shrink-0',
+          status === 'COMPLETED' && 'text-green-500',
+          status === 'IN_PROGRESS' && 'text-blue-500',
+          status === 'NOT_STARTED' && 'text-gray-400'
+        )}
+      />
 
-      <div className="flex-1 min-w-0">
-        <p className={cn(
-          'text-sm truncate',
-          isActive ? 'font-medium text-blue-700' : 'text-gray-700'
-        )}>
+      <div className="min-w-0 flex-1">
+        <p
+          className={cn(
+            'truncate text-sm',
+            isActive ? 'font-medium text-blue-700' : 'text-gray-700'
+          )}
+        >
           {mission.title}
         </p>
         <div className="flex items-center gap-2 text-xs text-gray-500">

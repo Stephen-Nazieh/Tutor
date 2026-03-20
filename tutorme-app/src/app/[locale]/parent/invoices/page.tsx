@@ -12,7 +12,7 @@ const invoices = [
     description: 'Mathematics Tutoring - Feb 2026',
     amount: 2400,
     status: 'paid',
-    student: 'Emily'
+    student: 'Emily',
   },
   {
     id: 'INV-2026-002',
@@ -20,7 +20,7 @@ const invoices = [
     description: 'Physics Class - Feb 2026',
     amount: 1800,
     status: 'paid',
-    student: 'Michael'
+    student: 'Michael',
   },
   {
     id: 'INV-2026-003',
@@ -28,8 +28,8 @@ const invoices = [
     description: 'English Tutoring - Jan 2026',
     amount: 1500,
     status: 'paid',
-    student: 'Emily'
-  }
+    student: 'Emily',
+  },
 ]
 
 export default function ParentInvoicesPage() {
@@ -37,7 +37,7 @@ export default function ParentInvoicesPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Invoices</h1>
-        <p className="text-gray-500 mt-1">View and download your payment invoices</p>
+        <p className="mt-1 text-gray-500">View and download your payment invoices</p>
       </div>
 
       <Card>
@@ -46,22 +46,29 @@ export default function ParentInvoicesPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {invoices.map((invoice) => (
-              <div key={invoice.id} className="flex items-center justify-between p-4 border rounded-lg">
+            {invoices.map(invoice => (
+              <div
+                key={invoice.id}
+                className="flex items-center justify-between rounded-lg border p-4"
+              >
                 <div className="flex items-center gap-4">
-                  <div className="p-2 bg-blue-100 rounded">
+                  <div className="rounded bg-blue-100 p-2">
                     <FileText className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
                     <p className="font-medium">{invoice.id}</p>
                     <p className="text-sm text-gray-500">{invoice.description}</p>
-                    <p className="text-xs text-gray-400">For: {invoice.student} • {invoice.date}</p>
+                    <p className="text-xs text-gray-400">
+                      For: {invoice.student} • {invoice.date}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">
                     <p className="font-semibold">¥{invoice.amount}</p>
-                    <Badge variant="outline" className="text-green-600">{invoice.status}</Badge>
+                    <Badge variant="outline" className="text-green-600">
+                      {invoice.status}
+                    </Badge>
                   </div>
                   <div className="flex gap-2">
                     <Button variant="ghost" size="icon">

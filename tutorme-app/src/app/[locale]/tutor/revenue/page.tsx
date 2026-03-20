@@ -7,16 +7,23 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { 
-  DollarSign, 
-  TrendingUp, 
+import {
+  DollarSign,
+  TrendingUp,
   TrendingDown,
-  Users, 
+  Users,
   Calendar,
   CreditCard,
   Wallet,
@@ -35,7 +42,7 @@ import {
   Building2,
   CheckCircle2,
   XCircle,
-  Hourglass
+  Hourglass,
 } from 'lucide-react'
 
 interface Transaction {
@@ -163,8 +170,8 @@ export default function RevenuePage() {
   }
 
   const formatCurrency = (amount: number, currency: string = data?.summary.currency || 'SGD') => {
-    return new Intl.NumberFormat('en-SG', { 
-      style: 'currency', 
+    return new Intl.NumberFormat('en-SG', {
+      style: 'currency',
       currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
@@ -172,8 +179,8 @@ export default function RevenuePage() {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', { 
-      month: 'short', 
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
       day: 'numeric',
       year: 'numeric',
     })
@@ -181,49 +188,90 @@ export default function RevenuePage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed': return <Badge variant="default" className="bg-green-600">Completed</Badge>
-      case 'pending': return <Badge variant="outline" className="text-yellow-600 border-yellow-600">Pending</Badge>
-      case 'processing': return <Badge variant="outline" className="text-blue-600 border-blue-600">Processing</Badge>
-      default: return <Badge variant="secondary">{status}</Badge>
+      case 'completed':
+        return (
+          <Badge variant="default" className="bg-green-600">
+            Completed
+          </Badge>
+        )
+      case 'pending':
+        return (
+          <Badge variant="outline" className="border-yellow-600 text-yellow-600">
+            Pending
+          </Badge>
+        )
+      case 'processing':
+        return (
+          <Badge variant="outline" className="border-blue-600 text-blue-600">
+            Processing
+          </Badge>
+        )
+      default:
+        return <Badge variant="secondary">{status}</Badge>
     }
   }
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'class': return <Calendar className="w-4 h-4 text-blue-500" />
-      case 'course': return <BarChart3 className="w-4 h-4 text-purple-500" />
-      case 'refund': return <ArrowDownRight className="w-4 h-4 text-red-500" />
-      case 'payout': return <Wallet className="w-4 h-4 text-orange-500" />
-      default: return <DollarSign className="w-4 h-4 text-gray-500" />
+      case 'class':
+        return <Calendar className="h-4 w-4 text-blue-500" />
+      case 'course':
+        return <BarChart3 className="h-4 w-4 text-purple-500" />
+      case 'refund':
+        return <ArrowDownRight className="h-4 w-4 text-red-500" />
+      case 'payout':
+        return <Wallet className="h-4 w-4 text-orange-500" />
+      default:
+        return <DollarSign className="h-4 w-4 text-gray-500" />
     }
   }
 
   const getPayoutStatusBadge = (status: string) => {
     switch (status) {
-      case 'COMPLETED': return <Badge className="bg-green-600"><CheckCircle2 className="w-3 h-3 mr-1" />Completed</Badge>
-      case 'PROCESSING': return <Badge variant="outline" className="text-blue-600 border-blue-600"><Hourglass className="w-3 h-3 mr-1" />Processing</Badge>
-      case 'PENDING': return <Badge variant="outline" className="text-yellow-600 border-yellow-600"><Clock className="w-3 h-3 mr-1" />Pending</Badge>
-      case 'REJECTED': return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>
-      default: return <Badge variant="secondary">{status}</Badge>
+      case 'COMPLETED':
+        return (
+          <Badge className="bg-green-600">
+            <CheckCircle2 className="mr-1 h-3 w-3" />
+            Completed
+          </Badge>
+        )
+      case 'PROCESSING':
+        return (
+          <Badge variant="outline" className="border-blue-600 text-blue-600">
+            <Hourglass className="mr-1 h-3 w-3" />
+            Processing
+          </Badge>
+        )
+      case 'PENDING':
+        return (
+          <Badge variant="outline" className="border-yellow-600 text-yellow-600">
+            <Clock className="mr-1 h-3 w-3" />
+            Pending
+          </Badge>
+        )
+      case 'REJECTED':
+        return (
+          <Badge variant="destructive">
+            <XCircle className="mr-1 h-3 w-3" />
+            Rejected
+          </Badge>
+        )
+      default:
+        return <Badge variant="secondary">{status}</Badge>
     }
   }
 
   const handleExport = () => {
     if (!data) return
-    
+
     // Create CSV content
     const csvRows = [
       ['Date', 'Description', 'Type', 'Amount', 'Currency', 'Status'].join(','),
-      ...data.transactions.map(t => [
-        formatDate(t.date),
-        `"${t.description}"`,
-        t.type,
-        t.amount,
-        t.currency,
-        t.status,
-      ].join(','))
+      ...data.transactions.map(t =>
+        [formatDate(t.date), `"${t.description}"`, t.type, t.amount, t.currency, t.status].join(',')
+      ),
     ]
-    
+
     const csvContent = csvRows.join('\n')
     const blob = new Blob([csvContent], { type: 'text/csv' })
     const url = window.URL.createObjectURL(blob)
@@ -232,7 +280,7 @@ export default function RevenuePage() {
     a.download = `revenue-report-${new Date().toISOString().split('T')[0]}.csv`
     a.click()
     window.URL.revokeObjectURL(url)
-    
+
     toast.success('Report exported successfully')
   }
 
@@ -305,9 +353,9 @@ export default function RevenuePage() {
 
   if (loading || !data) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-blue-600" />
           <p className="text-gray-600">Loading revenue data...</p>
         </div>
       </div>
@@ -319,31 +367,31 @@ export default function RevenuePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-50 safe-top">
+      <header className="safe-top sticky top-0 z-50 border-b bg-white">
         <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
+          <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-4">
               <Button variant="ghost" onClick={() => router.push('/tutor/dashboard')}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
               <h1 className="text-xl font-bold">Revenue & Business Analytics</h1>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => setShowEmailDialog(true)}>
-                <Mail className="w-4 h-4 mr-2" />
+                <Mail className="mr-2 h-4 w-4" />
                 Email
               </Button>
               <Button variant="outline" onClick={handleExport}>
-                <Download className="w-4 h-4 mr-2" />
+                <Download className="mr-2 h-4 w-4" />
                 Export Report
               </Button>
-              <Button 
+              <Button
                 className="bg-gradient-to-r from-green-600 to-emerald-600"
                 onClick={handleRequestPayout}
                 disabled={summary.availableBalance <= 0}
               >
-                <Wallet className="w-4 h-4 mr-2" />
+                <Wallet className="mr-2 h-4 w-4" />
                 Request Payout
               </Button>
             </div>
@@ -351,9 +399,9 @@ export default function RevenuePage() {
         </div>
       </header>
 
-      <main className="w-full px-4 sm:px-6 lg:px-8 py-8">
+      <main className="w-full px-4 py-8 sm:px-6 lg:px-8">
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -363,7 +411,7 @@ export default function RevenuePage() {
                     {formatCurrency(summary.availableBalance)}
                   </p>
                 </div>
-                <Wallet className="w-8 h-8 text-green-500" />
+                <Wallet className="h-8 w-8 text-green-500" />
               </div>
             </CardContent>
           </Card>
@@ -373,17 +421,19 @@ export default function RevenuePage() {
                 <div>
                   <p className="text-xs text-gray-500">This Period</p>
                   <div className="flex items-center gap-2">
-                    <p className="text-2xl font-bold">
-                      {formatCurrency(summary.periodEarnings)}
-                    </p>
+                    <p className="text-2xl font-bold">{formatCurrency(summary.periodEarnings)}</p>
                     {summary.periodChange !== 0 && (
-                      <Badge variant={summary.periodChange >= 0 ? 'default' : 'destructive'} className="text-xs">
-                        {summary.periodChange >= 0 ? '+' : ''}{summary.periodChange.toFixed(0)}%
+                      <Badge
+                        variant={summary.periodChange >= 0 ? 'default' : 'destructive'}
+                        className="text-xs"
+                      >
+                        {summary.periodChange >= 0 ? '+' : ''}
+                        {summary.periodChange.toFixed(0)}%
                       </Badge>
                     )}
                   </div>
                 </div>
-                <TrendingUp className="w-8 h-8 text-blue-500" />
+                <TrendingUp className="h-8 w-8 text-blue-500" />
               </div>
             </CardContent>
           </Card>
@@ -394,7 +444,7 @@ export default function RevenuePage() {
                   <p className="text-xs text-gray-500">Total Bookings</p>
                   <p className="text-2xl font-bold">{summary.totalBookings}</p>
                 </div>
-                <Calendar className="w-8 h-8 text-purple-500" />
+                <Calendar className="h-8 w-8 text-purple-500" />
               </div>
             </CardContent>
           </Card>
@@ -403,11 +453,9 @@ export default function RevenuePage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-gray-500">Avg Booking Value</p>
-                  <p className="text-2xl font-bold">
-                    {formatCurrency(summary.avgBookingValue)}
-                  </p>
+                  <p className="text-2xl font-bold">{formatCurrency(summary.avgBookingValue)}</p>
                 </div>
-                <DollarSign className="w-8 h-8 text-orange-500" />
+                <DollarSign className="h-8 w-8 text-orange-500" />
               </div>
             </CardContent>
           </Card>
@@ -418,12 +466,12 @@ export default function RevenuePage() {
           <CardContent className="p-4">
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-gray-500" />
+                <Calendar className="h-4 w-4 text-gray-500" />
                 <span className="text-sm font-medium">Period:</span>
-                <select 
-                  className="border rounded px-2 py-1 text-sm"
+                <select
+                  className="rounded border px-2 py-1 text-sm"
                   value={period}
-                  onChange={(e) => setPeriod(e.target.value)}
+                  onChange={e => setPeriod(e.target.value)}
                 >
                   <option value="7d">Last 7 days</option>
                   <option value="30d">Last 30 days</option>
@@ -432,7 +480,7 @@ export default function RevenuePage() {
                 </select>
               </div>
               <div className="flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-gray-500" />
+                <CreditCard className="h-4 w-4 text-gray-500" />
                 <span className="text-sm font-medium">Currency:</span>
                 <span className="text-sm text-gray-700">{summary.currency}</span>
               </div>
@@ -444,7 +492,7 @@ export default function RevenuePage() {
         <Card className="min-h-[600px]">
           <CardHeader className="pb-0">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-5 max-w-lg">
+              <TabsList className="grid w-full max-w-lg grid-cols-5">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="earnings">Earnings</TabsTrigger>
                 <TabsTrigger value="courses">Courses</TabsTrigger>
@@ -458,25 +506,27 @@ export default function RevenuePage() {
               {activeTab === 'overview' && (
                 <div className="space-y-6">
                   {/* Key Metrics */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 bg-gray-50 rounded-lg text-center">
+                  <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                    <div className="rounded-lg bg-gray-50 p-4 text-center">
                       <p className="text-2xl font-bold">{summary.totalBookings}</p>
                       <p className="text-xs text-gray-500">Total Bookings</p>
                     </div>
-                    <div className="p-4 bg-gray-50 rounded-lg text-center">
+                    <div className="rounded-lg bg-gray-50 p-4 text-center">
                       <p className="text-2xl font-bold">
                         {formatCurrency(summary.avgBookingValue)}
                       </p>
                       <p className="text-xs text-gray-500">Avg Booking Value</p>
                     </div>
-                    <div className="p-4 bg-gray-50 rounded-lg text-center">
+                    <div className="rounded-lg bg-gray-50 p-4 text-center">
                       <p className="text-2xl font-bold">{courses.length}</p>
                       <p className="text-xs text-gray-500">Active Courses</p>
                     </div>
-                    <div className="p-4 bg-gray-50 rounded-lg text-center">
+                    <div className="rounded-lg bg-gray-50 p-4 text-center">
                       <p className="text-2xl font-bold">
-                        {courses.length > 0 
-                          ? (courses.reduce((sum, c) => sum + c.rating, 0) / courses.length).toFixed(1)
+                        {courses.length > 0
+                          ? (
+                              courses.reduce((sum, c) => sum + c.rating, 0) / courses.length
+                            ).toFixed(1)
                           : '0.0'}
                       </p>
                       <p className="text-xs text-gray-500">Avg Rating</p>
@@ -485,23 +535,36 @@ export default function RevenuePage() {
 
                   {/* Recent Transactions */}
                   <div>
-                    <h3 className="text-lg font-medium mb-4">Recent Transactions</h3>
+                    <h3 className="mb-4 text-lg font-medium">Recent Transactions</h3>
                     {transactions.length === 0 ? (
-                      <p className="text-gray-500 text-center py-8">No transactions in this period</p>
+                      <p className="py-8 text-center text-gray-500">
+                        No transactions in this period
+                      </p>
                     ) : (
                       <div className="space-y-3">
-                        {transactions.slice(0, 5).map((transaction) => (
-                          <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        {transactions.slice(0, 5).map(transaction => (
+                          <div
+                            key={transaction.id}
+                            className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
+                          >
                             <div className="flex items-center gap-3">
                               {getTypeIcon(transaction.type)}
                               <div>
                                 <p className="font-medium">{transaction.description}</p>
-                                <p className="text-xs text-gray-500">{formatDate(transaction.date)}</p>
+                                <p className="text-xs text-gray-500">
+                                  {formatDate(transaction.date)}
+                                </p>
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className={cn("font-bold", transaction.amount < 0 ? "text-red-600" : "text-green-600")}>
-                                {transaction.amount < 0 ? '' : '+'}{formatCurrency(transaction.amount, transaction.currency)}
+                              <p
+                                className={cn(
+                                  'font-bold',
+                                  transaction.amount < 0 ? 'text-red-600' : 'text-green-600'
+                                )}
+                              >
+                                {transaction.amount < 0 ? '' : '+'}
+                                {formatCurrency(transaction.amount, transaction.currency)}
                               </p>
                               {getStatusBadge(transaction.status)}
                             </div>
@@ -513,14 +576,14 @@ export default function RevenuePage() {
 
                   {/* Pending Amount Alert */}
                   {summary.pendingAmount > 0 && (
-                    <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                      <p className="text-yellow-800 flex items-center gap-2">
-                        <Clock className="w-5 h-5" />
+                    <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+                      <p className="flex items-center gap-2 text-yellow-800">
+                        <Clock className="h-5 w-5" />
                         <span className="font-medium">
                           {formatCurrency(summary.pendingAmount)} pending clearance
                         </span>
                       </p>
-                      <p className="text-sm text-yellow-600 mt-1">
+                      <p className="mt-1 text-sm text-yellow-600">
                         These funds will be available in your balance within 2-3 business days.
                       </p>
                     </div>
@@ -531,26 +594,39 @@ export default function RevenuePage() {
               {activeTab === 'earnings' && (
                 <div className="space-y-4">
                   {transactions.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No transactions in this period</p>
+                    <p className="py-8 text-center text-gray-500">No transactions in this period</p>
                   ) : (
-                    transactions.map((transaction) => (
-                      <div key={transaction.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+                    transactions.map(transaction => (
+                      <div
+                        key={transaction.id}
+                        className="rounded-lg border p-4 transition-shadow hover:shadow-md"
+                      >
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
                               {getTypeIcon(transaction.type)}
                             </div>
                             <div>
-                              <p className="font-medium text-lg">{transaction.description}</p>
+                              <p className="text-lg font-medium">{transaction.description}</p>
                               {transaction.studentName && (
-                                <p className="text-sm text-gray-500">Student: {transaction.studentName}</p>
+                                <p className="text-sm text-gray-500">
+                                  Student: {transaction.studentName}
+                                </p>
                               )}
-                              <p className="text-xs text-gray-400 mt-1">{formatDate(transaction.date)}</p>
+                              <p className="mt-1 text-xs text-gray-400">
+                                {formatDate(transaction.date)}
+                              </p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className={cn("text-xl font-bold", transaction.amount < 0 ? "text-red-600" : "text-green-600")}>
-                              {transaction.amount < 0 ? '' : '+'}{formatCurrency(transaction.amount, transaction.currency)}
+                            <p
+                              className={cn(
+                                'text-xl font-bold',
+                                transaction.amount < 0 ? 'text-red-600' : 'text-green-600'
+                              )}
+                            >
+                              {transaction.amount < 0 ? '' : '+'}
+                              {formatCurrency(transaction.amount, transaction.currency)}
                             </p>
                             <div className="mt-2">{getStatusBadge(transaction.status)}</div>
                           </div>
@@ -564,40 +640,58 @@ export default function RevenuePage() {
               {activeTab === 'courses' && (
                 <div className="space-y-4">
                   {courses.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No courses with enrollments in this period</p>
+                    <p className="py-8 text-center text-gray-500">
+                      No courses with enrollments in this period
+                    </p>
                   ) : (
-                    courses.map((course) => (
-                      <div key={course.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
-                        <div className="flex items-start justify-between mb-4">
+                    courses.map(course => (
+                      <div
+                        key={course.id}
+                        className="rounded-lg border p-4 transition-shadow hover:shadow-md"
+                      >
+                        <div className="mb-4 flex items-start justify-between">
                           <div>
-                            <h4 className="font-medium text-lg">{course.name}</h4>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant="outline" className="text-xs">⭐ {course.rating.toFixed(1)}</Badge>
-                              <span className="text-sm text-gray-500">{course.enrollments} students enrolled</span>
+                            <h4 className="text-lg font-medium">{course.name}</h4>
+                            <div className="mt-1 flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">
+                                ⭐ {course.rating.toFixed(1)}
+                              </Badge>
+                              <span className="text-sm text-gray-500">
+                                {course.enrollments} students enrolled
+                              </span>
                               {course.periodEnrollments > 0 && (
-                                <Badge variant="default" className="text-xs bg-green-100 text-green-700">
+                                <Badge
+                                  variant="default"
+                                  className="bg-green-100 text-xs text-green-700"
+                                >
                                   +{course.periodEnrollments} this period
                                 </Badge>
                               )}
                             </div>
                           </div>
-                          <Button variant="ghost" size="sm" onClick={() => router.push(`/tutor/courses/${course.id}/builder`)}>
-                            <ChevronRight className="w-4 h-4" />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => router.push(`/tutor/courses/${course.id}/builder`)}
+                          >
+                            <ChevronRight className="h-4 w-4" />
                           </Button>
                         </div>
                         <div className="grid grid-cols-3 gap-4">
-                          <div className="p-3 bg-blue-50 rounded-lg text-center">
+                          <div className="rounded-lg bg-blue-50 p-3 text-center">
                             <p className="text-xl font-bold text-blue-700">{course.enrollments}</p>
                             <p className="text-xs text-blue-600">Students</p>
                           </div>
-                          <div className="p-3 bg-green-50 rounded-lg text-center">
+                          <div className="rounded-lg bg-green-50 p-3 text-center">
                             <p className="text-xl font-bold text-green-700">
                               {formatCurrency(course.estimatedRevenue, course.currency)}
                             </p>
                             <p className="text-xs text-green-600">Revenue</p>
                           </div>
-                          <div className="p-3 bg-purple-50 rounded-lg text-center">
-                            <p className="text-xl font-bold text-purple-700">{course.conversionRate.toFixed(1)}%</p>
+                          <div className="rounded-lg bg-purple-50 p-3 text-center">
+                            <p className="text-xl font-bold text-purple-700">
+                              {course.conversionRate.toFixed(1)}%
+                            </p>
                             <p className="text-xs text-purple-600">Conversion</p>
                           </div>
                         </div>
@@ -610,53 +704,64 @@ export default function RevenuePage() {
               {activeTab === 'payouts' && (
                 <div className="space-y-4">
                   {/* Payout Summary */}
-                  <div className="grid grid-cols-3 gap-4 mb-6">
-                    <div className="p-4 bg-green-50 rounded-lg">
+                  <div className="mb-6 grid grid-cols-3 gap-4">
+                    <div className="rounded-lg bg-green-50 p-4">
                       <p className="text-sm text-green-600">Available Balance</p>
                       <p className="text-2xl font-bold text-green-700">
                         {formatCurrency(data?.summary.availableBalance || 0)}
                       </p>
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg">
+                    <div className="rounded-lg bg-blue-50 p-4">
                       <p className="text-sm text-blue-600">Total Payouts</p>
                       <p className="text-2xl font-bold text-blue-700">
-                        {formatCurrency(payouts.filter(p => p.status === 'COMPLETED').reduce((sum, p) => sum + p.amount, 0))}
+                        {formatCurrency(
+                          payouts
+                            .filter(p => p.status === 'COMPLETED')
+                            .reduce((sum, p) => sum + p.amount, 0)
+                        )}
                       </p>
                     </div>
-                    <div className="p-4 bg-yellow-50 rounded-lg">
+                    <div className="rounded-lg bg-yellow-50 p-4">
                       <p className="text-sm text-yellow-600">Pending</p>
                       <p className="text-2xl font-bold text-yellow-700">
-                        {formatCurrency(payouts.filter(p => p.status === 'PENDING' || p.status === 'PROCESSING').reduce((sum, p) => sum + p.amount, 0))}
+                        {formatCurrency(
+                          payouts
+                            .filter(p => p.status === 'PENDING' || p.status === 'PROCESSING')
+                            .reduce((sum, p) => sum + p.amount, 0)
+                        )}
                       </p>
                     </div>
                   </div>
 
                   {/* Payout History */}
                   {payouts.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <div className="py-12 text-center">
+                      <Building2 className="mx-auto mb-4 h-12 w-12 text-gray-300" />
                       <p className="text-gray-500">No payouts yet</p>
-                      <p className="text-sm text-gray-400 mt-1">
+                      <p className="mt-1 text-sm text-gray-400">
                         Request your first payout when you have available balance
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {payouts.map((payout) => (
-                        <div key={payout.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
-                          <div className="flex items-start justify-between mb-4">
+                      {payouts.map(payout => (
+                        <div
+                          key={payout.id}
+                          className="rounded-lg border p-4 transition-shadow hover:shadow-md"
+                        >
+                          <div className="mb-4 flex items-start justify-between">
                             <div className="flex items-start gap-4">
-                              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                                <Wallet className="w-6 h-6 text-gray-600" />
+                              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+                                <Wallet className="h-6 w-6 text-gray-600" />
                               </div>
                               <div>
-                                <p className="font-medium text-lg">
+                                <p className="text-lg font-medium">
                                   Payout #{payout.id.slice(-8).toUpperCase()}
                                 </p>
                                 <p className="text-sm text-gray-500">
                                   {payout.paymentCount} payments • {payout.method.replace('_', ' ')}
                                 </p>
-                                <p className="text-xs text-gray-400 mt-1">
+                                <p className="mt-1 text-xs text-gray-400">
                                   Requested {formatDate(payout.requestedAt)}
                                 </p>
                               </div>
@@ -667,22 +772,27 @@ export default function RevenuePage() {
                               </p>
                               <div className="mt-2">{getPayoutStatusBadge(payout.status)}</div>
                               {payout.transactionReference && (
-                                <p className="text-xs text-gray-400 mt-1">
+                                <p className="mt-1 text-xs text-gray-400">
                                   Ref: {payout.transactionReference}
                                 </p>
                               )}
                             </div>
                           </div>
-                          
+
                           {/* Included Payments */}
                           {payout.payments.length > 0 && (
-                            <div className="border-t pt-3 mt-3">
-                              <p className="text-sm font-medium mb-2">Included Payments:</p>
+                            <div className="mt-3 border-t pt-3">
+                              <p className="mb-2 text-sm font-medium">Included Payments:</p>
                               <div className="space-y-1">
-                                {payout.payments.slice(0, 3).map((payment) => (
-                                  <div key={payment.id} className="flex items-center justify-between text-sm">
+                                {payout.payments.slice(0, 3).map(payment => (
+                                  <div
+                                    key={payment.id}
+                                    className="flex items-center justify-between text-sm"
+                                  >
                                     <span className="text-gray-600">{payment.description}</span>
-                                    <span className="font-medium">{formatCurrency(payment.amount)}</span>
+                                    <span className="font-medium">
+                                      {formatCurrency(payment.amount)}
+                                    </span>
                                   </div>
                                 ))}
                                 {payout.payments.length > 3 && (
@@ -703,19 +813,19 @@ export default function RevenuePage() {
               {activeTab === 'analytics' && (
                 <div className="space-y-6">
                   {/* Monthly Revenue Trend */}
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h3 className="text-lg font-medium mb-4">Monthly Revenue Trend</h3>
-                    <div className="flex items-end gap-3 h-32">
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <h3 className="mb-4 text-lg font-medium">Monthly Revenue Trend</h3>
+                    <div className="flex h-32 items-end gap-3">
                       {monthlyTrend.map((item, idx) => {
                         const maxRevenue = Math.max(...monthlyTrend.map(m => m.revenue), 1)
                         const height = maxRevenue > 0 ? (item.revenue / maxRevenue) * 100 : 0
                         return (
-                          <div key={idx} className="flex-1 flex flex-col items-center gap-2">
+                          <div key={idx} className="flex flex-1 flex-col items-center gap-2">
                             <div className="text-xs font-medium text-gray-600">
                               {formatCurrency(item.revenue)}
                             </div>
-                            <div 
-                              className="w-full bg-gradient-to-t from-purple-500 to-purple-300 rounded-t"
+                            <div
+                              className="w-full rounded-t bg-gradient-to-t from-purple-500 to-purple-300"
                               style={{ height: `${Math.max(height, 5)}%` }}
                             />
                             <span className="text-xs text-gray-500">{item.month}</span>
@@ -728,22 +838,29 @@ export default function RevenuePage() {
                   {/* Popular Time Slots */}
                   {timeSlots.length > 0 && (
                     <div>
-                      <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
-                        <Clock className="w-5 h-5" />
+                      <h3 className="mb-4 flex items-center gap-2 text-lg font-medium">
+                        <Clock className="h-5 w-5" />
                         Popular Time Slots
                       </h3>
                       <div className="space-y-3">
                         {timeSlots.map((slot, idx) => (
-                          <div key={idx} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-                            <span className="text-sm w-40 font-medium">{slot.slot}</span>
-                            <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-purple-500 rounded-full"
-                                style={{ width: `${Math.min((slot.bookings / (timeSlots[0]?.bookings || 1)) * 100, 100)}%` }}
+                          <div
+                            key={idx}
+                            className="flex items-center gap-4 rounded-lg bg-gray-50 p-3"
+                          >
+                            <span className="w-40 text-sm font-medium">{slot.slot}</span>
+                            <div className="h-3 flex-1 overflow-hidden rounded-full bg-gray-200">
+                              <div
+                                className="h-full rounded-full bg-purple-500"
+                                style={{
+                                  width: `${Math.min((slot.bookings / (timeSlots[0]?.bookings || 1)) * 100, 100)}%`,
+                                }}
                               />
                             </div>
-                            <span className="text-sm font-bold w-12 text-right">{slot.bookings}</span>
-                            <span className="text-xs text-gray-500 w-20 text-right">
+                            <span className="w-12 text-right text-sm font-bold">
+                              {slot.bookings}
+                            </span>
+                            <span className="w-20 text-right text-xs text-gray-500">
                               {formatCurrency(slot.revenue)}
                             </span>
                           </div>
@@ -753,29 +870,29 @@ export default function RevenuePage() {
                   )}
 
                   {/* Conversion Funnel */}
-                  <div className="p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border border-blue-200">
-                    <h3 className="font-medium mb-6 flex items-center gap-2 text-blue-900">
-                      <TrendingUp className="w-5 h-5" />
+                  <div className="rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-purple-50 p-6">
+                    <h3 className="mb-6 flex items-center gap-2 font-medium text-blue-900">
+                      <TrendingUp className="h-5 w-5" />
                       Revenue Insights
                     </h3>
                     <div className="space-y-4">
                       <p className="text-gray-700">
                         <strong>💡 Key Insights:</strong>
                       </p>
-                      <ul className="space-y-2 text-gray-600 text-sm">
+                      <ul className="space-y-2 text-sm text-gray-600">
                         <li>
-                          • Your average booking value is {formatCurrency(summary.avgBookingValue)}. 
+                          • Your average booking value is {formatCurrency(summary.avgBookingValue)}.
                           Consider offering package deals to increase this.
                         </li>
                         <li>
-                          • You have {summary.totalBookings} bookings this period with 
-                          {' '}{summary.periodChange > 0 ? 'an increase' : 'a decrease'} of{' '}
+                          • You have {summary.totalBookings} bookings this period with{' '}
+                          {summary.periodChange > 0 ? 'an increase' : 'a decrease'} of{' '}
                           {Math.abs(summary.periodChange).toFixed(0)}% from the previous period.
                         </li>
                         {courses.length > 0 && (
                           <li>
-                            • Your top course has {courses[0]?.enrollments || 0} enrollments. 
-                            Focus marketing efforts on similar topics.
+                            • Your top course has {courses[0]?.enrollments || 0} enrollments. Focus
+                            marketing efforts on similar topics.
                           </li>
                         )}
                       </ul>
@@ -793,11 +910,12 @@ export default function RevenuePage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Mail className="w-5 h-5" />
+              <Mail className="h-5 w-5" />
               Email Statement
             </DialogTitle>
             <DialogDescription>
-              Send your revenue statement to any email address. The statement will include all transactions for the current period.
+              Send your revenue statement to any email address. The statement will include all
+              transactions for the current period.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -808,11 +926,11 @@ export default function RevenuePage() {
                 type="email"
                 placeholder="Enter email address..."
                 value={emailAddress}
-                onChange={(e) => setEmailAddress(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendEmail()}
+                onChange={e => setEmailAddress(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSendEmail()}
               />
             </div>
-            <div className="p-3 bg-gray-50 rounded-lg text-sm">
+            <div className="rounded-lg bg-gray-50 p-3 text-sm">
               <p className="font-medium text-gray-700">Statement will include:</p>
               <ul className="mt-2 space-y-1 text-gray-600">
                 <li>• Transaction history</li>
@@ -826,19 +944,19 @@ export default function RevenuePage() {
             <Button variant="outline" onClick={() => setShowEmailDialog(false)}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleSendEmail}
               disabled={sendingEmail}
               className="bg-gradient-to-r from-purple-600 to-blue-600"
             >
               {sendingEmail ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   Sending...
                 </>
               ) : (
                 <>
-                  <Send className="w-4 h-4 mr-2" />
+                  <Send className="mr-2 h-4 w-4" />
                   Send Statement
                 </>
               )}
@@ -852,21 +970,22 @@ export default function RevenuePage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Wallet className="w-5 h-5" />
+              <Wallet className="h-5 w-5" />
               Request Payout
             </DialogTitle>
             <DialogDescription>
-              Request a payout of your available balance. Processing typically takes 2-3 business days.
+              Request a payout of your available balance. Processing typically takes 2-3 business
+              days.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="p-3 bg-green-50 rounded-lg">
+            <div className="rounded-lg bg-green-50 p-3">
               <p className="text-sm text-green-600">Available Balance</p>
               <p className="text-2xl font-bold text-green-700">
                 {formatCurrency(data?.summary.availableBalance || 0)}
               </p>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="payout-amount">Payout Amount</Label>
               <Input
@@ -874,29 +993,27 @@ export default function RevenuePage() {
                 type="number"
                 placeholder="Enter amount..."
                 value={payoutAmount}
-                onChange={(e) => setPayoutAmount(e.target.value)}
+                onChange={e => setPayoutAmount(e.target.value)}
                 min={1}
                 max={data?.summary.availableBalance}
               />
-              <p className="text-xs text-gray-500">
-                Minimum payout: {formatCurrency(10)}
-              </p>
+              <p className="text-xs text-gray-500">Minimum payout: {formatCurrency(10)}</p>
             </div>
-            
+
             <div className="space-y-2">
               <Label>Payout Method</Label>
               <select
-                className="w-full border rounded px-3 py-2"
+                className="w-full rounded border px-3 py-2"
                 value={payoutMethod}
-                onChange={(e) => setPayoutMethod(e.target.value)}
+                onChange={e => setPayoutMethod(e.target.value)}
               >
                 <option value="bank_transfer">Bank Transfer</option>
                 <option value="stripe_connect">Stripe Connect</option>
                 <option value="paypal">PayPal</option>
               </select>
             </div>
-            
-            <div className="p-3 bg-gray-50 rounded-lg text-sm">
+
+            <div className="rounded-lg bg-gray-50 p-3 text-sm">
               <p className="font-medium text-gray-700">Payout Details:</p>
               <ul className="mt-2 space-y-1 text-gray-600">
                 <li>• Processing time: 2-3 business days</li>
@@ -909,19 +1026,19 @@ export default function RevenuePage() {
             <Button variant="outline" onClick={() => setShowPayoutDialog(false)}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={submitPayoutRequest}
               disabled={submittingPayout || !payoutAmount || parseFloat(payoutAmount) <= 0}
               className="bg-gradient-to-r from-green-600 to-emerald-600"
             >
               {submittingPayout ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   Submitting...
                 </>
               ) : (
                 <>
-                  <Wallet className="w-4 h-4 mr-2" />
+                  <Wallet className="mr-2 h-4 w-4" />
                   Request Payout
                 </>
               )}

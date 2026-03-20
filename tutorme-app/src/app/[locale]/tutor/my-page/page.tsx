@@ -5,16 +5,27 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
 import { ArrowLeft, CheckCircle, ChevronDown, ChevronUp, Copy, Pencil, Share2 } from 'lucide-react'
 import { DEFAULT_LOCALE } from '@/lib/i18n/config'
-
 
 const SUBJECTS = [
   { value: 'math', label: 'Mathematics' },
@@ -87,9 +98,13 @@ export default function TutorMyPage() {
         setUsername(data?.profile?.username || '')
         setBio(data?.profile?.bio || '')
         setAvatarUrl(data?.profile?.avatarUrl || null)
-        setTutorSince(data?.profile?.createdAt ? new Date(data.profile.createdAt).toLocaleDateString() : '')
+        setTutorSince(
+          data?.profile?.createdAt ? new Date(data.profile.createdAt).toLocaleDateString() : ''
+        )
         setCountry(data?.profile?.country || '')
-        setActiveCourses(typeof data?.profile?.activeCourses === 'number' ? data.profile.activeCourses : null)
+        setActiveCourses(
+          typeof data?.profile?.activeCourses === 'number' ? data.profile.activeCourses : null
+        )
         const categories = Array.isArray(data?.profile?.categories) ? data.profile.categories : []
         setProfileCategories(categories)
         setEditableCategories(categories)
@@ -114,16 +129,16 @@ export default function TutorMyPage() {
   }, [])
 
   const normalizedUsername = useMemo(() => username.trim().replace(/^@+/, ''), [username])
-  const publicPath = useMemo(
-    () => {
-      if (!normalizedUsername) return ''
-      const prefix = locale === DEFAULT_LOCALE ? '' : `/${locale}`
-      return `${prefix}/u/${normalizedUsername}`
-    },
-    [locale, normalizedUsername]
-  )
+  const publicPath = useMemo(() => {
+    if (!normalizedUsername) return ''
+    const prefix = locale === DEFAULT_LOCALE ? '' : `/${locale}`
+    return `${prefix}/u/${normalizedUsername}`
+  }, [locale, normalizedUsername])
   const publicUrl = useMemo(
-    () => (typeof window !== 'undefined' && publicPath ? `${window.location.origin}${publicPath}` : publicPath),
+    () =>
+      typeof window !== 'undefined' && publicPath
+        ? `${window.location.origin}${publicPath}`
+        : publicPath,
     [publicPath]
   )
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
@@ -152,7 +167,8 @@ export default function TutorMyPage() {
 
   const canShare =
     typeof navigator !== 'undefined' &&
-    typeof (navigator as Navigator & { share?: (data: ShareData) => Promise<void> }).share === 'function'
+    typeof (navigator as Navigator & { share?: (data: ShareData) => Promise<void> }).share ===
+      'function'
 
   const handleShareProfile = async () => {
     if (!publicUrl || !normalizedUsername || !canShare) return
@@ -232,9 +248,10 @@ export default function TutorMyPage() {
         return
       }
       const newUrl = data?.avatarUrl ?? data?.url ?? null
-      const fullUrl = typeof newUrl === 'string' && newUrl.startsWith('/') && typeof window !== 'undefined'
-        ? `${window.location.origin}${newUrl}`
-        : newUrl
+      const fullUrl =
+        typeof newUrl === 'string' && newUrl.startsWith('/') && typeof window !== 'undefined'
+          ? `${window.location.origin}${newUrl}`
+          : newUrl
       setAvatarUrl(fullUrl ?? null)
       setAvatarPreview(null)
       setAvatarFile(null)
@@ -257,8 +274,8 @@ export default function TutorMyPage() {
   }
 
   const toggleCategory = (category: string) => {
-    setCourseCategories((prev) =>
-      prev.includes(category) ? prev.filter((item) => item !== category) : [...prev, category]
+    setCourseCategories(prev =>
+      prev.includes(category) ? prev.filter(item => item !== category) : [...prev, category]
     )
   }
 
@@ -330,7 +347,7 @@ export default function TutorMyPage() {
         </div>
       </div>
 
-      <div className="mx-auto w-full px-6 py-8 space-y-8">
+      <div className="mx-auto w-full space-y-8 px-6 py-8">
         <section className="relative overflow-hidden rounded-[32px] border border-[#E2E8F0] bg-white/95 p-8 shadow-lg">
           <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-[#1D4ED8]/10 via-[#4FD1C5]/10 to-[#F17623]/10" />
           <div className="relative grid gap-6 lg:grid-cols-[260px,1fr]">
@@ -355,7 +372,7 @@ export default function TutorMyPage() {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
+                  onChange={e => {
                     const file = e.target.files?.[0]
                     if (file) void uploadAvatarFile(file)
                   }}
@@ -377,10 +394,7 @@ export default function TutorMyPage() {
                 </span>
                 {publicUrl ? (
                   <Link href={publicPath} className="inline-flex" target="_blank" rel="noreferrer">
-                    <Button
-                      size="sm"
-                      className="bg-[#1D4ED8] text-white hover:bg-[#1B45C2]"
-                    >
+                    <Button size="sm" className="bg-[#1D4ED8] text-white hover:bg-[#1B45C2]">
                       Preview Public Page
                     </Button>
                   </Link>
@@ -392,7 +406,9 @@ export default function TutorMyPage() {
               </div>
               <div className="grid gap-3 text-sm text-[#1F2933] md:grid-cols-2">
                 <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Tutor since</div>
+                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
+                    Tutor since
+                  </div>
                   <div className="mt-1 text-sm font-medium text-[#0F172A]">{tutorSince || '—'}</div>
                 </div>
                 <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
@@ -400,18 +416,26 @@ export default function TutorMyPage() {
                   <div className="mt-1 text-sm font-medium text-[#0F172A]">{country || '—'}</div>
                 </div>
                 <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Active Courses</div>
-                  <div className="mt-1 text-sm font-medium text-[#0F172A]">{activeCourses ?? '—'}</div>
+                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
+                    Active Courses
+                  </div>
+                  <div className="mt-1 text-sm font-medium text-[#0F172A]">
+                    {activeCourses ?? '—'}
+                  </div>
                 </div>
                 <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Categories</div>
+                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
+                    Categories
+                  </div>
                   <div className="mt-1 text-sm font-medium text-[#0F172A]">
                     {profileCategories.length ? profileCategories.join(', ') : '—'}
                   </div>
                 </div>
-                <div className="md:col-span-2 rounded-2xl border border-[#E2E8F0] bg-white p-4">
+                <div className="rounded-2xl border border-[#E2E8F0] bg-white p-4 md:col-span-2">
                   <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Bio</div>
-                  <div className="mt-2 text-sm text-[#0F172A]">{bio || 'Bio should appear here'}</div>
+                  <div className="mt-2 text-sm text-[#0F172A]">
+                    {bio || 'Bio should appear here'}
+                  </div>
                 </div>
               </div>
               <div>
@@ -468,7 +492,7 @@ export default function TutorMyPage() {
         <Card className="border border-[#E2E8F0] shadow-sm">
           <CardHeader
             className="cursor-pointer select-none pb-3"
-            onClick={() => setProfileSettingsOpen((prev) => !prev)}
+            onClick={() => setProfileSettingsOpen(prev => !prev)}
           >
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg text-[#1F2933]">Profile Settings</CardTitle>
@@ -481,106 +505,125 @@ export default function TutorMyPage() {
           </CardHeader>
           {profileSettingsOpen && (
             <CardContent className="space-y-5">
-            <div className="grid gap-4 lg:grid-cols-[1fr,2fr]">
-              <div className="space-y-2">
-                <Label className="text-[#1F2933]">Username</Label>
-                <Input
-                  value={username}
-                  placeholder="e.g. jane_math"
-                  disabled
-                  className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
-                />
-                <p className="text-xs text-[#64748B]">
-                  Displayed as @{username.replace(/^@+/, '') || 'username'}
-                </p>
+              <div className="grid gap-4 lg:grid-cols-[1fr,2fr]">
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Username</Label>
+                  <Input
+                    value={username}
+                    placeholder="e.g. jane_math"
+                    disabled
+                    className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                  />
+                  <p className="text-xs text-[#64748B]">
+                    Displayed as @{username.replace(/^@+/, '') || 'username'}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Edit Bio</Label>
+                  <Textarea
+                    value={bio}
+                    onChange={e => setBio(e.target.value)}
+                    rows={3}
+                    disabled={loading || saving}
+                    placeholder="Short bio for your public page..."
+                    className="min-h-[100px] border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label className="text-[#1F2933]">Edit Bio</Label>
-                <Textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  rows={3}
+              <div className="space-y-3">
+                <Label className="text-[#1F2933]">Edit Social Media Accounts</Label>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-[#64748B]">YouTube</Label>
+                    <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
+                      <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                      <Input
+                        placeholder="username"
+                        value={socialAccounts.youtube.replace(/^@+/, '')}
+                        onChange={e =>
+                          setSocialAccounts(prev => ({
+                            ...prev,
+                            youtube: e.target.value.replace(/^@+/, ''),
+                          }))
+                        }
+                        disabled={loading || saving}
+                        className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-[#64748B]">Instagram</Label>
+                    <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
+                      <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                      <Input
+                        placeholder="username"
+                        value={socialAccounts.instagram.replace(/^@+/, '')}
+                        onChange={e =>
+                          setSocialAccounts(prev => ({
+                            ...prev,
+                            instagram: e.target.value.replace(/^@+/, ''),
+                          }))
+                        }
+                        disabled={loading || saving}
+                        className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-[#64748B]">TikTok</Label>
+                    <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
+                      <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                      <Input
+                        placeholder="username"
+                        value={socialAccounts.tiktok.replace(/^@+/, '')}
+                        onChange={e =>
+                          setSocialAccounts(prev => ({
+                            ...prev,
+                            tiktok: e.target.value.replace(/^@+/, ''),
+                          }))
+                        }
+                        disabled={loading || saving}
+                        className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-[#64748B]">Facebook</Label>
+                    <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
+                      <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                      <Input
+                        placeholder="username"
+                        value={socialAccounts.facebook.replace(/^@+/, '')}
+                        onChange={e =>
+                          setSocialAccounts(prev => ({
+                            ...prev,
+                            facebook: e.target.value.replace(/^@+/, ''),
+                          }))
+                        }
+                        disabled={loading || saving}
+                        className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  onClick={save}
                   disabled={loading || saving}
-                  placeholder="Short bio for your public page..."
-                  className="min-h-[100px] border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
-                />
+                  className="bg-[#4FD1C5] text-[#1F2933] hover:bg-[#3CC6B9]"
+                >
+                  {saving ? 'Saving...' : 'Save Public Page'}
+                </Button>
               </div>
-            </div>
-            <div className="space-y-3">
-              <Label className="text-[#1F2933]">Edit Social Media Accounts</Label>
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-1">
-                  <Label className="text-xs text-[#64748B]">YouTube</Label>
-                  <div className="flex border border-[#E2E8F0] rounded-md focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
-                    <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
-                    <Input
-                      placeholder="username"
-                      value={socialAccounts.youtube.replace(/^@+/, '')}
-                      onChange={(e) => setSocialAccounts((prev) => ({ ...prev, youtube: e.target.value.replace(/^@+/, '') }))}
-                      disabled={loading || saving}
-                      className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 pl-0"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-[#64748B]">Instagram</Label>
-                  <div className="flex border border-[#E2E8F0] rounded-md focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
-                    <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
-                    <Input
-                      placeholder="username"
-                      value={socialAccounts.instagram.replace(/^@+/, '')}
-                      onChange={(e) => setSocialAccounts((prev) => ({ ...prev, instagram: e.target.value.replace(/^@+/, '') }))}
-                      disabled={loading || saving}
-                      className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 pl-0"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-[#64748B]">TikTok</Label>
-                  <div className="flex border border-[#E2E8F0] rounded-md focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
-                    <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
-                    <Input
-                      placeholder="username"
-                      value={socialAccounts.tiktok.replace(/^@+/, '')}
-                      onChange={(e) => setSocialAccounts((prev) => ({ ...prev, tiktok: e.target.value.replace(/^@+/, '') }))}
-                      disabled={loading || saving}
-                      className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 pl-0"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-[#64748B]">Facebook</Label>
-                  <div className="flex border border-[#E2E8F0] rounded-md focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
-                    <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
-                    <Input
-                      placeholder="username"
-                      value={socialAccounts.facebook.replace(/^@+/, '')}
-                      onChange={(e) => setSocialAccounts((prev) => ({ ...prev, facebook: e.target.value.replace(/^@+/, '') }))}
-                      disabled={loading || saving}
-                      className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 pl-0"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Button
-                onClick={save}
-                disabled={loading || saving}
-                className="bg-[#4FD1C5] text-[#1F2933] hover:bg-[#3CC6B9]"
-              >
-                {saving ? 'Saving...' : 'Save Public Page'}
-              </Button>
-            </div>
-          </CardContent>
+            </CardContent>
           )}
         </Card>
-
       </div>
 
       <Dialog
         open={createOpen}
-        onOpenChange={(open) => {
+        onOpenChange={open => {
           setCreateOpen(open)
           if (!open) resetCourseForm()
         }}
@@ -594,7 +637,7 @@ export default function TutorMyPage() {
               <Label>Course name</Label>
               <Input
                 value={courseName}
-                onChange={(e) => setCourseName(e.target.value)}
+                onChange={e => setCourseName(e.target.value)}
                 placeholder="e.g. AP Calculus Mastery"
                 disabled={creatingCourse}
               />
@@ -610,7 +653,7 @@ export default function TutorMyPage() {
                   <SelectValue placeholder="Choose a subject" />
                 </SelectTrigger>
                 <SelectContent>
-                  {SUBJECTS.map((subject) => (
+                  {SUBJECTS.map(subject => (
                     <SelectItem key={subject.value} value={subject.value}>
                       {subject.label}
                     </SelectItem>
@@ -622,7 +665,7 @@ export default function TutorMyPage() {
               <Label>Description</Label>
               <Textarea
                 value={courseDescription}
-                onChange={(e) => setCourseDescription(e.target.value)}
+                onChange={e => setCourseDescription(e.target.value)}
                 placeholder="Short description for your course..."
                 disabled={creatingCourse}
               />
@@ -630,12 +673,10 @@ export default function TutorMyPage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label>Categories</Label>
-                <span className="text-xs text-[#64748B]">
-                  {courseCategories.length} selected
-                </span>
+                <span className="text-xs text-[#64748B]">{courseCategories.length} selected</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {aggregatedCategories.map((category) => {
+                {aggregatedCategories.map(category => {
                   const active = courseCategories.includes(category)
                   return (
                     <button

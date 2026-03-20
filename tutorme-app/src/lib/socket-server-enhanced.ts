@@ -61,7 +61,7 @@ let ioRef: SocketIOServer | null = null
 
 // Memory management constants
 const ROOM_CLEANUP_INTERVAL = 15 * 60 * 1000 // 15 minutes
-const DM_CLEANUP_INTERVAL = 5 * 60 * 1000 // 5 minutes  
+const DM_CLEANUP_INTERVAL = 5 * 60 * 1000 // 5 minutes
 const WHITEBOARD_CLEANUP_INTERVAL = 10 * 60 * 1000 // 10 minutes
 const ROOM_MAX_AGE = 4 * 60 * 60 * 1000 // 4 hours
 const DM_MAX_AGE = 1 * 60 * 60 * 1000 // 1 hour
@@ -71,7 +71,7 @@ const WHITEBOARD_MAX_AGE = 2 * 60 * 60 * 1000 // 2 hours
 const RATE_LIMITS = {
   maxEventsPerSecond: 10,
   burstSize: 20,
-  windowSize: 1000 // 1 second
+  windowSize: 1000, // 1 second
 }
 
 // Enhanced interfaces with activity tracking
@@ -160,7 +160,9 @@ function clearUserSocketIfCurrent(userId: string | undefined, socketId: string) 
 }
 
 // Authentication functions (use jose to match NextAuth and avoid jsonwebtoken dependency)
-async function validateJWT(token: string): Promise<{ userId: string; role: string; email: string; name: string } | null> {
+async function validateJWT(
+  token: string
+): Promise<{ userId: string; role: string; email: string; name: string } | null> {
   try {
     const secretRaw = process.env.NEXTAUTH_SECRET
     if (!secretRaw) {
@@ -186,7 +188,7 @@ async function validateJWT(token: string): Promise<{ userId: string; role: strin
       userId: decoded.id,
       role: normalizedRole,
       email: decoded.email || '',
-      name: decoded.name || ''
+      name: decoded.name || '',
     }
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error)
@@ -198,11 +200,16 @@ async function validateJWT(token: string): Promise<{ userId: string; role: strin
 // Rate limiting function
 function isRateLimited(connectionId: string): boolean {
   const now = Date.now()
-  const state = connectionRateLimits.get(connectionId) || { tokens: RATE_LIMITS.maxEventsPerSecond, lastRefill: now }
+  const state = connectionRateLimits.get(connectionId) || {
+    tokens: RATE_LIMITS.maxEventsPerSecond,
+    lastRefill: now,
+  }
 
   // Refill tokens based on time elapsed
   const timePassed = now - state.lastRefill
-  const tokensToAdd = Math.floor(timePassed / (RATE_LIMITS.windowSize / RATE_LIMITS.maxEventsPerSecond))
+  const tokensToAdd = Math.floor(
+    timePassed / (RATE_LIMITS.windowSize / RATE_LIMITS.maxEventsPerSecond)
+  )
   state.tokens = Math.min(RATE_LIMITS.maxEventsPerSecond, state.tokens + tokensToAdd)
   state.lastRefill = now
 
@@ -234,7 +241,9 @@ function cleanupInactiveClassRooms() {
 
       activeRooms.delete(roomId)
       cleanedCount++
-      console.log(`Cleanup: Removed inactive room ${roomId} (age: ${Math.floor(age / 1000 / 60)}min, lastActivity: ${Math.floor(inactiveTime / 1000 / 60)}min)`)
+      console.log(
+        `Cleanup: Removed inactive room ${roomId} (age: ${Math.floor(age / 1000 / 60)}min, lastActivity: ${Math.floor(inactiveTime / 1000 / 60)}min)`
+      )
     }
   })
 
@@ -251,7 +260,9 @@ function cleanupInactiveDMRooms() {
       // Persist to Redis if needed (implement later)
       directMessageRooms.delete(roomId)
       cleanedCount++
-      console.log(`Cleanup: Removed inactive DM room ${roomId} (lastActivity: ${Math.floor((now - room.lastActivity) / 1000 / 60)}min)`)
+      console.log(
+        `Cleanup: Removed inactive DM room ${roomId} (lastActivity: ${Math.floor((now - room.lastActivity) / 1000 / 60)}min)`
+      )
     }
   })
 
@@ -267,11 +278,16 @@ function cleanupInactiveWhiteboards() {
     const inactiveTime = now - wb.lastActivity
 
     // Remove whiteboards older than 2 hours or with no active users for 10+ minutes
-    if (age > WHITEBOARD_MAX_AGE || (inactiveTime > WHITEBOARD_CLEANUP_INTERVAL && wb.activeUsers.size === 0)) {
+    if (
+      age > WHITEBOARD_MAX_AGE ||
+      (inactiveTime > WHITEBOARD_CLEANUP_INTERVAL && wb.activeUsers.size === 0)
+    ) {
       // Persist to Redis if needed (implement later)
       activeWhiteboards.delete(wbId)
       cleanedCount++
-      console.log(`Cleanup: Removed inactive whiteboard ${wbId} (age: ${Math.floor(age / 1000 / 60)}min, lastActivity: ${Math.floor(inactiveTime / 1000 / 60)}min)`)
+      console.log(
+        `Cleanup: Removed inactive whiteboard ${wbId} (age: ${Math.floor(age / 1000 / 60)}min, lastActivity: ${Math.floor(inactiveTime / 1000 / 60)}min)`
+      )
     }
   })
 
@@ -283,14 +299,18 @@ async function persistRoomToRedis(roomId: string, room: ClassRoom) {
   if (!redisClient) return
 
   try {
-    await redisClient.setex(`room:${roomId}`, 86400, JSON.stringify({
-      id: room.id,
-      tutorId: room.tutorId,
-      students: Array.from(room.students.entries()),
-      chatHistory: room.chatHistory,
-      createdAt: room.createdAt,
-      lastActivity: room.lastActivity
-    }))
+    await redisClient.setex(
+      `room:${roomId}`,
+      86400,
+      JSON.stringify({
+        id: room.id,
+        tutorId: room.tutorId,
+        students: Array.from(room.students.entries()),
+        chatHistory: room.chatHistory,
+        createdAt: room.createdAt,
+        lastActivity: room.lastActivity,
+      })
+    )
   } catch (error) {
     console.error('Failed to persist room to Redis:', error)
   }
@@ -306,7 +326,7 @@ async function getRoomFromRedis(roomId: string): Promise<ClassRoom | null> {
     const parsed = JSON.parse(data)
     return {
       ...parsed,
-      students: new Map(parsed.students)
+      students: new Map(parsed.students),
     }
   } catch (error) {
     console.error('Failed to retrieve room from Redis:', error)
@@ -368,17 +388,13 @@ async function initRedis() {
 
     redisClient = createClient({
       url: process.env.REDIS_URL,
-      socket: { keepAlive: true }
+      socket: { keepAlive: true },
     })
 
     redisPubClient = redisClient.duplicate()
     redisSubClient = redisClient.duplicate()
 
-    await Promise.all([
-      redisClient.connect(),
-      redisPubClient.connect(),
-      redisSubClient.connect()
-    ])
+    await Promise.all([redisClient.connect(), redisPubClient.connect(), redisSubClient.connect()])
 
     console.log('Redis clients initialized successfully')
   } catch (error) {
@@ -400,10 +416,10 @@ export async function initEnhancedSocketServer(server: NetServer) {
     cors: {
       origin: process.env.SOCKET_CORS_ORIGIN?.split(',') || [
         'http://localhost:3003',
-        'http://localhost:3000'
+        'http://localhost:3000',
       ],
       methods: ['GET', 'POST'],
-      credentials: true
+      credentials: true,
     },
   })
 
@@ -427,17 +443,23 @@ export async function initEnhancedSocketServer(server: NetServer) {
   intervalHandles.push(setInterval(cleanupInactiveClassRooms, ROOM_CLEANUP_INTERVAL))
   intervalHandles.push(setInterval(cleanupInactiveDMRooms, DM_CLEANUP_INTERVAL))
   intervalHandles.push(setInterval(cleanupInactiveWhiteboards, WHITEBOARD_CLEANUP_INTERVAL))
-  intervalHandles.push(setInterval(() => {
-    // Clean up old rate limit states
-    const now = Date.now()
-    connectionRateLimits.forEach((state, connectionId) => {
-      if (now - state.lastRefill > 5 * 60 * 1000) { // 5 minutes
-        connectionRateLimits.delete(connectionId)
-      }
-    })
-  }, 5 * 60 * 1000))
+  intervalHandles.push(
+    setInterval(
+      () => {
+        // Clean up old rate limit states
+        const now = Date.now()
+        connectionRateLimits.forEach((state, connectionId) => {
+          if (now - state.lastRefill > 5 * 60 * 1000) {
+            // 5 minutes
+            connectionRateLimits.delete(connectionId)
+          }
+        })
+      },
+      5 * 60 * 1000
+    )
+  )
 
-  io.on('connection', (socket) => {
+  io.on('connection', socket => {
     console.log(`Authenticated client connected: ${socket.id} (user: ${socket.data.userId})`)
     setUserSocket(socket.data.userId, socket.id)
 
@@ -480,7 +502,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
           students: new Map(),
           chatHistory: [],
           createdAt: new Date(),
-          lastActivity: Date.now()
+          lastActivity: Date.now(),
         }
         activeRooms.set(roomId, room)
       }
@@ -517,7 +539,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
 
   const originalClose = io.close.bind(io)
   io.close = ((cb?: (err?: Error) => void) => {
-    intervalHandles.forEach((handle) => clearInterval(handle))
+    intervalHandles.forEach(handle => clearInterval(handle))
     intervalHandles.length = 0
 
     const closeRedis = async () => {
@@ -553,7 +575,7 @@ function addStudentToRoom(socket: Socket, room: ClassRoom) {
     understanding: 80,
     frustration: 0,
     lastActivity: Date.now(),
-    joinedAt: Date.now()
+    joinedAt: Date.now(),
   }
 
   room.students.set(socket.data.userId, studentState)
@@ -562,13 +584,13 @@ function addStudentToRoom(socket: Socket, room: ClassRoom) {
   socket.to(room.id).emit('student_joined', {
     userId: socket.data.userId,
     name: socket.data.name,
-    state: studentState
+    state: studentState,
   })
 
   socket.emit('room_state', {
     students: Array.from(room.students.values()),
     chatHistory: room.chatHistory.slice(-50),
-    whiteboardData: room.whiteboardData
+    whiteboardData: room.whiteboardData,
   })
 }
 
@@ -578,7 +600,7 @@ function addTutorToRoom(socket: Socket, room: ClassRoom) {
   socket.emit('room_state', {
     students: Array.from(room.students.values()),
     chatHistory: room.chatHistory,
-    whiteboardData: room.whiteboardData
+    whiteboardData: room.whiteboardData,
   })
 }
 

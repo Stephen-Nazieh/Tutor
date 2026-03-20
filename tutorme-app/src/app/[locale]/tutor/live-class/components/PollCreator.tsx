@@ -29,7 +29,7 @@ export function PollCreator({ onClose, participants }: PollCreatorProps) {
   const [question, setQuestion] = useState('')
   const [options, setOptions] = useState<PollOption[]>([
     { id: '1', text: '' },
-    { id: '2', text: '' }
+    { id: '2', text: '' },
   ])
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [allowMultiple, setAllowMultiple] = useState(false)
@@ -53,7 +53,7 @@ export function PollCreator({ onClose, participants }: PollCreatorProps) {
   }
 
   const updateOption = (id: string, text: string) => {
-    setOptions(options.map(o => o.id === id ? { ...o, text } : o))
+    setOptions(options.map(o => (o.id === id ? { ...o, text } : o)))
   }
 
   const handlePublish = () => {
@@ -61,7 +61,7 @@ export function PollCreator({ onClose, participants }: PollCreatorProps) {
       toast.error('Please enter a question')
       return
     }
-    
+
     const emptyOptions = options.filter(o => !o.text.trim())
     if (emptyOptions.length > 0) {
       toast.error('Please fill in all options')
@@ -69,7 +69,7 @@ export function PollCreator({ onClose, participants }: PollCreatorProps) {
     }
 
     setIsPublishing(true)
-    
+
     // Simulate publishing
     setTimeout(() => {
       toast.success('Poll published to all participants!')
@@ -82,12 +82,10 @@ export function PollCreator({ onClose, participants }: PollCreatorProps) {
     <>
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
-          <BarChart3 className="w-5 h-5" />
+          <BarChart3 className="h-5 w-5" />
           Create Poll
         </DialogTitle>
-        <DialogDescription>
-          Create a quick poll for your participants to vote on
-        </DialogDescription>
+        <DialogDescription>Create a quick poll for your participants to vote on</DialogDescription>
       </DialogHeader>
 
       <div className="space-y-6 py-4">
@@ -97,7 +95,7 @@ export function PollCreator({ onClose, participants }: PollCreatorProps) {
           <Input
             placeholder="Ask a question..."
             value={question}
-            onChange={(e) => setQuestion(e.target.value)}
+            onChange={e => setQuestion(e.target.value)}
           />
         </div>
 
@@ -107,13 +105,13 @@ export function PollCreator({ onClose, participants }: PollCreatorProps) {
           <div className="space-y-2">
             {options.map((option, index) => (
               <div key={option.id} className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-600">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-medium text-gray-600">
                   {String.fromCharCode(65 + index)}
                 </div>
                 <Input
                   placeholder={`Option ${index + 1}`}
                   value={option.text}
-                  onChange={(e) => updateOption(option.id, e.target.value)}
+                  onChange={e => updateOption(option.id, e.target.value)}
                   className="flex-1"
                 />
                 <Button
@@ -122,13 +120,13 @@ export function PollCreator({ onClose, participants }: PollCreatorProps) {
                   onClick={() => removeOption(option.id)}
                   disabled={options.length <= 2}
                 >
-                  <Trash2 className="w-4 h-4 text-red-500" />
+                  <Trash2 className="h-4 w-4 text-red-500" />
                 </Button>
               </div>
             ))}
           </div>
           <Button variant="outline" className="w-full" onClick={addOption}>
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Add Option
           </Button>
         </div>
@@ -139,31 +137,31 @@ export function PollCreator({ onClose, participants }: PollCreatorProps) {
             <Checkbox
               id="anonymous"
               checked={isAnonymous}
-              onCheckedChange={(checked) => setIsAnonymous(checked as boolean)}
+              onCheckedChange={checked => setIsAnonymous(checked as boolean)}
             />
-            <Label htmlFor="anonymous" className="text-sm cursor-pointer">
+            <Label htmlFor="anonymous" className="cursor-pointer text-sm">
               Anonymous voting
             </Label>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Checkbox
               id="multiple"
               checked={allowMultiple}
-              onCheckedChange={(checked) => setAllowMultiple(checked as boolean)}
+              onCheckedChange={checked => setAllowMultiple(checked as boolean)}
             />
-            <Label htmlFor="multiple" className="text-sm cursor-pointer">
+            <Label htmlFor="multiple" className="cursor-pointer text-sm">
               Allow multiple selections
             </Label>
           </div>
 
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
+              <Clock className="h-4 w-4" />
               Duration (optional)
             </Label>
             <div className="flex gap-2">
-              {[30, 60, 120, 300].map((seconds) => (
+              {[30, 60, 120, 300].map(seconds => (
                 <Button
                   key={seconds}
                   variant={duration === seconds ? 'default' : 'outline'}
@@ -178,13 +176,15 @@ export function PollCreator({ onClose, participants }: PollCreatorProps) {
         </div>
 
         {/* Preview */}
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-500 mb-2">Preview ({participants.length} participants will see this)</p>
+        <div className="rounded-lg bg-gray-50 p-4">
+          <p className="mb-2 text-sm text-gray-500">
+            Preview ({participants.length} participants will see this)
+          </p>
           <p className="font-medium">{question || 'Your question will appear here'}</p>
           <div className="mt-2 space-y-1">
             {options.map((option, index) => (
               <div key={option.id} className="flex items-center gap-2 text-sm text-gray-600">
-                <div className="w-4 h-4 rounded-full border-2 border-gray-300" />
+                <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
                 {option.text || `Option ${index + 1}`}
               </div>
             ))}
@@ -193,13 +193,11 @@ export function PollCreator({ onClose, participants }: PollCreatorProps) {
       </div>
 
       <DialogFooter>
-        <Button variant="outline" onClick={onClose}>Cancel</Button>
-        <Button 
-          onClick={handlePublish}
-          disabled={isPublishing}
-          className="gap-2"
-        >
-          <BarChart3 className="w-4 h-4" />
+        <Button variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button onClick={handlePublish} disabled={isPublishing} className="gap-2">
+          <BarChart3 className="h-4 w-4" />
           {isPublishing ? 'Publishing...' : 'Publish Poll'}
         </Button>
       </DialogFooter>

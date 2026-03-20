@@ -12,52 +12,49 @@ import { contentItem, videoWatchEvent } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 
-export const POST = withCsrf(withAuth(async (req: NextRequest, session, context) => {
-  const contentId = await getParamAsync(context?.params, 'contentId')
-  if (!contentId) {
-    return NextResponse.json({ error: 'Content ID required' }, { status: 400 })
-  }
+export const POST = withCsrf(
+  withAuth(
+    async (req: NextRequest, session, context) => {
+      const contentId = await getParamAsync(context?.params, 'contentId')
+      if (!contentId) {
+        return NextResponse.json({ error: 'Content ID required' }, { status: 400 })
+      }
 
-  let body: { videoTimestampSeconds?: number; note?: string }
-  try {
-    body = await req.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
-  }
+      let body: { videoTimestampSeconds?: number; note?: string }
+      try {
+        body = await req.json()
+      } catch {
+        return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+      }
 
-  const videoTimestampSeconds = Number(body?.videoTimestampSeconds)
-  if (!Number.isFinite(videoTimestampSeconds) || videoTimestampSeconds < 0) {
-    return NextResponse.json(
-      { error: 'videoTimestampSeconds (number >= 0) required' },
-      { status: 400 }
-    )
-  }
+      const videoTimestampSeconds = Number(body?.videoTimestampSeconds)
+      if (!Number.isFinite(videoTimestampSeconds) || videoTimestampSeconds < 0) {
+        return NextResponse.json(
+          { error: 'videoTimestampSeconds (number >= 0) required' },
+          { status: 400 }
+        )
+      }
 
-  const [content] = await drizzleDb
-    .select({ id: contentItem.id })
-    .from(contentItem)
-    .where(
-      and(
-        eq(contentItem.id, contentId),
-        eq(contentItem.isPublished, true)
-      )
-    )
-    .limit(1)
-  if (!content) {
-    return NextResponse.json({ error: 'Content not found' }, { status: 404 })
-  }
+      const [content] = await drizzleDb
+        .select({ id: contentItem.id })
+        .from(contentItem)
+        .where(and(eq(contentItem.id, contentId), eq(contentItem.isPublished, true)))
+        .limit(1)
+      if (!content) {
+        return NextResponse.json({ error: 'Content not found' }, { status: 404 })
+      }
 
-  await drizzleDb.insert(videoWatchEvent).values({
-    id: randomUUID(),
-    contentId,
-    studentId: session.user.id,
-    eventType: 'quiz_skip',
-    videoSeconds: videoTimestampSeconds,
-    metadata:
-      typeof body.note === 'string'
-        ? { note: body.note.slice(0, 500) }
-        : undefined,
-  })
+      await drizzleDb.insert(videoWatchEvent).values({
+        id: randomUUID(),
+        contentId,
+        studentId: session.user.id,
+        eventType: 'quiz_skip',
+        videoSeconds: videoTimestampSeconds,
+        metadata: typeof body.note === 'string' ? { note: body.note.slice(0, 500) } : undefined,
+      })
 
-  return NextResponse.json({ ok: true })
-}, { role: 'STUDENT' }))
+      return NextResponse.json({ ok: true })
+    },
+    { role: 'STUDENT' }
+  )
+)

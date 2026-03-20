@@ -6,10 +6,18 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command'
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from '@/components/ui/command'
 import { DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { 
+import {
   Search,
   Mic,
   MicOff,
@@ -38,7 +46,7 @@ import {
   HelpCircle,
   Keyboard,
   Volume2,
-  VolumeX
+  VolumeX,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -59,16 +67,16 @@ interface CommandPaletteProps {
   isOpen: boolean
   onClose: () => void
   actions: CommandAction[]
-  recentActions?: string[]  // IDs of recently used actions
+  recentActions?: string[] // IDs of recently used actions
   placeholder?: string
 }
 
-export function CommandPalette({ 
-  isOpen, 
-  onClose, 
+export function CommandPalette({
+  isOpen,
+  onClose,
   actions,
   recentActions = [],
-  placeholder = "Type a command or search..."
+  placeholder = 'Type a command or search...',
 }: CommandPaletteProps) {
   const [search, setSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -105,7 +113,7 @@ export function CommandPalette({
   // Group actions by category
   const groupedActions = useMemo(() => {
     const groups: Record<string, CommandAction[]> = {}
-    
+
     filteredActions.forEach(action => {
       if (!groups[action.category]) {
         groups[action.category] = []
@@ -132,19 +140,18 @@ export function CommandPalette({
     system: { label: 'System', icon: <Settings className="h-4 w-4" /> },
   }
 
-  const handleAction = useCallback((action: CommandAction) => {
-    action.action()
-    onClose()
-  }, [onClose])
+  const handleAction = useCallback(
+    (action: CommandAction) => {
+      action.action()
+      onClose()
+    },
+    [onClose]
+  )
 
   return (
     <CommandDialog open={isOpen} onOpenChange={onClose}>
       <DialogTitle className="sr-only">Command Palette</DialogTitle>
-      <CommandInput 
-        placeholder={placeholder} 
-        value={search}
-        onValueChange={setSearch}
-      />
+      <CommandInput placeholder={placeholder} value={search} onValueChange={setSearch} />
       <CommandList>
         <CommandEmpty className="py-6 text-center text-sm text-slate-500">
           <div className="flex flex-col items-center gap-2">
@@ -162,15 +169,15 @@ export function CommandPalette({
                 key={action.id}
                 onSelect={() => handleAction(action)}
                 disabled={action.disabled}
-                className={cn(action.disabled && "opacity-50 cursor-not-allowed")}
+                className={cn(action.disabled && 'cursor-not-allowed opacity-50')}
               >
-                <div className="flex items-center gap-3 flex-1">
+                <div className="flex flex-1 items-center gap-3">
                   <div className="text-slate-400">{action.icon}</div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{action.title}</span>
                       {action.badge && (
-                        <Badge variant="secondary" className="text-[10px] px-1 py-0">
+                        <Badge variant="secondary" className="px-1 py-0 text-[10px]">
                           {action.badge}
                         </Badge>
                       )}
@@ -180,7 +187,7 @@ export function CommandPalette({
                     )}
                   </div>
                   {action.shortcut && (
-                    <kbd className="text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">
+                    <kbd className="rounded bg-slate-700 px-2 py-0.5 text-xs text-slate-300">
                       {action.shortcut}
                     </kbd>
                   )}
@@ -200,7 +207,7 @@ export function CommandPalette({
                   <button
                     key={key}
                     onClick={() => setSelectedCategory(key)}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition-colors"
+                    className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 text-sm transition-colors hover:bg-slate-700"
                   >
                     {icon}
                     <span className="capitalize">{label}</span>
@@ -239,15 +246,15 @@ export function CommandPalette({
                 key={action.id}
                 onSelect={() => handleAction(action)}
                 disabled={action.disabled}
-                className={cn(action.disabled && "opacity-50 cursor-not-allowed")}
+                className={cn(action.disabled && 'cursor-not-allowed opacity-50')}
               >
-                <div className="flex items-center gap-3 flex-1">
+                <div className="flex flex-1 items-center gap-3">
                   <div className="text-slate-400">{action.icon}</div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{action.title}</span>
                       {action.badge && (
-                        <Badge variant="secondary" className="text-[10px] px-1 py-0">
+                        <Badge variant="secondary" className="px-1 py-0 text-[10px]">
                           {action.badge}
                         </Badge>
                       )}
@@ -257,7 +264,7 @@ export function CommandPalette({
                     )}
                   </div>
                   {action.shortcut && (
-                    <kbd className="text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">
+                    <kbd className="rounded bg-slate-700 px-2 py-0.5 text-xs text-slate-300">
                       {action.shortcut}
                     </kbd>
                   )}
@@ -270,18 +277,18 @@ export function CommandPalette({
         <CommandSeparator />
 
         {/* Help Footer */}
-        <div className="px-3 py-2 text-xs text-slate-500 flex items-center justify-between">
+        <div className="flex items-center justify-between px-3 py-2 text-xs text-slate-500">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className="bg-slate-700 px-1.5 rounded">↑↓</kbd>
+              <kbd className="rounded bg-slate-700 px-1.5">↑↓</kbd>
               <span>Navigate</span>
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="bg-slate-700 px-1.5 rounded">↵</kbd>
+              <kbd className="rounded bg-slate-700 px-1.5">↵</kbd>
               <span>Select</span>
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="bg-slate-700 px-1.5 rounded">esc</kbd>
+              <kbd className="rounded bg-slate-700 px-1.5">esc</kbd>
               <span>Close</span>
             </span>
           </div>
@@ -300,12 +307,12 @@ export function useCommandPalette(shortcut: string = 'cmd+k') {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
       const modifier = isMac ? e.metaKey : e.ctrlKey
-      
+
       if (modifier && e.key.toLowerCase() === 'k') {
         e.preventDefault()
         setIsOpen(prev => !prev)
       }
-      
+
       if (e.key === 'Escape') {
         setIsOpen(false)
       }
@@ -348,29 +355,39 @@ export function createClassroomActions(options: {
       shortcut: '⌘M',
       keywords: ['mute', 'unmute', 'mic', 'audio'],
       category: 'media',
-      action: options.onToggleAudio
+      action: options.onToggleAudio,
     },
     {
       id: 'toggle-video',
       title: options.isVideoEnabled ? 'Stop Video' : 'Start Video',
       description: options.isVideoEnabled ? 'Turn off your camera' : 'Turn on your camera',
-      icon: options.isVideoEnabled ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />,
+      icon: options.isVideoEnabled ? (
+        <Video className="h-4 w-4" />
+      ) : (
+        <VideoOff className="h-4 w-4" />
+      ),
       shortcut: '⌘V',
       keywords: ['camera', 'video', 'on', 'off'],
       category: 'media',
-      action: options.onToggleVideo
+      action: options.onToggleVideo,
     },
     {
       id: 'toggle-screen',
       title: options.isScreenSharing ? 'Stop Screen Share' : 'Share Screen',
-      description: options.isScreenSharing ? 'Stop sharing your screen' : 'Share your screen with students',
-      icon: options.isScreenSharing ? <MonitorOff className="h-4 w-4" /> : <MonitorUp className="h-4 w-4" />,
+      description: options.isScreenSharing
+        ? 'Stop sharing your screen'
+        : 'Share your screen with students',
+      icon: options.isScreenSharing ? (
+        <MonitorOff className="h-4 w-4" />
+      ) : (
+        <MonitorUp className="h-4 w-4" />
+      ),
       shortcut: '⌘S',
       keywords: ['screen', 'share', 'present', 'display'],
       category: 'media',
-      action: options.onToggleScreenShare
+      action: options.onToggleScreenShare,
     },
-    
+
     // Classroom Tools
     {
       id: 'open-whiteboard',
@@ -379,19 +396,23 @@ export function createClassroomActions(options: {
       icon: <LayoutGrid className="h-4 w-4" />,
       keywords: ['whiteboard', 'draw', 'sketch', 'board'],
       category: 'classroom',
-      action: options.onOpenWhiteboard
+      action: options.onOpenWhiteboard,
     },
-    ...(options.onOpenPolls ? [{
-      id: 'open-polls' as const,
-      title: 'Create Quick Poll',
-      description: 'Launch an interactive poll for students',
-      icon: <BarChart3 className="h-4 w-4" />,
-      shortcut: '⌘P' as const,
-      keywords: ['poll', 'quiz', 'vote', 'question'],
-      category: 'classroom' as const,
-      action: options.onOpenPolls!,
-      badge: 'New' as const
-    }] : []),
+    ...(options.onOpenPolls
+      ? [
+          {
+            id: 'open-polls' as const,
+            title: 'Create Quick Poll',
+            description: 'Launch an interactive poll for students',
+            icon: <BarChart3 className="h-4 w-4" />,
+            shortcut: '⌘P' as const,
+            keywords: ['poll', 'quiz', 'vote', 'question'],
+            category: 'classroom' as const,
+            action: options.onOpenPolls!,
+            badge: 'New' as const,
+          },
+        ]
+      : []),
     {
       id: 'open-breakouts',
       title: 'Manage Breakout Rooms',
@@ -399,7 +420,7 @@ export function createClassroomActions(options: {
       icon: <Users className="h-4 w-4" />,
       keywords: ['breakout', 'groups', 'rooms', 'small group'],
       category: 'classroom',
-      action: options.onOpenBreakouts
+      action: options.onOpenBreakouts,
     },
 
     // Engagement
@@ -410,7 +431,7 @@ export function createClassroomActions(options: {
       icon: <BarChart3 className="h-4 w-4" />,
       keywords: ['engagement', 'analytics', 'students', 'attention'],
       category: 'engagement',
-      action: options.onOpenEngagement
+      action: options.onOpenEngagement,
     },
     {
       id: 'call-attention',
@@ -419,7 +440,7 @@ export function createClassroomActions(options: {
       icon: <Bell className="h-4 w-4" />,
       keywords: ['attention', 'focus', 'alert', 'notify'],
       category: 'engagement',
-      action: options.onCallAttention
+      action: options.onCallAttention,
     },
     {
       id: 'mute-all',
@@ -428,7 +449,7 @@ export function createClassroomActions(options: {
       icon: <VolumeX className="h-4 w-4" />,
       keywords: ['mute', 'all', 'students', 'quiet'],
       category: 'engagement',
-      action: options.onMuteAll
+      action: options.onMuteAll,
     },
     {
       id: 'send-broadcast',
@@ -438,7 +459,7 @@ export function createClassroomActions(options: {
       shortcut: '⌘B',
       keywords: ['broadcast', 'message', 'announce', 'chat'],
       category: 'engagement',
-      action: options.onSendBroadcast
+      action: options.onSendBroadcast,
     },
 
     // Session Management
@@ -449,7 +470,7 @@ export function createClassroomActions(options: {
       icon: options.isRecording ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />,
       keywords: ['record', 'save', 'capture', 'video'],
       category: 'session',
-      action: options.onToggleRecording
+      action: options.onToggleRecording,
     },
 
     // System
@@ -461,7 +482,7 @@ export function createClassroomActions(options: {
       shortcut: '⌘Q',
       keywords: ['leave', 'exit', 'quit', 'end'],
       category: 'system',
-      action: options.onLeaveClass
+      action: options.onLeaveClass,
     },
   ]
 }

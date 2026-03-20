@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -36,13 +36,21 @@ export const authOptions: NextAuthOptions = {
         const normalizedEmail = credentials.email.trim().toLowerCase()
 
         // Find user by email (Drizzle)
-        const [userRow] = await drizzleDb.select().from(user).where(eq(user.email, normalizedEmail)).limit(1)
+        const [userRow] = await drizzleDb
+          .select()
+          .from(user)
+          .where(eq(user.email, normalizedEmail))
+          .limit(1)
         if (!userRow?.password) {
           return null
         }
 
         // Get profile for onboarding/tos
-        const [profileRow] = await drizzleDb.select().from(profile).where(eq(profile.userId, userRow.id)).limit(1)
+        const [profileRow] = await drizzleDb
+          .select()
+          .from(profile)
+          .where(eq(profile.userId, userRow.id))
+          .limit(1)
 
         const isValid = await bcrypt.compare(credentials.password, userRow.password)
         if (!isValid) {
@@ -61,10 +69,10 @@ export const authOptions: NextAuthOptions = {
           role: userRow.role,
           image: profileRow?.avatarUrl ?? undefined,
           onboardingComplete,
-          tosAccepted
+          tosAccepted,
         }
-      }
-    })
+      },
+    }),
   ],
 
   // WeChat OAuth - To be added later
@@ -95,7 +103,17 @@ export const authOptions: NextAuthOptions = {
       // Ensure session.user exists when token has id so route handlers never see undefined (reading 'user')
       if (token?.id) {
         if (!session.user) {
-          (session as { user: { id: string; role?: string; name?: string; email?: string | null; image?: string | null } }).user = {
+          ;(
+            session as {
+              user: {
+                id: string
+                role?: string
+                name?: string
+                email?: string | null
+                image?: string | null
+              }
+            }
+          ).user = {
             id: token.id as string,
             role: token.role as string,
             name: undefined,
@@ -106,28 +124,32 @@ export const authOptions: NextAuthOptions = {
           session.user.role = token.role as string
           session.user.id = token.id as string
         }
-        (session.user as { onboardingComplete?: boolean; tosAccepted?: boolean }).onboardingComplete = token.onboardingComplete as boolean
-        (session.user as { tosAccepted?: boolean }).tosAccepted = token.tosAccepted as boolean
+        ;(
+          session.user as { onboardingComplete?: boolean; tosAccepted?: boolean }
+        ).onboardingComplete = token.onboardingComplete as boolean
+        ;(session.user as { tosAccepted?: boolean }).tosAccepted = token.tosAccepted as boolean
       }
       return session
-    }
+    },
   },
 
   pages: {
     signIn: '/login',
-    error: '/login'
+    error: '/login',
   },
 
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60 // 30 days
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
-  secret: process.env.NEXTAUTH_SECRET
+  secret: process.env.NEXTAUTH_SECRET,
 }
 
 // Helper function to check if onboarding is complete
-function checkOnboardingComplete(user: { profile?: { isOnboarded?: boolean | null } | null }): boolean {
+function checkOnboardingComplete(user: {
+  profile?: { isOnboarded?: boolean | null } | null
+}): boolean {
   if (!user?.profile) return false
   if (user.profile.isOnboarded === null || user.profile.isOnboarded === undefined) return false
   return user.profile.isOnboarded

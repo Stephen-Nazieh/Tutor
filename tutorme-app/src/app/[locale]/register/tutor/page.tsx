@@ -7,13 +7,44 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { ArrowLeft, GraduationCap, ShieldCheck, Globe, UserRound, ChevronDown, Eye, EyeOff, Loader2, MapPin, BookOpen, Award, School, Flag, X, Search, Plus, Check } from 'lucide-react'
+import {
+  ArrowLeft,
+  GraduationCap,
+  ShieldCheck,
+  Globe,
+  UserRound,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  Loader2,
+  MapPin,
+  BookOpen,
+  Award,
+  School,
+  Flag,
+  X,
+  Search,
+  Plus,
+  Check,
+} from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
@@ -54,132 +85,1073 @@ interface ExamCategory {
 
 // National exams data by country
 const NATIONAL_EXAMS_DATA: Record<string, ExamCategory[]> = {
-  'HK': [
-    { id: 'hkdse-s5', label: 'HKDSE Preparation (S5)', exams: ['S5 HKDSE Chinese Language Preparation', 'S5 HKDSE English Language Preparation', 'S5 HKDSE Mathematics Preparation', 'S5 HKDSE Mathematics M1 Preparation', 'S5 HKDSE Mathematics M2 Preparation', 'S5 HKDSE Physics Preparation', 'S5 HKDSE Chemistry Preparation', 'S5 HKDSE Biology Preparation', 'S5 HKDSE Combined Science Preparation'] },
-    { id: 'hkdse-s6', label: 'HKDSE Preparation (S6)', exams: ['S6 HKDSE Chinese Language Preparation', 'S6 HKDSE English Language Preparation', 'S6 HKDSE Mathematics Preparation', 'S6 HKDSE Mathematics M1 Preparation', 'S6 HKDSE Mathematics M2 Preparation', 'S6 HKDSE Physics Preparation', 'S6 HKDSE Chemistry Preparation', 'S6 HKDSE Biology Preparation', 'S6 HKDSE Combined Science Preparation'] },
-    { id: 'hk-subject-s4', label: 'Secondary 4 (S4 / Grade 10)', exams: ['S4 Chinese Language', 'S4 English Language', 'S4 Mathematics', 'S4 Mathematics Extended Module 1 (M1)', 'S4 Mathematics Extended Module 2 (M2)', 'S4 Physics', 'S4 Chemistry', 'S4 Biology', 'S4 Combined Science'] },
-    { id: 'hk-subject-s5', label: 'Secondary 5 (S5 / Grade 11)', exams: ['S5 Chinese Language', 'S5 English Language', 'S5 Mathematics', 'S5 Mathematics Extended Module 1 (M1)', 'S5 Mathematics Extended Module 2 (M2)', 'S5 Physics', 'S5 Chemistry', 'S5 Biology', 'S5 Combined Science'] },
-    { id: 'hk-subject-s6', label: 'Secondary 6 (S6 / Grade 12)', exams: ['S6 Chinese Language', 'S6 English Language', 'S6 Mathematics', 'S6 Mathematics Extended Module 1 (M1)', 'S6 Mathematics Extended Module 2 (M2)', 'S6 Physics', 'S6 Chemistry', 'S6 Biology', 'S6 Combined Science'] }
+  HK: [
+    {
+      id: 'hkdse-s5',
+      label: 'HKDSE Preparation (S5)',
+      exams: [
+        'S5 HKDSE Chinese Language Preparation',
+        'S5 HKDSE English Language Preparation',
+        'S5 HKDSE Mathematics Preparation',
+        'S5 HKDSE Mathematics M1 Preparation',
+        'S5 HKDSE Mathematics M2 Preparation',
+        'S5 HKDSE Physics Preparation',
+        'S5 HKDSE Chemistry Preparation',
+        'S5 HKDSE Biology Preparation',
+        'S5 HKDSE Combined Science Preparation',
+      ],
+    },
+    {
+      id: 'hkdse-s6',
+      label: 'HKDSE Preparation (S6)',
+      exams: [
+        'S6 HKDSE Chinese Language Preparation',
+        'S6 HKDSE English Language Preparation',
+        'S6 HKDSE Mathematics Preparation',
+        'S6 HKDSE Mathematics M1 Preparation',
+        'S6 HKDSE Mathematics M2 Preparation',
+        'S6 HKDSE Physics Preparation',
+        'S6 HKDSE Chemistry Preparation',
+        'S6 HKDSE Biology Preparation',
+        'S6 HKDSE Combined Science Preparation',
+      ],
+    },
+    {
+      id: 'hk-subject-s4',
+      label: 'Secondary 4 (S4 / Grade 10)',
+      exams: [
+        'S4 Chinese Language',
+        'S4 English Language',
+        'S4 Mathematics',
+        'S4 Mathematics Extended Module 1 (M1)',
+        'S4 Mathematics Extended Module 2 (M2)',
+        'S4 Physics',
+        'S4 Chemistry',
+        'S4 Biology',
+        'S4 Combined Science',
+      ],
+    },
+    {
+      id: 'hk-subject-s5',
+      label: 'Secondary 5 (S5 / Grade 11)',
+      exams: [
+        'S5 Chinese Language',
+        'S5 English Language',
+        'S5 Mathematics',
+        'S5 Mathematics Extended Module 1 (M1)',
+        'S5 Mathematics Extended Module 2 (M2)',
+        'S5 Physics',
+        'S5 Chemistry',
+        'S5 Biology',
+        'S5 Combined Science',
+      ],
+    },
+    {
+      id: 'hk-subject-s6',
+      label: 'Secondary 6 (S6 / Grade 12)',
+      exams: [
+        'S6 Chinese Language',
+        'S6 English Language',
+        'S6 Mathematics',
+        'S6 Mathematics Extended Module 1 (M1)',
+        'S6 Mathematics Extended Module 2 (M2)',
+        'S6 Physics',
+        'S6 Chemistry',
+        'S6 Biology',
+        'S6 Combined Science',
+      ],
+    },
   ],
-  'KR': [
-    { id: 'csat', label: 'CSAT Preparation (수능 Preparation)', exams: ['CSAT Korean Language Preparation', 'CSAT English Preparation', 'CSAT Mathematics Preparation', 'CSAT Physics Preparation', 'CSAT Chemistry Preparation', 'CSAT Biology Preparation', 'CSAT Earth Science Preparation'] },
-    { id: 'kr-year-1', label: 'High School Year 1', exams: ['Korean Language', 'English Language', 'Mathematics', 'Algebra', 'Geometry', 'Probability & Statistics', 'Integrated Science', 'Physics', 'Chemistry', 'Biology', 'Earth Science'] },
-    { id: 'kr-year-2', label: 'High School Year 2', exams: ['Korean Language', 'English Language', 'Mathematics', 'Algebra', 'Calculus Foundations', 'Probability & Statistics', 'Physics', 'Chemistry', 'Biology', 'Earth Science'] },
-    { id: 'kr-year-3', label: 'High School Year 3', exams: ['Korean Language', 'English Language', 'Mathematics', 'Calculus', 'Probability & Statistics', 'Physics', 'Chemistry', 'Biology', 'Earth Science'] }
+  KR: [
+    {
+      id: 'csat',
+      label: 'CSAT Preparation (수능 Preparation)',
+      exams: [
+        'CSAT Korean Language Preparation',
+        'CSAT English Preparation',
+        'CSAT Mathematics Preparation',
+        'CSAT Physics Preparation',
+        'CSAT Chemistry Preparation',
+        'CSAT Biology Preparation',
+        'CSAT Earth Science Preparation',
+      ],
+    },
+    {
+      id: 'kr-year-1',
+      label: 'High School Year 1',
+      exams: [
+        'Korean Language',
+        'English Language',
+        'Mathematics',
+        'Algebra',
+        'Geometry',
+        'Probability & Statistics',
+        'Integrated Science',
+        'Physics',
+        'Chemistry',
+        'Biology',
+        'Earth Science',
+      ],
+    },
+    {
+      id: 'kr-year-2',
+      label: 'High School Year 2',
+      exams: [
+        'Korean Language',
+        'English Language',
+        'Mathematics',
+        'Algebra',
+        'Calculus Foundations',
+        'Probability & Statistics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+        'Earth Science',
+      ],
+    },
+    {
+      id: 'kr-year-3',
+      label: 'High School Year 3',
+      exams: [
+        'Korean Language',
+        'English Language',
+        'Mathematics',
+        'Calculus',
+        'Probability & Statistics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+        'Earth Science',
+      ],
+    },
   ],
-  'SG': [
-    { id: 'gce-o-level', label: 'GCE O-Level Preparation', exams: ['O-Level English Preparation', 'O-Level Elementary Mathematics Preparation', 'O-Level Additional Mathematics Preparation', 'O-Level Physics Preparation', 'O-Level Chemistry Preparation', 'O-Level Biology Preparation', 'O-Level Combined Science Preparation'] },
-    { id: 'gce-a-level', label: 'GCE A-Level Preparation', exams: ['A-Level General Paper Preparation', 'A-Level Mathematics Preparation', 'A-Level Physics Preparation', 'A-Level Chemistry Preparation', 'A-Level Biology Preparation'] },
-    { id: 'sg-sec-4', label: 'Secondary 4 (Sec 4 / Grade 10)', exams: ['English Language', 'Elementary Mathematics', 'Additional Mathematics', 'Physics', 'Chemistry', 'Biology', 'Combined Science'] },
-    { id: 'sg-sec-5', label: 'Secondary 5 (Sec 5 / Grade 11)', exams: ['English Language', 'Elementary Mathematics', 'Additional Mathematics', 'Physics', 'Chemistry', 'Biology', 'Combined Science'] },
-    { id: 'sg-jc1', label: 'Junior College Year 1 (JC1 / Grade 11)', exams: ['General Paper (English Academic Literacy)', 'H1 Mathematics', 'H2 Mathematics', 'H1 Physics', 'H2 Physics', 'H1 Chemistry', 'H2 Chemistry', 'H1 Biology', 'H2 Biology'] },
-    { id: 'sg-jc2', label: 'Junior College Year 2 (JC2 / Grade 12)', exams: ['General Paper (English Academic Literacy)', 'H1 Mathematics', 'H2 Mathematics', 'H1 Physics', 'H2 Physics', 'H1 Chemistry', 'H2 Chemistry', 'H1 Biology', 'H2 Biology'] }
+  SG: [
+    {
+      id: 'gce-o-level',
+      label: 'GCE O-Level Preparation',
+      exams: [
+        'O-Level English Preparation',
+        'O-Level Elementary Mathematics Preparation',
+        'O-Level Additional Mathematics Preparation',
+        'O-Level Physics Preparation',
+        'O-Level Chemistry Preparation',
+        'O-Level Biology Preparation',
+        'O-Level Combined Science Preparation',
+      ],
+    },
+    {
+      id: 'gce-a-level',
+      label: 'GCE A-Level Preparation',
+      exams: [
+        'A-Level General Paper Preparation',
+        'A-Level Mathematics Preparation',
+        'A-Level Physics Preparation',
+        'A-Level Chemistry Preparation',
+        'A-Level Biology Preparation',
+      ],
+    },
+    {
+      id: 'sg-sec-4',
+      label: 'Secondary 4 (Sec 4 / Grade 10)',
+      exams: [
+        'English Language',
+        'Elementary Mathematics',
+        'Additional Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+        'Combined Science',
+      ],
+    },
+    {
+      id: 'sg-sec-5',
+      label: 'Secondary 5 (Sec 5 / Grade 11)',
+      exams: [
+        'English Language',
+        'Elementary Mathematics',
+        'Additional Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+        'Combined Science',
+      ],
+    },
+    {
+      id: 'sg-jc1',
+      label: 'Junior College Year 1 (JC1 / Grade 11)',
+      exams: [
+        'General Paper (English Academic Literacy)',
+        'H1 Mathematics',
+        'H2 Mathematics',
+        'H1 Physics',
+        'H2 Physics',
+        'H1 Chemistry',
+        'H2 Chemistry',
+        'H1 Biology',
+        'H2 Biology',
+      ],
+    },
+    {
+      id: 'sg-jc2',
+      label: 'Junior College Year 2 (JC2 / Grade 12)',
+      exams: [
+        'General Paper (English Academic Literacy)',
+        'H1 Mathematics',
+        'H2 Mathematics',
+        'H1 Physics',
+        'H2 Physics',
+        'H1 Chemistry',
+        'H2 Chemistry',
+        'H1 Biology',
+        'H2 Biology',
+      ],
+    },
   ],
-  'JP': [
-    { id: 'university-entrance', label: 'University Entrance Examination Preparation', exams: ['Japanese University Entrance Japanese Language', 'Japanese University Entrance English', 'Japanese University Entrance Mathematics', 'Japanese University Entrance Physics', 'Japanese University Entrance Chemistry', 'Japanese University Entrance Biology', 'Japanese University Entrance Earth Science'] },
-    { id: 'jp-year-1', label: 'High School Year 1 (G10 / 高校1年)', exams: ['Japanese Language', 'English Language', 'Mathematics I', 'Mathematics A', 'Basic Physics', 'Basic Chemistry', 'Basic Biology', 'Earth Science Basics'] },
-    { id: 'jp-year-2', label: 'High School Year 2 (G11 / 高校2年)', exams: ['Japanese Language', 'English Language', 'Mathematics II', 'Mathematics B', 'Physics', 'Chemistry', 'Biology', 'Earth Science'] },
-    { id: 'jp-year-3', label: 'High School Year 3 (G12 / 高校3年)', exams: ['Japanese Language', 'English Language', 'Mathematics III', 'Advanced Mathematics', 'Physics', 'Chemistry', 'Biology', 'Earth Science'] }
+  JP: [
+    {
+      id: 'university-entrance',
+      label: 'University Entrance Examination Preparation',
+      exams: [
+        'Japanese University Entrance Japanese Language',
+        'Japanese University Entrance English',
+        'Japanese University Entrance Mathematics',
+        'Japanese University Entrance Physics',
+        'Japanese University Entrance Chemistry',
+        'Japanese University Entrance Biology',
+        'Japanese University Entrance Earth Science',
+      ],
+    },
+    {
+      id: 'jp-year-1',
+      label: 'High School Year 1 (G10 / 高校1年)',
+      exams: [
+        'Japanese Language',
+        'English Language',
+        'Mathematics I',
+        'Mathematics A',
+        'Basic Physics',
+        'Basic Chemistry',
+        'Basic Biology',
+        'Earth Science Basics',
+      ],
+    },
+    {
+      id: 'jp-year-2',
+      label: 'High School Year 2 (G11 / 高校2年)',
+      exams: [
+        'Japanese Language',
+        'English Language',
+        'Mathematics II',
+        'Mathematics B',
+        'Physics',
+        'Chemistry',
+        'Biology',
+        'Earth Science',
+      ],
+    },
+    {
+      id: 'jp-year-3',
+      label: 'High School Year 3 (G12 / 高校3年)',
+      exams: [
+        'Japanese Language',
+        'English Language',
+        'Mathematics III',
+        'Advanced Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+        'Earth Science',
+      ],
+    },
   ],
-  'TH': [
-    { id: 'university-admission', label: 'University Admission Examination', exams: ['Thai University Admission Thai Language', 'Thai University Admission English', 'Thai University Admission Mathematics', 'Thai University Admission Physics', 'Thai University Admission Chemistry', 'Thai University Admission Biology', 'Thai University Admission Earth & Space Science'] },
-    { id: 'th-grade-10', label: 'Grade 10', exams: ['Thai Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'th-grade-11', label: 'Grade 11', exams: ['Thai Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'th-grade-12', label: 'Grade 12', exams: ['Thai Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  TH: [
+    {
+      id: 'university-admission',
+      label: 'University Admission Examination',
+      exams: [
+        'Thai University Admission Thai Language',
+        'Thai University Admission English',
+        'Thai University Admission Mathematics',
+        'Thai University Admission Physics',
+        'Thai University Admission Chemistry',
+        'Thai University Admission Biology',
+        'Thai University Admission Earth & Space Science',
+      ],
+    },
+    {
+      id: 'th-grade-10',
+      label: 'Grade 10',
+      exams: [
+        'Thai Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'th-grade-11',
+      label: 'Grade 11',
+      exams: [
+        'Thai Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'th-grade-12',
+      label: 'Grade 12',
+      exams: [
+        'Thai Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
-  'IN': [
-    { id: 'jee', label: 'Engineering Entrance (JEE)', exams: ['JEE Main Preparation — Mathematics', 'JEE Main Preparation — Physics', 'JEE Main Preparation — Chemistry', 'JEE Advanced Preparation — Mathematics', 'JEE Advanced Preparation — Physics', 'JEE Advanced Preparation — Chemistry'] },
-    { id: 'neet', label: 'Medical Entrance (NEET)', exams: ['NEET Preparation — Physics', 'NEET Preparation — Chemistry', 'NEET Preparation — Biology'] },
-    { id: 'in-grade-10', label: 'Grade 10', exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'in-grade-11', label: 'Grade 11', exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'in-grade-12', label: 'Grade 12', exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  IN: [
+    {
+      id: 'jee',
+      label: 'Engineering Entrance (JEE)',
+      exams: [
+        'JEE Main Preparation — Mathematics',
+        'JEE Main Preparation — Physics',
+        'JEE Main Preparation — Chemistry',
+        'JEE Advanced Preparation — Mathematics',
+        'JEE Advanced Preparation — Physics',
+        'JEE Advanced Preparation — Chemistry',
+      ],
+    },
+    {
+      id: 'neet',
+      label: 'Medical Entrance (NEET)',
+      exams: [
+        'NEET Preparation — Physics',
+        'NEET Preparation — Chemistry',
+        'NEET Preparation — Biology',
+      ],
+    },
+    {
+      id: 'in-grade-10',
+      label: 'Grade 10',
+      exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'],
+    },
+    {
+      id: 'in-grade-11',
+      label: 'Grade 11',
+      exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'],
+    },
+    {
+      id: 'in-grade-12',
+      label: 'Grade 12',
+      exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'],
+    },
   ],
-  'VN': [
-    { id: 'national-exam', label: 'National Examination Preparation', exams: ['Vietnam National Exam — Vietnamese Language', 'Vietnam National Exam — English', 'Vietnam National Exam — Mathematics', 'Vietnam National Exam — Physics', 'Vietnam National Exam — Chemistry', 'Vietnam National Exam — Biology'] },
-    { id: 'vn-grade-10', label: 'Grade 10', exams: ['Vietnamese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'vn-grade-11', label: 'Grade 11', exams: ['Vietnamese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'vn-grade-12', label: 'Grade 12', exams: ['Vietnamese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  VN: [
+    {
+      id: 'national-exam',
+      label: 'National Examination Preparation',
+      exams: [
+        'Vietnam National Exam — Vietnamese Language',
+        'Vietnam National Exam — English',
+        'Vietnam National Exam — Mathematics',
+        'Vietnam National Exam — Physics',
+        'Vietnam National Exam — Chemistry',
+        'Vietnam National Exam — Biology',
+      ],
+    },
+    {
+      id: 'vn-grade-10',
+      label: 'Grade 10',
+      exams: [
+        'Vietnamese Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'vn-grade-11',
+      label: 'Grade 11',
+      exams: [
+        'Vietnamese Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'vn-grade-12',
+      label: 'Grade 12',
+      exams: [
+        'Vietnamese Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
-  'TW': [
-    { id: 'university-entrance', label: 'University Entrance Examination', exams: ['Taiwan University Entrance Chinese', 'Taiwan University Entrance English', 'Taiwan University Entrance Mathematics', 'Taiwan University Entrance Physics', 'Taiwan University Entrance Chemistry', 'Taiwan University Entrance Biology'] },
-    { id: 'tw-grade-10', label: 'Grade 10', exams: ['Chinese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'tw-grade-11', label: 'Grade 11', exams: ['Chinese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'tw-grade-12', label: 'Grade 12', exams: ['Chinese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  TW: [
+    {
+      id: 'university-entrance',
+      label: 'University Entrance Examination',
+      exams: [
+        'Taiwan University Entrance Chinese',
+        'Taiwan University Entrance English',
+        'Taiwan University Entrance Mathematics',
+        'Taiwan University Entrance Physics',
+        'Taiwan University Entrance Chemistry',
+        'Taiwan University Entrance Biology',
+      ],
+    },
+    {
+      id: 'tw-grade-10',
+      label: 'Grade 10',
+      exams: [
+        'Chinese Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'tw-grade-11',
+      label: 'Grade 11',
+      exams: [
+        'Chinese Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'tw-grade-12',
+      label: 'Grade 12',
+      exams: [
+        'Chinese Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
-  'MY': [
-    { id: 'spm', label: 'SPM Examination', exams: ['SPM Malay', 'SPM English', 'SPM Mathematics', 'SPM Physics', 'SPM Chemistry', 'SPM Biology'] },
-    { id: 'my-grade-10', label: 'Grade 10', exams: ['Malay Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'my-grade-11', label: 'Grade 11', exams: ['Malay Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'my-grade-12', label: 'Grade 12', exams: ['Malay Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  MY: [
+    {
+      id: 'spm',
+      label: 'SPM Examination',
+      exams: [
+        'SPM Malay',
+        'SPM English',
+        'SPM Mathematics',
+        'SPM Physics',
+        'SPM Chemistry',
+        'SPM Biology',
+      ],
+    },
+    {
+      id: 'my-grade-10',
+      label: 'Grade 10',
+      exams: [
+        'Malay Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'my-grade-11',
+      label: 'Grade 11',
+      exams: [
+        'Malay Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'my-grade-12',
+      label: 'Grade 12',
+      exams: [
+        'Malay Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
-  'ID': [
-    { id: 'university-admission', label: 'University Admission', exams: ['University Admission Indonesian', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] },
-    { id: 'id-grade-10', label: 'Grade 10', exams: ['Indonesian Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'id-grade-11', label: 'Grade 11', exams: ['Indonesian Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'id-grade-12', label: 'Grade 12', exams: ['Indonesian Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  ID: [
+    {
+      id: 'university-admission',
+      label: 'University Admission',
+      exams: [
+        'University Admission Indonesian',
+        'University Admission English',
+        'University Admission Mathematics',
+        'University Admission Physics',
+        'University Admission Chemistry',
+        'University Admission Biology',
+      ],
+    },
+    {
+      id: 'id-grade-10',
+      label: 'Grade 10',
+      exams: [
+        'Indonesian Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'id-grade-11',
+      label: 'Grade 11',
+      exams: [
+        'Indonesian Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'id-grade-12',
+      label: 'Grade 12',
+      exams: [
+        'Indonesian Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
-  'IL': [
-    { id: 'bagrut', label: 'Bagrut', exams: ['Bagrut Hebrew', 'Bagrut English', 'Bagrut Mathematics', 'Bagrut Physics', 'Bagrut Chemistry', 'Bagrut Biology'] },
-    { id: 'il-grade-10', label: 'Grade 10', exams: ['Hebrew Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'il-grade-11', label: 'Grade 11', exams: ['Hebrew Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'il-grade-12', label: 'Grade 12', exams: ['Hebrew Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  IL: [
+    {
+      id: 'bagrut',
+      label: 'Bagrut',
+      exams: [
+        'Bagrut Hebrew',
+        'Bagrut English',
+        'Bagrut Mathematics',
+        'Bagrut Physics',
+        'Bagrut Chemistry',
+        'Bagrut Biology',
+      ],
+    },
+    {
+      id: 'il-grade-10',
+      label: 'Grade 10',
+      exams: [
+        'Hebrew Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'il-grade-11',
+      label: 'Grade 11',
+      exams: [
+        'Hebrew Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'il-grade-12',
+      label: 'Grade 12',
+      exams: [
+        'Hebrew Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
-  'SA': [
-    { id: 'university-admission', label: 'University Admission', exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] },
-    { id: 'sa-grade-10', label: 'Grade 10', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'sa-grade-11', label: 'Grade 11', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'sa-grade-12', label: 'Grade 12', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  SA: [
+    {
+      id: 'university-admission',
+      label: 'University Admission',
+      exams: [
+        'University Admission Arabic',
+        'University Admission English',
+        'University Admission Mathematics',
+        'University Admission Physics',
+        'University Admission Chemistry',
+        'University Admission Biology',
+      ],
+    },
+    {
+      id: 'sa-grade-10',
+      label: 'Grade 10',
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'sa-grade-11',
+      label: 'Grade 11',
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'sa-grade-12',
+      label: 'Grade 12',
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
-  'QA': [
-    { id: 'university-admission', label: 'University Admission', exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] },
-    { id: 'qa-grade-10', label: 'Grade 10', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'qa-grade-11', label: 'Grade 11', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'qa-grade-12', label: 'Grade 12', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  QA: [
+    {
+      id: 'university-admission',
+      label: 'University Admission',
+      exams: [
+        'University Admission Arabic',
+        'University Admission English',
+        'University Admission Mathematics',
+        'University Admission Physics',
+        'University Admission Chemistry',
+        'University Admission Biology',
+      ],
+    },
+    {
+      id: 'qa-grade-10',
+      label: 'Grade 10',
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'qa-grade-11',
+      label: 'Grade 11',
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'qa-grade-12',
+      label: 'Grade 12',
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
-  'KW': [
-    { id: 'university-admission', label: 'University Admission', exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] },
-    { id: 'kw-grade-10', label: 'Grade 10', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'kw-grade-11', label: 'Grade 11', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'kw-grade-12', label: 'Grade 12', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  KW: [
+    {
+      id: 'university-admission',
+      label: 'University Admission',
+      exams: [
+        'University Admission Arabic',
+        'University Admission English',
+        'University Admission Mathematics',
+        'University Admission Physics',
+        'University Admission Chemistry',
+        'University Admission Biology',
+      ],
+    },
+    {
+      id: 'kw-grade-10',
+      label: 'Grade 10',
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'kw-grade-11',
+      label: 'Grade 11',
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'kw-grade-12',
+      label: 'Grade 12',
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
-  'OM': [
-    { id: 'university-admission', label: 'University Admission', exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] },
-    { id: 'om-grade-10', label: 'Grade 10', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'om-grade-11', label: 'Grade 11', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
-    { id: 'om-grade-12', label: 'Grade 12', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  OM: [
+    {
+      id: 'university-admission',
+      label: 'University Admission',
+      exams: [
+        'University Admission Arabic',
+        'University Admission English',
+        'University Admission Mathematics',
+        'University Admission Physics',
+        'University Admission Chemistry',
+        'University Admission Biology',
+      ],
+    },
+    {
+      id: 'om-grade-10',
+      label: 'Grade 10',
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'om-grade-11',
+      label: 'Grade 11',
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
+    {
+      id: 'om-grade-12',
+      label: 'Grade 12',
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
-  'GB': [
-    { id: 'gcse', label: 'GCSE', exams: ['GCSE English Language', 'GCSE English Literature', 'GCSE Mathematics', 'GCSE Biology', 'GCSE Chemistry', 'GCSE Physics', 'GCSE Combined Science'] },
-    { id: 'a-level-uk', label: 'A Level (UK)', exams: ['A Level English', 'A Level Mathematics', 'A Level Biology', 'A Level Chemistry', 'A Level Physics'] },
-    { id: 'gb-grade-10', label: 'Grade 10', exams: ['English Language', 'English Literature', 'Mathematics', 'Biology', 'Chemistry', 'Physics', 'Combined Science'] },
-    { id: 'gb-grade-11', label: 'Grade 11', exams: ['English Language', 'English Literature', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] },
-    { id: 'gb-grade-12', label: 'Grade 12 (Age 17-18)', exams: ['English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] },
-    { id: 'gb-grade-13', label: 'Grade 13', exams: ['English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] }
+  GB: [
+    {
+      id: 'gcse',
+      label: 'GCSE',
+      exams: [
+        'GCSE English Language',
+        'GCSE English Literature',
+        'GCSE Mathematics',
+        'GCSE Biology',
+        'GCSE Chemistry',
+        'GCSE Physics',
+        'GCSE Combined Science',
+      ],
+    },
+    {
+      id: 'a-level-uk',
+      label: 'A Level (UK)',
+      exams: [
+        'A Level English',
+        'A Level Mathematics',
+        'A Level Biology',
+        'A Level Chemistry',
+        'A Level Physics',
+      ],
+    },
+    {
+      id: 'gb-grade-10',
+      label: 'Grade 10',
+      exams: [
+        'English Language',
+        'English Literature',
+        'Mathematics',
+        'Biology',
+        'Chemistry',
+        'Physics',
+        'Combined Science',
+      ],
+    },
+    {
+      id: 'gb-grade-11',
+      label: 'Grade 11',
+      exams: [
+        'English Language',
+        'English Literature',
+        'Mathematics',
+        'Biology',
+        'Chemistry',
+        'Physics',
+      ],
+    },
+    {
+      id: 'gb-grade-12',
+      label: 'Grade 12 (Age 17-18)',
+      exams: ['English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'],
+    },
+    {
+      id: 'gb-grade-13',
+      label: 'Grade 13',
+      exams: ['English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'],
+    },
   ],
-  'DE': [
-    { id: 'abitur', label: 'Abitur', exams: ['Abitur German', 'Abitur English', 'Abitur Mathematics', 'Abitur Biology', 'Abitur Chemistry', 'Abitur Physics'] },
-    { id: 'de-grade-10', label: 'Grade 10', exams: ['German Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] },
-    { id: 'de-grade-11', label: 'Grade 11', exams: ['German Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] },
-    { id: 'de-grade-12', label: 'Grade 12', exams: ['German Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] }
+  DE: [
+    {
+      id: 'abitur',
+      label: 'Abitur',
+      exams: [
+        'Abitur German',
+        'Abitur English',
+        'Abitur Mathematics',
+        'Abitur Biology',
+        'Abitur Chemistry',
+        'Abitur Physics',
+      ],
+    },
+    {
+      id: 'de-grade-10',
+      label: 'Grade 10',
+      exams: [
+        'German Language',
+        'English Language',
+        'Mathematics',
+        'Biology',
+        'Chemistry',
+        'Physics',
+      ],
+    },
+    {
+      id: 'de-grade-11',
+      label: 'Grade 11',
+      exams: [
+        'German Language',
+        'English Language',
+        'Mathematics',
+        'Biology',
+        'Chemistry',
+        'Physics',
+      ],
+    },
+    {
+      id: 'de-grade-12',
+      label: 'Grade 12',
+      exams: [
+        'German Language',
+        'English Language',
+        'Mathematics',
+        'Biology',
+        'Chemistry',
+        'Physics',
+      ],
+    },
   ],
-  'FR': [
-    { id: 'baccalaureat', label: 'Baccalauréat', exams: ['Baccalauréat French', 'Baccalauréat English', 'Baccalauréat Mathematics', 'Baccalauréat Biology', 'Baccalauréat Chemistry', 'Baccalauréat Physics'] },
-    { id: 'fr-grade-10', label: 'Grade 10 (Seconde - Age 16)', exams: ['French Language', 'English Language', 'Mathematics', 'Biology & Earth Sciences', 'Chemistry', 'Physics'] },
-    { id: 'fr-grade-11', label: 'Grade 11 (Première - Age 17)', exams: ['French Language', 'English Language', 'Mathematics', 'Biology & Earth Sciences', 'Chemistry', 'Physics'] },
-    { id: 'fr-grade-12', label: 'Grade 12 (Terminale - Age 18)', exams: ['French Language', 'English Language', 'Mathematics', 'Biology & Earth Sciences', 'Chemistry', 'Physics'] }
+  FR: [
+    {
+      id: 'baccalaureat',
+      label: 'Baccalauréat',
+      exams: [
+        'Baccalauréat French',
+        'Baccalauréat English',
+        'Baccalauréat Mathematics',
+        'Baccalauréat Biology',
+        'Baccalauréat Chemistry',
+        'Baccalauréat Physics',
+      ],
+    },
+    {
+      id: 'fr-grade-10',
+      label: 'Grade 10 (Seconde - Age 16)',
+      exams: [
+        'French Language',
+        'English Language',
+        'Mathematics',
+        'Biology & Earth Sciences',
+        'Chemistry',
+        'Physics',
+      ],
+    },
+    {
+      id: 'fr-grade-11',
+      label: 'Grade 11 (Première - Age 17)',
+      exams: [
+        'French Language',
+        'English Language',
+        'Mathematics',
+        'Biology & Earth Sciences',
+        'Chemistry',
+        'Physics',
+      ],
+    },
+    {
+      id: 'fr-grade-12',
+      label: 'Grade 12 (Terminale - Age 18)',
+      exams: [
+        'French Language',
+        'English Language',
+        'Mathematics',
+        'Biology & Earth Sciences',
+        'Chemistry',
+        'Physics',
+      ],
+    },
   ],
-  'NL': [
-    { id: 'dutch-national', label: 'National Examination', exams: ['Dutch National Exam — Dutch', 'Dutch National Exam — English', 'Dutch National Exam — Mathematics', 'Dutch National Exam — Biology', 'Dutch National Exam — Chemistry', 'Dutch National Exam — Physics'] },
-    { id: 'nl-grade-10', label: 'Grade 10', exams: ['Dutch Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] },
-    { id: 'nl-grade-11', label: 'Grade 11', exams: ['Dutch Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] },
-    { id: 'nl-grade-12', label: 'Grade 12', exams: ['Dutch Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] }
+  NL: [
+    {
+      id: 'dutch-national',
+      label: 'National Examination',
+      exams: [
+        'Dutch National Exam — Dutch',
+        'Dutch National Exam — English',
+        'Dutch National Exam — Mathematics',
+        'Dutch National Exam — Biology',
+        'Dutch National Exam — Chemistry',
+        'Dutch National Exam — Physics',
+      ],
+    },
+    {
+      id: 'nl-grade-10',
+      label: 'Grade 10',
+      exams: [
+        'Dutch Language',
+        'English Language',
+        'Mathematics',
+        'Biology',
+        'Chemistry',
+        'Physics',
+      ],
+    },
+    {
+      id: 'nl-grade-11',
+      label: 'Grade 11',
+      exams: [
+        'Dutch Language',
+        'English Language',
+        'Mathematics',
+        'Biology',
+        'Chemistry',
+        'Physics',
+      ],
+    },
+    {
+      id: 'nl-grade-12',
+      label: 'Grade 12',
+      exams: [
+        'Dutch Language',
+        'English Language',
+        'Mathematics',
+        'Biology',
+        'Chemistry',
+        'Physics',
+      ],
+    },
   ],
-  'BE': [], 'CH': [], 'IT': [], 'ES': [], 'IE': [], 'PT': [], 'AT': [], 'PL': [], 'CZ': [], 'HU': [], 'RO': [], 'GR': [], 'TR': [],
-  'AU': [], 'NZ': [],
-  'US': [], 'CA': [], 'MX': [], 'CR': [], 'PA': [], 'DO': [],
-  'BR': [], 'CL': [], 'PE': [], 'CO': [], 'AR': [], 'UY': [], 'EC': [],
-  'NG': [], 'KE': [], 'GH': [], 'EG': [], 'MA': [], 'TN': [], 'BW': [], 'NA': [], 'ZA': [],
-  'PH': []
+  BE: [],
+  CH: [],
+  IT: [],
+  ES: [],
+  IE: [],
+  PT: [],
+  AT: [],
+  PL: [],
+  CZ: [],
+  HU: [],
+  RO: [],
+  GR: [],
+  TR: [],
+  AU: [],
+  NZ: [],
+  US: [],
+  CA: [],
+  MX: [],
+  CR: [],
+  PA: [],
+  DO: [],
+  BR: [],
+  CL: [],
+  PE: [],
+  CO: [],
+  AR: [],
+  UY: [],
+  EC: [],
+  NG: [],
+  KE: [],
+  GH: [],
+  EG: [],
+  MA: [],
+  TN: [],
+  BW: [],
+  NA: [],
+  ZA: [],
+  PH: [],
 }
 
 const REGIONS: Region[] = [
@@ -199,7 +1171,7 @@ const REGIONS: Region[] = [
       { code: 'ID', name: 'Indonesia', nationalExams: NATIONAL_EXAMS_DATA['ID'] || [] },
       { code: 'PH', name: 'Philippines', nationalExams: [] },
       { code: 'IL', name: 'Israel', nationalExams: NATIONAL_EXAMS_DATA['IL'] || [] },
-    ]
+    ],
   },
   {
     id: 'middle-east',
@@ -209,7 +1181,7 @@ const REGIONS: Region[] = [
       { code: 'QA', name: 'Qatar', nationalExams: NATIONAL_EXAMS_DATA['QA'] || [] },
       { code: 'KW', name: 'Kuwait', nationalExams: NATIONAL_EXAMS_DATA['KW'] || [] },
       { code: 'OM', name: 'Oman', nationalExams: NATIONAL_EXAMS_DATA['OM'] || [] },
-    ]
+    ],
   },
   {
     id: 'europe',
@@ -232,7 +1204,7 @@ const REGIONS: Region[] = [
       { code: 'RO', name: 'Romania', nationalExams: [] },
       { code: 'GR', name: 'Greece', nationalExams: [] },
       { code: 'TR', name: 'Turkey', nationalExams: [] },
-    ]
+    ],
   },
   {
     id: 'oceania',
@@ -240,7 +1212,7 @@ const REGIONS: Region[] = [
     countries: [
       { code: 'AU', name: 'Australia', nationalExams: [] },
       { code: 'NZ', name: 'New Zealand', nationalExams: [] },
-    ]
+    ],
   },
   {
     id: 'north-america',
@@ -252,7 +1224,7 @@ const REGIONS: Region[] = [
       { code: 'CR', name: 'Costa Rica', nationalExams: [] },
       { code: 'PA', name: 'Panama', nationalExams: [] },
       { code: 'DO', name: 'Dominican Republic', nationalExams: [] },
-    ]
+    ],
   },
   {
     id: 'south-america',
@@ -265,7 +1237,7 @@ const REGIONS: Region[] = [
       { code: 'AR', name: 'Argentina', nationalExams: [] },
       { code: 'UY', name: 'Uruguay', nationalExams: [] },
       { code: 'EC', name: 'Ecuador', nationalExams: [] },
-    ]
+    ],
   },
   {
     id: 'africa',
@@ -280,53 +1252,268 @@ const REGIONS: Region[] = [
       { code: 'BW', name: 'Botswana', nationalExams: [] },
       { code: 'NA', name: 'Namibia', nationalExams: [] },
       { code: 'ZA', name: 'South Africa', nationalExams: [] },
-    ]
-  }
+    ],
+  },
 ]
 
 // Generate ALL_COUNTRIES from REGIONS for the country of residence selector
-const ALL_COUNTRIES = REGIONS.flatMap(region => 
-  region.countries.map(country => ({ 
-    code: country.code, 
-    name: country.name 
+const ALL_COUNTRIES = REGIONS.flatMap(region =>
+  region.countries.map(country => ({
+    code: country.code,
+    name: country.name,
   }))
 ).sort((a, b) => a.name.localeCompare(b.name))
 
 // Global Exams Categories
 const GLOBAL_EXAMS_CATEGORIES: ExamCategory[] = [
   { id: 'admission-exams', label: 'Admission Exams', exams: ['SAT', 'ACT'] },
-  { id: 'english-proficiency', label: 'English Proficiency', exams: ['IELTS Academic', 'IELTS General', 'TOEFL iBT', 'PTE Academic', 'Duolingo English Test', 'CPE', 'CAE', 'Cambridge B2', 'International ESOL', 'Oxford Test of English', 'iTEP Academic', 'TOEIC', 'MET', 'EIKEN'] },
-  { id: 'postgraduate-exams', label: 'Postgraduate Exams', exams: ['GRE', 'GMAT', 'LSAT', 'MCAT', 'UCAT'] }
+  {
+    id: 'english-proficiency',
+    label: 'English Proficiency',
+    exams: [
+      'IELTS Academic',
+      'IELTS General',
+      'TOEFL iBT',
+      'PTE Academic',
+      'Duolingo English Test',
+      'CPE',
+      'CAE',
+      'Cambridge B2',
+      'International ESOL',
+      'Oxford Test of English',
+      'iTEP Academic',
+      'TOEIC',
+      'MET',
+      'EIKEN',
+    ],
+  },
+  {
+    id: 'postgraduate-exams',
+    label: 'Postgraduate Exams',
+    exams: ['GRE', 'GMAT', 'LSAT', 'MCAT', 'UCAT'],
+  },
 ]
 
 // AP Categories
 const AP_CATEGORIES: ExamCategory[] = [
-  { id: 'ap-stem', label: 'AP - STEM', exams: ['AP Calculus AB', 'AP Calculus BC', 'AP Statistics', 'AP Biology', 'AP Chemistry', 'AP Physics 1', 'AP Physics 2', 'AP Physics C: Mechanics', 'AP Physics C: Electricity and Magnetism', 'AP Environmental Science', 'AP Computer Science A', 'AP Computer Science Principles'] },
-  { id: 'ap-humanities', label: 'AP - Humanities', exams: ['AP English & Composition', 'AP Literature & Composition', 'AP Seminar', 'AP Research', 'AP World History: Modern', 'AP United States History', 'AP European History', 'AP Human Geography', 'AP Psychology', 'AP Macroeconomics', 'AP Microeconomics', 'AP Comparative Government and Politics', 'AP United States Government and Politics'] },
-  { id: 'ap-languages', label: 'AP - Languages', exams: ['AP Chinese Language and Culture', 'AP French Language and Culture', 'AP German Language and Culture', 'AP Italian Language and Culture', 'AP Japanese Language and Culture', 'AP Latin', 'AP Spanish Language and Culture', 'AP Spanish Literature and Culture'] },
-  { id: 'ap-art', label: 'AP - Art', exams: ['AP Art History', 'AP Music Theory', 'AP Studio Art: 2-D Art and Design', 'AP Studio Art: 3-D Art and Design', 'AP Drawing'] }
+  {
+    id: 'ap-stem',
+    label: 'AP - STEM',
+    exams: [
+      'AP Calculus AB',
+      'AP Calculus BC',
+      'AP Statistics',
+      'AP Biology',
+      'AP Chemistry',
+      'AP Physics 1',
+      'AP Physics 2',
+      'AP Physics C: Mechanics',
+      'AP Physics C: Electricity and Magnetism',
+      'AP Environmental Science',
+      'AP Computer Science A',
+      'AP Computer Science Principles',
+    ],
+  },
+  {
+    id: 'ap-humanities',
+    label: 'AP - Humanities',
+    exams: [
+      'AP English & Composition',
+      'AP Literature & Composition',
+      'AP Seminar',
+      'AP Research',
+      'AP World History: Modern',
+      'AP United States History',
+      'AP European History',
+      'AP Human Geography',
+      'AP Psychology',
+      'AP Macroeconomics',
+      'AP Microeconomics',
+      'AP Comparative Government and Politics',
+      'AP United States Government and Politics',
+    ],
+  },
+  {
+    id: 'ap-languages',
+    label: 'AP - Languages',
+    exams: [
+      'AP Chinese Language and Culture',
+      'AP French Language and Culture',
+      'AP German Language and Culture',
+      'AP Italian Language and Culture',
+      'AP Japanese Language and Culture',
+      'AP Latin',
+      'AP Spanish Language and Culture',
+      'AP Spanish Literature and Culture',
+    ],
+  },
+  {
+    id: 'ap-art',
+    label: 'AP - Art',
+    exams: [
+      'AP Art History',
+      'AP Music Theory',
+      'AP Studio Art: 2-D Art and Design',
+      'AP Studio Art: 3-D Art and Design',
+      'AP Drawing',
+    ],
+  },
 ]
 
 // A Level Categories
 const A_LEVEL_CATEGORIES: ExamCategory[] = [
-  { id: 'as-courses', label: 'AS Level Courses', exams: ['AS Level Mathematics', 'AS Level Further Mathematics', 'AS Level Physics', 'AS Level Chemistry', 'AS Level Biology', 'AS Level Computer Science', 'AS Level Information Technology', 'AS Level Economics', 'AS Level Business', 'AS Level Accounting', 'AS Level Psychology', 'AS Level Sociology', 'AS Level History', 'AS Level Geography', 'AS Level English Language', 'AS Level English Literature', 'AS Level Global Perspectives & Research', 'AS Level Art and Design', 'AS Level Media Studies'] },
-  { id: 'a-level-courses', label: 'A Level Courses', exams: ['A Level Mathematics', 'A Level Further Mathematics', 'A Level Physics', 'A Level Chemistry', 'A Level Biology', 'A Level Computer Science', 'A Level Information Technology', 'A Level Economics', 'A Level Business', 'A Level Accounting', 'A Level Psychology', 'A Level Sociology', 'A Level History', 'A Level Geography', 'A Level English Language', 'A Level English Literature', 'A Level Global Perspectives & Research', 'A Level Art and Design', 'A Level Media Studies'] }
+  {
+    id: 'as-courses',
+    label: 'AS Level Courses',
+    exams: [
+      'AS Level Mathematics',
+      'AS Level Further Mathematics',
+      'AS Level Physics',
+      'AS Level Chemistry',
+      'AS Level Biology',
+      'AS Level Computer Science',
+      'AS Level Information Technology',
+      'AS Level Economics',
+      'AS Level Business',
+      'AS Level Accounting',
+      'AS Level Psychology',
+      'AS Level Sociology',
+      'AS Level History',
+      'AS Level Geography',
+      'AS Level English Language',
+      'AS Level English Literature',
+      'AS Level Global Perspectives & Research',
+      'AS Level Art and Design',
+      'AS Level Media Studies',
+    ],
+  },
+  {
+    id: 'a-level-courses',
+    label: 'A Level Courses',
+    exams: [
+      'A Level Mathematics',
+      'A Level Further Mathematics',
+      'A Level Physics',
+      'A Level Chemistry',
+      'A Level Biology',
+      'A Level Computer Science',
+      'A Level Information Technology',
+      'A Level Economics',
+      'A Level Business',
+      'A Level Accounting',
+      'A Level Psychology',
+      'A Level Sociology',
+      'A Level History',
+      'A Level Geography',
+      'A Level English Language',
+      'A Level English Literature',
+      'A Level Global Perspectives & Research',
+      'A Level Art and Design',
+      'A Level Media Studies',
+    ],
+  },
 ]
 
 // IB Categories
 const IB_CATEGORIES: ExamCategory[] = [
-  { id: 'ib-courses', label: 'IB Courses', exams: ['IB Mathematics: Analysis and Approaches', 'IB Mathematics: Applications and Interpretation', 'IB Physics', 'IB Chemistry', 'IB Biology', 'IB Computer Science', 'IB Economics', 'IB Business Management', 'IB Psychology', 'IB History', 'IB Geography', 'IB English A: Language and Literature', 'IB English A: Literature', 'IB Language B Courses', 'IB Visual Arts', 'IB Theory of Knowledge (TOK)', 'IB Extended Essay (EE)'] }
+  {
+    id: 'ib-courses',
+    label: 'IB Courses',
+    exams: [
+      'IB Mathematics: Analysis and Approaches',
+      'IB Mathematics: Applications and Interpretation',
+      'IB Physics',
+      'IB Chemistry',
+      'IB Biology',
+      'IB Computer Science',
+      'IB Economics',
+      'IB Business Management',
+      'IB Psychology',
+      'IB History',
+      'IB Geography',
+      'IB English A: Language and Literature',
+      'IB English A: Literature',
+      'IB Language B Courses',
+      'IB Visual Arts',
+      'IB Theory of Knowledge (TOK)',
+      'IB Extended Essay (EE)',
+    ],
+  },
 ]
 
 // IGCSE Categories
 const IGCSE_CATEGORIES: ExamCategory[] = [
-  { id: 'igcse-mathematics', label: 'IGCSE Mathematics', exams: ['IGCSE Mathematics', 'IGCSE Additional Mathematics', 'IGCSE International Mathematics'] },
-  { id: 'igcse-sciences', label: 'IGCSE Sciences', exams: ['IGCSE Physics', 'IGCSE Chemistry', 'IGCSE Biology', 'IGCSE Combined Science', 'IGCSE Coordinated Sciences', 'IGCSE Environmental Management'] },
-  { id: 'igcse-english', label: 'IGCSE English', exams: ['IGCSE English Language', 'IGCSE English Literature', 'IGCSE English as a Second Language'] },
-  { id: 'igcse-humanities', label: 'IGCSE Humanities', exams: ['IGCSE History', 'IGCSE Geography', 'IGCSE Economics', 'IGCSE Business Studies', 'IGCSE Accounting', 'IGCSE Sociology', 'IGCSE Global Perspectives'] },
-  { id: 'igcse-languages', label: 'IGCSE Languages', exams: ['IGCSE French', 'IGCSE Spanish', 'IGCSE German', 'IGCSE Chinese', 'IGCSE Arabic', 'IGCSE Hindi'] },
-  { id: 'igcse-arts', label: 'IGCSE Arts', exams: ['IGCSE Art & Design', 'IGCSE Music', 'IGCSE Drama', 'IGCSE Physical Education', 'IGCSE Travel & Tourism'] },
-  { id: 'igcse-technical', label: 'IGCSE Technical', exams: ['IGCSE Computer Science', 'IGCSE Information & Communication Technology', 'IGCSE Design & Technology'] }
+  {
+    id: 'igcse-mathematics',
+    label: 'IGCSE Mathematics',
+    exams: ['IGCSE Mathematics', 'IGCSE Additional Mathematics', 'IGCSE International Mathematics'],
+  },
+  {
+    id: 'igcse-sciences',
+    label: 'IGCSE Sciences',
+    exams: [
+      'IGCSE Physics',
+      'IGCSE Chemistry',
+      'IGCSE Biology',
+      'IGCSE Combined Science',
+      'IGCSE Coordinated Sciences',
+      'IGCSE Environmental Management',
+    ],
+  },
+  {
+    id: 'igcse-english',
+    label: 'IGCSE English',
+    exams: [
+      'IGCSE English Language',
+      'IGCSE English Literature',
+      'IGCSE English as a Second Language',
+    ],
+  },
+  {
+    id: 'igcse-humanities',
+    label: 'IGCSE Humanities',
+    exams: [
+      'IGCSE History',
+      'IGCSE Geography',
+      'IGCSE Economics',
+      'IGCSE Business Studies',
+      'IGCSE Accounting',
+      'IGCSE Sociology',
+      'IGCSE Global Perspectives',
+    ],
+  },
+  {
+    id: 'igcse-languages',
+    label: 'IGCSE Languages',
+    exams: [
+      'IGCSE French',
+      'IGCSE Spanish',
+      'IGCSE German',
+      'IGCSE Chinese',
+      'IGCSE Arabic',
+      'IGCSE Hindi',
+    ],
+  },
+  {
+    id: 'igcse-arts',
+    label: 'IGCSE Arts',
+    exams: [
+      'IGCSE Art & Design',
+      'IGCSE Music',
+      'IGCSE Drama',
+      'IGCSE Physical Education',
+      'IGCSE Travel & Tourism',
+    ],
+  },
+  {
+    id: 'igcse-technical',
+    label: 'IGCSE Technical',
+    exams: [
+      'IGCSE Computer Science',
+      'IGCSE Information & Communication Technology',
+      'IGCSE Design & Technology',
+    ],
+  },
 ]
 
 const REGION_OPTIONS = [
@@ -343,55 +1530,234 @@ const REGION_OPTIONS = [
 
 const REGION_COUNTRY_MAP: Record<string, string[]> = {
   Africa: [
-    'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon',
-    'Central African Republic', 'Chad', 'Comoros', 'Congo (Congo-Brazzaville)', 'Congo (DRC)',
-    "Côte d'Ivoire", 'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia',
-    'Gabon', 'Gambia', 'Ghana', 'Guinea', 'Guinea-Bissau', 'Kenya', 'Lesotho', 'Liberia', 'Libya',
-    'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia',
-    'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone',
-    'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda',
-    'Zambia', 'Zimbabwe', 'Western Sahara',
+    'Algeria',
+    'Angola',
+    'Benin',
+    'Botswana',
+    'Burkina Faso',
+    'Burundi',
+    'Cabo Verde',
+    'Cameroon',
+    'Central African Republic',
+    'Chad',
+    'Comoros',
+    'Congo (Congo-Brazzaville)',
+    'Congo (DRC)',
+    "Côte d'Ivoire",
+    'Djibouti',
+    'Egypt',
+    'Equatorial Guinea',
+    'Eritrea',
+    'Eswatini',
+    'Ethiopia',
+    'Gabon',
+    'Gambia',
+    'Ghana',
+    'Guinea',
+    'Guinea-Bissau',
+    'Kenya',
+    'Lesotho',
+    'Liberia',
+    'Libya',
+    'Madagascar',
+    'Malawi',
+    'Mali',
+    'Mauritania',
+    'Mauritius',
+    'Morocco',
+    'Mozambique',
+    'Namibia',
+    'Niger',
+    'Nigeria',
+    'Rwanda',
+    'Sao Tome and Principe',
+    'Senegal',
+    'Seychelles',
+    'Sierra Leone',
+    'Somalia',
+    'South Africa',
+    'South Sudan',
+    'Sudan',
+    'Tanzania',
+    'Togo',
+    'Tunisia',
+    'Uganda',
+    'Zambia',
+    'Zimbabwe',
+    'Western Sahara',
   ],
   Asia: [
-    'Afghanistan', 'Armenia', 'Azerbaijan', 'Bahrain', 'Bangladesh', 'Bhutan', 'Brunei', 'Cambodia',
-    'China', 'Georgia', 'India', 'Indonesia', 'Japan', 'Kazakhstan', 'Kyrgyzstan', 'Laos', 'Malaysia',
-    'Maldives', 'Mongolia', 'Myanmar (Burma)', 'Nepal', 'North Korea', 'Pakistan', 'Philippines',
-    'Singapore', 'South Korea', 'Sri Lanka', 'Taiwan', 'Tajikistan', 'Thailand', 'Timor-Leste',
-    'Turkmenistan', 'Uzbekistan', 'Vietnam',
+    'Afghanistan',
+    'Armenia',
+    'Azerbaijan',
+    'Bahrain',
+    'Bangladesh',
+    'Bhutan',
+    'Brunei',
+    'Cambodia',
+    'China',
+    'Georgia',
+    'India',
+    'Indonesia',
+    'Japan',
+    'Kazakhstan',
+    'Kyrgyzstan',
+    'Laos',
+    'Malaysia',
+    'Maldives',
+    'Mongolia',
+    'Myanmar (Burma)',
+    'Nepal',
+    'North Korea',
+    'Pakistan',
+    'Philippines',
+    'Singapore',
+    'South Korea',
+    'Sri Lanka',
+    'Taiwan',
+    'Tajikistan',
+    'Thailand',
+    'Timor-Leste',
+    'Turkmenistan',
+    'Uzbekistan',
+    'Vietnam',
   ],
   Europe: [
-    'Albania', 'Andorra', 'Austria', 'Belarus', 'Belgium', 'Bosnia and Herzegovina', 'Bulgaria',
-    'Croatia', 'Cyprus', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Germany', 'Greece',
-    'Hungary', 'Iceland', 'Ireland', 'Italy', 'Kosovo', 'Latvia', 'Liechtenstein', 'Lithuania',
-    'Luxembourg', 'Malta', 'Moldova', 'Monaco', 'Montenegro', 'Netherlands', 'North Macedonia',
-    'Norway', 'Poland', 'Portugal', 'Romania', 'Russia', 'San Marino', 'Serbia', 'Slovakia',
-    'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom', 'Vatican City',
+    'Albania',
+    'Andorra',
+    'Austria',
+    'Belarus',
+    'Belgium',
+    'Bosnia and Herzegovina',
+    'Bulgaria',
+    'Croatia',
+    'Cyprus',
+    'Czechia',
+    'Denmark',
+    'Estonia',
+    'Finland',
+    'France',
+    'Germany',
+    'Greece',
+    'Hungary',
+    'Iceland',
+    'Ireland',
+    'Italy',
+    'Kosovo',
+    'Latvia',
+    'Liechtenstein',
+    'Lithuania',
+    'Luxembourg',
+    'Malta',
+    'Moldova',
+    'Monaco',
+    'Montenegro',
+    'Netherlands',
+    'North Macedonia',
+    'Norway',
+    'Poland',
+    'Portugal',
+    'Romania',
+    'Russia',
+    'San Marino',
+    'Serbia',
+    'Slovakia',
+    'Slovenia',
+    'Spain',
+    'Sweden',
+    'Switzerland',
+    'Ukraine',
+    'United Kingdom',
+    'Vatican City',
   ],
   'North America': [
-    'Antigua and Barbuda', 'Bahamas', 'Barbados', 'Belize', 'Canada', 'Costa Rica', 'Cuba', 'Dominica',
-    'Dominican Republic', 'El Salvador', 'Grenada', 'Guatemala', 'Haiti', 'Honduras', 'Jamaica',
-    'Mexico', 'Nicaragua', 'Panama', 'Saint Kitts and Nevis', 'Saint Lucia',
-    'Saint Vincent and the Grenadines', 'Trinidad and Tobago', 'United States', 'Puerto Rico',
-    'Greenland', 'Bermuda',
+    'Antigua and Barbuda',
+    'Bahamas',
+    'Barbados',
+    'Belize',
+    'Canada',
+    'Costa Rica',
+    'Cuba',
+    'Dominica',
+    'Dominican Republic',
+    'El Salvador',
+    'Grenada',
+    'Guatemala',
+    'Haiti',
+    'Honduras',
+    'Jamaica',
+    'Mexico',
+    'Nicaragua',
+    'Panama',
+    'Saint Kitts and Nevis',
+    'Saint Lucia',
+    'Saint Vincent and the Grenadines',
+    'Trinidad and Tobago',
+    'United States',
+    'Puerto Rico',
+    'Greenland',
+    'Bermuda',
   ],
   'South America': [
-    'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Ecuador', 'Guyana', 'Paraguay', 'Peru',
-    'Suriname', 'Uruguay', 'Venezuela', 'Falkland Islands',
+    'Argentina',
+    'Bolivia',
+    'Brazil',
+    'Chile',
+    'Colombia',
+    'Ecuador',
+    'Guyana',
+    'Paraguay',
+    'Peru',
+    'Suriname',
+    'Uruguay',
+    'Venezuela',
+    'Falkland Islands',
   ],
   Oceania: [
-    'Australia', 'Fiji', 'Kiribati', 'Marshall Islands', 'Micronesia', 'Nauru', 'New Zealand', 'Palau',
-    'Papua New Guinea', 'Samoa', 'Solomon Islands', 'Tonga', 'Tuvalu', 'Vanuatu', 'New Caledonia',
-    'French Polynesia', 'Guam', 'American Samoa',
+    'Australia',
+    'Fiji',
+    'Kiribati',
+    'Marshall Islands',
+    'Micronesia',
+    'Nauru',
+    'New Zealand',
+    'Palau',
+    'Papua New Guinea',
+    'Samoa',
+    'Solomon Islands',
+    'Tonga',
+    'Tuvalu',
+    'Vanuatu',
+    'New Caledonia',
+    'French Polynesia',
+    'Guam',
+    'American Samoa',
   ],
   'Middle East': [
-    'Algeria', 'Bahrain', 'Egypt', 'Iran', 'Iraq', 'Israel', 'Jordan', 'Kuwait', 'Lebanon', 'Libya',
-    'Oman', 'Palestine', 'Qatar', 'Saudi Arabia', 'Syria', 'Turkey', 'United Arab Emirates', 'Yemen',
+    'Algeria',
+    'Bahrain',
+    'Egypt',
+    'Iran',
+    'Iraq',
+    'Israel',
+    'Jordan',
+    'Kuwait',
+    'Lebanon',
+    'Libya',
+    'Oman',
+    'Palestine',
+    'Qatar',
+    'Saudi Arabia',
+    'Syria',
+    'Turkey',
+    'United Arab Emirates',
+    'Yemen',
   ],
 }
 
 const COUNTRY_TO_REGION = new Map<string, string>()
 Object.entries(REGION_COUNTRY_MAP).forEach(([region, countries]) => {
-  countries.forEach((country) => COUNTRY_TO_REGION.set(country, region))
+  countries.forEach(country => COUNTRY_TO_REGION.set(country, region))
 })
 
 const resolveRegionForCountry = (country: string) => COUNTRY_TO_REGION.get(country) ?? 'Other'
@@ -401,10 +1767,17 @@ export default function TutorRegistrationPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState(1)
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null)
-  const [usernameStatus, setUsernameStatus] = useState<{ status: 'idle' | 'checking' | 'available' | 'taken'; message?: string; suggestion?: string }>({
+  const [usernameStatus, setUsernameStatus] = useState<{
+    status: 'idle' | 'checking' | 'available' | 'taken'
+    message?: string
+    suggestion?: string
+  }>({
     status: 'idle',
   })
-  const [emailStatus, setEmailStatus] = useState<{ status: 'idle' | 'checking' | 'available' | 'taken' | 'invalid'; message?: string }>({
+  const [emailStatus, setEmailStatus] = useState<{
+    status: 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
+    message?: string
+  }>({
     status: 'idle',
   })
   const [usernameTouched, setUsernameTouched] = useState(false)
@@ -497,13 +1870,13 @@ export default function TutorRegistrationPage() {
       const newRegions = prev.includes(regionId)
         ? prev.filter(r => r !== regionId)
         : [...prev, regionId]
-      
+
       // Remove countries from unselected regions
       if (prev.includes(regionId)) {
         const region = REGIONS.find(r => r.id === regionId)
         if (region) {
           const countryCodes = region.countries.map(c => c.code)
-          setSelectedCountries(prevCountries => 
+          setSelectedCountries(prevCountries =>
             prevCountries.filter(c => !countryCodes.includes(c))
           )
         }
@@ -513,25 +1886,21 @@ export default function TutorRegistrationPage() {
   }
 
   const toggleCountrySelection = (countryCode: string) => {
-    setSelectedCountries(prev => 
-      prev.includes(countryCode) 
-        ? prev.filter(c => c !== countryCode)
-        : [...prev, countryCode]
+    setSelectedCountries(prev =>
+      prev.includes(countryCode) ? prev.filter(c => c !== countryCode) : [...prev, countryCode]
     )
   }
 
   const toggleCategory = (category: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(category) 
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
+    setSelectedCategories(prev =>
+      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
     )
     // Also update formData for submission
     setFormData(prev => ({
       ...prev,
       selectedCategories: prev.selectedCategories.includes(category)
         ? prev.selectedCategories.filter(c => c !== category)
-        : [...prev.selectedCategories, category]
+        : [...prev.selectedCategories, category],
     }))
   }
 
@@ -540,7 +1909,7 @@ export default function TutorRegistrationPage() {
       setSelectedCategories(prev => [...prev, customCategory.trim()])
       setFormData(prev => ({
         ...prev,
-        selectedCategories: [...prev.selectedCategories, customCategory.trim()]
+        selectedCategories: [...prev.selectedCategories, customCategory.trim()],
       }))
       setCustomCategory('')
     }
@@ -550,7 +1919,7 @@ export default function TutorRegistrationPage() {
     setSelectedCategories(prev => prev.filter(c => c !== category))
     setFormData(prev => ({
       ...prev,
-      selectedCategories: prev.selectedCategories.filter(c => c !== category)
+      selectedCategories: prev.selectedCategories.filter(c => c !== category),
     }))
   }
 
@@ -592,12 +1961,18 @@ export default function TutorRegistrationPage() {
     }
     setUsernameStatus({ status: 'checking' })
     try {
-      const res = await fetch(`/api/public/username-availability?username=${encodeURIComponent(normalized)}`)
+      const res = await fetch(
+        `/api/public/username-availability?username=${encodeURIComponent(normalized)}`
+      )
       const data = await res.json()
       if (data.available) {
         setUsernameStatus({ status: 'available', message: 'Username is available' })
       } else {
-        setUsernameStatus({ status: 'taken', message: 'Username is taken', suggestion: data.suggestion })
+        setUsernameStatus({
+          status: 'taken',
+          message: 'Username is taken',
+          suggestion: data.suggestion,
+        })
       }
     } catch {
       setUsernameStatus({ status: 'taken', message: 'Unable to verify right now' })
@@ -632,7 +2007,7 @@ export default function TutorRegistrationPage() {
 
   const applySuggestion = () => {
     if (!usernameStatus.suggestion) return
-    setFormData((prev) => ({ ...prev, username: usernameStatus.suggestion ?? prev.username }))
+    setFormData(prev => ({ ...prev, username: usernameStatus.suggestion ?? prev.username }))
     setUsernameTouched(true)
     setUsernameStatus({ status: 'idle' })
   }
@@ -743,23 +2118,28 @@ export default function TutorRegistrationPage() {
       toast.error('Please describe your service (min 10 characters)')
       return false
     }
-    
+
     // Show checking modal and verify username
     setShowUsernameCheckModal(true)
     const normalized = normalizeUsernameInput(formData.username)
     await checkUsernameAvailability(normalized)
-    
+
     // Check again after API call
-    const isAvailable = usernameStatus.status === 'available' || 
-      (await fetch(`/api/public/username-availability?username=${encodeURIComponent(normalized)}`).then(r => r.json())).available
-    
+    const isAvailable =
+      usernameStatus.status === 'available' ||
+      (
+        await fetch(
+          `/api/public/username-availability?username=${encodeURIComponent(normalized)}`
+        ).then(r => r.json())
+      ).available
+
     setShowUsernameCheckModal(false)
-    
+
     if (!isAvailable) {
       toast.error('Username is already taken')
       return false
     }
-    
+
     return true
   }
 
@@ -787,7 +2167,7 @@ export default function TutorRegistrationPage() {
     try {
       // Get country names from selected country codes
       const tutoringCountryNames = getCountryNamesFromCodes(selectedCountries)
-      
+
       const payload = {
         role: 'TUTOR',
         email: formData.email,
@@ -855,28 +2235,37 @@ export default function TutorRegistrationPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-white py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <Link href="/register" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
-          <ArrowLeft className="h-4 w-4 mr-1" />
+    <div className="min-h-screen bg-white px-4 py-8">
+      <div className="mx-auto max-w-4xl">
+        <Link
+          href="/register"
+          className="mb-4 inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeft className="mr-1 h-4 w-4" />
           Back to Registration
         </Link>
 
-        <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-[#F17623]/10 rounded-full flex items-center justify-center mb-4">
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#F17623]/10">
             <GraduationCap className="h-8 w-8 text-[#F17623]" />
           </div>
           <h1 className="text-3xl font-bold text-[#1F2933]">Become a Solocorn Tutor</h1>
-          <p className="text-gray-600 mt-2">Complete your application to start tutoring on the platform</p>
+          <p className="mt-2 text-gray-600">
+            Complete your application to start tutoring on the platform
+          </p>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-          {steps.map((s) => (
+        <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
+          {steps.map(s => (
             <div key={s.number} className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= s.number ? 'bg-[#F17623] text-white' : 'bg-gray-200 text-gray-500'}`}>
+              <div
+                className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${step >= s.number ? 'bg-[#F17623] text-white' : 'bg-gray-200 text-gray-500'}`}
+              >
                 {s.number}
               </div>
-              <span className={`text-sm ${step >= s.number ? 'text-[#F17623]' : 'text-gray-400'}`}>{s.title}</span>
+              <span className={`text-sm ${step >= s.number ? 'text-[#F17623]' : 'text-gray-400'}`}>
+                {s.title}
+              </span>
             </div>
           ))}
         </div>
@@ -901,47 +2290,76 @@ export default function TutorRegistrationPage() {
           <CardContent className="space-y-6">
             {step === 1 && (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="space-y-2">
                     <Label>First Name</Label>
-                    <Input value={formData.firstName} onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} placeholder="John" />
+                    <Input
+                      value={formData.firstName}
+                      onChange={e => setFormData({ ...formData, firstName: e.target.value })}
+                      placeholder="John"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Middle Name</Label>
-                    <Input value={formData.middleName} onChange={(e) => setFormData({ ...formData, middleName: e.target.value })} placeholder="Optional" />
+                    <Input
+                      value={formData.middleName}
+                      onChange={e => setFormData({ ...formData, middleName: e.target.value })}
+                      placeholder="Optional"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Last Name</Label>
-                    <Input value={formData.lastName} onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} placeholder="Doe" />
+                    <Input
+                      value={formData.lastName}
+                      onChange={e => setFormData({ ...formData, lastName: e.target.value })}
+                      placeholder="Doe"
+                    />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label>Email</Label>
-                  <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="tutor@example.com" />
-                  {emailStatus.status === 'checking' && <p className="text-xs text-gray-500">Checking availability...</p>}
-                  {emailStatus.status === 'available' && <p className="text-xs text-green-600">{emailStatus.message}</p>}
-                  {emailStatus.status === 'taken' && <p className="text-xs text-red-600">{emailStatus.message}</p>}
-                  {emailStatus.status === 'invalid' && <p className="text-xs text-red-600">{emailStatus.message}</p>}
+                  <Input
+                    type="email"
+                    value={formData.email}
+                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="tutor@example.com"
+                  />
+                  {emailStatus.status === 'checking' && (
+                    <p className="text-xs text-gray-500">Checking availability...</p>
+                  )}
+                  {emailStatus.status === 'available' && (
+                    <p className="text-xs text-green-600">{emailStatus.message}</p>
+                  )}
+                  {emailStatus.status === 'taken' && (
+                    <p className="text-xs text-red-600">{emailStatus.message}</p>
+                  )}
+                  {emailStatus.status === 'invalid' && (
+                    <p className="text-xs text-red-600">{emailStatus.message}</p>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label>Password</Label>
                     <div className="relative">
                       <Input
                         type={showPassword ? 'text' : 'password'}
                         value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        onChange={e => setFormData({ ...formData, password: e.target.value })}
                         placeholder="Create a password"
                       />
                       <button
                         type="button"
-                        onClick={() => setShowPassword((prev) => !prev)}
+                        onClick={() => setShowPassword(prev => !prev)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                         aria-label={showPassword ? 'Hide password' : 'Show password'}
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -951,19 +2369,27 @@ export default function TutorRegistrationPage() {
                       <Input
                         type={showConfirmPassword ? 'text' : 'password'}
                         value={formData.confirmPassword}
-                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                        onChange={e =>
+                          setFormData({ ...formData, confirmPassword: e.target.value })
+                        }
                         placeholder="Confirm your password"
                       />
                       <button
                         type="button"
-                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                        onClick={() => setShowConfirmPassword(prev => !prev)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                         aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                       >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
-                    {passwordMismatch && <p className="text-xs text-red-500">Passwords do not match.</p>}
+                    {passwordMismatch && (
+                      <p className="text-xs text-red-500">Passwords do not match.</p>
+                    )}
                   </div>
                 </div>
 
@@ -971,8 +2397,8 @@ export default function TutorRegistrationPage() {
                   <Label>Country of Residence</Label>
                   <Select
                     value={formData.countryOfResidence}
-                    onValueChange={(value) => {
-                      setFormData((prev) => ({
+                    onValueChange={value => {
+                      setFormData(prev => ({
                         ...prev,
                         countryOfResidence: value,
                       }))
@@ -982,7 +2408,7 @@ export default function TutorRegistrationPage() {
                       <SelectValue placeholder="Select country" />
                     </SelectTrigger>
                     <SelectContent>
-                      {ALL_COUNTRIES.map((country) => (
+                      {ALL_COUNTRIES.map(country => (
                         <SelectItem key={country.code} value={country.name}>
                           {country.name}
                         </SelectItem>
@@ -1007,8 +2433,10 @@ export default function TutorRegistrationPage() {
             {step === 2 && (
               <>
                 {/* Header */}
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-bold text-[#1F2933] mb-2">Select Your Teaching Areas</h3>
+                <div className="mb-6 text-center">
+                  <h3 className="mb-2 text-xl font-bold text-[#1F2933]">
+                    Select Your Teaching Areas
+                  </h3>
                   <p className="text-gray-600">
                     Select your regions, countries, and the categories you teach.
                   </p>
@@ -1017,18 +2445,18 @@ export default function TutorRegistrationPage() {
                 {/* Region & Country Selection - At the TOP */}
                 <Card>
                   <CardContent className="pt-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       {/* Region Selection */}
                       <div className="space-y-2">
-                        <Label className="text-sm font-medium flex items-center gap-2">
+                        <Label className="flex items-center gap-2 text-sm font-medium">
                           <Globe className="h-4 w-4 text-[#4FD1C5]" />
                           Regions
                         </Label>
-                        <div className="border rounded-md p-2 max-h-[150px] overflow-y-auto">
-                          {REGIONS.map((region) => (
+                        <div className="max-h-[150px] overflow-y-auto rounded-md border p-2">
+                          {REGIONS.map(region => (
                             <label
                               key={region.id}
-                              className="flex items-center gap-2 p-1.5 rounded hover:bg-gray-50 cursor-pointer"
+                              className="flex cursor-pointer items-center gap-2 rounded p-1.5 hover:bg-gray-50"
                             >
                               <Checkbox
                                 checked={selectedRegions.includes(region.id)}
@@ -1043,18 +2471,18 @@ export default function TutorRegistrationPage() {
 
                       {/* Country Selection */}
                       <div className="space-y-2">
-                        <Label className="text-sm font-medium flex items-center gap-2">
+                        <Label className="flex items-center gap-2 text-sm font-medium">
                           <MapPin className="h-4 w-4 text-[#F17623]" />
                           Countries
                         </Label>
-                        <div className="border rounded-md p-2 max-h-[150px] overflow-y-auto">
+                        <div className="max-h-[150px] overflow-y-auto rounded-md border p-2">
                           {availableCountries.length === 0 ? (
-                            <p className="text-sm text-gray-400 p-1.5">Select regions first</p>
+                            <p className="p-1.5 text-sm text-gray-400">Select regions first</p>
                           ) : (
-                            availableCountries.map((country) => (
+                            availableCountries.map(country => (
                               <label
                                 key={country.code}
-                                className="flex items-center gap-2 p-1.5 rounded hover:bg-gray-50 cursor-pointer"
+                                className="flex cursor-pointer items-center gap-2 rounded p-1.5 hover:bg-gray-50"
                               >
                                 <Checkbox
                                   checked={selectedCountries.includes(country.code)}
@@ -1071,50 +2499,54 @@ export default function TutorRegistrationPage() {
 
                     {/* Selected Count */}
                     {selectedCategories.length > 0 && (
-                      <div className="flex items-center gap-2 mt-3 pt-3 border-t">
+                      <div className="mt-3 flex items-center gap-2 border-t pt-3">
                         <Check className="h-4 w-4 text-green-500" />
                         <span className="text-sm text-gray-600">
-                          {selectedCategories.length} categor{selectedCategories.length === 1 ? 'y' : 'ies'} selected
+                          {selectedCategories.length} categor
+                          {selectedCategories.length === 1 ? 'y' : 'ies'} selected
                         </span>
                       </div>
                     )}
                   </CardContent>
                 </Card>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
                   {/* Left Column - Categories Tabs & Custom Category */}
-                  <div className="lg:col-span-3 space-y-4">
+                  <div className="space-y-4 lg:col-span-3">
                     {/* Categories Tabs - Auto-populate based on country selection */}
-                    <Card className="h-[400px] flex flex-col">
-                      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
+                    <Card className="flex h-[400px] flex-col">
+                      <Tabs
+                        value={activeTab}
+                        onValueChange={setActiveTab}
+                        className="flex h-full flex-col"
+                      >
                         <CardHeader className="pb-0 pt-4">
-                          <TabsList className="grid grid-cols-6 w-full">
+                          <TabsList className="grid w-full grid-cols-6">
                             <TabsTrigger value="global" className="text-xs">
-                              <Globe className="h-3 w-3 mr-1" />
+                              <Globe className="mr-1 h-3 w-3" />
                               Global
                             </TabsTrigger>
                             <TabsTrigger value="ap" className="text-xs">
-                              <Award className="h-3 w-3 mr-1" />
+                              <Award className="mr-1 h-3 w-3" />
                               AP
                             </TabsTrigger>
                             <TabsTrigger value="alevel" className="text-xs">
-                              <GraduationCap className="h-3 w-3 mr-1" />
-                              A Level
+                              <GraduationCap className="mr-1 h-3 w-3" />A Level
                             </TabsTrigger>
                             <TabsTrigger value="ib" className="text-xs">
-                              <BookOpen className="h-3 w-3 mr-1" />
+                              <BookOpen className="mr-1 h-3 w-3" />
                               IB
                             </TabsTrigger>
                             <TabsTrigger value="igcse" className="text-xs">
-                              <School className="h-3 w-3 mr-1" />
+                              <School className="mr-1 h-3 w-3" />
                               IGCSE
                             </TabsTrigger>
-                            <TabsTrigger 
-                              value="national" 
+                            <TabsTrigger
+                              value="national"
                               className="text-xs"
                               disabled={nationalExams.length === 0}
                             >
-                              <Flag className="h-3 w-3 mr-1" />
+                              <Flag className="mr-1 h-3 w-3" />
                               National
                             </TabsTrigger>
                           </TabsList>
@@ -1123,11 +2555,11 @@ export default function TutorRegistrationPage() {
                         <CardContent className="flex-1 overflow-hidden pt-4">
                           {/* Search Bar */}
                           <div className="relative mb-3">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                             <Input
                               placeholder="Search categories..."
                               value={searchQuery}
-                              onChange={(e) => setSearchQuery(e.target.value)}
+                              onChange={e => setSearchQuery(e.target.value)}
                               className="pl-9"
                             />
                           </div>
@@ -1137,26 +2569,37 @@ export default function TutorRegistrationPage() {
                             <ScrollArea className="h-full pr-4">
                               <TabsContent value="global" className="mt-0">
                                 <div className="space-y-4 pb-4">
-                                  {GLOBAL_EXAMS_CATEGORIES.filter(cat => 
-                                    !searchQuery || cat.exams.some(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
-                                  ).map((category) => (
+                                  {GLOBAL_EXAMS_CATEGORIES.filter(
+                                    cat =>
+                                      !searchQuery ||
+                                      cat.exams.some(e =>
+                                        e.toLowerCase().includes(searchQuery.toLowerCase())
+                                      )
+                                  ).map(category => (
                                     <div key={category.id} className="space-y-2">
-                                      <h4 className="font-semibold text-sm text-gray-900 flex items-center gap-2">
+                                      <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
                                         <BookOpen className="h-4 w-4 text-[#1D4ED8]" />
                                         {category.label}
                                       </h4>
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                        {category.exams.filter(exam => 
-                                          !searchQuery || exam.toLowerCase().includes(searchQuery.toLowerCase())
-                                        ).map((exam) => (
-                                          <label key={exam} className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
-                                            <Checkbox
-                                              checked={selectedCategories.includes(exam)}
-                                              onCheckedChange={() => toggleCategory(exam)}
-                                            />
-                                            <span className="text-sm">{exam}</span>
-                                          </label>
-                                        ))}
+                                      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                        {category.exams
+                                          .filter(
+                                            exam =>
+                                              !searchQuery ||
+                                              exam.toLowerCase().includes(searchQuery.toLowerCase())
+                                          )
+                                          .map(exam => (
+                                            <label
+                                              key={exam}
+                                              className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                            >
+                                              <Checkbox
+                                                checked={selectedCategories.includes(exam)}
+                                                onCheckedChange={() => toggleCategory(exam)}
+                                              />
+                                              <span className="text-sm">{exam}</span>
+                                            </label>
+                                          ))}
                                       </div>
                                     </div>
                                   ))}
@@ -1165,26 +2608,37 @@ export default function TutorRegistrationPage() {
 
                               <TabsContent value="ap" className="mt-0">
                                 <div className="space-y-4 pb-4">
-                                  {AP_CATEGORIES.filter(cat => 
-                                    !searchQuery || cat.exams.some(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
-                                  ).map((category) => (
+                                  {AP_CATEGORIES.filter(
+                                    cat =>
+                                      !searchQuery ||
+                                      cat.exams.some(e =>
+                                        e.toLowerCase().includes(searchQuery.toLowerCase())
+                                      )
+                                  ).map(category => (
                                     <div key={category.id} className="space-y-2">
-                                      <h4 className="font-semibold text-sm text-gray-900 flex items-center gap-2">
+                                      <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
                                         <Award className="h-4 w-4 text-[#1D4ED8]" />
                                         {category.label}
                                       </h4>
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                        {category.exams.filter(exam => 
-                                          !searchQuery || exam.toLowerCase().includes(searchQuery.toLowerCase())
-                                        ).map((exam) => (
-                                          <label key={exam} className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
-                                            <Checkbox
-                                              checked={selectedCategories.includes(exam)}
-                                              onCheckedChange={() => toggleCategory(exam)}
-                                            />
-                                            <span className="text-sm">{exam}</span>
-                                          </label>
-                                        ))}
+                                      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                        {category.exams
+                                          .filter(
+                                            exam =>
+                                              !searchQuery ||
+                                              exam.toLowerCase().includes(searchQuery.toLowerCase())
+                                          )
+                                          .map(exam => (
+                                            <label
+                                              key={exam}
+                                              className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                            >
+                                              <Checkbox
+                                                checked={selectedCategories.includes(exam)}
+                                                onCheckedChange={() => toggleCategory(exam)}
+                                              />
+                                              <span className="text-sm">{exam}</span>
+                                            </label>
+                                          ))}
                                       </div>
                                     </div>
                                   ))}
@@ -1193,26 +2647,37 @@ export default function TutorRegistrationPage() {
 
                               <TabsContent value="alevel" className="mt-0">
                                 <div className="space-y-4 pb-4">
-                                  {A_LEVEL_CATEGORIES.filter(cat => 
-                                    !searchQuery || cat.exams.some(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
-                                  ).map((category) => (
+                                  {A_LEVEL_CATEGORIES.filter(
+                                    cat =>
+                                      !searchQuery ||
+                                      cat.exams.some(e =>
+                                        e.toLowerCase().includes(searchQuery.toLowerCase())
+                                      )
+                                  ).map(category => (
                                     <div key={category.id} className="space-y-2">
-                                      <h4 className="font-semibold text-sm text-gray-900 flex items-center gap-2">
+                                      <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
                                         <GraduationCap className="h-4 w-4 text-[#1D4ED8]" />
                                         {category.label}
                                       </h4>
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                        {category.exams.filter(exam => 
-                                          !searchQuery || exam.toLowerCase().includes(searchQuery.toLowerCase())
-                                        ).map((exam) => (
-                                          <label key={exam} className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
-                                            <Checkbox
-                                              checked={selectedCategories.includes(exam)}
-                                              onCheckedChange={() => toggleCategory(exam)}
-                                            />
-                                            <span className="text-sm">{exam}</span>
-                                          </label>
-                                        ))}
+                                      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                        {category.exams
+                                          .filter(
+                                            exam =>
+                                              !searchQuery ||
+                                              exam.toLowerCase().includes(searchQuery.toLowerCase())
+                                          )
+                                          .map(exam => (
+                                            <label
+                                              key={exam}
+                                              className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                            >
+                                              <Checkbox
+                                                checked={selectedCategories.includes(exam)}
+                                                onCheckedChange={() => toggleCategory(exam)}
+                                              />
+                                              <span className="text-sm">{exam}</span>
+                                            </label>
+                                          ))}
                                       </div>
                                     </div>
                                   ))}
@@ -1221,26 +2686,37 @@ export default function TutorRegistrationPage() {
 
                               <TabsContent value="ib" className="mt-0">
                                 <div className="space-y-4 pb-4">
-                                  {IB_CATEGORIES.filter(cat => 
-                                    !searchQuery || cat.exams.some(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
-                                  ).map((category) => (
+                                  {IB_CATEGORIES.filter(
+                                    cat =>
+                                      !searchQuery ||
+                                      cat.exams.some(e =>
+                                        e.toLowerCase().includes(searchQuery.toLowerCase())
+                                      )
+                                  ).map(category => (
                                     <div key={category.id} className="space-y-2">
-                                      <h4 className="font-semibold text-sm text-gray-900 flex items-center gap-2">
+                                      <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
                                         <BookOpen className="h-4 w-4 text-[#1D4ED8]" />
                                         {category.label}
                                       </h4>
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                        {category.exams.filter(exam => 
-                                          !searchQuery || exam.toLowerCase().includes(searchQuery.toLowerCase())
-                                        ).map((exam) => (
-                                          <label key={exam} className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
-                                            <Checkbox
-                                              checked={selectedCategories.includes(exam)}
-                                              onCheckedChange={() => toggleCategory(exam)}
-                                            />
-                                            <span className="text-sm">{exam}</span>
-                                          </label>
-                                        ))}
+                                      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                        {category.exams
+                                          .filter(
+                                            exam =>
+                                              !searchQuery ||
+                                              exam.toLowerCase().includes(searchQuery.toLowerCase())
+                                          )
+                                          .map(exam => (
+                                            <label
+                                              key={exam}
+                                              className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                            >
+                                              <Checkbox
+                                                checked={selectedCategories.includes(exam)}
+                                                onCheckedChange={() => toggleCategory(exam)}
+                                              />
+                                              <span className="text-sm">{exam}</span>
+                                            </label>
+                                          ))}
                                       </div>
                                     </div>
                                   ))}
@@ -1249,26 +2725,37 @@ export default function TutorRegistrationPage() {
 
                               <TabsContent value="igcse" className="mt-0">
                                 <div className="space-y-4 pb-4">
-                                  {IGCSE_CATEGORIES.filter(cat => 
-                                    !searchQuery || cat.exams.some(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
-                                  ).map((category) => (
+                                  {IGCSE_CATEGORIES.filter(
+                                    cat =>
+                                      !searchQuery ||
+                                      cat.exams.some(e =>
+                                        e.toLowerCase().includes(searchQuery.toLowerCase())
+                                      )
+                                  ).map(category => (
                                     <div key={category.id} className="space-y-2">
-                                      <h4 className="font-semibold text-sm text-gray-900 flex items-center gap-2">
+                                      <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
                                         <School className="h-4 w-4 text-[#1D4ED8]" />
                                         {category.label}
                                       </h4>
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                        {category.exams.filter(exam => 
-                                          !searchQuery || exam.toLowerCase().includes(searchQuery.toLowerCase())
-                                        ).map((exam) => (
-                                          <label key={exam} className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
-                                            <Checkbox
-                                              checked={selectedCategories.includes(exam)}
-                                              onCheckedChange={() => toggleCategory(exam)}
-                                            />
-                                            <span className="text-sm">{exam}</span>
-                                          </label>
-                                        ))}
+                                      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                        {category.exams
+                                          .filter(
+                                            exam =>
+                                              !searchQuery ||
+                                              exam.toLowerCase().includes(searchQuery.toLowerCase())
+                                          )
+                                          .map(exam => (
+                                            <label
+                                              key={exam}
+                                              className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                            >
+                                              <Checkbox
+                                                checked={selectedCategories.includes(exam)}
+                                                onCheckedChange={() => toggleCategory(exam)}
+                                              />
+                                              <span className="text-sm">{exam}</span>
+                                            </label>
+                                          ))}
                                       </div>
                                     </div>
                                   ))}
@@ -1278,34 +2765,49 @@ export default function TutorRegistrationPage() {
                               <TabsContent value="national" className="mt-0">
                                 <div className="space-y-4 pb-4">
                                   {nationalExams.length === 0 ? (
-                                    <div className="text-center py-8 text-gray-500">
-                                      <Flag className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                                    <div className="py-8 text-center text-gray-500">
+                                      <Flag className="mx-auto mb-3 h-12 w-12 text-gray-300" />
                                       <p>No national exams available for selected countries.</p>
                                     </div>
                                   ) : (
-                                    nationalExams.filter(cat => 
-                                      !searchQuery || cat.exams.some(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
-                                    ).map((category) => (
-                                      <div key={category.id} className="space-y-2">
-                                        <h4 className="font-semibold text-sm text-gray-900 flex items-center gap-2">
-                                          <Flag className="h-4 w-4 text-[#1D4ED8]" />
-                                          {category.label}
-                                        </h4>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                          {category.exams.filter(exam => 
-                                            !searchQuery || exam.toLowerCase().includes(searchQuery.toLowerCase())
-                                          ).map((exam) => (
-                                            <label key={exam} className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
-                                              <Checkbox
-                                                checked={selectedCategories.includes(exam)}
-                                                onCheckedChange={() => toggleCategory(exam)}
-                                              />
-                                              <span className="text-sm">{exam}</span>
-                                            </label>
-                                          ))}
+                                    nationalExams
+                                      .filter(
+                                        cat =>
+                                          !searchQuery ||
+                                          cat.exams.some(e =>
+                                            e.toLowerCase().includes(searchQuery.toLowerCase())
+                                          )
+                                      )
+                                      .map(category => (
+                                        <div key={category.id} className="space-y-2">
+                                          <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                                            <Flag className="h-4 w-4 text-[#1D4ED8]" />
+                                            {category.label}
+                                          </h4>
+                                          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                            {category.exams
+                                              .filter(
+                                                exam =>
+                                                  !searchQuery ||
+                                                  exam
+                                                    .toLowerCase()
+                                                    .includes(searchQuery.toLowerCase())
+                                              )
+                                              .map(exam => (
+                                                <label
+                                                  key={exam}
+                                                  className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                                >
+                                                  <Checkbox
+                                                    checked={selectedCategories.includes(exam)}
+                                                    onCheckedChange={() => toggleCategory(exam)}
+                                                  />
+                                                  <span className="text-sm">{exam}</span>
+                                                </label>
+                                              ))}
+                                          </div>
                                         </div>
-                                      </div>
-                                    ))
+                                      ))
                                   )}
                                 </div>
                               </TabsContent>
@@ -1318,7 +2820,7 @@ export default function TutorRegistrationPage() {
                     {/* Your Own Category */}
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-base flex items-center gap-2">
+                        <CardTitle className="flex items-center gap-2 text-base">
                           <Plus className="h-4 w-4 text-[#4FD1C5]" />
                           Your Own Category
                         </CardTitle>
@@ -1331,18 +2833,15 @@ export default function TutorRegistrationPage() {
                           <Input
                             placeholder="Enter your own category..."
                             value={customCategory}
-                            onChange={(e) => setCustomCategory(e.target.value)}
-                            onKeyDown={(e) => {
+                            onChange={e => setCustomCategory(e.target.value)}
+                            onKeyDown={e => {
                               if (e.key === 'Enter') {
                                 addCustomCategory()
                               }
                             }}
                           />
-                          <Button 
-                            onClick={addCustomCategory}
-                            disabled={!customCategory.trim()}
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
+                          <Button onClick={addCustomCategory} disabled={!customCategory.trim()}>
+                            <Plus className="mr-1 h-4 w-4" />
                             Add
                           </Button>
                         </div>
@@ -1352,34 +2851,33 @@ export default function TutorRegistrationPage() {
 
                   {/* Right Column - Selected Categories Sidebar */}
                   <div className="space-y-4">
-                    <Card className="h-[300px] flex flex-col">
+                    <Card className="flex h-[300px] flex-col">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full bg-[#4FD1C5] text-white text-xs flex items-center justify-center">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#4FD1C5] text-xs text-white">
                             {selectedCategories.length}
                           </span>
                           Selected
                         </CardTitle>
                         <CardDescription className="text-xs">
-                          {selectedCategories.length === 0 
-                            ? 'No categories selected' 
-                            : `${selectedCategories.length} selected`
-                          }
+                          {selectedCategories.length === 0
+                            ? 'No categories selected'
+                            : `${selectedCategories.length} selected`}
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="flex-1 overflow-hidden">
                         <ScrollArea className="h-full pr-2">
                           <div className="flex flex-wrap gap-2">
                             {selectedCategories.map(cat => (
-                              <Badge 
+                              <Badge
                                 key={cat}
                                 variant="secondary"
-                                className="cursor-pointer bg-[#4FD1C5]/20 text-[#1F2933] hover:bg-[#4FD1C5]/30 pr-1"
+                                className="cursor-pointer bg-[#4FD1C5]/20 pr-1 text-[#1F2933] hover:bg-[#4FD1C5]/30"
                               >
                                 {cat}
-                                <button 
+                                <button
                                   onClick={() => removeCategory(cat)}
-                                  className="ml-1 hover:bg-red-100 rounded-full p-0.5"
+                                  className="ml-1 rounded-full p-0.5 hover:bg-red-100"
                                 >
                                   <X className="h-3 w-3" />
                                 </button>
@@ -1404,12 +2902,12 @@ export default function TutorRegistrationPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-3 mt-6 pt-4 border-t">
+                <div className="mt-6 flex gap-3 border-t pt-4">
                   <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>
                     Back
                   </Button>
-                  <Button 
-                    className="flex-1 bg-[#F17623] hover:bg-[#e06613]" 
+                  <Button
+                    className="flex-1 bg-[#F17623] hover:bg-[#e06613]"
                     onClick={() => validateStepTwo() && setStep(3)}
                     disabled={selectedCategories.length === 0}
                   >
@@ -1424,13 +2922,16 @@ export default function TutorRegistrationPage() {
                 <div className="space-y-2">
                   <Label>Solocorn Username</Label>
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-white w-full">
+                    <div className="flex w-full items-center gap-2 rounded-md border bg-white px-3 py-2">
                       <span className="text-gray-500">@</span>
                       <Input
-                        className="border-0 p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0"
+                        className="h-auto border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                         value={formData.username}
-                        onChange={(e) => {
-                          setFormData({ ...formData, username: normalizeUsernameInput(e.target.value) })
+                        onChange={e => {
+                          setFormData({
+                            ...formData,
+                            username: normalizeUsernameInput(e.target.value),
+                          })
                           setUsernameTouched(true)
                           setUsernameStatus({ status: 'idle' })
                         }}
@@ -1448,13 +2949,19 @@ export default function TutorRegistrationPage() {
                     <div className="text-xs text-red-600">
                       <p>{usernameStatus.message}</p>
                       {usernameStatus.suggestion && (
-                        <button className="text-[#1D4ED8] underline" type="button" onClick={applySuggestion}>
+                        <button
+                          className="text-[#1D4ED8] underline"
+                          type="button"
+                          onClick={applySuggestion}
+                        >
                           Use {usernameStatus.suggestion}
                         </button>
                       )}
                     </div>
                   )}
-                  <p className="text-xs text-gray-500">Only letters, numbers, and underscores allowed</p>
+                  <p className="text-xs text-gray-500">
+                    Only letters, numbers, and underscores allowed
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -1462,7 +2969,7 @@ export default function TutorRegistrationPage() {
                   <Input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => setProfilePhoto(e.target.files?.[0] ?? null)}
+                    onChange={e => setProfilePhoto(e.target.files?.[0] ?? null)}
                   />
                 </div>
 
@@ -1470,32 +2977,52 @@ export default function TutorRegistrationPage() {
                   <Label>Legal Name</Label>
                   <Input
                     value={formData.legalName}
-                    onChange={(e) => setFormData({ ...formData, legalName: e.target.value })}
+                    onChange={e => setFormData({ ...formData, legalName: e.target.value })}
                     placeholder="Enter your full legal name"
                   />
                 </div>
 
                 <div className="space-y-3">
                   <Label>Social Media Accounts</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                     <Input
                       value={formData.socialLinks.instagram}
-                      onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, instagram: e.target.value } })}
+                      onChange={e =>
+                        setFormData({
+                          ...formData,
+                          socialLinks: { ...formData.socialLinks, instagram: e.target.value },
+                        })
+                      }
                       placeholder="Instagram"
                     />
                     <Input
                       value={formData.socialLinks.tiktok}
-                      onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, tiktok: e.target.value } })}
+                      onChange={e =>
+                        setFormData({
+                          ...formData,
+                          socialLinks: { ...formData.socialLinks, tiktok: e.target.value },
+                        })
+                      }
                       placeholder="TikTok"
                     />
                     <Input
                       value={formData.socialLinks.youtube}
-                      onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, youtube: e.target.value } })}
+                      onChange={e =>
+                        setFormData({
+                          ...formData,
+                          socialLinks: { ...formData.socialLinks, youtube: e.target.value },
+                        })
+                      }
                       placeholder="YouTube"
                     />
                     <Input
                       value={formData.socialLinks.facebook}
-                      onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, facebook: e.target.value } })}
+                      onChange={e =>
+                        setFormData({
+                          ...formData,
+                          socialLinks: { ...formData.socialLinks, facebook: e.target.value },
+                        })
+                      }
                       placeholder="Facebook"
                     />
                   </div>
@@ -1505,7 +3032,9 @@ export default function TutorRegistrationPage() {
                   <Label>Describe Your Service</Label>
                   <Textarea
                     value={formData.serviceDescription}
-                    onChange={(e) => setFormData({ ...formData, serviceDescription: e.target.value.slice(0, 500) })}
+                    onChange={e =>
+                      setFormData({ ...formData, serviceDescription: e.target.value.slice(0, 500) })
+                    }
                     placeholder="Describe your tutoring service (500 characters max)"
                   />
                   <p className="text-xs text-gray-500">{formData.serviceDescription.length}/500</p>
@@ -1515,8 +3044,8 @@ export default function TutorRegistrationPage() {
                   <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>
                     Back
                   </Button>
-                  <Button 
-                    className="flex-1 bg-[#F17623] hover:bg-[#e06613]" 
+                  <Button
+                    className="flex-1 bg-[#F17623] hover:bg-[#e06613]"
                     onClick={async () => {
                       const isValid = await validateStepThree()
                       if (isValid) setStep(4)
@@ -1531,34 +3060,40 @@ export default function TutorRegistrationPage() {
             {step === 4 && (
               <>
                 <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <h4 className="mb-2 flex items-center gap-2 font-semibold">
                       <UserRound className="h-4 w-4" />
                       Profile Overview
                     </h4>
-                    <p className="text-sm"><strong>Legal Name:</strong> {formData.legalName || 'Not provided'}</p>
-                    <p className="text-sm"><strong>Username:</strong> {formData.username}</p>
-                    <p className="text-sm"><strong>Service:</strong> {formData.serviceDescription || 'Not provided'}</p>
+                    <p className="text-sm">
+                      <strong>Legal Name:</strong> {formData.legalName || 'Not provided'}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Username:</strong> {formData.username}
+                    </p>
+                    <p className="text-sm">
+                      <strong>Service:</strong> {formData.serviceDescription || 'Not provided'}
+                    </p>
                   </div>
 
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <h4 className="mb-2 flex items-center gap-2 font-semibold">
                       <Globe className="h-4 w-4" />
                       Categories
                     </h4>
                     {selectedCategories.length === 0 ? (
                       <p className="text-sm text-gray-500">No categories selected.</p>
                     ) : (
-                      <ul className="text-sm text-gray-700 list-disc list-inside">
-                        {selectedCategories.map((category) => (
+                      <ul className="list-inside list-disc text-sm text-gray-700">
+                        {selectedCategories.map(category => (
                           <li key={category}>{category}</li>
                         ))}
                       </ul>
                     )}
                   </div>
 
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <h4 className="mb-2 flex items-center gap-2 font-semibold">
                       <ShieldCheck className="h-4 w-4" />
                       Countries
                     </h4>
@@ -1566,8 +3101,11 @@ export default function TutorRegistrationPage() {
                       <p className="text-sm text-gray-500">No countries selected.</p>
                     ) : (
                       <div className="flex flex-wrap gap-2">
-                        {getCountryNamesFromCodes(selectedCountries).map((country) => (
-                          <span key={country} className="px-2 py-1 bg-white rounded text-sm text-gray-700 border">
+                        {getCountryNamesFromCodes(selectedCountries).map(country => (
+                          <span
+                            key={country}
+                            className="rounded border bg-white px-2 py-1 text-sm text-gray-700"
+                          >
                             {country}
                           </span>
                         ))}
@@ -1580,7 +3118,10 @@ export default function TutorRegistrationPage() {
                   <Button variant="outline" className="flex-1" onClick={() => setStep(3)}>
                     Back
                   </Button>
-                  <Button className="flex-1 bg-[#F17623] hover:bg-[#e06613]" onClick={() => setStep(5)}>
+                  <Button
+                    className="flex-1 bg-[#F17623] hover:bg-[#e06613]"
+                    onClick={() => setStep(5)}
+                  >
                     Register
                   </Button>
                 </div>
@@ -1594,10 +3135,13 @@ export default function TutorRegistrationPage() {
                     <Checkbox
                       id="terms"
                       checked={formData.agreeToTerms}
-                      onCheckedChange={(checked) => setFormData({ ...formData, agreeToTerms: checked as boolean })}
+                      onCheckedChange={checked =>
+                        setFormData({ ...formData, agreeToTerms: checked as boolean })
+                      }
                     />
                     <Label htmlFor="terms" className="text-sm">
-                      I agree to the Terms and Agreements and confirm that the information provided is accurate.
+                      I agree to the Terms and Agreements and confirm that the information provided
+                      is accurate.
                     </Label>
                   </div>
                 </div>
@@ -1606,7 +3150,11 @@ export default function TutorRegistrationPage() {
                   <Button variant="outline" className="flex-1" onClick={() => setStep(4)}>
                     Back
                   </Button>
-                  <Button className="flex-1 bg-[#F17623] hover:bg-[#e06613]" onClick={handleSubmit} disabled={isLoading || !formData.agreeToTerms}>
+                  <Button
+                    className="flex-1 bg-[#F17623] hover:bg-[#e06613]"
+                    onClick={handleSubmit}
+                    disabled={isLoading || !formData.agreeToTerms}
+                  >
                     {isLoading ? 'Submitting...' : 'Complete Registration'}
                   </Button>
                 </div>

@@ -101,9 +101,7 @@ export default function UsersPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Users</h1>
-          <p className="text-slate-500">
-            Manage user accounts and permissions
-          </p>
+          <p className="text-slate-500">Manage user accounts and permissions</p>
         </div>
         <Button>
           <UserCog className="mr-2 h-4 w-4" />
@@ -121,8 +119,8 @@ export default function UsersPage() {
                 placeholder="Search by name or email..."
                 className="pl-9"
                 value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                onChange={e => setSearchInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSearch()}
               />
             </div>
             <Select value={roleFilter} onValueChange={setRoleFilter}>
@@ -130,7 +128,7 @@ export default function UsersPage() {
                 <SelectValue placeholder="Filter by role" />
               </SelectTrigger>
               <SelectContent>
-                {roles.map((role) => (
+                {roles.map(role => (
                   <SelectItem key={role.value} value={role.value}>
                     {role.label}
                   </SelectItem>
@@ -169,23 +167,35 @@ export default function UsersPage() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                Array(5).fill(0).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell><Skeleton className="h-10 w-full" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                    <TableCell><Skeleton className="h-8 w-8" /></TableCell>
-                  </TableRow>
-                ))
+                Array(5)
+                  .fill(0)
+                  .map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <Skeleton className="h-10 w-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-16" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-8 w-8" />
+                      </TableCell>
+                    </TableRow>
+                  ))
               ) : users.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="h-32 text-center">
                     <p className="text-slate-500">No users found</p>
-                    <p className="text-sm text-slate-400">
-                      Try adjusting your search or filters
-                    </p>
+                    <p className="text-sm text-slate-400">Try adjusting your search or filters</p>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -231,9 +241,13 @@ export default function UsersPage() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm text-slate-500">
-                          <span>{(user.stats as Record<string, number>)?.enrollments || 0} enrollments</span>
+                          <span>
+                            {(user.stats as Record<string, number>)?.enrollments || 0} enrollments
+                          </span>
                           <span className="mx-1">·</span>
-                          <span>{(user.stats as Record<string, number>)?.sessions || 0} sessions</span>
+                          <span>
+                            {(user.stats as Record<string, number>)?.sessions || 0} sessions
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell className="text-slate-500">

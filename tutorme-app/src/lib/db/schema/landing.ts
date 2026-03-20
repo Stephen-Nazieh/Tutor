@@ -5,7 +5,7 @@ export const landingInquiry = pgTable('landing_inquiries', {
   name: text('name').notNull(),
   email: text('email').notNull(),
   message: text('message').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull()
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
 export const landingSignup = pgTable('landing_signups', {
@@ -14,5 +14,5 @@ export const landingSignup = pgTable('landing_signups', {
   bio: text('bio'),
   country: text('country'),
   photo: text('photo'),
-  createdAt: timestamp('created_at').defaultNow().notNull()
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 })

@@ -41,7 +41,7 @@ describe('api/middleware', () => {
       process.env.NODE_ENV = 'production'
       const res = handleApiError(new Error('DB connection failed'))
       expect(res.status).toBe(500)
-      return res.json().then((body) => {
+      return res.json().then(body => {
         expect(body.error).toBe('Internal server error')
         expect(body.errorId).toBeTruthy()
       })
@@ -51,7 +51,7 @@ describe('api/middleware', () => {
       process.env.NODE_ENV = 'development'
       const res = handleApiError(new Error('Custom error'))
       expect(res.status).toBe(500)
-      return res.json().then((body) => {
+      return res.json().then(body => {
         expect(body.error).toBe('Custom error')
         expect(body.errorId).toBeTruthy()
       })
@@ -60,7 +60,7 @@ describe('api/middleware', () => {
     it('uses custom defaultMessage when error has no message', () => {
       process.env.NODE_ENV = 'production'
       const res = handleApiError(null, 'Something went wrong')
-      return res.json().then((body) => {
+      return res.json().then(body => {
         expect(body.error).toBe('Something went wrong')
         expect(body.errorId).toBeTruthy()
       })

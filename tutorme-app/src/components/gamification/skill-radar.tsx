@@ -1,6 +1,6 @@
 /**
  * Skill Radar Chart Component
- * 
+ *
  * Displays user's skill scores in a radar/pentagon chart
  */
 
@@ -9,14 +9,16 @@
 import { cn } from '@/lib/utils'
 
 interface SkillRadarProps {
-  skills: Record<string, number> | {
-    grammar: number
-    vocabulary: number
-    speaking: number
-    listening: number
-    confidence: number
-    fluency: number
-  }
+  skills:
+    | Record<string, number>
+    | {
+        grammar: number
+        vocabulary: number
+        speaking: number
+        listening: number
+        confidence: number
+        fluency: number
+      }
   className?: string
 }
 
@@ -85,11 +87,12 @@ const defaultColors = [
 
 export function SkillRadar({ skills, className }: SkillRadarProps) {
   const skillEntries = Object.entries(skills)
-  
+
   // Calculate average
-  const avgSkill = skillEntries.length > 0
-    ? Math.round(skillEntries.reduce((sum, [, value]) => sum + value, 0) / skillEntries.length)
-    : 0
+  const avgSkill =
+    skillEntries.length > 0
+      ? Math.round(skillEntries.reduce((sum, [, value]) => sum + value, 0) / skillEntries.length)
+      : 0
 
   // Find strongest and weakest
   const sortedSkills = [...skillEntries].sort((a, b) => b[1] - a[1])
@@ -105,8 +108,8 @@ export function SkillRadar({ skills, className }: SkillRadarProps) {
   }
 
   return (
-    <div className={cn('bg-white rounded-xl p-4 border', className)}>
-      <div className="flex items-center justify-between mb-4">
+    <div className={cn('rounded-xl border bg-white p-4', className)}>
+      <div className="mb-4 flex items-center justify-between">
         <h3 className="font-semibold text-gray-800">Skills</h3>
         <div className="text-right">
           <p className="text-2xl font-bold text-blue-600">{avgSkill}%</p>
@@ -117,7 +120,7 @@ export function SkillRadar({ skills, className }: SkillRadarProps) {
       {/* Skill bars */}
       <div className="space-y-3">
         {skillEntries.map(([name, value], index) => (
-          <SkillBar 
+          <SkillBar
             key={name}
             label={formatLabel(name)}
             value={value}
@@ -128,12 +131,12 @@ export function SkillRadar({ skills, className }: SkillRadarProps) {
 
       {/* Insights */}
       {strongest && weakest && (
-        <div className="mt-4 pt-3 border-t text-sm">
+        <div className="mt-4 border-t pt-3 text-sm">
           <p className="text-gray-600">
             <span className="font-medium text-green-600">💪 Strongest:</span>{' '}
             {formatLabel(strongest[0])} ({strongest[1]}%)
           </p>
-          <p className="text-gray-600 mt-1">
+          <p className="mt-1 text-gray-600">
             <span className="font-medium text-orange-600">🎯 Focus on:</span>{' '}
             {formatLabel(weakest[0])} ({weakest[1]}%)
           </p>
@@ -143,23 +146,15 @@ export function SkillRadar({ skills, className }: SkillRadarProps) {
   )
 }
 
-function SkillBar({ 
-  label, 
-  value, 
-  color 
-}: { 
-  label: string
-  value: number
-  color: string 
-}) {
+function SkillBar({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div>
-      <div className="flex justify-between text-xs mb-1">
-        <span className="text-gray-600 capitalize">{label}</span>
+      <div className="mb-1 flex justify-between text-xs">
+        <span className="capitalize text-gray-600">{label}</span>
         <span className="font-medium text-gray-800">{value}%</span>
       </div>
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-        <div 
+      <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+        <div
           className={cn('h-full rounded-full transition-all duration-500', color)}
           style={{ width: `${value}%` }}
         />

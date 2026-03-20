@@ -10,13 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  curriculumEnrollment,
-  curriculum,
-  resource,
-  resourceShare,
-  profile,
-} from '@/lib/db/schema'
+import { curriculumEnrollment, curriculum, resource, resourceShare, profile } from '@/lib/db/schema'
 import { eq, and, inArray, desc, or, isNull } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
@@ -33,25 +27,20 @@ export async function GET(request: NextRequest) {
       creatorId: curriculum.creatorId,
     })
     .from(curriculumEnrollment)
-    .innerJoin(
-      curriculum,
-      eq(curriculumEnrollment.curriculumId, curriculum.id)
-    )
+    .innerJoin(curriculum, eq(curriculumEnrollment.curriculumId, curriculum.id))
     .where(eq(curriculumEnrollment.studentId, studentId))
 
   const enrolledTutorIds = [
-    ...new Set(
-      enrollmentsRows.map((e) => e.creatorId).filter((id): id is string => id != null)
-    ),
+    ...new Set(enrollmentsRows.map(e => e.creatorId).filter((id): id is string => id != null)),
   ]
-  const enrolledCurriculumIds = enrollmentsRows.map((e) => e.curriculumId)
+  const enrolledCurriculumIds = enrollmentsRows.map(e => e.curriculumId)
 
   const directShareIds = (
     await drizzleDb
       .select({ resourceId: resourceShare.resourceId })
       .from(resourceShare)
       .where(eq(resourceShare.recipientId, studentId))
-  ).map((r) => r.resourceId)
+  ).map(r => r.resourceId)
 
   const curriculumIdsFilter =
     enrolledCurriculumIds.length > 0
@@ -73,7 +62,7 @@ export async function GET(request: NextRequest) {
             )
           )
       : []
-  const sharedWithAllIds = sharedWithAllRows.map((r) => r.resourceId)
+  const sharedWithAllIds = sharedWithAllRows.map(r => r.resourceId)
 
   const publicResourceIds =
     enrolledTutorIds.length > 0
@@ -81,13 +70,8 @@ export async function GET(request: NextRequest) {
           await drizzleDb
             .select({ id: resource.id })
             .from(resource)
-            .where(
-              and(
-                eq(resource.isPublic, true),
-                inArray(resource.tutorId, enrolledTutorIds)
-              )
-            )
-        ).map((r) => r.id)
+            .where(and(eq(resource.isPublic, true), inArray(resource.tutorId, enrolledTutorIds)))
+        ).map(r => r.id)
       : []
 
   const allResourceIds = [
@@ -104,7 +88,7 @@ export async function GET(request: NextRequest) {
     .where(inArray(resource.id, allResourceIds))
     .orderBy(desc(resource.createdAt))
 
-  const tutorIds = [...new Set(resources.map((r) => r.tutorId))]
+  const tutorIds = [...new Set(resources.map(r => r.tutorId))]
   const profiles =
     tutorIds.length > 0
       ? await drizzleDb
@@ -112,7 +96,7 @@ export async function GET(request: NextRequest) {
           .from(profile)
           .where(inArray(profile.userId, tutorIds))
       : []
-  const nameByTutorId = new Map(profiles.map((p) => [p.userId, p.name]))
+  const nameByTutorId = new Map(profiles.map(p => [p.userId, p.name]))
 
   const sharesToStudent = await drizzleDb
     .select({
@@ -126,11 +110,9 @@ export async function GET(request: NextRequest) {
         inArray(resourceShare.resourceId, allResourceIds)
       )
     )
-  const messageByResourceId = new Map(
-    sharesToStudent.map((s) => [s.resourceId, s.message])
-  )
+  const messageByResourceId = new Map(sharesToStudent.map(s => [s.resourceId, s.message]))
 
-  const formatted = resources.map((r) => ({
+  const formatted = resources.map(r => ({
     id: r.id,
     name: r.name,
     description: r.description,

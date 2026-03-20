@@ -101,7 +101,7 @@ export function useWhiteboardSocket({
     if (!whiteboardId) return
 
     const connect = async () => {
-      const token = await import('@/lib/socket-auth').then((m) => m.getSocketToken())
+      const token = await import('@/lib/socket-auth').then(m => m.getSocketToken())
       if (!token) return
       const socket = io({
         path: '/api/socket',
@@ -110,80 +110,80 @@ export function useWhiteboardSocket({
       })
       socketRef.current = socket
 
-    socket.on('connect', () => {
-      console.log('Whiteboard socket connected:', socket.id)
-      setIsConnected(true)
-      setError(null)
+      socket.on('connect', () => {
+        console.log('Whiteboard socket connected:', socket.id)
+        setIsConnected(true)
+        setError(null)
 
-      // Join whiteboard room
-      socket.emit('wb_join', {
-        whiteboardId,
-        roomId,
-        userId,
-        name: userName,
-        color: userColor,
+        // Join whiteboard room
+        socket.emit('wb_join', {
+          whiteboardId,
+          roomId,
+          userId,
+          name: userName,
+          color: userColor,
+        })
       })
-    })
 
-    socket.on('disconnect', () => {
-      console.log('Whiteboard socket disconnected')
-      setIsConnected(false)
-    })
+      socket.on('disconnect', () => {
+        console.log('Whiteboard socket disconnected')
+        setIsConnected(false)
+      })
 
-    socket.on('connect_error', (err) => {
-      console.error('Whiteboard socket error:', err)
-      setError(err.message)
-      setIsConnected(false)
-    })
+      socket.on('connect_error', err => {
+        console.error('Whiteboard socket error:', err)
+        setError(err.message)
+        setIsConnected(false)
+      })
 
-    // Listen for state
-    socket.on('wb_state', (state) => {
-      setActiveUsers(state.activeUsers || [])
-      onStateUpdate?.(state)
-    })
+      // Listen for state
+      socket.on('wb_state', state => {
+        setActiveUsers(state.activeUsers || [])
+        onStateUpdate?.(state)
+      })
 
-    // Listen for strokes
-    socket.on('wb_stroke', (stroke: Stroke) => {
-      onStroke?.(stroke)
-    })
+      // Listen for strokes
+      socket.on('wb_stroke', (stroke: Stroke) => {
+        onStroke?.(stroke)
+      })
 
-    // Listen for shapes
-    socket.on('wb_shape', (shape: Shape) => {
-      onShape?.(shape)
-    })
+      // Listen for shapes
+      socket.on('wb_shape', (shape: Shape) => {
+        onShape?.(shape)
+      })
 
-    // Listen for texts
-    socket.on('wb_text', (text: Text) => {
-      onText?.(text)
-    })
+      // Listen for texts
+      socket.on('wb_text', (text: Text) => {
+        onText?.(text)
+      })
 
-    // Listen for cursors
-    socket.on('wb_cursor', (cursor: Cursor) => {
-      cursorsRef.current.set(cursor.userId, cursor)
-      onCursor?.(cursor)
-    })
+      // Listen for cursors
+      socket.on('wb_cursor', (cursor: Cursor) => {
+        cursorsRef.current.set(cursor.userId, cursor)
+        onCursor?.(cursor)
+      })
 
-    // Listen for user events
-    socket.on('wb_user_joined', (user) => {
-      setActiveUsers((prev) => [...prev.filter((id) => id !== user.userId), user.userId])
-      onUserJoined?.(user)
-    })
+      // Listen for user events
+      socket.on('wb_user_joined', user => {
+        setActiveUsers(prev => [...prev.filter(id => id !== user.userId), user.userId])
+        onUserJoined?.(user)
+      })
 
-    socket.on('wb_user_left', (user) => {
-      setActiveUsers((prev) => prev.filter((id) => id !== user.userId))
-      cursorsRef.current.delete(user.userId)
-      onUserLeft?.(user)
-    })
+      socket.on('wb_user_left', user => {
+        setActiveUsers(prev => prev.filter(id => id !== user.userId))
+        cursorsRef.current.delete(user.userId)
+        onUserLeft?.(user)
+      })
 
-    // Listen for clear
-    socket.on('wb_cleared', (data) => {
-      onClear?.(data)
-    })
+      // Listen for clear
+      socket.on('wb_cleared', data => {
+        onClear?.(data)
+      })
 
-    // Listen for undo
-    socket.on('wb_undone', (data) => {
-      onUndo?.(data)
-    })
+      // Listen for undo
+      socket.on('wb_undone', data => {
+        onUndo?.(data)
+      })
     }
     connect()
     return () => {

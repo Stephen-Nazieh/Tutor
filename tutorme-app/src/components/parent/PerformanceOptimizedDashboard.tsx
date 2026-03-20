@@ -3,7 +3,7 @@
 
 /**
  * PerformanceOptimizedDashboard Component
- * 
+ *
  * Advanced React performance patterns with:
  * - React.memo, useMemo, useCallback for optimization
  * - Progressive loading with React.lazy and Suspense
@@ -148,9 +148,13 @@ const ChildrenOverviewLazy = lazy(() =>
 
 const FinancialOverviewLazy = lazy(() =>
   Promise.resolve({
-    default: ({ financialSummary, language }: { financialSummary: FinancialSummary; language: Language }) => (
-      <FinancialOverview financialSummary={financialSummary} language={language} />
-    ),
+    default: ({
+      financialSummary,
+      language,
+    }: {
+      financialSummary: FinancialSummary
+      language: Language
+    }) => <FinancialOverview financialSummary={financialSummary} language={language} />,
   })
 )
 
@@ -164,9 +168,7 @@ const ActivityFeedLazy = lazy(() =>
 
 const QuickActionsLazy = lazy(() =>
   Promise.resolve({
-    default: ({ language }: { language: Language }) => (
-      <QuickActions language={language} />
-    ),
+    default: ({ language }: { language: Language }) => <QuickActions language={language} />,
   })
 )
 
@@ -204,7 +206,7 @@ const strings = {
   },
   en: {
     welcome: 'Welcome back',
-    subtitle: 'You have {count} children enrolled. Here\'s what\'s happening today.',
+    subtitle: "You have {count} children enrolled. Here's what's happening today.",
     children: 'Children',
     upcomingClasses: 'Upcoming Classes',
     assignmentsDue: 'Assignments Due',
@@ -254,7 +256,7 @@ function usePerformanceMonitoring(enabled: boolean = true) {
 
     return () => {
       const renderTime = performance.now() - renderStartTime.current
-      setMetrics((prev) => ({ ...prev, renderTime }))
+      setMetrics(prev => ({ ...prev, renderTime }))
       reportMetric('dashboard_render_time', renderTime, 'ms', {
         component: 'PerformanceOptimizedDashboard',
       })
@@ -269,18 +271,15 @@ function usePerformanceMonitoring(enabled: boolean = true) {
   const endDataFetch = useCallback(() => {
     if (!enabled) return
     const fetchTime = performance.now() - dataFetchStartTime.current
-    setMetrics((prev) => ({ ...prev, dataFetchTime: fetchTime }))
+    setMetrics(prev => ({ ...prev, dataFetchTime: fetchTime }))
     reportMetric('dashboard_data_fetch_time', fetchTime, 'ms', {
       component: 'PerformanceOptimizedDashboard',
     })
   }, [enabled])
 
-  const updateMetrics = useCallback(
-    (updates: Partial<PerformanceMetrics>) => {
-      setMetrics((prev) => ({ ...prev, ...updates }))
-    },
-    []
-  )
+  const updateMetrics = useCallback((updates: Partial<PerformanceMetrics>) => {
+    setMetrics(prev => ({ ...prev, ...updates }))
+  }, [])
 
   return {
     metrics,
@@ -294,10 +293,7 @@ function usePerformanceMonitoring(enabled: boolean = true) {
 // Cache Integration Hook
 // ============================================================================
 
-function useDashboardCache(
-  parentId: string | undefined,
-  enabled: boolean = true
-) {
+function useDashboardCache(parentId: string | undefined, enabled: boolean = true) {
   const [cacheHitRate, setCacheHitRate] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [data, setData] = useState<DashboardData | null>(null)
@@ -313,7 +309,7 @@ function useDashboardCache(
         // In a real implementation, this would use the cache manager
         // For now, we'll simulate cache behavior
         const cacheKey = `parent:dashboard:${parentId}`
-        
+
         // Simulate cache check
         const cached = sessionStorage.getItem(cacheKey)
         if (cached) {
@@ -332,9 +328,9 @@ function useDashboardCache(
         // Cache miss - fetch from API
         const response = await fetch(`/api/parent/dashboard?parentId=${parentId}`)
         if (!response.ok) throw new Error('Failed to fetch dashboard data')
-        
+
         const fetchedData = await response.json()
-        
+
         // Store in cache
         sessionStorage.setItem(
           cacheKey,
@@ -388,12 +384,15 @@ function useNetworkQuality() {
     const checkNetwork = async () => {
       try {
         // Use Network Information API if available
-        const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection
-        
+        const connection =
+          (navigator as any).connection ||
+          (navigator as any).mozConnection ||
+          (navigator as any).webkitConnection
+
         if (connection) {
           const effectiveType = connection.effectiveType
           const downlink = connection.downlink || 10
-          
+
           if (effectiveType === '4g' && downlink >= 10) {
             setNetworkQuality('fast')
           } else if (effectiveType === '4g' || effectiveType === '3g') {
@@ -408,7 +407,7 @@ function useNetworkQuality() {
         await fetch('/api/health', { method: 'HEAD', cache: 'no-cache' }).catch(() => {})
         const measuredLatency = performance.now() - start
         setLatency(measuredLatency)
-        
+
         reportMetric('network_latency', measuredLatency, 'ms', {
           quality: networkQuality,
         })
@@ -438,19 +437,16 @@ const StatCard = memo<{
   trend?: number
 }>(({ title, value, icon, className, trend }) => {
   return (
-    <Card className={cn('hover:shadow-md transition-shadow', className)}>
+    <Card className={cn('transition-shadow hover:shadow-md', className)}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-gray-500">{title}</p>
-            <p className="text-2xl font-bold mt-1">{value}</p>
+            <p className="mt-1 text-2xl font-bold">{value}</p>
             {trend !== undefined && (
-              <div className="flex items-center gap-1 mt-2 text-sm">
+              <div className="mt-2 flex items-center gap-1 text-sm">
                 <TrendingUp
-                  className={cn(
-                    'h-4 w-4',
-                    trend > 0 ? 'text-green-600' : 'text-red-600'
-                  )}
+                  className={cn('h-4 w-4', trend > 0 ? 'text-green-600' : 'text-red-600')}
                 />
                 <span className={trend > 0 ? 'text-green-600' : 'text-red-600'}>
                   {trend > 0 ? '+' : ''}
@@ -459,7 +455,7 @@ const StatCard = memo<{
               </div>
             )}
           </div>
-          <div className="p-3 bg-blue-100 rounded-full">{icon}</div>
+          <div className="rounded-full bg-blue-100 p-3">{icon}</div>
         </div>
       </CardContent>
     </Card>
@@ -478,12 +474,12 @@ const PerformanceIndicator = memo<{
     <Card className={cn('border-blue-200 bg-blue-50/50', className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-sm font-medium">
             <Activity className="h-4 w-4" />
             {t.performance}
           </CardTitle>
           <Badge variant="outline" className="text-xs">
-            <Zap className="h-3 w-3 mr-1" />
+            <Zap className="mr-1 h-3 w-3" />
             {metrics.renderTime.toFixed(0)}ms
           </Badge>
         </div>
@@ -491,15 +487,22 @@ const PerformanceIndicator = memo<{
       <CardContent className="space-y-2 text-xs">
         <div className="flex justify-between">
           <span className="text-gray-600">{t.renderTime}</span>
-          <span className="font-medium">{metrics.renderTime.toFixed(0)} {t.ms}</span>
+          <span className="font-medium">
+            {metrics.renderTime.toFixed(0)} {t.ms}
+          </span>
         </div>
         <div className="flex justify-between">
           <span className="text-gray-600">{t.cacheHitRate}</span>
-          <span className="font-medium">{metrics.cacheHitRate.toFixed(0)}{t.percent}</span>
+          <span className="font-medium">
+            {metrics.cacheHitRate.toFixed(0)}
+            {t.percent}
+          </span>
         </div>
         <div className="flex justify-between">
           <span className="text-gray-600">{t.networkLatency}</span>
-          <span className="font-medium">{metrics.networkLatency.toFixed(0)} {t.ms}</span>
+          <span className="font-medium">
+            {metrics.networkLatency.toFixed(0)} {t.ms}
+          </span>
         </div>
       </CardContent>
     </Card>
@@ -516,13 +519,13 @@ const LoadingSkeleton = memo(() => (
       </div>
       <Skeleton className="h-10 w-32" />
     </div>
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
       {Array.from({ length: 4 }).map((_, i) => (
         <Skeleton key={i} className="h-32" />
       ))}
     </div>
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div className="lg:col-span-2 space-y-6">
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="space-y-6 lg:col-span-2">
         <Skeleton className="h-64" />
         <Skeleton className="h-48" />
       </div>
@@ -550,8 +553,8 @@ const ErrorFallback = memo<{
   }, [error])
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="max-w-md w-full">
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex items-center gap-2 text-red-600">
             <AlertCircle className="h-5 w-5" />
@@ -559,11 +562,9 @@ const ErrorFallback = memo<{
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-gray-600">
-            {error.message || t.error}
-          </p>
+          <p className="text-sm text-gray-600">{error.message || t.error}</p>
           <Button onClick={resetErrorBoundary} className="w-full">
-            <RefreshCw className="h-4 w-4 mr-2" />
+            <RefreshCw className="mr-2 h-4 w-4" />
             {t.retry}
           </Button>
         </CardContent>
@@ -589,26 +590,26 @@ const ChildrenOverview = memo<{ children: ChildData[]; language: Language }>(
             <Link href="/parent/children">
               <Button variant="ghost" size="sm">
                 {t.viewAll}
-                <ChevronRight className="h-4 w-4 ml-1" />
+                <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             </Link>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {children.map((child) => (
-              <Card key={child.id} className="hover:shadow-md transition-shadow">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {children.map(child => (
+              <Card key={child.id} className="transition-shadow hover:shadow-md">
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
-                    <div className="h-12 w-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 font-bold text-white">
                       {child.avatar}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{child.name}</h3>
+                      <h3 className="text-lg font-semibold">{child.name}</h3>
                       <p className="text-sm text-gray-500">{child.grade}</p>
                       <div className="mt-4 space-y-3">
                         <div>
-                          <div className="flex items-center justify-between text-sm mb-1">
+                          <div className="mb-1 flex items-center justify-between text-sm">
                             <span className="text-gray-500">Progress</span>
                             <span className="font-medium">{child.progress}%</span>
                           </div>
@@ -625,7 +626,7 @@ const ChildrenOverview = memo<{ children: ChildData[]; language: Language }>(
                           </div>
                         </div>
                         {child.recentAchievement && (
-                          <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-2 rounded">
+                          <div className="flex items-center gap-2 rounded bg-green-50 p-2 text-sm text-green-600">
                             <Award className="h-4 w-4" />
                             {child.recentAchievement}
                           </div>
@@ -655,14 +656,14 @@ const ActivityFeed = memo<{ activities: ActivityItem[]; language: Language }>(
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {activities.map((activity) => (
+            {activities.map(activity => (
               <div
                 key={activity.id}
-                className="flex items-start gap-3 pb-4 border-b last:border-0 last:pb-0"
+                className="flex items-start gap-3 border-b pb-4 last:border-0 last:pb-0"
               >
                 <div
                   className={cn(
-                    'p-2 rounded-full',
+                    'rounded-full p-2',
                     activity.type === 'class_completed' && 'bg-green-100 text-green-600',
                     activity.type === 'assignment_submitted' && 'bg-blue-100 text-blue-600',
                     activity.type === 'achievement_earned' && 'bg-yellow-100 text-yellow-600',
@@ -676,7 +677,7 @@ const ActivityFeed = memo<{ activities: ActivityItem[]; language: Language }>(
                 </div>
                 <div className="flex-1">
                   <p className="text-sm">{activity.description}</p>
-                  <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+                  <p className="mt-1 text-xs text-gray-500">{activity.time}</p>
                 </div>
               </div>
             ))}
@@ -700,13 +701,15 @@ const FinancialOverview = memo<{
         <div className="flex items-center justify-between">
           <CardTitle>{t.upcomingPayments}</CardTitle>
           <Link href="/parent/payments">
-            <Button variant="ghost" size="sm">{t.viewAll}</Button>
+            <Button variant="ghost" size="sm">
+              {t.viewAll}
+            </Button>
           </Link>
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {financialSummary.upcomingPayments.map((payment) => (
+          {financialSummary.upcomingPayments.map(payment => (
             <div key={payment.id} className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">{payment.description}</p>
@@ -715,8 +718,8 @@ const FinancialOverview = memo<{
               <span className="font-semibold">¥{payment.amount}</span>
             </div>
           ))}
-          <div className="mt-4 pt-4 border-t">
-            <div className="flex items-center justify-between text-sm mb-2">
+          <div className="mt-4 border-t pt-4">
+            <div className="mb-2 flex items-center justify-between text-sm">
               <span className="text-gray-500">{t.monthlyBudget}</span>
               <span className="font-medium">
                 ¥{financialSummary.spentThisMonth} / ¥{financialSummary.monthlyBudget}
@@ -726,14 +729,14 @@ const FinancialOverview = memo<{
               value={(financialSummary.spentThisMonth / financialSummary.monthlyBudget) * 100}
               className="h-2"
             />
-            <div className="grid grid-cols-2 gap-4 mt-4 text-center">
-              <div className="p-3 bg-gray-50 rounded-lg">
+            <div className="mt-4 grid grid-cols-2 gap-4 text-center">
+              <div className="rounded-lg bg-gray-50 p-3">
                 <p className="text-xs text-gray-500">Remaining</p>
                 <p className="font-semibold text-green-600">
                   ¥{financialSummary.monthlyBudget - financialSummary.spentThisMonth}
                 </p>
               </div>
-              <div className="p-3 bg-gray-50 rounded-lg">
+              <div className="rounded-lg bg-gray-50 p-3">
                 <p className="text-xs text-gray-500">Budget</p>
                 <p className="font-semibold">¥{financialSummary.monthlyBudget}</p>
               </div>
@@ -757,19 +760,19 @@ const QuickActions = memo<{ language: Language }>(({ language }) => {
       <CardContent className="space-y-2">
         <Link href="/parent/classes/book">
           <Button variant="outline" className="w-full justify-start">
-            <Calendar className="h-4 w-4 mr-2" />
+            <Calendar className="mr-2 h-4 w-4" />
             {t.bookClass}
           </Button>
         </Link>
         <Link href="/parent/messages">
           <Button variant="outline" className="w-full justify-start">
-            <MessageSquare className="h-4 w-4 mr-2" />
+            <MessageSquare className="mr-2 h-4 w-4" />
             {t.messageTutor}
           </Button>
         </Link>
         <Link href="/parent/progress">
           <Button variant="outline" className="w-full justify-start">
-            <TrendingUp className="h-4 w-4 mr-2" />
+            <TrendingUp className="mr-2 h-4 w-4" />
             {t.viewProgress}
           </Button>
         </Link>
@@ -795,13 +798,15 @@ export const PerformanceOptimizedDashboard = memo<PerformanceOptimizedDashboardP
     const { data: session } = useSession()
     const [language, setLanguage] = useState<Language>(propLanguage)
     const [isPending, startTransition] = useTransition()
-    
+
     const parentId = session?.user?.id
     const perfMonitoring = usePerformanceMonitoring(enablePerformanceMonitoring)
-    const { data: cachedData, isLoading: cacheLoading, cacheHitRate, refresh: refreshCache } = useDashboardCache(
-      parentId,
-      enableCache
-    )
+    const {
+      data: cachedData,
+      isLoading: cacheLoading,
+      cacheHitRate,
+      refresh: refreshCache,
+    } = useDashboardCache(parentId, enableCache)
     const { networkQuality, latency } = useNetworkQuality()
 
     // Merge initial data with cached data
@@ -862,17 +867,18 @@ export const PerformanceOptimizedDashboard = memo<PerformanceOptimizedDashboardP
 
     // Memoized computed values
     const unreadNotifications = useMemo(
-      () => dashboardData?.notifications.filter((n) => !n.read).length || 0,
+      () => dashboardData?.notifications.filter(n => !n.read).length || 0,
       [dashboardData?.notifications]
     )
 
     const stats = useMemo(
-      () => dashboardData?.stats || {
-        totalChildren: 0,
-        totalUpcomingClasses: 0,
-        totalAssignmentsDue: 0,
-        monthlySpending: 0,
-      },
+      () =>
+        dashboardData?.stats || {
+          totalChildren: 0,
+          totalUpcomingClasses: 0,
+          totalAssignmentsDue: 0,
+          monthlySpending: 0,
+        },
       [dashboardData?.stats]
     )
 
@@ -884,7 +890,7 @@ export const PerformanceOptimizedDashboard = memo<PerformanceOptimizedDashboardP
     }, [refreshCache])
 
     const handleLanguageToggle = useCallback(() => {
-      setLanguage((prev) => (prev === 'zh' ? 'en' : 'zh'))
+      setLanguage(prev => (prev === 'zh' ? 'en' : 'zh'))
     }, [])
 
     if (cacheLoading && !dashboardData) {
@@ -893,12 +899,12 @@ export const PerformanceOptimizedDashboard = memo<PerformanceOptimizedDashboardP
 
     if (!dashboardData) {
       return (
-        <div className="flex items-center justify-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <Card>
             <CardContent className="p-6 text-center">
               <p className="text-gray-500">{t.noData}</p>
               <Button onClick={handleRefresh} className="mt-4">
-                <RefreshCw className="h-4 w-4 mr-2" />
+                <RefreshCw className="mr-2 h-4 w-4" />
                 {t.retry}
               </Button>
             </CardContent>
@@ -916,7 +922,7 @@ export const PerformanceOptimizedDashboard = memo<PerformanceOptimizedDashboardP
             language={language}
           />
         )}
-        onError={(error) => {
+        onError={error => {
           reportError(error, {
             context: 'PerformanceOptimizedDashboard',
             component: 'MainComponent',
@@ -934,12 +940,12 @@ export const PerformanceOptimizedDashboard = memo<PerformanceOptimizedDashboardP
           aria-label={t.welcome}
         >
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
                 {t.welcome}, {dashboardData.parentName}!
               </h1>
-              <p className="text-gray-500 mt-1 text-sm sm:text-base">
+              <p className="mt-1 text-sm text-gray-500 sm:text-base">
                 {t.subtitle.replace('{count}', String(dashboardData.children.length))}
               </p>
             </div>
@@ -957,11 +963,11 @@ export const PerformanceOptimizedDashboard = memo<PerformanceOptimizedDashboardP
               {/* Notifications */}
               <Link href="/parent/notifications">
                 <Button variant="outline" className="relative" aria-label={t.notifications}>
-                  <Bell className="h-4 w-4 mr-2" />
+                  <Bell className="mr-2 h-4 w-4" />
                   {t.notifications}
                   {unreadNotifications > 0 && (
                     <span
-                      className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"
+                      className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
                       aria-label={`${unreadNotifications} unread notifications`}
                     >
                       {unreadNotifications}
@@ -978,23 +984,18 @@ export const PerformanceOptimizedDashboard = memo<PerformanceOptimizedDashboardP
                 disabled={isPending}
                 aria-label={t.retry}
               >
-                <RefreshCw
-                  className={cn('h-4 w-4', isPending && 'animate-spin')}
-                />
+                <RefreshCw className={cn('h-4 w-4', isPending && 'animate-spin')} />
               </Button>
             </div>
           </div>
 
           {/* Performance Indicator (only in dev or if enabled) */}
           {enablePerformanceMonitoring && (
-            <PerformanceIndicator
-              metrics={perfMonitoring.metrics}
-              language={language}
-            />
+            <PerformanceIndicator metrics={perfMonitoring.metrics} language={language} />
           )}
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
               title={t.children}
               value={stats.totalChildren}
@@ -1018,21 +1019,15 @@ export const PerformanceOptimizedDashboard = memo<PerformanceOptimizedDashboardP
           </div>
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             {/* Left Column - Children Overview & Activity */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="space-y-6 lg:col-span-2">
               <Suspense fallback={<Skeleton className="h-64" />}>
-                <ChildrenOverviewLazy
-                  children={dashboardData.children}
-                  language={language}
-                />
+                <ChildrenOverviewLazy children={dashboardData.children} language={language} />
               </Suspense>
 
               <Suspense fallback={<Skeleton className="h-48" />}>
-                <ActivityFeedLazy
-                  activities={dashboardData.recentActivity}
-                  language={language}
-                />
+                <ActivityFeedLazy activities={dashboardData.recentActivity} language={language} />
               </Suspense>
             </div>
 
@@ -1061,9 +1056,7 @@ export const PerformanceOptimizedDashboard = memo<PerformanceOptimizedDashboardP
                         )}
                       />
                       <span className="text-gray-600">
-                        {networkQuality === 'slow'
-                          ? '网络较慢，正在优化加载...'
-                          : '网络质量中等'}
+                        {networkQuality === 'slow' ? '网络较慢，正在优化加载...' : '网络质量中等'}
                       </span>
                     </div>
                   </CardContent>

@@ -23,10 +23,7 @@ export const GET = withAuth(
   async (req: NextRequest, session) => {
     const family = await getFamilyAccountForParent(session)
     if (!family) {
-      return NextResponse.json(
-        { error: '未找到家庭账户' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: '未找到家庭账户' }, { status: 404 })
     }
 
     const cacheKey = `parent:notifications:${family.id}`
@@ -60,10 +57,7 @@ export const PATCH = withAuth(
   async (req: NextRequest, session) => {
     const family = await getFamilyAccountForParent(session)
     if (!family) {
-      return NextResponse.json(
-        { error: '未找到家庭账户' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: '未找到家庭账户' }, { status: 404 })
     }
 
     let body: { ids?: string[]; all?: boolean }
@@ -83,7 +77,8 @@ export const PATCH = withAuth(
       return NextResponse.json({ error: '请提供 ids 或 all' }, { status: 400 })
     }
 
-    await drizzleDb.update(familyNotification)
+    await drizzleDb
+      .update(familyNotification)
       .set({ isRead: true })
       .where(and(...conditions))
 

@@ -7,7 +7,18 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { BookOpen, Users, Clock3, GraduationCap, Compass, FileText, Star, UserCheck, UserPlus, CheckCircle } from 'lucide-react'
+import {
+  BookOpen,
+  Users,
+  Clock3,
+  GraduationCap,
+  Compass,
+  FileText,
+  Star,
+  UserCheck,
+  UserPlus,
+  CheckCircle,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 interface PublicTutorResponse {
@@ -41,7 +52,7 @@ interface PublicTutorResponse {
 function getInitials(name: string): string {
   return name
     .split(' ')
-    .map((part) => part[0] || '')
+    .map(part => part[0] || '')
     .join('')
     .slice(0, 2)
     .toUpperCase()
@@ -52,9 +63,7 @@ function StarRating({ rating, count }: { rating: number; count?: number }) {
     <div className="flex items-center gap-1">
       <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
       <span className="font-medium">{rating.toFixed(1)}</span>
-      {count !== undefined && (
-        <span className="text-muted-foreground text-sm">({count})</span>
-      )}
+      {count !== undefined && <span className="text-sm text-muted-foreground">({count})</span>}
     </div>
   )
 }
@@ -63,7 +72,7 @@ export default function PublicTutorPage() {
   const params = useParams()
   const locale = typeof params?.locale === 'string' ? params.locale : 'en'
   const username = typeof params?.username === 'string' ? params.username : ''
-  
+
   const [data, setData] = useState<PublicTutorResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [followState, setFollowState] = useState({
@@ -75,7 +84,7 @@ export default function PublicTutorPage() {
   useEffect(() => {
     loadTutorData()
   }, [username])
-  
+
   useEffect(() => {
     if (!data?.tutor?.id) return
     loadFollowState(data.tutor.id)
@@ -92,7 +101,7 @@ export default function PublicTutorPage() {
       if (!res.ok) throw new Error('Not found')
 
       const tutorData = await res.json()
-      
+
       // Enrich with mock ratings for now
       setData({
         ...tutorData,
@@ -100,8 +109,8 @@ export default function PublicTutorPage() {
           ...course,
           rating: 4.2 + Math.random() * 0.8,
           reviewCount: Math.floor(Math.random() * 50) + 5,
-          price: course.price || Math.floor(Math.random() * 100) + 50
-        }))
+          price: course.price || Math.floor(Math.random() * 100) + 50,
+        })),
       })
     } catch {
       // Handle error
@@ -111,13 +120,13 @@ export default function PublicTutorPage() {
   }
 
   const loadFollowState = async (tutorId: string) => {
-    setFollowState((prev) => ({ ...prev, loading: true }))
+    setFollowState(prev => ({ ...prev, loading: true }))
     try {
       const res = await fetch(`/api/follows?tutorId=${encodeURIComponent(tutorId)}`, {
         cache: 'no-store',
       })
       if (!res.ok) {
-        setFollowState((prev) => ({ ...prev, loading: false }))
+        setFollowState(prev => ({ ...prev, loading: false }))
         return
       }
       const followData = await res.json()
@@ -127,14 +136,14 @@ export default function PublicTutorPage() {
         loading: false,
       })
     } catch {
-      setFollowState((prev) => ({ ...prev, loading: false }))
+      setFollowState(prev => ({ ...prev, loading: false }))
     }
   }
 
   const toggleFollow = async () => {
     if (!data?.tutor?.id || followState.loading) return
 
-    setFollowState((prev) => ({ ...prev, loading: true }))
+    setFollowState(prev => ({ ...prev, loading: true }))
     try {
       const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
       const csrfData = await csrfRes.json().catch(() => ({}))
@@ -157,7 +166,7 @@ export default function PublicTutorPage() {
         } else {
           toast.error(result?.error || 'Unable to update follow status')
         }
-        setFollowState((prev) => ({ ...prev, loading: false }))
+        setFollowState(prev => ({ ...prev, loading: false }))
         return
       }
 
@@ -169,13 +178,13 @@ export default function PublicTutorPage() {
       toast.success(result?.isFollowing ? 'You are now following this tutor' : 'Unfollowed tutor')
     } catch {
       toast.error('Unable to update follow status')
-      setFollowState((prev) => ({ ...prev, loading: false }))
+      setFollowState(prev => ({ ...prev, loading: false }))
     }
   }
 
   // Calculate aggregated tutor rating from courses
-  const tutorRating = data?.courses?.length 
-    ? data.courses.reduce((sum, c: any) => sum + (c.rating || 0), 0) / data.courses.length 
+  const tutorRating = data?.courses?.length
+    ? data.courses.reduce((sum, c: any) => sum + (c.rating || 0), 0) / data.courses.length
     : 0
   const totalReviews = data?.courses?.reduce((sum, c: any) => sum + (c.reviewCount || 0), 0) || 0
 
@@ -227,15 +236,15 @@ export default function PublicTutorPage() {
                 {tutorRating > 0 && (
                   <div className="flex items-center gap-1 pt-1">
                     <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
-                    <span className="font-medium text-lg">{tutorRating.toFixed(1)}</span>
+                    <span className="text-lg font-medium">{tutorRating.toFixed(1)}</span>
                     <span className="text-muted-foreground">({totalReviews} reviews)</span>
                   </div>
                 )}
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button 
-                variant={followState.isFollowing ? 'default' : 'outline'} 
+              <Button
+                variant={followState.isFollowing ? 'default' : 'outline'}
                 onClick={toggleFollow}
                 className={followState.isFollowing ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
                 disabled={followState.loading}
@@ -247,7 +256,7 @@ export default function PublicTutorPage() {
                 )}
                 {followState.isFollowing ? 'Following' : 'Follow'}
               </Button>
-              <Button 
+              <Button
                 variant="outline"
                 onClick={() => {
                   const handleUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/@${tutor.username}`
@@ -269,12 +278,14 @@ export default function PublicTutorPage() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-sm font-semibold text-slate-900">Expertise & Credentials</h3>
-                <p className="text-xs text-slate-600">Specialties, exams, and verified qualifications</p>
+                <p className="text-xs text-slate-600">
+                  Specialties, exams, and verified qualifications
+                </p>
               </div>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {tutor.specialties.length > 0 ? (
-                tutor.specialties.map((specialty) => (
+                tutor.specialties.map(specialty => (
                   <Badge key={specialty} variant="secondary">
                     {specialty}
                   </Badge>
@@ -291,7 +302,7 @@ export default function PublicTutorPage() {
             ) : null}
           </div>
         </div>
-        <CardContent className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4 sm:p-6">
+        <CardContent className="grid gap-3 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-4">
           <div className="rounded-lg border bg-white p-3">
             <p className="text-xs uppercase tracking-wide text-slate-500">Published Courses</p>
             <p className="mt-1 text-xl font-semibold text-slate-900">{courses.length}</p>
@@ -328,29 +339,45 @@ export default function PublicTutorPage() {
             courses.map((course: any) => (
               <div key={course.id} className="rounded-lg border bg-card p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="space-y-1 flex-1 min-w-0">
+                  <div className="min-w-0 flex-1 space-y-1">
                     <h3 className="text-lg font-semibold text-slate-900">{course.name}</h3>
-                    <p className="text-sm text-slate-600">{course.description || 'No description provided.'}</p>
+                    <p className="text-sm text-slate-600">
+                      {course.description || 'No description provided.'}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary">{course.subject}</Badge>
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  {course.gradeLevel ? <Badge variant="outline"><GraduationCap className="mr-1 h-3 w-3" />{course.gradeLevel}</Badge> : null}
+                  {course.gradeLevel ? (
+                    <Badge variant="outline">
+                      <GraduationCap className="mr-1 h-3 w-3" />
+                      {course.gradeLevel}
+                    </Badge>
+                  ) : null}
                   {course.difficulty ? <Badge variant="outline">{course.difficulty}</Badge> : null}
-                  {course.estimatedHours ? <Badge variant="outline"><Clock3 className="mr-1 h-3 w-3" />{course.estimatedHours}h</Badge> : null}
-                  <Badge variant="outline"><BookOpen className="mr-1 h-3 w-3" />{course.moduleCount} modules</Badge>
+                  {course.estimatedHours ? (
+                    <Badge variant="outline">
+                      <Clock3 className="mr-1 h-3 w-3" />
+                      {course.estimatedHours}h
+                    </Badge>
+                  ) : null}
+                  <Badge variant="outline">
+                    <BookOpen className="mr-1 h-3 w-3" />
+                    {course.moduleCount} modules
+                  </Badge>
                   <Badge variant="outline">{course.lessonCount} lessons</Badge>
-                  <Badge variant="outline"><Users className="mr-1 h-3 w-3" />{course.enrollmentCount} enrolled</Badge>
+                  <Badge variant="outline">
+                    <Users className="mr-1 h-3 w-3" />
+                    {course.enrollmentCount} enrolled
+                  </Badge>
                 </div>
-                <div className="mt-3 flex items-center justify-between pt-3 border-t">
+                <div className="mt-3 flex items-center justify-between border-t pt-3">
                   <div className="flex items-center gap-4">
                     <StarRating rating={course.rating || 0} count={course.reviewCount} />
                     {course.price && (
-                      <span className="font-bold text-slate-900">
-                        ${course.price}
-                      </span>
+                      <span className="font-bold text-slate-900">${course.price}</span>
                     )}
                   </div>
                   <Button asChild size="sm" variant="default">

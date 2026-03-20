@@ -26,33 +26,27 @@ export async function GET(_request: NextRequest) {
       .orderBy(desc(generatedTask.createdAt))
       .limit(50)
 
-    const studentTasks = generatedTasks.filter((task) => {
+    const studentTasks = generatedTasks.filter(task => {
       const assignments = task.assignments as Record<string, unknown> | null
       if (!assignments) return false
       return Object.keys(assignments).includes(studentId)
     })
 
-    const taskIds = studentTasks.map((t) => t.id)
+    const taskIds = studentTasks.map(t => t.id)
     const submissions =
       taskIds.length > 0
         ? await drizzleDb
             .select()
             .from(taskSubmission)
             .where(
-              and(
-                eq(taskSubmission.studentId, studentId),
-                inArray(taskSubmission.taskId, taskIds)
-              )
+              and(eq(taskSubmission.studentId, studentId), inArray(taskSubmission.taskId, taskIds))
             )
         : []
-    const submissionMap = new Map(submissions.map((s) => [s.taskId, s]))
+    const submissionMap = new Map(submissions.map(s => [s.taskId, s]))
 
-    const assignments = studentTasks.map((task) => {
+    const assignments = studentTasks.map(task => {
       const submission = submissionMap.get(task.id)
-      const isOverdue =
-        task.dueDate &&
-        new Date(task.dueDate) < new Date() &&
-        !submission
+      const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !submission
       return {
         id: task.id,
         title: task.title,
@@ -61,25 +55,19 @@ export async function GET(_request: NextRequest) {
         difficulty: task.difficulty,
         dueDate: task.dueDate?.toISOString() ?? null,
         maxScore: task.maxScore,
-        status: submission
-          ? 'submitted'
-          : isOverdue
-            ? 'overdue'
-            : 'pending',
+        status: submission ? 'submitted' : isOverdue ? 'overdue' : 'pending',
         score: submission?.score ?? null,
         submittedAt: submission?.submittedAt?.toISOString() ?? null,
-        questionCount: Array.isArray(task.questions)
-          ? (task.questions as unknown[]).length
-          : 0,
+        questionCount: Array.isArray(task.questions) ? (task.questions as unknown[]).length : 0,
         lessonId: task.lessonId,
         batchId: task.batchId,
         documentSource: task.documentSource,
       }
     })
 
-    const pending = assignments.filter((a) => a.status === 'pending').length
-    const submitted = assignments.filter((a) => a.status === 'submitted').length
-    const overdue = assignments.filter((a) => a.status === 'overdue').length
+    const pending = assignments.filter(a => a.status === 'pending').length
+    const submitted = assignments.filter(a => a.status === 'submitted').length
+    const overdue = assignments.filter(a => a.status === 'overdue').length
 
     return NextResponse.json({
       assignments,

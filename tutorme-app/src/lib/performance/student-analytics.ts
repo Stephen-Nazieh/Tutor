@@ -103,41 +103,34 @@ export async function calculateStudentMetrics(
       completionRate: 0,
       engagementScore: 0,
       attendanceRate: 0,
-      participationRate: 0
+      participationRate: 0,
     }
   }
 
   const averageScore =
-    submissions.reduce((sum, s) => sum + (Number(s.score) || 0), 0) /
-    submissions.length
+    submissions.reduce((sum, s) => sum + (Number(s.score) || 0), 0) / submissions.length
 
-  const completedTasks = submissions.filter((s) => s.status === 'graded').length
+  const completedTasks = submissions.filter(s => s.status === 'graded').length
   const completionRate = (completedTasks / submissions.length) * 100
 
   const avgTimeSpent =
-    submissions.reduce((sum, s) => sum + (s.timeSpent || 0), 0) /
-    submissions.length
+    submissions.reduce((sum, s) => sum + (s.timeSpent || 0), 0) / submissions.length
   const avgAttempts =
-    submissions.reduce((sum, s) => sum + (s.attempts || 1), 0) /
-    submissions.length
-  const engagementScore = Math.min(
-    100,
-    (avgTimeSpent / 300) * 50 + (1 / avgAttempts) * 50
-  )
+    submissions.reduce((sum, s) => sum + (s.attempts || 1), 0) / submissions.length
+  const engagementScore = Math.min(100, (avgTimeSpent / 300) * 50 + (1 / avgAttempts) * 50)
 
   const participantRows = await drizzleDb
     .select({ sessionId: sessionParticipant.sessionId, joinedAt: sessionParticipant.joinedAt })
     .from(sessionParticipant)
     .where(eq(sessionParticipant.studentId, studentId))
 
-  const distinctSessions = new Set(participantRows.map((p) => p.sessionId))
+  const distinctSessions = new Set(participantRows.map(p => p.sessionId))
   const attendedSessionIds = new Set(
-    participantRows.filter((p) => p.joinedAt != null).map((p) => p.sessionId)
+    participantRows.filter(p => p.joinedAt != null).map(p => p.sessionId)
   )
   const totalSessions = distinctSessions.size
   const attendedSessions = attendedSessionIds.size
-  const attendanceRate =
-    totalSessions > 0 ? (attendedSessions / totalSessions) * 100 : 0
+  const attendanceRate = totalSessions > 0 ? (attendedSessions / totalSessions) * 100 : 0
 
   const [msgRow] = await drizzleDb
     .select({ count: sql<number>`count(*)::int` })
@@ -151,7 +144,7 @@ export async function calculateStudentMetrics(
     completionRate: Math.round(completionRate * 10) / 10,
     engagementScore: Math.round(engagementScore * 10) / 10,
     attendanceRate: Math.round(attendanceRate * 10) / 10,
-    participationRate: Math.round(participationRate * 10) / 10
+    participationRate: Math.round(participationRate * 10) / 10,
   }
 }
 
@@ -198,12 +191,7 @@ export async function analyzeSubjectPerformance(
   const attempts = await drizzleDb
     .select()
     .from(quizAttempt)
-    .where(
-      and(
-        eq(quizAttempt.studentId, studentId),
-        isNotNull(quizAttempt.questionResults)
-      )
-    )
+    .where(and(eq(quizAttempt.studentId, studentId), isNotNull(quizAttempt.questionResults)))
     .limit(50)
   for (const a of attempts) {
     const qr = a.questionResults as Array<{ questionId: string; correct?: boolean }> | null
@@ -246,9 +234,7 @@ export async function analyzeSubjectPerformance(
 /**
  * Determine student's learning pace based on task completion patterns
  */
-export function determineLearningPace(
-  taskHistory: TaskHistoryItem[]
-): 'fast' | 'normal' | 'slow' {
+export function determineLearningPace(taskHistory: TaskHistoryItem[]): 'fast' | 'normal' | 'slow' {
   if (taskHistory.length < 3) return 'normal'
 
   const avgTimeSpent = taskHistory.reduce((sum, t) => sum + t.timeSpent, 0) / taskHistory.length
@@ -272,9 +258,7 @@ export function determineLearningPace(
  * Enriched: also derives mistakes from `questionResults` on both
  * TaskSubmission and QuizAttempt (questions the student repeatedly gets wrong).
  */
-export async function identifyCommonMistakes(
-  studentId: string
-): Promise<CommonMistake[]> {
+export async function identifyCommonMistakes(studentId: string): Promise<CommonMistake[]> {
   const submissions = await drizzleDb
     .select()
     .from(taskSubmission)
@@ -322,12 +306,7 @@ export async function identifyCommonMistakes(
   const quizAttempts = await drizzleDb
     .select()
     .from(quizAttempt)
-    .where(
-      and(
-        eq(quizAttempt.studentId, studentId),
-        isNotNull(quizAttempt.questionResults)
-      )
-    )
+    .where(and(eq(quizAttempt.studentId, studentId), isNotNull(quizAttempt.questionResults)))
     .orderBy(desc(quizAttempt.completedAt))
     .limit(50)
 
@@ -351,7 +330,7 @@ export async function identifyCommonMistakes(
     .map(([type, data]) => ({
       type,
       frequency: data.count,
-      lastOccurred: data.lastAt
+      lastOccurred: data.lastAt,
     }))
     .sort((a, b) => b.frequency - a.frequency)
     .slice(0, 10)
@@ -365,20 +344,12 @@ export function assignPerformanceCluster(
   taskHistory: TaskHistoryItem[]
 ): PerformanceCluster {
   // Advanced: high scores, good completion, good engagement
-  if (
-    metrics.averageScore >= 80 &&
-    metrics.completionRate >= 80 &&
-    metrics.engagementScore >= 70
-  ) {
+  if (metrics.averageScore >= 80 && metrics.completionRate >= 80 && metrics.engagementScore >= 70) {
     return 'advanced'
   }
 
   // Struggling: low scores or poor completion
-  if (
-    metrics.averageScore < 60 ||
-    metrics.completionRate < 50 ||
-    metrics.engagementScore < 40
-  ) {
+  if (metrics.averageScore < 60 || metrics.completionRate < 50 || metrics.engagementScore < 40) {
     return 'struggling'
   }
 
@@ -399,28 +370,33 @@ export async function getQuestionLevelBreakdown(
   const attempts = await drizzleDb
     .select()
     .from(quizAttempt)
-    .where(
-      and(
-        eq(quizAttempt.studentId, studentId),
-        isNotNull(quizAttempt.questionResults)
-      )
-    )
+    .where(and(eq(quizAttempt.studentId, studentId), isNotNull(quizAttempt.questionResults)))
     .orderBy(desc(quizAttempt.completedAt))
     .limit(50)
 
   for (const a of attempts) {
-    const results = a.questionResults as Array<{ questionId: string; correct?: boolean; pointsEarned?: number; pointsMax?: number; selectedAnswer?: unknown }> | null
+    const results = a.questionResults as Array<{
+      questionId: string
+      correct?: boolean
+      pointsEarned?: number
+      pointsMax?: number
+      selectedAnswer?: unknown
+    }> | null
     if (!Array.isArray(results) || results.length === 0) continue
 
     const rows: QuestionResultRow[] = results.map(r => ({
       sourceType: 'quiz',
       sourceId: a.quizId,
       questionId: r.questionId,
-      correct: r.correct ?? (r.pointsEarned !== undefined && r.pointsMax !== undefined ? r.pointsEarned >= (r.pointsMax * 0.7) : false),
+      correct:
+        r.correct ??
+        (r.pointsEarned !== undefined && r.pointsMax !== undefined
+          ? r.pointsEarned >= r.pointsMax * 0.7
+          : false),
       pointsEarned: r.pointsEarned ?? 0,
       pointsMax: r.pointsMax ?? 100,
       selectedAnswer: r.selectedAnswer,
-      completedAt: a.completedAt
+      completedAt: a.completedAt,
     }))
 
     for (const r of rows) {
@@ -433,35 +409,40 @@ export async function getQuestionLevelBreakdown(
       sourceType: 'quiz',
       sourceId: a.quizId,
       completedAt: a.completedAt,
-      questions: rows
+      questions: rows,
     })
   }
 
   const submissions = await drizzleDb
     .select()
     .from(taskSubmission)
-    .where(
-      and(
-        eq(taskSubmission.studentId, studentId),
-        isNotNull(taskSubmission.questionResults)
-      )
-    )
+    .where(and(eq(taskSubmission.studentId, studentId), isNotNull(taskSubmission.questionResults)))
     .orderBy(desc(taskSubmission.submittedAt))
     .limit(50)
 
   for (const s of submissions) {
-    const results = s.questionResults as Array<{ questionId: string; correct?: boolean; pointsEarned?: number; pointsMax?: number; selectedAnswer?: unknown }> | null
+    const results = s.questionResults as Array<{
+      questionId: string
+      correct?: boolean
+      pointsEarned?: number
+      pointsMax?: number
+      selectedAnswer?: unknown
+    }> | null
     if (!Array.isArray(results) || results.length === 0) continue
 
     const rows: QuestionResultRow[] = results.map(r => ({
       sourceType: 'task',
       sourceId: s.taskId,
       questionId: r.questionId,
-      correct: r.correct ?? (r.pointsEarned !== undefined && r.pointsMax !== undefined ? r.pointsEarned >= (r.pointsMax * 0.7) : false),
+      correct:
+        r.correct ??
+        (r.pointsEarned !== undefined && r.pointsMax !== undefined
+          ? r.pointsEarned >= r.pointsMax * 0.7
+          : false),
       pointsEarned: r.pointsEarned ?? 0,
       pointsMax: r.pointsMax ?? 100,
       selectedAnswer: r.selectedAnswer,
-      completedAt: s.submittedAt
+      completedAt: s.submittedAt,
     }))
 
     for (const r of rows) {
@@ -474,7 +455,7 @@ export async function getQuestionLevelBreakdown(
       sourceType: 'task',
       sourceId: s.taskId,
       completedAt: s.submittedAt,
-      questions: rows
+      questions: rows,
     })
   }
 
@@ -482,7 +463,7 @@ export async function getQuestionLevelBreakdown(
     bySource,
     weakQuestionIds: [...new Set(weakQuestionIds)],
     totalCorrect,
-    totalQuestions
+    totalQuestions,
   }
 }
 
@@ -511,8 +492,13 @@ export async function getStudentPerformance(
             await drizzleDb
               .select({ id: generatedTask.id })
               .from(generatedTask)
-              .where(inArray(generatedTask.batchId, batchIds.map((b) => b.id)))
-          ).map((t) => t.id)
+              .where(
+                inArray(
+                  generatedTask.batchId,
+                  batchIds.map(b => b.id)
+                )
+              )
+          ).map(t => t.id)
         : []
     submissions =
       taskIds.length > 0
@@ -520,10 +506,7 @@ export async function getStudentPerformance(
             .select()
             .from(taskSubmission)
             .where(
-              and(
-                eq(taskSubmission.studentId, studentId),
-                inArray(taskSubmission.taskId, taskIds)
-              )
+              and(eq(taskSubmission.studentId, studentId), inArray(taskSubmission.taskId, taskIds))
             )
             .orderBy(desc(taskSubmission.submittedAt))
             .limit(20)
@@ -551,7 +534,7 @@ export async function getStudentPerformance(
       attempts: s.attempts || 1,
       completedAt: s.submittedAt,
       strengths: answers?.strengthsDemonstrated || [],
-      weaknesses: answers?.areasForImprovement || []
+      weaknesses: answers?.areasForImprovement || [],
     }
   })
 
@@ -582,16 +565,14 @@ export async function getStudentPerformance(
     pace,
     taskHistory,
     commonMistakes,
-    performanceCluster
+    performanceCluster,
   }
 }
 
 /**
  * Get class-wide performance summary
  */
-export async function getClassPerformanceSummary(
-  curriculumId: string
-): Promise<{
+export async function getClassPerformanceSummary(curriculumId: string): Promise<{
   totalStudents: number
   averageScore: number
   clusterDistribution: Record<PerformanceCluster, number>
@@ -607,7 +588,7 @@ export async function getClassPerformanceSummary(
     .where(eq(curriculumEnrollment.curriculumId, curriculumId))
 
   const studentPerformances = await Promise.all(
-    enrollments.map(async (enrollment) => {
+    enrollments.map(async enrollment => {
       const [profileRow] = await drizzleDb
         .select({ name: profile.name })
         .from(profile)
@@ -616,10 +597,7 @@ export async function getClassPerformanceSummary(
       return {
         id: enrollment.studentId,
         name: profileRow?.name ?? 'Unknown',
-        performance: await getStudentPerformance(
-          enrollment.studentId,
-          curriculumId
-        ),
+        performance: await getStudentPerformance(enrollment.studentId, curriculumId),
       }
     })
   )
@@ -627,7 +605,7 @@ export async function getClassPerformanceSummary(
   const clusterDistribution: Record<PerformanceCluster, number> = {
     advanced: 0,
     intermediate: 0,
-    struggling: 0
+    struggling: 0,
   }
   const scoreDistribution = [
     { range: '0-59', count: 0 },
@@ -654,19 +632,22 @@ export async function getClassPerformanceSummary(
       studentsNeedingAttention.push({
         id: sp.id,
         name: sp.name,
-        reason: `Low performance: ${sp.performance.overallMetrics.averageScore.toFixed(0)}% avg`
+        reason: `Low performance: ${sp.performance.overallMetrics.averageScore.toFixed(0)}% avg`,
       })
     }
   }
 
   // Sort by score and get top students
   const sortedStudents = studentPerformances
-    .sort((a, b) => b.performance.overallMetrics.averageScore - a.performance.overallMetrics.averageScore)
+    .sort(
+      (a, b) =>
+        b.performance.overallMetrics.averageScore - a.performance.overallMetrics.averageScore
+    )
     .slice(0, 5)
     .map(s => ({
       id: s.id,
       name: s.name,
-      score: s.performance.overallMetrics.averageScore
+      score: s.performance.overallMetrics.averageScore,
     }))
 
   return {
@@ -675,7 +656,7 @@ export async function getClassPerformanceSummary(
     clusterDistribution,
     scoreDistribution,
     topStudents: sortedStudents,
-    studentsNeedingAttention
+    studentsNeedingAttention,
   }
 }
 
@@ -699,7 +680,7 @@ export async function updateStudentPerformanceRecord(
     cluster: performance.performanceCluster,
     strengths: performance.subjectStrengths,
     weaknesses: performance.subjectWeaknesses,
-    commonMistakes: performance.commonMistakes.map((m) => ({
+    commonMistakes: performance.commonMistakes.map(m => ({
       type: m.type,
       frequency: m.frequency,
     })),

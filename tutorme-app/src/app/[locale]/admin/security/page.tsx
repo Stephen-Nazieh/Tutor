@@ -5,16 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
-import {
-  Shield,
-  Lock,
-  Key,
-  AlertTriangle,
-  UserX,
-  Eye,
-  History,
-  Plus,
-} from 'lucide-react'
+import { Shield, Lock, Key, AlertTriangle, UserX, Eye, History, Plus } from 'lucide-react'
 
 export default function SecurityPage() {
   return (
@@ -22,9 +13,7 @@ export default function SecurityPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Security</h1>
-        <p className="text-slate-500">
-          Manage security settings and access controls
-        </p>
+        <p className="text-slate-500">Manage security settings and access controls</p>
       </div>
 
       {/* Security Overview */}
@@ -140,7 +129,7 @@ export default function SecurityPage() {
                   { ip: '192.168.1.0/24', description: 'Office Network', active: true },
                   { ip: '10.0.0.1', description: 'VPN Gateway', active: true },
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={i} className="flex items-center justify-between rounded-lg border p-3">
                     <div>
                       <code className="text-sm font-medium">{item.ip}</code>
                       <p className="text-xs text-slate-500">{item.description}</p>
@@ -176,10 +165,20 @@ export default function SecurityPage() {
         <CardContent>
           <div className="space-y-4">
             {[
-              { name: 'Production API', key: 'tm_live_...', created: '2024-01-15', lastUsed: '2 hours ago' },
-              { name: 'Staging API', key: 'tm_test_...', created: '2024-01-10', lastUsed: '1 day ago' },
+              {
+                name: 'Production API',
+                key: 'tm_live_...',
+                created: '2024-01-15',
+                lastUsed: '2 hours ago',
+              },
+              {
+                name: 'Staging API',
+                key: 'tm_test_...',
+                created: '2024-01-10',
+                lastUsed: '1 day ago',
+              },
             ].map((key, i) => (
-              <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+              <div key={i} className="flex items-center justify-between rounded-lg border p-4">
                 <div>
                   <p className="font-medium">{key.name}</p>
                   <code className="text-xs text-slate-500">{key.key}xxxx</code>

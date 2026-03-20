@@ -63,10 +63,14 @@ export type ModuleItem = {
   lessons: LessonItem[]
 }
 
-function normalizeLessons(raw: Array<z.infer<typeof lessonSchema>>, typicalLessonMinutes: number): LessonItem[] {
-  return raw.map((l) => ({
+function normalizeLessons(
+  raw: Array<z.infer<typeof lessonSchema>>,
+  typicalLessonMinutes: number
+): LessonItem[] {
+  return raw.map(l => ({
     title: l.title || 'Lesson',
-    durationMinutes: typeof l.durationMinutes === 'number' ? l.durationMinutes : typicalLessonMinutes,
+    durationMinutes:
+      typeof l.durationMinutes === 'number' ? l.durationMinutes : typicalLessonMinutes,
   }))
 }
 
@@ -133,7 +137,7 @@ ${content}`
 
   const parsed = safeJsonParseWithSchema(result.content, outlineModulesSchema, { extract: true })
   const modules: ModuleItem[] = parsed.data
-    ? parsed.data.map((m) => ({
+    ? parsed.data.map(m => ({
         title: m.title,
         description: m.description,
         notes: m.notes,
@@ -142,7 +146,6 @@ ${content}`
       }))
     : []
 
-  const outline = modules.flatMap((m) => m.lessons)
+  const outline = modules.flatMap(m => m.lessons)
   return { modules, outline, provider: result.provider }
 }
-

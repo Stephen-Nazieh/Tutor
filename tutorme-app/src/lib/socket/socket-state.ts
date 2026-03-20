@@ -51,11 +51,16 @@ export async function getConversationParticipantIds(
 ): Promise<{ participant1Id: string; participant2Id: string } | null> {
   try {
     const [conv] = await drizzleDb
-      .select({ participant1Id: conversation.participant1Id, participant2Id: conversation.participant2Id })
+      .select({
+        participant1Id: conversation.participant1Id,
+        participant2Id: conversation.participant2Id,
+      })
       .from(conversation)
       .where(eq(conversation.id, conversationId))
       .limit(1)
-    return conv ? { participant1Id: conv.participant1Id, participant2Id: conv.participant2Id } : null
+    return conv
+      ? { participant1Id: conv.participant1Id, participant2Id: conv.participant2Id }
+      : null
   } catch {
     return null
   }
@@ -119,29 +124,45 @@ export function expandLiveShareForStudents(
 // ============ Whiteboard (generic + LCWB) ============
 export const activeWhiteboards = new Map<string, WhiteboardState>()
 export const whiteboardOpMetrics = new Map<string, WhiteboardOpMetricsState>()
-export const whiteboardSelectionPresence = new Map<string, Map<string, import('./socket-types').WhiteboardSelectionPresence>>()
+export const whiteboardSelectionPresence = new Map<
+  string,
+  Map<string, import('./socket-types').WhiteboardSelectionPresence>
+>()
 export const lcwbAiRegionRateLimit = new Map<string, { count: number; resetAt: number }>()
 export const whiteboardOpSeenIds = new Map<string, Set<string>>()
-export const whiteboardDeadLetters = new Map<string, Array<{ at: number; reason: 'malformed' | 'duplicate' | 'causal'; op: WhiteboardStrokeOp }>>()
-export const whiteboardOpLog = new Map<string, Array<{ seq: number; at: number; op: WhiteboardStrokeOp }>>()
+export const whiteboardDeadLetters = new Map<
+  string,
+  Array<{ at: number; reason: 'malformed' | 'duplicate' | 'causal'; op: WhiteboardStrokeOp }>
+>()
+export const whiteboardOpLog = new Map<
+  string,
+  Array<{ seq: number; at: number; op: WhiteboardStrokeOp }>
+>()
 export const whiteboardOpSeq = new Map<string, number>()
 export const whiteboardBranches = new Map<string, Map<string, WhiteboardStroke[]>>()
 
 export const liveClassModeration = new Map<string, LiveClassModerationState>()
 export const liveClassSnapshots = new Map<string, LiveClassSnapshot[]>()
-export const liveClassExports = new Map<string, Array<{
-  id: string
-  roomId: string
-  sessionId?: string
-  studentId?: string
-  format: 'png' | 'pdf'
-  fileName: string
-  dataUrl: string
-  createdAt: number
-  createdBy: string
-}>>()
+export const liveClassExports = new Map<
+  string,
+  Array<{
+    id: string
+    roomId: string
+    sessionId?: string
+    studentId?: string
+    format: 'png' | 'pdf'
+    fileName: string
+    dataUrl: string
+    createdAt: number
+    createdBy: string
+  }>
+>()
 
-function parseWhiteboardMetricKey(key: string): { roomId: string; boardScope: 'tutor' | 'student'; studentId?: string } {
+function parseWhiteboardMetricKey(key: string): {
+  roomId: string
+  boardScope: 'tutor' | 'student'
+  studentId?: string
+} {
   if (key.startsWith('lcwb:tutor:')) {
     return { roomId: key.replace('lcwb:tutor:', ''), boardScope: 'tutor' }
   }
@@ -179,21 +200,26 @@ export function getWhiteboardOpMetric(key: string): WhiteboardOpMetricsState {
 
 export function trimWhiteboardOpTimestamps(metric: WhiteboardOpMetricsState) {
   const cutoff = Date.now() - 60_000
-  metric.recentAppliedTimestamps = metric.recentAppliedTimestamps.filter((ts) => ts >= cutoff)
+  metric.recentAppliedTimestamps = metric.recentAppliedTimestamps.filter(ts => ts >= cutoff)
 }
 
 export function applyStrokeOps(
   current: WhiteboardStroke[],
   ops: WhiteboardStrokeOp[]
-): { next: WhiteboardStroke[]; appliedCount: number; conflictDrops: number; causalDrops: WhiteboardStrokeOp[] } {
+): {
+  next: WhiteboardStroke[]
+  appliedCount: number
+  conflictDrops: number
+  causalDrops: WhiteboardStrokeOp[]
+} {
   if (!ops.length) {
     return { next: current, appliedCount: 0, conflictDrops: 0, causalDrops: [] }
   }
-  const byId = new Map(current.map((s) => [s.id, s]))
+  const byId = new Map(current.map(s => [s.id, s]))
   let appliedCount = 0
   let conflictDrops = 0
   const causalDrops: WhiteboardStrokeOp[] = []
-  ops.forEach((op) => {
+  ops.forEach(op => {
     if (op.kind === 'delete') {
       if (op.strokeId && byId.has(op.strokeId)) {
         byId.delete(op.strokeId)
@@ -220,25 +246,34 @@ export function applyStrokeOps(
 export function isValidStrokePoint(p: unknown): p is { x: number; y: number; pressure?: number } {
   if (!p || typeof p !== 'object') return false
   const item = p as { x?: unknown; y?: unknown }
-  return typeof item.x === 'number' && Number.isFinite(item.x) && typeof item.y === 'number' && Number.isFinite(item.y)
+  return (
+    typeof item.x === 'number' &&
+    Number.isFinite(item.x) &&
+    typeof item.y === 'number' &&
+    Number.isFinite(item.y)
+  )
 }
 
 export function isValidStroke(stroke: WhiteboardStroke | undefined): stroke is WhiteboardStroke {
   if (!stroke || typeof stroke !== 'object') return false
   if (!stroke.id || typeof stroke.id !== 'string') return false
-  if (!Array.isArray(stroke.points) || stroke.points.some((p) => !isValidStrokePoint(p))) return false
+  if (!Array.isArray(stroke.points) || stroke.points.some(p => !isValidStrokePoint(p))) return false
   return true
 }
 
 export function sanitizeWhiteboardOps(
   wbKey: string,
   ops: WhiteboardStrokeOp[]
-): { valid: WhiteboardStrokeOp[]; malformed: WhiteboardStrokeOp[]; duplicates: WhiteboardStrokeOp[] } {
+): {
+  valid: WhiteboardStrokeOp[]
+  malformed: WhiteboardStrokeOp[]
+  duplicates: WhiteboardStrokeOp[]
+} {
   const valid: WhiteboardStrokeOp[] = []
   const malformed: WhiteboardStrokeOp[] = []
   const duplicates: WhiteboardStrokeOp[] = []
   const seen = whiteboardOpSeenIds.get(wbKey) ?? new Set<string>()
-  ops.forEach((op) => {
+  ops.forEach(op => {
     if (!op || typeof op !== 'object' || (op.kind !== 'upsert' && op.kind !== 'delete')) {
       malformed.push(op)
       return
@@ -252,7 +287,7 @@ export function sanitizeWhiteboardOps(
       if (seen.size > WHITEBOARD_OP_SEEN_MAX) {
         const items = Array.from(seen)
         seen.clear()
-        items.slice(-WHITEBOARD_OP_SEEN_TRIM).forEach((id) => seen.add(id))
+        items.slice(-WHITEBOARD_OP_SEEN_TRIM).forEach(id => seen.add(id))
       }
     }
     if (op.kind === 'upsert') {
@@ -277,7 +312,7 @@ export function pushWhiteboardDeadLetters(
 ) {
   if (!ops.length) return
   const queue = whiteboardDeadLetters.get(wbKey) ?? []
-  ops.forEach((op) => queue.push({ at: Date.now(), reason, op }))
+  ops.forEach(op => queue.push({ at: Date.now(), reason, op }))
   whiteboardDeadLetters.set(wbKey, queue.slice(-WHITEBOARD_DEAD_LETTER_MAX))
 }
 
@@ -285,7 +320,7 @@ export function appendWhiteboardOpLog(wbKey: string, ops: WhiteboardStrokeOp[]) 
   if (!ops.length) return
   const queue = whiteboardOpLog.get(wbKey) ?? []
   let seq = whiteboardOpSeq.get(wbKey) ?? 0
-  ops.forEach((op) => {
+  ops.forEach(op => {
     seq += 1
     queue.push({ seq, at: Date.now(), op })
   })
@@ -318,10 +353,10 @@ export function appendLiveClassSnapshot(roomId: string, snapshot: LiveClassSnaps
 
 export function getWhiteboardOpObservability(roomId?: string): WhiteboardOpObservabilitySnapshot[] {
   const rows: WhiteboardOpObservabilitySnapshot[] = []
-  whiteboardOpMetrics.forEach((metric) => {
+  whiteboardOpMetrics.forEach(metric => {
     if (roomId && metric.roomId !== roomId) return
     trimWhiteboardOpTimestamps(metric)
-    const recent10s = metric.recentAppliedTimestamps.filter((ts) => ts >= Date.now() - 10_000).length
+    const recent10s = metric.recentAppliedTimestamps.filter(ts => ts >= Date.now() - 10_000).length
     rows.push({
       key: metric.key,
       roomId: metric.roomId,
@@ -372,7 +407,7 @@ export function getMathSyncMetric(sessionId: string): MathSyncMetricsState {
 
 export function trimRecentUpdates(metric: MathSyncMetricsState) {
   const cutoff = Date.now() - 60_000
-  metric.recentUpdateTimestamps = metric.recentUpdateTimestamps.filter((ts) => ts >= cutoff)
+  metric.recentUpdateTimestamps = metric.recentUpdateTimestamps.filter(ts => ts >= cutoff)
 }
 
 export function getMathWhiteboardRoom(sessionId: string): MathWhiteboardRoomState {
@@ -401,7 +436,7 @@ export function getMathWhiteboardRoom(sessionId: string): MathWhiteboardRoomStat
 export function getMathSyncObservability(sessionId?: string): MathSyncObservabilitySnapshot[] {
   const snapshots: MathSyncObservabilitySnapshot[] = []
   const rooms = sessionId
-    ? ([[`math:${sessionId}`, mathWhiteboardRooms.get(`math:${sessionId}`)] as const])
+    ? [[`math:${sessionId}`, mathWhiteboardRooms.get(`math:${sessionId}`)] as const]
     : Array.from(mathWhiteboardRooms.entries())
   for (const [key, room] of rooms) {
     if (!room) continue
@@ -421,7 +456,8 @@ export function getMathSyncObservability(sessionId?: string): MathSyncObservabil
       snapshotBroadcasts: metric.snapshotBroadcasts,
       lockToggles: metric.lockToggles,
       updatesPerMinute: metric.recentUpdateTimestamps.length,
-      averageYjsUpdateBytes: metric.yjsUpdates > 0 ? Math.round(metric.yjsBytes / metric.yjsUpdates) : 0,
+      averageYjsUpdateBytes:
+        metric.yjsUpdates > 0 ? Math.round(metric.yjsBytes / metric.yjsUpdates) : 0,
     })
   }
   return snapshots.sort((a, b) => b.lastActivity - a.lastActivity)
@@ -443,7 +479,7 @@ export function getSessionPolls(sessionId: string): PollState[] {
   const pollIds = sessionPolls.get(sessionId)
   if (!pollIds) return []
   return Array.from(pollIds)
-    .map((id) => activePolls.get(id))
+    .map(id => activePolls.get(id))
     .filter((p): p is PollState => p !== undefined)
 }
 

@@ -38,7 +38,7 @@ interface LiveClassState {
 }
 
 export const liveClassStore = create<LiveClassState>()(
-  immer((set) => ({
+  immer(set => ({
     // Initial state
     students: new Map(),
     handRaised: [],
@@ -56,24 +56,23 @@ export const liveClassStore = create<LiveClassState>()(
     isFullscreen: false,
 
     // Actions
-    addStudent: (student) =>
-      set((state) => {
+    addStudent: student =>
+      set(state => {
         state.students.set(student.id, student)
       }),
 
     updateStudentState: (studentId, updates) =>
-      set((state) => {
+      set(state => {
         const student = state.students.get(studentId)
         if (student) {
           state.students.set(studentId, { ...student, ...updates })
         }
-      })
+      }),
   }))
 )
 
 // Selectors for performance
-export const useStudents = () => useLiveClassStore((state) => state.students)
-export const useActiveStudents = () => useLiveClassStore((state) =>
-  Array.from(state.students.values()).filter(s => s.isActive)
-)
-export const useHandRaised = () => useLiveClassStore((state) => state.handRaised)
+export const useStudents = () => useLiveClassStore(state => state.students)
+export const useActiveStudents = () =>
+  useLiveClassStore(state => Array.from(state.students.values()).filter(s => s.isActive))
+export const useHandRaised = () => useLiveClassStore(state => state.handRaised)

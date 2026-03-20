@@ -9,22 +9,79 @@ import crypto from 'crypto'
 import { eq, and, notInArray, sql } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { mission, missionProgress } from '@/lib/db/schema'
-import {
-  awardXp,
-  canAccessWorld,
-  getOrCreateGamification,
-} from './service'
+import { awardXp, canAccessWorld, getOrCreateGamification } from './service'
 import { XP_REWARDS } from './constants'
 import { logActivity } from './activity-log'
 
 export const DEFAULT_WORLDS = [
-  { id: 'survival', name: 'Survival World', emoji: '🌍', description: 'Master everyday English for real-life situations', storyArc: 'You have arrived in an English-speaking country. Learn to navigate daily life, from ordering food to asking for directions.', unlockLevel: 1, difficultyLevel: 1 },
-  { id: 'workplace', name: 'Workplace World', emoji: '💼', description: 'Professional English for career advancement', storyArc: 'You have started a new job. Navigate meetings, emails, and professional conversations with confidence.', unlockLevel: 3, difficultyLevel: 2 },
-  { id: 'daily_life', name: 'Daily Life World', emoji: '🏠', description: 'Conversations with friends, family, and neighbors', storyArc: 'Build relationships and connect with people around you through natural everyday conversations.', unlockLevel: 2, difficultyLevel: 1 },
-  { id: 'academic', name: 'Academic World', emoji: '🧠', description: 'Study skills and academic English', storyArc: 'Prepare for academic success with essay writing, presentations, and research skills.', unlockLevel: 4, difficultyLevel: 3 },
-  { id: 'social', name: 'Social & Relationships', emoji: '❤️', description: 'Make friends and build connections', storyArc: 'Navigate social situations, from casual hangouts to meaningful conversations and dating.', unlockLevel: 3, difficultyLevel: 2 },
-  { id: 'public_speaking', name: 'Public Speaking Arena', emoji: '🎤', description: 'Speak confidently in front of others', storyArc: 'Face your fears and master the art of presenting to groups, large and small.', unlockLevel: 5, difficultyLevel: 3 },
-  { id: 'debate', name: 'Debate Arena', emoji: '🏆', description: 'Advanced argumentation and persuasion', storyArc: 'Enter the arena of ideas. Defend your positions and respectfully challenge others.', unlockLevel: 8, difficultyLevel: 4 },
+  {
+    id: 'survival',
+    name: 'Survival World',
+    emoji: '🌍',
+    description: 'Master everyday English for real-life situations',
+    storyArc:
+      'You have arrived in an English-speaking country. Learn to navigate daily life, from ordering food to asking for directions.',
+    unlockLevel: 1,
+    difficultyLevel: 1,
+  },
+  {
+    id: 'workplace',
+    name: 'Workplace World',
+    emoji: '💼',
+    description: 'Professional English for career advancement',
+    storyArc:
+      'You have started a new job. Navigate meetings, emails, and professional conversations with confidence.',
+    unlockLevel: 3,
+    difficultyLevel: 2,
+  },
+  {
+    id: 'daily_life',
+    name: 'Daily Life World',
+    emoji: '🏠',
+    description: 'Conversations with friends, family, and neighbors',
+    storyArc:
+      'Build relationships and connect with people around you through natural everyday conversations.',
+    unlockLevel: 2,
+    difficultyLevel: 1,
+  },
+  {
+    id: 'academic',
+    name: 'Academic World',
+    emoji: '🧠',
+    description: 'Study skills and academic English',
+    storyArc:
+      'Prepare for academic success with essay writing, presentations, and research skills.',
+    unlockLevel: 4,
+    difficultyLevel: 3,
+  },
+  {
+    id: 'social',
+    name: 'Social & Relationships',
+    emoji: '❤️',
+    description: 'Make friends and build connections',
+    storyArc:
+      'Navigate social situations, from casual hangouts to meaningful conversations and dating.',
+    unlockLevel: 3,
+    difficultyLevel: 2,
+  },
+  {
+    id: 'public_speaking',
+    name: 'Public Speaking Arena',
+    emoji: '🎤',
+    description: 'Speak confidently in front of others',
+    storyArc: 'Face your fears and master the art of presenting to groups, large and small.',
+    unlockLevel: 5,
+    difficultyLevel: 3,
+  },
+  {
+    id: 'debate',
+    name: 'Debate Arena',
+    emoji: '🏆',
+    description: 'Advanced argumentation and persuasion',
+    storyArc: 'Enter the arena of ideas. Defend your positions and respectfully challenge others.',
+    unlockLevel: 8,
+    difficultyLevel: 4,
+  },
 ] as const
 
 export async function initializeWorlds() {
@@ -35,7 +92,7 @@ export async function getWorldsWithStatus(userId: string) {
   const gamification = await getOrCreateGamification(userId)
   const unlocked = gamification.unlockedWorlds ?? []
 
-  return DEFAULT_WORLDS.map((world) => ({
+  return DEFAULT_WORLDS.map(world => ({
     ...world,
     isUnlocked: unlocked.includes(world.id) || gamification.level >= world.unlockLevel,
     canAccess: gamification.level >= world.unlockLevel,
@@ -44,7 +101,7 @@ export async function getWorldsWithStatus(userId: string) {
 }
 
 export async function getWorldWithMissions(worldId: string, userId: string) {
-  const world = DEFAULT_WORLDS.find((w) => w.id === worldId)
+  const world = DEFAULT_WORLDS.find(w => w.id === worldId)
   if (!world) return null
 
   const gamification = await getOrCreateGamification(userId)
@@ -61,7 +118,11 @@ export async function getWorldWithMissions(worldId: string, userId: string) {
 }
 
 export async function startMission(userId: string, missionId: string) {
-  const [missionRow] = await drizzleDb.select().from(mission).where(eq(mission.id, missionId)).limit(1)
+  const [missionRow] = await drizzleDb
+    .select()
+    .from(mission)
+    .where(eq(mission.id, missionId))
+    .limit(1)
   if (!missionRow) throw new Error('Mission not found')
 
   const canAccess = await canAccessWorld(userId, 1)
@@ -101,7 +162,11 @@ export async function completeMission(
   score: number,
   _confidenceDelta: number = 0
 ) {
-  const [missionRow] = await drizzleDb.select().from(mission).where(eq(mission.id, missionId)).limit(1)
+  const [missionRow] = await drizzleDb
+    .select()
+    .from(mission)
+    .where(eq(mission.id, missionId))
+    .limit(1)
   if (!missionRow) throw new Error('Mission not found')
 
   let xpEarned = missionRow.xpReward
@@ -220,7 +285,7 @@ export async function getRecommendedMission(userId: string) {
     .select({ missionId: missionProgress.missionId })
     .from(missionProgress)
     .where(and(eq(missionProgress.studentId, userId), eq(missionProgress.completed, true)))
-  const completedMissionIds = completedRows.map((r) => r.missionId)
+  const completedMissionIds = completedRows.map(r => r.missionId)
 
   if (completedMissionIds.length > 0) {
     const [next] = await drizzleDb
@@ -231,10 +296,6 @@ export async function getRecommendedMission(userId: string) {
     return next ?? null
   }
 
-  const [next] = await drizzleDb
-    .select()
-    .from(mission)
-    .where(eq(mission.isActive, true))
-    .limit(1)
+  const [next] = await drizzleDb.select().from(mission).where(eq(mission.isActive, true)).limit(1)
   return next ?? null
 }

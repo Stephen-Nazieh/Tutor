@@ -12,78 +12,86 @@ import { aIAssistantInsight, aIAssistantSession } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 // PATCH - Update insight
-export const PATCH = withAuth(async (req: NextRequest, session, context) => {
-  const tutorId = session.user.id
-  const insightId = await getParamAsync(context?.params, 'id')
-  if (!insightId) {
-    return NextResponse.json({ error: 'Insight ID required' }, { status: 400 })
-  }
-
-  try {
-    const body = await req.json()
-    const { applied, title, content } = body
-
-    const rows = await drizzleDb
-      .select({ insight: aIAssistantInsight })
-      .from(aIAssistantInsight)
-      .innerJoin(aIAssistantSession, eq(aIAssistantInsight.sessionId, aIAssistantSession.id))
-      .where(and(eq(aIAssistantInsight.id, insightId), eq(aIAssistantSession.tutorId, tutorId)))
-      .limit(1)
-
-    const insight = rows[0]?.insight
-    if (!insight) {
-      return NextResponse.json(
-        { error: 'Insight not found' },
-        { status: 404 }
-      )
+export const PATCH = withAuth(
+  async (req: NextRequest, session, context) => {
+    const tutorId = session.user.id
+    const insightId = await getParamAsync(context?.params, 'id')
+    if (!insightId) {
+      return NextResponse.json({ error: 'Insight ID required' }, { status: 400 })
     }
 
-    const updateData: { applied?: boolean; title?: string; content?: string } = {}
-    if (applied !== undefined) updateData.applied = applied
-    if (title) updateData.title = title
-    if (content) updateData.content = content
+    try {
+      const body = await req.json()
+      const { applied, title, content } = body
 
-    const [updatedInsight] = await drizzleDb
-      .update(aIAssistantInsight)
-      .set(updateData)
-      .where(eq(aIAssistantInsight.id, insightId))
-      .returning()
+      const rows = await drizzleDb
+        .select({ insight: aIAssistantInsight })
+        .from(aIAssistantInsight)
+        .innerJoin(aIAssistantSession, eq(aIAssistantInsight.sessionId, aIAssistantSession.id))
+        .where(and(eq(aIAssistantInsight.id, insightId), eq(aIAssistantSession.tutorId, tutorId)))
+        .limit(1)
 
-    return NextResponse.json({ insight: updatedInsight })
-  } catch (error) {
-    console.error('Update insight error:', error)
-    return handleApiError(error, 'Failed to update insight', 'api/tutor/ai-assistant/insights/[id]/route.ts')
-  }
-}, { role: 'TUTOR' })
+      const insight = rows[0]?.insight
+      if (!insight) {
+        return NextResponse.json({ error: 'Insight not found' }, { status: 404 })
+      }
+
+      const updateData: { applied?: boolean; title?: string; content?: string } = {}
+      if (applied !== undefined) updateData.applied = applied
+      if (title) updateData.title = title
+      if (content) updateData.content = content
+
+      const [updatedInsight] = await drizzleDb
+        .update(aIAssistantInsight)
+        .set(updateData)
+        .where(eq(aIAssistantInsight.id, insightId))
+        .returning()
+
+      return NextResponse.json({ insight: updatedInsight })
+    } catch (error) {
+      console.error('Update insight error:', error)
+      return handleApiError(
+        error,
+        'Failed to update insight',
+        'api/tutor/ai-assistant/insights/[id]/route.ts'
+      )
+    }
+  },
+  { role: 'TUTOR' }
+)
 
 // DELETE - Delete insight
-export const DELETE = withAuth(async (req: NextRequest, session, context) => {
-  const tutorId = session.user.id
-  const insightId = await getParamAsync(context?.params, 'id')
-  if (!insightId) {
-    return NextResponse.json({ error: 'Insight ID required' }, { status: 400 })
-  }
-
-  try {
-    const rows = await drizzleDb
-      .select()
-      .from(aIAssistantInsight)
-      .innerJoin(aIAssistantSession, eq(aIAssistantInsight.sessionId, aIAssistantSession.id))
-      .where(and(eq(aIAssistantInsight.id, insightId), eq(aIAssistantSession.tutorId, tutorId)))
-      .limit(1)
-
-    if (rows.length === 0) {
-      return NextResponse.json(
-        { error: 'Insight not found' },
-        { status: 404 }
-      )
+export const DELETE = withAuth(
+  async (req: NextRequest, session, context) => {
+    const tutorId = session.user.id
+    const insightId = await getParamAsync(context?.params, 'id')
+    if (!insightId) {
+      return NextResponse.json({ error: 'Insight ID required' }, { status: 400 })
     }
 
-    await drizzleDb.delete(aIAssistantInsight).where(eq(aIAssistantInsight.id, insightId))
+    try {
+      const rows = await drizzleDb
+        .select()
+        .from(aIAssistantInsight)
+        .innerJoin(aIAssistantSession, eq(aIAssistantInsight.sessionId, aIAssistantSession.id))
+        .where(and(eq(aIAssistantInsight.id, insightId), eq(aIAssistantSession.tutorId, tutorId)))
+        .limit(1)
 
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Delete insight error:', error)
-    return handleApiError(error, 'Failed to delete insight', 'api/tutor/ai-assistant/insights/[id]/route.ts')
-  }
-}, { role: 'TUTOR' })
+      if (rows.length === 0) {
+        return NextResponse.json({ error: 'Insight not found' }, { status: 404 })
+      }
+
+      await drizzleDb.delete(aIAssistantInsight).where(eq(aIAssistantInsight.id, insightId))
+
+      return NextResponse.json({ success: true })
+    } catch (error) {
+      console.error('Delete insight error:', error)
+      return handleApiError(
+        error,
+        'Failed to delete insight',
+        'api/tutor/ai-assistant/insights/[id]/route.ts'
+      )
+    }
+  },
+  { role: 'TUTOR' }
+)

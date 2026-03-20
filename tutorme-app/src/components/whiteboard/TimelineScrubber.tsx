@@ -1,6 +1,6 @@
 /**
  * Timeline Scrubber Component
- * 
+ *
  * Provides time-travel playback controls for whiteboard history.
  */
 
@@ -9,15 +9,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
-import { 
-  Play, 
-  Pause, 
-  SkipBack, 
-  SkipForward, 
-  Rewind,
-  FastForward,
-  Clock
-} from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Rewind, FastForward, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface TimelineEvent {
@@ -55,7 +47,7 @@ export function TimelineScrubber({
   className,
 }: TimelineScrubberProps) {
   const [hoveredEvent, setHoveredEvent] = useState<TimelineEvent | null>(null)
-  
+
   const totalEvents = events.length
   const progress = totalEvents > 0 ? (currentSeq / events[events.length - 1]?.seq) * 100 : 0
 
@@ -66,20 +58,19 @@ export function TimelineScrubber({
   }, [])
 
   // Calculate duration
-  const duration = events.length > 1 
-    ? events[events.length - 1].timestamp - events[0].timestamp 
-    : 0
+  const duration = events.length > 1 ? events[events.length - 1].timestamp - events[0].timestamp : 0
 
   return (
-    <div className={cn('bg-white border rounded-lg p-4 shadow-sm', className)}>
+    <div className={cn('rounded-lg border bg-white p-4 shadow-sm', className)}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-gray-500" />
+          <Clock className="h-4 w-4 text-gray-500" />
           <span className="text-sm font-medium">Timeline</span>
         </div>
         <div className="text-xs text-gray-500">
-          {formatTime(events[0]?.timestamp || Date.now())} - {formatTime(events[events.length - 1]?.timestamp || Date.now())}
+          {formatTime(events[0]?.timestamp || Date.now())} -{' '}
+          {formatTime(events[events.length - 1]?.timestamp || Date.now())}
         </div>
       </div>
 
@@ -95,18 +86,18 @@ export function TimelineScrubber({
           }}
           className="w-full"
         />
-        
+
         {/* Event markers */}
-        <div className="relative h-4 mt-1">
+        <div className="relative mt-1 h-4">
           {events.map((event, index) => {
             const position = (event.seq / (events[events.length - 1]?.seq || 1)) * 100
             return (
               <div
                 key={event.seq}
                 className={cn(
-                  'absolute w-1 h-1 rounded-full cursor-pointer transition-all',
+                  'absolute h-1 w-1 cursor-pointer rounded-full transition-all',
                   event.seq <= currentSeq ? 'bg-blue-500' : 'bg-gray-300',
-                  hoveredEvent?.seq === event.seq && 'w-2 h-2 -mt-0.5'
+                  hoveredEvent?.seq === event.seq && '-mt-0.5 h-2 w-2'
                 )}
                 style={{ left: `${position}%` }}
                 onMouseEnter={() => setHoveredEvent(event)}
@@ -128,18 +119,18 @@ export function TimelineScrubber({
             onClick={onStepBackward}
             disabled={currentSeq <= (events[0]?.seq || 0)}
           >
-            <SkipBack className="w-4 h-4" />
+            <SkipBack className="h-4 w-4" />
           </Button>
-          
+
           <Button
             variant="default"
             size="icon"
             className="h-10 w-10"
             onClick={isPlaying ? onPause : onPlay}
           >
-            {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+            {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
           </Button>
-          
+
           <Button
             variant="ghost"
             size="icon"
@@ -147,17 +138,17 @@ export function TimelineScrubber({
             onClick={onStepForward}
             disabled={currentSeq >= (events[events.length - 1]?.seq || 0)}
           >
-            <SkipForward className="w-4 h-4" />
+            <SkipForward className="h-4 w-4" />
           </Button>
         </div>
 
         {/* Speed control */}
         <div className="flex items-center gap-2">
-          <Rewind className="w-3 h-3 text-gray-400" />
+          <Rewind className="h-3 w-3 text-gray-400" />
           <select
             value={playbackSpeed}
-            onChange={(e) => onSpeedChange(parseFloat(e.target.value))}
-            className="text-xs border rounded px-2 py-1"
+            onChange={e => onSpeedChange(parseFloat(e.target.value))}
+            className="rounded border px-2 py-1 text-xs"
           >
             <option value={0.25}>0.25x</option>
             <option value={0.5}>0.5x</option>
@@ -165,13 +156,13 @@ export function TimelineScrubber({
             <option value={2}>2x</option>
             <option value={4}>4x</option>
           </select>
-          <FastForward className="w-3 h-3 text-gray-400" />
+          <FastForward className="h-3 w-3 text-gray-400" />
         </div>
       </div>
 
       {/* Event tooltip */}
       {hoveredEvent && (
-        <div className="absolute z-10 bg-gray-900 text-white text-xs rounded px-2 py-1 mt-2">
+        <div className="absolute z-10 mt-2 rounded bg-gray-900 px-2 py-1 text-xs text-white">
           <div className="font-medium">{hoveredEvent.userName}</div>
           <div>{hoveredEvent.description}</div>
           <div className="text-gray-400">{formatTime(hoveredEvent.timestamp)}</div>
@@ -179,7 +170,7 @@ export function TimelineScrubber({
       )}
 
       {/* Stats */}
-      <div className="flex items-center justify-between mt-3 pt-3 border-t text-xs text-gray-500">
+      <div className="mt-3 flex items-center justify-between border-t pt-3 text-xs text-gray-500">
         <span>{events.length} events</span>
         <span>Duration: {Math.round(duration / 1000)}s</span>
       </div>

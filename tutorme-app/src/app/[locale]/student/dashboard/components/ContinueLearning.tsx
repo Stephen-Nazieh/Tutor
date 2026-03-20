@@ -25,21 +25,23 @@ export function ContinueLearning({ contents }: ContinueLearningProps) {
     <Card className="mb-8">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Play className="w-5 h-5 text-blue-500" />
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Play className="h-5 w-5 text-blue-500" />
             Continue Learning
           </CardTitle>
           <Link href="/student/subjects/browse">
-            <Button variant="ghost" size="sm">Browse subjects</Button>
+            <Button variant="ghost" size="sm">
+              Browse subjects
+            </Button>
           </Link>
         </div>
       </CardHeader>
       <CardContent>
         {inProgressContent.length === 0 ? (
           <div className="py-8 text-center text-gray-500">
-            <BookOpen className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <BookOpen className="mx-auto mb-3 h-12 w-12 text-gray-300" />
             <p className="font-medium text-gray-700">No courses in progress</p>
-            <p className="text-sm mt-1">Browse subjects and start learning.</p>
+            <p className="mt-1 text-sm">Browse subjects and start learning.</p>
             <Link href="/student/subjects/browse">
               <Button className="mt-4">Browse subjects</Button>
             </Link>
@@ -48,19 +50,21 @@ export function ContinueLearning({ contents }: ContinueLearningProps) {
           <div className="space-y-4">
             {inProgressContent.slice(0, 3).map(content => (
               <Link key={content.id} href={`/student/learn/${content.id}`}>
-                <div className="flex items-center gap-4 p-3 rounded-lg border hover:bg-gray-50 transition-colors">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <BookOpen className="w-6 h-6 text-blue-600" />
+                <div className="flex items-center gap-4 rounded-lg border p-3 transition-colors hover:bg-gray-50">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100">
+                    <BookOpen className="h-6 w-6 text-blue-600" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">{content.topic}</h3>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate font-medium">{content.topic}</h3>
                     <p className="text-sm text-gray-500">{content.subject}</p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="mt-1 flex items-center gap-2">
                       <Progress value={content.progress} className="h-2 flex-1" />
-                      <span className="text-xs text-gray-500 w-10 text-right">{content.progress}%</span>
+                      <span className="w-10 text-right text-xs text-gray-500">
+                        {content.progress}%
+                      </span>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                  <ChevronRight className="h-5 w-5 text-gray-400" />
                 </div>
               </Link>
             ))}

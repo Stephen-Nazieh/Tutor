@@ -1,7 +1,7 @@
 /**
  * AI Chat API with Subject Context
  * Chat with the AI tutor using Socratic method and subject-specific knowledge
- * 
+ *
  * POST /api/ai/chat
  * Body: { message: string, subject?: string, context?: {...} }
  */
@@ -38,14 +38,21 @@ export async function POST(request: NextRequest) {
 
     const safeMessage = AISecurityManager.sanitizeAiInput(message)
     if (!safeMessage) {
-      return NextResponse.json({ error: 'Invalid or empty message after sanitization' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Invalid or empty message after sanitization' },
+        { status: 400 }
+      )
     }
 
     const convoKey = conversationId || `${session.user.id}:${subject}`
 
-    const previousMessages = (typeof _context === 'object' && _context && 'previousMessages' in _context && Array.isArray((_context as any).previousMessages))
-      ? ( _context as any).previousMessages
-      : []
+    const previousMessages =
+      typeof _context === 'object' &&
+      _context &&
+      'previousMessages' in _context &&
+      Array.isArray((_context as any).previousMessages)
+        ? (_context as any).previousMessages
+        : []
 
     const response = await runTutorChat({
       userId: session.user.id,
@@ -71,7 +78,7 @@ export async function POST(request: NextRequest) {
       latencyMs: response.latencyMs,
       hintType: response.hintType,
       relevantConcepts: response.relevantConcepts,
-      suggestedNextSteps: response.suggestedNextSteps
+      suggestedNextSteps: response.suggestedNextSteps,
     })
   } catch (error) {
     console.error('AI chat error:', error)
@@ -82,8 +89,8 @@ export async function POST(request: NextRequest) {
 // Get available subjects
 export async function GET() {
   const { getAvailableSubjects } = await import('@/lib/ai/subjects')
-  
+
   return NextResponse.json({
-    subjects: getAvailableSubjects()
+    subjects: getAvailableSubjects(),
   })
 }

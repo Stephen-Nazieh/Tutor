@@ -1,6 +1,6 @@
 /**
  * Mission Hub Page
- * 
+ *
  * View and manage all available missions
  */
 
@@ -36,7 +36,7 @@ export default function MissionsPage() {
     try {
       const response = await fetch('/api/gamification/missions?type=summary')
       const data = await response.json()
-      
+
       if (data.success) {
         setSummary(data.data)
       }
@@ -51,7 +51,7 @@ export default function MissionsPage() {
     try {
       const response = await fetch('/api/gamification/missions?type=recommended')
       const data = await response.json()
-      
+
       if (data.success && data.data) {
         router.push(`/student/ai-tutor/english?mission=${data.data.id}`)
       } else {
@@ -64,8 +64,8 @@ export default function MissionsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
       </div>
     )
   }
@@ -73,27 +73,21 @@ export default function MissionsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4">
+      <header className="border-b bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => router.push('/student/dashboard')}
-              >
-                <ChevronRight className="w-5 h-5 rotate-180" />
+              <Button variant="ghost" size="icon" onClick={() => router.push('/student/dashboard')}>
+                <ChevronRight className="h-5 w-5 rotate-180" />
               </Button>
               <div>
                 <h1 className="text-xl font-semibold">Mission Hub</h1>
-                <p className="text-sm text-gray-500">
-                  Track your learning progress
-                </p>
+                <p className="text-sm text-gray-500">Track your learning progress</p>
               </div>
             </div>
 
             <Button onClick={getRecommendedMission}>
-              <Target className="w-4 h-4 mr-2" />
+              <Target className="mr-2 h-4 w-4" />
               Continue Learning
             </Button>
           </div>
@@ -101,16 +95,11 @@ export default function MissionsPage() {
       </header>
 
       {/* Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="mx-auto max-w-6xl px-4 py-8">
         {/* Stats Cards */}
         {summary && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <StatCard
-              label="Total Missions"
-              value={summary.total}
-              icon={Target}
-              color="blue"
-            />
+          <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+            <StatCard label="Total Missions" value={summary.total} icon={Target} color="blue" />
             <StatCard
               label="Completed"
               value={summary.completed}
@@ -137,21 +126,19 @@ export default function MissionsPage() {
         {summary && (
           <Card className="mb-8">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-lg">Overall Progress</h2>
-                <span className="text-2xl font-bold text-blue-600">
-                  {summary.completionRate}%
-                </span>
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Overall Progress</h2>
+                <span className="text-2xl font-bold text-blue-600">{summary.completionRate}%</span>
               </div>
-              
-              <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
+
+              <div className="h-4 overflow-hidden rounded-full bg-gray-100">
                 <div
-                  className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all"
+                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all"
                   style={{ width: `${summary.completionRate}%` }}
                 />
               </div>
-              
-              <div className="flex justify-between mt-2 text-sm text-gray-500">
+
+              <div className="mt-2 flex justify-between text-sm text-gray-500">
                 <span>{summary.completed} completed</span>
                 <span>{summary.notStarted} remaining</span>
               </div>
@@ -161,7 +148,7 @@ export default function MissionsPage() {
 
         {/* Mission Categories */}
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 max-w-md mx-auto mb-6">
+          <TabsList className="mx-auto mb-6 grid w-full max-w-md grid-cols-4">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="completed">Completed</TabsTrigger>
             <TabsTrigger value="progress">In Progress</TabsTrigger>
@@ -169,35 +156,33 @@ export default function MissionsPage() {
           </TabsList>
 
           <TabsContent value="all" className="space-y-4">
-            <div className="text-center py-12 text-gray-500">
-              <Target className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <div className="py-12 text-center text-gray-500">
+              <Target className="mx-auto mb-3 h-12 w-12 opacity-50" />
               <p>Mission browser coming soon!</p>
-              <p className="text-sm mt-1">
-                Go to Worlds to browse missions by category
-              </p>
+              <p className="mt-1 text-sm">Go to Worlds to browse missions by category</p>
             </div>
           </TabsContent>
 
           <TabsContent value="completed" className="space-y-4">
-            <div className="text-center py-12 text-gray-500">
-              <CheckCircle2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <div className="py-12 text-center text-gray-500">
+              <CheckCircle2 className="mx-auto mb-3 h-12 w-12 opacity-50" />
               <p>Your completed missions will appear here</p>
             </div>
           </TabsContent>
 
           <TabsContent value="progress" className="space-y-4">
-            <div className="text-center py-12 text-gray-500">
-              <PlayCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <div className="py-12 text-center text-gray-500">
+              <PlayCircle className="mx-auto mb-3 h-12 w-12 opacity-50" />
               <p>Missions in progress will appear here</p>
             </div>
           </TabsContent>
 
           <TabsContent value="available" className="space-y-4">
-            <div className="text-center py-12 text-gray-500">
-              <Circle className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <div className="py-12 text-center text-gray-500">
+              <Circle className="mx-auto mb-3 h-12 w-12 opacity-50" />
               <p>Available missions will appear here</p>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="mt-4"
                 onClick={() => router.push('/student/worlds')}
               >
@@ -235,12 +220,15 @@ function StatCard({
     <Card>
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
-          <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center', colors[color])}>
-            <Icon className="w-5 h-5" />
+          <div
+            className={cn('flex h-10 w-10 items-center justify-center rounded-lg', colors[color])}
+          >
+            <Icon className="h-5 w-5" />
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-800">
-              {value.toLocaleString()}{suffix}
+              {value.toLocaleString()}
+              {suffix}
             </p>
             <p className="text-sm text-gray-500">{label}</p>
           </div>

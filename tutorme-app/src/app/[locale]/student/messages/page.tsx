@@ -5,14 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { 
-  MessageSquare, 
-  Send,
-  Search,
-  UserCircle,
-  MoreVertical,
-  Lock
-} from 'lucide-react'
+import { MessageSquare, Send, Search, UserCircle, MoreVertical, Lock } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,9 +32,24 @@ interface ChatMessage {
 export default function StudentMessagesPage() {
   const [inputMessage, setInputMessage] = useState('')
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: '1', content: "Hi! How are you doing with the algebra homework?", sender: 'tutor', timestamp: '10:00 AM' },
-    { id: '2', content: "I'm having trouble with problem 5. Can you help?", sender: 'student', timestamp: '10:05 AM' },
-    { id: '3', content: "Don't forget about the quiz tomorrow!", sender: 'tutor', timestamp: '10:30 AM' },
+    {
+      id: '1',
+      content: 'Hi! How are you doing with the algebra homework?',
+      sender: 'tutor',
+      timestamp: '10:00 AM',
+    },
+    {
+      id: '2',
+      content: "I'm having trouble with problem 5. Can you help?",
+      sender: 'student',
+      timestamp: '10:05 AM',
+    },
+    {
+      id: '3',
+      content: "Don't forget about the quiz tomorrow!",
+      sender: 'tutor',
+      timestamp: '10:30 AM',
+    },
   ])
   const [waitingForResponse, setWaitingForResponse] = useState(false)
 
@@ -49,7 +57,7 @@ export default function StudentMessagesPage() {
     {
       id: '1',
       name: 'Mr. Smith (Math Tutor)',
-      lastMessage: 'Don\'t forget about the quiz tomorrow!',
+      lastMessage: "Don't forget about the quiz tomorrow!",
       timestamp: '10 min ago',
       unread: 2,
       online: true,
@@ -66,7 +74,7 @@ export default function StudentMessagesPage() {
 
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return
-    
+
     if (waitingForResponse) {
       toast.info('Please wait for your tutor to respond before sending another message.')
       return
@@ -78,7 +86,7 @@ export default function StudentMessagesPage() {
       sender: 'student',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     }
-    
+
     setMessages(prev => [...prev, newMessage])
     setInputMessage('')
     setWaitingForResponse(true)
@@ -86,55 +94,53 @@ export default function StudentMessagesPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
           <MessageSquare className="h-6 w-6" />
           Messages
         </h1>
-        <p className="text-gray-600 mt-1">
-          Chat with your tutors and classmates
-        </p>
+        <p className="mt-1 text-gray-600">Chat with your tutors and classmates</p>
         {waitingForResponse && (
-          <div className="mt-2 flex items-center gap-2 text-amber-600 text-sm bg-amber-50 px-3 py-2 rounded-lg w-fit">
+          <div className="mt-2 flex w-fit items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-600">
             <Lock className="h-4 w-4" />
             <span>You have sent a message. Please wait for the tutor to respond.</span>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+      <div className="grid h-[600px] grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Conversations List */}
         <Card className="lg:col-span-1">
           <CardHeader>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input placeholder="Search messages..." className="pl-9" />
             </div>
           </CardHeader>
           <CardContent className="space-y-2">
-            {conversations.map((conv) => (
+            {conversations.map(conv => (
               <div
                 key={conv.id}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                className="flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors hover:bg-gray-50"
               >
                 <div className="relative">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
                     <UserCircle className="h-6 w-6 text-blue-600" />
                   </div>
                   {conv.online && (
-                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-sm truncate">{conv.name}</h4>
+                    <h4 className="truncate text-sm font-medium">{conv.name}</h4>
                     <span className="text-xs text-gray-400">{conv.timestamp}</span>
                   </div>
-                  <p className="text-sm text-gray-500 truncate">{conv.lastMessage}</p>
+                  <p className="truncate text-sm text-gray-500">{conv.lastMessage}</p>
                 </div>
                 {conv.unread > 0 && (
-                  <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                  <span className="rounded-full bg-blue-600 px-2 py-1 text-xs text-white">
                     {conv.unread}
                   </span>
                 )}
@@ -144,11 +150,11 @@ export default function StudentMessagesPage() {
         </Card>
 
         {/* Chat Area */}
-        <Card className="lg:col-span-2 flex flex-col">
+        <Card className="flex flex-col lg:col-span-2">
           <CardHeader className="border-b">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
                   <UserCircle className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
@@ -169,24 +175,35 @@ export default function StudentMessagesPage() {
               </DropdownMenu>
             </div>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col">
-            <div className="flex-1 overflow-y-auto space-y-4 py-4">
-              {messages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.sender === 'student' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`${msg.sender === 'student' ? 'bg-blue-600 text-white' : 'bg-gray-100'} rounded-lg px-4 py-2 max-w-[70%]`}>
+          <CardContent className="flex flex-1 flex-col">
+            <div className="flex-1 space-y-4 overflow-y-auto py-4">
+              {messages.map(msg => (
+                <div
+                  key={msg.id}
+                  className={`flex ${msg.sender === 'student' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`${msg.sender === 'student' ? 'bg-blue-600 text-white' : 'bg-gray-100'} max-w-[70%] rounded-lg px-4 py-2`}
+                  >
                     <p className="text-sm">{msg.content}</p>
-                    <span className={`text-xs mt-1 ${msg.sender === 'student' ? 'text-blue-200' : 'text-gray-400'}`}>{msg.timestamp}</span>
+                    <span
+                      className={`mt-1 text-xs ${msg.sender === 'student' ? 'text-blue-200' : 'text-gray-400'}`}
+                    >
+                      {msg.timestamp}
+                    </span>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="flex gap-2 pt-4 border-t">
-              <Input 
-                placeholder={waitingForResponse ? "Waiting for tutor response..." : "Type a message..."} 
+            <div className="flex gap-2 border-t pt-4">
+              <Input
+                placeholder={
+                  waitingForResponse ? 'Waiting for tutor response...' : 'Type a message...'
+                }
                 className="flex-1"
                 value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyDown={(e) => {
+                onChange={e => setInputMessage(e.target.value)}
+                onKeyDown={e => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault()
                     handleSendMessage()
@@ -194,8 +211,8 @@ export default function StudentMessagesPage() {
                 }}
                 disabled={waitingForResponse}
               />
-              <Button 
-                size="icon" 
+              <Button
+                size="icon"
                 onClick={handleSendMessage}
                 disabled={waitingForResponse || !inputMessage.trim()}
               >

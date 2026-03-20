@@ -1,24 +1,24 @@
 // @ts-nocheck
 /**
  * Comprehensive Performance Monitoring System
- * 
+ *
  * Real-time performance metrics collection with:
  * - Frontend and backend performance tracking
  * - Chinese market specific monitoring
  * - WeChat/DingTalk/SMS alerting integration
  * - Web Vitals and custom metrics
  * - Error tracking and performance budgets
- * 
+ *
  * Usage:
  *   import { PerformanceMonitor, reportMetric, reportError } from '@/lib/performance/performance-monitoring'
- *   
+ *
  *   // Initialize monitor
  *   const monitor = new PerformanceMonitor()
  *   await monitor.initialize()
- *   
+ *
  *   // Report custom metric
  *   reportMetric('api_call_duration', 150, { endpoint: '/api/users' })
- *   
+ *
  *   // Report error
  *   reportError(new Error('API failed'), { context: 'user_dashboard' })
  */
@@ -91,7 +91,7 @@ export interface MonitoringConfig {
   enableBackendMonitoring: boolean
   enableRealTimeMetrics: boolean
   sampleRate: number // 0-1, percentage of requests to monitor
-  
+
   // Alerting
   alerts: AlertChannel
   alertThresholds: {
@@ -99,14 +99,14 @@ export interface MonitoringConfig {
     responseTime: number // ms
     availability: number // percentage
   }
-  
+
   // Performance budgets
   budgets: PerformanceBudget[]
-  
+
   // Storage
   retentionDays: number
   batchSize: number
-  
+
   // China-specific
   useChinaRegion: boolean
   chinaCDNMonitoring: boolean
@@ -129,7 +129,7 @@ class MetricBuffer {
 
   add(metric: PerformanceMetric): void {
     this.buffer.push(metric)
-    
+
     if (this.buffer.length >= this.maxSize) {
       this.flush()
     }
@@ -142,7 +142,7 @@ class MetricBuffer {
     this.buffer = []
 
     try {
-      await drizzleDb.transaction(async (tx) => {
+      await drizzleDb.transaction(async tx => {
         for (const metric of metrics) {
           await tx.insert(performanceMetric).values({
             id: crypto.randomUUID(),
@@ -165,7 +165,7 @@ class MetricBuffer {
 
   start(): void {
     if (this.flushTimer) return
-    
+
     this.flushTimer = setInterval(() => {
       this.flush()
     }, this.flushInterval)
@@ -205,26 +205,31 @@ class AlertManager {
 
     // Send to database
     try {
-      const performanceAlertModel = (db as unknown as {
-        performanceAlert?: {
-          create?: (args: {
-            data: {
-              id: string
-              type: PerformanceAlert['type']
-              severity: PerformanceAlert['severity']
-              message: string
-              metric?: string
-              threshold?: number
-              currentValue?: number
-              timestamp: Date
+      const performanceAlertModel = (
+        db as unknown as
+          | {
+              performanceAlert?: {
+                create?: (args: {
+                  data: {
+                    id: string
+                    type: PerformanceAlert['type']
+                    severity: PerformanceAlert['severity']
+                    message: string
+                    metric?: string
+                    threshold?: number
+                    currentValue?: number
+                    timestamp: Date
+                  }
+                }) => Promise<unknown>
+                update?: (args: {
+                  where: { id: string }
+                  data: { resolved: boolean; resolvedAt: Date }
+                }) => Promise<unknown>
+              }
             }
-          }) => Promise<unknown>
-          update?: (args: {
-            where: { id: string }
-            data: { resolved: boolean; resolvedAt: Date }
-          }) => Promise<unknown>
-        }
-      } | null | undefined)?.performanceAlert
+          | null
+          | undefined
+      )?.performanceAlert
 
       if (typeof performanceAlertModel?.create === 'function') {
         await performanceAlertModel.create({
@@ -277,14 +282,15 @@ class AlertManager {
       const message = {
         msgtype: 'markdown',
         markdown: {
-          content: `# ${this.getSeverityEmoji(alert.severity)} 性能告警\n\n` +
-                   `**类型**: ${this.getTypeLabel(alert.type)}\n` +
-                   `**严重程度**: ${alert.severity}\n` +
-                   `**消息**: ${alert.message}\n` +
-                   (alert.metric ? `**指标**: ${alert.metric}\n` : '') +
-                   (alert.currentValue !== undefined ? `**当前值**: ${alert.currentValue}\n` : '') +
-                   (alert.threshold !== undefined ? `**阈值**: ${alert.threshold}\n` : '') +
-                   `**时间**: ${new Date(alert.timestamp).toLocaleString('zh-CN')}\n`
+          content:
+            `# ${this.getSeverityEmoji(alert.severity)} 性能告警\n\n` +
+            `**类型**: ${this.getTypeLabel(alert.type)}\n` +
+            `**严重程度**: ${alert.severity}\n` +
+            `**消息**: ${alert.message}\n` +
+            (alert.metric ? `**指标**: ${alert.metric}\n` : '') +
+            (alert.currentValue !== undefined ? `**当前值**: ${alert.currentValue}\n` : '') +
+            (alert.threshold !== undefined ? `**阈值**: ${alert.threshold}\n` : '') +
+            `**时间**: ${new Date(alert.timestamp).toLocaleString('zh-CN')}\n`,
         },
       }
 
@@ -310,14 +316,15 @@ class AlertManager {
         msgtype: 'markdown',
         markdown: {
           title: `性能告警: ${this.getTypeLabel(alert.type)}`,
-          text: `# ${this.getSeverityEmoji(alert.severity)} 性能告警\n\n` +
-                `**类型**: ${this.getTypeLabel(alert.type)}\n` +
-                `**严重程度**: ${alert.severity}\n` +
-                `**消息**: ${alert.message}\n` +
-                (alert.metric ? `**指标**: ${alert.metric}\n` : '') +
-                (alert.currentValue !== undefined ? `**当前值**: ${alert.currentValue}\n` : '') +
-                (alert.threshold !== undefined ? `**阈值**: ${alert.threshold}\n` : '') +
-                `**时间**: ${new Date(alert.timestamp).toLocaleString('zh-CN')}\n`
+          text:
+            `# ${this.getSeverityEmoji(alert.severity)} 性能告警\n\n` +
+            `**类型**: ${this.getTypeLabel(alert.type)}\n` +
+            `**严重程度**: ${alert.severity}\n` +
+            `**消息**: ${alert.message}\n` +
+            (alert.metric ? `**指标**: ${alert.metric}\n` : '') +
+            (alert.currentValue !== undefined ? `**当前值**: ${alert.currentValue}\n` : '') +
+            (alert.threshold !== undefined ? `**阈值**: ${alert.threshold}\n` : '') +
+            `**时间**: ${new Date(alert.timestamp).toLocaleString('zh-CN')}\n`,
         },
       }
 
@@ -388,7 +395,7 @@ class AlertManager {
     try {
       // Use existing notification service
       const { notifyMany } = await import('@/lib/notifications/notify')
-      
+
       // Get admin user IDs (simplified - would need proper admin lookup)
       const admins = await drizzleDb
         .select({ id: user.id })
@@ -396,7 +403,7 @@ class AlertManager {
         .where(eq(user.role, 'ADMIN'))
 
       await notifyMany({
-        userIds: admins.map((a) => a.id),
+        userIds: admins.map(a => a.id),
         type: 'system',
         title: `性能告警: ${this.getTypeLabel(alert.type)}`,
         message: alert.message,
@@ -441,14 +448,19 @@ class AlertManager {
     alert.resolvedAt = new Date()
 
     try {
-      const performanceAlertModel = (db as unknown as {
-        performanceAlert?: {
-          update?: (args: {
-            where: { id: string }
-            data: { resolved: boolean; resolvedAt: Date }
-          }) => Promise<unknown>
-        }
-      } | null | undefined)?.performanceAlert
+      const performanceAlertModel = (
+        db as unknown as
+          | {
+              performanceAlert?: {
+                update?: (args: {
+                  where: { id: string }
+                  data: { resolved: boolean; resolvedAt: Date }
+                }) => Promise<unknown>
+              }
+            }
+          | null
+          | undefined
+      )?.performanceAlert
 
       if (typeof performanceAlertModel?.update === 'function') {
         await performanceAlertModel.update({
@@ -558,7 +570,7 @@ class PerformanceMonitor {
     this.interceptFetch()
 
     // Monitor errors
-    window.addEventListener('error', (event) => {
+    window.addEventListener('error', event => {
       this.reportError(event.error || new Error(event.message), {
         filename: event.filename,
         lineno: event.lineno,
@@ -566,7 +578,7 @@ class PerformanceMonitor {
       })
     })
 
-    window.addEventListener('unhandledrejection', (event) => {
+    window.addEventListener('unhandledrejection', event => {
       this.reportError(
         event.reason instanceof Error ? event.reason : new Error(String(event.reason)),
         { type: 'unhandledrejection' }
@@ -582,7 +594,7 @@ class PerformanceMonitor {
 
     try {
       // LCP
-      const lcpObserver = new PerformanceObserver((list) => {
+      const lcpObserver = new PerformanceObserver(list => {
         const entries = list.getEntries()
         const lastEntry = entries[entries.length - 1] as any
         const value = lastEntry.renderTime || lastEntry.loadTime
@@ -591,7 +603,7 @@ class PerformanceMonitor {
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] })
 
       // FID
-      const fidObserver = new PerformanceObserver((list) => {
+      const fidObserver = new PerformanceObserver(list => {
         for (const entry of list.getEntries() as any[]) {
           this.reportMetric('fid', entry.processingStart - entry.startTime, 'ms')
         }
@@ -600,7 +612,7 @@ class PerformanceMonitor {
 
       // CLS
       let clsValue = 0
-      const clsObserver = new PerformanceObserver((list) => {
+      const clsObserver = new PerformanceObserver(list => {
         for (const entry of list.getEntries() as any[]) {
           if (!(entry as any).hadRecentInput) {
             clsValue += (entry as any).value
@@ -671,10 +683,7 @@ class PerformanceMonitor {
         .select({ avgValue: sql<number>`avg(metric_value)::double precision` })
         .from(performanceMetric)
         .where(
-          and(
-            eq(performanceMetric.name, budget.metric),
-            gte(performanceMetric.timestamp, cutoff)
-          )
+          and(eq(performanceMetric.name, budget.metric), gte(performanceMetric.timestamp, cutoff))
         )
 
       const avgValue = row?.avgValue ?? null
@@ -784,10 +793,7 @@ class PerformanceMonitor {
    * Report security event (payment alerts, access attempts, role violations).
    * Enterprise security event tracking for compliance (GDPR, PIPL, PRC).
    */
-  reportSecurityEvent(
-    eventType: string,
-    tags?: Record<string, string>
-  ): void {
+  reportSecurityEvent(eventType: string, tags?: Record<string, string>): void {
     this.reportMetric('security_event', 1, 'count', {
       eventType,
       ...tags,
@@ -819,19 +825,14 @@ class PerformanceMonitor {
     const metrics = await drizzleDb
       .select()
       .from(performanceMetric)
-      .where(
-        and(
-          eq(performanceMetric.name, metricName),
-          gte(performanceMetric.timestamp, cutoff)
-        )
-      )
+      .where(and(eq(performanceMetric.name, metricName), gte(performanceMetric.timestamp, cutoff)))
       .orderBy(asc(performanceMetric.metricValue))
 
     if (metrics.length === 0) {
       return { avg: 0, min: 0, max: 0, p95: 0, p99: 0, count: 0 }
     }
 
-    const values = metrics.map((m) => m.metricValue).sort((a, b) => a - b)
+    const values = metrics.map(m => m.metricValue).sort((a, b) => a - b)
     const sum = values.reduce((a, b) => a + b, 0)
 
     return {
@@ -872,9 +873,7 @@ export function getPerformanceMonitor(): PerformanceMonitor {
 /**
  * Initialize global monitor
  */
-export async function initializeMonitoring(
-  config?: Partial<MonitoringConfig>
-): Promise<void> {
+export async function initializeMonitoring(config?: Partial<MonitoringConfig>): Promise<void> {
   const monitor = config ? new PerformanceMonitor(config) : getPerformanceMonitor()
   await monitor.initialize()
   globalMonitor = monitor

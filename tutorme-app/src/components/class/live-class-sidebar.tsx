@@ -25,7 +25,7 @@ import {
   BarChart3,
   FileText,
   DollarSign,
-  Settings
+  Settings,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -53,12 +53,16 @@ const peopleItems = [
   { id: 'groups', label: 'My Groups', href: '/tutor/groups', icon: UsersRound },
 ]
 
-const supportItems = [
-  { id: 'help', label: 'Support', href: '/tutor/help', icon: HelpCircle },
-]
+const supportItems = [{ id: 'help', label: 'Support', href: '/tutor/help', icon: HelpCircle }]
 
 const quickActions = [
-  { id: 'start-live', label: 'Start Live Class', href: '/tutor/live-class', icon: Video, highlight: true },
+  {
+    id: 'start-live',
+    label: 'Start Live Class',
+    href: '/tutor/live-class',
+    icon: Video,
+    highlight: true,
+  },
   { id: 'create-class', label: 'Create Class', href: '/tutor/classes/new', icon: Plus },
   { id: 'schedule', label: 'Schedule Class', href: '/tutor/calendar', icon: Clock },
   { id: 'hub', label: 'Hub', href: '/tutor/dashboard', icon: Zap },
@@ -99,10 +103,10 @@ export function LiveClassSidebar({ className, activeItem }: SidebarProps) {
       <button
         onClick={() => handleNavigation(item.href)}
         className={cn(
-          'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
-          'hover:bg-gray-100 text-left',
+          'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+          'text-left hover:bg-gray-100',
           isActive && 'bg-blue-50 text-blue-600',
-          item.highlight && 'text-blue-600 font-medium'
+          item.highlight && 'font-medium text-blue-600'
         )}
       >
         <Icon className="h-4 w-4" />
@@ -112,86 +116,106 @@ export function LiveClassSidebar({ className, activeItem }: SidebarProps) {
   }
 
   return (
-    <aside className={cn('w-64 bg-white border-r h-screen flex flex-col', className)}>
+    <aside className={cn('flex h-screen w-64 flex-col border-r bg-white', className)}>
       {/* Logo */}
-      <div className="p-4 border-b">
+      <div className="border-b p-4">
         <Link href="/tutor/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold">T</span>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+            <span className="font-bold text-white">T</span>
           </div>
-          <span className="font-semibold text-lg">Solocorn</span>
+          <span className="text-lg font-semibold">Solocorn</span>
         </Link>
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
+      <div className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
         {/* Overview */}
         <div>
-          <p className="px-3 text-xs font-semibold text-gray-400 uppercase mb-2">Overview</p>
-          {overviewItems.map(item => <NavItem key={item.id} item={item} />)}
+          <p className="mb-2 px-3 text-xs font-semibold uppercase text-gray-400">Overview</p>
+          {overviewItems.map(item => (
+            <NavItem key={item.id} item={item} />
+          ))}
         </div>
 
         {/* Teaching */}
         <div>
-          <p className="px-3 text-xs font-semibold text-gray-400 uppercase mb-2">Teaching</p>
-          {teachingItems.map(item => <NavItem key={item.id} item={item} />)}
+          <p className="mb-2 px-3 text-xs font-semibold uppercase text-gray-400">Teaching</p>
+          {teachingItems.map(item => (
+            <NavItem key={item.id} item={item} />
+          ))}
         </div>
 
         {/* People */}
         <div>
-          <p className="px-3 text-xs font-semibold text-gray-400 uppercase mb-2">People</p>
-          {peopleItems.map(item => <NavItem key={item.id} item={item} />)}
+          <p className="mb-2 px-3 text-xs font-semibold uppercase text-gray-400">People</p>
+          {peopleItems.map(item => (
+            <NavItem key={item.id} item={item} />
+          ))}
         </div>
 
         {/* Quick Actions */}
         <div>
-          <p className="px-3 text-xs font-semibold text-gray-400 uppercase mb-2">Quick Actions</p>
-          {quickActions.map(item => <NavItem key={item.id} item={item} />)}
+          <p className="mb-2 px-3 text-xs font-semibold uppercase text-gray-400">Quick Actions</p>
+          {quickActions.map(item => (
+            <NavItem key={item.id} item={item} />
+          ))}
         </div>
 
         {/* Groups */}
         <div>
-          <p className="px-3 text-xs font-semibold text-gray-400 uppercase mb-2">Groups</p>
-          {groupsItems.map(item => <NavItem key={item.id} item={item} />)}
+          <p className="mb-2 px-3 text-xs font-semibold uppercase text-gray-400">Groups</p>
+          {groupsItems.map(item => (
+            <NavItem key={item.id} item={item} />
+          ))}
         </div>
 
         {/* Content */}
         <div>
-          <p className="px-3 text-xs font-semibold text-gray-400 uppercase mb-2">Content</p>
-          {contentItems.map(item => <NavItem key={item.id} item={item} />)}
+          <p className="mb-2 px-3 text-xs font-semibold uppercase text-gray-400">Content</p>
+          {contentItems.map(item => (
+            <NavItem key={item.id} item={item} />
+          ))}
         </div>
 
         {/* AI & Tools */}
         <div>
-          <p className="px-3 text-xs font-semibold text-gray-400 uppercase mb-2">AI & Tools</p>
-          {aiItems.map(item => <NavItem key={item.id} item={item} />)}
+          <p className="mb-2 px-3 text-xs font-semibold uppercase text-gray-400">AI & Tools</p>
+          {aiItems.map(item => (
+            <NavItem key={item.id} item={item} />
+          ))}
         </div>
 
         {/* Analytics */}
         <div>
-          <p className="px-3 text-xs font-semibold text-gray-400 uppercase mb-2">Analytics</p>
-          {analyticsItems.map(item => <NavItem key={item.id} item={item} />)}
+          <p className="mb-2 px-3 text-xs font-semibold uppercase text-gray-400">Analytics</p>
+          {analyticsItems.map(item => (
+            <NavItem key={item.id} item={item} />
+          ))}
         </div>
 
         {/* Support */}
         <div>
-          <p className="px-3 text-xs font-semibold text-gray-400 uppercase mb-2">Support</p>
-          {supportItems.map(item => <NavItem key={item.id} item={item} />)}
+          <p className="mb-2 px-3 text-xs font-semibold uppercase text-gray-400">Support</p>
+          {supportItems.map(item => (
+            <NavItem key={item.id} item={item} />
+          ))}
         </div>
       </div>
 
       {/* Bottom Actions */}
-      <div className="p-4 border-t space-y-2">
+      <div className="space-y-2 border-t p-4">
         <button
           onClick={() => handleNavigation('/tutor/settings')}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm hover:bg-gray-100"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-gray-100"
         >
           <Settings className="h-4 w-4" />
           <span>Settings</span>
         </button>
         <button
-          onClick={() => {/* Handle logout */}}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50"
+          onClick={() => {
+            /* Handle logout */
+          }}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50"
         >
           <LogOut className="h-4 w-4" />
           <span>Logout</span>

@@ -89,7 +89,7 @@ export default function AuditLogPage() {
   const formatAction = (action: string) => {
     return action
       .split('.')
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
       .join(' ')
   }
 
@@ -99,9 +99,7 @@ export default function AuditLogPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Audit Log</h1>
-          <p className="text-slate-500">
-            Complete history of administrative actions
-          </p>
+          <p className="text-slate-500">Complete history of administrative actions</p>
         </div>
         <Button variant="outline">
           <Calendar className="mr-2 h-4 w-4" />
@@ -119,19 +117,19 @@ export default function AuditLogPage() {
                 placeholder="Search logs..."
                 className="pl-9"
                 value={filters.search}
-                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                onChange={e => setFilters({ ...filters, search: e.target.value })}
               />
             </div>
             <Select
               value={filters.resourceType}
-              onValueChange={(v) => setFilters({ ...filters, resourceType: v })}
+              onValueChange={v => setFilters({ ...filters, resourceType: v })}
             >
               <SelectTrigger className="w-[180px]">
                 <Filter className="mr-2 h-4 w-4" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {resourceTypes.map((type) => (
+                {resourceTypes.map(type => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.label}
                   </SelectItem>
@@ -140,13 +138,13 @@ export default function AuditLogPage() {
             </Select>
             <Select
               value={filters.action}
-              onValueChange={(v) => setFilters({ ...filters, action: v })}
+              onValueChange={v => setFilters({ ...filters, action: v })}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Action type" />
               </SelectTrigger>
               <SelectContent>
-                {actionTypes.map((type) => (
+                {actionTypes.map(type => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.label}
                   </SelectItem>
@@ -167,9 +165,7 @@ export default function AuditLogPage() {
               `${pagination?.total?.toLocaleString() || 0} Log Entries`
             )}
           </CardTitle>
-          <CardDescription>
-            Recent administrative actions and changes
-          </CardDescription>
+          <CardDescription>Recent administrative actions and changes</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -184,15 +180,27 @@ export default function AuditLogPage() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                Array(5).fill(0).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell><Skeleton className="h-8 w-full" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-24" /></TableCell>
-                  </TableRow>
-                ))
+                Array(5)
+                  .fill(0)
+                  .map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <Skeleton className="h-8 w-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-32" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-32" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-24" />
+                      </TableCell>
+                    </TableRow>
+                  ))
               ) : logs.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="h-32 text-center">
@@ -221,8 +229,8 @@ export default function AuditLogPage() {
                       <TableCell>
                         <div>
                           <p className="font-medium">
-                            {(log.admin as Record<string, unknown>)?.name as string ||
-                              (log.admin as Record<string, unknown>)?.email as string}
+                            {((log.admin as Record<string, unknown>)?.name as string) ||
+                              ((log.admin as Record<string, unknown>)?.email as string)}
                           </p>
                           <p className="text-xs text-slate-500">
                             {(log.admin as Record<string, unknown>)?.email as string}
@@ -236,7 +244,7 @@ export default function AuditLogPage() {
                               {String(log.resourceType).replace('_', ' ')}
                             </Badge>
                             {typeof log.resourceId === 'string' && log.resourceId.length > 0 && (
-                              <p className="mt-1 text-xs text-slate-500 font-mono">
+                              <p className="mt-1 font-mono text-xs text-slate-500">
                                 {log.resourceId.slice(0, 8)}...
                               </p>
                             )}
@@ -249,7 +257,7 @@ export default function AuditLogPage() {
                         {new Date(log.createdAt as string).toLocaleString()}
                       </TableCell>
                       <TableCell>
-                        <code className="text-xs bg-slate-100 px-2 py-1 rounded">
+                        <code className="rounded bg-slate-100 px-2 py-1 text-xs">
                           {log.ipAddress as string}
                         </code>
                       </TableCell>
@@ -270,7 +278,7 @@ export default function AuditLogPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -278,7 +286,7 @@ export default function AuditLogPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
+                  onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
                   disabled={page === pagination.totalPages}
                 >
                   <ChevronRight className="h-4 w-4" />

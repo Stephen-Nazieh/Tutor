@@ -49,33 +49,37 @@ export async function generateWithKimi(
   } = {}
 ): Promise<string> {
   const apiKey = process.env.KIMI_API_KEY
-  
+
   if (!apiKey) {
     throw new Error('KIMI_API_KEY not configured in environment variables')
   }
 
   const messages: KimiMessage[] = []
-  
+
   if (options.systemPrompt) {
     messages.push({ role: 'system', content: options.systemPrompt })
   }
-  
+
   messages.push({ role: 'user', content: prompt })
 
   try {
-    const response = await fetchWithTimeoutAndRetry(`${KIMI_BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+    const response = await fetchWithTimeoutAndRetry(
+      `${KIMI_BASE_URL}/chat/completions`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: options.model || DEFAULT_MODEL,
+          messages,
+          temperature: options.temperature ?? 0.7,
+          max_tokens: options.maxTokens ?? 2048,
+        }),
       },
-      body: JSON.stringify({
-        model: options.model || DEFAULT_MODEL,
-        messages,
-        temperature: options.temperature ?? 0.7,
-        max_tokens: options.maxTokens ?? 2048,
-      }),
-    }, { timeoutMs: options.timeoutMs, retries: options.retries })
+      { timeoutMs: options.timeoutMs, retries: options.retries }
+    )
 
     if (!response.ok) {
       const error = await response.text()
@@ -104,28 +108,32 @@ export async function chatWithKimi(
   } = {}
 ): Promise<string> {
   const apiKey = process.env.KIMI_API_KEY
-  
+
   if (!apiKey) {
     throw new Error('KIMI_API_KEY not configured in environment variables')
   }
 
   try {
-    const response = await fetchWithTimeoutAndRetry(`${KIMI_BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+    const response = await fetchWithTimeoutAndRetry(
+      `${KIMI_BASE_URL}/chat/completions`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: options.model || DEFAULT_MODEL,
+          messages: messages.map(m => ({
+            role: m.role as 'user' | 'assistant' | 'system',
+            content: m.content,
+          })),
+          temperature: options.temperature ?? 0.7,
+          max_tokens: options.maxTokens ?? 2048,
+        }),
       },
-      body: JSON.stringify({
-        model: options.model || DEFAULT_MODEL,
-        messages: messages.map(m => ({
-          role: m.role as 'user' | 'assistant' | 'system',
-          content: m.content,
-        })),
-        temperature: options.temperature ?? 0.7,
-        max_tokens: options.maxTokens ?? 2048,
-      }),
-    }, { timeoutMs: options.timeoutMs, retries: options.retries })
+      { timeoutMs: options.timeoutMs, retries: options.retries }
+    )
 
     if (!response.ok) {
       const error = await response.text()
@@ -154,28 +162,32 @@ export async function* streamKimi(
   } = {}
 ): AsyncGenerator<string, void, unknown> {
   const apiKey = process.env.KIMI_API_KEY
-  
+
   if (!apiKey) {
     throw new Error('KIMI_API_KEY not configured in environment variables')
   }
 
-  const response = await fetchWithTimeoutAndRetry(`${KIMI_BASE_URL}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
+  const response = await fetchWithTimeoutAndRetry(
+    `${KIMI_BASE_URL}/chat/completions`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: options.model || DEFAULT_MODEL,
+        messages: messages.map(m => ({
+          role: m.role as 'user' | 'assistant' | 'system',
+          content: m.content,
+        })),
+        temperature: options.temperature ?? 0.7,
+        max_tokens: options.maxTokens ?? 2048,
+        stream: true,
+      }),
     },
-    body: JSON.stringify({
-      model: options.model || DEFAULT_MODEL,
-      messages: messages.map(m => ({
-        role: m.role as 'user' | 'assistant' | 'system',
-        content: m.content,
-      })),
-      temperature: options.temperature ?? 0.7,
-      max_tokens: options.maxTokens ?? 2048,
-      stream: true,
-    }),
-  }, { timeoutMs: options.timeoutMs, retries: 0 })
+    { timeoutMs: options.timeoutMs, retries: 0 }
+  )
 
   if (!response.ok) {
     const error = await response.text()

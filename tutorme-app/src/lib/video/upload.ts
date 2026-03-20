@@ -24,12 +24,12 @@ export async function getPresignedPutUrl(
     // Dynamic import - these packages may not be installed
     const awsSdk = await import('@aws-sdk/client-s3').catch(() => null)
     const presigner = await import('@aws-sdk/s3-request-presigner').catch(() => null)
-    
+
     if (!awsSdk || !presigner) {
       console.warn('AWS SDK packages not installed. S3 upload disabled.')
       return null
     }
-    
+
     const { S3Client, PutObjectCommand } = awsSdk
     const { getSignedUrl } = presigner
 

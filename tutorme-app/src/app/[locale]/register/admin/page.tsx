@@ -7,7 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
 import {
@@ -97,25 +103,25 @@ export default function AdminRegistrationPage() {
     bootstrapKey: '',
   })
 
-  const updateField = useCallback(<K extends keyof typeof formData>(
-    key: K,
-    value: typeof formData[K]
-  ) => {
-    setFormData((prev) => {
-      const next = { ...prev, [key]: value }
-      if (key === 'organizationName' && !prev.organizationSlug) {
-        next.organizationSlug = slugify(value as string)
-      }
-      return next
-    })
-    if (errors[key]) {
-      setErrors((prev) => {
-        const next = { ...prev }
-        delete next[key]
+  const updateField = useCallback(
+    <K extends keyof typeof formData>(key: K, value: (typeof formData)[K]) => {
+      setFormData(prev => {
+        const next = { ...prev, [key]: value }
+        if (key === 'organizationName' && !prev.organizationSlug) {
+          next.organizationSlug = slugify(value as string)
+        }
         return next
       })
-    }
-  }, [errors])
+      if (errors[key]) {
+        setErrors(prev => {
+          const next = { ...prev }
+          delete next[key]
+          return next
+        })
+      }
+    },
+    [errors]
+  )
 
   const validateStep = useCallback(
     (s: number): boolean => {
@@ -140,19 +146,16 @@ export default function AdminRegistrationPage() {
       }
 
       if (s === 3) {
-        if (!formData.password)
-          newErrors.password = 'Password is required'
+        if (!formData.password) newErrors.password = 'Password is required'
         else if (formData.password.length < 8)
           newErrors.password = 'Password must be at least 8 characters'
         else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password))
-          newErrors.password =
-            'Password must contain uppercase, lowercase, and number'
+          newErrors.password = 'Password must contain uppercase, lowercase, and number'
         if (formData.password !== formData.confirmPassword)
           newErrors.confirmPassword = "Passwords don't match"
         if (formData.permissions.length === 0)
           newErrors.permissions = 'Select at least one permission group'
-        if (!formData.tosAccepted)
-          newErrors.tosAccepted = 'You must accept the Terms of Service'
+        if (!formData.tosAccepted) newErrors.tosAccepted = 'You must accept the Terms of Service'
       }
 
       setErrors(newErrors)
@@ -167,12 +170,12 @@ export default function AdminRegistrationPage() {
 
   const handleNext = () => {
     if (validateStep(step)) {
-      setStep((s) => Math.min(s + 1, 3))
+      setStep(s => Math.min(s + 1, 3))
     }
   }
 
   const handleBack = () => {
-    setStep((s) => Math.max(s - 1, 1))
+    setStep(s => Math.max(s - 1, 1))
     setErrors({})
   }
 
@@ -184,7 +187,7 @@ export default function AdminRegistrationPage() {
     const result = adminRegistrationSchema.safeParse(payload)
     if (!result.success) {
       const newErrors: Record<string, string> = {}
-      result.error.issues.forEach((issue) => {
+      result.error.issues.forEach(issue => {
         const path = issue.path[0] as string
         if (!newErrors[path]) newErrors[path] = issue.message
       })
@@ -201,7 +204,7 @@ export default function AdminRegistrationPage() {
       if (formData.bootstrapKey.trim()) {
         headers['x-admin-bootstrap-key'] = formData.bootstrapKey.trim()
       }
-      
+
       const response = await fetch('/api/auth/register/admin', {
         method: 'POST',
         headers,
@@ -224,53 +227,48 @@ export default function AdminRegistrationPage() {
   }
 
   const togglePermission = (id: AdminPermissionGroup) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       permissions: prev.permissions.includes(id)
-        ? prev.permissions.filter((p) => p !== id)
+        ? prev.permissions.filter(p => p !== id)
         : [...prev.permissions, id],
     }))
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-orange-950/20 to-slate-900 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-orange-950/20 to-slate-900 px-4 py-8">
+      <div className="mx-auto max-w-2xl">
         <Link
           href="/register"
-          className="inline-flex items-center text-sm text-slate-400 hover:text-white mb-6 transition-colors"
+          className="mb-6 inline-flex items-center text-sm text-slate-400 transition-colors hover:text-white"
         >
-          <ArrowLeft className="h-4 w-4 mr-1" />
+          <ArrowLeft className="mr-1 h-4 w-4" />
           Back to Registration
         </Link>
 
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center">
+          <div className="mb-2 flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/20">
               <Shield className="h-6 w-6 text-orange-400" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white">Administrator Registration</h1>
-              <p className="text-slate-400 text-sm">
-                Enterprise-grade admin account setup
-              </p>
+              <p className="text-sm text-slate-400">Enterprise-grade admin account setup</p>
             </div>
           </div>
         </div>
 
         {/* Progress */}
-        <div className="flex items-center gap-2 mb-8">
+        <div className="mb-8 flex items-center gap-2">
           {STEPS.map((s, idx) => (
-            <div key={s.number} className="flex items-center flex-1">
+            <div key={s.number} className="flex flex-1 items-center">
               <div
-                className={`
-                  flex items-center justify-center w-9 h-9 rounded-lg text-sm font-medium transition-colors
-                  ${step >= s.number ? 'bg-orange-500 text-white' : 'bg-slate-800 text-slate-500'}
-                `}
+                className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-colors ${step >= s.number ? 'bg-orange-500 text-white' : 'bg-slate-800 text-slate-500'} `}
               >
                 <s.icon className="h-4 w-4" />
               </div>
               <span
-                className={`ml-2 text-sm font-medium hidden sm:inline ${
+                className={`ml-2 hidden text-sm font-medium sm:inline ${
                   step >= s.number ? 'text-orange-400' : 'text-slate-500'
                 }`}
               >
@@ -278,7 +276,7 @@ export default function AdminRegistrationPage() {
               </span>
               {idx < STEPS.length - 1 && (
                 <div
-                  className={`flex-1 h-0.5 mx-2 rounded ${
+                  className={`mx-2 h-0.5 flex-1 rounded ${
                     step > s.number ? 'bg-orange-500' : 'bg-slate-700'
                   }`}
                 />
@@ -288,12 +286,12 @@ export default function AdminRegistrationPage() {
         </div>
 
         <Card className="border-slate-800 bg-slate-900/50">
-          <CardContent className="pt-6 space-y-6">
+          <CardContent className="space-y-6 pt-6">
             {/* Step 1: Personal Info */}
             {step === 1 && (
               <>
                 <div>
-                  <CardTitle className="text-lg text-white mb-1">Personal Information</CardTitle>
+                  <CardTitle className="mb-1 text-lg text-white">Personal Information</CardTitle>
                   <CardDescription className="text-slate-400">
                     Enter your account details
                   </CardDescription>
@@ -307,13 +305,11 @@ export default function AdminRegistrationPage() {
                     <Input
                       id="firstName"
                       value={formData.firstName}
-                      onChange={(e) => updateField('firstName', e.target.value)}
+                      onChange={e => updateField('firstName', e.target.value)}
                       placeholder="John"
-                      className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                      className="border-slate-700 bg-slate-800 text-white placeholder:text-slate-500"
                     />
-                    {errors.firstName && (
-                      <p className="text-sm text-red-400">{errors.firstName}</p>
-                    )}
+                    {errors.firstName && <p className="text-sm text-red-400">{errors.firstName}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName" className="text-slate-300">
@@ -322,13 +318,11 @@ export default function AdminRegistrationPage() {
                     <Input
                       id="lastName"
                       value={formData.lastName}
-                      onChange={(e) => updateField('lastName', e.target.value)}
+                      onChange={e => updateField('lastName', e.target.value)}
                       placeholder="Doe"
-                      className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                      className="border-slate-700 bg-slate-800 text-white placeholder:text-slate-500"
                     />
-                    {errors.lastName && (
-                      <p className="text-sm text-red-400">{errors.lastName}</p>
-                    )}
+                    {errors.lastName && <p className="text-sm text-red-400">{errors.lastName}</p>}
                   </div>
                 </div>
 
@@ -340,13 +334,11 @@ export default function AdminRegistrationPage() {
                     id="email"
                     type="email"
                     value={formData.email}
-                    onChange={(e) => updateField('email', e.target.value)}
+                    onChange={e => updateField('email', e.target.value)}
                     placeholder="admin@organization.com"
-                    className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                    className="border-slate-700 bg-slate-800 text-white placeholder:text-slate-500"
                   />
-                  {errors.email && (
-                    <p className="text-sm text-red-400">{errors.email}</p>
-                  )}
+                  {errors.email && <p className="text-sm text-red-400">{errors.email}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -356,9 +348,9 @@ export default function AdminRegistrationPage() {
                   <Input
                     id="phoneNumber"
                     value={formData.phoneNumber}
-                    onChange={(e) => updateField('phoneNumber', e.target.value)}
+                    onChange={e => updateField('phoneNumber', e.target.value)}
                     placeholder="+86 138 0000 0000"
-                    className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                    className="border-slate-700 bg-slate-800 text-white placeholder:text-slate-500"
                   />
                   {errors.phoneNumber && (
                     <p className="text-sm text-red-400">{errors.phoneNumber}</p>
@@ -367,7 +359,7 @@ export default function AdminRegistrationPage() {
 
                 <Button className="w-full bg-orange-500 hover:bg-orange-600" onClick={handleNext}>
                   Next: Organization
-                  <ChevronRight className="h-4 w-4 ml-2" />
+                  <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
               </>
             )}
@@ -376,7 +368,7 @@ export default function AdminRegistrationPage() {
             {step === 2 && (
               <>
                 <div>
-                  <CardTitle className="text-lg text-white mb-1">Organization Setup</CardTitle>
+                  <CardTitle className="mb-1 text-lg text-white">Organization Setup</CardTitle>
                   <CardDescription className="text-slate-400">
                     Configure your organization and role
                   </CardDescription>
@@ -391,9 +383,9 @@ export default function AdminRegistrationPage() {
                     <Input
                       id="organizationName"
                       value={formData.organizationName}
-                      onChange={(e) => updateField('organizationName', e.target.value)}
+                      onChange={e => updateField('organizationName', e.target.value)}
                       placeholder="Acme Education Inc."
-                      className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                      className="border-slate-700 bg-slate-800 text-white placeholder:text-slate-500"
                     />
                   </div>
                   {errors.organizationName && (
@@ -408,9 +400,9 @@ export default function AdminRegistrationPage() {
                   <Input
                     id="organizationSlug"
                     value={formData.organizationSlug}
-                    onChange={(e) => updateField('organizationSlug', e.target.value)}
+                    onChange={e => updateField('organizationSlug', e.target.value)}
                     placeholder="acme-education"
-                    className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 font-mono text-sm"
+                    className="border-slate-700 bg-slate-800 font-mono text-sm text-white placeholder:text-slate-500"
                   />
                   <p className="text-xs text-slate-500">
                     Lowercase letters, numbers, hyphens only. Auto-generated from name if empty.
@@ -421,11 +413,11 @@ export default function AdminRegistrationPage() {
                   <Label className="text-slate-300">Admin Level</Label>
                   <Select
                     value={formData.adminLevel}
-                    onValueChange={(v) =>
+                    onValueChange={v =>
                       updateField('adminLevel', v as 'super' | 'standard' | 'limited')
                     }
                   >
-                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                    <SelectTrigger className="border-slate-700 bg-slate-800 text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -444,9 +436,9 @@ export default function AdminRegistrationPage() {
                     <Input
                       id="jobTitle"
                       value={formData.jobTitle}
-                      onChange={(e) => updateField('jobTitle', e.target.value)}
+                      onChange={e => updateField('jobTitle', e.target.value)}
                       placeholder="Platform Admin"
-                      className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                      className="border-slate-700 bg-slate-800 text-white placeholder:text-slate-500"
                     />
                   </div>
                   <div className="space-y-2">
@@ -456,9 +448,9 @@ export default function AdminRegistrationPage() {
                     <Input
                       id="department"
                       value={formData.department}
-                      onChange={(e) => updateField('department', e.target.value)}
+                      onChange={e => updateField('department', e.target.value)}
                       placeholder="Operations"
-                      className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                      className="border-slate-700 bg-slate-800 text-white placeholder:text-slate-500"
                     />
                   </div>
                 </div>
@@ -469,15 +461,12 @@ export default function AdminRegistrationPage() {
                     className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800"
                     onClick={handleBack}
                   >
-                    <ChevronLeft className="h-4 w-4 mr-2" />
+                    <ChevronLeft className="mr-2 h-4 w-4" />
                     Back
                   </Button>
-                  <Button
-                    className="flex-1 bg-orange-500 hover:bg-orange-600"
-                    onClick={handleNext}
-                  >
+                  <Button className="flex-1 bg-orange-500 hover:bg-orange-600" onClick={handleNext}>
                     Next: Security & Permissions
-                    <ChevronRight className="h-4 w-4 ml-2" />
+                    <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
               </>
@@ -487,7 +476,7 @@ export default function AdminRegistrationPage() {
             {step === 3 && (
               <>
                 <div>
-                  <CardTitle className="text-lg text-white mb-1">Security & Permissions</CardTitle>
+                  <CardTitle className="mb-1 text-lg text-white">Security & Permissions</CardTitle>
                   <CardDescription className="text-slate-400">
                     Set password and permission groups
                   </CardDescription>
@@ -497,19 +486,19 @@ export default function AdminRegistrationPage() {
                   <Label htmlFor="password" className="text-slate-300">
                     Password *
                   </Label>
-                  <div className="flex items-center gap-2 relative">
+                  <div className="relative flex items-center gap-2">
                     <Lock className="h-4 w-4 text-slate-500" />
                     <Input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       value={formData.password}
-                      onChange={(e) => updateField('password', e.target.value)}
+                      onChange={e => updateField('password', e.target.value)}
                       placeholder="••••••••"
-                      className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                      className="border-slate-700 bg-slate-800 text-white placeholder:text-slate-500"
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
+                      onClick={() => setShowPassword(prev => !prev)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
@@ -519,9 +508,7 @@ export default function AdminRegistrationPage() {
                   <p className="text-xs text-slate-500">
                     Min 8 chars, at least one uppercase, one lowercase, one number.
                   </p>
-                  {errors.password && (
-                    <p className="text-sm text-red-400">{errors.password}</p>
-                  )}
+                  {errors.password && <p className="text-sm text-red-400">{errors.password}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -533,17 +520,21 @@ export default function AdminRegistrationPage() {
                       id="confirmPassword"
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={formData.confirmPassword}
-                      onChange={(e) => updateField('confirmPassword', e.target.value)}
+                      onChange={e => updateField('confirmPassword', e.target.value)}
                       placeholder="••••••••"
-                      className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                      className="border-slate-700 bg-slate-800 text-white placeholder:text-slate-500"
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      onClick={() => setShowConfirmPassword(prev => !prev)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
                       aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                     >
-                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </button>
                   </div>
                   {errors.confirmPassword && (
@@ -559,9 +550,9 @@ export default function AdminRegistrationPage() {
                     id="bootstrapKey"
                     type="password"
                     value={formData.bootstrapKey}
-                    onChange={(e) => updateField('bootstrapKey', e.target.value)}
+                    onChange={e => updateField('bootstrapKey', e.target.value)}
                     placeholder="Enter bootstrap key if configured"
-                    className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                    className="border-slate-700 bg-slate-800 text-white placeholder:text-slate-500"
                   />
                   <p className="text-xs text-slate-500">
                     Required only if ADMIN_BOOTSTRAP_KEY environment variable is set on the server.
@@ -574,21 +565,21 @@ export default function AdminRegistrationPage() {
                     Select at least one permission group for your admin role.
                   </p>
                   <div className="space-y-3">
-                    {PERMISSION_GROUPS.map((group) => (
+                    {PERMISSION_GROUPS.map(group => (
                       <div
                         key={group.id}
-                        className="flex items-start space-x-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700"
+                        className="flex items-start space-x-3 rounded-lg border border-slate-700 bg-slate-800/50 p-3"
                       >
                         <Checkbox
                           id={group.id}
                           checked={formData.permissions.includes(group.id)}
                           onCheckedChange={() => togglePermission(group.id)}
-                          className="border-slate-600 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                          className="border-slate-600 data-[state=checked]:border-orange-500 data-[state=checked]:bg-orange-500"
                         />
-                        <div className="space-y-1 flex-1">
+                        <div className="flex-1 space-y-1">
                           <Label
                             htmlFor={group.id}
-                            className="font-medium text-slate-200 cursor-pointer"
+                            className="cursor-pointer font-medium text-slate-200"
                           >
                             {group.label}
                           </Label>
@@ -602,17 +593,15 @@ export default function AdminRegistrationPage() {
                   )}
                 </div>
 
-                <div className="flex items-start space-x-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700">
+                <div className="flex items-start space-x-3 rounded-lg border border-slate-700 bg-slate-800/50 p-3">
                   <Checkbox
                     id="mfa"
                     checked={formData.mfaEnabled}
-                    onCheckedChange={(checked) =>
-                      updateField('mfaEnabled', checked === true)
-                    }
-                    className="border-slate-600 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                    onCheckedChange={checked => updateField('mfaEnabled', checked === true)}
+                    className="border-slate-600 data-[state=checked]:border-orange-500 data-[state=checked]:bg-orange-500"
                   />
                   <div className="space-y-1">
-                    <Label htmlFor="mfa" className="font-medium text-slate-200 cursor-pointer">
+                    <Label htmlFor="mfa" className="cursor-pointer font-medium text-slate-200">
                       Enable Two-Factor Authentication
                     </Label>
                     <p className="text-sm text-slate-500">
@@ -621,22 +610,18 @@ export default function AdminRegistrationPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-3 p-3 rounded-lg border border-slate-700">
+                <div className="flex items-start space-x-3 rounded-lg border border-slate-700 p-3">
                   <Checkbox
                     id="terms"
                     checked={formData.tosAccepted}
-                    onCheckedChange={(checked) =>
-                      updateField('tosAccepted', checked === true)
-                    }
-                    className="border-slate-600 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                    onCheckedChange={checked => updateField('tosAccepted', checked === true)}
+                    className="border-slate-600 data-[state=checked]:border-orange-500 data-[state=checked]:bg-orange-500"
                   />
-                  <Label htmlFor="terms" className="text-sm text-slate-300 cursor-pointer">
+                  <Label htmlFor="terms" className="cursor-pointer text-sm text-slate-300">
                     I agree to the Terms of Service and Privacy Policy *
                   </Label>
                 </div>
-                {errors.tosAccepted && (
-                  <p className="text-sm text-red-400">{errors.tosAccepted}</p>
-                )}
+                {errors.tosAccepted && <p className="text-sm text-red-400">{errors.tosAccepted}</p>}
 
                 <div className="flex gap-3">
                   <Button
@@ -645,13 +630,15 @@ export default function AdminRegistrationPage() {
                     onClick={handleBack}
                     disabled={isLoading}
                   >
-                    <ChevronLeft className="h-4 w-4 mr-2" />
+                    <ChevronLeft className="mr-2 h-4 w-4" />
                     Back
                   </Button>
                   <Button
                     className="flex-1 bg-orange-500 hover:bg-orange-600"
                     onClick={handleSubmit}
-                    disabled={isLoading || !formData.tosAccepted || formData.permissions.length === 0}
+                    disabled={
+                      isLoading || !formData.tosAccepted || formData.permissions.length === 0
+                    }
                   >
                     {isLoading ? 'Creating Account...' : 'Create Admin Account'}
                   </Button>
@@ -661,7 +648,7 @@ export default function AdminRegistrationPage() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-slate-500 text-sm mt-6">
+        <p className="mt-6 text-center text-sm text-slate-500">
           Already have an account?{' '}
           <Link href="/login" className="text-orange-400 hover:underline">
             Sign in

@@ -17,24 +17,24 @@ export default function ParentProfilePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
-          <p className="text-gray-500 mt-1">Manage your account information</p>
+          <p className="mt-1 text-gray-500">Manage your account information</p>
         </div>
         <Button onClick={() => setIsEditing(!isEditing)}>
-          <Edit2 className="h-4 w-4 mr-2" />
+          <Edit2 className="mr-2 h-4 w-4" />
           {isEditing ? 'Save Changes' : 'Edit Profile'}
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {/* Profile Card */}
         <Card className="md:col-span-1">
           <CardContent className="p-6 text-center">
-            <Avatar className="h-24 w-24 mx-auto mb-4">
-              <AvatarFallback className="text-2xl bg-blue-600 text-white">SJ</AvatarFallback>
+            <Avatar className="mx-auto mb-4 h-24 w-24">
+              <AvatarFallback className="bg-blue-600 text-2xl text-white">SJ</AvatarFallback>
             </Avatar>
             <h2 className="text-xl font-semibold">Sarah Johnson</h2>
             <p className="text-gray-500">Parent</p>
-            <div className="flex justify-center gap-2 mt-4">
+            <div className="mt-4 flex justify-center gap-2">
               <Badge variant="secondary">2 Children</Badge>
               <Badge variant="outline">Premium</Badge>
             </div>
@@ -94,9 +94,13 @@ export default function ParentProfilePage() {
           <div className="space-y-4">
             {[
               { name: 'Emily Johnson', grade: 'Grade 8', subjects: ['Math', 'Science', 'English'] },
-              { name: 'Michael Johnson', grade: 'Grade 10', subjects: ['Physics', 'Chemistry', 'Math'] }
+              {
+                name: 'Michael Johnson',
+                grade: 'Grade 10',
+                subjects: ['Physics', 'Chemistry', 'Math'],
+              },
             ].map((child, i) => (
-              <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+              <div key={i} className="flex items-center justify-between rounded-lg border p-4">
                 <div className="flex items-center gap-4">
                   <Avatar>
                     <AvatarFallback>{child.name[0]}</AvatarFallback>
@@ -108,7 +112,9 @@ export default function ParentProfilePage() {
                 </div>
                 <div className="flex gap-2">
                   {child.subjects.map(s => (
-                    <Badge key={s} variant="outline">{s}</Badge>
+                    <Badge key={s} variant="outline">
+                      {s}
+                    </Badge>
                   ))}
                 </div>
               </div>

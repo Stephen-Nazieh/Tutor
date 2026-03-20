@@ -22,8 +22,18 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
 } from 'recharts'
 
 interface CourseProgress {
@@ -82,8 +92,8 @@ export default function StudentProgressPage() {
 
   useEffect(() => {
     fetch('/api/student/progress')
-      .then((r) => r.json())
-      .then((res) => {
+      .then(r => r.json())
+      .then(res => {
         if (res.success) setData(res.data)
       })
       .catch(console.error)
@@ -92,19 +102,31 @@ export default function StudentProgressPage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-4 w-64 mt-2" />
+          <Skeleton className="mt-2 h-4 w-64" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i}><CardContent className="pt-6"><Skeleton className="h-16" /></CardContent></Card>
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
+          {[1, 2, 3, 4].map(i => (
+            <Card key={i}>
+              <CardContent className="pt-6">
+                <Skeleton className="h-16" />
+              </CardContent>
+            </Card>
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card><CardContent className="pt-6"><Skeleton className="h-64" /></CardContent></Card>
-          <Card><CardContent className="pt-6"><Skeleton className="h-64" /></CardContent></Card>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Card>
+            <CardContent className="pt-6">
+              <Skeleton className="h-64" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <Skeleton className="h-64" />
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
@@ -126,7 +148,7 @@ export default function StudentProgressPage() {
   }))
 
   // Format trend dates
-  const trendData = scoreTrend.map((pt) => ({
+  const trendData = scoreTrend.map(pt => ({
     date: new Date(pt.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     score: Math.round(pt.score),
   }))
@@ -139,20 +161,18 @@ export default function StudentProgressPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
           <BarChart3 className="h-6 w-6" />
           My Progress
         </h1>
-        <p className="text-gray-600 mt-1">
-          Track your learning journey across all courses
-        </p>
+        <p className="mt-1 text-gray-600">Track your learning journey across all courses</p>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -214,9 +234,9 @@ export default function StudentProgressPage() {
             <CardDescription>Your completion and scores by course</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {courses.map((course) => (
+            {courses.map(course => (
               <div key={course.id}>
-                <div className="flex items-center justify-between mb-2">
+                <div className="mb-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{course.name}</span>
                     {course.averageScore != null && (
@@ -230,10 +250,10 @@ export default function StudentProgressPage() {
                   </span>
                 </div>
                 <Progress value={course.progress} className="h-3" />
-                <div className="flex items-center justify-between mt-1">
+                <div className="mt-1 flex items-center justify-between">
                   <span className="text-xs text-gray-500">{course.progress}% complete</span>
                   <span className="text-xs text-gray-400">
-                    {Math.round(course.studyMinutes / 60 * 10) / 10}h studied
+                    {Math.round((course.studyMinutes / 60) * 10) / 10}h studied
                   </span>
                 </div>
               </div>
@@ -242,7 +262,7 @@ export default function StudentProgressPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Score Trend Chart */}
         {trendData.length > 1 && (
           <Card>
@@ -258,18 +278,14 @@ export default function StudentProgressPage() {
                 <ResponsiveContainer width="100%" height={250}>
                   <LineChart data={trendData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fontSize: 12, fill: '#888' }}
-                      tickLine={false}
-                    />
+                    <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#888' }} tickLine={false} />
                     <YAxis
                       domain={[0, 100]}
                       tick={{ fontSize: 12, fill: '#888' }}
                       tickLine={false}
                     />
                     <Tooltip
-                      formatter={(value) => [`${value ?? 0}%`, 'Score']}
+                      formatter={value => [`${value ?? 0}%`, 'Score']}
                       contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }}
                     />
                     <Line
@@ -323,7 +339,7 @@ export default function StudentProgressPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Strengths */}
         <Card>
           <CardHeader>
@@ -335,16 +351,16 @@ export default function StudentProgressPage() {
           </CardHeader>
           <CardContent>
             {strengths.length === 0 ? (
-              <p className="text-sm text-gray-500 py-4 text-center">
+              <p className="py-4 text-center text-sm text-gray-500">
                 Complete more tasks to discover your strengths
               </p>
             ) : (
               <div className="space-y-3">
-                {strengths.map((s) => (
+                {strengths.map(s => (
                   <div key={s.topic} className="flex items-center gap-3">
-                    <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
-                    <span className="text-sm font-medium flex-1">{s.topic}</span>
-                    <Badge className="bg-green-100 text-green-800 text-xs">{s.count} tasks</Badge>
+                    <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-green-500" />
+                    <span className="flex-1 text-sm font-medium">{s.topic}</span>
+                    <Badge className="bg-green-100 text-xs text-green-800">{s.count} tasks</Badge>
                   </div>
                 ))}
               </div>
@@ -363,16 +379,16 @@ export default function StudentProgressPage() {
           </CardHeader>
           <CardContent>
             {weaknesses.length === 0 ? (
-              <p className="text-sm text-gray-500 py-4 text-center">
+              <p className="py-4 text-center text-sm text-gray-500">
                 No weak areas identified yet — keep it up!
               </p>
             ) : (
               <div className="space-y-3">
-                {weaknesses.map((w) => (
+                {weaknesses.map(w => (
                   <div key={w.topic} className="flex items-center gap-3">
-                    <AlertTriangle className="h-4 w-4 text-orange-500 flex-shrink-0" />
-                    <span className="text-sm font-medium flex-1">{w.topic}</span>
-                    <Badge className="bg-orange-100 text-orange-800 text-xs">{w.count} tasks</Badge>
+                    <AlertTriangle className="h-4 w-4 flex-shrink-0 text-orange-500" />
+                    <span className="flex-1 text-sm font-medium">{w.topic}</span>
+                    <Badge className="bg-orange-100 text-xs text-orange-800">{w.count} tasks</Badge>
                   </div>
                 ))}
               </div>
@@ -393,26 +409,26 @@ export default function StudentProgressPage() {
         <CardContent>
           {achievements.length === 0 ? (
             <div className="py-8 text-center text-gray-500">
-              <Trophy className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <Trophy className="mx-auto mb-3 h-12 w-12 text-gray-300" />
               <p className="font-medium text-gray-700">No achievements yet</p>
-              <p className="text-sm mt-1">Complete tasks and quizzes to earn badges!</p>
+              <p className="mt-1 text-sm">Complete tasks and quizzes to earn badges!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {achievements.map((achievement) => {
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {achievements.map(achievement => {
                 const IconComponent = achievementIcons[achievement.type] || achievementIcons.default
                 return (
                   <div
                     key={achievement.id}
-                    className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
+                    className="flex items-center gap-4 rounded-lg bg-gray-50 p-4"
                   >
-                    <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-amber-100">
                       <IconComponent className="h-6 w-6 text-amber-600" />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="font-medium truncate">{achievement.title}</h4>
-                      <p className="text-sm text-gray-500 truncate">{achievement.description}</p>
-                      <div className="flex items-center gap-2 mt-1">
+                      <h4 className="truncate font-medium">{achievement.title}</h4>
+                      <p className="truncate text-sm text-gray-500">{achievement.description}</p>
+                      <div className="mt-1 flex items-center gap-2">
                         <Badge variant="secondary" className="text-xs">
                           +{achievement.xpAwarded} XP
                         </Badge>

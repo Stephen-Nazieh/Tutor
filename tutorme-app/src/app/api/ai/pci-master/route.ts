@@ -71,7 +71,8 @@ async function probeAdk(baseUrl: string): Promise<{
       signal: controller.signal,
     })
     if (res.ok) return { ok: true, status: 'ok' }
-    if (res.status === 401 || res.status === 403) return { ok: false, status: 'auth_failed', httpStatus: res.status }
+    if (res.status === 401 || res.status === 403)
+      return { ok: false, status: 'auth_failed', httpStatus: res.status }
     if (res.status === 503) return { ok: false, status: 'auth_missing', httpStatus: res.status }
     return { ok: false, status: 'error', httpStatus: res.status }
   } catch {
@@ -101,7 +102,10 @@ export async function POST(request: NextRequest) {
     const { message, sessionId, context } = parsed.data
     const safeMessage = AISecurityManager.sanitizeAiInput(message)
     if (!safeMessage) {
-      return NextResponse.json({ error: 'Invalid or empty message after sanitization' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Invalid or empty message after sanitization' },
+        { status: 400 }
+      )
     }
 
     const contextBlock = [
@@ -110,7 +114,9 @@ export async function POST(request: NextRequest) {
       context?.content && `Content:\n${truncate(context.content, 12000)}`,
       context?.pci && `Current PCI:\n${truncate(context.pci, 12000)}`,
       context?.extensionName && `Extension Name: ${context.extensionName}`,
-    ].filter(Boolean).join('\n\n')
+    ]
+      .filter(Boolean)
+      .join('\n\n')
 
     const userPrompt = contextBlock
       ? `Context:\n${contextBlock}\n\nUser: ${safeMessage}`
@@ -118,7 +124,11 @@ export async function POST(request: NextRequest) {
 
     const adkBaseUrl = process.env.ADK_BASE_URL?.trim()
     const hasLocalProvider = !!process.env.KIMI_API_KEY || process.env.MOCK_AI === 'true'
-    let response: { response: string; conversationId?: string; parsed?: { response?: string } | null }
+    let response: {
+      response: string
+      conversationId?: string
+      parsed?: { response?: string } | null
+    }
 
     if (adkBaseUrl) {
       const probe = await probeAdk(adkBaseUrl)
@@ -162,17 +172,19 @@ export async function POST(request: NextRequest) {
           )
         }
         console.warn('ADK PCI master failed, falling back to local providers:', error)
-        const fallback = await generateWithFallback(
-          `System:\n${SYSTEM_PROMPT}\n\n${userPrompt}`,
-          { temperature: 0.7, maxTokens: 2048, skipCache: true }
-        )
+        const fallback = await generateWithFallback(`System:\n${SYSTEM_PROMPT}\n\n${userPrompt}`, {
+          temperature: 0.7,
+          maxTokens: 2048,
+          skipCache: true,
+        })
         response = { response: fallback.content }
       }
     } else {
-      const fallback = await generateWithFallback(
-        `System:\n${SYSTEM_PROMPT}\n\n${userPrompt}`,
-        { temperature: 0.7, maxTokens: 2048, skipCache: true }
-      )
+      const fallback = await generateWithFallback(`System:\n${SYSTEM_PROMPT}\n\n${userPrompt}`, {
+        temperature: 0.7,
+        maxTokens: 2048,
+        skipCache: true,
+      })
       response = { response: fallback.content }
     }
 

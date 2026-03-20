@@ -4,24 +4,24 @@
  * Can be used as an overlay or inline component
  */
 
-'use client';
+'use client'
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { cn } from '@/lib/utils';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { io, Socket } from 'socket.io-client';
-import { StudentPollView } from './StudentPollView';
-import { Poll, SubmitVoteInput } from './types';
-import { ChevronDown, ChevronUp, BarChart2 } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { cn } from '@/lib/utils'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { io, Socket } from 'socket.io-client'
+import { StudentPollView } from './StudentPollView'
+import { Poll, SubmitVoteInput } from './types'
+import { ChevronDown, ChevronUp, BarChart2 } from 'lucide-react'
 
 interface StudentPollWidgetProps {
-  sessionId: string;
-  userId: string;
-  totalStudents: number;
-  className?: string;
-  position?: 'bottom-right' | 'inline';
+  sessionId: string
+  userId: string
+  totalStudents: number
+  className?: string
+  position?: 'bottom-right' | 'inline'
 }
 
 export function StudentPollWidget({
@@ -29,122 +29,129 @@ export function StudentPollWidget({
   userId,
   totalStudents,
   className,
-  position = 'bottom-right'
+  position = 'bottom-right',
 }: StudentPollWidgetProps) {
-  const socketRef = useRef<Socket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [activePoll, setActivePoll] = useState<Poll | null>(null);
-  const [hasVoted, setHasVoted] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const socketRef = useRef<Socket | null>(null)
+  const [isConnected, setIsConnected] = useState(false)
+  const [activePoll, setActivePoll] = useState<Poll | null>(null)
+  const [hasVoted, setHasVoted] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(true)
+  const [isMinimized, setIsMinimized] = useState(false)
 
   // Initialize socket connection
   useEffect(() => {
-    if (!sessionId) return;
+    if (!sessionId) return
 
     const connect = async () => {
-      const token = await import('@/lib/socket-auth').then((m) => m.getSocketToken());
-      if (!token) return;
+      const token = await import('@/lib/socket-auth').then(m => m.getSocketToken())
+      if (!token) return
       const socket = io('/api/socket', {
         path: '/api/socket',
         transports: ['websocket', 'polling'],
         auth: { token },
-      });
-      socketRef.current = socket;
-
-    socket.on('connect', () => {
-      setIsConnected(true);
-      socket.emit('join_class', {
-        roomId: sessionId,
-        userId,
-        name: 'Student',
-        role: 'student',
       })
-      socket.emit('poll:join', { sessionId });
-      
-      // Request current polls
-      socket.emit('poll:list', { sessionId }, (response: { success: boolean; polls?: Poll[] }) => {
-        if (response.success && response.polls) {
-          const active = response.polls.find(p => p.status === 'active');
-          if (active) {
-            setActivePoll(active);
-            const voted = active.responses.some(r => r.studentId === userId);
-            setHasVoted(voted);
-          }
-        }
-      });
-    });
+      socketRef.current = socket
 
-    socket.on('disconnect', () => {
-      setIsConnected(false);
-    });
-    };
-    connect();
+      socket.on('connect', () => {
+        setIsConnected(true)
+        socket.emit('join_class', {
+          roomId: sessionId,
+          userId,
+          name: 'Student',
+          role: 'student',
+        })
+        socket.emit('poll:join', { sessionId })
+
+        // Request current polls
+        socket.emit(
+          'poll:list',
+          { sessionId },
+          (response: { success: boolean; polls?: Poll[] }) => {
+            if (response.success && response.polls) {
+              const active = response.polls.find(p => p.status === 'active')
+              if (active) {
+                setActivePoll(active)
+                const voted = active.responses.some(r => r.studentId === userId)
+                setHasVoted(voted)
+              }
+            }
+          }
+        )
+      })
+
+      socket.on('disconnect', () => {
+        setIsConnected(false)
+      })
+    }
+    connect()
     return () => {
-      socketRef.current?.emit('poll:leave', { sessionId });
-      socketRef.current?.disconnect();
-      socketRef.current = null;
-    };
-  }, [sessionId, userId]);
+      socketRef.current?.emit('poll:leave', { sessionId })
+      socketRef.current?.disconnect()
+      socketRef.current = null
+    }
+  }, [sessionId, userId])
 
   // Listen for poll events
   useEffect(() => {
-    const socket = socketRef.current;
-    if (!socket) return;
+    const socket = socketRef.current
+    if (!socket) return
 
     const handlePollStarted = (poll: Poll) => {
-      setActivePoll(poll);
-      setHasVoted(false);
-      setIsMinimized(false);
-      setIsExpanded(true);
-    };
+      setActivePoll(poll)
+      setHasVoted(false)
+      setIsMinimized(false)
+      setIsExpanded(true)
+    }
 
     const handlePollEnded = () => {
-      setActivePoll(null);
-      setHasVoted(false);
-    };
+      setActivePoll(null)
+      setHasVoted(false)
+    }
 
     const handlePollUpdated = (poll: Poll) => {
       if (poll.status === 'active') {
-        setActivePoll(poll);
-        const voted = poll.responses.some(r => r.studentId === userId);
-        setHasVoted(voted);
+        setActivePoll(poll)
+        const voted = poll.responses.some(r => r.studentId === userId)
+        setHasVoted(voted)
       }
-    };
+    }
 
-    socket.on('poll:started', handlePollStarted);
-    socket.on('poll:ended', handlePollEnded);
-    socket.on('poll:updated', handlePollUpdated);
+    socket.on('poll:started', handlePollStarted)
+    socket.on('poll:ended', handlePollEnded)
+    socket.on('poll:updated', handlePollUpdated)
 
     return () => {
-      socket.off('poll:started', handlePollStarted);
-      socket.off('poll:ended', handlePollEnded);
-      socket.off('poll:updated', handlePollUpdated);
-    };
-  }, [userId]);
+      socket.off('poll:started', handlePollStarted)
+      socket.off('poll:ended', handlePollEnded)
+      socket.off('poll:updated', handlePollUpdated)
+    }
+  }, [userId])
 
-  const handleVote = useCallback((input: SubmitVoteInput) => {
-    const socket = socketRef.current;
-    if (!socket || !activePoll) return;
+  const handleVote = useCallback(
+    (input: SubmitVoteInput) => {
+      const socket = socketRef.current
+      if (!socket || !activePoll) return
 
-    socket.emit('poll:vote', {
-      pollId: activePoll.id,
-      sessionId,
-      ...input
-    });
+      socket.emit('poll:vote', {
+        pollId: activePoll.id,
+        sessionId,
+        ...input,
+      })
 
-    setHasVoted(true);
-  }, [activePoll, sessionId]);
+      setHasVoted(true)
+    },
+    [activePoll, sessionId]
+  )
 
   // No active poll
   if (!activePoll) {
-    return null;
+    return null
   }
 
   // Inline position - show as card
   if (position === 'inline') {
     return (
-      <Card className={cn("p-4", className)}>
+      <Card className={cn('p-4', className)}>
         <StudentPollView
           poll={activePoll}
           totalStudents={totalStudents}
@@ -152,20 +159,14 @@ export function StudentPollWidget({
           onVote={handleVote}
         />
       </Card>
-    );
+    )
   }
 
   // Bottom-right position - floating widget
   if (isMinimized) {
     return (
-      <div className={cn(
-        "fixed bottom-4 right-4 z-50",
-        className
-      )}>
-        <Button
-          onClick={() => setIsMinimized(false)}
-          className="gap-2 shadow-lg"
-        >
+      <div className={cn('fixed bottom-4 right-4 z-50', className)}>
+        <Button onClick={() => setIsMinimized(false)} className="gap-2 shadow-lg">
           <BarChart2 className="h-4 w-4" />
           Active Poll
           <Badge variant="secondary" className="ml-1 bg-white text-blue-600">
@@ -173,20 +174,17 @@ export function StudentPollWidget({
           </Badge>
         </Button>
       </div>
-    );
+    )
   }
 
   return (
-    <div className={cn(
-      "fixed bottom-4 right-4 z-50 w-80",
-      className
-    )}>
-      <Card className="shadow-xl border-2 border-blue-200">
+    <div className={cn('fixed bottom-4 right-4 z-50 w-80', className)}>
+      <Card className="border-2 border-blue-200 shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b bg-blue-50">
+        <div className="flex items-center justify-between border-b bg-blue-50 p-3">
           <div className="flex items-center gap-2">
             <BarChart2 className="h-4 w-4 text-blue-600" />
-            <span className="font-medium text-sm">Live Poll</span>
+            <span className="text-sm font-medium">Live Poll</span>
             <Badge variant={isConnected ? 'secondary' : 'outline'} className="text-[10px]">
               {isConnected ? 'Live' : 'Reconnecting'}
             </Badge>
@@ -198,11 +196,7 @@ export function StudentPollWidget({
               className="h-6 w-6"
               onClick={() => setIsExpanded(!isExpanded)}
             >
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronUp className="h-4 w-4" />
-              )}
+              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
             </Button>
             <Button
               variant="ghost"
@@ -228,5 +222,5 @@ export function StudentPollWidget({
         )}
       </Card>
     </div>
-  );
+  )
 }

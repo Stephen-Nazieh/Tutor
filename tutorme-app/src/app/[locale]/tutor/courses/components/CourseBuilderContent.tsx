@@ -10,10 +10,19 @@ import Link from 'next/link'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ArrowLeft, BookOpen, Loader2, Save, ChevronRight } from 'lucide-react'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
-import type { Module as CourseBuilderModule, CourseBuilderRef } from '../../dashboard/components/CourseBuilder'
+import type {
+  Module as CourseBuilderModule,
+  CourseBuilderRef,
+} from '../../dashboard/components/CourseBuilder'
 import { toast } from 'sonner'
 import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
 
@@ -71,7 +80,7 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
 
   // Theme state with localStorage persistence
   const [themeId, setThemeId] = useState('current')
-  const selectedTheme = DASHBOARD_THEMES.find((theme) => theme.id === themeId) ?? DASHBOARD_THEMES[0]
+  const selectedTheme = DASHBOARD_THEMES.find(theme => theme.id === themeId) ?? DASHBOARD_THEMES[0]
   const themeStyle = getThemeStyle(selectedTheme)
 
   useEffect(() => {
@@ -97,7 +106,9 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
       }
 
       // Load curriculum tree from DB
-      const currRes = await fetch(`/api/tutor/courses/${courseId}/curriculum`, { credentials: 'include' })
+      const currRes = await fetch(`/api/tutor/courses/${courseId}/curriculum`, {
+        credentials: 'include',
+      })
       if (currRes.ok) {
         const currData = await currRes.json()
         if (Array.isArray(currData.modules) && currData.modules.length > 0) {
@@ -120,15 +131,19 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
 
   if (!courseId) {
     return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6" style={themeStyle}>
-        <Card className="max-w-md w-full">
+      <div
+        className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground"
+        style={themeStyle}
+      >
+        <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
               Course Builder
             </CardTitle>
             <CardDescription>
-              Select a course to edit its curriculum. Open a course from the Course Catalogue or from your dashboard to use the builder.
+              Select a course to edit its curriculum. Open a course from the Course Catalogue or
+              from your dashboard to use the builder.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -174,7 +189,7 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
         const ordered = normalizeVariantLinks(data.variants)
         if (ordered.length > 0) {
           setSavedVariants(ordered)
-          toast.success(`Adaptive variants ready: ${ordered.map((v) => v.difficulty).join(', ')}`)
+          toast.success(`Adaptive variants ready: ${ordered.map(v => v.difficulty).join(', ')}`)
         } else {
           setSavedVariants([])
         }
@@ -192,26 +207,26 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
   return (
     <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
       {/* Top Navigation Header - Course Builder centered at top */}
-      <div className="bg-card border-b border-border sticky top-0 z-10">
-        <div className="w-full px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+      <div className="sticky top-0 z-10 border-b border-border bg-card">
+        <div className="flex w-full items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <Button variant="ghost" size="sm" asChild className="shrink-0">
             <Link href="/tutor/dashboard">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard
             </Link>
           </Button>
-          <h1 className="text-xl font-semibold flex items-center justify-center gap-2 text-foreground flex-1 absolute left-0 right-0 pointer-events-none">
+          <h1 className="pointer-events-none absolute left-0 right-0 flex flex-1 items-center justify-center gap-2 text-xl font-semibold text-foreground">
             <BookOpen className="h-5 w-5" />
             Course Builder
           </h1>
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex shrink-0 items-center gap-3">
             {/* Theme Selector */}
             <Select value={themeId} onValueChange={setThemeId}>
               <SelectTrigger className="h-8 w-[180px] border-border bg-card text-foreground">
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
               <SelectContent>
-                {DASHBOARD_THEMES.map((theme) => (
+                {DASHBOARD_THEMES.map(theme => (
                   <SelectItem key={theme.id} value={theme.id}>
                     {theme.name}
                   </SelectItem>
@@ -223,18 +238,14 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
               onClick={() => courseBuilderRef.current?.save()}
               disabled={saving}
             >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Save Course
             </Button>
             {courseId ? (
-              <Button
-                variant="outline"
-                className="gap-2"
-                asChild
-              >
+              <Button variant="outline" className="gap-2" asChild>
                 <Link href={`/tutor/courses/${courseId}`}>
                   Next
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="h-4 w-4" />
                 </Link>
               </Button>
             ) : (
@@ -242,10 +253,12 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
                 variant="outline"
                 className="gap-2"
                 type="button"
-                onClick={() => toast.error('Course ID not available yet. Please wait a moment and try again.')}
+                onClick={() =>
+                  toast.error('Course ID not available yet. Please wait a moment and try again.')
+                }
               >
                 Next
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="h-4 w-4" />
               </Button>
             )}
           </div>
@@ -253,7 +266,7 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
       </div>
 
       {/* Main Content */}
-      <div className="w-full px-4 sm:px-6 py-6">
+      <div className="w-full px-4 py-6 sm:px-6">
         {savedVariants.length > 0 && (
           <Card className="mb-4 border-emerald-200 bg-emerald-50/40">
             <CardHeader className="pb-2 pt-4">
@@ -263,12 +276,14 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2 pb-4">
-              {savedVariants.map((variant) => (
+              {savedVariants.map(variant => (
                 <div key={variant.batchId} className="rounded-md border bg-card p-2.5">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="text-xs font-medium capitalize">{variant.difficulty}</p>
-                      <p className="truncate text-[11px] text-muted-foreground">{variant.batchName}</p>
+                      <p className="truncate text-[11px] text-muted-foreground">
+                        {variant.batchName}
+                      </p>
                     </div>
                     <Button
                       type="button"
@@ -287,7 +302,9 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
                       Copy Link
                     </Button>
                   </div>
-                  <p className="mt-1 break-all text-[11px] text-muted-foreground">{variant.joinLink}</p>
+                  <p className="mt-1 break-all text-[11px] text-muted-foreground">
+                    {variant.joinLink}
+                  </p>
                 </div>
               ))}
             </CardContent>

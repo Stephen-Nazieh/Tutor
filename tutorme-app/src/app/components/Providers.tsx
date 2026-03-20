@@ -12,15 +12,8 @@ interface ProvidersProps {
 
 export function Providers({ children, locale, messages }: ProvidersProps) {
   return (
-    <NextIntlClientProvider 
-      locale={locale} 
-      messages={messages}
-      timeZone="Asia/Shanghai"
-    >
-      <SessionProvider 
-        refetchInterval={0}
-        refetchOnWindowFocus={false}
-      >
+    <NextIntlClientProvider locale={locale} messages={messages} timeZone="Asia/Shanghai">
+      <SessionProvider refetchInterval={0} refetchOnWindowFocus={false}>
         {children}
       </SessionProvider>
     </NextIntlClientProvider>

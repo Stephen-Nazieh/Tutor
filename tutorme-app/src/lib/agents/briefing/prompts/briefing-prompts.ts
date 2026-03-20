@@ -2,22 +2,22 @@
  * ============================================================================
  * BRIEFING AGENT - BRIEFING GENERATION PROMPTS
  * ============================================================================
- * 
- * UI LOCATION: 
+ *
+ * UI LOCATION:
  * - /tutor/dashboard - "AI Briefing" button
  * - /tutor/live-class/[sessionId] - Pre-class briefing panel
- * 
+ *
  * EDIT THIS FILE to change how tutor briefings are generated.
  */
 
-import { LiveSession, Student, ProgressData, Curriculum } from '../../shared-data';
+import { LiveSession, Student, ProgressData, Curriculum } from '../../shared-data'
 
 export interface BriefingContext {
-  session: LiveSession;
-  students: Student[];
-  progressData: ProgressData[];
-  curriculum: Curriculum;
-  recentQuizScores: Array<{ studentId: string; score: number; topic: string }>;
+  session: LiveSession
+  students: Student[]
+  progressData: ProgressData[]
+  curriculum: Curriculum
+  recentQuizScores: Array<{ studentId: string; score: number; topic: string }>
 }
 
 /**
@@ -25,18 +25,20 @@ export interface BriefingContext {
  * TRIGGERED BY: Tutor clicks "AI Briefing" button
  */
 export function buildClassBriefingPrompt(context: BriefingContext): string {
-  const studentSummaries = context.students.map(s => {
-    const progress = context.progressData.find(p => p.studentId === s.id);
-    const recentScore = context.recentQuizScores.find(q => q.studentId === s.id);
-    
-    return `
+  const studentSummaries = context.students
+    .map(s => {
+      const progress = context.progressData.find(p => p.studentId === s.id)
+      const recentScore = context.recentQuizScores.find(q => q.studentId === s.id)
+
+      return `
 - ${s.name} (Grade ${s.grade}, ${s.currentLevel} level)
   - Learning style: ${s.learningStyle}
   - Current streak: ${s.streak} days
   - Recent struggles: ${progress?.struggles.join(', ') || 'None recorded'}
   - Recent quiz: ${recentScore ? `${recentScore.score}% on ${recentScore.topic}` : 'No recent data'}
-`;
-  }).join('\n');
+`
+    })
+    .join('\n')
 
   return `Generate a pre-class briefing for a tutor preparing to teach.
 
@@ -76,7 +78,7 @@ Suggest a 2-minute opener related to the topic.
 ### 7. TIME WARNINGS
 Note any concepts that typically take longer to explain.
 
-Generate the briefing now:`;
+Generate the briefing now:`
 }
 
 /**
@@ -121,7 +123,7 @@ How to best engage this student in class.
 ### Questions to Ask Them
 2-3 personalized questions to check their understanding.
 
-Generate spotlight now:`;
+Generate spotlight now:`
 }
 
 /**
@@ -155,7 +157,7 @@ Format each as:
 **Strategy Name**
 - Description
 - Time estimate
-- Materials needed`;
+- Materials needed`
 }
 
 /**
@@ -168,7 +170,7 @@ export function buildPostClassReflectionPrompt(
 ): string {
   const engagementSummary = Array.from(engagementData.entries())
     .map(([id, score]) => `- Student ${id}: ${score}% engagement`)
-    .join('\n');
+    .join('\n')
 
   return `Generate a post-class reflection for the tutor.
 
@@ -194,5 +196,5 @@ When did attention drop? Possible reasons.
 ### Growth Opportunities
 What to focus on improving for next time.
 
-Generate reflection now:`;
+Generate reflection now:`
 }

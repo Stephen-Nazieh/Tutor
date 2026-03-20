@@ -11,7 +11,8 @@ const DEFAULT_WORLDS = [
     name: 'Survival World',
     emoji: '🌍',
     description: 'Master everyday English for real-life situations',
-    storyArc: 'You have arrived in an English-speaking country. Learn to navigate daily life, from ordering food to asking for directions.',
+    storyArc:
+      'You have arrived in an English-speaking country. Learn to navigate daily life, from ordering food to asking for directions.',
     unlockLevel: 1,
     difficultyLevel: 1,
     isActive: true,
@@ -21,7 +22,8 @@ const DEFAULT_WORLDS = [
     name: 'Workplace World',
     emoji: '💼',
     description: 'Professional English for career advancement',
-    storyArc: 'You have started a new job. Navigate meetings, emails, and professional conversations with confidence.',
+    storyArc:
+      'You have started a new job. Navigate meetings, emails, and professional conversations with confidence.',
     unlockLevel: 3,
     difficultyLevel: 2,
     isActive: true,
@@ -31,7 +33,8 @@ const DEFAULT_WORLDS = [
     name: 'Daily Life World',
     emoji: '🏠',
     description: 'Conversations with friends, family, and neighbors',
-    storyArc: 'Build relationships and connect with people around you through natural everyday conversations.',
+    storyArc:
+      'Build relationships and connect with people around you through natural everyday conversations.',
     unlockLevel: 2,
     difficultyLevel: 1,
     isActive: true,
@@ -41,7 +44,8 @@ const DEFAULT_WORLDS = [
     name: 'Academic World',
     emoji: '🧠',
     description: 'Study skills and academic English',
-    storyArc: 'Prepare for academic success with essay writing, presentations, and research skills.',
+    storyArc:
+      'Prepare for academic success with essay writing, presentations, and research skills.',
     unlockLevel: 4,
     difficultyLevel: 3,
     isActive: true,
@@ -51,7 +55,8 @@ const DEFAULT_WORLDS = [
     name: 'Social & Relationships',
     emoji: '❤️',
     description: 'Make friends and build connections',
-    storyArc: 'Navigate social situations, from casual hangouts to meaningful conversations and dating.',
+    storyArc:
+      'Navigate social situations, from casual hangouts to meaningful conversations and dating.',
     unlockLevel: 3,
     difficultyLevel: 2,
     isActive: true,
@@ -150,11 +155,11 @@ async function seedDailyQuests() {
 
 async function main() {
   console.log('🎮 Starting gamification seed...\n')
-  
+
   try {
     await seedWorlds()
     await seedDailyQuests()
-    
+
     console.log('🎉 Gamification seed complete!')
   } catch (error) {
     console.error('❌ Seed failed:', error)

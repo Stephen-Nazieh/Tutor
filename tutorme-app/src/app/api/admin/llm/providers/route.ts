@@ -13,12 +13,9 @@ export async function GET(req: NextRequest) {
   if (!session) return response!
 
   try {
-    const providers = await drizzleDb
-      .select()
-      .from(llmProvider)
-      .orderBy(asc(llmProvider.priority))
+    const providers = await drizzleDb.select().from(llmProvider).orderBy(asc(llmProvider.priority))
 
-    const providerIds = providers.map((p) => p.id)
+    const providerIds = providers.map(p => p.id)
     const models =
       providerIds.length > 0
         ? await drizzleDb
@@ -45,9 +42,9 @@ export async function GET(req: NextRequest) {
       list.push(m)
       modelsByProvider.set(m.providerId, list)
     }
-    const ruleCountByProvider = new Map(ruleCounts.map((r) => [r.providerId, r.count]))
+    const ruleCountByProvider = new Map(ruleCounts.map(r => [r.providerId, r.count]))
 
-    const safeProviders = providers.map((p) => ({
+    const safeProviders = providers.map(p => ({
       ...p,
       models: modelsByProvider.get(p.id) ?? [],
       _count: { routingRules: ruleCountByProvider.get(p.id) ?? 0 },
@@ -68,13 +65,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const { name, providerType, apiKey, baseUrl, priority, config, rateLimits, costPer1kTokens } = body
+    const { name, providerType, apiKey, baseUrl, priority, config, rateLimits, costPer1kTokens } =
+      body
 
     if (!name || !providerType) {
-      return NextResponse.json(
-        { error: 'Name and provider type are required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Name and provider type are required' }, { status: 400 })
     }
 
     const id = crypto.randomUUID()
@@ -119,10 +114,7 @@ export async function PATCH(req: NextRequest) {
     const { id, ...updates } = body
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Provider ID is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Provider ID is required' }, { status: 400 })
     }
 
     const [existingProvider] = await drizzleDb
@@ -135,16 +127,33 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (updates.isDefault) {
-      await drizzleDb.update(llmProvider).set({ isDefault: false }).where(eq(llmProvider.isDefault, true))
+      await drizzleDb
+        .update(llmProvider)
+        .set({ isDefault: false })
+        .where(eq(llmProvider.isDefault, true))
     }
 
-    const allowed = ['name', 'providerType', 'apiKeyEncrypted', 'baseUrl', 'priority', 'config', 'rateLimits', 'costPer1kTokens', 'isActive', 'isDefault']
+    const allowed = [
+      'name',
+      'providerType',
+      'apiKeyEncrypted',
+      'baseUrl',
+      'priority',
+      'config',
+      'rateLimits',
+      'costPer1kTokens',
+      'isActive',
+      'isDefault',
+    ]
     const set: Record<string, unknown> = {}
     for (const k of allowed) {
       if (updates[k] !== undefined) set[k] = updates[k]
     }
     if (Object.keys(set).length > 0) {
-      await drizzleDb.update(llmProvider).set(set as Partial<typeof llmProvider.$inferInsert>).where(eq(llmProvider.id, id))
+      await drizzleDb
+        .update(llmProvider)
+        .set(set as Partial<typeof llmProvider.$inferInsert>)
+        .where(eq(llmProvider.id, id))
     }
     const [provider] = await drizzleDb.select().from(llmProvider).where(eq(llmProvider.id, id))
     const providerForResponse = provider ?? existingProvider

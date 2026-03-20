@@ -6,15 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import type { BreakoutRoom } from '../../types'
-import {
-  Users,
-  Maximize2,
-  Brain,
-  Timer,
-  MessageSquare,
-  AlertCircle,
-  BarChart3
-} from 'lucide-react'
+import { Users, Maximize2, Brain, Timer, MessageSquare, AlertCircle, BarChart3 } from 'lucide-react'
 
 interface RoomGridPanelProps {
   rooms: BreakoutRoom[]
@@ -25,22 +17,33 @@ interface RoomGridPanelProps {
 export function RoomGridPanel({ rooms, onSelectRoom, onJoinRoom }: RoomGridPanelProps) {
   const getStatusColor = (status: BreakoutRoom['status']) => {
     switch (status) {
-      case 'active': return 'bg-green-500'
-      case 'forming': return 'bg-blue-500'
-      case 'paused': return 'bg-yellow-500'
-      case 'closed': return 'bg-gray-500'
-      default: return 'bg-gray-400'
+      case 'active':
+        return 'bg-green-500'
+      case 'forming':
+        return 'bg-blue-500'
+      case 'paused':
+        return 'bg-yellow-500'
+      case 'closed':
+        return 'bg-gray-500'
+      default:
+        return 'bg-gray-400'
     }
   }
 
   const getAlertIcon = (type: string) => {
     switch (type) {
-      case 'confusion': return '❓'
-      case 'conflict': return '⚠️'
-      case 'off_topic': return '🎯'
-      case 'need_help': return '🆘'
-      case 'quiet': return '🔇'
-      default: return '🔔'
+      case 'confusion':
+        return '❓'
+      case 'conflict':
+        return '⚠️'
+      case 'off_topic':
+        return '🎯'
+      case 'need_help':
+        return '🆘'
+      case 'quiet':
+        return '🔇'
+      default:
+        return '🔔'
     }
   }
 
@@ -51,31 +54,31 @@ export function RoomGridPanel({ rooms, onSelectRoom, onJoinRoom }: RoomGridPanel
   }
 
   return (
-    <div className="h-full p-4 overflow-auto">
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        {rooms.map((room) => (
-          <Card 
+    <div className="h-full overflow-auto p-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+        {rooms.map(room => (
+          <Card
             key={room.id}
             className={cn(
-              "cursor-pointer transition-all hover:shadow-md",
-              room.alerts.length > 0 && "border-yellow-400"
+              'cursor-pointer transition-all hover:shadow-md',
+              room.alerts.length > 0 && 'border-yellow-400'
             )}
             onClick={() => onSelectRoom(room.id)}
           >
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                  <div className={cn("w-3 h-3 rounded-full", getStatusColor(room.status))} />
+                  <div className={cn('h-3 w-3 rounded-full', getStatusColor(room.status))} />
                   <CardTitle className="text-base">{room.name}</CardTitle>
                 </div>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className="h-7 w-7"
-                        onClick={(e) => { 
+                        onClick={e => {
                           e.stopPropagation()
                           onJoinRoom(room)
                         }}
@@ -94,8 +97,8 @@ export function RoomGridPanel({ rooms, onSelectRoom, onJoinRoom }: RoomGridPanel
                 <Users className="h-3 w-3" />
                 {room.participants.length} participants
                 {room.aiEnabled && (
-                  <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
-                    <Brain className="h-3 w-3 mr-1" />
+                  <Badge variant="secondary" className="bg-purple-100 text-xs text-purple-700">
+                    <Brain className="mr-1 h-3 w-3" />
                     AI
                   </Badge>
                 )}
@@ -104,9 +107,9 @@ export function RoomGridPanel({ rooms, onSelectRoom, onJoinRoom }: RoomGridPanel
             <CardContent className="space-y-3">
               {/* Topic */}
               {room.assignedTask && (
-                <div className="p-2 bg-gray-50 rounded text-xs">
+                <div className="rounded bg-gray-50 p-2 text-xs">
                   <p className="font-medium text-gray-700">{room.assignedTask.title}</p>
-                  <p className="text-gray-500 truncate">{room.assignedTask.description}</p>
+                  <p className="truncate text-gray-500">{room.assignedTask.description}</p>
                 </div>
               )}
 
@@ -127,13 +130,17 @@ export function RoomGridPanel({ rooms, onSelectRoom, onJoinRoom }: RoomGridPanel
               {/* Timer */}
               {room.status === 'active' && (
                 <div className="flex items-center gap-2 text-sm">
-                  <Timer className={cn(
-                    "h-4 w-4",
-                    room.timeRemaining < 60 ? "text-red-500" : "text-gray-400"
-                  )} />
-                  <span className={cn(
-                    room.timeRemaining < 60 ? "text-red-600 font-medium" : "text-gray-600"
-                  )}>
+                  <Timer
+                    className={cn(
+                      'h-4 w-4',
+                      room.timeRemaining < 60 ? 'text-red-500' : 'text-gray-400'
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      room.timeRemaining < 60 ? 'font-medium text-red-600' : 'text-gray-600'
+                    )}
+                  >
                     {formatTime(room.timeRemaining)}
                   </span>
                 </div>
@@ -143,13 +150,15 @@ export function RoomGridPanel({ rooms, onSelectRoom, onJoinRoom }: RoomGridPanel
               {room.alerts.length > 0 && (
                 <div className="space-y-1">
                   {room.alerts.slice(0, 2).map((alert, i) => (
-                    <div 
-                      key={i} 
+                    <div
+                      key={i}
                       className={cn(
-                        "flex items-center gap-2 text-xs px-2 py-1 rounded",
-                        alert.severity === 'high' ? "bg-red-50 text-red-700" :
-                        alert.severity === 'medium' ? "bg-yellow-50 text-yellow-700" :
-                        "bg-blue-50 text-blue-700"
+                        'flex items-center gap-2 rounded px-2 py-1 text-xs',
+                        alert.severity === 'high'
+                          ? 'bg-red-50 text-red-700'
+                          : alert.severity === 'medium'
+                            ? 'bg-yellow-50 text-yellow-700'
+                            : 'bg-blue-50 text-blue-700'
                       )}
                     >
                       <span>{getAlertIcon(alert.type)}</span>
@@ -157,9 +166,7 @@ export function RoomGridPanel({ rooms, onSelectRoom, onJoinRoom }: RoomGridPanel
                     </div>
                   ))}
                   {room.alerts.length > 2 && (
-                    <p className="text-xs text-gray-500">
-                      +{room.alerts.length - 2} more alerts
-                    </p>
+                    <p className="text-xs text-gray-500">+{room.alerts.length - 2} more alerts</p>
                   )}
                 </div>
               )}

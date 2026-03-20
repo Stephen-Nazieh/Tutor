@@ -19,63 +19,76 @@ import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { z } from 'zod'
 
 const QuestionGenerateSchema = z.object({
-    topic: z.string().min(1).max(200),
-    count: z.number().int().min(1).max(20).default(5),
-    difficulty: z.enum(['beginner', 'intermediate', 'advanced']).default('intermediate'),
-    types: z.array(z.enum(['multiple_choice', 'short_answer'])).min(1).max(2).default(['multiple_choice', 'short_answer']),
+  topic: z.string().min(1).max(200),
+  count: z.number().int().min(1).max(20).default(5),
+  difficulty: z.enum(['beginner', 'intermediate', 'advanced']).default('intermediate'),
+  types: z
+    .array(z.enum(['multiple_choice', 'short_answer']))
+    .min(1)
+    .max(2)
+    .default(['multiple_choice', 'short_answer']),
 })
 
 export async function POST(req: NextRequest) {
-    const { response: rateLimitResponse } = await withRateLimitPreset(req, 'aiGenerate')
-    if (rateLimitResponse) return rateLimitResponse
+  const { response: rateLimitResponse } = await withRateLimitPreset(req, 'aiGenerate')
+  if (rateLimitResponse) return rateLimitResponse
 
-    const session = await getServerSession(authOptions, req)
-    if (!session?.user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const session = await getServerSession(authOptions, req)
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (session.user.role !== 'TUTOR' && session.user.role !== 'ADMIN') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const body = await req.json().catch(() => null)
+  const parsed = QuestionGenerateSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
+  const { topic, count, difficulty, types } = parsed.data
+
+  try {
+    const config: TaskConfiguration = {
+      subject: topic,
+      topics: [topic],
+      difficulty: difficulty as 'beginner' | 'intermediate' | 'advanced',
+      taskTypes: types,
+      count: Math.min(count, 20), // cap at 20
     }
 
-    if (session.user.role !== 'TUTOR' && session.user.role !== 'ADMIN') {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    const tasks = await generateUniformTasks(config)
 
-    const body = await req.json().catch(() => null)
-    const parsed = QuestionGenerateSchema.safeParse(body)
-    if (!parsed.success) {
-        return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
-    }
-    const { topic, count, difficulty, types } = parsed.data
+    // Map to QuizQuestion format for the QuestionEditor
+    const questions = tasks.map((t, idx) => ({
+      id: `ai-${Date.now()}-${idx}`,
+      type:
+        t.type === 'multiple_choice'
+          ? 'mcq'
+          : t.type === 'short_answer'
+            ? 'shortanswer'
+            : t.type === 'long_answer'
+              ? 'essay'
+              : 'mcq',
+      question: t.question || '',
+      options: t.options || undefined,
+      correctAnswer: t.correctAnswer || '',
+      points: t.rubric?.[0]?.points ?? 1,
+      explanation: t.explanation || '',
+    }))
 
-    try {
-        const config: TaskConfiguration = {
-            subject: topic,
-            topics: [topic],
-            difficulty: difficulty as 'beginner' | 'intermediate' | 'advanced',
-            taskTypes: types,
-            count: Math.min(count, 20), // cap at 20
-        }
-
-        const tasks = await generateUniformTasks(config)
-
-        // Map to QuizQuestion format for the QuestionEditor
-        const questions = tasks.map((t, idx) => ({
-            id: `ai-${Date.now()}-${idx}`,
-            type: t.type === 'multiple_choice' ? 'mcq' :
-                t.type === 'short_answer' ? 'shortanswer' :
-                    t.type === 'long_answer' ? 'essay' : 'mcq',
-            question: t.question || '',
-            options: t.options || undefined,
-            correctAnswer: t.correctAnswer || '',
-            points: t.rubric?.[0]?.points ?? 1,
-            explanation: t.explanation || '',
-        }))
-
-        return NextResponse.json({
-            success: true,
-            questions,
-            count: questions.length,
-        })
-    } catch (error) {
-        console.error('AI question generation failed:', error)
-        return handleApiError(error, 'Failed to generate questions', 'api/tutor/questions/generate/route.ts')
-    }
+    return NextResponse.json({
+      success: true,
+      questions,
+      count: questions.length,
+    })
+  } catch (error) {
+    console.error('AI question generation failed:', error)
+    return handleApiError(
+      error,
+      'Failed to generate questions',
+      'api/tutor/questions/generate/route.ts'
+    )
+  }
 }

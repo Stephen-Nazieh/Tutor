@@ -65,10 +65,7 @@ const SECTIONS: LessonSection[] = ['introduction', 'concept', 'example', 'practi
 /**
  * Start a new lesson session
  */
-export async function startLesson(
-  studentId: string,
-  lessonId: string
-): Promise<LessonSession> {
+export async function startLesson(studentId: string, lessonId: string): Promise<LessonSession> {
   const [lessonRow] = await drizzleDb
     .select()
     .from(curriculumLesson)
@@ -103,12 +100,7 @@ export async function startLesson(
   const [existingSession] = await drizzleDb
     .select()
     .from(lessonSession)
-    .where(
-      and(
-        eq(lessonSession.studentId, studentId),
-        eq(lessonSession.lessonId, lessonId)
-      )
-    )
+    .where(and(eq(lessonSession.studentId, studentId), eq(lessonSession.lessonId, lessonId)))
     .limit(1)
   if (existingSession && existingSession.status !== 'completed') {
     return existingSession as LessonSession
@@ -125,10 +117,7 @@ export async function startLesson(
       updatedAt: new Date(),
     })
     .onConflictDoUpdate({
-      target: [
-        curriculumLessonProgress.lessonId,
-        curriculumLessonProgress.studentId,
-      ],
+      target: [curriculumLessonProgress.lessonId, curriculumLessonProgress.studentId],
       set: {
         status: 'IN_PROGRESS',
         currentSection: 'introduction',
@@ -169,7 +158,7 @@ export async function advanceLesson(
   studentResponse: string
 ): Promise<LessonAdvanceResult> {
   const currentIndex = SECTIONS.indexOf(session.currentSection)
-  
+
   // Check if we're at the end
   if (currentIndex >= SECTIONS.length - 1) {
     // Mark as complete
@@ -177,7 +166,7 @@ export async function advanceLesson(
     return {
       newSection: 'review',
       sectionComplete: true,
-      lessonComplete: true
+      lessonComplete: true,
     }
   }
 
@@ -206,7 +195,7 @@ export async function advanceLesson(
   return {
     newSection: nextSection,
     sectionComplete: true,
-    lessonComplete: false
+    lessonComplete: false,
   }
 }
 
@@ -226,21 +215,42 @@ export async function assessUnderstanding(
 
   // Understanding indicators
   const positiveIndicators = [
-    'understand', 'got it', 'makes sense', 'clear', 'yes', 'okay', 
-    'right', 'correct', '我知道了', '明白', '懂了', '对的', '正确'
+    'understand',
+    'got it',
+    'makes sense',
+    'clear',
+    'yes',
+    'okay',
+    'right',
+    'correct',
+    '我知道了',
+    '明白',
+    '懂了',
+    '对的',
+    '正确',
   ]
-  
+
   const negativeIndicators = [
-    'confused', "don't understand", 'lost', 'difficult', 'hard', 
-    'what?', "don't get", '不懂', '不明白', '困惑', '难', '不会'
+    'confused',
+    "don't understand",
+    'lost',
+    'difficult',
+    'hard',
+    'what?',
+    "don't get",
+    '不懂',
+    '不明白',
+    '困惑',
+    '难',
+    '不会',
   ]
 
   let understandingScore = 50 // baseline
-  
+
   positiveIndicators.forEach(indicator => {
     if (studentMessages.includes(indicator)) understandingScore += 15
   })
-  
+
   negativeIndicators.forEach(indicator => {
     if (studentMessages.includes(indicator)) understandingScore -= 20
   })
@@ -261,7 +271,7 @@ export async function assessUnderstanding(
     masteredConcepts: understandingScore >= 70 ? objectives : [],
     strugglingConcepts: understandingScore < 50 ? objectives : [],
     readyToAdvance: understandingScore >= 75,
-    recommendedAction
+    recommendedAction,
   }
 }
 
@@ -313,7 +323,7 @@ export function buildCurriculumPrompt(
 - 确认学习目标已达成
 - 预览接下来的内容
 - 祝贺学生完成学习
-- 询问是否还有疑问`
+- 询问是否还有疑问`,
   }
 
   const currentSection = session.currentSection
@@ -348,9 +358,11 @@ ${sectionInstructions[currentSection]}
 回顾完成: ${context.reviewDone ? '是' : '否'}
 
 ## 概念掌握度
-${Object.entries(session.conceptMastery || {})
-  .map(([concept, level]) => `- ${concept}: ${level}%`)
-  .join('\n') || '暂无数据'}
+${
+  Object.entries(session.conceptMastery || {})
+    .map(([concept, level]) => `- ${concept}: ${level}%`)
+    .join('\n') || '暂无数据'
+}
 
 ## 常见误解（需要留意）
 ${(lesson.commonMisconceptions || []).map((m: string) => `- ${m}`).join('\n')}
@@ -384,16 +396,13 @@ ${studentMessage}
 /**
  * Get remediation path for struggling student
  */
-export function getRemediationPath(
-  concept: string,
-  misconception: string
-): string {
+export function getRemediationPath(concept: string, misconception: string): string {
   const remediationStrategies: Record<string, string> = {
-    '基础概念不牢': '建议先复习相关前置知识，使用更简单的例子重新讲解',
-    '计算错误': '建议加强基础运算练习，强调计算步骤的重要性',
-    '理解偏差': '建议用类比和可视化方法重新解释概念',
-    '应用困难': '建议从更简单的应用题开始，逐步增加难度',
-    'default': '建议回顾相关知识点，多做练习巩固理解'
+    基础概念不牢: '建议先复习相关前置知识，使用更简单的例子重新讲解',
+    计算错误: '建议加强基础运算练习，强调计算步骤的重要性',
+    理解偏差: '建议用类比和可视化方法重新解释概念',
+    应用困难: '建议从更简单的应用题开始，逐步增加难度',
+    default: '建议回顾相关知识点，多做练习巩固理解',
   }
 
   return remediationStrategies[misconception] || remediationStrategies['default']
@@ -431,7 +440,7 @@ export async function completeLesson(sessionId: string): Promise<void> {
       ? Object.values(mastery).reduce((a, b) => a + b, 0) / Object.keys(mastery).length
       : 0
 
-  await drizzleDb.transaction(async (tx) => {
+  await drizzleDb.transaction(async tx => {
     await tx
       .update(lessonSession)
       .set({ status: 'completed', completedAt: new Date() })
@@ -456,10 +465,7 @@ export async function completeLesson(sessionId: string): Promise<void> {
         count: sql<number>`count(*)::int`,
       })
       .from(curriculumLesson)
-      .innerJoin(
-        curriculumModule,
-        eq(curriculumModule.id, curriculumLesson.moduleId)
-      )
+      .innerJoin(curriculumModule, eq(curriculumModule.id, curriculumLesson.moduleId))
       .where(eq(curriculumModule.curriculumId, curriculumId))
     const totalLessons = totalRow?.count ?? 0
 
@@ -618,10 +624,7 @@ export async function getStudentProgress(
         .limit(1)
       if (progress?.status === 'COMPLETED') {
         completedLessons++
-      } else if (
-        !currentModule &&
-        progress?.status === 'IN_PROGRESS'
-      ) {
+      } else if (!currentModule && progress?.status === 'IN_PROGRESS') {
         currentModule = mod.title
       }
     }
@@ -630,12 +633,8 @@ export async function getStudentProgress(
   return {
     totalLessons,
     completedLessons,
-    currentModule:
-      currentModule || modules[0]?.title || '',
-    overallProgress:
-      totalLessons > 0
-        ? Math.round((completedLessons / totalLessons) * 100)
-        : 0,
+    currentModule: currentModule || modules[0]?.title || '',
+    overallProgress: totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0,
   }
 }
 
@@ -668,7 +667,9 @@ export async function getLessonContent(lessonId: string): Promise<LessonContent>
 /**
  * Extract whiteboard items from AI response
  */
-export function extractWhiteboardItems(content: string): Array<{ type: string; content: string; caption?: string }> {
+export function extractWhiteboardItems(
+  content: string
+): Array<{ type: string; content: string; caption?: string }> {
   const items: Array<{ type: string; content: string; caption?: string }> = []
 
   // Extract formulas

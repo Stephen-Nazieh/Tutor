@@ -10,7 +10,11 @@ import { TutorWhiteboardManager } from './TutorWhiteboardManager'
 import { StudentLiveWhiteboard } from '@/app/[locale]/student/live/components/StudentLiveWhiteboard'
 import { PDFCollaborativeViewer } from '@/components/pdf-tutoring/PDFCollaborativeViewer'
 import { useSimpleSocket } from '@/hooks/use-simple-socket'
-import { LiveSharedDocumentModal, LiveSharedDocument, type LiveDocumentCollaborationPolicy } from './LiveSharedDocumentModal'
+import {
+  LiveSharedDocumentModal,
+  LiveSharedDocument,
+  type LiveDocumentCollaborationPolicy,
+} from './LiveSharedDocumentModal'
 import { WhiteboardAssignmentOverlay } from './WhiteboardAssignmentOverlay'
 import type { VisibleDocumentPayload } from '../../dashboard/components/CourseBuilder'
 import { toast } from 'sonner'
@@ -58,91 +62,100 @@ export function MultiLayerWhiteboardInterface({
   const [uploadingPersonalDoc, setUploadingPersonalDoc] = useState(false)
   const announcedSharesRef = useRef<Set<string>>(new Set())
 
-  const publishShare = useCallback((share: LiveSharedDocument) => {
-    if (socket) {
-      socket.emit('live_doc_share_update', share)
-    }
-  }, [socket])
+  const publishShare = useCallback(
+    (share: LiveSharedDocument) => {
+      if (socket) {
+        socket.emit('live_doc_share_update', share)
+      }
+    },
+    [socket]
+  )
 
-  const handleShareRequestFromBuilder = useCallback((payload: VisibleDocumentPayload) => {
-    if (!userId) return
-    const isQuestionShare = Array.isArray(payload.questions) && payload.questions.length > 0
-    const shareId = `share-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
-    const share: LiveSharedDocument = {
-      shareId,
-      classRoomId: roomId,
-      ownerId: userId,
-      ownerName: userName,
-      title: payload.title,
-      description: payload.description,
-      fileUrl: payload.sourceDocument?.fileUrl,
-      mimeType: payload.sourceDocument?.mimeType,
-      pdfRoomId: `${roomId}:pdf-share:${userId}:${shareId}`,
-      visibleToAll: true,
-      allowCollaborativeWrite: !isQuestionShare,
-      collaborationPolicy: {
-        allowDrawing: !isQuestionShare,
-        allowTyping: !isQuestionShare,
-        allowShapes: !isQuestionShare,
-      },
-      active: true,
-      submissions: [],
-      updatedAt: Date.now(),
-      questions: payload.questions,
-      revealAnswersToStudents: false,
-    }
-    setShares((prev) => ({ ...prev, [shareId]: share }))
-    publishShare(share)
-    setActiveShareId(shareId)
-  }, [publishShare, roomId, userId, userName])
-
-  const uploadAndSharePersonalDocument = useCallback(async (file: File) => {
-    if (!socket || !userId) return
-    setUploadingPersonalDoc(true)
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-      const uploadRes = await fetch('/api/uploads/documents', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      })
-      if (!uploadRes.ok) return
-      const uploadData = await uploadRes.json()
+  const handleShareRequestFromBuilder = useCallback(
+    (payload: VisibleDocumentPayload) => {
+      if (!userId) return
+      const isQuestionShare = Array.isArray(payload.questions) && payload.questions.length > 0
       const shareId = `share-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
       const share: LiveSharedDocument = {
         shareId,
         classRoomId: roomId,
         ownerId: userId,
         ownerName: userName,
-        title: file.name,
-        description: 'Student shared document',
-        fileUrl: uploadData.url,
-        mimeType: file.type,
+        title: payload.title,
+        description: payload.description,
+        fileUrl: payload.sourceDocument?.fileUrl,
+        mimeType: payload.sourceDocument?.mimeType,
         pdfRoomId: `${roomId}:pdf-share:${userId}:${shareId}`,
         visibleToAll: true,
-        allowCollaborativeWrite: true,
+        allowCollaborativeWrite: !isQuestionShare,
         collaborationPolicy: {
-          allowDrawing: true,
-          allowTyping: true,
-          allowShapes: true,
+          allowDrawing: !isQuestionShare,
+          allowTyping: !isQuestionShare,
+          allowShapes: !isQuestionShare,
         },
         active: true,
+        submissions: [],
         updatedAt: Date.now(),
+        questions: payload.questions,
+        revealAnswersToStudents: false,
       }
+      setShares(prev => ({ ...prev, [shareId]: share }))
       publishShare(share)
       setActiveShareId(shareId)
-    } finally {
-      setUploadingPersonalDoc(false)
-    }
-  }, [publishShare, roomId, socket, userId, userName])
+    },
+    [publishShare, roomId, userId, userName]
+  )
+
+  const uploadAndSharePersonalDocument = useCallback(
+    async (file: File) => {
+      if (!socket || !userId) return
+      setUploadingPersonalDoc(true)
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        const uploadRes = await fetch('/api/uploads/documents', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        })
+        if (!uploadRes.ok) return
+        const uploadData = await uploadRes.json()
+        const shareId = `share-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+        const share: LiveSharedDocument = {
+          shareId,
+          classRoomId: roomId,
+          ownerId: userId,
+          ownerName: userName,
+          title: file.name,
+          description: 'Student shared document',
+          fileUrl: uploadData.url,
+          mimeType: file.type,
+          pdfRoomId: `${roomId}:pdf-share:${userId}:${shareId}`,
+          visibleToAll: true,
+          allowCollaborativeWrite: true,
+          collaborationPolicy: {
+            allowDrawing: true,
+            allowTyping: true,
+            allowShapes: true,
+          },
+          active: true,
+          updatedAt: Date.now(),
+        }
+        publishShare(share)
+        setActiveShareId(shareId)
+      } finally {
+        setUploadingPersonalDoc(false)
+      }
+    },
+    [publishShare, roomId, socket, userId, userName]
+  )
 
   useEffect(() => {
     if (!socket || !roomId) return
 
     const handleShareUpdate = (share: LiveSharedDocument) => {
       if (share.classRoomId !== roomId) return
-      setShares((prev) => ({ ...prev, [share.shareId]: share }))
+      setShares(prev => ({ ...prev, [share.shareId]: share }))
       if (
         share.active &&
         (share.visibleToAll || share.ownerId === userId) &&
@@ -164,16 +177,19 @@ export function MultiLayerWhiteboardInterface({
       submittedAt: number
     }) => {
       if (data.classRoomId !== roomId) return
-      setShares((prev) => {
+      setShares(prev => {
         const current = prev[data.shareId]
         if (!current) return prev
         const existing = current.submissions || []
-        if (existing.some((submission) => submission.userId === data.userId)) return prev
+        if (existing.some(submission => submission.userId === data.userId)) return prev
         return {
           ...prev,
           [data.shareId]: {
             ...current,
-            submissions: [...existing, { userId: data.userId, userName: data.userName, submittedAt: data.submittedAt }],
+            submissions: [
+              ...existing,
+              { userId: data.userId, userName: data.userName, submittedAt: data.submittedAt },
+            ],
             updatedAt: Date.now(),
           },
         }
@@ -183,7 +199,7 @@ export function MultiLayerWhiteboardInterface({
     const handleShareState = (data: { classRoomId: string; shares: LiveSharedDocument[] }) => {
       if (data.classRoomId !== roomId) return
       const next: Record<string, LiveSharedDocument> = {}
-      data.shares.forEach((share) => {
+      data.shares.forEach(share => {
         next[share.shareId] = share
       })
       setShares(next)
@@ -206,14 +222,17 @@ export function MultiLayerWhiteboardInterface({
   const visibleShares = useMemo(
     () =>
       Object.values(shares)
-        .filter((share) => share.active && (share.visibleToAll || share.ownerId === userId))
+        .filter(share => share.active && (share.visibleToAll || share.ownerId === userId))
         .sort((a, b) => b.updatedAt - a.updatedAt),
     [shares, userId]
   )
-  const updateActiveSharePolicy = useCallback((policy: LiveDocumentCollaborationPolicy) => {
-    if (!activeShare || !canManageActiveShare) return
-    publishShare({ ...activeShare, collaborationPolicy: policy })
-  }, [activeShare, canManageActiveShare, publishShare])
+  const updateActiveSharePolicy = useCallback(
+    (policy: LiveDocumentCollaborationPolicy) => {
+      if (!activeShare || !canManageActiveShare) return
+      publishShare({ ...activeShare, collaborationPolicy: policy })
+    },
+    [activeShare, canManageActiveShare, publishShare]
+  )
 
   if (isTutor) {
     return (
@@ -224,7 +243,7 @@ export function MultiLayerWhiteboardInterface({
             sessionId={sessionId}
             initialCourseId={initialCourseId}
             classSubject={classSubject}
-            students={students.map((student) => ({ id: student.id, name: student.name }))}
+            students={students.map(student => ({ id: student.id, name: student.name }))}
             onDocumentVisibleToStudents={handleShareRequestFromBuilder}
           />
           {/* Assignment Overlay - appears on whiteboard when content is assigned */}
@@ -232,49 +251,49 @@ export function MultiLayerWhiteboardInterface({
             share={activeShare}
             onClose={() => setActiveShareId(null)}
             canManageShare={canManageActiveShare}
-            onVisibilityChange={(visible) => {
+            onVisibilityChange={visible => {
               if (!activeShare || !canManageActiveShare) return
               publishShare({ ...activeShare, visibleToAll: visible, active: visible })
             }}
             onCollaborationPolicyChange={updateActiveSharePolicy}
-            onRevealAnswersChange={(revealed) => {
+            onRevealAnswersChange={revealed => {
               if (!activeShare || !canManageActiveShare) return
               publishShare({ ...activeShare, revealAnswersToStudents: revealed })
             }}
-            onAiGradingChange={(enabled) => {
+            onAiGradingChange={enabled => {
               if (!activeShare || !canManageActiveShare) return
               publishShare({ ...activeShare, isAiGraded: enabled })
             }}
-            onTimeLimitChange={(minutes) => {
+            onTimeLimitChange={minutes => {
               if (!activeShare || !canManageActiveShare) return
               publishShare({ ...activeShare, timeLimit: minutes })
             }}
           />
         </div>
 
-      <LiveSharedDocumentModal
-        open={Boolean(activeShare)}
-        onOpenChange={(open) => {
-          if (!open) setActiveShareId(null)
-        }}
-        share={activeShare}
-        viewerRole="tutor"
-        canManageShare={canManageActiveShare}
-        onVisibilityChange={(visible) => {
-          if (!activeShare || !canManageActiveShare) return
-          publishShare({ ...activeShare, visibleToAll: visible, active: visible })
-        }}
-        onWriteAccessChange={(allow) => {
-          if (!activeShare || !canManageActiveShare) return
-          publishShare({ ...activeShare, allowCollaborativeWrite: allow })
-        }}
-        onCollaborationPolicyChange={updateActiveSharePolicy}
-        onRevealAnswersChange={(revealed) => {
-          if (!activeShare || !canManageActiveShare) return
-          publishShare({ ...activeShare, revealAnswersToStudents: revealed })
-        }}
-        onOpenInWhiteboard={onOpenInWhiteboard}
-      />
+        <LiveSharedDocumentModal
+          open={Boolean(activeShare)}
+          onOpenChange={open => {
+            if (!open) setActiveShareId(null)
+          }}
+          share={activeShare}
+          viewerRole="tutor"
+          canManageShare={canManageActiveShare}
+          onVisibilityChange={visible => {
+            if (!activeShare || !canManageActiveShare) return
+            publishShare({ ...activeShare, visibleToAll: visible, active: visible })
+          }}
+          onWriteAccessChange={allow => {
+            if (!activeShare || !canManageActiveShare) return
+            publishShare({ ...activeShare, allowCollaborativeWrite: allow })
+          }}
+          onCollaborationPolicyChange={updateActiveSharePolicy}
+          onRevealAnswersChange={revealed => {
+            if (!activeShare || !canManageActiveShare) return
+            publishShare({ ...activeShare, revealAnswersToStudents: revealed })
+          }}
+          onOpenInWhiteboard={onOpenInWhiteboard}
+        />
       </>
     )
   }
@@ -283,8 +302,8 @@ export function MultiLayerWhiteboardInterface({
     <>
       <Card className="h-full">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Layers className="w-4 h-4 text-blue-600" />
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Layers className="h-4 w-4 text-blue-600" />
             Collaborative Whiteboard
           </CardTitle>
           <CardDescription>
@@ -298,7 +317,7 @@ export function MultiLayerWhiteboardInterface({
                   type="file"
                   className="hidden"
                   accept=".pdf,.txt,.md,.doc,.docx,image/*"
-                  onChange={(event) => {
+                  onChange={event => {
                     const file = event.target.files?.[0]
                     if (!file) return
                     void uploadAndSharePersonalDocument(file)
@@ -315,16 +334,16 @@ export function MultiLayerWhiteboardInterface({
               <TabsTrigger value="student-board">Whiteboard</TabsTrigger>
               <TabsTrigger value="student-pdf">PDF Tutoring</TabsTrigger>
             </TabsList>
-            <TabsContent value="student-board" className="h-[calc(100%-40px)] m-0">
+            <TabsContent value="student-board" className="m-0 h-[calc(100%-40px)]">
               <StudentLiveWhiteboard
                 roomId={roomId}
                 sessionId={sessionId}
                 mode="embedded"
                 visibleTaskShares={visibleShares}
-                onOpenTask={(shareId) => setActiveShareId(shareId)}
+                onOpenTask={shareId => setActiveShareId(shareId)}
               />
             </TabsContent>
-            <TabsContent value="student-pdf" className="h-[calc(100%-40px)] m-0 overflow-auto">
+            <TabsContent value="student-pdf" className="m-0 h-[calc(100%-40px)] overflow-auto">
               <PDFCollaborativeViewer roomId={`${roomId}:pdf`} role="student" />
             </TabsContent>
           </Tabs>
@@ -333,17 +352,17 @@ export function MultiLayerWhiteboardInterface({
 
       <LiveSharedDocumentModal
         open={Boolean(activeShare)}
-        onOpenChange={(open) => {
+        onOpenChange={open => {
           if (!open) setActiveShareId(null)
         }}
         share={activeShare}
         viewerRole={socketRole}
         canManageShare={canManageActiveShare}
-        onVisibilityChange={(visible) => {
+        onVisibilityChange={visible => {
           if (!activeShare || !canManageActiveShare) return
           publishShare({ ...activeShare, visibleToAll: visible, active: visible })
         }}
-        onWriteAccessChange={(allow) => {
+        onWriteAccessChange={allow => {
           if (!activeShare || !canManageActiveShare) return
           publishShare({ ...activeShare, allowCollaborativeWrite: allow })
         }}
@@ -357,8 +376,10 @@ export function MultiLayerWhiteboardInterface({
             userName,
           })
         }}
-        hasSubmitted={Boolean(activeShare?.submissions?.some((submission) => submission.userId === userId))}
-        onRevealAnswersChange={(revealed) => {
+        hasSubmitted={Boolean(
+          activeShare?.submissions?.some(submission => submission.userId === userId)
+        )}
+        onRevealAnswersChange={revealed => {
           if (!activeShare || !canManageActiveShare) return
           publishShare({ ...activeShare, revealAnswersToStudents: revealed })
         }}

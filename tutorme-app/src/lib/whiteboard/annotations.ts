@@ -1,6 +1,6 @@
 /**
  * Rich Annotations System
- * 
+ *
  * Features:
  * - Sticky notes with positioning
  * - Comments and threaded discussions
@@ -28,12 +28,14 @@ export const CommentSchema = z.object({
   authorName: z.string(),
   authorColor: z.string(),
   content: z.string().min(1),
-  mentions: z.array(z.object({
-    userId: z.string(),
-    userName: z.string(),
-    startIndex: z.number(),
-    endIndex: z.number(),
-  })),
+  mentions: z.array(
+    z.object({
+      userId: z.string(),
+      userName: z.string(),
+      startIndex: z.number(),
+      endIndex: z.number(),
+    })
+  ),
   timestamp: z.number(),
   editedAt: z.number().optional(),
 })
@@ -50,12 +52,14 @@ export const AnnotationThreadSchema = z.object({
   authorColor: z.string(),
   title: z.string().optional(),
   content: z.string(),
-  mentions: z.array(z.object({
-    userId: z.string(),
-    userName: z.string(),
-    startIndex: z.number(),
-    endIndex: z.number(),
-  })),
+  mentions: z.array(
+    z.object({
+      userId: z.string(),
+      userName: z.string(),
+      startIndex: z.number(),
+      endIndex: z.number(),
+    })
+  ),
   replies: z.array(CommentSchema),
   isResolved: z.boolean(),
   resolvedBy: z.string().optional(),
@@ -82,7 +86,7 @@ export class MentionParser {
    */
   registerUsers(users: Array<{ id: string; name: string; color?: string }>): void {
     this.users.clear()
-    users.forEach((user) => {
+    users.forEach(user => {
       this.users.set(user.id, {
         name: user.name,
         color: user.color || '#3b82f6',
@@ -126,7 +130,7 @@ export class MentionParser {
    */
   getSuggestions(query: string): Array<{ id: string; name: string; color: string }> {
     const lowerQuery = query.toLowerCase().slice(1) // Remove @
-    
+
     return Array.from(this.users.entries())
       .filter(([, user]) => user.name.toLowerCase().includes(lowerQuery))
       .map(([id, user]) => ({
@@ -141,17 +145,17 @@ export class MentionParser {
    */
   formatContent(content: string, mentions: Mention[]): string {
     let result = content
-    
+
     // Sort mentions by start index in reverse to avoid index shifting
     const sortedMentions = [...mentions].sort((a, b) => b.startIndex - a.startIndex)
-    
+
     for (const mention of sortedMentions) {
       result =
         result.slice(0, mention.startIndex) +
         `@${mention.userName}` +
         result.slice(mention.endIndex)
     }
-    
+
     return result
   }
 }
@@ -166,10 +170,12 @@ export class AnnotationManager {
   private onMention?: (mention: Mention, thread: AnnotationThread) => void
   private onThreadChange?: (thread: AnnotationThread) => void
 
-  constructor(options: {
-    onMention?: (mention: Mention, thread: AnnotationThread) => void
-    onThreadChange?: (thread: AnnotationThread) => void
-  } = {}) {
+  constructor(
+    options: {
+      onMention?: (mention: Mention, thread: AnnotationThread) => void
+      onThreadChange?: (thread: AnnotationThread) => void
+    } = {}
+  ) {
     this.onMention = options.onMention
     this.onThreadChange = options.onThreadChange
   }
@@ -224,7 +230,7 @@ export class AnnotationManager {
     this.threads.set(thread.id, thread)
 
     // Notify mentioned users
-    mentions.forEach((mention) => {
+    mentions.forEach(mention => {
       this.onMention?.(mention, thread)
     })
 
@@ -263,7 +269,7 @@ export class AnnotationManager {
     thread.updatedAt = Date.now()
 
     // Notify mentioned users
-    mentions.forEach((mention) => {
+    mentions.forEach(mention => {
       this.onMention?.(mention, thread)
     })
 
@@ -274,15 +280,11 @@ export class AnnotationManager {
   /**
    * Edit a comment
    */
-  editComment(
-    threadId: string,
-    commentId: string,
-    newContent: string
-  ): boolean {
+  editComment(threadId: string, commentId: string, newContent: string): boolean {
     const thread = this.threads.get(threadId)
     if (!thread) return false
 
-    const comment = thread.replies.find((r) => r.id === commentId)
+    const comment = thread.replies.find(r => r.id === commentId)
     if (!comment) return false
 
     comment.content = newContent
@@ -301,7 +303,7 @@ export class AnnotationManager {
     const thread = this.threads.get(threadId)
     if (!thread) return false
 
-    const index = thread.replies.findIndex((r) => r.id === commentId)
+    const index = thread.replies.findIndex(r => r.id === commentId)
     if (index === -1) return false
 
     thread.replies.splice(index, 1)
@@ -400,32 +402,28 @@ export class AnnotationManager {
    * Get threads attached to an element
    */
   getThreadsForElement(elementId: string): AnnotationThread[] {
-    return Array.from(this.threads.values()).filter(
-      (t) => t.attachedTo === elementId
-    )
+    return Array.from(this.threads.values()).filter(t => t.attachedTo === elementId)
   }
 
   /**
    * Get unresolved threads
    */
   getUnresolvedThreads(): AnnotationThread[] {
-    return Array.from(this.threads.values()).filter((t) => !t.isResolved)
+    return Array.from(this.threads.values()).filter(t => !t.isResolved)
   }
 
   /**
    * Get resolved threads
    */
   getResolvedThreads(): AnnotationThread[] {
-    return Array.from(this.threads.values()).filter((t) => t.isResolved)
+    return Array.from(this.threads.values()).filter(t => t.isResolved)
   }
 
   /**
    * Get threads by author
    */
   getThreadsByAuthor(authorId: string): AnnotationThread[] {
-    return Array.from(this.threads.values()).filter(
-      (t) => t.authorId === authorId
-    )
+    return Array.from(this.threads.values()).filter(t => t.authorId === authorId)
   }
 
   /**
@@ -455,14 +453,14 @@ export class AnnotationManager {
     const all = this.getAllThreads()
     const byType: Record<string, number> = {}
 
-    all.forEach((t) => {
+    all.forEach(t => {
       byType[t.type] = (byType[t.type] || 0) + 1
     })
 
     return {
       totalThreads: all.length,
-      unresolvedThreads: all.filter((t) => !t.isResolved).length,
-      resolvedThreads: all.filter((t) => t.isResolved).length,
+      unresolvedThreads: all.filter(t => !t.isResolved).length,
+      resolvedThreads: all.filter(t => t.isResolved).length,
       totalComments: all.reduce((sum, t) => sum + t.replies.length, 0),
       threadsByType: byType,
     }
@@ -572,7 +570,7 @@ export class AnnotationNotificationSystem {
    * Mark notification as read
    */
   markAsRead(notificationId: string): boolean {
-    const notification = this.notifications.find((n) => n.id === notificationId)
+    const notification = this.notifications.find(n => n.id === notificationId)
     if (notification) {
       notification.read = true
       return true
@@ -584,7 +582,7 @@ export class AnnotationNotificationSystem {
    * Get unread notifications for a user
    */
   getUnreadNotifications(userId: string): Notification[] {
-    return this.notifications.filter((n) => n.userId === userId && !n.read)
+    return this.notifications.filter(n => n.userId === userId && !n.read)
   }
 
   /**
@@ -592,7 +590,7 @@ export class AnnotationNotificationSystem {
    */
   getNotifications(userId: string): Notification[] {
     return this.notifications
-      .filter((n) => n.userId === userId)
+      .filter(n => n.userId === userId)
       .sort((a, b) => b.timestamp - a.timestamp)
   }
 
@@ -601,6 +599,6 @@ export class AnnotationNotificationSystem {
    */
   clearOldNotifications(olderThanMs: number = 86400000): void {
     const cutoff = Date.now() - olderThanMs
-    this.notifications = this.notifications.filter((n) => n.timestamp > cutoff)
+    this.notifications = this.notifications.filter(n => n.timestamp > cutoff)
   }
 }

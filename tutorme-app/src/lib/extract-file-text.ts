@@ -74,8 +74,11 @@ export async function extractTextFromFile(file: File): Promise<string> {
   // Likely unreadable binary formats
   if (
     name.endsWith('.xls') ||
-    name.endsWith('.zip') || name.endsWith('.exe') ||
-    type.includes('zip') || type.includes('ms-') || type.includes('binary')
+    name.endsWith('.zip') ||
+    name.endsWith('.exe') ||
+    type.includes('zip') ||
+    type.includes('ms-') ||
+    type.includes('binary')
   ) {
     return `[Binary file: ${file.name}]`
   }
@@ -117,7 +120,9 @@ async function extractPdfText(file: File): Promise<string> {
   for (let i = 1; i <= numPages; i++) {
     const page = await doc.getPage(i)
     const content = await page.getTextContent()
-    const pageText = content.items.map((item: { str?: string }) => (item as { str?: string }).str ?? '').join(' ')
+    const pageText = content.items
+      .map((item: { str?: string }) => (item as { str?: string }).str ?? '')
+      .join(' ')
     parts.push(pageText)
   }
   return parts.join('\n\n').trim() || ''
@@ -152,7 +157,9 @@ async function extractPptxText(file: File): Promise<string> {
 
     if (slideFiles.length === 0) {
       // Try notes or other XML files inside ppt/
-      const fallbackFiles = Object.keys(zip.files).filter(n => n.endsWith('.xml') && n.startsWith('ppt/'))
+      const fallbackFiles = Object.keys(zip.files).filter(
+        n => n.endsWith('.xml') && n.startsWith('ppt/')
+      )
       if (fallbackFiles.length === 0) {
         return `[Could not extract text from ${file.name}]`
       }
@@ -189,7 +196,10 @@ function extractTextFromXml(xml: string): string {
   // Match all <a:t>...</a:t> content
   const atMatches = xml.match(/<a:t[^>]*>([^<]*)<\/a:t>/g) || []
   for (const match of atMatches) {
-    const text = match.replace(/<a:t[^>]*>/, '').replace(/<\/a:t>/, '').trim()
+    const text = match
+      .replace(/<a:t[^>]*>/, '')
+      .replace(/<\/a:t>/, '')
+      .trim()
     if (text) textRuns.push(text)
   }
 
@@ -197,7 +207,10 @@ function extractTextFromXml(xml: string): string {
   if (textRuns.length === 0) {
     const tMatches = xml.match(/<r:t[^>]*>([^<]*)<\/r:t>/g) || []
     for (const match of tMatches) {
-      const text = match.replace(/<r:t[^>]*>/, '').replace(/<\/r:t>/, '').trim()
+      const text = match
+        .replace(/<r:t[^>]*>/, '')
+        .replace(/<\/r:t>/, '')
+        .trim()
       if (text) textRuns.push(text)
     }
   }
@@ -231,22 +244,30 @@ function extractTextFromXml(xml: string): string {
 }
 
 /**
- * Extract text from XLSX files using the xlsx library.
+ * Extract text from XLSX files using the exceljs library.
  */
 async function extractXlsxText(file: File): Promise<string> {
   try {
-    const XLSX = await import('xlsx')
+    const ExcelJS = await import('exceljs')
     const arrayBuffer = await file.arrayBuffer()
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' })
+    const workbook = new ExcelJS.Workbook()
+    await workbook.xlsx.load(arrayBuffer)
     const lines: string[] = []
-    for (const sheetName of workbook.SheetNames) {
-      const sheet = workbook.Sheets[sheetName]
-      const csv = XLSX.utils.sheet_to_csv(sheet)
-      if (csv.trim()) {
-        lines.push(`=== Sheet: ${sheetName} ===`)
-        lines.push(csv)
+    workbook.eachWorksheet(sheet => {
+      const sheetLines: string[] = []
+      sheet.eachRow(row => {
+        const rowText = row.values
+          ?.filter((v): v is string | number => v !== null && v !== undefined)
+          .join('\t')
+        if (rowText) {
+          sheetLines.push(rowText)
+        }
+      })
+      if (sheetLines.length > 0) {
+        lines.push(`=== Sheet: ${sheet.name} ===`)
+        lines.push(...sheetLines)
       }
-    }
+    })
     return lines.join('\n\n').trim() || `[No text content in ${file.name}]`
   } catch {
     return `[Failed to extract text from ${file.name}]`
@@ -255,7 +276,23 @@ async function extractXlsxText(file: File): Promise<string> {
 
 async function extractImageText(file: File): Promise<string> {
   const mod = await import('tesseract.js')
-  const api = (mod as { default?: { recognize: (image: File, lang?: string, opts?: object) => Promise<{ data: { text?: string } }> }; recognize?: (image: File, lang?: string, opts?: object) => Promise<{ data: { text?: string } }> }).default ?? mod
-  const { data } = await api.recognize(file, 'eng', { logger: () => { } })
+  const api =
+    (
+      mod as {
+        default?: {
+          recognize: (
+            image: File,
+            lang?: string,
+            opts?: object
+          ) => Promise<{ data: { text?: string } }>
+        }
+        recognize?: (
+          image: File,
+          lang?: string,
+          opts?: object
+        ) => Promise<{ data: { text?: string } }>
+      }
+    ).default ?? mod
+  const { data } = await api.recognize(file, 'eng', { logger: () => {} })
   return (data?.text || '').trim()
 }

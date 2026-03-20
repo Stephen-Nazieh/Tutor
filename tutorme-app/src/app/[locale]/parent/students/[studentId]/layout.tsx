@@ -26,18 +26,39 @@ interface StudentData {
 }
 
 const tabs = [
-  { id: 'overview', label: '概览', href: (id: string) => `/parent/students/${id}`, icon: TrendingUp },
-  { id: 'assignments', label: '作业与测验', href: (id: string) => `/parent/students/${id}/assignments`, icon: ClipboardList },
-  { id: 'ai-tutor', label: 'AI 辅导', href: (id: string) => `/parent/students/${id}/ai-tutor`, icon: Bot },
-  { id: 'classes', label: '课程安排', href: (id: string) => `/parent/students/${id}`, icon: Calendar },
-  { id: 'financial', label: '财务', href: (id: string) => `/parent/students/${id}`, icon: CreditCard },
+  {
+    id: 'overview',
+    label: '概览',
+    href: (id: string) => `/parent/students/${id}`,
+    icon: TrendingUp,
+  },
+  {
+    id: 'assignments',
+    label: '作业与测验',
+    href: (id: string) => `/parent/students/${id}/assignments`,
+    icon: ClipboardList,
+  },
+  {
+    id: 'ai-tutor',
+    label: 'AI 辅导',
+    href: (id: string) => `/parent/students/${id}/ai-tutor`,
+    icon: Bot,
+  },
+  {
+    id: 'classes',
+    label: '课程安排',
+    href: (id: string) => `/parent/students/${id}`,
+    icon: Calendar,
+  },
+  {
+    id: 'financial',
+    label: '财务',
+    href: (id: string) => `/parent/students/${id}`,
+    icon: CreditCard,
+  },
 ]
 
-export default function StudentLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const params = useParams()
   const pathname = usePathname()
   const studentId = params.studentId as string
@@ -48,20 +69,22 @@ export default function StudentLayout({
     if (!studentId) return
     let cancelled = false
     fetch(`/api/parent/students/${studentId}`, { credentials: 'include' })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((json) => {
+      .then(res => (res.ok ? res.json() : null))
+      .then(json => {
         if (!cancelled && json?.success && json.data) setStudent(json.data)
       })
       .catch(() => {})
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [studentId])
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[300px]">
+      <div className="flex min-h-[300px] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
       </div>
     )
@@ -78,7 +101,7 @@ export default function StudentLayout({
           </Button>
           <div>
             <h1 className="text-2xl font-bold">{student?.name ?? '学生'}</h1>
-            <p className="text-gray-500 text-sm">
+            <p className="text-sm text-gray-500">
               {student?.email && `${student.email} · `}
               {student?.relation}
               {student?.level != null && ` · 等级 ${student.level}`}
@@ -89,19 +112,12 @@ export default function StudentLayout({
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-2">
-        {tabs.map((tab) => {
+        {tabs.map(tab => {
           const href = tab.href(studentId)
-          const isActive =
-            pathname === href ||
-            (tab.id !== 'overview' && pathname.startsWith(href))
+          const isActive = pathname === href || (tab.id !== 'overview' && pathname.startsWith(href))
           const Icon = tab.icon
           return (
-            <Button
-              key={tab.id}
-              variant={isActive ? 'default' : 'outline'}
-              size="sm"
-              asChild
-            >
+            <Button key={tab.id} variant={isActive ? 'default' : 'outline'} size="sm" asChild>
               <Link href={href} className="flex items-center gap-2">
                 <Icon className="h-4 w-4" />
                 {tab.label}

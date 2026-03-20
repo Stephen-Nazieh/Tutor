@@ -14,7 +14,6 @@ import { sanitizeHtml } from '@/lib/security/sanitize'
 import crypto from 'crypto'
 import { sql } from 'drizzle-orm'
 
-
 export async function POST(request: NextRequest) {
   try {
     const { response: rateLimitResponse } = await withRateLimitPreset(request, 'register')
@@ -29,35 +28,28 @@ export async function POST(request: NextRequest) {
 
     const allowPublicAdminRegistration =
       process.env.ADMIN_ALLOW_PUBLIC_REGISTRATION === 'true' ||
-      (process.env.NODE_ENV !== 'production' && process.env.ADMIN_ALLOW_PUBLIC_REGISTRATION !== 'false')
+      (process.env.NODE_ENV !== 'production' &&
+        process.env.ADMIN_ALLOW_PUBLIC_REGISTRATION !== 'false')
 
     const [{ count }] = await drizzleDb
       .select({ count: sql<number>`count(*)::int` })
       .from(user)
       .where(eq(user.role, 'ADMIN'))
     if (count > 0 && !allowPublicAdminRegistration) {
-      return NextResponse.json(
-        { error: 'Admin bootstrap is closed' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Admin bootstrap is closed' }, { status: 400 })
     }
 
     const bootstrapKey = process.env.ADMIN_BOOTSTRAP_KEY
     if (bootstrapKey) {
       const providedKey = request.headers.get('x-admin-bootstrap-key')
       if (!providedKey || providedKey !== bootstrapKey) {
-        return NextResponse.json(
-          { error: 'Invalid bootstrap key' },
-          { status: 403 }
-        )
+        return NextResponse.json({ error: 'Invalid bootstrap key' }, { status: 403 })
       }
     }
 
     const parsed = adminRegistrationSchema.safeParse(body)
     if (!parsed.success) {
-      const messages = parsed.error.issues
-        .map((e) => `${e.path.join('.')}: ${e.message}`)
-        .join(', ')
+      const messages = parsed.error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
       return NextResponse.json({ error: messages }, { status: 400 })
     }
 
@@ -72,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(data.password, 10)
 
-    const newUser = await drizzleDb.transaction(async (tx) => {
+    const newUser = await drizzleDb.transaction(async tx => {
       const userId = crypto.randomUUID()
       const profileId = crypto.randomUUID()
       await tx.insert(user).values({
@@ -108,10 +100,20 @@ export async function POST(request: NextRequest) {
             ? 'MODERATOR'
             : 'ADMIN'
 
-      const [adminRoleRow] = await tx.select().from(adminRole).where(eq(adminRole.name, roleName)).limit(1)
+      const [adminRoleRow] = await tx
+        .select()
+        .from(adminRole)
+        .where(eq(adminRole.name, roleName))
+        .limit(1)
       const roleId = adminRoleRow?.id
         ? adminRoleRow.id
-        : (await tx.select().from(adminRole).where(inArray(adminRole.name, ['ADMIN', 'SUPER_ADMIN'])).limit(1))[0]?.id
+        : (
+            await tx
+              .select()
+              .from(adminRole)
+              .where(inArray(adminRole.name, ['ADMIN', 'SUPER_ADMIN']))
+              .limit(1)
+          )[0]?.id
 
       if (roleId) {
         await tx.insert(adminAssignment).values({
@@ -158,6 +160,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return handleApiError(error, 'Internal server error. Please try again.', 'api/auth/register/admin/route.ts')
+    return handleApiError(
+      error,
+      'Internal server error. Please try again.',
+      'api/auth/register/admin/route.ts'
+    )
   }
 }

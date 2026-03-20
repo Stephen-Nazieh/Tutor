@@ -10,7 +10,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withRateLimit, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum, curriculumModule, curriculumLesson, curriculumEnrollment } from '@/lib/db/schema'
+import {
+  curriculum,
+  curriculumModule,
+  curriculumLesson,
+  curriculumEnrollment,
+} from '@/lib/db/schema'
 import { eq, and, inArray, desc, sql } from 'drizzle-orm'
 
 const LIST_RATE_LIMIT_MAX = 60 // per minute per IP
@@ -19,7 +24,7 @@ const LIST_RATE_LIMIT_MAX = 60 // per minute per IP
 const SUBJECT_ALIAS: Record<string, string> = {
   mathematics: 'math',
   english_language: 'english',
-  chinese: 'chinese'
+  chinese: 'chinese',
 }
 
 export async function GET(req: NextRequest) {
@@ -48,14 +53,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ curriculums: [] })
     }
 
-    const curriculumIds = curriculums.map((c) => c.id)
+    const curriculumIds = curriculums.map(c => c.id)
 
     // Parallel fetch counts
     const [modulesRaw, enrollmentsRaw, allModules] = await Promise.all([
       drizzleDb
         .select({
           curriculumId: curriculumModule.curriculumId,
-          count: sql<number>`count(${curriculumModule.id})::int`
+          count: sql<number>`count(${curriculumModule.id})::int`,
         })
         .from(curriculumModule)
         .where(inArray(curriculumModule.curriculumId, curriculumIds))
@@ -64,7 +69,7 @@ export async function GET(req: NextRequest) {
       drizzleDb
         .select({
           curriculumId: curriculumEnrollment.curriculumId,
-          count: sql<number>`count(${curriculumEnrollment.id})::int`
+          count: sql<number>`count(${curriculumEnrollment.id})::int`,
         })
         .from(curriculumEnrollment)
         .where(inArray(curriculumEnrollment.curriculumId, curriculumIds))
@@ -73,7 +78,7 @@ export async function GET(req: NextRequest) {
       drizzleDb
         .select({ id: curriculumModule.id, curriculumId: curriculumModule.curriculumId })
         .from(curriculumModule)
-        .where(inArray(curriculumModule.curriculumId, curriculumIds))
+        .where(inArray(curriculumModule.curriculumId, curriculumIds)),
     ])
 
     const moduleCounts = new Map(modulesRaw.map(m => [m.curriculumId, m.count]))
@@ -85,7 +90,7 @@ export async function GET(req: NextRequest) {
       const lessonsRaw = await drizzleDb
         .select({
           moduleId: curriculumLesson.moduleId,
-          count: sql<number>`count(${curriculumLesson.id})::int`
+          count: sql<number>`count(${curriculumLesson.id})::int`,
         })
         .from(curriculumLesson)
         .where(inArray(curriculumLesson.moduleId, moduleIds))
@@ -98,7 +103,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const enrichedCurriculums = curriculums.map((c) => ({
+    const enrichedCurriculums = curriculums.map(c => ({
       id: c.id,
       name: c.name,
       subject: c.subject,
@@ -111,7 +116,7 @@ export async function GET(req: NextRequest) {
       modulesCount: moduleCounts.get(c.id) || 0,
       lessonsCount: lessonsMap.get(c.id) || 0,
       studentCount: enrollmentCounts.get(c.id) || 0,
-      createdAt: c.createdAt
+      createdAt: c.createdAt,
     }))
 
     return NextResponse.json({ curriculums: enrichedCurriculums })

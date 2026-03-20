@@ -1,6 +1,6 @@
 /**
  * Presence + Ownership Cues System
- * 
+ *
  * Features:
  * - Editing halos around elements being edited by other users
  * - Soft-lock conflict hints when multiple users edit the same element
@@ -50,18 +50,18 @@ export interface HaloRenderData {
 
 // Color palette for user assignment
 const USER_COLORS = [
-  { base: '#FF6B6B', light: '#FFB3B3', dark: '#CC5555' },   // Red
-  { base: '#4ECDC4', light: '#A7E6E1', dark: '#3EA39D' },   // Teal
-  { base: '#45B7D1', light: '#A2DBE8', dark: '#3792A7' },   // Blue
-  { base: '#FFA07A', light: '#FFD0BC', dark: '#CC8062' },   // Salmon
-  { base: '#98D8C8', light: '#CCEBE4', dark: '#7AADA0' },   // Mint
-  { base: '#F7DC6F', light: '#FBEDB7', dark: '#C6B059' },   // Yellow
-  { base: '#BB8FCE', light: '#DDC7E7', dark: '#9672A5' },   // Purple
-  { base: '#85C1E2', light: '#C2E0F1', dark: '#6A9AB5' },   // Sky
-  { base: '#F8B500', light: '#FCDA80', dark: '#C69100' },   // Gold
-  { base: '#52BE80', light: '#A8DFBF', dark: '#429866' },   // Green
-  { base: '#EC7063', light: '#F5B7B1', dark: '#BD594F' },   // Coral
-  { base: '#5DADE2', light: '#AED6F1', dark: '#4A8AB5' },   // Azure
+  { base: '#FF6B6B', light: '#FFB3B3', dark: '#CC5555' }, // Red
+  { base: '#4ECDC4', light: '#A7E6E1', dark: '#3EA39D' }, // Teal
+  { base: '#45B7D1', light: '#A2DBE8', dark: '#3792A7' }, // Blue
+  { base: '#FFA07A', light: '#FFD0BC', dark: '#CC8062' }, // Salmon
+  { base: '#98D8C8', light: '#CCEBE4', dark: '#7AADA0' }, // Mint
+  { base: '#F7DC6F', light: '#FBEDB7', dark: '#C6B059' }, // Yellow
+  { base: '#BB8FCE', light: '#DDC7E7', dark: '#9672A5' }, // Purple
+  { base: '#85C1E2', light: '#C2E0F1', dark: '#6A9AB5' }, // Sky
+  { base: '#F8B500', light: '#FCDA80', dark: '#C69100' }, // Gold
+  { base: '#52BE80', light: '#A8DFBF', dark: '#429866' }, // Green
+  { base: '#EC7063', light: '#F5B7B1', dark: '#BD594F' }, // Coral
+  { base: '#5DADE2', light: '#AED6F1', dark: '#4A8AB5' }, // Azure
 ]
 
 export class PresenceManager {
@@ -192,9 +192,9 @@ export class PresenceManager {
    */
   private createConflictHint(elementId: string, userIds: string[]): ConflictHint {
     const users = userIds
-      .map((id) => this.users.get(id))
+      .map(id => this.users.get(id))
       .filter((u): u is PresenceUser => !!u)
-      .map((u) => ({ userId: u.userId, name: u.name, color: u.color }))
+      .map(u => ({ userId: u.userId, name: u.name, color: u.color }))
 
     const hint: ConflictHint = {
       id: `conflict-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
@@ -269,7 +269,7 @@ export class PresenceManager {
   ): HaloRenderData[] {
     const halos: HaloRenderData[] = []
 
-    elements.forEach((element) => {
+    elements.forEach(element => {
       const editor = this.getEditor(element.id)
       if (editor && editor.userId !== this.currentUserId) {
         const state = this.editingStates.get(element.id)
@@ -325,8 +325,8 @@ export class PresenceManager {
     const now = Date.now()
 
     return Array.from(this.users.values())
-      .filter((user) => user.userId !== this.currentUserId && user.cursor)
-      .map((user) => ({
+      .filter(user => user.userId !== this.currentUserId && user.cursor)
+      .map(user => ({
         userId: user.userId,
         name: user.name,
         color: user.color,
@@ -349,7 +349,7 @@ export class PresenceManager {
     const idleThreshold = 60000 // 1 minute
 
     let idleUsers = 0
-    this.users.forEach((user) => {
+    this.users.forEach(user => {
       if (now - user.lastActivity > idleThreshold) {
         idleUsers++
       }
@@ -430,8 +430,8 @@ export function createStrokeHalo(
 ): HaloRenderData {
   // Calculate bounding box of stroke
   const points = stroke.points
-  const xs = points.map((p) => p.x)
-  const ys = points.map((p) => p.y)
+  const xs = points.map(p => p.x)
+  const ys = points.map(p => p.y)
 
   const minX = Math.min(...xs)
   const maxX = Math.max(...xs)

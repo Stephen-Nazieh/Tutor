@@ -5,10 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { 
-  Loader2,
-  Wrench
-} from 'lucide-react'
+import { Loader2, Wrench } from 'lucide-react'
 
 interface Course {
   id: string
@@ -31,7 +28,8 @@ export default function CourseBuilderPage() {
           setCourses(coursesList)
           if (coursesList.length > 0) {
             const sorted = [...coursesList].sort(
-              (a: Course, b: Course) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+              (a: Course, b: Course) =>
+                new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
             )
             router.replace(`/tutor/courses/${sorted[0].id}/builder`)
             return
@@ -51,7 +49,7 @@ export default function CourseBuilderPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-xl mx-auto">
+      <div className="mx-auto max-w-xl">
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-3 py-12 text-center">
             <Wrench className="h-8 w-8 text-blue-500" />
@@ -63,9 +61,7 @@ export default function CourseBuilderPage() {
             </div>
             {loading && <Loader2 className="h-6 w-6 animate-spin text-blue-500" />}
             {!loading && courses.length === 0 && (
-              <Button onClick={() => router.push('/tutor/courses/new')}>
-                Create New Course
-              </Button>
+              <Button onClick={() => router.push('/tutor/courses/new')}>Create New Course</Button>
             )}
           </CardContent>
         </Card>

@@ -21,7 +21,7 @@ import {
   Palette,
   Globe,
   Trophy,
-  GraduationCap
+  GraduationCap,
 } from 'lucide-react'
 
 interface SubjectDetail {
@@ -54,21 +54,21 @@ interface SubjectDetail {
 }
 
 const subjectIcons: Record<string, React.ReactNode> = {
-  english: <Languages className="w-8 h-8" />,
-  math: <Calculator className="w-8 h-8" />,
-  precalculus: <Calculator className="w-8 h-8" />,
-  'ap-calculus-ab': <Calculator className="w-8 h-8" />,
-  'ap-calculus-bc': <Calculator className="w-8 h-8" />,
-  'ap-statistics': <Calculator className="w-8 h-8" />,
-  physics: <Atom className="w-8 h-8" />,
-  chemistry: <Microscope className="w-8 h-8" />,
-  biology: <Microscope className="w-8 h-8" />,
-  ielts: <GraduationCap className="w-8 h-8" />,
-  toefl: <GraduationCap className="w-8 h-8" />,
-  cs: <Monitor className="w-8 h-8" />,
-  music: <Music className="w-8 h-8" />,
-  art: <Palette className="w-8 h-8" />,
-  geography: <Globe className="w-8 h-8" />,
+  english: <Languages className="h-8 w-8" />,
+  math: <Calculator className="h-8 w-8" />,
+  precalculus: <Calculator className="h-8 w-8" />,
+  'ap-calculus-ab': <Calculator className="h-8 w-8" />,
+  'ap-calculus-bc': <Calculator className="h-8 w-8" />,
+  'ap-statistics': <Calculator className="h-8 w-8" />,
+  physics: <Atom className="h-8 w-8" />,
+  chemistry: <Microscope className="h-8 w-8" />,
+  biology: <Microscope className="h-8 w-8" />,
+  ielts: <GraduationCap className="h-8 w-8" />,
+  toefl: <GraduationCap className="h-8 w-8" />,
+  cs: <Monitor className="h-8 w-8" />,
+  music: <Music className="h-8 w-8" />,
+  art: <Palette className="h-8 w-8" />,
+  geography: <Globe className="h-8 w-8" />,
 }
 
 const subjectColors: Record<string, { bg: string; text: string; border: string }> = {
@@ -76,7 +76,11 @@ const subjectColors: Record<string, { bg: string; text: string; border: string }
   math: { bg: 'bg-purple-500', text: 'text-purple-600', border: 'border-purple-200' },
   precalculus: { bg: 'bg-indigo-500', text: 'text-indigo-600', border: 'border-indigo-200' },
   'ap-calculus-ab': { bg: 'bg-violet-500', text: 'text-violet-600', border: 'border-violet-200' },
-  'ap-calculus-bc': { bg: 'bg-fuchsia-500', text: 'text-fuchsia-600', border: 'border-fuchsia-200' },
+  'ap-calculus-bc': {
+    bg: 'bg-fuchsia-500',
+    text: 'text-fuchsia-600',
+    border: 'border-fuchsia-200',
+  },
   'ap-statistics': { bg: 'bg-pink-500', text: 'text-pink-600', border: 'border-pink-200' },
   physics: { bg: 'bg-indigo-500', text: 'text-indigo-600', border: 'border-indigo-200' },
   chemistry: { bg: 'bg-green-500', text: 'text-green-600', border: 'border-green-200' },
@@ -226,36 +230,38 @@ export default function SubjectDetailPage() {
   }
 
   const getSubjectIcon = () => {
-    return subjectIcons[subjectCode.toLowerCase()] || <BookOpen className="w-8 h-8" />
+    return subjectIcons[subjectCode.toLowerCase()] || <BookOpen className="h-8 w-8" />
   }
 
   const getSubjectColors = () => {
-    return subjectColors[subjectCode.toLowerCase()] || {
-      bg: 'bg-blue-500',
-      text: 'text-blue-600',
-      border: 'border-blue-200'
-    }
+    return (
+      subjectColors[subjectCode.toLowerCase()] || {
+        bg: 'bg-blue-500',
+        text: 'text-blue-600',
+        border: 'border-blue-200',
+      }
+    )
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
       </div>
     )
   }
 
   if (!subject) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <Card className="max-w-md">
-          <CardContent className="pt-8 pb-8 text-center">
-            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">Subject Not Found</h2>
-            <p className="text-gray-600 mb-4">The subject you&apos;re looking for doesn&apos;t exist.</p>
-            <Button onClick={() => router.push('/student/dashboard')}>
-              Back to Dashboard
-            </Button>
+          <CardContent className="pb-8 pt-8 text-center">
+            <AlertCircle className="mx-auto mb-4 h-16 w-16 text-red-500" />
+            <h2 className="mb-2 text-xl font-bold">Subject Not Found</h2>
+            <p className="mb-4 text-gray-600">
+              The subject you&apos;re looking for doesn&apos;t exist.
+            </p>
+            <Button onClick={() => router.push('/student/dashboard')}>Back to Dashboard</Button>
           </CardContent>
         </Card>
       </div>
@@ -267,23 +273,21 @@ export default function SubjectDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b">
+      <header className="border-b bg-white">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link href="/student/dashboard">
                 <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  <ArrowLeft className="mr-1 h-4 w-4" />
                   Back
                 </Button>
               </Link>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg text-white ${colors.bg}`}>
-                  {getSubjectIcon()}
-                </div>
+                <div className={`rounded-lg p-2 text-white ${colors.bg}`}>{getSubjectIcon()}</div>
                 <div>
                   <h1 className="text-2xl font-bold">{subject.name}</h1>
-                  <p className="text-gray-600 text-sm">{subject.description}</p>
+                  <p className="text-sm text-gray-600">{subject.description}</p>
                 </div>
               </div>
             </div>
@@ -293,7 +297,7 @@ export default function SubjectDetailPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <Card className="max-w-xl mx-auto">
+        <Card className="mx-auto max-w-xl">
           <CardHeader>
             <CardTitle>Classroom</CardTitle>
             <CardDescription>
@@ -303,13 +307,13 @@ export default function SubjectDetailPage() {
           <CardContent className="space-y-4">
             <Link href={`/student/courses?subject=${encodeURIComponent(subjectCode)}`}>
               <Button className="w-full" size="lg">
-                <Target className="w-5 h-5 mr-2" />
+                <Target className="mr-2 h-5 w-5" />
                 View upcoming classes
               </Button>
             </Link>
             <Link href="/student/scores">
               <Button className="w-full" variant="outline" size="lg">
-                <Trophy className="w-5 h-5 mr-2" />
+                <Trophy className="mr-2 h-5 w-5" />
                 My scores & progress
               </Button>
             </Link>

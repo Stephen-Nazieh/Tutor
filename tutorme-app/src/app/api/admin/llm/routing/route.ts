@@ -18,26 +18,37 @@ export async function GET(req: NextRequest) {
       .from(llmRoutingRule)
       .orderBy(desc(llmRoutingRule.isActive), asc(llmRoutingRule.priority))
 
-    const targetModelIds = [...new Set(rules.map((r) => r.targetModelId).filter((id): id is string => id != null))]
-    const fallbackModelIds = [...new Set(rules.map((r) => r.fallbackModelId).filter((id): id is string => id != null))]
+    const targetModelIds = [
+      ...new Set(rules.map(r => r.targetModelId).filter((id): id is string => id != null)),
+    ]
+    const fallbackModelIds = [
+      ...new Set(rules.map(r => r.fallbackModelId).filter((id): id is string => id != null)),
+    ]
     const allModelIds = [...new Set([...targetModelIds, ...fallbackModelIds])]
     const models =
       allModelIds.length > 0
         ? await drizzleDb.select().from(llmModel).where(inArray(llmModel.id, allModelIds))
         : []
-    const providerIds = [...new Set(models.map((m) => m.providerId).filter((id): id is string => id != null))]
+    const providerIds = [
+      ...new Set(models.map(m => m.providerId).filter((id): id is string => id != null)),
+    ]
     const providers =
       providerIds.length > 0
-        ? await drizzleDb.select({ id: llmProvider.id, name: llmProvider.name }).from(llmProvider).where(inArray(llmProvider.id, providerIds))
+        ? await drizzleDb
+            .select({ id: llmProvider.id, name: llmProvider.name })
+            .from(llmProvider)
+            .where(inArray(llmProvider.id, providerIds))
         : []
-    const modelById = new Map(models.map((m) => [m.id, m]))
-    const providerById = new Map(providers.map((p) => [p.id, p]))
+    const modelById = new Map(models.map(m => [m.id, m]))
+    const providerById = new Map(providers.map(p => [p.id, p]))
 
-    const rulesWithRelations = rules.map((r) => ({
+    const rulesWithRelations = rules.map(r => ({
       ...r,
       targetModel: (() => {
         const m = modelById.get(r.targetModelId)
-        return m ? { ...m, provider: m ? { name: providerById.get(m.providerId)?.name } : null } : null
+        return m
+          ? { ...m, provider: m ? { name: providerById.get(m.providerId)?.name } : null }
+          : null
       })(),
       fallbackModel: (() => {
         const m = r.fallbackModelId ? modelById.get(r.fallbackModelId) : null
@@ -74,10 +85,7 @@ export async function POST(req: NextRequest) {
       .where(eq(llmModel.id, targetModelId))
       .limit(1)
     if (!model) {
-      return NextResponse.json(
-        { error: 'Target model not found' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Target model not found' }, { status: 400 })
     }
 
     if (fallbackModelId) {
@@ -87,10 +95,7 @@ export async function POST(req: NextRequest) {
         .where(eq(llmModel.id, fallbackModelId))
         .limit(1)
       if (!fallbackModel) {
-        return NextResponse.json(
-          { error: 'Fallback model not found' },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: 'Fallback model not found' }, { status: 400 })
       }
     }
 
@@ -133,13 +138,18 @@ export async function PATCH(req: NextRequest) {
     const { id, ...updates } = body
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Rule ID is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Rule ID is required' }, { status: 400 })
     }
 
-    const allowed = ['name', 'description', 'priority', 'conditions', 'targetModelId', 'fallbackModelId', 'isActive']
+    const allowed = [
+      'name',
+      'description',
+      'priority',
+      'conditions',
+      'targetModelId',
+      'fallbackModelId',
+      'isActive',
+    ]
     const set: Record<string, unknown> = {}
     for (const k of allowed) {
       if (updates[k] !== undefined) set[k] = updates[k]
@@ -152,10 +162,7 @@ export async function PATCH(req: NextRequest) {
         .where(eq(llmModel.id, updates.targetModelId))
         .limit(1)
       if (!targetModel) {
-        return NextResponse.json(
-          { error: 'Target model not found' },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: 'Target model not found' }, { status: 400 })
       }
       set.providerId = targetModel.providerId
     }
@@ -167,15 +174,15 @@ export async function PATCH(req: NextRequest) {
         .where(eq(llmModel.id, updates.fallbackModelId))
         .limit(1)
       if (!fallbackModel) {
-        return NextResponse.json(
-          { error: 'Fallback model not found' },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: 'Fallback model not found' }, { status: 400 })
       }
     }
 
     if (Object.keys(set).length > 0) {
-      await drizzleDb.update(llmRoutingRule).set(set as Partial<typeof llmRoutingRule.$inferInsert>).where(eq(llmRoutingRule.id, id))
+      await drizzleDb
+        .update(llmRoutingRule)
+        .set(set as Partial<typeof llmRoutingRule.$inferInsert>)
+        .where(eq(llmRoutingRule.id, id))
     }
     const [rule] = await drizzleDb.select().from(llmRoutingRule).where(eq(llmRoutingRule.id, id))
     if (!rule) return NextResponse.json({ error: 'Rule not found' }, { status: 404 })
@@ -205,10 +212,7 @@ export async function DELETE(req: NextRequest) {
     const id = searchParams.get('id')
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Rule ID is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Rule ID is required' }, { status: 400 })
     }
 
     await drizzleDb.delete(llmRoutingRule).where(eq(llmRoutingRule.id, id))

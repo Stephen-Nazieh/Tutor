@@ -20,10 +20,13 @@ async function postHandler(req: NextRequest, session: Session) {
     const { bio, specialties, hourlyRate } = body
     const safeBio = bio !== undefined ? sanitizeHtmlWithMax(String(bio), 2000) : undefined
     const safeSpecialties = Array.isArray(specialties)
-      ? specialties.map((s: unknown) => sanitizeHtml(String(s)).trim().slice(0, 100)).filter(Boolean)
+      ? specialties
+          .map((s: unknown) => sanitizeHtml(String(s)).trim().slice(0, 100))
+          .filter(Boolean)
       : []
 
-    await drizzleDb.update(profileTable)
+    await drizzleDb
+      .update(profileTable)
       .set({
         ...(safeBio !== undefined && { bio: safeBio }),
         specialties: safeSpecialties,

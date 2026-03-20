@@ -61,13 +61,20 @@ async function countMessages(userId: string): Promise<number> {
 }
 
 export async function onLessonComplete(userId: string, lessonId: string) {
-  const results: { xpEarned: number; badgesEarned: Array<{ badgeKey: string; badgeName: string; xpBonus: number }>; leveledUp: boolean; newLevel?: number } = {
+  const results: {
+    xpEarned: number
+    badgesEarned: Array<{ badgeKey: string; badgeName: string; xpBonus: number }>
+    leveledUp: boolean
+    newLevel?: number
+  } = {
     xpEarned: 0,
     badgesEarned: [],
     leveledUp: false,
   }
 
-  const xpResult = await awardXp(userId, XP_REWARDS.COMPLETE_LESSON, 'lesson_complete', { lessonId })
+  const xpResult = await awardXp(userId, XP_REWARDS.COMPLETE_LESSON, 'lesson_complete', {
+    lessonId,
+  })
   results.xpEarned = xpResult.xpEarned
   results.leveledUp = xpResult.leveledUp
   results.newLevel = xpResult.level
@@ -89,14 +96,26 @@ export async function onLessonComplete(userId: string, lessonId: string) {
   return results
 }
 
-export async function onQuizComplete(userId: string, quizId: string, score: number, isPerfect: boolean) {
-  const results: { xpEarned: number; badgesEarned: Array<{ badgeKey: string; badgeName: string; xpBonus: number }>; leveledUp: boolean; newLevel?: number } = {
+export async function onQuizComplete(
+  userId: string,
+  quizId: string,
+  score: number,
+  isPerfect: boolean
+) {
+  const results: {
+    xpEarned: number
+    badgesEarned: Array<{ badgeKey: string; badgeName: string; xpBonus: number }>
+    leveledUp: boolean
+    newLevel?: number
+  } = {
     xpEarned: 0,
     badgesEarned: [],
     leveledUp: false,
   }
 
-  const xpAmount = isPerfect ? XP_REWARDS.PERFECT_QUIZ : Math.round(XP_REWARDS.PERFECT_QUIZ * (score / 100))
+  const xpAmount = isPerfect
+    ? XP_REWARDS.PERFECT_QUIZ
+    : Math.round(XP_REWARDS.PERFECT_QUIZ * (score / 100))
   const xpResult = await awardXp(userId, xpAmount, 'quiz_complete', { quizId, score, isPerfect })
   results.xpEarned = xpResult.xpEarned
   results.leveledUp = xpResult.leveledUp
@@ -175,7 +194,8 @@ export async function onUserLogin(userId: string) {
 }
 
 export async function onSessionJoin(userId: string, _sessionId: string) {
-  const results: { badgesEarned: Array<{ badgeKey: string; badgeName: string; xpBonus: number }> } = { badgesEarned: [] }
+  const results: { badgesEarned: Array<{ badgeKey: string; badgeName: string; xpBonus: number }> } =
+    { badgesEarned: [] }
   const gamification = await getOrCreateGamification(userId)
   const sessionsJoined = await countSessionParticipants(userId)
   const badgeResults = await checkAndAwardBadges(userId, {
@@ -189,7 +209,8 @@ export async function onSessionJoin(userId: string, _sessionId: string) {
 }
 
 export async function onMessageSend(userId: string, _sessionId: string) {
-  const results: { badgesEarned: Array<{ badgeKey: string; badgeName: string; xpBonus: number }> } = { badgesEarned: [] }
+  const results: { badgesEarned: Array<{ badgeKey: string; badgeName: string; xpBonus: number }> } =
+    { badgesEarned: [] }
   const gamification = await getOrCreateGamification(userId)
   const messagesSent = await countMessages(userId)
   const badgeResults = await checkAndAwardBadges(userId, {
@@ -203,7 +224,8 @@ export async function onMessageSend(userId: string, _sessionId: string) {
 }
 
 export async function onLevelUp(userId: string, newLevel: number) {
-  const results: { badgesEarned: Array<{ badgeKey: string; badgeName: string; xpBonus: number }> } = { badgesEarned: [] }
+  const results: { badgesEarned: Array<{ badgeKey: string; badgeName: string; xpBonus: number }> } =
+    { badgesEarned: [] }
   const gamification = await getOrCreateGamification(userId)
   const badgeResults = await checkAndAwardBadges(userId, {
     currentLevel: newLevel,
@@ -215,7 +237,12 @@ export async function onLevelUp(userId: string, newLevel: number) {
 }
 
 export async function onMissionComplete(userId: string, missionId: string, xpReward: number) {
-  const results: { xpEarned: number; badgesEarned: unknown[]; leveledUp: boolean; newLevel?: number } = {
+  const results: {
+    xpEarned: number
+    badgesEarned: unknown[]
+    leveledUp: boolean
+    newLevel?: number
+  } = {
     xpEarned: xpReward,
     badgesEarned: [],
     leveledUp: false,
@@ -251,7 +278,9 @@ export async function onAIConversation(userId: string, messageCount: number) {
     badgesEarned: [],
     leveledUp: false,
   }
-  const xpResult = await awardXp(userId, XP_REWARDS.AI_CONVERSATION, 'ai_conversation', { messageCount })
+  const xpResult = await awardXp(userId, XP_REWARDS.AI_CONVERSATION, 'ai_conversation', {
+    messageCount,
+  })
   results.xpEarned = xpResult.xpEarned
   results.leveledUp = xpResult.leveledUp
   await updateLeaderboardEntry(userId, 'global', xpResult.xpEarned)
@@ -262,17 +291,26 @@ export async function onAIConversation(userId: string, messageCount: number) {
 
 export async function checkTimeBasedBadges(userId: string) {
   const hour = new Date().getHours()
-  const results: { badgesEarned: Array<{ badgeKey: string; badgeName: string; xpBonus: number }> } = { badgesEarned: [] }
+  const results: { badgesEarned: Array<{ badgeKey: string; badgeName: string; xpBonus: number }> } =
+    { badgesEarned: [] }
   if (hour >= 0 && hour < 5) {
     const badge = await awardBadge(userId, 'night_owl')
     if (badge.awarded && badge.badge) {
-      results.badgesEarned.push({ badgeKey: 'night_owl', badgeName: badge.badge.name, xpBonus: badge.xpBonus })
+      results.badgesEarned.push({
+        badgeKey: 'night_owl',
+        badgeName: badge.badge.name,
+        xpBonus: badge.xpBonus,
+      })
     }
   }
   if (hour >= 5 && hour < 7) {
     const badge = await awardBadge(userId, 'early_bird')
     if (badge.awarded && badge.badge) {
-      results.badgesEarned.push({ badgeKey: 'early_bird', badgeName: badge.badge.name, xpBonus: badge.xpBonus })
+      results.badgesEarned.push({
+        badgeKey: 'early_bird',
+        badgeName: badge.badge.name,
+        xpBonus: badge.xpBonus,
+      })
     }
   }
   return results

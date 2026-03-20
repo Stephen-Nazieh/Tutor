@@ -45,7 +45,7 @@ export function BackgroundTemplates({ type, width, height }: BackgroundTemplates
 
   return (
     <div
-      className="absolute inset-0 pointer-events-none"
+      className="pointer-events-none absolute inset-0"
       style={{
         backgroundImage: backgroundPattern ? `url(${backgroundPattern})` : undefined,
         backgroundRepeat: 'repeat',
@@ -56,7 +56,11 @@ export function BackgroundTemplates({ type, width, height }: BackgroundTemplates
 }
 
 // Pattern creators
-function createGridPattern(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, size: number): string {
+function createGridPattern(
+  canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+  size: number
+): string {
   canvas.width = size
   canvas.height = size
 
@@ -72,7 +76,11 @@ function createGridPattern(canvas: HTMLCanvasElement, ctx: CanvasRenderingContex
   return canvas.toDataURL()
 }
 
-function createDotPattern(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, spacing: number): string {
+function createDotPattern(
+  canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+  spacing: number
+): string {
   canvas.width = spacing
   canvas.height = spacing
 
@@ -84,7 +92,11 @@ function createDotPattern(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext
   return canvas.toDataURL()
 }
 
-function createLinedPattern(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, spacing: number): string {
+function createLinedPattern(
+  canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+  spacing: number
+): string {
   canvas.width = 1
   canvas.height = spacing
 
@@ -99,7 +111,11 @@ function createLinedPattern(canvas: HTMLCanvasElement, ctx: CanvasRenderingConte
   return canvas.toDataURL()
 }
 
-function createGraphPattern(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, spacing: number): string {
+function createGraphPattern(
+  canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+  spacing: number
+): string {
   canvas.width = spacing
   canvas.height = spacing
 
@@ -125,7 +141,11 @@ function createGraphPattern(canvas: HTMLCanvasElement, ctx: CanvasRenderingConte
   return canvas.toDataURL()
 }
 
-function createIsometricPattern(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, size: number): string {
+function createIsometricPattern(
+  canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+  size: number
+): string {
   const height = size * Math.sin(Math.PI / 3)
   canvas.width = size * 2
   canvas.height = height * 2
@@ -135,13 +155,13 @@ function createIsometricPattern(canvas: HTMLCanvasElement, ctx: CanvasRenderingC
 
   // Draw isometric lines
   ctx.beginPath()
-  
+
   // Horizontal
   for (let y = 0; y <= canvas.height; y += height) {
     ctx.moveTo(0, y)
     ctx.lineTo(canvas.width, y)
   }
-  
+
   // 60 degree lines
   for (let x = 0; x <= canvas.width; x += size) {
     ctx.moveTo(x, 0)
@@ -149,7 +169,7 @@ function createIsometricPattern(canvas: HTMLCanvasElement, ctx: CanvasRenderingC
     ctx.moveTo(x, 0)
     ctx.lineTo(x + canvas.height / Math.tan(Math.PI / 3), canvas.height)
   }
-  
+
   ctx.stroke()
 
   return canvas.toDataURL()
@@ -191,18 +211,16 @@ const BACKGROUND_OPTIONS: { type: BackgroundType; label: string; icon: string }[
 
 export function BackgroundSelector({ value, onChange }: BackgroundSelectorProps) {
   return (
-    <div className="flex items-center gap-1 bg-white rounded-lg border p-1 shadow-sm">
-      {BACKGROUND_OPTIONS.map((option) => (
+    <div className="flex items-center gap-1 rounded-lg border bg-white p-1 shadow-sm">
+      {BACKGROUND_OPTIONS.map(option => (
         <button
           key={option.type}
           onClick={() => onChange(option.type)}
-          className={`
-            flex flex-col items-center justify-center w-10 h-10 rounded transition-colors
-            ${value === option.type 
-              ? 'bg-blue-100 text-blue-700 border border-blue-300' 
-              : 'hover:bg-slate-100 text-slate-600'
-            }
-          `}
+          className={`flex h-10 w-10 flex-col items-center justify-center rounded transition-colors ${
+            value === option.type
+              ? 'border border-blue-300 bg-blue-100 text-blue-700'
+              : 'text-slate-600 hover:bg-slate-100'
+          } `}
           title={option.label}
         >
           <span className="text-lg">{option.icon}</span>

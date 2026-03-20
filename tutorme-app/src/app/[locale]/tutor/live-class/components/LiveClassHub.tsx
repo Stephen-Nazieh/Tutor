@@ -7,7 +7,14 @@ import { useSocket } from '@/hooks/use-socket'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -21,13 +28,20 @@ import { AITeachingAssistant } from './AITeachingAssistant'
 
 import { MultiLayerWhiteboardInterface } from './MultiLayerWhiteboardInterface'
 import { QuickPollPanel } from '@/components/polls'
-import { 
+import {
   EngagementDashboard,
-  EngagementMetrics as EngagementMetricType
+  EngagementMetrics as EngagementMetricType,
 } from '@/components/class/engagement'
 
-import type { LiveStudent, BreakoutRoom, HandRaise, ChatMessage, EngagementMetrics, Alert } from '../types'
-import { 
+import type {
+  LiveStudent,
+  BreakoutRoom,
+  HandRaise,
+  ChatMessage,
+  EngagementMetrics,
+  Alert,
+} from '../types'
+import {
   Users,
   LayoutGrid,
   Radio,
@@ -76,7 +90,10 @@ interface LiveClassBootstrapResponse {
 const buildFallbackMetrics = (students: LiveStudent[]): EngagementMetrics => ({
   totalStudents: students.length,
   activeStudents: students.filter(s => s.status === 'online').length,
-  averageEngagement: Math.round(students.filter(s => s.status === 'online').reduce((sum, s) => sum + s.engagementScore, 0) / Math.max(1, students.filter(s => s.status === 'online').length)),
+  averageEngagement: Math.round(
+    students.filter(s => s.status === 'online').reduce((sum, s) => sum + s.engagementScore, 0) /
+      Math.max(1, students.filter(s => s.status === 'online').length)
+  ),
   participationRate: 0,
   totalChatMessages: students.reduce((sum, s) => sum + s.chatMessages, 0),
   classDuration: 0,
@@ -85,13 +102,13 @@ const buildFallbackMetrics = (students: LiveStudent[]): EngagementMetrics => ({
   engaged: students.filter(s => s.engagementScore >= 60 && s.engagementScore < 85).length,
   passive: students.filter(s => s.engagementScore >= 30 && s.engagementScore < 60).length,
   disengaged: students.filter(s => s.engagementScore < 30).length,
-  engagementTrend: 'stable'
+  engagementTrend: 'stable',
 })
 
 const deriveHandRaisesFromStudents = (students: LiveStudent[]): HandRaise[] => {
   return students
-    .filter((s) => s.handRaised)
-    .map((s) => ({
+    .filter(s => s.handRaised)
+    .map(s => ({
       id: `hand-${s.id}`,
       studentId: s.id,
       studentName: s.name,
@@ -106,26 +123,37 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   const { data: session } = useSession()
   const [renderNow] = useState(() => Date.now())
   // When a student joins via socket, add/update local state so the tutor UI updates without a full reload
-  const handleStudentJoined = useCallback((state: { userId: string; name: string; status: string; engagement: number; lastActivity: number; joinedAt: number }) => {
-    setStudents((prev) => {
-      if (prev.some((s) => s.id === state.userId)) return prev
-      const live: LiveStudent = {
-        id: state.userId,
-        name: state.name,
-        status: 'online',
-        engagementScore: state.engagement ?? 80,
-        handRaised: false,
-        attentionLevel: state.engagement >= 70 ? 'high' : state.engagement >= 40 ? 'medium' : 'low',
-        lastActive: new Date(state.lastActivity ?? Date.now()).toISOString(),
-        joinedAt: new Date(state.joinedAt ?? Date.now()).toISOString(),
-        reactions: 0,
-        chatMessages: 0,
-      }
-      return [...prev, live]
-    })
-  }, [])
+  const handleStudentJoined = useCallback(
+    (state: {
+      userId: string
+      name: string
+      status: string
+      engagement: number
+      lastActivity: number
+      joinedAt: number
+    }) => {
+      setStudents(prev => {
+        if (prev.some(s => s.id === state.userId)) return prev
+        const live: LiveStudent = {
+          id: state.userId,
+          name: state.name,
+          status: 'online',
+          engagementScore: state.engagement ?? 80,
+          handRaised: false,
+          attentionLevel:
+            state.engagement >= 70 ? 'high' : state.engagement >= 40 ? 'medium' : 'low',
+          lastActive: new Date(state.lastActivity ?? Date.now()).toISOString(),
+          joinedAt: new Date(state.joinedAt ?? Date.now()).toISOString(),
+          reactions: 0,
+          chatMessages: 0,
+        }
+        return [...prev, live]
+      })
+    },
+    []
+  )
   const handleStudentLeft = useCallback((userId: string) => {
-    setStudents((prev) => prev.filter((s) => s.id !== userId))
+    setStudents(prev => prev.filter(s => s.id !== userId))
   }, [])
 
   const socketOptions = session?.user?.id
@@ -141,7 +169,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
     : undefined
   const { socket } = useSocket(socketOptions)
   const [isLoading, setIsLoading] = useState(true)
-  
+
   // State
   const [students, setStudents] = useState<LiveStudent[]>([])
   const [breakoutRooms, setBreakoutRooms] = useState<BreakoutRoom[]>([])
@@ -176,15 +204,18 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
     alerts: Math.max(0, socraticAlerts - panelSeenCounts.alerts),
   }
   const hasPanelNotifications =
-    panelNotificationCounts.messages + panelNotificationCounts.handRaises + panelNotificationCounts.alerts > 0
-  
+    panelNotificationCounts.messages +
+      panelNotificationCounts.handRaises +
+      panelNotificationCounts.alerts >
+    0
+
   // Media controls
   const [isMuted, setIsMuted] = useState(false)
   const [isVideoOff, setIsVideoOff] = useState(false)
   const [isScreenSharing, setIsScreenSharing] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [recordingDurationSeconds, setRecordingDurationSeconds] = useState(0)
-  
+
   // UI State
   const [showEngagementPanel, setShowEngagementPanel] = useState(false)
   const [showEndClassDialog, setShowEndClassDialog] = useState(false)
@@ -203,7 +234,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
       return
     }
     const interval = setInterval(() => {
-      setRecordingDurationSeconds((prev) => prev + 1)
+      setRecordingDurationSeconds(prev => prev + 1)
     }, 1000)
     return () => clearInterval(interval)
   }, [isRecording])
@@ -212,7 +243,8 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   useEffect(() => {
     if (!session?.user?.id) return
     const userId = session.user.id
-    const alreadyLoaded = loadedForRef.current?.sessionId === sessionId && loadedForRef.current?.userId === userId
+    const alreadyLoaded =
+      loadedForRef.current?.sessionId === sessionId && loadedForRef.current?.userId === userId
     if (alreadyLoaded) return
 
     let cancelled = false
@@ -228,11 +260,11 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
           reject(new Error(`Request timeout after ${timeoutMs}ms`))
         }, timeoutMs)
       })
-      
+
       try {
         const response = await Promise.race([
           fetch(url, { ...options, signal: controller.signal }),
-          timeoutPromise
+          timeoutPromise,
         ])
         if (timeoutId) clearTimeout(timeoutId)
         return response as Response
@@ -247,14 +279,19 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
       try {
         // Fetch CSRF token and start class in parallel
         const csrfPromise = fetchWithTimeout('/api/csrf', { credentials: 'include' }, 5000)
-          .then(r => r.json()).catch(() => ({}))
-        
+          .then(r => r.json())
+          .catch(() => ({}))
+
         // Start class immediately (CSRF not strictly required for idempotent start)
-        const startPromise = fetchWithTimeout(`/api/tutor/classes/${sessionId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-        }, 10000).catch(() => null) // Non-fatal: class may already be started
+        const startPromise = fetchWithTimeout(
+          `/api/tutor/classes/${sessionId}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+          },
+          10000
+        ).catch(() => null) // Non-fatal: class may already be started
 
         // Wait for CSRF and start to complete
         const [csrfData] = await Promise.all([csrfPromise, startPromise])
@@ -262,18 +299,26 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
 
         // If start failed due to CSRF, retry with token
         if (csrfToken && startPromise === null) {
-          await fetchWithTimeout(`/api/tutor/classes/${sessionId}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-Token': csrfToken,
+          await fetchWithTimeout(
+            `/api/tutor/classes/${sessionId}`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrfToken,
+              },
+              credentials: 'include',
             },
-            credentials: 'include',
-          }, 10000).catch(() => null) // Still non-fatal
+            10000
+          ).catch(() => null) // Still non-fatal
         }
 
         // Fetch class data
-        const res = await fetchWithTimeout(`/api/tutor/classes/${sessionId}`, { credentials: 'include' }, 15000)
+        const res = await fetchWithTimeout(
+          `/api/tutor/classes/${sessionId}`,
+          { credentials: 'include' },
+          15000
+        )
         if (!res.ok) {
           const raw = await res.text().catch(() => '')
           throw new Error(raw || `Failed to load class (${res.status})`)
@@ -295,7 +340,8 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
       } catch (error) {
         loadedForRef.current = null
         if (!cancelled) {
-          const message = error instanceof Error ? error.message : 'Failed to load live class session'
+          const message =
+            error instanceof Error ? error.message : 'Failed to load live class session'
           toast.error(message)
           router.push('/tutor/classes')
         }
@@ -327,7 +373,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
         default:
           attentionLevel = s.status === 'idle' ? 'away' : 'inactive'
       }
-      
+
       return {
         studentId: s.id,
         name: s.name,
@@ -340,24 +386,27 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
         chatMessages: s.chatMessages,
         whiteboardInteractions: 0,
         timeInSession: Math.floor((renderNow - new Date(s.joinedAt).getTime()) / 60000),
-        struggleIndicators: s.engagementScore < 50 ? 2 : 0
+        struggleIndicators: s.engagementScore < 50 ? 2 : 0,
       }
     })
   }, [students, renderNow])
 
   // Create command palette actions
-  const persistRecordingState = useCallback(async (recording: boolean) => {
-    const fallbackRecordingUrl = recording ? null : classRoomId
-    await fetch(`/api/tutor/live-sessions/${sessionId}/recording`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        isRecording: recording,
-        recordingUrl: fallbackRecordingUrl,
-      }),
-    })
-  }, [classRoomId, sessionId])
+  const persistRecordingState = useCallback(
+    async (recording: boolean) => {
+      const fallbackRecordingUrl = recording ? null : classRoomId
+      await fetch(`/api/tutor/live-sessions/${sessionId}/recording`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          isRecording: recording,
+          recordingUrl: fallbackRecordingUrl,
+        }),
+      })
+    },
+    [classRoomId, sessionId]
+  )
 
   const generateReplayArtifact = useCallback(async () => {
     const response = await fetch(`/api/tutor/live-sessions/${sessionId}/replay-artifact/generate`, {
@@ -393,75 +442,97 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
 
   // Handlers
   const handleCallOn = useCallback((studentId: string) => {
-    setStudents(prev => prev.map(s => s.id === studentId ? { ...s, handRaised: false } : s))
-    setHandRaises(prev => prev.map(h => h.studentId === studentId ? { ...h, status: 'answered' } : h))
+    setStudents(prev => prev.map(s => (s.id === studentId ? { ...s, handRaised: false } : s)))
+    setHandRaises(prev =>
+      prev.map(h => (h.studentId === studentId ? { ...h, status: 'answered' } : h))
+    )
   }, [])
 
   const handleAcknowledgeHand = useCallback((handId: string) => {
-    setHandRaises(prev => prev.map(h => h.id === handId ? { ...h, status: 'acknowledged' } : h))
+    setHandRaises(prev => prev.map(h => (h.id === handId ? { ...h, status: 'acknowledged' } : h)))
   }, [])
 
   // Student Management - Push hint to student
-  const handlePushHint = useCallback((studentId: string, hint: string, type: 'socratic' | 'encouragement' = 'socratic') => {
-    const student = students.find(s => s.id === studentId)
-    if (student) {
-      toast.success(`Hint sent to ${student.name}`, {
-        description: type === 'socratic' ? 'Socratic hint delivered' : 'Encouragement sent'
-      })
-    }
-  }, [students])
+  const handlePushHint = useCallback(
+    (studentId: string, hint: string, type: 'socratic' | 'encouragement' = 'socratic') => {
+      const student = students.find(s => s.id === studentId)
+      if (student) {
+        toast.success(`Hint sent to ${student.name}`, {
+          description: type === 'socratic' ? 'Socratic hint delivered' : 'Encouragement sent',
+        })
+      }
+    },
+    [students]
+  )
 
   // Student Management - Nudge student
-  const handleSendNudge = useCallback((studentId: string) => {
-    const student = students.find(s => s.id === studentId)
-    if (student) {
-      toast.success(`Nudge sent to ${student.name}`, {
-        description: 'Remember to ask questions if you need help!'
-      })
-    }
-  }, [students])
+  const handleSendNudge = useCallback(
+    (studentId: string) => {
+      const student = students.find(s => s.id === studentId)
+      if (student) {
+        toast.success(`Nudge sent to ${student.name}`, {
+          description: 'Remember to ask questions if you need help!',
+        })
+      }
+    },
+    [students]
+  )
 
   // Student Management - Invite to breakout
-  const handleInviteToBreakout = useCallback((studentId: string) => {
-    const student = students.find(s => s.id === studentId)
-    if (student) {
-      toast.success(`${student.name} invited to breakout room`)
-    }
-  }, [students])
-
-  const handleAssignToRoom = useCallback((studentId: string, roomId: string) => {
-    setStudents(prev => prev.map(s => s.id === studentId ? { ...s, breakoutRoomId: roomId } : s))
-    setBreakoutRooms(prev => prev.map(room => {
-      if (room.id === roomId) {
-        const student = students.find(s => s.id === studentId)
-        if (student && !room.participants.find(p => p.userId === studentId)) {
-          const participant = {
-            id: student.id,
-            userId: student.id,
-            name: student.name,
-            role: 'student' as const,
-            joinedAt: new Date().toISOString(),
-            isOnline: student.status === 'online',
-            isMuted: false,
-            isVideoOff: false,
-            isScreenSharing: false,
-            engagementScore: student.engagementScore,
-            attentionLevel: student.attentionLevel,
-            handRaised: student.handRaised
-          }
-          return { ...room, participants: [...room.participants, participant] }
-        }
+  const handleInviteToBreakout = useCallback(
+    (studentId: string) => {
+      const student = students.find(s => s.id === studentId)
+      if (student) {
+        toast.success(`${student.name} invited to breakout room`)
       }
-      return room
-    }))
-  }, [students])
+    },
+    [students]
+  )
+
+  const handleAssignToRoom = useCallback(
+    (studentId: string, roomId: string) => {
+      setStudents(prev =>
+        prev.map(s => (s.id === studentId ? { ...s, breakoutRoomId: roomId } : s))
+      )
+      setBreakoutRooms(prev =>
+        prev.map(room => {
+          if (room.id === roomId) {
+            const student = students.find(s => s.id === studentId)
+            if (student && !room.participants.find(p => p.userId === studentId)) {
+              const participant = {
+                id: student.id,
+                userId: student.id,
+                name: student.name,
+                role: 'student' as const,
+                joinedAt: new Date().toISOString(),
+                isOnline: student.status === 'online',
+                isMuted: false,
+                isVideoOff: false,
+                isScreenSharing: false,
+                engagementScore: student.engagementScore,
+                attentionLevel: student.attentionLevel,
+                handRaised: student.handRaised,
+              }
+              return { ...room, participants: [...room.participants, participant] }
+            }
+          }
+          return room
+        })
+      )
+    },
+    [students]
+  )
 
   const handleRemoveFromRoom = useCallback((studentId: string) => {
-    setStudents(prev => prev.map(s => s.id === studentId ? { ...s, breakoutRoomId: undefined } : s))
-    setBreakoutRooms(prev => prev.map(room => ({
-      ...room,
-      participants: room.participants.filter(p => p.userId !== studentId)
-    })))
+    setStudents(prev =>
+      prev.map(s => (s.id === studentId ? { ...s, breakoutRoomId: undefined } : s))
+    )
+    setBreakoutRooms(prev =>
+      prev.map(room => ({
+        ...room,
+        participants: room.participants.filter(p => p.userId !== studentId),
+      }))
+    )
   }, [])
 
   const handleJoinRoom = useCallback((room: BreakoutRoom) => {
@@ -475,8 +546,12 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   }, [])
 
   const handleEndBreakoutRoom = useCallback((roomId: string) => {
-    setBreakoutRooms(prev => prev.map(r => r.id === roomId ? { ...r, status: 'closed' as const } : r))
-    setStudents(prev => prev.map(s => s.breakoutRoomId === roomId ? { ...s, breakoutRoomId: undefined } : s))
+    setBreakoutRooms(prev =>
+      prev.map(r => (r.id === roomId ? { ...r, status: 'closed' as const } : r))
+    )
+    setStudents(prev =>
+      prev.map(s => (s.breakoutRoomId === roomId ? { ...s, breakoutRoomId: undefined } : s))
+    )
     toast.success('Breakout room ended')
   }, [])
 
@@ -485,7 +560,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   }, [])
 
   const handlePinMessage = useCallback((messageId: string) => {
-    setMessages(prev => prev.map(m => m.id === messageId ? { ...m, isPinned: !m.isPinned } : m))
+    setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, isPinned: !m.isPinned } : m)))
   }, [])
 
   const handleEndClass = useCallback(async () => {
@@ -511,9 +586,10 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
     if (isLoading) return
     if (autoRecordingStartedRef.current) return
     autoRecordingStartedRef.current = true
-    const seenNotice = typeof window !== 'undefined'
-      ? window.localStorage.getItem(recordingNoticeStorageKey) === '1'
-      : false
+    const seenNotice =
+      typeof window !== 'undefined'
+        ? window.localStorage.getItem(recordingNoticeStorageKey) === '1'
+        : false
     if (!seenNotice) {
       setShowRecordingNotice(true)
     }
@@ -522,14 +598,14 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
 
   if (isLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center max-w-md px-4">
-          <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-gray-600 font-medium">Loading live session...</p>
-          <p className="text-gray-400 text-sm mt-2">This may take a few seconds. Please wait.</p>
-          <Button 
-            variant="outline" 
-            size="sm" 
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="max-w-md px-4 text-center">
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+          <p className="font-medium text-gray-600">Loading live session...</p>
+          <p className="mt-2 text-sm text-gray-400">This may take a few seconds. Please wait.</p>
+          <Button
+            variant="outline"
+            size="sm"
             className="mt-4"
             onClick={() => router.push('/tutor/classes')}
           >
@@ -545,18 +621,18 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   const strugglingCount = students.filter(s => s.engagementScore < 50).length
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="flex h-screen flex-col bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b px-4 py-3 flex items-center justify-between shrink-0">
+      <header className="flex shrink-0 items-center justify-between border-b bg-white px-4 py-3">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="font-semibold text-lg">{classTitle}</h1>
+            <h1 className="text-lg font-semibold">{classTitle}</h1>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
                 Live
               </span>
               <span>•</span>
@@ -568,18 +644,18 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="gap-1">
-              <Users className="w-3 h-3" />
+              <Users className="h-3 w-3" />
               {onlineCount}/{students.length}
             </Badge>
             {pendingHands > 0 && (
               <Badge variant="destructive" className="gap-1">
-                <Hand className="w-3 h-3" />
+                <Hand className="h-3 w-3" />
                 {pendingHands}
               </Badge>
             )}
             {strugglingCount > 0 && (
               <Badge variant="outline" className="gap-1 border-orange-400 text-orange-600">
-                <TrendingUp className="w-3 h-3" />
+                <TrendingUp className="h-3 w-3" />
                 {strugglingCount} struggling
               </Badge>
             )}
@@ -594,21 +670,21 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
               size="icon"
               onClick={() => setIsMuted(!isMuted)}
             >
-              {isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
             </Button>
             <Button
               variant={isVideoOff ? 'destructive' : 'outline'}
               size="icon"
               onClick={() => setIsVideoOff(!isVideoOff)}
             >
-              {isVideoOff ? <VideoOff className="w-4 h-4" /> : <Video className="w-4 h-4" />}
+              {isVideoOff ? <VideoOff className="h-4 w-4" /> : <Video className="h-4 w-4" />}
             </Button>
             <Button
               variant={isScreenSharing ? 'default' : 'outline'}
               size="icon"
               onClick={() => setIsScreenSharing(!isScreenSharing)}
             >
-              <MonitorUp className="w-4 h-4" />
+              <MonitorUp className="h-4 w-4" />
             </Button>
             <Button
               variant={isRecording ? 'destructive' : 'outline'}
@@ -616,57 +692,74 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
               className="gap-2"
               onClick={() => void handleToggleRecording()}
             >
-              <Radio className={isRecording ? 'w-4 h-4 animate-pulse' : 'w-4 h-4'} />
+              <Radio className={isRecording ? 'h-4 w-4 animate-pulse' : 'h-4 w-4'} />
               {isRecording ? 'Stop Recording' : 'Start Recording'}
             </Button>
             {isRecording && (
               <Badge variant="destructive" className="gap-1">
-                REC {Math.floor(recordingDurationSeconds / 60)}m {String(recordingDurationSeconds % 60).padStart(2, '0')}s
+                REC {Math.floor(recordingDurationSeconds / 60)}m{' '}
+                {String(recordingDurationSeconds % 60).padStart(2, '0')}s
               </Badge>
             )}
           </div>
 
           <Separator orientation="vertical" className="h-6" />
 
-          <Button 
-            variant="destructive" 
+          <Button
+            variant="destructive"
             className="gap-2"
             onClick={() => setShowEndClassDialog(true)}
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="h-4 w-4" />
             End Class
           </Button>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
         {/* Left Panel - Tabs */}
-        <div className="flex-1 p-4 overflow-hidden">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+        <div className="flex-1 overflow-hidden p-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full flex-col">
             <div className="w-full overflow-x-auto pb-1">
-              <TabsList className="inline-flex min-w-max bg-muted p-1 rounded-lg gap-1">
-              <TabsTrigger value="students" onClick={() => setActiveTab('students')} className="gap-1 data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs whitespace-nowrap">
-                <LayoutTemplate className="w-3 h-3" />
-                Students & Progress
-              </TabsTrigger>
-              <TabsTrigger value="rooms" onClick={() => setActiveTab('rooms')} className="gap-1 data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs whitespace-nowrap">
-                <LayoutGrid className="w-3 h-3" />
-                Rooms
-              </TabsTrigger>
-              <TabsTrigger value="polls" onClick={() => setActiveTab('polls')} className="gap-1 data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs whitespace-nowrap">
-                <BarChart2 className="w-3 h-3" />
-                Polls
-              </TabsTrigger>
-              <TabsTrigger value="whiteboard" onClick={() => setActiveTab('whiteboard')} className="gap-1 data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs whitespace-nowrap">
-                <Wrench className="w-3 h-3" />
-                Whiteboard
-              </TabsTrigger>
+              <TabsList className="inline-flex min-w-max gap-1 rounded-lg bg-muted p-1">
+                <TabsTrigger
+                  value="students"
+                  onClick={() => setActiveTab('students')}
+                  className="gap-1 whitespace-nowrap text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                >
+                  <LayoutTemplate className="h-3 w-3" />
+                  Students & Progress
+                </TabsTrigger>
+                <TabsTrigger
+                  value="rooms"
+                  onClick={() => setActiveTab('rooms')}
+                  className="gap-1 whitespace-nowrap text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                >
+                  <LayoutGrid className="h-3 w-3" />
+                  Rooms
+                </TabsTrigger>
+                <TabsTrigger
+                  value="polls"
+                  onClick={() => setActiveTab('polls')}
+                  className="gap-1 whitespace-nowrap text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                >
+                  <BarChart2 className="h-3 w-3" />
+                  Polls
+                </TabsTrigger>
+                <TabsTrigger
+                  value="whiteboard"
+                  onClick={() => setActiveTab('whiteboard')}
+                  className="gap-1 whitespace-nowrap text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                >
+                  <Wrench className="h-3 w-3" />
+                  Whiteboard
+                </TabsTrigger>
               </TabsList>
             </div>
 
-            <TabsContent value="students" className="flex-1 mt-4 overflow-hidden">
-              <StudentList 
+            <TabsContent value="students" className="mt-4 flex-1 overflow-hidden">
+              <StudentList
                 students={students}
                 breakoutRooms={breakoutRooms}
                 onCallOn={handleCallOn}
@@ -678,7 +771,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
               />
             </TabsContent>
 
-            <TabsContent value="rooms" className="flex-1 mt-4 overflow-hidden">
+            <TabsContent value="rooms" className="mt-4 flex-1 overflow-hidden">
               <UnifiedBreakoutManager
                 sessionId={sessionId}
                 tutorId={session?.user?.id || 'tutor-1'}
@@ -689,7 +782,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
               />
             </TabsContent>
 
-            <TabsContent value="polls" className="flex-1 mt-4 overflow-hidden">
+            <TabsContent value="polls" className="mt-4 flex-1 overflow-hidden">
               <QuickPollPanel
                 sessionId={sessionId}
                 tutorId={session?.user?.id || 'tutor-1'}
@@ -697,13 +790,13 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
               />
             </TabsContent>
 
-            <TabsContent value="whiteboard" className="flex-1 mt-4 overflow-hidden">
+            <TabsContent value="whiteboard" className="mt-4 flex-1 overflow-hidden">
               <MultiLayerWhiteboardInterface
                 sessionId={sessionId}
                 roomId={classRoomId || sessionId}
                 initialCourseId={linkedCourseId}
                 classSubject={classSubject}
-                students={students.map((student) => ({
+                students={students.map(student => ({
                   id: student.id,
                   name: student.name,
                   status: student.status,
@@ -713,15 +806,13 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
                 onOpenInWhiteboard={() => setActiveTab('whiteboard')}
               />
             </TabsContent>
-
-
           </Tabs>
         </div>
 
         {/* Right Panel - Sidebar */}
-        <div className={rightPanelCollapsed ? "w-12" : "w-[400px]"}> 
+        <div className={rightPanelCollapsed ? 'w-12' : 'w-[400px]'}>
           {rightPanelCollapsed ? (
-            <div className="h-full flex flex-col items-center gap-3 py-4 border-l bg-white/80">
+            <div className="flex h-full flex-col items-center gap-3 border-l bg-white/80 py-4">
               <Button
                 variant="outline"
                 size="icon"
@@ -736,26 +827,32 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
                   {panelNotificationCounts.messages > 0 && (
                     <div className="flex flex-col items-center gap-1">
                       <MessageCircle className="h-4 w-4 text-blue-600" />
-                      <Badge variant="secondary" className="text-[10px]">{panelNotificationCounts.messages}</Badge>
+                      <Badge variant="secondary" className="text-[10px]">
+                        {panelNotificationCounts.messages}
+                      </Badge>
                     </div>
                   )}
                   {panelNotificationCounts.handRaises > 0 && (
                     <div className="flex flex-col items-center gap-1">
                       <Hand className="h-4 w-4 text-orange-600" />
-                      <Badge variant="secondary" className="text-[10px]">{panelNotificationCounts.handRaises}</Badge>
+                      <Badge variant="secondary" className="text-[10px]">
+                        {panelNotificationCounts.handRaises}
+                      </Badge>
                     </div>
                   )}
                   {panelNotificationCounts.alerts > 0 && (
                     <div className="flex flex-col items-center gap-1">
                       <Sparkles className="h-4 w-4 text-purple-600" />
-                      <Badge variant="secondary" className="text-[10px]">{panelNotificationCounts.alerts}</Badge>
+                      <Badge variant="secondary" className="text-[10px]">
+                        {panelNotificationCounts.alerts}
+                      </Badge>
                     </div>
                   )}
                 </div>
               )}
             </div>
           ) : (
-            <div className="p-4 pl-0 flex flex-col gap-4 overflow-hidden h-full">
+            <div className="flex h-full flex-col gap-4 overflow-hidden p-4 pl-0">
               <div className="flex justify-end">
                 <Button
                   variant="outline"
@@ -767,25 +864,27 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
-              
+
               {/* Multi-Layer Controls */}
               <Card className="shrink-0">
-                <CardHeader className="py-2 px-3">
-                  <CardTitle className="text-xs flex items-center gap-1.5 text-muted-foreground">
-                    <Layers className="w-3 h-3" />
+                <CardHeader className="px-3 py-2">
+                  <CardTitle className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Layers className="h-3 w-3" />
                     Whiteboard Status
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="py-2 px-3 pt-0 space-y-1.5">
+                <CardContent className="space-y-1.5 px-3 py-2 pt-0">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-gray-500">Socket</span>
-                    <Badge variant={socket ? 'default' : 'secondary'} className="text-[10px] h-4">
+                    <Badge variant={socket ? 'default' : 'secondary'} className="h-4 text-[10px]">
                       {socket ? 'Connected' : 'Offline'}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-gray-500">Online</span>
-                    <span className="font-medium">{onlineCount}/{students.length}</span>
+                    <span className="font-medium">
+                      {onlineCount}/{students.length}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-gray-500">Boards</span>
@@ -793,23 +892,23 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
                   </div>
                 </CardContent>
               </Card>
-              
+
               {/* AI Teaching Assistant - Top Priority */}
               <div className="h-[40%] min-h-0">
-                <AITeachingAssistant 
+                <AITeachingAssistant
                   students={students}
                   metrics={metrics}
                   classDuration={metrics?.classDuration || 0}
                   currentTopic={classSubject}
                 />
               </div>
-              
+
               {/* Hand Raise Queue */}
-              <div className="flex-1 min-h-0">
-                <HandRaiseQueue 
+              <div className="min-h-0 flex-1">
+                <HandRaiseQueue
                   handRaises={handRaises}
                   onAcknowledge={handleAcknowledgeHand}
-                  onAnswer={(handId) => {
+                  onAnswer={handId => {
                     const hand = handRaises.find(h => h.id === handId)
                     if (hand) handleCallOn(hand.studentId)
                   }}
@@ -817,8 +916,8 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
               </div>
 
               {/* Chat Monitor */}
-              <div className="flex-1 min-h-0">
-                <ChatMonitor 
+              <div className="min-h-0 flex-1">
+                <ChatMonitor
                   messages={messages}
                   students={students}
                   socket={socket}
@@ -832,12 +931,12 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
 
         {/* Engagement Dashboard - Overlay Panel */}
         {showEngagementPanel && (
-          <div className="absolute right-4 top-20 w-96 z-50">
+          <div className="absolute right-4 top-20 z-50 w-96">
             <EngagementDashboard
               students={engagementMetrics}
               isOpen={showEngagementPanel}
               onToggle={() => setShowEngagementPanel(false)}
-              onSelectStudent={(studentId) => {
+              onSelectStudent={studentId => {
                 toast.info(`Selected student: ${studentId}`)
               }}
               onSendNudge={handleSendNudge}
@@ -882,7 +981,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
       <Dialog
         modal={false}
         open={showRecordingNotice}
-        onOpenChange={(open) => {
+        onOpenChange={open => {
           if (!open) dismissRecordingNotice()
         }}
       >
@@ -890,7 +989,9 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
           <DialogHeader>
             <DialogTitle>Class Recording Is On By Default</DialogTitle>
             <DialogDescription>
-              This session is being recorded to generate a transcript, AI lesson summary, and replay artifact for quality review, student revision, and attendance/missed-lesson continuity.
+              This session is being recorded to generate a transcript, AI lesson summary, and replay
+              artifact for quality review, student revision, and attendance/missed-lesson
+              continuity.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -1,12 +1,12 @@
 /**
  * POST /api/contact - Send contact form emails
- * 
+ *
  * Sends contact form submissions to the solocorn.co email address
  * using SMTP via Namecheap/PrivateEmail.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+import { NextRequest, NextResponse } from 'next/server'
+import nodemailer from 'nodemailer'
 
 // Create SMTP transporter for Namecheap/PrivateEmail
 const createTransporter = () => {
@@ -18,68 +18,65 @@ const createTransporter = () => {
       user: process.env.SMTP_USER || '',
       pass: process.env.SMTP_PASS || '',
     },
-  });
-};
+  })
+}
 
 interface ContactFormData {
-  type: 'contact' | 'tutor' | 'academy' | 'schools' | 'register' | 'chat';
-  name: string;
-  email: string;
-  message?: string;
-  about?: string;
-  socialMedia?: string;
-  school?: string;
-  website?: string;
+  type: 'contact' | 'tutor' | 'academy' | 'schools' | 'register' | 'chat'
+  name: string
+  email: string
+  message?: string
+  about?: string
+  socialMedia?: string
+  school?: string
+  website?: string
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const body: ContactFormData = await req.json();
-    
+    const body: ContactFormData = await req.json()
+
     // Validate required fields
     if (!body.name || !body.email) {
-      return NextResponse.json(
-        { error: 'Name and email are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Name and email are required' }, { status: 400 })
     }
 
     // Check if SMTP is configured
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.error('SMTP not configured. Email not sent.');
+      console.error('SMTP not configured. Email not sent.')
       // Return success anyway to not break UX, but log the error
       return NextResponse.json(
-        { 
-          success: true, 
+        {
+          success: true,
           warning: 'Email configuration pending',
-          message: 'Form submitted successfully. We will contact you soon!'
+          message: 'Form submitted successfully. We will contact you soon!',
         },
         { status: 200 }
-      );
+      )
     }
 
-    const transporter = createTransporter();
+    const transporter = createTransporter()
 
     // Build email content based on form type
-    let subject = '';
-    let htmlContent = '';
-    let textContent = '';
+    let subject = ''
+    let htmlContent = ''
+    let textContent = ''
 
     switch (body.type) {
       case 'contact':
-        subject = `Contact Form: Message from ${body.name}`;
+        subject = `Contact Form: Message from ${body.name}`
         htmlContent = `
           <h2>New Contact Form Submission</h2>
           <p><strong>Name:</strong> ${body.name}</p>
           <p><strong>Email:</strong> ${body.email}</p>
           <p><strong>Message:</strong></p>
           <p>${body.message || 'No message provided'}</p>
-        `;
-        textContent = `Name: ${body.name}\nEmail: ${body.email}\nMessage: ${body.message || 'No message provided'}`;
-        break;
+        `
+        textContent = `Name: ${body.name}\nEmail: ${body.email}\nMessage: ${body.message || 'No message provided'}`
+        break
 
       case 'tutor':
-        subject = `Tutor Signup: ${body.name}`;
+        subject = `Tutor Signup: ${body.name}`
         htmlContent = `
           <h2>New Tutor Signup</h2>
           <p><strong>Name:</strong> ${body.name}</p>
@@ -87,12 +84,12 @@ export async function POST(req: NextRequest) {
           <p><strong>About:</strong></p>
           <p>${body.about || 'Not provided'}</p>
           ${body.socialMedia ? `<p><strong>Social Media:</strong> ${body.socialMedia}</p>` : ''}
-        `;
-        textContent = `Tutor Signup\nName: ${body.name}\nEmail: ${body.email}\nAbout: ${body.about || 'Not provided'}\nSocial Media: ${body.socialMedia || 'Not provided'}`;
-        break;
+        `
+        textContent = `Tutor Signup\nName: ${body.name}\nEmail: ${body.email}\nAbout: ${body.about || 'Not provided'}\nSocial Media: ${body.socialMedia || 'Not provided'}`
+        break
 
       case 'academy':
-        subject = `Academy Signup: ${body.name}`;
+        subject = `Academy Signup: ${body.name}`
         htmlContent = `
           <h2>New Academy Signup</h2>
           <p><strong>Name:</strong> ${body.name}</p>
@@ -100,12 +97,12 @@ export async function POST(req: NextRequest) {
           <p><strong>About:</strong></p>
           <p>${body.about || 'Not provided'}</p>
           ${body.socialMedia ? `<p><strong>Social Media:</strong> ${body.socialMedia}</p>` : ''}
-        `;
-        textContent = `Academy Signup\nName: ${body.name}\nEmail: ${body.email}\nAbout: ${body.about || 'Not provided'}\nSocial Media: ${body.socialMedia || 'Not provided'}`;
-        break;
+        `
+        textContent = `Academy Signup\nName: ${body.name}\nEmail: ${body.email}\nAbout: ${body.about || 'Not provided'}\nSocial Media: ${body.socialMedia || 'Not provided'}`
+        break
 
       case 'schools':
-        subject = `School Partnership: ${body.school || body.name}`;
+        subject = `School Partnership: ${body.school || body.name}`
         htmlContent = `
           <h2>New School Partnership Inquiry</h2>
           <p><strong>Contact Name:</strong> ${body.name}</p>
@@ -114,22 +111,22 @@ export async function POST(req: NextRequest) {
           ${body.website ? `<p><strong>Website:</strong> ${body.website}</p>` : ''}
           <p><strong>Message:</strong></p>
           <p>${body.message || 'Not provided'}</p>
-        `;
-        textContent = `School Partnership\nContact Name: ${body.name}\nSchool: ${body.school || 'Not provided'}\nEmail: ${body.email}\nWebsite: ${body.website || 'Not provided'}\nMessage: ${body.message || 'Not provided'}`;
-        break;
+        `
+        textContent = `School Partnership\nContact Name: ${body.name}\nSchool: ${body.school || 'Not provided'}\nEmail: ${body.email}\nWebsite: ${body.website || 'Not provided'}\nMessage: ${body.message || 'Not provided'}`
+        break
 
       case 'register':
       case 'chat':
       default:
-        subject = `Early Access Signup: ${body.name}`;
+        subject = `Early Access Signup: ${body.name}`
         htmlContent = `
           <h2>New Early Access Signup</h2>
           <p><strong>Name:</strong> ${body.name}</p>
           <p><strong>Email:</strong> ${body.email}</p>
           ${body.message ? `<p><strong>Message:</strong></p><p>${body.message}</p>` : ''}
-        `;
-        textContent = `Early Access Signup\nName: ${body.name}\nEmail: ${body.email}\nMessage: ${body.message || 'Not provided'}`;
-        break;
+        `
+        textContent = `Early Access Signup\nName: ${body.name}\nEmail: ${body.email}\nMessage: ${body.message || 'Not provided'}`
+        break
     }
 
     // Send email
@@ -140,7 +137,7 @@ export async function POST(req: NextRequest) {
       subject,
       text: textContent,
       html: htmlContent,
-    });
+    })
 
     // Also send confirmation email to the user
     try {
@@ -156,28 +153,27 @@ export async function POST(req: NextRequest) {
           <br>
           <p>Best regards,<br>The Solocorn Team</p>
         `,
-      });
+      })
     } catch (confirmError) {
       // Don't fail if confirmation email fails
-      console.error('Confirmation email failed:', confirmError);
+      console.error('Confirmation email failed:', confirmError)
     }
 
     return NextResponse.json(
-      { 
-        success: true, 
-        message: 'Form submitted successfully! We will contact you soon.' 
+      {
+        success: true,
+        message: 'Form submitted successfully! We will contact you soon.',
       },
       { status: 200 }
-    );
-
+    )
   } catch (error) {
-    console.error('Contact form error:', error);
+    console.error('Contact form error:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to send message. Please try again later.',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
-    );
+    )
   }
 }

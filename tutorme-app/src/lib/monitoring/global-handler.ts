@@ -36,8 +36,17 @@ export function handleGlobalError(error: Error, context?: GlobalErrorContext) {
 
 function isSecurityRelevant(error: Error, context: GlobalErrorContext): boolean {
   const msg = error.message.toLowerCase()
-  const kw = ['auth', 'unauthorized', 'forbidden', 'access denied', 'token', 'session', 'csrf', 'rate limit']
-  return kw.some((k) => msg.includes(k) || context.action?.toLowerCase().includes(k))
+  const kw = [
+    'auth',
+    'unauthorized',
+    'forbidden',
+    'access denied',
+    'token',
+    'session',
+    'csrf',
+    'rate limit',
+  ]
+  return kw.some(k => msg.includes(k) || context.action?.toLowerCase().includes(k))
 }
 
 export function handleGlobalWarning(warning: string, context?: GlobalErrorContext) {

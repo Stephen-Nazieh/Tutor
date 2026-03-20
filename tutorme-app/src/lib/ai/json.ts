@@ -30,7 +30,7 @@ function extractFirstJsonSubstring(text: string): string | null {
 
 export function safeJsonParse<T = unknown>(text: string, options: JsonParseOptions = {}): T | null {
   if (typeof text !== 'string') return null
-  const raw = options.extract ? extractFirstJsonSubstring(text) ?? text : text
+  const raw = options.extract ? (extractFirstJsonSubstring(text) ?? text) : text
   try {
     return JSON.parse(raw) as T
   } catch {
@@ -49,4 +49,3 @@ export function safeJsonParseWithSchema<T>(
   if (!validated.success) return { data: null, error: validated.error }
   return { data: validated.data }
 }
-

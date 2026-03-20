@@ -22,18 +22,15 @@ interface ScheduleSlotEditorProps {
 
 export function ScheduleSlotEditor({ slot, index, onUpdate, onRemove }: ScheduleSlotEditorProps) {
   return (
-    <div className="flex flex-wrap items-end gap-2 p-3 rounded-lg border bg-muted/30">
-      <div className="space-y-1 min-w-[120px]">
+    <div className="flex flex-wrap items-end gap-2 rounded-lg border bg-muted/30 p-3">
+      <div className="min-w-[120px] space-y-1">
         <Label className="text-xs">Day</Label>
-        <Select
-          value={slot.dayOfWeek}
-          onValueChange={(v) => onUpdate(index, 'dayOfWeek', v)}
-        >
+        <Select value={slot.dayOfWeek} onValueChange={v => onUpdate(index, 'dayOfWeek', v)}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {DAYS.map((d) => (
+            {DAYS.map(d => (
               <SelectItem key={d} value={d}>
                 {d}
               </SelectItem>
@@ -41,24 +38,22 @@ export function ScheduleSlotEditor({ slot, index, onUpdate, onRemove }: Schedule
           </SelectContent>
         </Select>
       </div>
-      <div className="space-y-1 w-[90px]">
+      <div className="w-[90px] space-y-1">
         <Label className="text-xs">Start</Label>
         <Input
           type="time"
           value={slot.startTime}
-          onChange={(e) => onUpdate(index, 'startTime', e.target.value)}
+          onChange={e => onUpdate(index, 'startTime', e.target.value)}
         />
       </div>
-      <div className="space-y-1 w-[100px]">
+      <div className="w-[100px] space-y-1">
         <Label className="text-xs">Duration (min)</Label>
         <Input
           type="number"
           min={5}
           max={480}
           value={slot.durationMinutes}
-          onChange={(e) =>
-            onUpdate(index, 'durationMinutes', parseInt(e.target.value, 10) || 60)
-          }
+          onChange={e => onUpdate(index, 'durationMinutes', parseInt(e.target.value, 10) || 60)}
         />
       </div>
       <Button

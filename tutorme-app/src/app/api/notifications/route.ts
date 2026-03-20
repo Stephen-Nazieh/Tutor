@@ -43,40 +43,46 @@ export const GET = withAuth(async (req: NextRequest, session) => {
   return NextResponse.json({
     notifications: userNotifications,
     unreadCount,
-    nextCursor: userNotifications.length === limit ? userNotifications[userNotifications.length - 1]?.id : null,
+    nextCursor:
+      userNotifications.length === limit
+        ? userNotifications[userNotifications.length - 1]?.id
+        : null,
   })
 })
 
 // POST - Create notification (internal use)
-export const POST = withAuth(async (req: NextRequest) => {
-  try {
-    const body = await req.json()
-    const { userId, type, title, message, data, actionUrl } = body
+export const POST = withAuth(
+  async (req: NextRequest) => {
+    try {
+      const body = await req.json()
+      const { userId, type, title, message, data, actionUrl } = body
 
-    if (!userId || !type || !title || !message) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
+      if (!userId || !type || !title || !message) {
+        return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+      }
+
+      const [newNotification] = await drizzleDb
+        .insert(notification)
+        .values({
+          id: crypto.randomUUID(),
+          userId,
+          type,
+          title,
+          message,
+          data: data || null,
+          read: false,
+          actionUrl: actionUrl || null,
+        })
+        .returning()
+
+      return NextResponse.json({ notification: newNotification }, { status: 201 })
+    } catch (error) {
+      console.error('Create notification error:', error)
+      return handleApiError(error, 'Failed to create notification', 'api/notifications/route.ts')
     }
-
-    const [newNotification] = await drizzleDb.insert(notification).values({
-      id: crypto.randomUUID(),
-      userId,
-      type,
-      title,
-      message,
-      data: data || null,
-      read: false,
-      actionUrl: actionUrl || null,
-    }).returning()
-
-    return NextResponse.json({ notification: newNotification }, { status: 201 })
-  } catch (error) {
-    console.error('Create notification error:', error)
-    return handleApiError(error, 'Failed to create notification', 'api/notifications/route.ts')
-  }
-}, { role: 'TUTOR' })
+  },
+  { role: 'TUTOR' }
+)
 
 // PATCH - Mark notifications as read
 export const PATCH = withAuth(async (req: NextRequest, session) => {
@@ -101,20 +107,12 @@ export const PATCH = withAuth(async (req: NextRequest, session) => {
       await drizzleDb
         .update(notification)
         .set({ read: true, readAt: new Date() })
-        .where(
-          and(
-            inArray(notification.id, notificationIds),
-            eq(notification.userId, userId)
-          )
-        )
+        .where(and(inArray(notification.id, notificationIds), eq(notification.userId, userId)))
 
       return NextResponse.json({ marked: notificationIds.length })
     }
 
-    return NextResponse.json(
-      { error: 'No notifications specified' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'No notifications specified' }, { status: 400 })
   } catch (error) {
     console.error('Mark notifications error:', error)
     return handleApiError(error, 'Failed to mark notifications', 'api/notifications/route.ts')

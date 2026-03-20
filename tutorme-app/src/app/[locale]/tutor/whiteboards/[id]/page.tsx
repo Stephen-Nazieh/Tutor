@@ -21,20 +21,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  Pencil, 
-  Eraser, 
-  Square, 
-  Circle, 
-  Type, 
-  Undo, 
+import {
+  Pencil,
+  Eraser,
+  Square,
+  Circle,
+  Type,
+  Undo,
   Redo,
   Download,
   Trash2,
@@ -53,7 +48,7 @@ import {
   Minus,
   Loader2,
   Share2,
-  Copy
+  Copy,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useWhiteboardSocket } from '@/hooks/use-whiteboard-socket'
@@ -86,9 +81,20 @@ interface Page {
 }
 
 const COLORS = [
-  '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF', 
-  '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080',
-  '#333333', '#666666', '#999999', '#CCCCCC'
+  '#000000',
+  '#FFFFFF',
+  '#FF0000',
+  '#00FF00',
+  '#0000FF',
+  '#FFFF00',
+  '#FF00FF',
+  '#00FFFF',
+  '#FFA500',
+  '#800080',
+  '#333333',
+  '#666666',
+  '#999999',
+  '#CCCCCC',
 ]
 
 export default function WhiteboardEditorPage() {
@@ -96,16 +102,16 @@ export default function WhiteboardEditorPage() {
   const params = useParams()
   const { data: session } = useSession()
   const whiteboardId = params.id as string
-  
+
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  
+
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [whiteboard, setWhiteboard] = useState<any>(null)
   const [pages, setPages] = useState<Page[]>([])
   const [currentPageIndex, setCurrentPageIndex] = useState(0)
-  
+
   const [tool, setTool] = useState<Tool>('pen')
   const [color, setColor] = useState('#000000')
   const [brushSize, setBrushSize] = useState(3)
@@ -115,11 +121,11 @@ export default function WhiteboardEditorPage() {
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [isPanning, setIsPanning] = useState(false)
   const [panStart, setPanStart] = useState({ x: 0, y: 0 })
-  
+
   const [showShareDialog, setShowShareDialog] = useState(false)
   const [snapshotName, setSnapshotName] = useState('')
   const [showSnapshotDialog, setShowSnapshotDialog] = useState(false)
-  
+
   const currentPage = pages[currentPageIndex]
 
   // Socket.io for real-time collaboration
@@ -133,7 +139,7 @@ export default function WhiteboardEditorPage() {
     userId: session?.user?.id || '',
     userName: session?.user?.name || 'Anonymous',
     userColor: '#3b82f6',
-    onStroke: (stroke) => {
+    onStroke: stroke => {
       if (!pages[currentPageIndex]) return
       const newPages = [...pages]
       newPages[currentPageIndex].strokes.push(stroke)
@@ -219,7 +225,12 @@ export default function WhiteboardEditorPage() {
     ctx.restore()
   }, [currentPage, scale, pan, currentStroke, color, brushSize, tool])
 
-  const drawBackground = (ctx: CanvasRenderingContext2D, width: number, height: number, style: string) => {
+  const drawBackground = (
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    style: string
+  ) => {
     ctx.strokeStyle = '#e5e7eb'
     ctx.lineWidth = 1
 
@@ -445,7 +456,7 @@ export default function WhiteboardEditorPage() {
       })
 
       if (!res.ok) throw new Error('Failed to create snapshot')
-      
+
       toast.success('Snapshot created')
       setShowSnapshotDialog(false)
       setSnapshotName('')
@@ -464,7 +475,7 @@ export default function WhiteboardEditorPage() {
       })
 
       if (!res.ok) throw new Error('Failed to create page')
-      
+
       const data = await res.json()
       setPages([...pages, data.page])
       setCurrentPageIndex(pages.length)
@@ -486,16 +497,16 @@ export default function WhiteboardEditorPage() {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
       </div>
     )
   }
 
   if (!whiteboard) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center">
-        <p className="text-gray-500 mb-4">Whiteboard not found</p>
+      <div className="flex h-screen flex-col items-center justify-center">
+        <p className="mb-4 text-gray-500">Whiteboard not found</p>
         <Link href="/tutor/whiteboards">
           <Button>Back to Whiteboards</Button>
         </Link>
@@ -504,20 +515,20 @@ export default function WhiteboardEditorPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
+    <div className="flex h-screen flex-col bg-gray-100">
       {/* Header */}
-      <div className="h-14 bg-white border-b flex items-center justify-between px-4">
+      <div className="flex h-14 items-center justify-between border-b bg-white px-4">
         <div className="flex items-center gap-4">
           <Link href="/tutor/whiteboards">
             <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
           <div>
             <h1 className="font-semibold">{whiteboard.title}</h1>
             {isSocketConnected && (
-              <span className="text-xs text-green-600 flex items-center gap-1">
-                <span className="w-2 h-2 bg-green-500 rounded-full" />
+              <span className="flex items-center gap-1 text-xs text-green-600">
+                <span className="h-2 w-2 rounded-full bg-green-500" />
                 Live ({activeUsers.length} users)
               </span>
             )}
@@ -527,14 +538,14 @@ export default function WhiteboardEditorPage() {
         <div className="flex items-center gap-2">
           {/* Page Navigation */}
           {pages.length > 1 && (
-            <div className="flex items-center gap-2 mr-4">
+            <div className="mr-4 flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="icon"
                 disabled={currentPageIndex === 0}
                 onClick={() => setCurrentPageIndex(prev => prev - 1)}
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="text-sm text-gray-600">
                 {currentPageIndex + 1} / {pages.length}
@@ -545,55 +556,49 @@ export default function WhiteboardEditorPage() {
                 disabled={currentPageIndex === pages.length - 1}
                 onClick={() => setCurrentPageIndex(prev => prev + 1)}
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           )}
 
           <Button variant="ghost" size="icon" onClick={() => handleAddPage()}>
-            <Plus className="w-4 h-4" />
+            <Plus className="h-4 w-4" />
           </Button>
 
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setShowSnapshotDialog(true)}
-          >
-            <Save className="w-4 h-4" />
+          <Button variant="ghost" size="icon" onClick={() => setShowSnapshotDialog(true)}>
+            <Save className="h-4 w-4" />
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
-                <MoreVertical className="w-4 h-4" />
+                <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => handleExport('json')}>
-                <Download className="w-4 h-4 mr-2" />
+                <Download className="mr-2 h-4 w-4" />
                 Export JSON
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleExport('svg')}>
-                <Download className="w-4 h-4 mr-2" />
+                <Download className="mr-2 h-4 w-4" />
                 Export SVG
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setShowShareDialog(true)}>
-                <Share2 className="w-4 h-4 mr-2" />
+                <Share2 className="mr-2 h-4 w-4" />
                 Share
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {saving && (
-            <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-          )}
+          {saving && <Loader2 className="h-4 w-4 animate-spin text-blue-600" />}
         </div>
       </div>
 
       {/* Toolbar */}
-      <div className="h-14 bg-white border-b flex items-center px-4 gap-4">
+      <div className="flex h-14 items-center gap-4 border-b bg-white px-4">
         {/* Tools */}
-        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+        <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-1">
           {[
             { id: 'pen', icon: Pencil, label: 'Pen' },
             { id: 'eraser', icon: Eraser, label: 'Eraser' },
@@ -604,9 +609,9 @@ export default function WhiteboardEditorPage() {
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => setTool(id as Tool)}
-                    className={`p-2 rounded ${tool === id ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+                    className={`rounded p-2 ${tool === id ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="h-4 w-4" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>{label}</TooltipContent>
@@ -615,25 +620,25 @@ export default function WhiteboardEditorPage() {
           ))}
         </div>
 
-        <div className="w-px h-8 bg-gray-200" />
+        <div className="h-8 w-px bg-gray-200" />
 
         {/* Colors */}
         <div className="flex items-center gap-1">
-          {COLORS.slice(0, 8).map((c) => (
+          {COLORS.slice(0, 8).map(c => (
             <button
               key={c}
               onClick={() => setColor(c)}
-              className={`w-6 h-6 rounded-full border-2 ${color === c ? 'border-blue-500' : 'border-transparent'}`}
+              className={`h-6 w-6 rounded-full border-2 ${color === c ? 'border-blue-500' : 'border-transparent'}`}
               style={{ backgroundColor: c }}
             />
           ))}
         </div>
 
-        <div className="w-px h-8 bg-gray-200" />
+        <div className="h-8 w-px bg-gray-200" />
 
         {/* Brush Size */}
-        <div className="flex items-center gap-2 w-32">
-          <Minus className="w-3 h-3" />
+        <div className="flex w-32 items-center gap-2">
+          <Minus className="h-3 w-3" />
           <Slider
             value={[brushSize]}
             onValueChange={([value]) => setBrushSize(value)}
@@ -641,19 +646,19 @@ export default function WhiteboardEditorPage() {
             max={20}
             step={1}
           />
-          <span className="text-xs w-6">{brushSize}</span>
+          <span className="w-6 text-xs">{brushSize}</span>
         </div>
 
-        <div className="w-px h-8 bg-gray-200" />
+        <div className="h-8 w-px bg-gray-200" />
 
         {/* Zoom */}
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => setScale(s => Math.max(0.1, s - 0.1))}>
-            <ZoomOut className="w-4 h-4" />
+            <ZoomOut className="h-4 w-4" />
           </Button>
-          <span className="text-sm w-16 text-center">{Math.round(scale * 100)}%</span>
+          <span className="w-16 text-center text-sm">{Math.round(scale * 100)}%</span>
           <Button variant="ghost" size="icon" onClick={() => setScale(s => Math.min(5, s + 0.1))}>
-            <ZoomIn className="w-4 h-4" />
+            <ZoomIn className="h-4 w-4" />
           </Button>
         </div>
 
@@ -661,19 +666,15 @@ export default function WhiteboardEditorPage() {
 
         {/* Actions */}
         <Button variant="ghost" size="icon" onClick={handleUndo}>
-          <Undo className="w-4 h-4" />
+          <Undo className="h-4 w-4" />
         </Button>
         <Button variant="ghost" size="icon" onClick={handleClear}>
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="h-4 w-4" />
         </Button>
       </div>
 
       {/* Canvas */}
-      <div 
-        ref={containerRef}
-        className="flex-1 overflow-hidden relative"
-        onWheel={handleWheel}
-      >
+      <div ref={containerRef} className="relative flex-1 overflow-hidden" onWheel={handleWheel}>
         <canvas
           ref={canvasRef}
           onMouseDown={handleMouseDown}
@@ -695,19 +696,21 @@ export default function WhiteboardEditorPage() {
           </DialogHeader>
           <div className="py-4">
             <Label>Share Link</Label>
-            <div className="flex gap-2 mt-2">
-              <Input 
+            <div className="mt-2 flex gap-2">
+              <Input
                 value={`${window.location.origin}/tutor/live-class/${whiteboardId}`}
                 readOnly
               />
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
-                  navigator.clipboard.writeText(`${window.location.origin}/tutor/live-class/${whiteboardId}`)
+                  navigator.clipboard.writeText(
+                    `${window.location.origin}/tutor/live-class/${whiteboardId}`
+                  )
                   toast.success('Link copied')
                 }}
               >
-                <Copy className="w-4 h-4" />
+                <Copy className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -719,16 +722,14 @@ export default function WhiteboardEditorPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create Snapshot</DialogTitle>
-            <DialogDescription>
-              Save a snapshot of the current whiteboard state.
-            </DialogDescription>
+            <DialogDescription>Save a snapshot of the current whiteboard state.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Label>Snapshot Name</Label>
             <Input
               placeholder="e.g., Before Class"
               value={snapshotName}
-              onChange={(e) => setSnapshotName(e.target.value)}
+              onChange={e => setSnapshotName(e.target.value)}
               className="mt-2"
             />
           </div>

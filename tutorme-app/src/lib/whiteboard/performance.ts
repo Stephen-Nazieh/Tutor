@@ -1,6 +1,6 @@
 /**
  * Performance Optimization System
- * 
+ *
  * Features:
  * - Viewport culling for off-screen elements
  * - Stroke simplification (Ramer-Douglas-Peucker)
@@ -54,7 +54,7 @@ export class ViewportCulling {
    */
   isVisible(stroke: WhiteboardStroke): boolean {
     const bounds = this.getStrokeBounds(stroke)
-    
+
     // Add padding
     const viewBounds = {
       x: this.viewport.x - this.padding,
@@ -70,26 +70,31 @@ export class ViewportCulling {
    * Filter strokes to only those visible in viewport
    */
   filterVisible(strokes: WhiteboardStroke[]): WhiteboardStroke[] {
-    return strokes.filter((stroke) => this.isVisible(stroke))
+    return strokes.filter(stroke => this.isVisible(stroke))
   }
 
   /**
    * Calculate the number of visible strokes
    */
   countVisible(strokes: WhiteboardStroke[]): number {
-    return strokes.filter((stroke) => this.isVisible(stroke)).length
+    return strokes.filter(stroke => this.isVisible(stroke)).length
   }
 
   /**
    * Get bounds of a stroke
    */
-  private getStrokeBounds(stroke: WhiteboardStroke): { x: number; y: number; width: number; height: number } {
+  private getStrokeBounds(stroke: WhiteboardStroke): {
+    x: number
+    y: number
+    width: number
+    height: number
+  } {
     if (stroke.points.length === 0) {
       return { x: 0, y: 0, width: 0, height: 0 }
     }
 
-    const xs = stroke.points.map((p) => p.x)
-    const ys = stroke.points.map((p) => p.y)
+    const xs = stroke.points.map(p => p.x)
+    const ys = stroke.points.map(p => p.y)
 
     const minX = Math.min(...xs)
     const maxX = Math.max(...xs)
@@ -112,10 +117,7 @@ export class ViewportCulling {
     b: { x: number; y: number; width: number; height: number }
   ): boolean {
     return (
-      a.x < b.x + b.width &&
-      a.x + a.width > b.x &&
-      a.y < b.y + b.height &&
-      a.y + a.height > b.y
+      a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y
     )
   }
 }
@@ -214,7 +216,7 @@ export class StrokeSimplifier {
    * Batch simplify multiple strokes
    */
   simplifyBatch(strokes: WhiteboardStroke[]): SimplifiedStroke[] {
-    return strokes.map((stroke) => this.simplify(stroke))
+    return strokes.map(stroke => this.simplify(stroke))
   }
 
   /**
@@ -243,8 +245,8 @@ export class GridSpatialIndex implements SpatialIndex {
    */
   insert(stroke: WhiteboardStroke): void {
     const cells = this.getCellsForStroke(stroke)
-    
-    cells.forEach((cell) => {
+
+    cells.forEach(cell => {
       if (!this.grid.has(cell)) {
         this.grid.set(cell, new Set())
       }
@@ -261,10 +263,10 @@ export class GridSpatialIndex implements SpatialIndex {
     const results = new Set<string>()
     const cells = this.getCellsForRect(rect)
 
-    cells.forEach((cell) => {
+    cells.forEach(cell => {
       const strokeIds = this.grid.get(cell)
       if (strokeIds) {
-        strokeIds.forEach((id) => results.add(id))
+        strokeIds.forEach(id => results.add(id))
       }
     })
 
@@ -277,7 +279,7 @@ export class GridSpatialIndex implements SpatialIndex {
   remove(strokeId: string): void {
     const cells = this.strokeCells.get(strokeId)
     if (cells) {
-      cells.forEach((cell) => {
+      cells.forEach(cell => {
         this.grid.get(cell)?.delete(strokeId)
       })
       this.strokeCells.delete(strokeId)
@@ -315,7 +317,7 @@ export class GridSpatialIndex implements SpatialIndex {
   private getCellsForStroke(stroke: WhiteboardStroke): Set<string> {
     const cells = new Set<string>()
 
-    stroke.points.forEach((point) => {
+    stroke.points.forEach(point => {
       cells.add(this.getCellKey(point.x, point.y))
     })
 
@@ -325,7 +327,12 @@ export class GridSpatialIndex implements SpatialIndex {
   /**
    * Get all cells in a rectangle
    */
-  private getCellsForRect(rect: { x: number; y: number; width: number; height: number }): Set<string> {
+  private getCellsForRect(rect: {
+    x: number
+    y: number
+    width: number
+    height: number
+  }): Set<string> {
     const cells = new Set<string>()
 
     const startX = Math.floor(rect.x / this.cellSize)
@@ -529,7 +536,7 @@ export class PerformanceMonitor {
       maxFrameTime: this.frameTimings.length > 0 ? Math.max(...this.frameTimings) : 0,
       minFrameTime: this.frameTimings.length > 0 ? Math.min(...this.frameTimings) : 0,
       totalRenders: this.renderCount,
-      droppedFrames: this.frameTimings.filter((t) => t > 16.67).length,
+      droppedFrames: this.frameTimings.filter(t => t > 16.67).length,
     }
   }
 
@@ -590,17 +597,17 @@ export class PerformanceManager {
     let simplifiedCount = 0
     if (options.enableSimplification && this.simplificationEnabled) {
       const fps = this.monitor.getFPS()
-      
+
       const threshold = options.simplificationThreshold ?? 500
       if (fps < this.targetFPS || visibleStrokes.length > threshold) {
-        const simplified = visibleStrokes.map((stroke) => {
+        const simplified = visibleStrokes.map(stroke => {
           if (stroke.points.length > 50) {
             simplifiedCount++
             return this.strokeSimplifier.simplify(stroke)
           }
           return stroke
         })
-        
+
         return {
           visibleStrokes: simplified,
           culledCount,
@@ -621,16 +628,13 @@ export class PerformanceManager {
    */
   buildIndex(strokes: WhiteboardStroke[]): void {
     this.spatialIndex.clear()
-    strokes.forEach((stroke) => this.spatialIndex.insert(stroke))
+    strokes.forEach(stroke => this.spatialIndex.insert(stroke))
   }
 
   /**
    * Find strokes near a point
    */
-  findStrokesNearPoint(
-    point: { x: number; y: number },
-    radius: number
-  ): string[] {
+  findStrokesNearPoint(point: { x: number; y: number }, radius: number): string[] {
     return this.spatialIndex.search({
       x: point.x - radius,
       y: point.y - radius,

@@ -23,13 +23,15 @@ function normalizeMarkingResult(raw: string): MathMarkingResult {
     const parsed = JSON.parse(extracted) as Partial<MathMarkingResult>
     return {
       totalScore: typeof parsed.totalScore === 'number' ? parsed.totalScore : 0,
-      mistakeLocations: Array.isArray(parsed.mistakeLocations) ? parsed.mistakeLocations.map((item) => ({
-        step: String(item?.step || 'Unknown step'),
-        errorDescription: String(item?.errorDescription || 'No description'),
-        correction: String(item?.correction || 'No correction supplied'),
-        ...(typeof item?.x === 'number' ? { x: item.x } : {}),
-        ...(typeof item?.y === 'number' ? { y: item.y } : {}),
-      })) : [],
+      mistakeLocations: Array.isArray(parsed.mistakeLocations)
+        ? parsed.mistakeLocations.map(item => ({
+            step: String(item?.step || 'Unknown step'),
+            errorDescription: String(item?.errorDescription || 'No description'),
+            correction: String(item?.correction || 'No correction supplied'),
+            ...(typeof item?.x === 'number' ? { x: item.x } : {}),
+            ...(typeof item?.y === 'number' ? { y: item.y } : {}),
+          }))
+        : [],
       overallFeedback: String(parsed.overallFeedback || 'No overall feedback provided.'),
     }
   } catch {
@@ -45,7 +47,10 @@ export const POST = withAuth(async (req: NextRequest) => {
   const body = await req.json()
   const parsed = schema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Invalid payload', details: parsed.error.flatten() },
+      { status: 400 }
+    )
   }
 
   const aiRaw = await aiMarkMathWithRubric(parsed.data)

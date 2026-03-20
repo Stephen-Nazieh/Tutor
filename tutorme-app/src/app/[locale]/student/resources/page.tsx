@@ -47,11 +47,16 @@ function formatFileSize(bytes: number): string {
 function getIcon(type: string) {
   const cls = 'h-8 w-8'
   switch (type) {
-    case 'document': return <FileText className={`${cls} text-blue-500`} />
-    case 'image': return <Image className={`${cls} text-green-500`} />
-    case 'video': return <Video className={`${cls} text-red-500`} />
-    case 'spreadsheet': return <FileSpreadsheet className={`${cls} text-orange-500`} />
-    default: return <File className={`${cls} text-gray-500`} />
+    case 'document':
+      return <FileText className={`${cls} text-blue-500`} />
+    case 'image':
+      return <Image className={`${cls} text-green-500`} />
+    case 'video':
+      return <Video className={`${cls} text-red-500`} />
+    case 'spreadsheet':
+      return <FileSpreadsheet className={`${cls} text-orange-500`} />
+    default:
+      return <File className={`${cls} text-gray-500`} />
   }
 }
 
@@ -81,7 +86,9 @@ export default function StudentResourcesPage() {
 
   const handleDownload = async (resource: Resource) => {
     try {
-      const res = await fetch(`/api/tutor/resources/${resource.id}/download`, { credentials: 'include' })
+      const res = await fetch(`/api/tutor/resources/${resource.id}/download`, {
+        credentials: 'include',
+      })
       if (!res.ok) throw new Error()
       const { downloadUrl } = await res.json()
       const link = document.createElement('a')
@@ -99,41 +106,39 @@ export default function StudentResourcesPage() {
 
   const TYPES = ['all', 'document', 'image', 'video', 'spreadsheet', 'other']
 
-  const filtered = resources.filter((r) => {
+  const filtered = resources.filter(r => {
     const matchSearch =
       r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      r.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase())) ||
       r.tutorName.toLowerCase().includes(searchQuery.toLowerCase())
     const matchType = typeFilter === 'all' || r.type === typeFilter
     return matchSearch && matchType
   })
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
           <FolderOpen className="h-6 w-6" />
           Resources
         </h1>
-        <p className="text-gray-600 mt-1">
-          Materials shared with you by your tutors
-        </p>
+        <p className="mt-1 text-gray-600">Materials shared with you by your tutors</p>
       </div>
 
       {/* Search + Type Filter */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
             placeholder="Search resources..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="pl-9"
           />
         </div>
-        <div className="flex gap-2 flex-wrap">
-          {TYPES.map((t) => (
+        <div className="flex flex-wrap gap-2">
+          {TYPES.map(t => (
             <Button
               key={t}
               variant={typeFilter === t ? 'default' : 'outline'}
@@ -149,12 +154,12 @@ export default function StudentResourcesPage() {
 
       {/* Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {[1, 2, 3, 4].map(i => (
             <Card key={i}>
               <CardContent className="p-6">
-                <Skeleton className="h-8 w-8 rounded mb-3" />
-                <Skeleton className="h-4 w-3/4 mb-2" />
+                <Skeleton className="mb-3 h-8 w-8 rounded" />
+                <Skeleton className="mb-2 h-4 w-3/4" />
                 <Skeleton className="h-3 w-1/2" />
               </CardContent>
             </Card>
@@ -163,11 +168,11 @@ export default function StudentResourcesPage() {
       ) : filtered.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center">
-            <FolderOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-700 mb-2">
+            <FolderOpen className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+            <h3 className="mb-2 text-lg font-medium text-gray-700">
               {searchQuery || typeFilter !== 'all' ? 'No matching resources' : 'No resources yet'}
             </h3>
-            <p className="text-gray-500 text-sm">
+            <p className="text-sm text-gray-500">
               {searchQuery || typeFilter !== 'all'
                 ? 'Try adjusting your search or filter'
                 : 'Your tutors will share materials here'}
@@ -175,24 +180,24 @@ export default function StudentResourcesPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filtered.map((resource) => (
-            <Card key={resource.id} className="hover:shadow-md transition-shadow">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filtered.map(resource => (
+            <Card key={resource.id} className="transition-shadow hover:shadow-md">
               <CardContent className="p-4">
                 <div className="mb-3">{getIcon(resource.type)}</div>
-                <h3 className="font-medium truncate text-sm" title={resource.name}>
+                <h3 className="truncate text-sm font-medium" title={resource.name}>
                   {resource.name}
                 </h3>
                 {resource.description && (
-                  <p className="text-xs text-gray-500 mt-1 line-clamp-2">{resource.description}</p>
+                  <p className="mt-1 line-clamp-2 text-xs text-gray-500">{resource.description}</p>
                 )}
                 {resource.sharedMessage && (
-                  <p className="text-xs text-blue-600 italic mt-1 line-clamp-1">
+                  <p className="mt-1 line-clamp-1 text-xs italic text-blue-600">
                     &ldquo;{resource.sharedMessage}&rdquo;
                   </p>
                 )}
 
-                <div className="flex items-center justify-between mt-2">
+                <div className="mt-2 flex items-center justify-between">
                   <p className="text-xs text-gray-400">{formatFileSize(resource.size)}</p>
                   <p className="text-xs text-gray-400">
                     {formatDistanceToNow(new Date(resource.createdAt), { addSuffix: true })}
@@ -200,19 +205,21 @@ export default function StudentResourcesPage() {
                 </div>
 
                 {resource.tags.length > 0 && (
-                  <div className="flex gap-1 mt-2 flex-wrap">
+                  <div className="mt-2 flex flex-wrap gap-1">
                     {resource.tags.slice(0, 3).map((tag, i) => (
-                      <Badge key={i} variant="secondary" className="text-xs">{tag}</Badge>
+                      <Badge key={i} variant="secondary" className="text-xs">
+                        {tag}
+                      </Badge>
                     ))}
                   </div>
                 )}
 
-                <div className="flex items-center gap-1 mt-1">
+                <div className="mt-1 flex items-center gap-1">
                   <User className="h-3 w-3 text-gray-400" />
                   <span className="text-xs text-gray-400">{resource.tutorName}</span>
                 </div>
 
-                <div className="flex gap-2 mt-3">
+                <div className="mt-3 flex gap-2">
                   <Button
                     variant="default"
                     size="sm"

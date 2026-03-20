@@ -9,7 +9,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { cache } from '@/lib/db'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum, curriculumProgress, curriculumModule, curriculumLesson, courseBatch } from '@/lib/db/schema'
+import {
+  curriculum,
+  curriculumProgress,
+  curriculumModule,
+  curriculumLesson,
+  courseBatch,
+} from '@/lib/db/schema'
 import { eq, inArray, desc, sql, count } from 'drizzle-orm'
 
 const CURRICULUM_LIST_CACHE_TTL = 120 // 2 minutes
@@ -34,12 +40,14 @@ interface CurriculumResponse {
     lessons: number
     batches: number
   }
-  progress: {
-    lessonsCompleted: number
-    totalLessons: number
-    averageScore: number | null
-    isCompleted: boolean
-  } | undefined
+  progress:
+    | {
+        lessonsCompleted: number
+        totalLessons: number
+        averageScore: number | null
+        isCompleted: boolean
+      }
+    | undefined
 }
 
 export const GET = withAuth(async (req, session) => {
@@ -57,31 +65,35 @@ export const GET = withAuth(async (req, session) => {
         .orderBy(desc(curriculum.createdAt))
 
       if (curriculums.length === 0) return []
-      const curriculumIds = curriculums.map((c) => c.id)
+      const curriculumIds = curriculums.map(c => c.id)
 
       // 2. Fetch module counts
       const modulesRaw = await drizzleDb
         .select({
           curriculumId: curriculumModule.curriculumId,
-          moduleCount: sql<number>`count(${curriculumModule.id})::int`
+          moduleCount: sql<number>`count(${curriculumModule.id})::int`,
         })
         .from(curriculumModule)
         .where(inArray(curriculumModule.curriculumId, curriculumIds))
         .groupBy(curriculumModule.curriculumId)
 
-      const modulesMap = new Map<string, number>(modulesRaw.map(m => [m.curriculumId, m.moduleCount]))
+      const modulesMap = new Map<string, number>(
+        modulesRaw.map(m => [m.curriculumId, m.moduleCount])
+      )
 
       // 3. Fetch batch counts
       const batchesRaw = await drizzleDb
         .select({
           curriculumId: courseBatch.curriculumId,
-          batchCount: sql<number>`count(${courseBatch.id})::int`
+          batchCount: sql<number>`count(${courseBatch.id})::int`,
         })
         .from(courseBatch)
         .where(inArray(courseBatch.curriculumId, curriculumIds))
         .groupBy(courseBatch.curriculumId)
 
-      const batchesMap = new Map<string, number>(batchesRaw.map(b => [b.curriculumId, b.batchCount]))
+      const batchesMap = new Map<string, number>(
+        batchesRaw.map(b => [b.curriculumId, b.batchCount])
+      )
 
       // 4. Fetch the lessons count by getting modules for these curriculums
       const allModules = await drizzleDb
@@ -96,13 +108,15 @@ export const GET = withAuth(async (req, session) => {
         const lessonsRaw = await drizzleDb
           .select({
             moduleId: curriculumLesson.moduleId,
-            lessonCount: sql<number>`count(${curriculumLesson.id})::int`
+            lessonCount: sql<number>`count(${curriculumLesson.id})::int`,
           })
           .from(curriculumLesson)
           .where(inArray(curriculumLesson.moduleId, moduleIds))
           .groupBy(curriculumLesson.moduleId)
 
-        const lessonCountsByModule = new Map<string, number>(lessonsRaw.map(l => [l.moduleId, l.lessonCount]))
+        const lessonCountsByModule = new Map<string, number>(
+          lessonsRaw.map(l => [l.moduleId, l.lessonCount])
+        )
 
         for (const m of allModules) {
           const lCount = lessonCountsByModule.get(m.id) || 0
@@ -121,7 +135,7 @@ export const GET = withAuth(async (req, session) => {
           )}`
         )
 
-      const progressByCurriculumId = new Map<string, typeof progressList[number]>(
+      const progressByCurriculumId = new Map<string, (typeof progressList)[number]>(
         progressList.map(p => [p.curriculumId, p])
       )
 
@@ -144,12 +158,12 @@ export const GET = withAuth(async (req, session) => {
           },
           progress: progress
             ? {
-              lessonsCompleted: progress.lessonsCompleted,
-              totalLessons: progress.totalLessons,
-              averageScore: progress.averageScore,
-              isCompleted: progress.isCompleted
-            }
-            : undefined
+                lessonsCompleted: progress.lessonsCompleted,
+                totalLessons: progress.totalLessons,
+                averageScore: progress.averageScore,
+                isCompleted: progress.isCompleted,
+              }
+            : undefined,
         }
       })
     },

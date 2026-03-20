@@ -12,7 +12,10 @@ export const POST = withAuth(async (req: NextRequest) => {
   const body = await req.json()
   const parsed = schema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Invalid payload', details: parsed.error.flatten() },
+      { status: 400 }
+    )
   }
 
   const markdown = await aiReadHandwritingToMarkdown(parsed.data)

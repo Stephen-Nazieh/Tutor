@@ -44,11 +44,13 @@ async function fetchBatchGeolocation(users: OnlineUser[]): Promise<GeolocationRe
   return users.map(user => {
     const coords = results[user.ip]
     // Check if this is a mock coordinate (private IP or API failure)
-    const isMock = !coords || coords.city === 'Unknown' || 
-                   user.ip.startsWith('127.') || 
-                   user.ip.startsWith('192.168.') || 
-                   user.ip.startsWith('10.')
-    
+    const isMock =
+      !coords ||
+      coords.city === 'Unknown' ||
+      user.ip.startsWith('127.') ||
+      user.ip.startsWith('192.168.') ||
+      user.ip.startsWith('10.')
+
     return {
       userId: user.id,
       ip: user.ip,
@@ -71,7 +73,7 @@ function generateMockCoordinates(): GeoCoordinates {
   ]
 
   const region = regions[Math.floor(Math.random() * regions.length)]
-  
+
   return {
     lat: region.latRange[0] + Math.random() * (region.latRange[1] - region.latRange[0]),
     lon: region.lonRange[0] + Math.random() * (region.lonRange[1] - region.lonRange[0]),
@@ -84,14 +86,18 @@ function generateMockCoordinates(): GeoCoordinates {
  * Hook to fetch geolocation for a batch of users
  * Uses React Query for caching and deduplication
  */
-export function useBatchGeolocation(
-  users: OnlineUser[],
-  options: UseGeolocationOptions = {}
-) {
+export function useBatchGeolocation(users: OnlineUser[], options: UseGeolocationOptions = {}) {
   const { enabled = true, staleTime = GEOLOCATION_STALE_TIME } = options
 
   // Create a stable key based on user IDs and IPs
-  const queryKey = ['geolocation', 'batch', users.map(u => `${u.id}:${u.ip}`).sort().join(',')]
+  const queryKey = [
+    'geolocation',
+    'batch',
+    users
+      .map(u => `${u.id}:${u.ip}`)
+      .sort()
+      .join(','),
+  ]
 
   return useQuery({
     queryKey,
@@ -100,7 +106,7 @@ export function useBatchGeolocation(
     staleTime,
     gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour
     retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
 }
 
@@ -112,7 +118,7 @@ export function useUserGeolocation(user: OnlineUser | null) {
 
   const getCached = useCallback(() => {
     if (!user) return null
-    
+
     // Check all batch queries for this user
     const queries = queryClient.getQueriesData<GeolocationResult[]>({
       queryKey: ['geolocation', 'batch'],
@@ -144,15 +150,25 @@ export function useUserGeolocation(user: OnlineUser | null) {
 export function usePrefetchGeolocation() {
   const queryClient = useQueryClient()
 
-  return useCallback((users: OnlineUser[]) => {
-    const queryKey = ['geolocation', 'batch', users.map(u => `${u.id}:${u.ip}`).sort().join(',')]
-    
-    queryClient.prefetchQuery({
-      queryKey,
-      queryFn: () => fetchBatchGeolocation(users),
-      staleTime: GEOLOCATION_STALE_TIME,
-    })
-  }, [queryClient])
+  return useCallback(
+    (users: OnlineUser[]) => {
+      const queryKey = [
+        'geolocation',
+        'batch',
+        users
+          .map(u => `${u.id}:${u.ip}`)
+          .sort()
+          .join(','),
+      ]
+
+      queryClient.prefetchQuery({
+        queryKey,
+        queryFn: () => fetchBatchGeolocation(users),
+        staleTime: GEOLOCATION_STALE_TIME,
+      })
+    },
+    [queryClient]
+  )
 }
 
 export type { GeolocationResult }

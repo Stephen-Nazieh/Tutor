@@ -21,12 +21,48 @@ export const QUEST_TYPES = {
 } as const
 
 const DEFAULT_QUESTS = [
-  { title: 'Word Master', description: 'Learn 5 new vocabulary words', type: QUEST_TYPES.VOCABULARY, xpReward: 20, requirement: 5 },
-  { title: 'Speaking Practice', description: 'Complete a 3-minute speaking exercise', type: QUEST_TYPES.SPEAKING, xpReward: 30, requirement: 1 },
-  { title: 'Grammar Check', description: 'Complete a grammar exercise', type: QUEST_TYPES.GRAMMAR, xpReward: 25, requirement: 1 },
-  { title: 'Confidence Boost', description: 'Speak without hesitation for 2 minutes', type: QUEST_TYPES.CONFIDENCE, xpReward: 35, requirement: 1 },
-  { title: 'Mission Complete', description: 'Complete any mission', type: QUEST_TYPES.MISSION, xpReward: 40, requirement: 1 },
-  { title: 'Listening Ear', description: 'Listen to a lesson for 10 minutes', type: QUEST_TYPES.LISTENING, xpReward: 20, requirement: 1 },
+  {
+    title: 'Word Master',
+    description: 'Learn 5 new vocabulary words',
+    type: QUEST_TYPES.VOCABULARY,
+    xpReward: 20,
+    requirement: 5,
+  },
+  {
+    title: 'Speaking Practice',
+    description: 'Complete a 3-minute speaking exercise',
+    type: QUEST_TYPES.SPEAKING,
+    xpReward: 30,
+    requirement: 1,
+  },
+  {
+    title: 'Grammar Check',
+    description: 'Complete a grammar exercise',
+    type: QUEST_TYPES.GRAMMAR,
+    xpReward: 25,
+    requirement: 1,
+  },
+  {
+    title: 'Confidence Boost',
+    description: 'Speak without hesitation for 2 minutes',
+    type: QUEST_TYPES.CONFIDENCE,
+    xpReward: 35,
+    requirement: 1,
+  },
+  {
+    title: 'Mission Complete',
+    description: 'Complete any mission',
+    type: QUEST_TYPES.MISSION,
+    xpReward: 40,
+    requirement: 1,
+  },
+  {
+    title: 'Listening Ear',
+    description: 'Listen to a lesson for 10 minutes',
+    type: QUEST_TYPES.LISTENING,
+    xpReward: 20,
+    requirement: 1,
+  },
 ] as const
 
 function getQuestTypeFromRequirement(requirement: unknown): string | null {
@@ -95,10 +131,16 @@ export async function generateDailyQuests(userId: string) {
     })
     .from(userDailyQuest)
     .innerJoin(mission, eq(mission.id, userDailyQuest.missionId))
-    .where(and(eq(userDailyQuest.userId, userId), gte(userDailyQuest.date, today), lte(userDailyQuest.date, endOfDay(today))))
+    .where(
+      and(
+        eq(userDailyQuest.userId, userId),
+        gte(userDailyQuest.date, today),
+        lte(userDailyQuest.date, endOfDay(today))
+      )
+    )
 
   if (existing.length > 0) {
-    return existing.map((r) => ({
+    return existing.map(r => ({
       id: r.id,
       userId: r.userId,
       missionId: r.missionId,
@@ -132,7 +174,7 @@ export async function generateDailyQuests(userId: string) {
     missionId: string
     date: Date
     completed: boolean
-    mission: (typeof mission.$inferSelect) & { id: string }
+    mission: typeof mission.$inferSelect & { id: string }
   }> = []
   for (const m of selected) {
     const [row] = await drizzleDb
@@ -173,11 +215,17 @@ export async function getTodayQuests(userId: string) {
     })
     .from(userDailyQuest)
     .innerJoin(mission, eq(mission.id, userDailyQuest.missionId))
-    .where(and(eq(userDailyQuest.userId, userId), gte(userDailyQuest.date, today), lte(userDailyQuest.date, endOfDay(today))))
+    .where(
+      and(
+        eq(userDailyQuest.userId, userId),
+        gte(userDailyQuest.date, today),
+        lte(userDailyQuest.date, endOfDay(today))
+      )
+    )
 
   if (quests.length === 0) return generateDailyQuests(userId)
 
-  return quests.map((r) => ({
+  return quests.map(r => ({
     id: r.id,
     userId: r.userId,
     missionId: r.missionId,
@@ -225,7 +273,7 @@ export async function updateQuestProgress(
       )
     )
 
-  const matching = userQuests.find((q) => getQuestTypeFromRequirement(q.mRequirement) === questType)
+  const matching = userQuests.find(q => getQuestTypeFromRequirement(q.mRequirement) === questType)
   if (!matching) return null
 
   const [updated] = await drizzleDb
@@ -246,7 +294,15 @@ export async function updateQuestProgress(
     xpEarned: matching.mXpReward,
   })
 
-  return { ...updated, mission: { id: matching.mId, title: matching.mTitle, xpReward: matching.mXpReward, requirement: matching.mRequirement } }
+  return {
+    ...updated,
+    mission: {
+      id: matching.mId,
+      title: matching.mTitle,
+      xpReward: matching.mXpReward,
+      requirement: matching.mRequirement,
+    },
+  }
 }
 
 /**
@@ -280,11 +336,11 @@ export async function getQuestSummary(userId: string) {
       )
     )
 
-  const completed = todayQuests.filter((q) => q.completed).length
+  const completed = todayQuests.filter(q => q.completed).length
   const total = todayQuests.length
-  const totalXp = todayQuests.filter((q) => q.completed).reduce((sum, q) => sum + q.mXpReward, 0)
+  const totalXp = todayQuests.filter(q => q.completed).reduce((sum, q) => sum + q.mXpReward, 0)
 
-  const quests = todayQuests.map((q) => ({
+  const quests = todayQuests.map(q => ({
     id: q.id,
     userId: q.userId,
     missionId: q.missionId,

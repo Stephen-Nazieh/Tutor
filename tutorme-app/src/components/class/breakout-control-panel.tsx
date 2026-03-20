@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -19,15 +19,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { 
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { 
-  Users, 
-  Plus, 
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  Users,
+  Plus,
   X,
   AlertCircle,
   CheckCircle,
@@ -52,7 +47,7 @@ import {
   BarChart3,
   RefreshCw,
   ChevronRight,
-  ChevronDown
+  ChevronDown,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -65,10 +60,10 @@ export interface BreakoutRoom {
     name: string
     avatar?: string
     joinedAt: Date
-    engagementScore?: number  // For smart grouping
+    engagementScore?: number // For smart grouping
   }[]
   status: 'forming' | 'active' | 'paused' | 'closed'
-  timeRemaining?: number      // seconds
+  timeRemaining?: number // seconds
   aiEnabled: boolean
   assignedTask?: {
     id: string
@@ -87,7 +82,7 @@ export interface BreakoutRoom {
     messagesExchanged: number
     avgEngagement: number
     participationRate: number
-    topicAdherence: number    // 0-100
+    topicAdherence: number // 0-100
   }
 }
 
@@ -95,7 +90,7 @@ export interface SmartGroupingSuggestion {
   type: 'skill_based' | 'mixed_ability' | 'social' | 'random'
   description: string
   groups: {
-    members: string[]  // student IDs
+    members: string[] // student IDs
     rationale: string
     predictedOutcome: string
   }[]
@@ -110,7 +105,7 @@ interface BreakoutControlPanelProps {
     userId: string
     engagementScore?: number
     skillLevel?: 'beginner' | 'intermediate' | 'advanced'
-    recentPerformance?: number  // 0-100
+    recentPerformance?: number // 0-100
   }[]
   breakoutRooms: BreakoutRoom[]
   onCreateRooms: (config: {
@@ -135,27 +130,29 @@ const presetTasks = [
   {
     id: 'discuss',
     title: 'Group Discussion',
-    description: 'Discuss the key concepts covered in today\'s lesson. Share your understanding and ask clarifying questions.',
-    type: 'discussion' as const
+    description:
+      "Discuss the key concepts covered in today's lesson. Share your understanding and ask clarifying questions.",
+    type: 'discussion' as const,
   },
   {
     id: 'problem',
     title: 'Problem Solving',
-    description: 'Work together to solve the assigned problem set. Each member should contribute their approach.',
-    type: 'problem' as const
+    description:
+      'Work together to solve the assigned problem set. Each member should contribute their approach.',
+    type: 'problem' as const,
   },
   {
     id: 'peer-teach',
     title: 'Peer Teaching',
     description: 'Each student takes turns explaining a concept to the group. Teach each other!',
-    type: 'discussion' as const
+    type: 'discussion' as const,
   },
   {
     id: 'project',
     title: 'Mini Project',
     description: 'Collaborate on creating a presentation or solution to the given challenge.',
-    type: 'project' as const
-  }
+    type: 'project' as const,
+  },
 ]
 
 export function BreakoutControlPanel({
@@ -167,7 +164,7 @@ export function BreakoutControlPanel({
   onJoinRoom,
   onExtendTime,
   onRotateGroups,
-  isCreating
+  isCreating,
 }: BreakoutControlPanelProps) {
   const [broadcastMessage, setBroadcastMessage] = useState('')
   const [showCreatePanel, setShowCreatePanel] = useState(false)
@@ -178,7 +175,7 @@ export function BreakoutControlPanel({
     participantsPerRoom: 4,
     distributionMode: 'random' as const,
     timeLimit: 15,
-    aiAssistantEnabled: true
+    aiAssistantEnabled: true,
   })
 
   const selectedRoom = breakoutRooms.find(r => r.id === selectedRoomId)
@@ -192,11 +189,19 @@ export function BreakoutControlPanel({
   // Generate smart grouping suggestions
   const generateSmartGrouping = useCallback((): SmartGroupingSuggestion | undefined => {
     if (students.length < 4) return undefined
-    
+
     // Simulate AI analysis for smart grouping
-    const beginners = students.filter(s => s.skillLevel === 'beginner' || (s.recentPerformance && s.recentPerformance < 60))
-    const intermediate = students.filter(s => s.skillLevel === 'intermediate' || (s.recentPerformance && s.recentPerformance >= 60 && s.recentPerformance < 80))
-    const advanced = students.filter(s => s.skillLevel === 'advanced' || (s.recentPerformance && s.recentPerformance >= 80))
+    const beginners = students.filter(
+      s => s.skillLevel === 'beginner' || (s.recentPerformance && s.recentPerformance < 60)
+    )
+    const intermediate = students.filter(
+      s =>
+        s.skillLevel === 'intermediate' ||
+        (s.recentPerformance && s.recentPerformance >= 60 && s.recentPerformance < 80)
+    )
+    const advanced = students.filter(
+      s => s.skillLevel === 'advanced' || (s.recentPerformance && s.recentPerformance >= 80)
+    )
 
     if (config.distributionMode === 'skill_based' && beginners.length > 0 && advanced.length > 0) {
       return {
@@ -206,19 +211,19 @@ export function BreakoutControlPanel({
           {
             members: beginners.slice(0, 4).map(s => s.id),
             rationale: 'Beginners can work at a comfortable pace with foundational support',
-            predictedOutcome: 'Higher confidence and reduced frustration'
+            predictedOutcome: 'Higher confidence and reduced frustration',
           },
           {
             members: intermediate.slice(0, 4).map(s => s.id),
             rationale: 'Intermediate students can build on existing knowledge',
-            predictedOutcome: 'Steady progress with peer collaboration'
+            predictedOutcome: 'Steady progress with peer collaboration',
           },
           {
             members: advanced.slice(0, 4).map(s => s.id),
             rationale: 'Advanced students can tackle complex challenges',
-            predictedOutcome: 'Deeper exploration and leadership development'
-          }
-        ]
+            predictedOutcome: 'Deeper exploration and leadership development',
+          },
+        ],
       }
     }
 
@@ -229,14 +234,14 @@ export function BreakoutControlPanel({
         groups: [
           {
             members: [
-              ...(beginners.slice(0, 2).map(s => s.id)),
-              ...(intermediate.slice(0, 1).map(s => s.id)),
-              ...(advanced.slice(0, 1).map(s => s.id))
+              ...beginners.slice(0, 2).map(s => s.id),
+              ...intermediate.slice(0, 1).map(s => s.id),
+              ...advanced.slice(0, 1).map(s => s.id),
             ],
             rationale: 'Balanced group with mentorship opportunities',
-            predictedOutcome: 'Enhanced learning through teaching and diverse perspectives'
-          }
-        ]
+            predictedOutcome: 'Enhanced learning through teaching and diverse perspectives',
+          },
+        ],
       }
     }
 
@@ -247,58 +252,73 @@ export function BreakoutControlPanel({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500'
-      case 'paused': return 'bg-yellow-500'
-      case 'forming': return 'bg-blue-500'
-      default: return 'bg-slate-500'
+      case 'active':
+        return 'bg-green-500'
+      case 'paused':
+        return 'bg-yellow-500'
+      case 'forming':
+        return 'bg-blue-500'
+      default:
+        return 'bg-slate-500'
     }
   }
 
   const getAlertIcon = (type: string) => {
     switch (type) {
-      case 'confusion': return '❓'
-      case 'conflict': return '⚠️'
-      case 'off_topic': return '🎯'
-      case 'need_help': return '🆘'
-      case 'quiet': return '🔇'
-      default: return '🔔'
+      case 'confusion':
+        return '❓'
+      case 'conflict':
+        return '⚠️'
+      case 'off_topic':
+        return '🎯'
+      case 'need_help':
+        return '🆘'
+      case 'quiet':
+        return '🔇'
+      default:
+        return '🔔'
     }
   }
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'high': return 'text-red-400 bg-red-900/30'
-      case 'medium': return 'text-yellow-400 bg-yellow-900/30'
-      default: return 'text-blue-400 bg-blue-900/30'
+      case 'high':
+        return 'text-red-400 bg-red-900/30'
+      case 'medium':
+        return 'text-yellow-400 bg-yellow-900/30'
+      default:
+        return 'text-blue-400 bg-blue-900/30'
     }
   }
 
-  const activeAlerts = breakoutRooms.flatMap(r => 
-    r.alerts.map(a => ({ ...a, roomName: r.name, roomId: r.id }))
-  ).sort((a, b) => {
-    const severityOrder = { high: 3, medium: 2, low: 1 }
-    return severityOrder[b.severity] - severityOrder[a.severity]
-  })
+  const activeAlerts = breakoutRooms
+    .flatMap(r => r.alerts.map(a => ({ ...a, roomName: r.name, roomId: r.id })))
+    .sort((a, b) => {
+      const severityOrder = { high: 3, medium: 2, low: 1 }
+      return severityOrder[b.severity] - severityOrder[a.severity]
+    })
 
   // Aggregate metrics
   const aggregateMetrics = useMemo(() => {
     if (breakoutRooms.length === 0) return null
-    
+
     const totalParticipants = breakoutRooms.reduce((acc, r) => acc + r.participants.length, 0)
     const activeRooms = breakoutRooms.filter(r => r.status === 'active').length
-    const avgEngagement = breakoutRooms.reduce((acc, r) => acc + (r.metrics?.avgEngagement || 0), 0) / breakoutRooms.length
+    const avgEngagement =
+      breakoutRooms.reduce((acc, r) => acc + (r.metrics?.avgEngagement || 0), 0) /
+      breakoutRooms.length
     const totalAlerts = activeAlerts.length
-    
+
     return { totalParticipants, activeRooms, avgEngagement: Math.round(avgEngagement), totalAlerts }
   }, [breakoutRooms, activeAlerts])
 
   if (showCreatePanel) {
     return (
-      <div className="h-full flex flex-col bg-slate-900 text-white p-6 overflow-auto">
-        <div className="max-w-4xl mx-auto w-full space-y-6">
+      <div className="flex h-full flex-col overflow-auto bg-slate-900 p-6 text-white">
+        <div className="mx-auto w-full max-w-4xl space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold flex items-center gap-2">
+              <h2 className="flex items-center gap-2 text-2xl font-bold">
                 <Sparkles className="h-6 w-6 text-purple-400" />
                 Create Breakout Rooms
               </h2>
@@ -311,24 +331,28 @@ export function BreakoutControlPanel({
 
           {/* Smart Suggestion Banner */}
           {smartSuggestion && (
-            <Card className="bg-purple-900/20 border-purple-700/50">
+            <Card className="border-purple-700/50 bg-purple-900/20">
               <CardHeader>
-                <CardTitle className="text-white text-base flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-base text-white">
                   <Brain className="h-5 w-5 text-purple-400" />
                   AI Grouping Suggestion
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-slate-300 mb-3">{smartSuggestion.description}</p>
+                <p className="mb-3 text-sm text-slate-300">{smartSuggestion.description}</p>
                 <div className="space-y-2">
                   {smartSuggestion.groups.map((group, i) => (
-                    <div key={i} className="p-3 bg-slate-800 rounded-lg">
-                      <div className="flex items-center gap-2 mb-1">
+                    <div key={i} className="rounded-lg bg-slate-800 p-3">
+                      <div className="mb-1 flex items-center gap-2">
                         <span className="text-sm font-medium text-white">Group {i + 1}</span>
-                        <Badge variant="outline" className="text-[10px]">{group.members.length} members</Badge>
+                        <Badge variant="outline" className="text-[10px]">
+                          {group.members.length} members
+                        </Badge>
                       </div>
                       <p className="text-xs text-slate-400">{group.rationale}</p>
-                      <p className="text-xs text-green-400 mt-1">Expected: {group.predictedOutcome}</p>
+                      <p className="mt-1 text-xs text-green-400">
+                        Expected: {group.predictedOutcome}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -337,26 +361,30 @@ export function BreakoutControlPanel({
           )}
 
           <div className="grid grid-cols-2 gap-6">
-            <Card className="bg-slate-800 border-slate-700">
+            <Card className="border-slate-700 bg-slate-800">
               <CardHeader>
-                <CardTitle className="text-white text-base">Room Configuration</CardTitle>
+                <CardTitle className="text-base text-white">Room Configuration</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm text-slate-400">Number of Rooms</label>
                   <div className="flex items-center gap-3">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="icon"
-                      onClick={() => setConfig(c => ({ ...c, roomCount: Math.max(1, c.roomCount - 1) }))}
+                      onClick={() =>
+                        setConfig(c => ({ ...c, roomCount: Math.max(1, c.roomCount - 1) }))
+                      }
                     >
                       <X className="h-4 w-4" />
                     </Button>
-                    <span className="text-2xl font-bold w-12 text-center">{config.roomCount}</span>
-                    <Button 
-                      variant="outline" 
+                    <span className="w-12 text-center text-2xl font-bold">{config.roomCount}</span>
+                    <Button
+                      variant="outline"
                       size="icon"
-                      onClick={() => setConfig(c => ({ ...c, roomCount: Math.min(10, c.roomCount + 1) }))}
+                      onClick={() =>
+                        setConfig(c => ({ ...c, roomCount: Math.min(10, c.roomCount + 1) }))
+                      }
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -367,9 +395,11 @@ export function BreakoutControlPanel({
                   <label className="text-sm text-slate-400">Students per Room</label>
                   <Select
                     value={config.participantsPerRoom.toString()}
-                    onValueChange={(v) => setConfig(c => ({ ...c, participantsPerRoom: parseInt(v) }))}
+                    onValueChange={v =>
+                      setConfig(c => ({ ...c, participantsPerRoom: parseInt(v) }))
+                    }
                   >
-                    <SelectTrigger className="bg-slate-700 border-slate-600">
+                    <SelectTrigger className="border-slate-600 bg-slate-700">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -386,9 +416,9 @@ export function BreakoutControlPanel({
                   <label className="text-sm text-slate-400">Time Limit (minutes)</label>
                   <Select
                     value={config.timeLimit.toString()}
-                    onValueChange={(v) => setConfig(c => ({ ...c, timeLimit: parseInt(v) }))}
+                    onValueChange={v => setConfig(c => ({ ...c, timeLimit: parseInt(v) }))}
                   >
-                    <SelectTrigger className="bg-slate-700 border-slate-600">
+                    <SelectTrigger className="border-slate-600 bg-slate-700">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -404,21 +434,41 @@ export function BreakoutControlPanel({
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-800 border-slate-700">
+            <Card className="border-slate-700 bg-slate-800">
               <CardHeader>
-                <CardTitle className="text-white text-base">Distribution Strategy</CardTitle>
+                <CardTitle className="text-base text-white">Distribution Strategy</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {[
-                  { key: 'random', label: 'Random', desc: 'Mix students randomly', icon: <Shuffle className="h-4 w-4" /> },
-                  { key: 'skill_based', label: 'Skill Based', desc: 'Group by performance level', icon: <Target className="h-4 w-4" /> },
-                  { key: 'social', label: 'Social/Mixed', desc: 'Mix abilities for peer teaching', icon: <UserPlus className="h-4 w-4" /> },
-                  { key: 'manual', label: 'Manual', desc: 'You assign students', icon: <Settings2 className="h-4 w-4" /> },
+                  {
+                    key: 'random',
+                    label: 'Random',
+                    desc: 'Mix students randomly',
+                    icon: <Shuffle className="h-4 w-4" />,
+                  },
+                  {
+                    key: 'skill_based',
+                    label: 'Skill Based',
+                    desc: 'Group by performance level',
+                    icon: <Target className="h-4 w-4" />,
+                  },
+                  {
+                    key: 'social',
+                    label: 'Social/Mixed',
+                    desc: 'Mix abilities for peer teaching',
+                    icon: <UserPlus className="h-4 w-4" />,
+                  },
+                  {
+                    key: 'manual',
+                    label: 'Manual',
+                    desc: 'You assign students',
+                    icon: <Settings2 className="h-4 w-4" />,
+                  },
                 ].map(({ key, label, desc, icon }) => (
                   <button
                     key={key}
                     onClick={() => setConfig(c => ({ ...c, distributionMode: key as any }))}
-                    className={`w-full p-4 rounded-lg border text-left transition-colors ${
+                    className={`w-full rounded-lg border p-4 text-left transition-colors ${
                       config.distributionMode === key
                         ? 'border-blue-500 bg-blue-500/20'
                         : 'border-slate-600 bg-slate-700 hover:bg-slate-600'
@@ -437,17 +487,21 @@ export function BreakoutControlPanel({
                   </button>
                 ))}
 
-                <div className="pt-4 border-t border-slate-700">
-                  <label className="flex items-center gap-3 cursor-pointer">
+                <div className="border-t border-slate-700 pt-4">
+                  <label className="flex cursor-pointer items-center gap-3">
                     <input
                       type="checkbox"
                       checked={config.aiAssistantEnabled}
-                      onChange={(e) => setConfig(c => ({ ...c, aiAssistantEnabled: e.target.checked }))}
-                      className="w-5 h-5 rounded border-slate-600"
+                      onChange={e =>
+                        setConfig(c => ({ ...c, aiAssistantEnabled: e.target.checked }))
+                      }
+                      className="h-5 w-5 rounded border-slate-600"
                     />
                     <div>
                       <span className="block">Enable AI Assistant in rooms</span>
-                      <span className="text-xs text-slate-400">AI will monitor and assist students</span>
+                      <span className="text-xs text-slate-400">
+                        AI will monitor and assist students
+                      </span>
                     </div>
                   </label>
                 </div>
@@ -460,7 +514,7 @@ export function BreakoutControlPanel({
               Cancel
             </Button>
             <Button className="flex-1" onClick={handleCreate}>
-              <DoorOpen className="h-4 w-4 mr-2" />
+              <DoorOpen className="mr-2 h-4 w-4" />
               Create {config.roomCount} Rooms
             </Button>
           </div>
@@ -471,12 +525,12 @@ export function BreakoutControlPanel({
 
   if (breakoutRooms.length === 0) {
     return (
-      <div className="h-full flex flex-col bg-slate-900 text-white">
+      <div className="flex h-full flex-col bg-slate-900 text-white">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-700 bg-slate-800">
+        <div className="border-b border-slate-700 bg-slate-800 px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-blue-600 p-2 rounded-lg">
+              <div className="rounded-lg bg-blue-600 p-2">
                 <Grid3X3 className="h-5 w-5" />
               </div>
               <div>
@@ -485,21 +539,22 @@ export function BreakoutControlPanel({
               </div>
             </div>
             <Button onClick={() => setShowCreatePanel(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               Create Rooms
             </Button>
           </div>
         </div>
 
         {/* Empty State */}
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="text-center max-w-md">
-            <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="flex flex-1 items-center justify-center p-6">
+          <div className="max-w-md text-center">
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-800">
               <Grid3X3 className="h-10 w-10 text-slate-500" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">No Breakout Rooms</h3>
-            <p className="text-slate-400 mb-6">
-              Create breakout rooms to split students into smaller groups for focused discussions or activities.
+            <h3 className="mb-2 text-xl font-semibold">No Breakout Rooms</h3>
+            <p className="mb-6 text-slate-400">
+              Create breakout rooms to split students into smaller groups for focused discussions or
+              activities.
             </p>
             <div className="flex items-center justify-center gap-4 text-sm text-slate-500">
               <span className="flex items-center gap-1">
@@ -514,12 +569,12 @@ export function BreakoutControlPanel({
   }
 
   return (
-    <div className="h-full flex flex-col bg-slate-900 text-white">
+    <div className="flex h-full flex-col bg-slate-900 text-white">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-slate-700 bg-slate-800">
+      <div className="border-b border-slate-700 bg-slate-800 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-600 p-2 rounded-lg">
+            <div className="rounded-lg bg-blue-600 p-2">
               <Grid3X3 className="h-5 w-5" />
             </div>
             <div>
@@ -527,9 +582,7 @@ export function BreakoutControlPanel({
               <p className="text-sm text-slate-400">
                 {breakoutRooms.length} active • {aggregateMetrics?.totalParticipants || 0} students
                 {aggregateMetrics && (
-                  <span className="ml-2">
-                    • Avg Engagement: {aggregateMetrics.avgEngagement}%
-                  </span>
+                  <span className="ml-2">• Avg Engagement: {aggregateMetrics.avgEngagement}%</span>
                 )}
               </p>
             </div>
@@ -537,16 +590,16 @@ export function BreakoutControlPanel({
           <div className="flex items-center gap-2">
             {onRotateGroups && (
               <Button variant="outline" onClick={onRotateGroups}>
-                <RefreshCw className="h-4 w-4 mr-2" />
+                <RefreshCw className="mr-2 h-4 w-4" />
                 Rotate Groups
               </Button>
             )}
             <Button variant="outline" onClick={onCloseRooms}>
-              <X className="h-4 w-4 mr-2" />
+              <X className="mr-2 h-4 w-4" />
               Close All
             </Button>
             <Button onClick={() => setShowCreatePanel(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               Add Room
             </Button>
           </div>
@@ -554,14 +607,16 @@ export function BreakoutControlPanel({
 
         {/* Metrics Bar */}
         {aggregateMetrics && (
-          <div className="flex items-center gap-4 mt-4 pt-4 border-t border-slate-700">
+          <div className="mt-4 flex items-center gap-4 border-t border-slate-700 pt-4">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
+              <div className="h-2 w-2 rounded-full bg-green-500" />
               <span className="text-sm text-slate-300">{aggregateMetrics.activeRooms} Active</span>
             </div>
             <div className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-blue-400" />
-              <span className="text-sm text-slate-300">{aggregateMetrics.avgEngagement}% Engagement</span>
+              <span className="text-sm text-slate-300">
+                {aggregateMetrics.avgEngagement}% Engagement
+              </span>
             </div>
             {aggregateMetrics.totalAlerts > 0 && (
               <div className="flex items-center gap-2">
@@ -574,34 +629,37 @@ export function BreakoutControlPanel({
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
         {/* Rooms Grid */}
         <div className="flex-1 overflow-auto p-6">
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {breakoutRooms.map((room) => (
-              <Card 
-                key={room.id} 
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
+            {breakoutRooms.map(room => (
+              <Card
+                key={room.id}
                 className={cn(
-                  "bg-slate-800 border-slate-700 cursor-pointer transition-all",
-                  selectedRoomId === room.id && "border-blue-500 ring-1 ring-blue-500",
-                  room.alerts.length > 0 && "border-yellow-700"
+                  'cursor-pointer border-slate-700 bg-slate-800 transition-all',
+                  selectedRoomId === room.id && 'border-blue-500 ring-1 ring-blue-500',
+                  room.alerts.length > 0 && 'border-yellow-700'
                 )}
                 onClick={() => setSelectedRoomId(selectedRoomId === room.id ? null : room.id)}
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${getStatusColor(room.status)}`} />
-                      <CardTitle className="text-white text-sm">{room.name}</CardTitle>
+                      <div className={`h-3 w-3 rounded-full ${getStatusColor(room.status)}`} />
+                      <CardTitle className="text-sm text-white">{room.name}</CardTitle>
                     </div>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-7 w-7"
-                            onClick={(e) => { e.stopPropagation(); onJoinRoom(room.id); }}
+                            onClick={e => {
+                              e.stopPropagation()
+                              onJoinRoom(room.id)
+                            }}
                           >
                             <Maximize2 className="h-4 w-4" />
                           </Button>
@@ -616,8 +674,8 @@ export function BreakoutControlPanel({
                     <Users className="h-3 w-3" />
                     {room.participants.length} participants
                     {room.aiEnabled && (
-                      <Badge variant="secondary" className="text-xs bg-purple-600/50">
-                        <Brain className="h-3 w-3 mr-1" />
+                      <Badge variant="secondary" className="bg-purple-600/50 text-xs">
+                        <Brain className="mr-1 h-3 w-3" />
                         AI
                       </Badge>
                     )}
@@ -626,12 +684,12 @@ export function BreakoutControlPanel({
                 <CardContent className="space-y-3">
                   {/* Participants */}
                   <div className="flex -space-x-2">
-                    {room.participants.slice(0, 4).map((p) => (
+                    {room.participants.slice(0, 4).map(p => (
                       <TooltipProvider key={p.id}>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <div
-                              className="w-8 h-8 rounded-full bg-slate-600 border-2 border-slate-800 flex items-center justify-center text-xs cursor-pointer hover:z-10 hover:ring-2 hover:ring-blue-500"
+                              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-slate-800 bg-slate-600 text-xs hover:z-10 hover:ring-2 hover:ring-blue-500"
                               title={p.name}
                             >
                               {p.name.charAt(0).toUpperCase()}
@@ -640,14 +698,16 @@ export function BreakoutControlPanel({
                           <TooltipContent>
                             <p>{p.name}</p>
                             {p.engagementScore && (
-                              <p className="text-xs text-slate-400">Engagement: {p.engagementScore}%</p>
+                              <p className="text-xs text-slate-400">
+                                Engagement: {p.engagementScore}%
+                              </p>
                             )}
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     ))}
                     {room.participants.length > 4 && (
-                      <div className="w-8 h-8 rounded-full bg-slate-700 border-2 border-slate-800 flex items-center justify-center text-xs">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-slate-800 bg-slate-700 text-xs">
                         +{room.participants.length - 4}
                       </div>
                     )}
@@ -655,9 +715,9 @@ export function BreakoutControlPanel({
 
                   {/* Assigned Task */}
                   {room.assignedTask && (
-                    <div className="p-2 bg-slate-700/50 rounded text-xs">
-                      <p className="text-slate-300 font-medium">{room.assignedTask.title}</p>
-                      <p className="text-slate-500 truncate">{room.assignedTask.description}</p>
+                    <div className="rounded bg-slate-700/50 p-2 text-xs">
+                      <p className="font-medium text-slate-300">{room.assignedTask.title}</p>
+                      <p className="truncate text-slate-500">{room.assignedTask.description}</p>
                     </div>
                   )}
 
@@ -665,10 +725,14 @@ export function BreakoutControlPanel({
                   {room.metrics && (
                     <div className="grid grid-cols-2 gap-2 text-[10px]">
                       <div className="text-slate-400">
-                        Messages: <span className="text-white">{room.metrics.messagesExchanged}</span>
+                        Messages:{' '}
+                        <span className="text-white">{room.metrics.messagesExchanged}</span>
                       </div>
                       <div className="text-slate-400">
-                        Engagement: <span className="text-white">{Math.round(room.metrics.avgEngagement)}%</span>
+                        Engagement:{' '}
+                        <span className="text-white">
+                          {Math.round(room.metrics.avgEngagement)}%
+                        </span>
                       </div>
                     </div>
                   )}
@@ -678,7 +742,8 @@ export function BreakoutControlPanel({
                     <div className="flex items-center gap-2 text-sm">
                       <Timer className="h-4 w-4 text-slate-400" />
                       <span className={room.timeRemaining < 60 ? 'text-red-400' : 'text-slate-300'}>
-                        {Math.floor(room.timeRemaining / 60)}:{String(room.timeRemaining % 60).padStart(2, '0')}
+                        {Math.floor(room.timeRemaining / 60)}:
+                        {String(room.timeRemaining % 60).padStart(2, '0')}
                       </span>
                     </div>
                   )}
@@ -687,10 +752,13 @@ export function BreakoutControlPanel({
                   {room.alerts.length > 0 && (
                     <div className="space-y-1">
                       {room.alerts.slice(0, 2).map((alert, i) => (
-                        <div key={i} className={cn(
-                          "flex items-center gap-2 text-xs px-2 py-1 rounded",
-                          getSeverityColor(alert.severity)
-                        )}>
+                        <div
+                          key={i}
+                          className={cn(
+                            'flex items-center gap-2 rounded px-2 py-1 text-xs',
+                            getSeverityColor(alert.severity)
+                          )}
+                        >
                           <span>{getAlertIcon(alert.type)}</span>
                           <span className="truncate">{alert.message}</span>
                         </div>
@@ -704,11 +772,11 @@ export function BreakoutControlPanel({
         </div>
 
         {/* Sidebar - Broadcast & Alerts & Room Details */}
-        <div className="w-80 border-l border-slate-700 bg-slate-800 p-4 space-y-4 overflow-auto">
+        <div className="w-80 space-y-4 overflow-auto border-l border-slate-700 bg-slate-800 p-4">
           {/* Broadcast */}
-          <Card className="bg-slate-700 border-slate-600">
+          <Card className="border-slate-600 bg-slate-700">
             <CardHeader className="pb-3">
-              <CardTitle className="text-white text-sm flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-sm text-white">
                 <Megaphone className="h-4 w-4" />
                 Broadcast to All
               </CardTitle>
@@ -717,9 +785,9 @@ export function BreakoutControlPanel({
               <Input
                 placeholder="Message to all rooms..."
                 value={broadcastMessage}
-                onChange={(e) => setBroadcastMessage(e.target.value)}
-                className="bg-slate-800 border-slate-600 text-sm"
-                onKeyDown={(e) => {
+                onChange={e => setBroadcastMessage(e.target.value)}
+                className="border-slate-600 bg-slate-800 text-sm"
+                onKeyDown={e => {
                   if (e.key === 'Enter' && broadcastMessage) {
                     onBroadcast(broadcastMessage, 'all')
                     setBroadcastMessage('')
@@ -728,8 +796,8 @@ export function BreakoutControlPanel({
                 }}
               />
               <div className="flex gap-2">
-                <Button 
-                  className="flex-1" 
+                <Button
+                  className="flex-1"
                   size="sm"
                   disabled={!broadcastMessage}
                   onClick={() => {
@@ -738,21 +806,21 @@ export function BreakoutControlPanel({
                     toast.success('Broadcast sent to all rooms')
                   }}
                 >
-                  <Radio className="h-4 w-4 mr-2" />
+                  <Radio className="mr-2 h-4 w-4" />
                   Send
                 </Button>
               </div>
-              
+
               {/* Quick Messages */}
-              <div className="flex flex-wrap gap-1 pt-2 border-t border-slate-600">
-                {['5 min left!', 'Wrap up soon', 'Great work!', 'Need help?'].map((msg) => (
+              <div className="flex flex-wrap gap-1 border-t border-slate-600 pt-2">
+                {['5 min left!', 'Wrap up soon', 'Great work!', 'Need help?'].map(msg => (
                   <button
                     key={msg}
                     onClick={() => {
                       onBroadcast(msg, 'all')
                       toast.success(`Sent: "${msg}"`)
                     }}
-                    className="text-[10px] px-2 py-1 bg-slate-600 hover:bg-slate-500 rounded text-slate-300 transition-colors"
+                    className="rounded bg-slate-600 px-2 py-1 text-[10px] text-slate-300 transition-colors hover:bg-slate-500"
                   >
                     {msg}
                   </button>
@@ -763,9 +831,9 @@ export function BreakoutControlPanel({
 
           {/* Selected Room Details */}
           {selectedRoom && (
-            <Card className="bg-slate-700 border-slate-600">
+            <Card className="border-slate-600 bg-slate-700">
               <CardHeader className="pb-3">
-                <CardTitle className="text-white text-sm flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-sm text-white">
                   <Settings2 className="h-4 w-4" />
                   {selectedRoom.name}
                 </CardTitle>
@@ -773,7 +841,7 @@ export function BreakoutControlPanel({
               <CardContent className="space-y-3">
                 {/* Assign Task */}
                 <div>
-                  <label className="text-xs text-slate-400 block mb-2">Assign Task</label>
+                  <label className="mb-2 block text-xs text-slate-400">Assign Task</label>
                   <div className="space-y-1">
                     {presetTasks.map(task => (
                       <button
@@ -782,7 +850,7 @@ export function BreakoutControlPanel({
                           // Would call onAssignTask here
                           toast.success(`Task assigned to ${selectedRoom.name}`)
                         }}
-                        className="w-full text-left p-2 text-xs bg-slate-800 hover:bg-slate-700 rounded transition-colors"
+                        className="w-full rounded bg-slate-800 p-2 text-left text-xs transition-colors hover:bg-slate-700"
                       >
                         <span className="font-medium text-white">{task.title}</span>
                       </button>
@@ -792,14 +860,14 @@ export function BreakoutControlPanel({
 
                 {/* Extend Time */}
                 <div>
-                  <label className="text-xs text-slate-400 block mb-2">Extend Time</label>
+                  <label className="mb-2 block text-xs text-slate-400">Extend Time</label>
                   <div className="flex gap-1">
                     {[5, 10, 15].map(mins => (
-                      <Button 
+                      <Button
                         key={mins}
-                        size="sm" 
-                        variant="outline" 
-                        className="flex-1 text-xs h-7"
+                        size="sm"
+                        variant="outline"
+                        className="h-7 flex-1 text-xs"
                         onClick={() => {
                           onExtendTime(selectedRoom.id, mins)
                           toast.success(`Extended ${selectedRoom.name} by ${mins}m`)
@@ -812,11 +880,11 @@ export function BreakoutControlPanel({
                 </div>
 
                 {/* Room-specific Broadcast */}
-                <div className="pt-2 border-t border-slate-600">
+                <div className="border-t border-slate-600 pt-2">
                   <Input
                     placeholder={`Message to ${selectedRoom.name}...`}
-                    className="bg-slate-800 border-slate-600 text-xs mb-2"
-                    onKeyDown={(e) => {
+                    className="mb-2 border-slate-600 bg-slate-800 text-xs"
+                    onKeyDown={e => {
                       if (e.key === 'Enter') {
                         const msg = (e.target as HTMLInputElement).value
                         if (msg) {
@@ -834,28 +902,28 @@ export function BreakoutControlPanel({
 
           {/* Active Alerts */}
           {activeAlerts.length > 0 && (
-            <Card className="bg-slate-700 border-slate-600">
+            <Card className="border-slate-600 bg-slate-700">
               <CardHeader className="pb-3">
-                <CardTitle className="text-white text-sm flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-sm text-white">
                   <AlertCircle className="h-4 w-4 text-yellow-400" />
                   Active Alerts ({activeAlerts.length})
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2 max-h-60 overflow-auto">
+              <CardContent className="max-h-60 space-y-2 overflow-auto">
                 {activeAlerts.map((alert, i) => (
-                  <div key={i} className={cn(
-                    "p-2 rounded text-sm",
-                    getSeverityColor(alert.severity)
-                  )}>
-                    <div className="flex items-center gap-2 text-xs mb-1">
+                  <div
+                    key={i}
+                    className={cn('rounded p-2 text-sm', getSeverityColor(alert.severity))}
+                  >
+                    <div className="mb-1 flex items-center gap-2 text-xs">
                       <span>{getAlertIcon(alert.type)}</span>
                       <span className="font-medium">{alert.roomName}</span>
-                      <Badge variant="outline" className="text-[10px] capitalize ml-auto">
+                      <Badge variant="outline" className="ml-auto text-[10px] capitalize">
                         {alert.severity}
                       </Badge>
                     </div>
                     <p className="text-slate-300">{alert.message}</p>
-                    <p className="text-[10px] text-slate-500 mt-1">
+                    <p className="mt-1 text-[10px] text-slate-500">
                       {new Date(alert.timestamp).toLocaleTimeString()}
                     </p>
                   </div>
@@ -865,24 +933,26 @@ export function BreakoutControlPanel({
           )}
 
           {/* Quick Stats */}
-          <div className="pt-4 border-t border-slate-700">
-            <h4 className="text-sm font-medium mb-3 text-slate-400">Session Stats</h4>
+          <div className="border-t border-slate-700 pt-4">
+            <h4 className="mb-3 text-sm font-medium text-slate-400">Session Stats</h4>
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-slate-700 p-3 rounded-lg text-center">
-                <p className="text-2xl font-bold">{breakoutRooms.filter(r => r.status === 'active').length}</p>
+              <div className="rounded-lg bg-slate-700 p-3 text-center">
+                <p className="text-2xl font-bold">
+                  {breakoutRooms.filter(r => r.status === 'active').length}
+                </p>
                 <p className="text-xs text-slate-400">Active</p>
               </div>
-              <div className="bg-slate-700 p-3 rounded-lg text-center">
+              <div className="rounded-lg bg-slate-700 p-3 text-center">
                 <p className="text-2xl font-bold">{activeAlerts.length}</p>
                 <p className="text-xs text-slate-400">Alerts</p>
               </div>
-              <div className="bg-slate-700 p-3 rounded-lg text-center">
+              <div className="rounded-lg bg-slate-700 p-3 text-center">
                 <p className="text-2xl font-bold">
                   {breakoutRooms.reduce((acc, r) => acc + (r.metrics?.messagesExchanged || 0), 0)}
                 </p>
                 <p className="text-xs text-slate-400">Messages</p>
               </div>
-              <div className="bg-slate-700 p-3 rounded-lg text-center">
+              <div className="rounded-lg bg-slate-700 p-3 text-center">
                 <p className="text-2xl font-bold">{aggregateMetrics?.avgEngagement || 0}%</p>
                 <p className="text-xs text-slate-400">Engagement</p>
               </div>

@@ -33,7 +33,8 @@ export function getSentryInitOptions(overrides?: Record<string, unknown>) {
     beforeBreadcrumb(breadcrumb) {
       if (breadcrumb.category === 'console' && breadcrumb.data?.arguments) {
         const args = breadcrumb.data.arguments as unknown[]
-        if (args.some((a) => typeof a === 'string' && a.toLowerCase().includes('password'))) return null
+        if (args.some(a => typeof a === 'string' && a.toLowerCase().includes('password')))
+          return null
       }
       return breadcrumb
     },
@@ -43,7 +44,10 @@ export function getSentryInitOptions(overrides?: Record<string, unknown>) {
 
 export const globalErrorHandler = {
   handleError(error: Error, context?: Record<string, unknown>) {
-    Sentry.captureException(error, { extra: context, tags: { source: 'global_handler', region: 'global' } })
+    Sentry.captureException(error, {
+      extra: context,
+      tags: { source: 'global_handler', region: 'global' },
+    })
     try {
       reportError(error, context)
     } catch {
@@ -51,9 +55,16 @@ export const globalErrorHandler = {
     }
   },
   handleWarning(warning: string, context?: Record<string, unknown>) {
-    Sentry.captureMessage(warning, 'warning', { extra: context, tags: { source: 'global_handler', region: 'global' } })
+    Sentry.captureMessage(warning, 'warning', {
+      extra: context,
+      tags: { source: 'global_handler', region: 'global' },
+    })
   },
-  addBreadcrumb(breadcrumb: { message: string; data?: Record<string, unknown>; category?: string }) {
+  addBreadcrumb(breadcrumb: {
+    message: string
+    data?: Record<string, unknown>
+    category?: string
+  }) {
     Sentry.addBreadcrumb({
       category: breadcrumb.category ?? 'default',
       message: breadcrumb.message,
@@ -65,9 +76,17 @@ export const globalErrorHandler = {
 
 function captureMetric(name: string, value: number, unit: string) {
   try {
-    const m = (Sentry as { metrics?: { distribution?: (n: string, v: number, o?: object) => void; count?: (n: string, v?: number) => void } }).metrics
+    const m = (
+      Sentry as {
+        metrics?: {
+          distribution?: (n: string, v: number, o?: object) => void
+          count?: (n: string, v?: number) => void
+        }
+      }
+    ).metrics
     if (unit === 'count' && typeof m?.count === 'function') m.count(name, value)
-    else if (typeof m?.distribution === 'function') m.distribution(name, value, { unit: 'millisecond' })
+    else if (typeof m?.distribution === 'function')
+      m.distribution(name, value, { unit: 'millisecond' })
     else reportMetric(name, value, unit === 'count' ? 'count' : 'ms')
   } catch {
     reportMetric(name, value, unit === 'count' ? 'count' : 'ms')
@@ -80,7 +99,12 @@ export const globalPerformanceMonitor = {
     if (errorCount > 0) captureMetric('api_error_count', errorCount, 'count')
   },
   trackInteraction(type: string, element: string, value?: unknown) {
-    Sentry.addBreadcrumb({ category: 'interaction', message: `${type} on ${element}`, data: value as Record<string, unknown>, timestamp: Date.now() / 1000 })
+    Sentry.addBreadcrumb({
+      category: 'interaction',
+      message: `${type} on ${element}`,
+      data: value as Record<string, unknown>,
+      timestamp: Date.now() / 1000,
+    })
   },
   trackCacheHit(cacheKey: string, hit: boolean) {
     reportMetric('cache_hit_rate', hit ? 1 : 0, 'count', { cacheKey, type: hit ? 'HIT' : 'MISS' })
@@ -95,34 +119,63 @@ export const globalPerformanceMonitor = {
 
 export function setupClientMonitoring() {
   if (typeof window === 'undefined') return
-  window.addEventListener('error', (event) => {
-    if (event.error?.message?.includes?.('loading') || event.error?.message?.includes?.('chunk') || event.message?.includes?.('loading') || event.message?.includes?.('chunk')) return
-    globalErrorHandler.handleError(event.error ?? new Error(event.message), { filename: event.filename, lineno: event.lineno, colno: event.colno, userAgent: navigator.userAgent, timestamp: Date.now() })
+  window.addEventListener('error', event => {
+    if (
+      event.error?.message?.includes?.('loading') ||
+      event.error?.message?.includes?.('chunk') ||
+      event.message?.includes?.('loading') ||
+      event.message?.includes?.('chunk')
+    )
+      return
+    globalErrorHandler.handleError(event.error ?? new Error(event.message), {
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+      userAgent: navigator.userAgent,
+      timestamp: Date.now(),
+    })
   })
-  window.addEventListener('unhandledrejection', (event) => {
+  window.addEventListener('unhandledrejection', event => {
     const err = event.reason instanceof Error ? event.reason : new Error(String(event.reason))
     if (err.message?.includes?.('loading') || err.message?.includes?.('chunk')) return
     globalErrorHandler.handleError(err, { type: 'unhandledrejection', timestamp: Date.now() })
   })
   if ('PerformanceObserver' in window) {
     try {
-      const o = new PerformanceObserver((list) => {
+      const o = new PerformanceObserver(list => {
         for (const entry of list.getEntries()) {
-          const e = entry as PerformanceEntry & { value?: number; renderTime?: number; loadTime?: number }
+          const e = entry as PerformanceEntry & {
+            value?: number
+            renderTime?: number
+            loadTime?: number
+          }
           const value = e.value ?? e.renderTime ?? e.loadTime ?? e.duration ?? 0
           if (value > 0) {
             const name = (e.name || e.entryType || '').toUpperCase()
-            const vital = name.includes('LCP') || name.includes('LARGEST') ? 'LCP' : name.includes('FID') || name.includes('FIRST-INPUT') ? 'FID' : name.includes('CLS') || name.includes('LAYOUT') ? 'CLS' : name.includes('TTFB') ? 'TTFB' : name.includes('FCP') ? 'FCP' : name
+            const vital =
+              name.includes('LCP') || name.includes('LARGEST')
+                ? 'LCP'
+                : name.includes('FID') || name.includes('FIRST-INPUT')
+                  ? 'FID'
+                  : name.includes('CLS') || name.includes('LAYOUT')
+                    ? 'CLS'
+                    : name.includes('TTFB')
+                      ? 'TTFB'
+                      : name.includes('FCP')
+                        ? 'FCP'
+                        : name
             globalPerformanceMonitor.trackWebVital(vital, value)
           }
         }
       })
-      o.observe({ entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift', 'navigation'] })
+      o.observe({
+        entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift', 'navigation'],
+      })
     } catch {
       /* ignore */
     }
     try {
-      const o2 = new PerformanceObserver((list) => {
+      const o2 = new PerformanceObserver(list => {
         for (const entry of list.getEntries()) {
           const e = entry as PerformanceEntry
           globalPerformanceMonitor.trackLongTask(e.startTime, e.duration)

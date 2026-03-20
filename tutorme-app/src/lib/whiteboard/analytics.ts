@@ -1,6 +1,6 @@
 /**
  * Analytics Cockpit
- * 
+ *
  * Features:
  * - Ops/sec monitoring
  * - Conflict drop tracking
@@ -60,19 +60,21 @@ export class WhiteboardAnalytics {
   private operationMetrics: OperationMetric[] = []
   private reconnectEvents: ReconnectEvent[] = []
   private conflictEvents: ConflictEvent[] = []
-  
+
   private maxSamples = 10000
   private sampleWindowMs = 60000 // 1 minute
-  
+
   private onSnapshot?: (snapshot: AnalyticsSnapshot) => void
   private snapshotInterval: ReturnType<typeof setInterval> | null = null
 
-  constructor(options: {
-    onSnapshot?: (snapshot: AnalyticsSnapshot) => void
-    snapshotIntervalMs?: number
-  } = {}) {
+  constructor(
+    options: {
+      onSnapshot?: (snapshot: AnalyticsSnapshot) => void
+      snapshotIntervalMs?: number
+    } = {}
+  ) {
     this.onSnapshot = options.onSnapshot
-    
+
     if (options.snapshotIntervalMs) {
       this.startSnapshotting(options.snapshotIntervalMs)
     }
@@ -90,7 +92,7 @@ export class WhiteboardAnalytics {
       ...sample,
       timestamp: Date.now(),
     })
-    
+
     this.trimSamples()
   }
 
@@ -102,7 +104,7 @@ export class WhiteboardAnalytics {
       ...metric,
       timestamp: Date.now(),
     })
-    
+
     this.trimSamples()
   }
 
@@ -114,7 +116,7 @@ export class WhiteboardAnalytics {
       ...event,
       timestamp: Date.now(),
     })
-    
+
     this.trimSamples()
   }
 
@@ -126,7 +128,7 @@ export class WhiteboardAnalytics {
       ...event,
       timestamp: Date.now(),
     })
-    
+
     this.trimSamples()
   }
 
@@ -135,11 +137,11 @@ export class WhiteboardAnalytics {
    */
   private trimSamples(): void {
     const cutoff = Date.now() - this.sampleWindowMs
-    
-    this.latencySamples = this.latencySamples.filter((s) => s.timestamp > cutoff)
-    this.operationMetrics = this.operationMetrics.filter((m) => m.timestamp > cutoff)
-    this.reconnectEvents = this.reconnectEvents.filter((e) => e.timestamp > cutoff)
-    this.conflictEvents = this.conflictEvents.filter((e) => e.timestamp > cutoff)
+
+    this.latencySamples = this.latencySamples.filter(s => s.timestamp > cutoff)
+    this.operationMetrics = this.operationMetrics.filter(m => m.timestamp > cutoff)
+    this.reconnectEvents = this.reconnectEvents.filter(e => e.timestamp > cutoff)
+    this.conflictEvents = this.conflictEvents.filter(e => e.timestamp > cutoff)
 
     // Enforce max samples
     if (this.latencySamples.length > this.maxSamples) {
@@ -159,8 +161,8 @@ export class WhiteboardAnalytics {
    */
   getOpsPerSecond(windowMs: number = 10000): number {
     const cutoff = Date.now() - windowMs
-    const recentOps = this.operationMetrics.filter((m) => m.timestamp > cutoff)
-    
+    const recentOps = this.operationMetrics.filter(m => m.timestamp > cutoff)
+
     return recentOps.length / (windowMs / 1000)
   }
 
@@ -179,9 +181,7 @@ export class WhiteboardAnalytics {
       return { p50: 0, p95: 0, p99: 0, min: 0, max: 0, avg: 0 }
     }
 
-    const sorted = this.latencySamples
-      .map((s) => s.latencyMs)
-      .sort((a, b) => a - b)
+    const sorted = this.latencySamples.map(s => s.latencyMs).sort((a, b) => a - b)
 
     const len = sorted.length
     const sum = sorted.reduce((a, b) => a + b, 0)
@@ -201,11 +201,11 @@ export class WhiteboardAnalytics {
    */
   getConflictRate(windowMs: number = 60000): number {
     const cutoff = Date.now() - windowMs
-    const recentConflicts = this.conflictEvents.filter((e) => e.timestamp > cutoff)
-    const recentOps = this.operationMetrics.filter((m) => m.timestamp > cutoff)
-    
+    const recentConflicts = this.conflictEvents.filter(e => e.timestamp > cutoff)
+    const recentOps = this.operationMetrics.filter(m => m.timestamp > cutoff)
+
     if (recentOps.length === 0) return 0
-    
+
     return recentConflicts.length / recentOps.length
   }
 
@@ -214,11 +214,11 @@ export class WhiteboardAnalytics {
    */
   getDropRate(windowMs: number = 60000): number {
     const cutoff = Date.now() - windowMs
-    const recentOps = this.operationMetrics.filter((m) => m.timestamp > cutoff)
-    const droppedOps = recentOps.filter((m) => m.dropped)
-    
+    const recentOps = this.operationMetrics.filter(m => m.timestamp > cutoff)
+    const droppedOps = recentOps.filter(m => m.dropped)
+
     if (recentOps.length === 0) return 0
-    
+
     return droppedOps.length / recentOps.length
   }
 
@@ -227,12 +227,10 @@ export class WhiteboardAnalytics {
    */
   getDropReasons(windowMs: number = 60000): Record<string, number> {
     const cutoff = Date.now() - windowMs
-    const droppedOps = this.operationMetrics.filter(
-      (m) => m.dropped && m.timestamp > cutoff
-    )
+    const droppedOps = this.operationMetrics.filter(m => m.dropped && m.timestamp > cutoff)
 
     const reasons: Record<string, number> = {}
-    droppedOps.forEach((op) => {
+    droppedOps.forEach(op => {
       const reason = op.dropReason || 'unknown'
       reasons[reason] = (reasons[reason] || 0) + 1
     })
@@ -245,8 +243,8 @@ export class WhiteboardAnalytics {
    */
   getReconnectRate(windowMs: number = 60000): number {
     const cutoff = Date.now() - windowMs
-    const recentReconnects = this.reconnectEvents.filter((e) => e.timestamp > cutoff)
-    
+    const recentReconnects = this.reconnectEvents.filter(e => e.timestamp > cutoff)
+
     return recentReconnects.length / (windowMs / 60000) // Per minute
   }
 
@@ -256,11 +254,9 @@ export class WhiteboardAnalytics {
   getActiveUsers(windowMs: number = 300000): number {
     const cutoff = Date.now() - windowMs
     const recentUsers = new Set(
-      this.operationMetrics
-        .filter((m) => m.timestamp > cutoff)
-        .map((m) => m.userId)
+      this.operationMetrics.filter(m => m.timestamp > cutoff).map(m => m.userId)
     )
-    
+
     return recentUsers.size
   }
 
@@ -294,7 +290,7 @@ export class WhiteboardAnalytics {
    */
   startSnapshotting(intervalMs: number = 5000): void {
     this.stopSnapshotting()
-    
+
     this.snapshotInterval = setInterval(() => {
       const snapshot = this.generateSnapshot()
       this.onSnapshot?.(snapshot)
@@ -335,30 +331,32 @@ export class WhiteboardAnalytics {
       switch (metric) {
         case 'opsPerSecond':
           const opsInInterval = this.operationMetrics.filter(
-            (m) => m.timestamp >= startTime && m.timestamp < endTime
+            m => m.timestamp >= startTime && m.timestamp < endTime
           )
           value = opsInInterval.length / (intervalMs / 1000)
           break
 
         case 'latency':
           const latenciesInInterval = this.latencySamples.filter(
-            (s) => s.timestamp >= startTime && s.timestamp < endTime
+            s => s.timestamp >= startTime && s.timestamp < endTime
           )
-          value = latenciesInInterval.length > 0
-            ? latenciesInInterval.reduce((sum, s) => sum + s.latencyMs, 0) / latenciesInInterval.length
-            : 0
+          value =
+            latenciesInInterval.length > 0
+              ? latenciesInInterval.reduce((sum, s) => sum + s.latencyMs, 0) /
+                latenciesInInterval.length
+              : 0
           break
 
         case 'conflicts':
           const conflictsInInterval = this.conflictEvents.filter(
-            (e) => e.timestamp >= startTime && e.timestamp < endTime
+            e => e.timestamp >= startTime && e.timestamp < endTime
           )
           value = conflictsInInterval.length
           break
 
         case 'drops':
           const dropsInInterval = this.operationMetrics.filter(
-            (m) => m.dropped && m.timestamp >= startTime && m.timestamp < endTime
+            m => m.dropped && m.timestamp >= startTime && m.timestamp < endTime
           )
           value = dropsInInterval.length
           break
@@ -380,16 +378,19 @@ export class WhiteboardAnalytics {
     avgLatency: number
   }> {
     const cutoff = Date.now() - windowMs
-    const userStats = new Map<string, {
-      operations: number
-      conflicts: number
-      latencies: number[]
-    }>()
+    const userStats = new Map<
+      string,
+      {
+        operations: number
+        conflicts: number
+        latencies: number[]
+      }
+    >()
 
     // Aggregate operation metrics
     this.operationMetrics
-      .filter((m) => m.timestamp > cutoff)
-      .forEach((m) => {
+      .filter(m => m.timestamp > cutoff)
+      .forEach(m => {
         const stats = userStats.get(m.userId) || {
           operations: 0,
           conflicts: 0,
@@ -402,8 +403,8 @@ export class WhiteboardAnalytics {
 
     // Aggregate conflicts
     this.conflictEvents
-      .filter((e) => e.timestamp > cutoff)
-      .forEach((e) => {
+      .filter(e => e.timestamp > cutoff)
+      .forEach(e => {
         const stats = userStats.get(e.userId)
         if (stats) {
           stats.conflicts++
@@ -414,9 +415,10 @@ export class WhiteboardAnalytics {
       userId,
       operations: stats.operations,
       conflicts: stats.conflicts,
-      avgLatency: stats.latencies.length > 0
-        ? stats.latencies.reduce((a, b) => a + b, 0) / stats.latencies.length
-        : 0,
+      avgLatency:
+        stats.latencies.length > 0
+          ? stats.latencies.reduce((a, b) => a + b, 0) / stats.latencies.length
+          : 0,
     }))
   }
 
@@ -432,7 +434,7 @@ export class WhiteboardAnalytics {
     let localWins = 0
     let remoteWins = 0
 
-    this.conflictEvents.forEach((e) => {
+    this.conflictEvents.forEach(e => {
       byResolution[e.resolution] = (byResolution[e.resolution] || 0) + 1
       if (e.resolvedInFavor === 'local') {
         localWins++
@@ -478,7 +480,7 @@ export class WhiteboardAnalytics {
    */
   importData(json: string): void {
     const data = JSON.parse(json)
-    
+
     if (data.latencySamples) {
       this.latencySamples = data.latencySamples
     }
@@ -536,7 +538,7 @@ export class AnalyticsDashboard {
 
   constructor(analytics: WhiteboardAnalytics) {
     this.analytics = analytics
-    
+
     // Subscribe to snapshots
     analytics.startSnapshotting(5000)
   }
@@ -546,7 +548,7 @@ export class AnalyticsDashboard {
    */
   recordSnapshot(snapshot: AnalyticsSnapshot): void {
     this.historicalSnapshots.push(snapshot)
-    
+
     if (this.historicalSnapshots.length > this.maxHistory) {
       this.historicalSnapshots.shift()
     }
@@ -560,10 +562,10 @@ export class AnalyticsDashboard {
     durationMs: number = 3600000
   ): Array<{ timestamp: number; value: number }> {
     const cutoff = Date.now() - durationMs
-    
+
     return this.historicalSnapshots
-      .filter((s) => s.timestamp > cutoff)
-      .map((s) => ({
+      .filter(s => s.timestamp > cutoff)
+      .map(s => ({
         timestamp: s.timestamp,
         value: s[metric] as number,
       }))

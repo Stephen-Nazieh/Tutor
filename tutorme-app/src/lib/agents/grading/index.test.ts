@@ -41,7 +41,13 @@ describe('grading agent fallbacks', () => {
       latencyMs: 10,
     })
 
-    const result = await gradeEssay('Explain gravity', ['Clarity', 'Accuracy'], 'My essay', 10, 'u1')
+    const result = await gradeEssay(
+      'Explain gravity',
+      ['Clarity', 'Accuracy'],
+      'My essay',
+      10,
+      'u1'
+    )
     expect(result.totalScore).toBe(0)
     expect(result.isPassing).toBe(false)
     expect(result.overallFeedback).toContain('Unable to auto-grade')

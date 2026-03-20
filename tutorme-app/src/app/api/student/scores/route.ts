@@ -22,10 +22,7 @@ export async function GET(_request: NextRequest) {
     const session = await getServerSession(authOptions, _request)
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     const studentId = session.user.id
@@ -42,7 +39,7 @@ export async function GET(_request: NextRequest) {
       .where(eq(taskSubmission.studentId, studentId))
       .orderBy(desc(taskSubmission.submittedAt))
 
-    const taskIds = [...new Set(taskSubmissions.map((t) => t.taskId))]
+    const taskIds = [...new Set(taskSubmissions.map(t => t.taskId))]
     const generatedTasks =
       taskIds.length > 0
         ? await drizzleDb
@@ -50,7 +47,7 @@ export async function GET(_request: NextRequest) {
             .from(generatedTask)
             .where(inArray(generatedTask.id, taskIds))
         : []
-    const taskById = new Map(generatedTasks.map((t) => [t.id, t]))
+    const taskById = new Map(generatedTasks.map(t => [t.id, t]))
 
     const [gamification] = await drizzleDb
       .select()
@@ -89,7 +86,7 @@ export async function GET(_request: NextRequest) {
 
     const subjectScores = new Map<string, SubjectScore>()
 
-    enrollmentsRows.forEach((row) => {
+    enrollmentsRows.forEach(row => {
       subjectScores.set(row.curriculumId, {
         id: row.curriculumId,
         subject: row.curriculumSubject,
@@ -102,24 +99,21 @@ export async function GET(_request: NextRequest) {
         assignmentsTotal: 0,
         quizzesCompleted: 0,
         quizzesTotal: 0,
-        lastActivity:
-          row.lastActivity?.toISOString() ?? row.enrolledAt.toISOString(),
+        lastActivity: row.lastActivity?.toISOString() ?? row.enrolledAt.toISOString(),
         trend: 'stable',
       })
     })
 
     const firstSubjectId = enrollmentsRows[0]?.curriculumId
     if (firstSubjectId && subjectScores.has(firstSubjectId)) {
-      quizAttempts.forEach((attempt) => {
+      quizAttempts.forEach(attempt => {
         const score = subjectScores.get(firstSubjectId)!
         score.quizzesTotal++
         score.totalScore += attempt.score ?? 0
         score.maxScore += attempt.maxScore ?? 0
         if (attempt.completedAt) {
           score.quizzesCompleted++
-          if (
-            new Date(attempt.completedAt) > new Date(score.lastActivity)
-          ) {
+          if (new Date(attempt.completedAt) > new Date(score.lastActivity)) {
             score.lastActivity = attempt.completedAt.toISOString()
           }
         }
@@ -136,15 +130,14 @@ export async function GET(_request: NextRequest) {
         grade: '-',
         assignmentsCompleted: 0,
         assignmentsTotal: 0,
-        quizzesCompleted: quizAttempts.filter((q) => q.completedAt).length,
+        quizzesCompleted: quizAttempts.filter(q => q.completedAt).length,
         quizzesTotal: quizAttempts.length,
-        lastActivity:
-          quizAttempts[0]?.completedAt?.toISOString() ?? new Date().toISOString(),
+        lastActivity: quizAttempts[0]?.completedAt?.toISOString() ?? new Date().toISOString(),
         trend: 'stable',
       })
     }
 
-    taskSubmissions.forEach((sub) => {
+    taskSubmissions.forEach(sub => {
       const task = taskById.get(sub.taskId)
       const subjectId = firstSubjectId ?? 'general'
       if (!subjectScores.has(subjectId)) {
@@ -176,7 +169,7 @@ export async function GET(_request: NextRequest) {
       }
     })
 
-    const scores = Array.from(subjectScores.values()).map((score) => {
+    const scores = Array.from(subjectScores.values()).map(score => {
       if (score.maxScore > 0) {
         score.percentage = Math.round((score.totalScore / score.maxScore) * 100)
         score.grade = calculateGrade(score.percentage)
@@ -187,13 +180,11 @@ export async function GET(_request: NextRequest) {
     const totalSubjects = scores.length
     const averageScore =
       totalSubjects > 0
-        ? Math.round(
-            scores.reduce((sum, s) => sum + s.percentage, 0) / totalSubjects
-          )
+        ? Math.round(scores.reduce((sum, s) => sum + s.percentage, 0) / totalSubjects)
         : 0
-    const totalQuizzes = quizAttempts.filter((q) => q.completedAt).length
+    const totalQuizzes = quizAttempts.filter(q => q.completedAt).length
     const totalAssignments = taskSubmissions.filter(
-      (t) => t.status === 'graded' && t.score != null
+      t => t.status === 'graded' && t.score != null
     ).length
     const studyHours = Math.round(
       quizAttempts.reduce((sum, q) => sum + (q.timeSpent ?? 0), 0) / 3600 +
@@ -201,23 +192,20 @@ export async function GET(_request: NextRequest) {
     )
 
     const quizzes = quizAttempts
-      .filter((q) => q.completedAt)
+      .filter(q => q.completedAt)
       .map((q, i) => ({
         id: q.id,
         quizTitle: `Quiz ${i + 1}`,
         subject: 'General',
         score: q.score ?? 0,
         maxScore: q.maxScore ?? 100,
-        percentage: Math.round(
-          ((q.score ?? 0) / (q.maxScore ?? 100)) * 100
-        ),
+        percentage: Math.round(((q.score ?? 0) / (q.maxScore ?? 100)) * 100),
         completedAt: q.completedAt,
         timeSpent: q.timeSpent ?? 0,
-        status:
-          (q.score ?? 0) >= ((q.maxScore ?? 100) * 0.6) ? 'passed' : 'failed',
+        status: (q.score ?? 0) >= (q.maxScore ?? 100) * 0.6 ? 'passed' : 'failed',
       }))
 
-    const formattedAssignments = taskSubmissions.map((a) => {
+    const formattedAssignments = taskSubmissions.map(a => {
       const task = taskById.get(a.taskId)
       return {
         id: a.id,
@@ -225,14 +213,9 @@ export async function GET(_request: NextRequest) {
         subject: 'General',
         score: a.status === 'graded' ? a.score : null,
         maxScore: a.maxScore ?? 100,
-        status: (a.status?.toLowerCase() ?? 'submitted') as
-          | 'submitted'
-          | 'graded'
-          | 'pending',
+        status: (a.status?.toLowerCase() ?? 'submitted') as 'submitted' | 'graded' | 'pending',
         submittedAt: a.submittedAt,
-        dueDate: task?.id
-          ? new Date().toISOString()
-          : new Date().toISOString(),
+        dueDate: task?.id ? new Date().toISOString() : new Date().toISOString(),
       }
     })
 
@@ -264,10 +247,7 @@ export async function GET(_request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching student scores:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch scores' },
-      { status: 500 }
-    )
+    return NextResponse.json({ success: false, error: 'Failed to fetch scores' }, { status: 500 })
   }
 }
 

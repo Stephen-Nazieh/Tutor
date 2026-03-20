@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       .from(liveSession)
       .where(ilike(liveSession.subject, subjectCode))
       .limit(500)
-    const ids = tutorIdsWithSubject.map((r) => r.tutorId).filter(Boolean)
+    const ids = tutorIdsWithSubject.map(r => r.tutorId).filter(Boolean)
     if (ids.length === 0) {
       return NextResponse.json({ tutors: [] })
     }
@@ -39,22 +39,27 @@ export async function GET(request: NextRequest) {
       .from(user)
       .where(and(eq(user.role, 'TUTOR'), inArray(user.id, ids)))
       .limit(20)
-    const userIds = users.map((u) => u.id)
+    const userIds = users.map(u => u.id)
     if (userIds.length === 0) {
       return NextResponse.json({ tutors: [] })
     }
 
     const profiles = await drizzleDb
-      .select({ userId: profile.userId, name: profile.name, avatarUrl: profile.avatarUrl, bio: profile.bio })
+      .select({
+        userId: profile.userId,
+        name: profile.name,
+        avatarUrl: profile.avatarUrl,
+        bio: profile.bio,
+      })
       .from(profile)
       .where(inArray(profile.userId, userIds))
-    const profileByUserId = new Map(profiles.map((p) => [p.userId, p]))
+    const profileByUserId = new Map(profiles.map(p => [p.userId, p]))
 
     const completedSessions = await drizzleDb
       .select({ id: liveSession.id, tutorId: liveSession.tutorId })
       .from(liveSession)
       .where(and(ilike(liveSession.subject, subjectCode), eq(liveSession.status, 'completed')))
-    const sessionIds = completedSessions.map((s) => s.id)
+    const sessionIds = completedSessions.map(s => s.id)
     const participantCounts =
       sessionIds.length > 0
         ? await drizzleDb
@@ -66,7 +71,7 @@ export async function GET(request: NextRequest) {
             .where(inArray(sessionParticipant.sessionId, sessionIds))
             .groupBy(sessionParticipant.sessionId)
         : []
-    const countBySessionId = new Map(participantCounts.map((r) => [r.sessionId, r.count]))
+    const countBySessionId = new Map(participantCounts.map(r => [r.sessionId, r.count]))
     const tutorTotalStudents = new Map<string, number>()
     for (const s of completedSessions) {
       const total = tutorTotalStudents.get(s.tutorId) ?? 0
@@ -77,7 +82,7 @@ export async function GET(request: NextRequest) {
       tutorSessionCount.set(s.tutorId, (tutorSessionCount.get(s.tutorId) ?? 0) + 1)
     }
 
-    const formattedTutors = userIds.map((id) => {
+    const formattedTutors = userIds.map(id => {
       const p = profileByUserId.get(id)
       return {
         id,

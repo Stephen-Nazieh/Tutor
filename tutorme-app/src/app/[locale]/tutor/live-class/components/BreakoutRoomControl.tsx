@@ -7,7 +7,13 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import {
@@ -18,7 +24,7 @@ import {
   ArrowLeft,
   Shuffle,
   MessageSquare,
-  Clock
+  Clock,
 } from 'lucide-react'
 
 interface Participant {
@@ -43,7 +49,7 @@ interface BreakoutRoomControlProps {
 export function BreakoutRoomControl({ onClose, participants }: BreakoutRoomControlProps) {
   const [rooms, setRooms] = useState<BreakoutRoom[]>([
     { id: '1', name: 'Room 1', participants: [] },
-    { id: '2', name: 'Room 2', participants: [] }
+    { id: '2', name: 'Room 2', participants: [] },
   ])
   const [unassignedParticipants, setUnassignedParticipants] = useState<Participant[]>(
     participants.filter(p => !p.isLocal)
@@ -58,11 +64,14 @@ export function BreakoutRoomControl({ onClose, participants }: BreakoutRoomContr
       toast.error('Maximum 10 rooms allowed')
       return
     }
-    setRooms([...rooms, { 
-      id: Date.now().toString(), 
-      name: `Room ${rooms.length + 1}`, 
-      participants: [] 
-    }])
+    setRooms([
+      ...rooms,
+      {
+        id: Date.now().toString(),
+        name: `Room ${rooms.length + 1}`,
+        participants: [],
+      },
+    ])
   }
 
   const removeRoom = (roomId: string) => {
@@ -82,11 +91,11 @@ export function BreakoutRoomControl({ onClose, participants }: BreakoutRoomContr
     if (!participant) return
 
     setUnassignedParticipants(unassignedParticipants.filter(p => p.id !== participantId))
-    setRooms(rooms.map(room => 
-      room.id === roomId 
-        ? { ...room, participants: [...room.participants, participant] }
-        : room
-    ))
+    setRooms(
+      rooms.map(room =>
+        room.id === roomId ? { ...room, participants: [...room.participants, participant] } : room
+      )
+    )
   }
 
   const removeParticipantFromRoom = (participantId: string, roomId: string) => {
@@ -96,11 +105,13 @@ export function BreakoutRoomControl({ onClose, participants }: BreakoutRoomContr
     const participant = room.participants.find(p => p.id === participantId)
     if (!participant) return
 
-    setRooms(rooms.map(r => 
-      r.id === roomId 
-        ? { ...r, participants: r.participants.filter(p => p.id !== participantId) }
-        : r
-    ))
+    setRooms(
+      rooms.map(r =>
+        r.id === roomId
+          ? { ...r, participants: r.participants.filter(p => p.id !== participantId) }
+          : r
+      )
+    )
     setUnassignedParticipants([...unassignedParticipants, participant])
   }
 
@@ -108,9 +119,9 @@ export function BreakoutRoomControl({ onClose, participants }: BreakoutRoomContr
     const shuffled = [...unassignedParticipants].sort(() => Math.random() - 0.5)
     const newRooms = rooms.map((room, index) => ({
       ...room,
-      participants: shuffled.filter((_, i) => i % rooms.length === index)
+      participants: shuffled.filter((_, i) => i % rooms.length === index),
     }))
-    
+
     setRooms(newRooms)
     setUnassignedParticipants([])
     toast.success('Participants auto-assigned!')
@@ -134,7 +145,7 @@ export function BreakoutRoomControl({ onClose, participants }: BreakoutRoomContr
       toast.error(`${emptyRooms.length} room(s) have no participants`)
       return
     }
-    
+
     setIsActive(true)
     toast.success('Breakout rooms started!')
   }
@@ -143,29 +154,35 @@ export function BreakoutRoomControl({ onClose, participants }: BreakoutRoomContr
     <>
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
-          <Users className="w-5 h-5" />
+          <Users className="h-5 w-5" />
           Breakout Rooms
         </DialogTitle>
-        <DialogDescription>
-          Divide participants into smaller discussion groups
-        </DialogDescription>
+        <DialogDescription>Divide participants into smaller discussion groups</DialogDescription>
       </DialogHeader>
 
-      <div className="py-4 space-y-4">
+      <div className="space-y-4 py-4">
         {/* Controls */}
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={addRoom}>
-            <Plus className="w-4 h-4 mr-1" />
+            <Plus className="mr-1 h-4 w-4" />
             Add Room
           </Button>
-          <Button variant="outline" size="sm" onClick={autoAssign} disabled={unassignedParticipants.length === 0}>
-            <Shuffle className="w-4 h-4 mr-1" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={autoAssign}
+            disabled={unassignedParticipants.length === 0}
+          >
+            <Shuffle className="mr-1 h-4 w-4" />
             Auto Assign
           </Button>
           <div className="flex-1" />
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-gray-500" />
-            <Select value={defaultDuration.toString()} onValueChange={(v) => setDefaultDuration(parseInt(v))}>
+            <Clock className="h-4 w-4 text-gray-500" />
+            <Select
+              value={defaultDuration.toString()}
+              onValueChange={v => setDefaultDuration(parseInt(v))}
+            >
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
@@ -180,61 +197,65 @@ export function BreakoutRoomControl({ onClose, participants }: BreakoutRoomContr
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 h-[400px]">
+        <div className="grid h-[400px] grid-cols-2 gap-4">
           {/* Unassigned Participants */}
-          <div className="border rounded-lg flex flex-col">
-            <div className="p-3 border-b bg-gray-50">
-              <h4 className="font-medium text-sm">
-                Unassigned ({unassignedParticipants.length})
-              </h4>
+          <div className="flex flex-col rounded-lg border">
+            <div className="border-b bg-gray-50 p-3">
+              <h4 className="text-sm font-medium">Unassigned ({unassignedParticipants.length})</h4>
             </div>
             <ScrollArea className="flex-1 p-2">
               <div className="space-y-1">
                 {unassignedParticipants.map(participant => (
                   <div
                     key={participant.id}
-                    className="flex items-center justify-between p-2 rounded hover:bg-gray-50"
+                    className="flex items-center justify-between rounded p-2 hover:bg-gray-50"
                   >
                     <span className="text-sm">{participant.name}</span>
-                    <Select onValueChange={(roomId) => assignParticipant(participant.id, roomId)}>
-                      <SelectTrigger className="w-24 h-7 text-xs">
+                    <Select onValueChange={roomId => assignParticipant(participant.id, roomId)}>
+                      <SelectTrigger className="h-7 w-24 text-xs">
                         <SelectValue placeholder="Assign" />
                       </SelectTrigger>
                       <SelectContent>
                         {rooms.map(room => (
-                          <SelectItem key={room.id} value={room.id}>{room.name}</SelectItem>
+                          <SelectItem key={room.id} value={room.id}>
+                            {room.name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                 ))}
                 {unassignedParticipants.length === 0 && (
-                  <p className="text-sm text-gray-400 text-center py-4">All assigned</p>
+                  <p className="py-4 text-center text-sm text-gray-400">All assigned</p>
                 )}
               </div>
             </ScrollArea>
           </div>
 
           {/* Rooms */}
-          <div className="border rounded-lg flex flex-col">
+          <div className="flex flex-col rounded-lg border">
             <ScrollArea className="flex-1 p-2">
               <div className="space-y-3">
                 {rooms.map((room, index) => (
-                  <div 
-                    key={room.id} 
+                  <div
+                    key={room.id}
                     className={cn(
-                      "border rounded-lg p-3",
-                      isActive && "bg-green-50 border-green-200"
+                      'rounded-lg border p-3',
+                      isActive && 'border-green-200 bg-green-50'
                     )}
                   >
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="mb-2 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Input
                           value={room.name}
-                          onChange={(e) => setRooms(rooms.map(r => 
-                            r.id === room.id ? { ...r, name: e.target.value } : r
-                          ))}
-                          className="h-7 text-sm font-medium w-32"
+                          onChange={e =>
+                            setRooms(
+                              rooms.map(r =>
+                                r.id === room.id ? { ...r, name: e.target.value } : r
+                              )
+                            )
+                          }
+                          className="h-7 w-32 text-sm font-medium"
                         />
                         <Badge variant="secondary" className="text-xs">
                           {room.participants.length}
@@ -247,7 +268,7 @@ export function BreakoutRoomControl({ onClose, participants }: BreakoutRoomContr
                           className="h-7 w-7"
                           onClick={() => broadcastMessage(room.id)}
                         >
-                          <MessageSquare className="w-4 h-4" />
+                          <MessageSquare className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -255,25 +276,27 @@ export function BreakoutRoomControl({ onClose, participants }: BreakoutRoomContr
                           className="h-7 w-7 text-red-500"
                           onClick={() => removeRoom(room.id)}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
 
                     <Input
                       placeholder="Discussion topic..."
-                      className="text-sm mb-2"
+                      className="mb-2 text-sm"
                       value={room.topic || ''}
-                      onChange={(e) => setRooms(rooms.map(r => 
-                        r.id === room.id ? { ...r, topic: e.target.value } : r
-                      ))}
+                      onChange={e =>
+                        setRooms(
+                          rooms.map(r => (r.id === room.id ? { ...r, topic: e.target.value } : r))
+                        )
+                      }
                     />
 
                     <div className="space-y-1">
                       {room.participants.map(participant => (
                         <div
                           key={participant.id}
-                          className="flex items-center justify-between p-1.5 bg-white rounded text-sm"
+                          className="flex items-center justify-between rounded bg-white p-1.5 text-sm"
                         >
                           <span>{participant.name}</span>
                           <Button
@@ -282,12 +305,12 @@ export function BreakoutRoomControl({ onClose, participants }: BreakoutRoomContr
                             className="h-6 w-6"
                             onClick={() => removeParticipantFromRoom(participant.id, room.id)}
                           >
-                            <ArrowLeft className="w-3 h-3" />
+                            <ArrowLeft className="h-3 w-3" />
                           </Button>
                         </div>
                       ))}
                       {room.participants.length === 0 && (
-                        <p className="text-xs text-gray-400 text-center py-2">No participants</p>
+                        <p className="py-2 text-center text-xs text-gray-400">No participants</p>
                       )}
                     </div>
                   </div>
@@ -299,11 +322,12 @@ export function BreakoutRoomControl({ onClose, participants }: BreakoutRoomContr
 
         {/* Status */}
         {isActive && (
-          <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+          <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 p-3">
             <div>
               <p className="font-medium text-green-800">Breakout rooms are active</p>
               <p className="text-sm text-green-600">
-                {rooms.reduce((sum, r) => sum + r.participants.length, 0)} participants in {rooms.length} rooms
+                {rooms.reduce((sum, r) => sum + r.participants.length, 0)} participants in{' '}
+                {rooms.length} rooms
               </p>
             </div>
             <Button variant="destructive" size="sm" onClick={closeAllRooms}>
@@ -314,13 +338,12 @@ export function BreakoutRoomControl({ onClose, participants }: BreakoutRoomContr
       </div>
 
       <DialogFooter>
-        <Button variant="outline" onClick={onClose}>Close</Button>
+        <Button variant="outline" onClick={onClose}>
+          Close
+        </Button>
         {!isActive ? (
-          <Button 
-            onClick={startBreakout}
-            disabled={rooms.some(r => r.participants.length === 0)}
-          >
-            <ArrowRight className="w-4 h-4 mr-2" />
+          <Button onClick={startBreakout} disabled={rooms.some(r => r.participants.length === 0)}>
+            <ArrowRight className="mr-2 h-4 w-4" />
             Start Breakout
           </Button>
         ) : (

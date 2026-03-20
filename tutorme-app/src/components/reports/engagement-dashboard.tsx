@@ -121,9 +121,11 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
     return (
       <Card className="py-12">
         <CardContent className="text-center">
-          <Activity className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <Activity className="mx-auto mb-4 h-12 w-12 text-gray-300" />
           <h3 className="text-lg font-medium text-gray-700">No Class Selected</h3>
-          <p className="text-gray-500">Select a course or class above to view engagement metrics.</p>
+          <p className="text-gray-500">
+            Select a course or class above to view engagement metrics.
+          </p>
         </CardContent>
       </Card>
     )
@@ -141,7 +143,7 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
     return (
       <Card className="py-12">
         <CardContent className="text-center">
-          <Activity className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <Activity className="mx-auto mb-4 h-12 w-12 text-gray-300" />
           <h3 className="text-lg font-medium text-gray-700">No Data Available</h3>
           <p className="text-gray-500">Engagement metrics could not be loaded for this class.</p>
         </CardContent>
@@ -152,12 +154,12 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <select
             value={period}
-            onChange={(e) => setPeriod(Number(e.target.value))}
-            className="px-3 py-2 border rounded-md text-sm"
+            onChange={e => setPeriod(Number(e.target.value))}
+            className="rounded-md border px-3 py-2 text-sm"
           >
             <option value={7}>Last 7 days</option>
             <option value={14}>Last 14 days</option>
@@ -165,7 +167,8 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
             <option value={90}>Last 90 days</option>
           </select>
           <span className="text-sm text-gray-500">
-            {new Date(engagement.period.start).toLocaleDateString()} - {new Date(engagement.period.end).toLocaleDateString()}
+            {new Date(engagement.period.start).toLocaleDateString()} -{' '}
+            {new Date(engagement.period.end).toLocaleDateString()}
           </span>
         </div>
         <Button variant="outline" className="gap-2" onClick={handleExportEngagement}>
@@ -178,8 +181,8 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-6">
-            <div className="relative w-32 h-32">
-              <svg className="w-32 h-32 transform -rotate-90">
+            <div className="relative h-32 w-32">
+              <svg className="h-32 w-32 -rotate-90 transform">
                 <circle
                   cx="64"
                   cy="64"
@@ -202,7 +205,9 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className={`text-3xl font-bold ${getEngagementColor(engagement.overallEngagement)}`}>
+                <span
+                  className={`text-3xl font-bold ${getEngagementColor(engagement.overallEngagement)}`}
+                >
                   {engagement.overallEngagement}%
                 </span>
                 <span className="text-xs text-gray-500">Overall</span>
@@ -210,14 +215,18 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold">Class Engagement Score</h3>
-              <p className="text-gray-500 text-sm mb-3">
+              <p className="mb-3 text-sm text-gray-500">
                 Based on attendance, participation, assignments, quizzes, and discussions.
               </p>
-              <Badge className={
-                engagement.overallEngagement >= 70 ? 'bg-green-100 text-green-700' :
-                  engagement.overallEngagement >= 50 ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-red-100 text-red-700'
-              }>
+              <Badge
+                className={
+                  engagement.overallEngagement >= 70
+                    ? 'bg-green-100 text-green-700'
+                    : engagement.overallEngagement >= 50
+                      ? 'bg-yellow-100 text-yellow-700'
+                      : 'bg-red-100 text-red-700'
+                }
+              >
                 {getEngagementLabel(engagement.overallEngagement)} Engagement
               </Badge>
             </div>
@@ -226,7 +235,7 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
       </Card>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         <MetricCard
           title="Attendance Rate"
           value={engagement.metrics.attendance}
@@ -259,14 +268,12 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
         />
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-3 mb-2">
+            <div className="mb-2 flex items-center gap-3">
               <AlertTriangle className="h-5 w-5 text-orange-500" />
               <span className="font-medium">Students At Risk</span>
             </div>
             <p className="text-2xl font-bold">{engagement.studentsAtRisk.length}</p>
-            <p className="text-xs text-gray-500">
-              Low engagement across metrics
-            </p>
+            <p className="text-xs text-gray-500">Low engagement across metrics</p>
           </CardContent>
         </Card>
       </div>
@@ -278,25 +285,26 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
           <CardDescription>Engagement and attendance over the selected period</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-64 flex items-end gap-1">
+          <div className="flex h-64 items-end gap-1">
             {engagement.dailyTrend.map((day, i) => {
               const maxEngagement = Math.max(...engagement.dailyTrend.map(d => d.engagement))
               const height = maxEngagement > 0 ? (day.engagement / maxEngagement) * 100 : 0
 
               return (
-                <div
-                  key={i}
-                  className="flex-1 flex flex-col items-center gap-1 group relative"
-                >
-                  <div className="w-full bg-blue-500 rounded-t-sm opacity-80 group-hover:opacity-100 transition-opacity"
+                <div key={i} className="group relative flex flex-1 flex-col items-center gap-1">
+                  <div
+                    className="w-full rounded-t-sm bg-blue-500 opacity-80 transition-opacity group-hover:opacity-100"
                     style={{ height: `${height}%`, minHeight: '4px' }}
                   />
-                  <span className="text-[10px] text-gray-500 rotate-45 origin-left translate-y-2">
-                    {new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  <span className="origin-left translate-y-2 rotate-45 text-[10px] text-gray-500">
+                    {new Date(day.date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                    })}
                   </span>
 
                   {/* Tooltip */}
-                  <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                  <div className="absolute bottom-full z-10 mb-2 hidden whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white group-hover:block">
                     <div>Engagement: {day.engagement}%</div>
                     <div>Attendance: {day.attendance}%</div>
                     <div>{new Date(day.date).toLocaleDateString()}</div>
@@ -315,18 +323,18 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
           <CardDescription>When students are most active during the day</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-48 flex items-end gap-1">
-            {engagement.hourlyPattern.map((hour) => {
+          <div className="flex h-48 items-end gap-1">
+            {engagement.hourlyPattern.map(hour => {
               const maxActivity = Math.max(...engagement.hourlyPattern.map(h => h.activity))
               const height = maxActivity > 0 ? (hour.activity / maxActivity) * 100 : 0
 
               return (
                 <div
                   key={hour.hour}
-                  className="flex-1 flex flex-col items-center gap-1 group relative"
+                  className="group relative flex flex-1 flex-col items-center gap-1"
                 >
                   <div
-                    className="w-full bg-purple-500 rounded-t-sm opacity-70 group-hover:opacity-100 transition-opacity"
+                    className="w-full rounded-t-sm bg-purple-500 opacity-70 transition-opacity group-hover:opacity-100"
                     style={{ height: `${height}%`, minHeight: '4px' }}
                   />
                   {hour.hour % 4 === 0 && (
@@ -334,7 +342,7 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
                   )}
 
                   {/* Tooltip */}
-                  <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                  <div className="absolute bottom-full z-10 mb-2 hidden whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white group-hover:block">
                     {hour.hour}:00 - Activity: {hour.activity}%
                   </div>
                 </div>
@@ -352,14 +360,12 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
               <AlertTriangle className="h-5 w-5 text-orange-500" />
               Students At Risk
             </CardTitle>
-            <CardDescription>
-              Students with low engagement across multiple metrics
-            </CardDescription>
+            <CardDescription>Students with low engagement across multiple metrics</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {engagement.studentsAtRisk.map((student, i) => (
-                <Badge key={i} variant="outline" className="bg-orange-50 border-orange-200">
+                <Badge key={i} variant="outline" className="border-orange-200 bg-orange-50">
                   {student}
                 </Badge>
               ))}
@@ -375,7 +381,7 @@ function MetricCard({
   title,
   value,
   icon: Icon,
-  description
+  description,
 }: {
   title: string
   value: number
@@ -391,17 +397,15 @@ function MetricCard({
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="flex items-center justify-between mb-2">
+        <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Icon className="h-5 w-5 text-gray-500" />
-            <span className="font-medium text-sm">{title}</span>
+            <span className="text-sm font-medium">{title}</span>
           </div>
-          <span className={`text-xl font-bold ${getColor(value)}`}>
-            {value}%
-          </span>
+          <span className={`text-xl font-bold ${getColor(value)}`}>{value}%</span>
         </div>
         <Progress value={value} className="h-2" />
-        <p className="text-xs text-gray-500 mt-2">{description}</p>
+        <p className="mt-2 text-xs text-gray-500">{description}</p>
       </CardContent>
     </Card>
   )

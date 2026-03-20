@@ -38,20 +38,14 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     const { tutorId, startTime, endTime, excludeEventId } = validation.data
 
     if (userRole === 'TUTOR' && tutorId !== userId) {
-      return NextResponse.json(
-        { error: 'Can only check your own availability' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'Can only check your own availability' }, { status: 403 })
     }
 
     const start = new Date(startTime)
     const end = new Date(endTime)
 
     if (end <= start) {
-      return NextResponse.json(
-        { error: 'End time must be after start time' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'End time must be after start time' }, { status: 400 })
     }
 
     const conflictConditions = [
@@ -87,10 +81,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
           eq(calendarAvailability.tutorId, tutorId),
           eq(calendarAvailability.dayOfWeek, dayOfWeek),
           eq(calendarAvailability.isAvailable, true),
-          or(
-            isNull(calendarAvailability.validUntil),
-            gte(calendarAvailability.validUntil, start)
-          )
+          or(isNull(calendarAvailability.validUntil), gte(calendarAvailability.validUntil, start))
         )
       )
 
@@ -119,7 +110,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
 
     return NextResponse.json({
       available: isAvailable,
-      conflicts: conflicts.map((c) => ({
+      conflicts: conflicts.map(c => ({
         id: c.id,
         title: c.title,
         startTime: c.startTime,
@@ -137,7 +128,11 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     })
   } catch (error) {
     console.error('Check availability error:', error)
-    return handleApiError(error, 'Failed to check availability', 'api/tutor/calendar/check/route.ts')
+    return handleApiError(
+      error,
+      'Failed to check availability',
+      'api/tutor/calendar/check/route.ts'
+    )
   }
 })
 
@@ -200,7 +195,7 @@ async function calculateSuggestedTimes(
       const slotStart = new Date(`${dateStr}T${slot.startTime}`)
       const slotEnd = new Date(`${dateStr}T${slot.endTime}`)
 
-      const blocked = exceptions.some((e) => {
+      const blocked = exceptions.some(e => {
         if (!e.startTime || !e.endTime) return true
         const exStart = new Date(`${dateStr}T${e.startTime}`)
         const exEnd = new Date(`${dateStr}T${e.endTime}`)
@@ -210,7 +205,7 @@ async function calculateSuggestedTimes(
       if (blocked) continue
 
       const dayEvents = events
-        .filter((e) => e.startTime.toISOString().split('T')[0] === dateStr)
+        .filter(e => e.startTime.toISOString().split('T')[0] === dateStr)
         .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
 
       let currentTime = new Date(slotStart)

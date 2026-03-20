@@ -28,7 +28,11 @@ export interface QuestionResultItem {
 
 interface QuizModalProps {
   questions: Question[]
-  onComplete: (results: { score: number; answers: Record<string, any>; questionResults?: QuestionResultItem[] }) => void
+  onComplete: (results: {
+    score: number
+    answers: Record<string, any>
+    questionResults?: QuestionResultItem[]
+  }) => void
   onClose: () => void
   studentId?: string // Optional student ID for personalized feedback
 }
@@ -37,15 +41,20 @@ export function QuizModal({ questions, onComplete, onClose, studentId }: QuizMod
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, any>>({})
   const [showResults, setShowResults] = useState(false)
-  const [gradedAnswers, setGradedAnswers] = useState<Record<string, {
-    correct: boolean
-    feedback?: string
-    explanation?: string
-    nextSteps?: string[]
-    relatedStruggles?: string[]
-    isPersonalized?: boolean
-    score?: number
-  }>>({})
+  const [gradedAnswers, setGradedAnswers] = useState<
+    Record<
+      string,
+      {
+        correct: boolean
+        feedback?: string
+        explanation?: string
+        nextSteps?: string[]
+        relatedStruggles?: string[]
+        isPersonalized?: boolean
+        score?: number
+      }
+    >
+  >({})
 
   const currentQuestion = questions[currentIndex]
   const progress = ((currentIndex + 1) / questions.length) * 100
@@ -63,15 +72,18 @@ export function QuizModal({ questions, onComplete, onClose, studentId }: QuizMod
   }
 
   const gradeQuiz = async () => {
-    const graded: Record<string, {
-      correct: boolean
-      feedback?: string
-      explanation?: string
-      nextSteps?: string[]
-      relatedStruggles?: string[]
-      isPersonalized?: boolean
-      score?: number
-    }> = {}
+    const graded: Record<
+      string,
+      {
+        correct: boolean
+        feedback?: string
+        explanation?: string
+        nextSteps?: string[]
+        relatedStruggles?: string[]
+        isPersonalized?: boolean
+        score?: number
+      }
+    > = {}
     let correctCount = 0
 
     for (const question of questions) {
@@ -92,8 +104,8 @@ export function QuizModal({ questions, onComplete, onClose, studentId }: QuizMod
               rubric: question.rubric,
               studentAnswer: answer,
               maxScore: 100,
-              studentId // Pass student ID for personalized feedback
-            })
+              studentId, // Pass student ID for personalized feedback
+            }),
           })
           const result = await response.json()
           graded[question.id] = {
@@ -103,14 +115,14 @@ export function QuizModal({ questions, onComplete, onClose, studentId }: QuizMod
             nextSteps: result.nextSteps || [],
             relatedStruggles: result.relatedStruggles || [],
             isPersonalized: result.isPersonalized || false,
-            score: result.score
+            score: result.score,
           }
           if (result.score >= 70) correctCount++
         } catch {
           graded[question.id] = {
             correct: false,
             feedback: 'Could not grade answer',
-            score: 0
+            score: 0,
           }
         }
       }
@@ -124,13 +136,13 @@ export function QuizModal({ questions, onComplete, onClose, studentId }: QuizMod
       correct: graded[q.id]?.correct ?? false,
       pointsEarned: graded[q.id]?.score ?? 0,
       pointsMax: 100,
-      selectedAnswer: answers[q.id]
+      selectedAnswer: answers[q.id],
     }))
 
     onComplete({
       score: Math.round((correctCount / questions.length) * 100),
       answers,
-      questionResults
+      questionResults,
     })
   }
 
@@ -140,14 +152,14 @@ export function QuizModal({ questions, onComplete, onClose, studentId }: QuizMod
     )
 
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <Card className="max-w-lg w-full max-h-[90vh] overflow-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <Card className="max-h-[90vh] w-full max-w-lg overflow-auto">
           <CardHeader>
             <CardTitle className="text-center">Quiz Results</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center mb-6">
-              <div className="text-5xl font-bold mb-2">
+            <div className="mb-6 text-center">
+              <div className="mb-2 text-5xl font-bold">
                 {score >= 80 ? (
                   <span className="text-green-500">{score}%</span>
                 ) : score >= 60 ? (
@@ -168,15 +180,17 @@ export function QuizModal({ questions, onComplete, onClose, studentId }: QuizMod
             <div className="space-y-4">
               {questions.map((q, idx) => {
                 const graded = gradedAnswers[q.id]
-                const hasPersonalizedFeedback = graded?.isPersonalized && (graded.nextSteps?.length || graded.relatedStruggles?.length)
+                const hasPersonalizedFeedback =
+                  graded?.isPersonalized &&
+                  (graded.nextSteps?.length || graded.relatedStruggles?.length)
 
                 return (
                   <div key={q.id}>
-                    <div className="flex items-start gap-2 mb-2">
+                    <div className="mb-2 flex items-start gap-2">
                       {graded?.correct ? (
-                        <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                        <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-500" />
                       ) : (
-                        <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                        <XCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500" />
                       )}
                       <div className="flex-1">
                         <p className="font-medium">Question {idx + 1}</p>
@@ -194,20 +208,22 @@ export function QuizModal({ questions, onComplete, onClose, studentId }: QuizMod
                         score={graded.score || 0}
                         maxScore={100}
                       />
-                    ) : graded?.feedback && (
-                      <div className="ml-7 mt-2 p-3 bg-gray-50 rounded-lg border">
-                        <p className="text-sm text-gray-700">{graded.feedback}</p>
-                        {graded.explanation && (
-                          <p className="text-xs text-gray-500 mt-1">{graded.explanation}</p>
-                        )}
-                      </div>
+                    ) : (
+                      graded?.feedback && (
+                        <div className="ml-7 mt-2 rounded-lg border bg-gray-50 p-3">
+                          <p className="text-sm text-gray-700">{graded.feedback}</p>
+                          {graded.explanation && (
+                            <p className="mt-1 text-xs text-gray-500">{graded.explanation}</p>
+                          )}
+                        </div>
+                      )
                     )}
                   </div>
                 )
               })}
             </div>
 
-            <Button className="w-full mt-6" onClick={onClose}>
+            <Button className="mt-6 w-full" onClick={onClose}>
               Continue Learning
             </Button>
           </CardContent>
@@ -217,10 +233,10 @@ export function QuizModal({ questions, onComplete, onClose, studentId }: QuizMod
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="max-w-lg w-full">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <Card className="w-full max-w-lg">
         <CardHeader>
-          <div className="flex items-center justify-between mb-2">
+          <div className="mb-2 flex items-center justify-between">
             <span className="text-sm text-gray-500">
               Question {currentIndex + 1} of {questions.length}
             </span>
@@ -238,10 +254,11 @@ export function QuizModal({ questions, onComplete, onClose, studentId }: QuizMod
                 <button
                   key={idx}
                   onClick={() => handleAnswer(option)}
-                  className={`w-full p-4 text-left rounded-lg border transition-colors ${answers[currentQuestion.id] === option
+                  className={`w-full rounded-lg border p-4 text-left transition-colors ${
+                    answers[currentQuestion.id] === option
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                  }`}
                 >
                   {option}
                 </button>
@@ -253,13 +270,13 @@ export function QuizModal({ questions, onComplete, onClose, studentId }: QuizMod
             <div className="space-y-4">
               <textarea
                 value={answers[currentQuestion.id] || ''}
-                onChange={(e) => handleAnswer(e.target.value)}
+                onChange={e => handleAnswer(e.target.value)}
                 placeholder="Type your answer here..."
-                className="w-full h-32 p-4 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="h-32 w-full resize-none rounded-lg border p-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               {currentQuestion.rubric && (
                 <p className="text-sm text-gray-500">
-                  <AlertCircle className="w-4 h-4 inline mr-1" />
+                  <AlertCircle className="mr-1 inline h-4 w-4" />
                   Grading criteria: {currentQuestion.rubric}
                 </p>
               )}
@@ -267,7 +284,7 @@ export function QuizModal({ questions, onComplete, onClose, studentId }: QuizMod
           )}
 
           <Button
-            className="w-full mt-6"
+            className="mt-6 w-full"
             onClick={handleNext}
             disabled={!answers[currentQuestion.id]}
           >

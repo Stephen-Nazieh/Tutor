@@ -16,7 +16,7 @@ export function renderMentions(text: string): React.ReactNode[] {
       nodes.push(text.slice(lastIndex, start))
     }
     nodes.push(
-      <span key={`${start}-${end}`} className="text-emerald-600 font-medium">
+      <span key={`${start}-${end}`} className="font-medium text-emerald-600">
         @{displayName}
       </span>
     )

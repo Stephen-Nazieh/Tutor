@@ -11,11 +11,7 @@ export interface PaymentAlertButtonProps {
   redirectPath?: string
 }
 
-export function PaymentAlertButton({
-  courseId,
-  roomId,
-  redirectPath,
-}: PaymentAlertButtonProps) {
+export function PaymentAlertButton({ courseId, roomId, redirectPath }: PaymentAlertButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [paymentRequired, setPaymentRequired] = useState(false)
   const [error, setError] = useState<string | null>(null)

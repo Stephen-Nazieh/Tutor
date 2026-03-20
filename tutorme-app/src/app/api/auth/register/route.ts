@@ -24,10 +24,16 @@ export async function POST(request: NextRequest) {
     console.error('Registration error:', err.message, err.stack)
     if (error && typeof error === 'object' && 'issues' in error) {
       const zodError = error as { issues: Array<{ message: string }> }
-      return NextResponse.json({ error: zodError.issues.map((i) => i.message).join(', ') }, { status: 400 })
+      return NextResponse.json(
+        { error: zodError.issues.map(i => i.message).join(', ') },
+        { status: 400 }
+      )
     }
     if (error instanceof ValidationError || (error as Error)?.name === 'ValidationError') {
-      return NextResponse.json({ error: (error as Error).message || 'Validation error' }, { status: 400 })
+      return NextResponse.json(
+        { error: (error as Error).message || 'Validation error' },
+        { status: 400 }
+      )
     }
     if (error && typeof error === 'object' && 'code' in error) {
       const e = error as { code: string }

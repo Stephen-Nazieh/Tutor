@@ -43,7 +43,9 @@ vi.mock('@/lib/db/drizzle', () => ({
         }),
       }),
     })),
-    transaction: vi.fn().mockImplementation((fn: (tx: any) => Promise<unknown>) => mocks.transaction(fn)),
+    transaction: vi
+      .fn()
+      .mockImplementation((fn: (tx: any) => Promise<unknown>) => mocks.transaction(fn)),
   },
 }))
 
@@ -58,7 +60,11 @@ describe('POST /api/auth/register', () => {
     mocks.selectQueue = []
     mocks.hash.mockResolvedValue('hashed-password')
     mocks.getClientIdentifier.mockReturnValue('ip:test')
-    mocks.checkRateLimit.mockResolvedValue({ allowed: true, remaining: 10, resetAt: Date.now() + 60000 })
+    mocks.checkRateLimit.mockResolvedValue({
+      allowed: true,
+      remaining: 10,
+      resetAt: Date.now() + 60000,
+    })
     mocks.verifyAllChildren.mockResolvedValue({ verified: new Map(), errors: [] })
     mocks.isStudentAlreadyLinked.mockResolvedValue(false)
     mocks.transaction.mockImplementation(async (fn: (tx: any) => Promise<unknown>) => {

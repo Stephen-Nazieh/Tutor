@@ -60,8 +60,10 @@ export async function keyboardNavigationTest(
     for (let i = 0; i < els.length; i++) {
       const box = await els[i].boundingBox()
       if (box && (box.width < minSize.width || box.height < minSize.height)) {
-        const tag = await els[i].evaluate((e) => e.tagName + (e.id ? '#' + e.id : ''))
-        violations.push(`${tag} (${box.width}x${box.height}) below ${minSize.width}x${minSize.height}`)
+        const tag = await els[i].evaluate(e => e.tagName + (e.id ? '#' + e.id : ''))
+        violations.push(
+          `${tag} (${box.width}x${box.height}) below ${minSize.width}x${minSize.height}`
+        )
       }
     }
   }
@@ -89,8 +91,10 @@ export async function touchTargetTest(
     for (let i = 0; i < els.length; i++) {
       const box = await els[i].boundingBox()
       if (box && (box.width < minSize.width || box.height < minSize.height)) {
-        const tag = await els[i].evaluate((e) => e.tagName + (e.id ? '#' + e.id : ''))
-        violations.push(`${tag} (${box.width}x${box.height}) below ${minSize.width}x${minSize.height}`)
+        const tag = await els[i].evaluate(e => e.tagName + (e.id ? '#' + e.id : ''))
+        violations.push(
+          `${tag} (${box.width}x${box.height}) below ${minSize.width}x${minSize.height}`
+        )
       }
     }
   }
@@ -145,7 +149,10 @@ export async function focusTest(
     return (outline && outline !== '0px') || (boxShadow && boxShadow !== 'none')
   })
 
-  return { passed: hasVisibleFocus, message: hasVisibleFocus ? undefined : 'Focused element has no visible focus indicator' }
+  return {
+    passed: hasVisibleFocus,
+    message: hasVisibleFocus ? undefined : 'Focused element has no visible focus indicator',
+  }
 }
 
 /** Verify form controls have labels (axe covers most; this is a quick check) */
@@ -158,10 +165,12 @@ export async function screenReaderTest(
   const inputsWithoutLabel = await page.evaluate(() => {
     const inputs = document.querySelectorAll('input:not([type="hidden"]), select, textarea')
     const bad: string[] = []
-    inputs.forEach((el) => {
+    inputs.forEach(el => {
       const id = (el as HTMLInputElement).id
       const hasLabel = id && document.querySelector(`label[for="${id}"]`)
-      const hasAriaLabel = (el as HTMLElement).getAttribute('aria-label') || (el as HTMLElement).getAttribute('aria-labelledby')
+      const hasAriaLabel =
+        (el as HTMLElement).getAttribute('aria-label') ||
+        (el as HTMLElement).getAttribute('aria-labelledby')
       const isLabeledByParent = (el as HTMLElement).closest('label')
       if (!hasLabel && !hasAriaLabel && !isLabeledByParent) {
         bad.push((el as HTMLElement).tagName + (id ? '#' + id : ''))

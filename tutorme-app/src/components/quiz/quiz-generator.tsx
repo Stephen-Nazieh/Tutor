@@ -32,8 +32,8 @@ export function QuizGenerator({ contentId, onQuizGenerated }: QuizGeneratorProps
           contentId,
           transcript,
           grade: 8,
-          weakAreas: []
-        })
+          weakAreas: [],
+        }),
       })
 
       const data = await response.json()
@@ -55,7 +55,7 @@ export function QuizGenerator({ contentId, onQuizGenerated }: QuizGeneratorProps
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-purple-500" />
+          <Sparkles className="h-5 w-5 text-purple-500" />
           AI Quiz Generator
         </CardTitle>
       </CardHeader>
@@ -66,10 +66,10 @@ export function QuizGenerator({ contentId, onQuizGenerated }: QuizGeneratorProps
             id="transcript"
             placeholder="Paste the video transcript here..."
             value={transcript}
-            onChange={(e) => setTranscript(e.target.value)}
+            onChange={e => setTranscript(e.target.value)}
             rows={6}
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="mt-1 text-xs text-gray-500">
             The AI will analyze the transcript and generate relevant quiz questions.
           </p>
         </div>
@@ -81,35 +81,35 @@ export function QuizGenerator({ contentId, onQuizGenerated }: QuizGeneratorProps
         >
           {isGenerating ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Generating Quiz...
             </>
           ) : (
             <>
-              <Sparkles className="w-4 h-4 mr-2" />
+              <Sparkles className="mr-2 h-4 w-4" />
               Generate Quiz with AI
             </>
           )}
         </Button>
 
         {error && (
-          <div className="flex items-center gap-2 text-red-600 text-sm">
-            <AlertCircle className="w-4 h-4" />
+          <div className="flex items-center gap-2 text-sm text-red-600">
+            <AlertCircle className="h-4 w-4" />
             {error}
           </div>
         )}
 
         {generatedQuestions.length > 0 && (
           <div className="border-t pt-4">
-            <div className="flex items-center gap-2 text-green-600 mb-3">
-              <CheckCircle className="w-5 h-5" />
+            <div className="mb-3 flex items-center gap-2 text-green-600">
+              <CheckCircle className="h-5 w-5" />
               <span className="font-medium">Generated {generatedQuestions.length} Questions</span>
             </div>
             <div className="space-y-2">
               {generatedQuestions.map((q, idx) => (
-                <div key={idx} className="bg-gray-50 p-3 rounded text-sm">
+                <div key={idx} className="rounded bg-gray-50 p-3 text-sm">
                   <span className="font-medium">Q{idx + 1}:</span> {q.question}
-                  <span className="text-gray-500 ml-2">({q.type})</span>
+                  <span className="ml-2 text-gray-500">({q.type})</span>
                 </div>
               ))}
             </div>

@@ -31,68 +31,63 @@ export const GET = withAuth(
     }
 
     if (!family.studentIds.includes(studentId)) {
-      return NextResponse.json(
-        { error: '无权查看该学生的AI辅导数据' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: '无权查看该学生的AI辅导数据' }, { status: 403 })
     }
 
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
     // Parallel fetching of all AI-related data
-    const [
-      sessions,
-      enrollmentsData,
-      dailyUsageData,
-      activities,
-      interactions
-    ] = await Promise.all([
-      drizzleDb.query.lessonSession.findMany({
-        where: eq(lessonSession.studentId, studentId),
-        with: {
-          lesson: {
-            with: {
-              module: { with: { curriculum: { columns: { name: true } } } }
+    const [sessions, enrollmentsData, dailyUsageData, activities, interactions] = await Promise.all(
+      [
+        drizzleDb.query.lessonSession.findMany({
+          where: eq(lessonSession.studentId, studentId),
+          with: {
+            lesson: {
+              with: {
+                module: { with: { curriculum: { columns: { name: true } } } },
+              },
+              columns: { id: true, title: true },
             },
-            columns: { id: true, title: true }
-          }
-        },
-        orderBy: [desc(lessonSession.lastActivityAt)],
-        limit: 30,
-      }),
-      drizzleDb.query.aITutorEnrollment.findMany({
-        where: eq(aITutorEnrollment.studentId, studentId),
-      }),
-      drizzleDb.query.aITutorDailyUsage.findMany({
-        where: and(
-          eq(aITutorDailyUsage.userId, studentId),
-          gte(aITutorDailyUsage.date, thirtyDaysAgo)
-        ),
-        orderBy: [desc(aITutorDailyUsage.date)],
-        limit: 30,
-      }),
-      drizzleDb.query.userActivityLog.findMany({
-        where: and(
-          eq(userActivityLog.userId, studentId),
-          inArray(userActivityLog.action, [
-            'AI_CONVERSATION',
-            'ai_conversation',
-            'AI_SESSION_START',
-            'AI_SESSION_END',
-            'ai_session_start',
-            'ai_session_end',
-          ])
-        ),
-        orderBy: [desc(userActivityLog.createdAt)],
-        limit: 50,
-      }),
-      drizzleDb.query.aIInteractionSession.findMany({
-        where: eq(aIInteractionSession.studentId, studentId),
-        orderBy: [desc(aIInteractionSession.startedAt)],
-        limit: 20,
-      }).catch(() => []) // Gracefully handle if table doesn't exist or schema mismatch
-    ])
+          },
+          orderBy: [desc(lessonSession.lastActivityAt)],
+          limit: 30,
+        }),
+        drizzleDb.query.aITutorEnrollment.findMany({
+          where: eq(aITutorEnrollment.studentId, studentId),
+        }),
+        drizzleDb.query.aITutorDailyUsage.findMany({
+          where: and(
+            eq(aITutorDailyUsage.userId, studentId),
+            gte(aITutorDailyUsage.date, thirtyDaysAgo)
+          ),
+          orderBy: [desc(aITutorDailyUsage.date)],
+          limit: 30,
+        }),
+        drizzleDb.query.userActivityLog.findMany({
+          where: and(
+            eq(userActivityLog.userId, studentId),
+            inArray(userActivityLog.action, [
+              'AI_CONVERSATION',
+              'ai_conversation',
+              'AI_SESSION_START',
+              'AI_SESSION_END',
+              'ai_session_start',
+              'ai_session_end',
+            ])
+          ),
+          orderBy: [desc(userActivityLog.createdAt)],
+          limit: 50,
+        }),
+        drizzleDb.query.aIInteractionSession
+          .findMany({
+            where: eq(aIInteractionSession.studentId, studentId),
+            orderBy: [desc(aIInteractionSession.startedAt)],
+            limit: 20,
+          })
+          .catch(() => []), // Gracefully handle if table doesn't exist or schema mismatch
+      ]
+    )
 
     const sessionSummaries = sessions.map((ls: any) => {
       const context = (ls.sessionContext as Record<string, unknown>) || {}
@@ -130,11 +125,11 @@ export const GET = withAuth(
     const totalSessions =
       sessionSummaries.filter((s: any) => s.status === 'completed').length +
       interactionSessions.length
-    const totalMessages = sessionSummaries.reduce((s: any, x: any) => s + x.messageCount, 0) +
+    const totalMessages =
+      sessionSummaries.reduce((s: any, x: any) => s + x.messageCount, 0) +
       interactionSessions.reduce((s: any, x: any) => s + x.messageCount, 0)
     const totalMinutes = dailyUsageData.reduce((s: any, u: any) => s + u.minutesUsed, 0)
-    const avgMessagesPerSession =
-      totalSessions > 0 ? Math.round(totalMessages / totalSessions) : 0
+    const avgMessagesPerSession = totalSessions > 0 ? Math.round(totalMessages / totalSessions) : 0
 
     return NextResponse.json({
       success: true,

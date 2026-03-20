@@ -16,7 +16,7 @@ import {
   MoreVertical,
   ThumbsUp,
   AlertCircle,
-  Check
+  Check,
 } from 'lucide-react'
 
 interface ChatMessage {
@@ -52,7 +52,7 @@ export function ChatPanel({ onUnreadChange, participants }: ChatPanelProps) {
       senderName: 'Alice Zhang',
       content: 'Great explanation of derivatives!',
       timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-      likes: 3
+      likes: 3,
     },
     {
       id: '2',
@@ -61,7 +61,7 @@ export function ChatPanel({ onUnreadChange, participants }: ChatPanelProps) {
       content: 'Could you go over the chain rule one more time?',
       timestamp: new Date(Date.now() - 1000 * 60 * 3).toISOString(),
       isQuestion: true,
-      likes: 1
+      likes: 1,
     },
     {
       id: '3',
@@ -69,8 +69,8 @@ export function ChatPanel({ onUnreadChange, participants }: ChatPanelProps) {
       senderName: 'You',
       content: 'Sure! Let me explain it with a different example.',
       timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
-      likes: 0
-    }
+      likes: 0,
+    },
   ])
   const [inputMessage, setInputMessage] = useState('')
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
@@ -94,7 +94,7 @@ export function ChatPanel({ onUnreadChange, participants }: ChatPanelProps) {
       senderName: 'You',
       content: inputMessage,
       timestamp: new Date().toISOString(),
-      likes: 0
+      likes: 0,
     }
 
     setMessages(prev => [...prev, newMessage])
@@ -103,11 +103,13 @@ export function ChatPanel({ onUnreadChange, participants }: ChatPanelProps) {
   }
 
   const handleLike = (messageId: string) => {
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId 
-        ? { ...msg, likes: msg.isLiked ? msg.likes - 1 : msg.likes + 1, isLiked: !msg.isLiked }
-        : msg
-    ))
+    setMessages(prev =>
+      prev.map(msg =>
+        msg.id === messageId
+          ? { ...msg, likes: msg.isLiked ? msg.likes - 1 : msg.likes + 1, isLiked: !msg.isLiked }
+          : msg
+      )
+    )
   }
 
   const handlePin = (message: ChatMessage) => {
@@ -125,14 +127,16 @@ export function ChatPanel({ onUnreadChange, participants }: ChatPanelProps) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-800">
+    <div className="flex h-full flex-col bg-gray-800">
       {/* Pinned Message */}
       {pinnedMessage && (
-        <div className="p-3 bg-blue-900/30 border-b border-blue-800">
+        <div className="border-b border-blue-800 bg-blue-900/30 p-3">
           <div className="flex items-start gap-2">
-            <Pin className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-blue-200 truncate">{renderMentions(pinnedMessage.content)}</p>
+            <Pin className="mt-0.5 h-4 w-4 shrink-0 text-blue-400" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm text-blue-200">
+                {renderMentions(pinnedMessage.content)}
+              </p>
               <p className="text-xs text-blue-400">{pinnedMessage.senderName}</p>
             </div>
             <Button
@@ -150,44 +154,47 @@ export function ChatPanel({ onUnreadChange, participants }: ChatPanelProps) {
       {/* Messages */}
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
         <div className="space-y-4">
-          {messages.map((message) => (
+          {messages.map(message => (
             <div
               key={message.id}
-              className={cn(
-                "group",
-                message.senderId === 'tutor' && "flex flex-row-reverse"
-              )}
+              className={cn('group', message.senderId === 'tutor' && 'flex flex-row-reverse')}
             >
-              <div className={cn(
-                "max-w-[85%]",
-                message.senderId === 'tutor' ? "items-end" : "items-start"
-              )}>
+              <div
+                className={cn(
+                  'max-w-[85%]',
+                  message.senderId === 'tutor' ? 'items-end' : 'items-start'
+                )}
+              >
                 {/* Sender Name */}
                 {message.senderId !== 'tutor' && (
-                  <p className="text-xs text-gray-400 mb-1 ml-1">{message.senderName}</p>
+                  <p className="mb-1 ml-1 text-xs text-gray-400">{message.senderName}</p>
                 )}
 
                 {/* Message Bubble */}
-                <div className={cn(
-                  "relative rounded-2xl px-4 py-2",
-                  message.senderId === 'tutor' 
-                    ? "bg-blue-600 text-white rounded-br-md" 
-                    : "bg-gray-700 text-white rounded-bl-md",
-                  message.isQuestion && "border-l-4 border-yellow-500"
-                )}>
+                <div
+                  className={cn(
+                    'relative rounded-2xl px-4 py-2',
+                    message.senderId === 'tutor'
+                      ? 'rounded-br-md bg-blue-600 text-white'
+                      : 'rounded-bl-md bg-gray-700 text-white',
+                    message.isQuestion && 'border-l-4 border-yellow-500'
+                  )}
+                >
                   {message.isQuestion && (
-                    <div className="flex items-center gap-1 mb-1 text-yellow-400 text-xs">
-                      <AlertCircle className="w-3 h-3" />
+                    <div className="mb-1 flex items-center gap-1 text-xs text-yellow-400">
+                      <AlertCircle className="h-3 w-3" />
                       Question
                     </div>
                   )}
                   <p className="text-sm">{renderMentions(message.content)}</p>
-                  
+
                   {/* Message Actions */}
-                  <div className={cn(
-                    "absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity",
-                    message.senderId === 'tutor' ? "-left-16" : "-right-16"
-                  )}>
+                  <div
+                    className={cn(
+                      'absolute top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100',
+                      message.senderId === 'tutor' ? '-left-16' : '-right-16'
+                    )}
+                  >
                     <div className="flex items-center gap-1">
                       <Button
                         variant="ghost"
@@ -195,7 +202,12 @@ export function ChatPanel({ onUnreadChange, participants }: ChatPanelProps) {
                         className="h-7 w-7 text-gray-400 hover:text-white"
                         onClick={() => handleLike(message.id)}
                       >
-                        <ThumbsUp className={cn("w-4 h-4", message.isLiked && "fill-yellow-500 text-yellow-500")} />
+                        <ThumbsUp
+                          className={cn(
+                            'h-4 w-4',
+                            message.isLiked && 'fill-yellow-500 text-yellow-500'
+                          )}
+                        />
                       </Button>
                       <Button
                         variant="ghost"
@@ -203,22 +215,27 @@ export function ChatPanel({ onUnreadChange, participants }: ChatPanelProps) {
                         className="h-7 w-7 text-gray-400 hover:text-white"
                         onClick={() => handlePin(message)}
                       >
-                        <Pin className={cn("w-4 h-4", pinnedMessage?.id === message.id && "fill-blue-500 text-blue-500")} />
+                        <Pin
+                          className={cn(
+                            'h-4 w-4',
+                            pinnedMessage?.id === message.id && 'fill-blue-500 text-blue-500'
+                          )}
+                        />
                       </Button>
                     </div>
                   </div>
                 </div>
 
                 {/* Message Meta */}
-                <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
                   <span>{formatTime(message.timestamp)}</span>
                   {message.likes > 0 && (
                     <span className="flex items-center gap-1 text-yellow-500">
-                      <ThumbsUp className="w-3 h-3" />
+                      <ThumbsUp className="h-3 w-3" />
                       {message.likes}
                     </span>
                   )}
-                  {message.senderId === 'tutor' && <Check className="w-3 h-3 text-blue-400" />}
+                  {message.senderId === 'tutor' && <Check className="h-3 w-3 text-blue-400" />}
                 </div>
               </div>
             </div>
@@ -227,14 +244,14 @@ export function ChatPanel({ onUnreadChange, participants }: ChatPanelProps) {
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="p-3 border-t border-gray-700">
+      <div className="border-t border-gray-700 p-3">
         {/* Emoji Picker */}
         {showEmojiPicker && (
-          <div className="flex gap-2 mb-2 p-2 bg-gray-700 rounded-lg">
+          <div className="mb-2 flex gap-2 rounded-lg bg-gray-700 p-2">
             {EMOJIS.map(emoji => (
               <button
                 key={emoji}
-                className="text-xl hover:scale-125 transition-transform"
+                className="text-xl transition-transform hover:scale-125"
                 onClick={() => {
                   setInputMessage(prev => prev + emoji)
                   setShowEmojiPicker(false)
@@ -253,20 +270,16 @@ export function ChatPanel({ onUnreadChange, participants }: ChatPanelProps) {
             className="text-gray-400 hover:text-white"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
           >
-            <Smile className="w-5 h-5" />
+            <Smile className="h-5 w-5" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-gray-400 hover:text-white"
-          >
-            <Paperclip className="w-5 h-5" />
+          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
+            <Paperclip className="h-5 w-5" />
           </Button>
           <MentionInput
             placeholder="Type a message..."
             value={inputMessage}
             onChange={setInputMessage}
-            onKeyDown={(e) => {
+            onKeyDown={e => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
                 handleSend()
@@ -281,7 +294,7 @@ export function ChatPanel({ onUnreadChange, participants }: ChatPanelProps) {
             onClick={handleSend}
             disabled={!inputMessage.trim()}
           >
-            <Send className="w-4 h-4" />
+            <Send className="h-4 w-4" />
           </Button>
         </div>
       </div>

@@ -1,7 +1,7 @@
 // @ts-nocheck
 /**
  * Unified Whiteboard Hook
- * 
+ *
  * Integrates all 12 advanced features into a single hook for use in components.
  */
 
@@ -29,7 +29,7 @@ export function useUnifiedWhiteboard(options: UseUnifiedWhiteboardOptions) {
 
   // Create manager instance
   const managerRef = useRef<UnifiedWhiteboardManager | null>(null)
-  
+
   if (!managerRef.current) {
     managerRef.current = new UnifiedWhiteboardManager({
       userId,
@@ -64,83 +64,115 @@ export function useUnifiedWhiteboard(options: UseUnifiedWhiteboardOptions) {
   } | null>(null)
 
   // Feature 1: Connector Pathfinding
-  const routeConnector = useCallback((
-    sourceId: string,
-    targetId: string,
-    sourcePort: 'top' | 'right' | 'bottom' | 'left' | 'center',
-    targetPort: 'top' | 'right' | 'bottom' | 'left' | 'center'
-  ) => {
-    // Implementation would use useConnectorPathfinding hook
-    return { points: [] as Array<{ x: number; y: number }>, length: 0, crossings: 0 }
-  }, [])
+  const routeConnector = useCallback(
+    (
+      sourceId: string,
+      targetId: string,
+      sourcePort: 'top' | 'right' | 'bottom' | 'left' | 'center',
+      targetPort: 'top' | 'right' | 'bottom' | 'left' | 'center'
+    ) => {
+      // Implementation would use useConnectorPathfinding hook
+      return { points: [] as Array<{ x: number; y: number }>, length: 0, crossings: 0 }
+    },
+    []
+  )
 
   // Feature 2: Presence
-  const updateCursor = useCallback((x: number, y: number) => {
-    manager.presence.updateUser({
-      userId,
-      cursor: { x, y },
-    })
-  }, [manager, userId])
+  const updateCursor = useCallback(
+    (x: number, y: number) => {
+      manager.presence.updateUser({
+        userId,
+        cursor: { x, y },
+      })
+    },
+    [manager, userId]
+  )
 
-  const startEditing = useCallback((elementId: string, elementType: 'stroke' | 'shape' | 'text') => {
-    return manager.presence.startEditing(userId, elementId, elementType, 'drawing')
-  }, [manager, userId])
+  const startEditing = useCallback(
+    (elementId: string, elementType: 'stroke' | 'shape' | 'text') => {
+      return manager.presence.startEditing(userId, elementId, elementType, 'drawing')
+    },
+    [manager, userId]
+  )
 
-  const stopEditing = useCallback((elementId: string) => {
-    manager.presence.stopEditing(userId, elementId)
-  }, [manager, userId])
+  const stopEditing = useCallback(
+    (elementId: string) => {
+      manager.presence.stopEditing(userId, elementId)
+    },
+    [manager, userId]
+  )
 
   // Feature 4: Timeline
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentSeq, setCurrentSeq] = useState(0)
 
   // Feature 5: Branching
-  const createBranch = useCallback((name: string, description?: string) => {
-    if (!manager.branching) return null
-    const branch = manager.branching.createBranch(name, manager.branching.getActiveBranch()?.id || null, strokes, description)
-    setBranches(manager.branching.getAllBranches())
-    return branch
-  }, [manager, strokes])
+  const createBranch = useCallback(
+    (name: string, description?: string) => {
+      if (!manager.branching) return null
+      const branch = manager.branching.createBranch(
+        name,
+        manager.branching.getActiveBranch()?.id || null,
+        strokes,
+        description
+      )
+      setBranches(manager.branching.getAllBranches())
+      return branch
+    },
+    [manager, strokes]
+  )
 
-  const switchBranch = useCallback((branchId: string) => {
-    if (!manager.branching) return false
-    const success = manager.branching.switchBranch(branchId)
-    if (success) {
-      setActiveBranchId(branchId)
-      setStrokes(manager.branching.getActiveBranch()?.strokes || [])
-    }
-    return success
-  }, [manager])
+  const switchBranch = useCallback(
+    (branchId: string) => {
+      if (!manager.branching) return false
+      const success = manager.branching.switchBranch(branchId)
+      if (success) {
+        setActiveBranchId(branchId)
+        setStrokes(manager.branching.getActiveBranch()?.strokes || [])
+      }
+      return success
+    },
+    [manager]
+  )
 
   // Feature 6: CRDT
-  const addStroke = useCallback((stroke: WhiteboardStroke) => {
-    const op = manager.crdt.createOperation('create', stroke.id, stroke)
-    const result = manager.applyOperation(op)
-    if (result.success) {
-      setStrokes(prev => [...prev, stroke])
-      manager.performance.spatialIndex.insert(stroke)
-    }
-    return result
-  }, [manager])
+  const addStroke = useCallback(
+    (stroke: WhiteboardStroke) => {
+      const op = manager.crdt.createOperation('create', stroke.id, stroke)
+      const result = manager.applyOperation(op)
+      if (result.success) {
+        setStrokes(prev => [...prev, stroke])
+        manager.performance.spatialIndex.insert(stroke)
+      }
+      return result
+    },
+    [manager]
+  )
 
-  const updateStroke = useCallback((strokeId: string, updates: Partial<WhiteboardStroke>) => {
-    const op = manager.crdt.createOperation('update', strokeId, updates)
-    const result = manager.applyOperation(op)
-    if (result.success) {
-      setStrokes(prev => prev.map(s => s.id === strokeId ? { ...s, ...updates } : s))
-    }
-    return result
-  }, [manager])
+  const updateStroke = useCallback(
+    (strokeId: string, updates: Partial<WhiteboardStroke>) => {
+      const op = manager.crdt.createOperation('update', strokeId, updates)
+      const result = manager.applyOperation(op)
+      if (result.success) {
+        setStrokes(prev => prev.map(s => (s.id === strokeId ? { ...s, ...updates } : s)))
+      }
+      return result
+    },
+    [manager]
+  )
 
-  const deleteStroke = useCallback((strokeId: string) => {
-    const op = manager.crdt.createOperation('delete', strokeId)
-    const result = manager.applyOperation(op)
-    if (result.success) {
-      setStrokes(prev => prev.filter(s => s.id !== strokeId))
-      manager.performance.spatialIndex.remove(strokeId)
-    }
-    return result
-  }, [manager])
+  const deleteStroke = useCallback(
+    (strokeId: string) => {
+      const op = manager.crdt.createOperation('delete', strokeId)
+      const result = manager.applyOperation(op)
+      if (result.success) {
+        setStrokes(prev => prev.filter(s => s.id !== strokeId))
+        manager.performance.spatialIndex.remove(strokeId)
+      }
+      return result
+    },
+    [manager]
+  )
 
   // Feature 7: Performance
   const getOptimizedStrokes = useCallback(() => {
@@ -148,57 +180,75 @@ export function useUnifiedWhiteboard(options: UseUnifiedWhiteboardOptions) {
     return { strokes: visibleStrokes, metrics }
   }, [manager, viewport])
 
-  const findStrokesNearPoint = useCallback((point: { x: number; y: number }, radius: number) => {
-    return manager.performance.findStrokesNearPoint(point, radius)
-  }, [manager])
+  const findStrokesNearPoint = useCallback(
+    (point: { x: number; y: number }, radius: number) => {
+      return manager.performance.findStrokesNearPoint(point, radius)
+    },
+    [manager]
+  )
 
   // Feature 8: Annotations
-  const createAnnotation = useCallback((
-    type: 'sticky' | 'comment' | 'question',
-    position: { x: number; y: number },
-    content: string
-  ) => {
-    const thread = manager.annotations.createThread(
-      type,
-      position,
-      { id: userId, name: session?.user?.name || 'User', color: '#3b82f6' },
-      content
-    )
-    setThreads(manager.annotations.getAllThreads())
-    return thread
-  }, [manager, userId, session])
-
-  const addReply = useCallback((threadId: string, content: string) => {
-    const reply = manager.annotations.addReply(
-      threadId,
-      { id: userId, name: session?.user?.name || 'User', color: '#3b82f6' },
-      content
-    )
-    if (reply) {
+  const createAnnotation = useCallback(
+    (
+      type: 'sticky' | 'comment' | 'question',
+      position: { x: number; y: number },
+      content: string
+    ) => {
+      const thread = manager.annotations.createThread(
+        type,
+        position,
+        { id: userId, name: session?.user?.name || 'User', color: '#3b82f6' },
+        content
+      )
       setThreads(manager.annotations.getAllThreads())
-    }
-    return reply
-  }, [manager, userId, session])
+      return thread
+    },
+    [manager, userId, session]
+  )
+
+  const addReply = useCallback(
+    (threadId: string, content: string) => {
+      const reply = manager.annotations.addReply(
+        threadId,
+        { id: userId, name: session?.user?.name || 'User', color: '#3b82f6' },
+        content
+      )
+      if (reply) {
+        setThreads(manager.annotations.getAllThreads())
+      }
+      return reply
+    },
+    [manager, userId, session]
+  )
 
   // Feature 9: Accessibility
-  const announce = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
-    manager.announce(message, priority)
-    setAnnouncement(message)
-    // Clear after delay
-    setTimeout(() => setAnnouncement(null), 5000)
-  }, [manager])
+  const announce = useCallback(
+    (message: string, priority: 'polite' | 'assertive' = 'polite') => {
+      manager.announce(message, priority)
+      setAnnouncement(message)
+      // Clear after delay
+      setTimeout(() => setAnnouncement(null), 5000)
+    },
+    [manager]
+  )
 
   const toggleKeyboardMode = useCallback(() => {
     const newMode = !isKeyboardMode
     setIsKeyboardMode(newMode)
     manager.accessibility?.setConfig({ keyboardMode: newMode })
-    announce(newMode ? 'Keyboard drawing mode enabled' : 'Keyboard drawing mode disabled', 'assertive')
+    announce(
+      newMode ? 'Keyboard drawing mode enabled' : 'Keyboard drawing mode disabled',
+      'assertive'
+    )
   }, [isKeyboardMode, manager, announce])
 
-  const handleKeyboardDrawing = useCallback((key: string, currentPosition: { x: number; y: number }) => {
-    if (!isKeyboardMode) return null
-    return manager.accessibility?.handleKeyboardDrawing(key, currentPosition)
-  }, [isKeyboardMode, manager])
+  const handleKeyboardDrawing = useCallback(
+    (key: string, currentPosition: { x: number; y: number }) => {
+      if (!isKeyboardMode) return null
+      return manager.accessibility?.handleKeyboardDrawing(key, currentPosition)
+    },
+    [isKeyboardMode, manager]
+  )
 
   // Feature 10: Analytics
   useEffect(() => {
@@ -234,56 +284,80 @@ export function useUnifiedWhiteboard(options: UseUnifiedWhiteboardOptions) {
     }
   }, [manager])
 
-  return useMemo(() => ({
-    // State
-    strokes,
-    viewport,
-    analyticsSnapshot,
-    threads,
-    branches,
-    activeBranchId,
-    isKeyboardMode,
-    announcement,
-    performanceReport,
-    isPlaying,
-    currentSeq,
+  return useMemo(
+    () => ({
+      // State
+      strokes,
+      viewport,
+      analyticsSnapshot,
+      threads,
+      branches,
+      activeBranchId,
+      isKeyboardMode,
+      announcement,
+      performanceReport,
+      isPlaying,
+      currentSeq,
 
-    // CRDT Operations
-    addStroke,
-    updateStroke,
-    deleteStroke,
+      // CRDT Operations
+      addStroke,
+      updateStroke,
+      deleteStroke,
 
-    // Performance
-    getOptimizedStrokes,
-    findStrokesNearPoint,
-    setViewport,
+      // Performance
+      getOptimizedStrokes,
+      findStrokesNearPoint,
+      setViewport,
 
-    // Presence
-    updateCursor,
-    startEditing,
-    stopEditing,
+      // Presence
+      updateCursor,
+      startEditing,
+      stopEditing,
 
-    // Branching
-    createBranch,
-    switchBranch,
+      // Branching
+      createBranch,
+      switchBranch,
 
-    // Annotations
-    createAnnotation,
-    addReply,
+      // Annotations
+      createAnnotation,
+      addReply,
 
-    // Accessibility
-    announce,
-    toggleKeyboardMode,
-    handleKeyboardDrawing,
+      // Accessibility
+      announce,
+      toggleKeyboardMode,
+      handleKeyboardDrawing,
 
-    // Timeline
-    setIsPlaying,
-    setCurrentSeq,
-  }), [
-    strokes, viewport, analyticsSnapshot, threads, branches, activeBranchId,
-    isKeyboardMode, announcement, performanceReport, isPlaying, currentSeq,
-    addStroke, updateStroke, deleteStroke, getOptimizedStrokes, findStrokesNearPoint,
-    updateCursor, startEditing, stopEditing, createBranch, switchBranch,
-    createAnnotation, addReply, announce, toggleKeyboardMode, handleKeyboardDrawing,
-  ])
+      // Timeline
+      setIsPlaying,
+      setCurrentSeq,
+    }),
+    [
+      strokes,
+      viewport,
+      analyticsSnapshot,
+      threads,
+      branches,
+      activeBranchId,
+      isKeyboardMode,
+      announcement,
+      performanceReport,
+      isPlaying,
+      currentSeq,
+      addStroke,
+      updateStroke,
+      deleteStroke,
+      getOptimizedStrokes,
+      findStrokesNearPoint,
+      updateCursor,
+      startEditing,
+      stopEditing,
+      createBranch,
+      switchBranch,
+      createAnnotation,
+      addReply,
+      announce,
+      toggleKeyboardMode,
+      handleKeyboardDrawing,
+    ]
+  )
 }

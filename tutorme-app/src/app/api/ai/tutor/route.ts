@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       mode,
       isSocratic: teachingMode === 'socratic',
       whiteboardItems: response.whiteboardItems,
-      conversationId: conversationId || `tutor-${subject}-${Date.now()}`
+      conversationId: conversationId || `tutor-${subject}-${Date.now()}`,
     })
   } catch (error) {
     return handleApiError(error, 'Failed to get AI response', 'api/ai/tutor/route.ts')
@@ -79,9 +79,9 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   // Return available teaching modes
   const modes = getTeachingModes()
-  
+
   return NextResponse.json({
     modes,
-    defaultMode: 'socratic'
+    defaultMode: 'socratic',
   })
 }

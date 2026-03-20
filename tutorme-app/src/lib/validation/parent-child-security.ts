@@ -19,13 +19,10 @@ export const studentLinkingSchema = z
     grade: z.string().optional(),
     subjects: z.array(z.string()).optional(),
   })
-  .refine(
-    (data) => !!data.childEmail || !!data.childUniqueId,
-    {
-      message:
-        'For security, you must provide either child email or unique ID to link students properly',
-    }
-  )
+  .refine(data => !!data.childEmail || !!data.childUniqueId, {
+    message:
+      'For security, you must provide either child email or unique ID to link students properly',
+  })
 
 export type StudentLinkingInput = z.infer<typeof studentLinkingSchema>
 
@@ -42,6 +39,4 @@ export const parentRegistrationSecuritySchema = z.object({
   }),
 })
 
-export type ParentRegistrationSecurityInput = z.infer<
-  typeof parentRegistrationSecuritySchema
->
+export type ParentRegistrationSecurityInput = z.infer<typeof parentRegistrationSecuritySchema>

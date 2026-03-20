@@ -56,7 +56,7 @@ async function generateMissionsFromCurriculum() {
       .from(curriculumModule)
       .where(eq(curriculumModule.curriculumId, cur.id))
       .orderBy(asc(curriculumModule.order))
-    const moduleIds = modules.map((m) => m.id)
+    const moduleIds = modules.map(m => m.id)
     const lessons = moduleIds.length
       ? await drizzleDb
           .select()
@@ -86,9 +86,10 @@ async function generateMissionsFromCurriculum() {
       await drizzleDb.insert(mission).values({
         id: crypto.randomUUID(),
         title: lesson.title,
-        description: lesson.learningObjectives?.[0] || lesson.description || `Learn ${lesson.title}`,
+        description:
+          lesson.learningObjectives?.[0] || lesson.description || `Learn ${lesson.title}`,
         type: 'lesson',
-        xpReward: 40 + (difficulty * 10),
+        xpReward: 40 + difficulty * 10,
         requirement: {
           missionType,
           grammarFocus,

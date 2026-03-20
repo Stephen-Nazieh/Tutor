@@ -1,13 +1,6 @@
 export const HANDLE_REGEX = /^[a-zA-Z0-9_]{3,15}$/
 
-const RESERVED_HANDLES = new Set([
-  'admin',
-  'support',
-  'everyone',
-  'staff',
-  'system',
-  'help',
-])
+const RESERVED_HANDLES = new Set(['admin', 'support', 'everyone', 'staff', 'system', 'help'])
 
 export function normalizeHandle(value: string): string {
   return value.trim().replace(/^@+/, '').toLowerCase()

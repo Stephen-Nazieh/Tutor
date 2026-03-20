@@ -23,7 +23,13 @@ export const GET = async (req: NextRequest) => {
   const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 100)
 
   const conditions = []
-  if (status) conditions.push(eq(payment.status, status as 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'REFUNDED' | 'CANCELLED'))
+  if (status)
+    conditions.push(
+      eq(
+        payment.status,
+        status as 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'REFUNDED' | 'CANCELLED'
+      )
+    )
   if (gateway) conditions.push(eq(payment.gateway, gateway as 'AIRWALLEX' | 'HITPAY'))
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined
 
@@ -43,7 +49,7 @@ export const GET = async (req: NextRequest) => {
     .orderBy(desc(payment.createdAt))
     .limit(limit)
 
-  const payments = rows.map((r) => ({
+  const payments = rows.map(r => ({
     ...r.payment,
     booking: r.bookingId
       ? {

@@ -88,10 +88,7 @@ describe('Comprehensive Security Tests', () => {
       }
 
       const { publicKey, privateKey } = await clientEncryption.generateTransportKeyPair()
-      const encryptedMessage = await encryptForTransport(
-        JSON.stringify(mockMessage),
-        publicKey
-      )
+      const encryptedMessage = await encryptForTransport(JSON.stringify(mockMessage), publicKey)
 
       expect(encryptedMessage.pub).toBeDefined()
       expect(encryptedMessage.ct).toBeDefined()

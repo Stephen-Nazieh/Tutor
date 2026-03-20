@@ -1,6 +1,6 @@
 /**
  * Avatar Personality Module (Layer 3)
- * 
+ *
  * 5 personality types that determine HOW the Socratic teaching is delivered
  * Not WHETHER to use Socratic method, but the STYLE of delivery
  */
@@ -49,8 +49,8 @@ export const PERSONALITIES: Record<string, PersonalityConfig> = {
     examplePhrases: {
       greeting: "Let's begin. Today's focus is clear communication.",
       correction: "Correction: Use present perfect with 'for' + duration.",
-      encouragement: "Good. Your accuracy improved by 15% this week.",
-      socraticPrompt: "Consider this: what is the core issue in your sentence?",
+      encouragement: 'Good. Your accuracy improved by 15% this week.',
+      socraticPrompt: 'Consider this: what is the core issue in your sentence?',
     },
   },
 
@@ -64,9 +64,9 @@ export const PERSONALITIES: Record<string, PersonalityConfig> = {
     socraticBalance: 0.5,
     examplePhrases: {
       greeting: "Welcome. Let's work on your professional communication skills.",
-      correction: "In a business context, consider this phrasing instead:",
-      encouragement: "Your professional articulation is showing measurable improvement.",
-      socraticPrompt: "From a stakeholder perspective, how would you frame this?",
+      correction: 'In a business context, consider this phrasing instead:',
+      encouragement: 'Your professional articulation is showing measurable improvement.',
+      socraticPrompt: 'From a stakeholder perspective, how would you frame this?',
     },
   },
 
@@ -82,7 +82,7 @@ export const PERSONALITIES: Record<string, PersonalityConfig> = {
       greeting: "Ready to level up your English? Let's make some grammar magic! 🎭",
       correction: "Oops! Let's give that sentence a little makeover! 💫",
       encouragement: "Boom! You're crushing it! High five! 🙌",
-      socraticPrompt: "Ooh, interesting! But what if we looked at it this way...?",
+      socraticPrompt: 'Ooh, interesting! But what if we looked at it this way...?',
     },
   },
 
@@ -97,7 +97,7 @@ export const PERSONALITIES: Record<string, PersonalityConfig> = {
     examplePhrases: {
       greeting: "Welcome. Take your time, and let's explore this together.",
       correction: "I see your thought process. Let's refine it gently:",
-      encouragement: "Your progress is steady and meaningful. Well done.",
+      encouragement: 'Your progress is steady and meaningful. Well done.',
       socraticPrompt: "That's an interesting approach. What led you to that conclusion?",
     },
   },
@@ -131,7 +131,12 @@ Important: Maintain your personality consistently while still following Socratic
 /**
  * Get correction template based on personality
  */
-export function getCorrectionTemplate(personalityId: string, original: string, corrected: string, explanation: string): string {
+export function getCorrectionTemplate(
+  personalityId: string,
+  original: string,
+  corrected: string,
+  explanation: string
+): string {
   const p = PERSONALITIES[personalityId] || PERSONALITIES.friendly_mentor
 
   if (personalityId === 'strict_coach') {
@@ -184,42 +189,90 @@ Try saying it again - you're doing great! ✨`
 /**
  * Get encouragement based on personality and context
  */
-export function getEncouragement(personalityId: string, context: 'progress' | 'effort' | 'milestone' | 'retry'): string {
+export function getEncouragement(
+  personalityId: string,
+  context: 'progress' | 'effort' | 'milestone' | 'retry'
+): string {
   const p = PERSONALITIES[personalityId] || PERSONALITIES.friendly_mentor
 
   const encouragements: Record<string, Record<string, string[]>> = {
     friendly_mentor: {
-      progress: ["You're getting better every day! 🌟", "I can see your improvement!", "You're on the right track! ✨"],
-      effort: ["Great effort! Keep going! 💪", "Trying is learning!", "Your effort shows! 🌟"],
-      milestone: ["Amazing achievement! 🎉", "You did it! So proud!", "Milestone unlocked! ✨"],
-      retry: ["No worries, let's try again!", "Mistakes help us grow!", "You've got this next time! 💪"],
+      progress: [
+        "You're getting better every day! 🌟",
+        'I can see your improvement!',
+        "You're on the right track! ✨",
+      ],
+      effort: ['Great effort! Keep going! 💪', 'Trying is learning!', 'Your effort shows! 🌟'],
+      milestone: ['Amazing achievement! 🎉', 'You did it! So proud!', 'Milestone unlocked! ✨'],
+      retry: [
+        "No worries, let's try again!",
+        'Mistakes help us grow!',
+        "You've got this next time! 💪",
+      ],
     },
     strict_coach: {
-      progress: ["Your accuracy is improving.", "Measurable progress observed.", "Keep this trajectory."],
-      effort: ["Effort acknowledged.", "Discipline is key.", "Consistency matters."],
-      milestone: ["Goal achieved.", "Target reached.", "Performance milestone met."],
-      retry: ["Analyze and retry.", "Learn from this.", "Try again with focus."],
+      progress: [
+        'Your accuracy is improving.',
+        'Measurable progress observed.',
+        'Keep this trajectory.',
+      ],
+      effort: ['Effort acknowledged.', 'Discipline is key.', 'Consistency matters.'],
+      milestone: ['Goal achieved.', 'Target reached.', 'Performance milestone met.'],
+      retry: ['Analyze and retry.', 'Learn from this.', 'Try again with focus.'],
     },
     corporate_trainer: {
-      progress: ["Your professional communication is improving.", "Measurable skill development.", "Competency growing."],
-      effort: ["Your dedication is noted.", "Professional persistence pays off.", "Commitment to growth evident."],
-      milestone: ["Professional milestone achieved.", "Competency level increased.", "Skill certification worthy."],
-      retry: ["Refine and reattempt.", "Learning opportunity.", "Apply feedback and proceed."],
+      progress: [
+        'Your professional communication is improving.',
+        'Measurable skill development.',
+        'Competency growing.',
+      ],
+      effort: [
+        'Your dedication is noted.',
+        'Professional persistence pays off.',
+        'Commitment to growth evident.',
+      ],
+      milestone: [
+        'Professional milestone achieved.',
+        'Competency level increased.',
+        'Skill certification worthy.',
+      ],
+      retry: ['Refine and reattempt.', 'Learning opportunity.', 'Apply feedback and proceed.'],
     },
     funny_teacher: {
-      progress: ["You're leveling up! 🎮", "Brain gains incoming! 💪", "Getting stronger! 🚀"],
-      effort: ["Epic attempt!", "Trying = Winning! 🏆", "Effort level: LEGENDARY!"],
-      milestone: ["BOSS DEFEATED! 🎉", "Achievement unlocked! 🏅", "You're on fire! 🔥"],
-      retry: ["Respawn and try again! 🎮", "Plot twist: you'll get it!", "Next level loading... 🚀"],
+      progress: ["You're leveling up! 🎮", 'Brain gains incoming! 💪', 'Getting stronger! 🚀'],
+      effort: ['Epic attempt!', 'Trying = Winning! 🏆', 'Effort level: LEGENDARY!'],
+      milestone: ['BOSS DEFEATED! 🎉', 'Achievement unlocked! 🏅', "You're on fire! 🔥"],
+      retry: [
+        'Respawn and try again! 🎮',
+        "Plot twist: you'll get it!",
+        'Next level loading... 🚀',
+      ],
     },
     calm_professor: {
-      progress: ["Your growth is steady and meaningful.", "Thoughtful progress observed.", "Development is evident."],
-      effort: ["Your persistence is admirable.", "Effort is the foundation of mastery.", "Steady work yields results."],
-      milestone: ["A significant step in your journey.", "Worthy of recognition.", "Meaningful achievement."],
-      retry: ["Reflection leads to improvement.", "Take time to understand, then proceed.", "Each attempt brings clarity."],
+      progress: [
+        'Your growth is steady and meaningful.',
+        'Thoughtful progress observed.',
+        'Development is evident.',
+      ],
+      effort: [
+        'Your persistence is admirable.',
+        'Effort is the foundation of mastery.',
+        'Steady work yields results.',
+      ],
+      milestone: [
+        'A significant step in your journey.',
+        'Worthy of recognition.',
+        'Meaningful achievement.',
+      ],
+      retry: [
+        'Reflection leads to improvement.',
+        'Take time to understand, then proceed.',
+        'Each attempt brings clarity.',
+      ],
     },
   }
 
-  const options = encouragements[personalityId]?.[context] || encouragements.friendly_mentor[context]
+  const options =
+    encouragements[personalityId]?.[context] || encouragements.friendly_mentor[context]
   return options[Math.floor(Math.random() * options.length)]
 }

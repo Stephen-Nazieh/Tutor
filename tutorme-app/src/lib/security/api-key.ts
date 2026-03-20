@@ -41,16 +41,9 @@ export async function createApiKey(
 export async function verifyApiKey(bearerToken: string): Promise<{ id: string } | null> {
   if (!bearerToken.startsWith(KEY_PREFIX)) return null
   const keyHash = hashKey(bearerToken)
-  const [record] = await drizzleDb
-    .select()
-    .from(apiKey)
-    .where(eq(apiKey.keyHash, keyHash))
-    .limit(1)
+  const [record] = await drizzleDb.select().from(apiKey).where(eq(apiKey.keyHash, keyHash)).limit(1)
   if (!record) return null
-  await drizzleDb
-    .update(apiKey)
-    .set({ lastUsedAt: new Date() })
-    .where(eq(apiKey.id, record.id))
+  await drizzleDb.update(apiKey).set({ lastUsedAt: new Date() }).where(eq(apiKey.id, record.id))
   return { id: record.id }
 }
 
@@ -78,7 +71,5 @@ export async function listApiKeys(createdById?: string) {
     })
     .from(apiKey)
     .orderBy(desc(apiKey.createdAt))
-  return createdById
-    ? base.where(eq(apiKey.createdById, createdById))
-    : base
+  return createdById ? base.where(eq(apiKey.createdById, createdById)) : base
 }

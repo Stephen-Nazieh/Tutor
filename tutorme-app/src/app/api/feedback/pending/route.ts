@@ -24,12 +24,12 @@ async function getHandler(request: NextRequest, session: Session) {
       priority,
       type,
       limit,
-      offset
+      offset,
     })
 
     return NextResponse.json({
       success: true,
-      data: result
+      data: result,
     })
   } catch (error) {
     console.error('Failed to get pending feedback:', error)

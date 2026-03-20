@@ -10,7 +10,8 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('@/lib/api/middleware', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/api/middleware')>('@/lib/api/middleware')
+  const actual =
+    await vi.importActual<typeof import('@/lib/api/middleware')>('@/lib/api/middleware')
   return {
     ...actual,
     requireAdminIp: mocks.requireAdminIp,

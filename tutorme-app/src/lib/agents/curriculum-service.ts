@@ -24,4 +24,3 @@ export async function generateCourseDescription(
   })
   return { description: (result.content || '').trim(), provider: result.provider }
 }
-

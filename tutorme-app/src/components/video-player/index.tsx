@@ -14,7 +14,7 @@ import {
   Settings,
   MessageSquare,
   BatteryLow,
-  PictureInPicture
+  PictureInPicture,
 } from 'lucide-react'
 
 const LABELS_ZH = {
@@ -63,23 +63,31 @@ export function VideoPlayer({
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const labels = locale === 'zh' ? LABELS_ZH : {
-    quickCheck: 'Quick Check!',
-    takeQuiz: 'Take Quiz',
-    skipForNow: 'Skip for Now',
-    skipWithNote: 'Skip with note',
-    play: 'Play',
-    pause: 'Pause',
-    speed: 'Speed',
-    fullscreen: 'Fullscreen',
-    pip: 'Picture-in-picture',
-    quality: 'Quality',
-    auto: 'Auto',
-  }
+  const labels =
+    locale === 'zh'
+      ? LABELS_ZH
+      : {
+          quickCheck: 'Quick Check!',
+          takeQuiz: 'Take Quiz',
+          skipForNow: 'Skip for Now',
+          skipWithNote: 'Skip with note',
+          play: 'Play',
+          pause: 'Pause',
+          speed: 'Speed',
+          fullscreen: 'Fullscreen',
+          pip: 'Picture-in-picture',
+          quality: 'Quality',
+          auto: 'Auto',
+        }
 
-  const variantKeys = videoVariants ? Object.keys(videoVariants).sort((a, b) => parseInt(b, 10) - parseInt(a, 10)) : []
+  const variantKeys = videoVariants
+    ? Object.keys(videoVariants).sort((a, b) => parseInt(b, 10) - parseInt(a, 10))
+    : []
   const [currentQuality, setCurrentQuality] = useState<string>(variantKeys[0] ?? 'auto')
-  const effectiveUrl = currentQuality === 'auto' || !videoVariants?.[currentQuality] ? videoUrl : videoVariants[currentQuality]
+  const effectiveUrl =
+    currentQuality === 'auto' || !videoVariants?.[currentQuality]
+      ? videoUrl
+      : videoVariants[currentQuality]
 
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -112,11 +120,19 @@ export function VideoPlayer({
 
   useEffect(() => {
     if (typeof navigator === 'undefined' || !('getBattery' in navigator)) return
-    const nav = navigator as Navigator & { getBattery?: () => Promise<{ level: number; addEventListener?: (e: string, fn: () => void) => void }> }
-    nav.getBattery?.().then((b) => {
-      setLowBattery(b.level < 0.2)
-      b.addEventListener?.('levelchange', () => setLowBattery(b.level < 0.2))
-    }).catch(() => {})
+    const nav = navigator as Navigator & {
+      getBattery?: () => Promise<{
+        level: number
+        addEventListener?: (e: string, fn: () => void) => void
+      }>
+    }
+    nav
+      .getBattery?.()
+      .then(b => {
+        setLowBattery(b.level < 0.2)
+        b.addEventListener?.('levelchange', () => setLowBattery(b.level < 0.2))
+      })
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -125,16 +141,16 @@ export function VideoPlayer({
 
     const handleTimeUpdate = () => {
       setCurrentTime(video.currentTime)
-      
+
       // Track watched segments (every 5 seconds)
       const segment = Math.floor(video.currentTime / 5)
       setWatchedSegments(prev => new Set([...prev, segment]))
-      
+
       // Call progress callback
       onProgress?.({
         currentTime: video.currentTime,
         duration: video.duration || 0,
-        percentage: video.duration ? (video.currentTime / video.duration) * 100 : 0
+        percentage: video.duration ? (video.currentTime / video.duration) * 100 : 0,
       })
 
       // Check for quiz triggers
@@ -315,11 +331,11 @@ export function VideoPlayer({
   }
 
   const progress = duration ? (currentTime / duration) * 100 : 0
-  const watchProgress = duration ? (watchedSegments.size * 5 / duration) * 100 : 0
+  const watchProgress = duration ? ((watchedSegments.size * 5) / duration) * 100 : 0
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX
-    if (isMobile) setShowControls((c) => !c)
+    if (isMobile) setShowControls(c => !c)
   }
   const onTouchEnd = (e: React.TouchEvent) => {
     const dx = e.changedTouches[0].clientX - touchStartX.current
@@ -335,17 +351,14 @@ export function VideoPlayer({
   const controlsOpacity = isMobile ? (showControls ? 1 : 0) : undefined
 
   return (
-    <div
-      ref={containerRef}
-      className="relative bg-black rounded-lg overflow-hidden group"
-    >
+    <div ref={containerRef} className="group relative overflow-hidden rounded-lg bg-black">
       {/* Video: portrait-friendly on narrow screens */}
-      <div className="w-full aspect-video sm:aspect-video max-h-[70vh] sm:max-h-none">
+      <div className="aspect-video max-h-[70vh] w-full sm:aspect-video sm:max-h-none">
         <video
           ref={videoRef}
           src={effectiveUrl}
-          className="w-full h-full object-contain"
-          onClick={() => (isMobile ? setShowControls((c) => !c) : togglePlay())}
+          className="h-full w-full object-contain"
+          onClick={() => (isMobile ? setShowControls(c => !c) : togglePlay())}
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
           playsInline
@@ -354,7 +367,7 @@ export function VideoPlayer({
 
       {/* Battery-aware hint */}
       {lowBattery && isPlaying && (
-        <div className="absolute top-2 left-2 right-2 z-10 flex items-center gap-2 rounded bg-black/70 px-3 py-2 text-sm text-white">
+        <div className="absolute left-2 right-2 top-2 z-10 flex items-center gap-2 rounded bg-black/70 px-3 py-2 text-sm text-white">
           <BatteryLow className="h-4 w-4 shrink-0" />
           <span>省电：可降低播放速度或亮度以节省电量</span>
         </div>
@@ -362,33 +375,36 @@ export function VideoPlayer({
 
       {/* Quiz Prompt Overlay - Chinese localized */}
       {showQuizPrompt && (
-        <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-20 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full text-center">
-            <MessageSquare className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-            <h3 className="text-xl font-bold mb-2">{labels.quickCheck}</h3>
-            <p className="text-gray-600 mb-4">
-              {locale === 'zh' ? '来检验一下刚才的内容吧。' : "Let's test your understanding of what you just watched."}
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/80 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 text-center">
+            <MessageSquare className="mx-auto mb-4 h-12 w-12 text-blue-500" />
+            <h3 className="mb-2 text-xl font-bold">{labels.quickCheck}</h3>
+            <p className="mb-4 text-gray-600">
+              {locale === 'zh'
+                ? '来检验一下刚才的内容吧。'
+                : "Let's test your understanding of what you just watched."}
             </p>
             {onQuizSkip && (
               <div className="mb-4">
-                <label className="block text-left text-sm text-gray-600 mb-1">
+                <label className="mb-1 block text-left text-sm text-gray-600">
                   {locale === 'zh' ? '跳过备注（可选）' : 'Skip note (optional)'}
                 </label>
                 <textarea
                   value={skipNote}
-                  onChange={(e) => setSkipNote(e.target.value.slice(0, 300))}
+                  onChange={e => setSkipNote(e.target.value.slice(0, 300))}
                   placeholder={locale === 'zh' ? '例如：稍后再做' : 'e.g. Do later'}
-                  className="w-full min-h-[44px] px-3 py-2 border rounded-md text-sm"
+                  className="min-h-[44px] w-full rounded-md border px-3 py-2 text-sm"
                   rows={2}
                 />
               </div>
             )}
-            <div className="flex flex-wrap gap-3 justify-center">
+            <div className="flex flex-wrap justify-center gap-3">
               <Button
                 variant="outline"
                 className="touch-target min-h-[44px]"
                 onClick={() => {
-                  if (quizTimestamp != null && onQuizSkip) onQuizSkip(quizTimestamp, skipNote || undefined)
+                  if (quizTimestamp != null && onQuizSkip)
+                    onQuizSkip(quizTimestamp, skipNote || undefined)
                   setShowQuizPrompt(false)
                   setSkipNote('')
                   videoRef.current?.play()
@@ -415,7 +431,7 @@ export function VideoPlayer({
       {/* Controls: bottom-sheet style on mobile, hover on desktop */}
       <div
         className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-200 sm:opacity-0 sm:group-hover:opacity-100 ${
-          isMobile ? 'rounded-t-xl pb-safe' : ''
+          isMobile ? 'pb-safe rounded-t-xl' : ''
         }`}
         style={controlsOpacity !== undefined ? { opacity: controlsOpacity } : undefined}
       >
@@ -426,10 +442,10 @@ export function VideoPlayer({
             min="0"
             max="100"
             value={progress}
-            onChange={(e) => handleSeek(Number(e.target.value))}
-            className="w-full h-2 sm:h-1 py-2 sm:py-0 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-500 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 sm:[&::-webkit-slider-thumb]:h-3 sm:[&::-webkit-slider-thumb]:w-3 touch-manipulation"
+            onChange={e => handleSeek(Number(e.target.value))}
+            className="h-2 w-full cursor-pointer touch-manipulation appearance-none rounded-lg bg-gray-600 py-2 accent-blue-500 sm:h-1 sm:py-0 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 sm:[&::-webkit-slider-thumb]:h-3 sm:[&::-webkit-slider-thumb]:w-3"
           />
-          <div className="flex justify-between text-xs text-white mt-1">
+          <div className="mt-1 flex justify-between text-xs text-white">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
@@ -445,7 +461,7 @@ export function VideoPlayer({
               onClick={togglePlay}
               className="text-white hover:bg-white/20"
             >
-              {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+              {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
             </Button>
 
             {/* Skip Buttons */}
@@ -455,7 +471,7 @@ export function VideoPlayer({
               onClick={() => skip(-10)}
               className="text-white hover:bg-white/20"
             >
-              <SkipBack className="w-5 h-5" />
+              <SkipBack className="h-5 w-5" />
             </Button>
             <Button
               variant="ghost"
@@ -463,7 +479,7 @@ export function VideoPlayer({
               onClick={() => skip(10)}
               className="text-white hover:bg-white/20"
             >
-              <SkipForward className="w-5 h-5" />
+              <SkipForward className="h-5 w-5" />
             </Button>
 
             {/* Volume - hide slider on small mobile */}
@@ -474,7 +490,7 @@ export function VideoPlayer({
                 onClick={toggleMute}
                 className="text-white hover:bg-white/20"
               >
-                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
               </Button>
               <input
                 type="range"
@@ -482,8 +498,8 @@ export function VideoPlayer({
                 max="1"
                 step="0.1"
                 value={isMuted ? 0 : volume}
-                onChange={(e) => handleVolumeChange(Number(e.target.value))}
-                className="hidden sm:block w-20 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-white"
+                onChange={e => handleVolumeChange(Number(e.target.value))}
+                className="hidden h-1 w-20 cursor-pointer appearance-none rounded-lg bg-gray-600 accent-white sm:block"
               />
             </div>
           </div>
@@ -497,17 +513,17 @@ export function VideoPlayer({
                 onClick={() => setShowSettings(!showSettings)}
                 className={`text-white hover:bg-white/20 ${isMobile ? 'min-h-[44px] min-w-[44px]' : ''}`}
               >
-                <Settings className="w-4 h-4 mr-1" />
+                <Settings className="mr-1 h-4 w-4" />
                 {playbackRate}x
               </Button>
-              
+
               {showSettings && (
-                <div className="absolute bottom-full right-0 mb-2 bg-black/90 rounded-lg p-2 min-w-[100px]">
-                  {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
+                <div className="absolute bottom-full right-0 mb-2 min-w-[100px] rounded-lg bg-black/90 p-2">
+                  {[0.5, 0.75, 1, 1.25, 1.5, 2].map(rate => (
                     <button
                       key={rate}
                       onClick={() => changePlaybackRate(rate)}
-                      className={`block w-full text-left px-3 py-2 sm:py-1 text-sm rounded min-h-[44px] sm:min-h-0 flex items-center ${
+                      className={`block flex min-h-[44px] w-full items-center rounded px-3 py-2 text-left text-sm sm:min-h-0 sm:py-1 ${
                         playbackRate === rate
                           ? 'bg-blue-500 text-white'
                           : 'text-white hover:bg-white/20'
@@ -529,7 +545,7 @@ export function VideoPlayer({
                 className="text-white hover:bg-white/20"
                 title={labels.pip}
               >
-                <PictureInPicture className={`w-5 h-5 ${pipActive ? 'text-blue-400' : ''}`} />
+                <PictureInPicture className={`h-5 w-5 ${pipActive ? 'text-blue-400' : ''}`} />
               </Button>
             )}
 
@@ -541,7 +557,7 @@ export function VideoPlayer({
               className="text-white hover:bg-white/20"
               title={labels.fullscreen}
             >
-              <Maximize className="w-5 h-5" />
+              <Maximize className="h-5 w-5" />
             </Button>
           </div>
         </div>
@@ -549,25 +565,28 @@ export function VideoPlayer({
 
       {/* Quality selector - when videoVariants provided */}
       {variantKeys.length > 0 && (
-        <div className="absolute top-2 right-2 z-10">
+        <div className="absolute right-2 top-2 z-10">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => { setShowQualityMenu((q) => !q); setShowSettings(false); }}
+            onClick={() => {
+              setShowQualityMenu(q => !q)
+              setShowSettings(false)
+            }}
             className="text-white hover:bg-white/20"
           >
             {labels.quality} {currentQuality === 'auto' ? labels.auto : currentQuality + 'p'}
           </Button>
           {showQualityMenu && (
-            <div className="absolute right-0 top-full mt-1 bg-black/90 rounded p-2 min-w-[80px]">
-              {['auto', ...variantKeys].map((q) => (
+            <div className="absolute right-0 top-full mt-1 min-w-[80px] rounded bg-black/90 p-2">
+              {['auto', ...variantKeys].map(q => (
                 <button
                   key={q}
                   onClick={() => {
                     setCurrentQuality(q)
                     setShowQualityMenu(false)
                   }}
-                  className={`block w-full text-left text-sm px-2 py-1 rounded text-white ${
+                  className={`block w-full rounded px-2 py-1 text-left text-sm text-white ${
                     currentQuality === q ? 'bg-blue-500' : 'hover:bg-white/20'
                   }`}
                 >
@@ -580,11 +599,11 @@ export function VideoPlayer({
       )}
 
       {/* Quiz Markers on Progress Bar */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gray-800">
+      <div className="absolute left-0 right-0 top-0 h-1 bg-gray-800">
         {quizTimestamps.map((timestamp, index) => (
           <div
             key={index}
-            className="absolute top-0 w-1 h-full bg-yellow-500"
+            className="absolute top-0 h-full w-1 bg-yellow-500"
             style={{ left: `${(timestamp / duration) * 100}%` }}
             title={`Quiz at ${formatTime(timestamp)}`}
           />

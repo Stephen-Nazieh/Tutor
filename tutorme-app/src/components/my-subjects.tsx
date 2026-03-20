@@ -6,9 +6,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { 
-  BookOpen, 
-  Loader2, 
+import {
+  BookOpen,
+  Loader2,
   ChevronRight,
   Languages,
   Calculator,
@@ -22,7 +22,7 @@ import {
   MessageCircle,
   X,
   AlertCircle,
-  Users
+  Users,
 } from 'lucide-react'
 import {
   Dialog,
@@ -53,22 +53,22 @@ interface Subject {
 }
 
 const subjectIcons: Record<string, React.ReactNode> = {
-  english: <Languages className="w-6 h-6" />,
-  math: <Calculator className="w-6 h-6" />,
-  precalculus: <Calculator className="w-6 h-6" />,
-  'ap-calculus-ab': <Calculator className="w-6 h-6" />,
-  'ap-calculus-bc': <Calculator className="w-6 h-6" />,
-  'ap-statistics': <Calculator className="w-6 h-6" />,
-  physics: <Atom className="w-6 h-6" />,
-  chemistry: <Microscope className="w-6 h-6" />,
-  biology: <Microscope className="w-6 h-6" />,
-  ielts: <GraduationCap className="w-6 h-6" />,
-  toefl: <GraduationCap className="w-6 h-6" />,
-  'computer science': <Monitor className="w-6 h-6" />,
-  cs: <Monitor className="w-6 h-6" />,
-  music: <Music className="w-6 h-6" />,
-  art: <Palette className="w-6 h-6" />,
-  geography: <Globe className="w-6 h-6" />,
+  english: <Languages className="h-6 w-6" />,
+  math: <Calculator className="h-6 w-6" />,
+  precalculus: <Calculator className="h-6 w-6" />,
+  'ap-calculus-ab': <Calculator className="h-6 w-6" />,
+  'ap-calculus-bc': <Calculator className="h-6 w-6" />,
+  'ap-statistics': <Calculator className="h-6 w-6" />,
+  physics: <Atom className="h-6 w-6" />,
+  chemistry: <Microscope className="h-6 w-6" />,
+  biology: <Microscope className="h-6 w-6" />,
+  ielts: <GraduationCap className="h-6 w-6" />,
+  toefl: <GraduationCap className="h-6 w-6" />,
+  'computer science': <Monitor className="h-6 w-6" />,
+  cs: <Monitor className="h-6 w-6" />,
+  music: <Music className="h-6 w-6" />,
+  art: <Palette className="h-6 w-6" />,
+  geography: <Globe className="h-6 w-6" />,
 }
 
 const subjectColors: Record<string, string> = {
@@ -133,7 +133,7 @@ export function MySubjects({ onSubjectsChange }: MySubjectsProps) {
             confidence: 72,
             totalLessons: 20,
             completedLessons: 13,
-            lastStudied: '2 hours ago'
+            lastStudied: '2 hours ago',
           },
           {
             id: '2',
@@ -151,7 +151,7 @@ export function MySubjects({ onSubjectsChange }: MySubjectsProps) {
             confidence: 52,
             totalLessons: 25,
             completedLessons: 11,
-            lastStudied: '1 day ago'
+            lastStudied: '1 day ago',
           },
           {
             id: '3',
@@ -169,8 +169,8 @@ export function MySubjects({ onSubjectsChange }: MySubjectsProps) {
             confidence: 38,
             totalLessons: 18,
             completedLessons: 5,
-            lastStudied: '3 days ago'
-          }
+            lastStudied: '3 days ago',
+          },
         ])
         setLoading(false)
       })
@@ -178,17 +178,17 @@ export function MySubjects({ onSubjectsChange }: MySubjectsProps) {
 
   const handleRemoveSubject = async () => {
     if (!subjectToRemove) return
-    
+
     setRemovingSubject(getSubjectIdentifier(subjectToRemove))
     try {
       const res = await fetch('/api/student/subjects/unenroll', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subjectCode: getSubjectIdentifier(subjectToRemove) })
+        body: JSON.stringify({ subjectCode: getSubjectIdentifier(subjectToRemove) }),
       })
-      
+
       const data = await res.json()
-      
+
       if (data.success) {
         toast.success(`Removed ${subjectToRemove.name}`, {
           description: 'You have been unenrolled from this subject',
@@ -216,8 +216,8 @@ export function MySubjects({ onSubjectsChange }: MySubjectsProps) {
   }
 
   const getSubjectIcon = (code: string | undefined) => {
-    if (!code) return <BookOpen className="w-6 h-6" />
-    return subjectIcons[code.toLowerCase()] || <BookOpen className="w-6 h-6" />
+    if (!code) return <BookOpen className="h-6 w-6" />
+    return subjectIcons[code.toLowerCase()] || <BookOpen className="h-6 w-6" />
   }
 
   const getSubjectColor = (code: string | undefined) => {
@@ -228,51 +228,51 @@ export function MySubjects({ onSubjectsChange }: MySubjectsProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
       </div>
     )
   }
 
   if (subjects.length === 0) {
     return (
-      <div className="text-center py-8">
-        <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+      <div className="py-8 text-center">
+        <BookOpen className="mx-auto mb-3 h-12 w-12 text-gray-300" />
         <p className="text-gray-600">No subjects yet</p>
-        <p className="text-sm text-gray-400 mb-4">Add subjects to start learning</p>
-        <Button onClick={() => router.push('/student/subjects/browse')}>
-          Browse Subjects
-        </Button>
+        <p className="mb-4 text-sm text-gray-400">Add subjects to start learning</p>
+        <Button onClick={() => router.push('/student/subjects/browse')}>Browse Subjects</Button>
       </div>
     )
   }
 
   return (
     <>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {subjects.map((subject) => (
-          <Card 
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {subjects.map(subject => (
+          <Card
             key={subject.id}
-            className="hover:shadow-md transition-all hover:border-blue-300 group"
+            className="group transition-all hover:border-blue-300 hover:shadow-md"
           >
             <CardContent className="pt-4">
               {/* Main card area - navigates to subject detail */}
-              <div 
+              <div
                 className="cursor-pointer"
                 onClick={() => router.push(`/student/subjects/${getSubjectIdentifier(subject)}`)}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`p-2 rounded-lg text-white ${getSubjectColor(getSubjectIdentifier(subject))}`}>
+                  <div
+                    className={`rounded-lg p-2 text-white ${getSubjectColor(getSubjectIdentifier(subject))}`}
+                  >
                     {getSubjectIcon(getSubjectIdentifier(subject))}
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold truncate">{subject.name}</h3>
-                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                      <h3 className="truncate font-semibold">{subject.name}</h3>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
                     </div>
-                    <p className="text-xs text-gray-500 line-clamp-1">{subject.description}</p>
-                    
+                    <p className="line-clamp-1 text-xs text-gray-500">{subject.description}</p>
+
                     <div className="mt-3">
-                      <div className="flex items-center justify-between text-xs mb-1">
+                      <div className="mb-1 flex items-center justify-between text-xs">
                         <span className="text-gray-500">Progress</span>
                         <span className="font-medium">{subject.progress}%</span>
                       </div>
@@ -283,57 +283,55 @@ export function MySubjects({ onSubjectsChange }: MySubjectsProps) {
               </div>
 
               {/* Bottom row with lessons badge and AI Tutor button */}
-              <div className="flex items-center justify-between mt-3 pt-3 border-t">
+              <div className="mt-3 flex items-center justify-between border-t pt-3">
                 <Badge variant="secondary" className="text-xs">
                   {subject.completedLessons}/{subject.totalLessons} lessons
                 </Badge>
-                
+
                 <div className="flex items-center gap-2">
                   {subject.lastStudied && (
-                    <span className="text-xs text-gray-400">
-                      {subject.lastStudied}
-                    </span>
+                    <span className="text-xs text-gray-400">{subject.lastStudied}</span>
                   )}
-                  
+
                   {/* Remove button - visible on hover */}
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 hover:bg-red-50"
-                    onClick={(e) => {
+                    className="h-7 w-7 p-0 text-gray-400 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-500 group-hover:opacity-100"
+                    onClick={e => {
                       e.stopPropagation()
                       setSubjectToRemove(subject)
                     }}
                     title="Remove subject"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="h-4 w-4" />
                   </Button>
-                  
+
                   {/* Human Tutors Button */}
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
-                    className="h-7 text-xs border-purple-200 hover:bg-purple-50 hover:text-purple-700"
-                    onClick={(e) => {
+                    className="h-7 border-purple-200 text-xs hover:bg-purple-50 hover:text-purple-700"
+                    onClick={e => {
                       e.stopPropagation()
                       router.push(`/student/classes?subject=${getSubjectIdentifier(subject)}`)
                     }}
                   >
-                    <Users className="w-3 h-3 mr-1" />
+                    <Users className="mr-1 h-3 w-3" />
                     Human Tutors
                   </Button>
-                  
+
                   {/* AI Tutor Button */}
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     className="h-7 text-xs"
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation()
                       router.push(`/student/subjects/${getSubjectIdentifier(subject)}/chat`)
                     }}
                   >
-                    <MessageCircle className="w-3 h-3 mr-1" />
+                    <MessageCircle className="mr-1 h-3 w-3" />
                     AI Tutor
                   </Button>
                 </div>
@@ -348,15 +346,17 @@ export function MySubjects({ onSubjectsChange }: MySubjectsProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-red-500" />
+              <AlertCircle className="h-5 w-5 text-red-500" />
               Remove Subject
             </DialogTitle>
             <DialogDescription asChild>
               <div>
-                Are you sure you want to remove <strong>{subjectToRemove?.name}</strong> from your subjects?
-                <br /><br />
+                Are you sure you want to remove <strong>{subjectToRemove?.name}</strong> from your
+                subjects?
+                <br />
+                <br />
                 This will:
-                <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                <ul className="mt-2 list-inside list-disc space-y-1 text-sm">
                   <li>Remove your enrollment</li>
                   <li>Delete your progress tracking</li>
                   <li>Remove access to AI Tutor for this subject</li>
@@ -371,15 +371,15 @@ export function MySubjects({ onSubjectsChange }: MySubjectsProps) {
             <Button variant="outline" onClick={() => setSubjectToRemove(null)}>
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleRemoveSubject}
               disabled={removingSubject === subjectToRemove?.code}
             >
               {removingSubject === subjectToRemove?.code ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
-                <X className="w-4 h-4 mr-2" />
+                <X className="mr-2 h-4 w-4" />
               )}
               Remove Subject
             </Button>

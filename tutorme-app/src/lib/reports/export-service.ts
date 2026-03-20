@@ -5,7 +5,7 @@
 
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 
 // Type definitions for export data
 export interface StudentExportData {
@@ -72,22 +72,22 @@ export interface EngagementMetrics {
 export function generateClassReportPDF(data: ClassExportData): Buffer {
   const doc = new jsPDF()
   const pageWidth = doc.internal.pageSize.getWidth()
-  
+
   // Header
   doc.setFontSize(20)
   doc.setTextColor(37, 99, 235) // Blue-600
   doc.text('Class Performance Report', 14, 20)
-  
+
   doc.setFontSize(12)
   doc.setTextColor(107, 114, 128) // Gray-500
   doc.text(`${data.classInfo.title} - ${data.classInfo.subject}`, 14, 28)
   doc.text(`Generated: ${data.classInfo.reportDate}`, 14, 34)
-  
+
   // Summary Section
   doc.setFontSize(14)
   doc.setTextColor(31, 41, 55) // Gray-800
   doc.text('Summary Statistics', 14, 45)
-  
+
   const summaryData = [
     ['Total Students', String(data.summary.totalStudents)],
     ['Class Average', `${data.summary.averageScore.toFixed(1)}%`],
@@ -97,7 +97,7 @@ export function generateClassReportPDF(data: ClassExportData): Buffer {
     ['Avg Engagement', `${data.summary.avgEngagement.toFixed(1)}%`],
     ['Avg Attendance', `${data.summary.avgAttendance.toFixed(1)}%`],
   ]
-  
+
   autoTable(doc, {
     startY: 50,
     head: [['Metric', 'Value']],
@@ -110,18 +110,18 @@ export function generateClassReportPDF(data: ClassExportData): Buffer {
       1: { cellWidth: 40 },
     },
   })
-  
+
   // Score Distribution
   const summaryEndY = (doc as any).lastAutoTable.finalY || 80
   doc.setFontSize(14)
   doc.text('Score Distribution', 14, summaryEndY + 15)
-  
+
   const distributionData = data.scoreDistribution.map(d => [
     d.range,
     String(d.count),
     `${((d.count / data.summary.totalStudents) * 100).toFixed(1)}%`,
   ])
-  
+
   autoTable(doc, {
     startY: summaryEndY + 20,
     head: [['Score Range', 'Count', 'Percentage']],
@@ -130,12 +130,12 @@ export function generateClassReportPDF(data: ClassExportData): Buffer {
     headStyles: { fillColor: [37, 99, 235], textColor: 255 },
     styles: { fontSize: 10 },
   })
-  
+
   // Student Performance Table
   const distributionEndY = (doc as any).lastAutoTable.finalY || 120
   doc.setFontSize(14)
   doc.text('Student Performance Details', 14, distributionEndY + 15)
-  
+
   const studentData = data.students.map(s => [
     s.name,
     `${s.averageScore.toFixed(1)}%`,
@@ -144,7 +144,7 @@ export function generateClassReportPDF(data: ClassExportData): Buffer {
     `${s.engagementScore.toFixed(1)}%`,
     `${s.attendanceRate.toFixed(1)}%`,
   ])
-  
+
   autoTable(doc, {
     startY: distributionEndY + 20,
     head: [['Name', 'Avg Score', 'Completion', 'Level', 'Engagement', 'Attendance']],
@@ -161,7 +161,7 @@ export function generateClassReportPDF(data: ClassExportData): Buffer {
       5: { cellWidth: 28, halign: 'center' },
     },
   })
-  
+
   // Footer
   const pageCount = doc.getNumberOfPages()
   for (let i = 1; i <= pageCount; i++) {
@@ -175,7 +175,7 @@ export function generateClassReportPDF(data: ClassExportData): Buffer {
       { align: 'center' }
     )
   }
-  
+
   return Buffer.from(doc.output('arraybuffer'))
 }
 
@@ -185,23 +185,23 @@ export function generateStudentReportPDF(
 ): Buffer {
   const doc = new jsPDF()
   const pageWidth = doc.internal.pageSize.getWidth()
-  
+
   // Header
   doc.setFontSize(20)
   doc.setTextColor(37, 99, 235)
   doc.text('Student Performance Report', 14, 20)
-  
+
   doc.setFontSize(12)
   doc.setTextColor(107, 114, 128)
   doc.text(`${student.name}`, 14, 28)
   doc.text(`${classInfo.title} - ${classInfo.subject}`, 14, 34)
   doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 40)
-  
+
   // Performance Overview
   doc.setFontSize(14)
   doc.setTextColor(31, 41, 55)
   doc.text('Performance Overview', 14, 52)
-  
+
   const metricsData = [
     ['Average Score', `${student.averageScore.toFixed(1)}%`],
     ['Completion Rate', `${student.completionRate.toFixed(1)}%`],
@@ -211,11 +211,14 @@ export function generateStudentReportPDF(
     ['Learning Pace', student.pace.charAt(0).toUpperCase() + student.pace.slice(1)],
     ['Performance Level', student.cluster.charAt(0).toUpperCase() + student.cluster.slice(1)],
   ]
-  
+
   if (student.learningStyle) {
-    metricsData.push(['Learning Style', student.learningStyle.charAt(0).toUpperCase() + student.learningStyle.slice(1)])
+    metricsData.push([
+      'Learning Style',
+      student.learningStyle.charAt(0).toUpperCase() + student.learningStyle.slice(1),
+    ])
   }
-  
+
   autoTable(doc, {
     startY: 58,
     head: [['Metric', 'Value']],
@@ -224,16 +227,17 @@ export function generateStudentReportPDF(
     headStyles: { fillColor: [37, 99, 235], textColor: 255 },
     styles: { fontSize: 10 },
   })
-  
+
   // Strengths
   const metricsEndY = (doc as any).lastAutoTable.finalY || 90
   doc.setFontSize(14)
   doc.text('Strengths', 14, metricsEndY + 15)
-  
-  const strengthsData = student.strengths.length > 0 
-    ? student.strengths.map((s, i) => [String(i + 1), s])
-    : [['1', 'No specific strengths identified yet']]
-  
+
+  const strengthsData =
+    student.strengths.length > 0
+      ? student.strengths.map((s, i) => [String(i + 1), s])
+      : [['1', 'No specific strengths identified yet']]
+
   autoTable(doc, {
     startY: metricsEndY + 20,
     head: [['#', 'Area']],
@@ -243,16 +247,17 @@ export function generateStudentReportPDF(
     styles: { fontSize: 10 },
     columnStyles: { 0: { cellWidth: 15, halign: 'center' } },
   })
-  
+
   // Areas for Improvement
   const strengthsEndY = (doc as any).lastAutoTable.finalY || 120
   doc.setFontSize(14)
   doc.text('Areas for Improvement', 14, strengthsEndY + 15)
-  
-  const weaknessesData = student.weaknesses.length > 0
-    ? student.weaknesses.map((w, i) => [String(i + 1), w])
-    : [['1', 'No specific areas identified yet']]
-  
+
+  const weaknessesData =
+    student.weaknesses.length > 0
+      ? student.weaknesses.map((w, i) => [String(i + 1), w])
+      : [['1', 'No specific areas identified yet']]
+
   autoTable(doc, {
     startY: strengthsEndY + 20,
     head: [['#', 'Area']],
@@ -262,17 +267,14 @@ export function generateStudentReportPDF(
     styles: { fontSize: 10 },
     columnStyles: { 0: { cellWidth: 15, halign: 'center' } },
   })
-  
+
   // Footer
   doc.setFontSize(8)
   doc.setTextColor(156, 163, 175)
-  doc.text(
-    'Solocorn Student Report',
-    pageWidth / 2,
-    doc.internal.pageSize.getHeight() - 10,
-    { align: 'center' }
-  )
-  
+  doc.text('Solocorn Student Report', pageWidth / 2, doc.internal.pageSize.getHeight() - 10, {
+    align: 'center',
+  })
+
   return Buffer.from(doc.output('arraybuffer'))
 }
 
@@ -280,11 +282,12 @@ export function generateStudentReportPDF(
 // Excel Export Functions
 // ============================================
 
-export function generateClassReportExcel(data: ClassExportData): Buffer {
-  const workbook = XLSX.utils.book_new()
-  
+export async function generateClassReportExcel(data: ClassExportData): Promise<Buffer> {
+  const workbook = new ExcelJS.Workbook()
+
   // Sheet 1: Summary
-  const summaryData = [
+  const summarySheet = workbook.addWorksheet('Summary')
+  summarySheet.addRows([
     ['Class Performance Report'],
     [''],
     ['Class Information'],
@@ -311,18 +314,12 @@ export function generateClassReportExcel(data: ClassExportData): Buffer {
     [''],
     ['Cluster Distribution'],
     ['Level', 'Count', 'Percentage'],
-    ...data.clusterDistribution.map(d => [
-      d.name,
-      d.count,
-      `${d.percentage.toFixed(1)}%`,
-    ]),
-  ]
-  
-  const summarySheet = XLSX.utils.aoa_to_sheet(summaryData)
-  XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary')
-  
+    ...data.clusterDistribution.map(d => [d.name, d.count, `${d.percentage.toFixed(1)}%`]),
+  ])
+
   // Sheet 2: All Students
-  const studentHeaders = [
+  const studentsSheet = workbook.addWorksheet('All Students')
+  studentsSheet.addRow([
     'Name',
     'Email',
     'Average Score (%)',
@@ -335,67 +332,70 @@ export function generateClassReportExcel(data: ClassExportData): Buffer {
     'Learning Style',
     'Strengths',
     'Weaknesses',
-  ]
-  
-  const studentData = data.students.map(s => [
-    s.name,
-    s.email || '',
-    s.averageScore,
-    s.completionRate,
-    s.engagementScore,
-    s.attendanceRate,
-    s.participationRate,
-    s.cluster.charAt(0).toUpperCase() + s.cluster.slice(1),
-    s.pace.charAt(0).toUpperCase() + s.pace.slice(1),
-    s.learningStyle ? s.learningStyle.charAt(0).toUpperCase() + s.learningStyle.slice(1) : '',
-    s.strengths.join('; '),
-    s.weaknesses.join('; '),
   ])
-  
-  const studentsSheet = XLSX.utils.aoa_to_sheet([studentHeaders, ...studentData])
-  XLSX.utils.book_append_sheet(workbook, studentsSheet, 'All Students')
-  
+  data.students.forEach(s => {
+    studentsSheet.addRow([
+      s.name,
+      s.email || '',
+      s.averageScore,
+      s.completionRate,
+      s.engagementScore,
+      s.attendanceRate,
+      s.participationRate,
+      s.cluster.charAt(0).toUpperCase() + s.cluster.slice(1),
+      s.pace.charAt(0).toUpperCase() + s.pace.slice(1),
+      s.learningStyle ? s.learningStyle.charAt(0).toUpperCase() + s.learningStyle.slice(1) : '',
+      s.strengths.join('; '),
+      s.weaknesses.join('; '),
+    ])
+  })
+
   // Sheet 3: Top Performers
-  const topHeaders = ['Rank', 'Name', 'Average Score (%)', 'Completion Rate (%)', 'Performance Level']
-  const topData = data.topPerformers.map((s, i) => [
-    i + 1,
-    s.name,
-    s.averageScore,
-    s.completionRate,
-    s.cluster.charAt(0).toUpperCase() + s.cluster.slice(1),
-  ])
-  
-  const topSheet = XLSX.utils.aoa_to_sheet([topHeaders, ...topData])
-  XLSX.utils.book_append_sheet(workbook, topSheet, 'Top Performers')
-  
+  const topSheet = workbook.addWorksheet('Top Performers')
+  topSheet.addRow(['Rank', 'Name', 'Average Score (%)', 'Completion Rate (%)', 'Performance Level'])
+  data.topPerformers.forEach((s, i) => {
+    topSheet.addRow([
+      i + 1,
+      s.name,
+      s.averageScore,
+      s.completionRate,
+      s.cluster.charAt(0).toUpperCase() + s.cluster.slice(1),
+    ])
+  })
+
   // Sheet 4: Needs Attention
-  const attentionHeaders = ['Name', 'Average Score (%)', 'Performance Level', 'Areas of Concern']
-  const attentionData = data.needsAttention.map(s => [
-    s.name,
-    s.averageScore,
-    s.cluster.charAt(0).toUpperCase() + s.cluster.slice(1),
-    s.weaknesses.slice(0, 3).join('; '),
-  ])
-  
-  const attentionSheet = XLSX.utils.aoa_to_sheet([attentionHeaders, ...attentionData])
-  XLSX.utils.book_append_sheet(workbook, attentionSheet, 'Needs Attention')
-  
+  const attentionSheet = workbook.addWorksheet('Needs Attention')
+  attentionSheet.addRow(['Name', 'Average Score (%)', 'Performance Level', 'Areas of Concern'])
+  data.needsAttention.forEach(s => {
+    attentionSheet.addRow([
+      s.name,
+      s.averageScore,
+      s.cluster.charAt(0).toUpperCase() + s.cluster.slice(1),
+      s.weaknesses.slice(0, 3).join('; '),
+    ])
+  })
+
   // Generate buffer
-  return Buffer.from(XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }))
+  const buffer = await workbook.xlsx.writeBuffer()
+  return Buffer.from(buffer)
 }
 
-export function generateEngagementReportExcel(
+export async function generateEngagementReportExcel(
   data: EngagementMetrics,
   classTitle: string
-): Buffer {
-  const workbook = XLSX.utils.book_new()
-  
+): Promise<Buffer> {
+  const workbook = new ExcelJS.Workbook()
+
   // Sheet 1: Overview
-  const overviewData = [
+  const overviewSheet = workbook.addWorksheet('Overview')
+  overviewSheet.addRows([
     ['Class Engagement Report'],
     [''],
     ['Class', classTitle],
-    ['Report Period', `${data.period.start.toLocaleDateString()} - ${data.period.end.toLocaleDateString()}`],
+    [
+      'Report Period',
+      `${data.period.start.toLocaleDateString()} - ${data.period.end.toLocaleDateString()}`,
+    ],
     [''],
     ['Overall Engagement Score', `${data.overallEngagement.toFixed(1)}%`],
     [''],
@@ -409,29 +409,24 @@ export function generateEngagementReportExcel(
     [''],
     ['Students At Risk', data.studentsAtRisk.length],
     ...data.studentsAtRisk.map((id, i) => [`Student ${i + 1}`, id]),
-  ]
-  
-  const overviewSheet = XLSX.utils.aoa_to_sheet(overviewData)
-  XLSX.utils.book_append_sheet(workbook, overviewSheet, 'Overview')
-  
-  // Sheet 2: Daily Trend
-  const dailyHeaders = ['Date', 'Engagement Score (%)', 'Attendance Rate (%)']
-  const dailyData = data.dailyTrend.map(d => [d.date, d.engagement, d.attendance])
-  
-  const dailySheet = XLSX.utils.aoa_to_sheet([dailyHeaders, ...dailyData])
-  XLSX.utils.book_append_sheet(workbook, dailySheet, 'Daily Trend')
-  
-  // Sheet 3: Hourly Pattern
-  const hourlyHeaders = ['Hour', 'Activity Level']
-  const hourlyData = data.hourlyPattern.map(h => [
-    `${h.hour}:00`,
-    h.activity,
   ])
-  
-  const hourlySheet = XLSX.utils.aoa_to_sheet([hourlyHeaders, ...hourlyData])
-  XLSX.utils.book_append_sheet(workbook, hourlySheet, 'Hourly Pattern')
-  
-  return Buffer.from(XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }))
+
+  // Sheet 2: Daily Trend
+  const dailySheet = workbook.addWorksheet('Daily Trend')
+  dailySheet.addRow(['Date', 'Engagement Score (%)', 'Attendance Rate (%)'])
+  data.dailyTrend.forEach(d => {
+    dailySheet.addRow([d.date, d.engagement, d.attendance])
+  })
+
+  // Sheet 3: Hourly Pattern
+  const hourlySheet = workbook.addWorksheet('Hourly Pattern')
+  hourlySheet.addRow(['Hour', 'Activity Level'])
+  data.hourlyPattern.forEach(h => {
+    hourlySheet.addRow([`${h.hour}:00`, h.activity])
+  })
+
+  const buffer = await workbook.xlsx.writeBuffer()
+  return Buffer.from(buffer)
 }
 
 // ============================================
@@ -440,7 +435,7 @@ export function generateEngagementReportExcel(
 
 export function generateCSV(data: Record<string, unknown>[]): string {
   if (data.length === 0) return ''
-  
+
   const headers = Object.keys(data[0])
   const csvRows = [
     headers.join(','),
@@ -453,7 +448,11 @@ export function generateCSV(data: Record<string, unknown>[]): string {
               ? JSON.stringify(value)
               : String(value ?? '')
           // Escape quotes and wrap in quotes if needed
-          if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+          if (
+            stringValue.includes(',') ||
+            stringValue.includes('"') ||
+            stringValue.includes('\n')
+          ) {
             return `"${stringValue.replace(/"/g, '""')}"`
           }
           return stringValue
@@ -461,6 +460,6 @@ export function generateCSV(data: Record<string, unknown>[]): string {
         .join(',')
     ),
   ]
-  
+
   return csvRows.join('\n')
 }

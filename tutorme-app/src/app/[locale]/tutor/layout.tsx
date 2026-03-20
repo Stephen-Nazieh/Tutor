@@ -49,17 +49,9 @@ const navItems: NavItem[] = [
   { href: '/tutor/support', label: 'Support', icon: HelpCircle },
 ]
 
-const bottomNavItems = [
-  { href: '/tutor/settings', label: 'Account', icon: User },
-]
+const bottomNavItems = [{ href: '/tutor/settings', label: 'Account', icon: User }]
 
-
-
-export default function TutorLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function TutorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const { data: session, status } = useSession()
@@ -95,7 +87,8 @@ export default function TutorLayout({
 
   // Check if we're in a live class session - if so, don't render the sidebar
   // Live class should be immersive full-screen experience
-  const isLiveClass = pathname?.includes('/live-class/') && pathname?.split('/live-class/')[1]?.length > 0
+  const isLiveClass =
+    pathname?.includes('/live-class/') && pathname?.split('/live-class/')[1]?.length > 0
 
   // Check if we're on My Page - hide sidebar and show back button instead
   const isMyPage = pathname === '/tutor/my-page' || pathname?.startsWith('/tutor/my-page/')
@@ -104,46 +97,60 @@ export default function TutorLayout({
   const isLessonBank = pathname === '/tutor/lessons' || pathname?.startsWith('/tutor/lessons/')
   const isAccountPage = pathname === '/tutor/settings' || pathname?.startsWith('/tutor/settings/')
 
-  if (isCourseBuilder || isCoursePublishPage || isLiveClass || isMyPage || isLessonBank || isAccountPage) {
+  if (
+    isCourseBuilder ||
+    isCoursePublishPage ||
+    isLiveClass ||
+    isMyPage ||
+    isLessonBank ||
+    isAccountPage
+  ) {
     return <>{children}</>
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="flex min-h-screen bg-gray-50">
       {/* Floating Action Button to Show Navigation on Desktop */}
       {!desktopNavOpen && (
         <Button
           variant="outline"
           size="icon"
           onClick={() => setDesktopNavOpen(true)}
-          className="fixed top-4 left-4 z-50 hidden lg:flex rounded-full shadow-md bg-white border-gray-200"
+          className="fixed left-4 top-4 z-50 hidden rounded-full border-gray-200 bg-white shadow-md lg:flex"
         >
           <PanelLeftOpen className="h-5 w-5" />
         </Button>
       )}
 
       {/* Left Navigation Sidebar - Desktop */}
-      <aside className={cn(
-        "bg-white border-r sticky top-0 h-screen z-40 transition-all duration-300 hidden lg:flex flex-col",
-        desktopNavOpen ? "w-64 translate-x-0" : "w-0 -translate-x-full overflow-hidden border-r-0"
-      )}>
-        <div className="p-4 border-b flex items-center justify-between min-w-[256px]">
+      <aside
+        className={cn(
+          'sticky top-0 z-40 hidden h-screen flex-col border-r bg-white transition-all duration-300 lg:flex',
+          desktopNavOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full overflow-hidden border-r-0'
+        )}
+      >
+        <div className="flex min-w-[256px] items-center justify-between border-b p-4">
           <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600"></Link>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={() => setDesktopNavOpen(false)} title="Hide Navigation text-gray-400">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDesktopNavOpen(false)}
+              title="Hide Navigation text-gray-400"
+            >
               <PanelLeftClose className="h-4 w-4" />
             </Button>
             <Link href="/tutor/notifications">
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
               </Button>
             </Link>
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => {
+        <nav className="flex-1 space-y-0.5 overflow-y-auto p-4">
+          {navItems.map(item => {
             const Icon = item.icon
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
@@ -151,22 +158,22 @@ export default function TutorLayout({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
-                  item.inactive && "pointer-events-none opacity-50",
+                  'flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors',
+                  item.inactive && 'pointer-events-none opacity-50',
                   isActive
-                    ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    ? 'bg-blue-50 font-medium text-blue-700'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 )}
               >
                 <Icon className="h-5 w-5 flex-shrink-0" />
-                <span className="font-medium text-sm">{item.label}</span>
+                <span className="text-sm font-medium">{item.label}</span>
               </Link>
             )
           })}
         </nav>
 
-        <div className="p-4 border-t space-y-1">
-          {bottomNavItems.map((item) => {
+        <div className="space-y-1 border-t p-4">
+          {bottomNavItems.map(item => {
             const Icon = item.icon
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
@@ -174,10 +181,10 @@ export default function TutorLayout({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm",
+                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
                   isActive
-                    ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    ? 'bg-blue-50 font-medium text-blue-700'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 )}
               >
                 <Icon className="h-5 w-5 flex-shrink-0" />
@@ -187,7 +194,7 @@ export default function TutorLayout({
           })}
           <button
             onClick={() => signOut({ callbackUrl: '/' })}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 w-full"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
           >
             <LogOut className="h-5 w-5 flex-shrink-0" />
             <span className="font-medium">Logout</span>
@@ -196,21 +203,19 @@ export default function TutorLayout({
       </aside>
 
       {/* Mobile Navigation Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b z-50">
-        <div className="flex items-center justify-between h-16 px-4">
+      <div className="fixed left-0 right-0 top-0 z-50 border-b bg-white lg:hidden">
+        <div className="flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
+            <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
             <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600"></Link>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/tutor/settings">
-              <Button variant="ghost" size="icon"><Settings className="h-5 w-5" /></Button>
+              <Button variant="ghost" size="icon">
+                <Settings className="h-5 w-5" />
+              </Button>
             </Link>
             <UserNav />
           </div>
@@ -219,9 +224,9 @@ export default function TutorLayout({
 
       {/* Mobile Navigation Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-16 bg-white z-40 p-4 overflow-y-auto">
+        <div className="fixed inset-0 top-16 z-40 overflow-y-auto bg-white p-4 lg:hidden">
           <nav className="space-y-0.5">
-            {navItems.map((item) => {
+            {navItems.map(item => {
               const Icon = item.icon
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
               return (
@@ -230,10 +235,10 @@ export default function TutorLayout({
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-3 rounded-lg transition-colors",
+                    'flex items-center gap-3 rounded-lg px-3 py-3 transition-colors',
                     isActive
-                      ? "bg-blue-50 text-blue-700 font-medium"
-                      : "text-gray-600 hover:bg-gray-100"
+                      ? 'bg-blue-50 font-medium text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100'
                   )}
                 >
                   <Icon className="h-5 w-5" />
@@ -246,11 +251,7 @@ export default function TutorLayout({
       )}
 
       {/* Main Content */}
-      <main className="flex-1 pt-16 lg:pt-0 min-h-screen">
-        {children}
-      </main>
-
-
+      <main className="min-h-screen flex-1 pt-16 lg:pt-0">{children}</main>
     </div>
   )
 }

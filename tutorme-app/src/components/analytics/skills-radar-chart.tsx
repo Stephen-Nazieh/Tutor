@@ -5,7 +5,15 @@
  * Multi-dimensional skills visualization
  */
 
-import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, Tooltip } from 'recharts'
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  ResponsiveContainer,
+  Tooltip,
+} from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ClientOnly } from '@/components/common/ClientOnly'
 
@@ -19,22 +27,14 @@ interface SkillsRadarChartProps {
   subtitle?: string
 }
 
-export function SkillsRadarChart({ 
-  data, 
-  title = '技能雷达图',
-  subtitle
-}: SkillsRadarChartProps) {
-  const average = data.length > 0 
-    ? data.reduce((sum, d) => sum + d.score, 0) / data.length 
-    : 0
+export function SkillsRadarChart({ data, title = '技能雷达图', subtitle }: SkillsRadarChartProps) {
+  const average = data.length > 0 ? data.reduce((sum, d) => sum + d.score, 0) / data.length : 0
 
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="text-lg">{title}</CardTitle>
-        {subtitle && (
-          <p className="text-sm text-muted-foreground">{subtitle}</p>
-        )}
+        {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
       </CardHeader>
       <CardContent>
         <div className="h-[300px] min-h-[300px]">
@@ -42,25 +42,22 @@ export function SkillsRadarChart({
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
                 <PolarGrid />
-                <PolarAngleAxis 
-                  dataKey="skill" 
-                  tick={{ fontSize: 11, fill: '#666' }}
-                />
-                <PolarRadiusAxis 
-                  angle={90} 
-                  domain={[0, 100]} 
+                <PolarAngleAxis dataKey="skill" tick={{ fontSize: 11, fill: '#666' }} />
+                <PolarRadiusAxis
+                  angle={90}
+                  domain={[0, 100]}
                   tick={{ fontSize: 10, fill: '#999' }}
                   tickCount={5}
                 />
-                <Tooltip 
+                <Tooltip
                   formatter={(value, name, props) => {
                     const skillName = props?.payload?.skill || ''
                     return [`${Number(value).toFixed(0)}/100`, skillName]
                   }}
-                  contentStyle={{ 
-                    borderRadius: '8px', 
-                    border: 'none', 
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
+                  contentStyle={{
+                    borderRadius: '8px',
+                    border: 'none',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                   }}
                 />
                 <Radar
@@ -75,7 +72,7 @@ export function SkillsRadarChart({
             </ResponsiveContainer>
           </ClientOnly>
         </div>
-        <div className="text-center mt-2">
+        <div className="mt-2 text-center">
           <p className="text-sm text-muted-foreground">
             综合得分: <span className="font-semibold text-primary">{average.toFixed(1)}</span>
           </p>

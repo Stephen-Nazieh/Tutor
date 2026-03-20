@@ -12,7 +12,7 @@ import type {
   PaymentResponse,
   PaymentGateway,
   WebhookResult,
-  RefundResponse
+  RefundResponse,
 } from './types'
 
 const SANDBOX_BASE = 'https://api-demo.airwallex.com'
@@ -49,8 +49,8 @@ async function getAccessToken(): Promise<string> {
       'Content-Type': 'application/json',
       Accept: 'application/json',
       'x-client-id': clientId,
-      'x-api-key': apiKey
-    }
+      'x-api-key': apiKey,
+    },
   })
 
   if (!res.ok) {
@@ -93,14 +93,16 @@ export class AirwallexGateway implements PaymentGateway {
     const base = getBaseUrl()
     const requestId = `req_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
 
-    const defaultReturn = process.env.PAYMENT_SUCCESS_URL || `${process.env.NEXT_PUBLIC_APP_URL || ''}/payment/success`
+    const defaultReturn =
+      process.env.PAYMENT_SUCCESS_URL || `${process.env.NEXT_PUBLIC_APP_URL || ''}/payment/success`
     const returnUrl = request.successUrl ?? defaultReturn
     const body = {
       request_id: requestId,
       amount: request.amount,
       currency: request.currency.toUpperCase(),
-      merchant_order_id: request.bookingId ?? (request.curriculumId ? `course:${request.curriculumId}` : 'payment'),
-      return_url: returnUrl
+      merchant_order_id:
+        request.bookingId ?? (request.curriculumId ? `course:${request.curriculumId}` : 'payment'),
+      return_url: returnUrl,
     }
 
     const res = await fetch(`${base}/api/v1/pa/payment_intents/create`, {
@@ -108,9 +110,9 @@ export class AirwallexGateway implements PaymentGateway {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
-        'x-client-id': process.env.AIRWALLEX_CLIENT_ID!
+        'x-client-id': process.env.AIRWALLEX_CLIENT_ID!,
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     })
 
     if (!res.ok) {
@@ -137,7 +139,7 @@ export class AirwallexGateway implements PaymentGateway {
     return {
       paymentId,
       checkoutUrl,
-      status: data.status || 'REQUIRES_PAYMENT_METHOD'
+      status: data.status || 'REQUIRES_PAYMENT_METHOD',
     }
   }
 
@@ -157,7 +159,10 @@ export class AirwallexGateway implements PaymentGateway {
   }
 
   async processWebhook(payload: unknown): Promise<WebhookResult> {
-    const body = payload as { name?: string; data?: { id?: string; status?: string; payment_attempt_id?: string } }
+    const body = payload as {
+      name?: string
+      data?: { id?: string; status?: string; payment_attempt_id?: string }
+    }
     const eventName = body?.name || ''
     const data = body?.data
 
@@ -173,7 +178,7 @@ export class AirwallexGateway implements PaymentGateway {
         success: true,
         paymentId,
         eventType: eventName,
-        status: status || 'succeeded'
+        status: status || 'succeeded',
       }
     }
 
@@ -182,7 +187,7 @@ export class AirwallexGateway implements PaymentGateway {
         success: true,
         paymentId,
         eventType: eventName,
-        status: status || 'cancelled'
+        status: status || 'cancelled',
       }
     }
 
@@ -190,7 +195,7 @@ export class AirwallexGateway implements PaymentGateway {
       success: true,
       paymentId,
       eventType: eventName,
-      status
+      status,
     }
   }
 
@@ -202,7 +207,7 @@ export class AirwallexGateway implements PaymentGateway {
     const body: Record<string, unknown> = {
       payment_attempt_id: paymentId,
       reason: 'customer_requested',
-      request_id: requestId
+      request_id: requestId,
     }
     if (amount != null && amount > 0) {
       body.amount = amount
@@ -213,9 +218,9 @@ export class AirwallexGateway implements PaymentGateway {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
-        'x-client-id': process.env.AIRWALLEX_CLIENT_ID!
+        'x-client-id': process.env.AIRWALLEX_CLIENT_ID!,
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     })
 
     if (!res.ok) {
@@ -223,7 +228,7 @@ export class AirwallexGateway implements PaymentGateway {
       return {
         refundId: '',
         status: 'failed',
-        error: `Airwallex refund failed: ${res.status} ${text}`
+        error: `Airwallex refund failed: ${res.status} ${text}`,
       }
     }
 
@@ -231,7 +236,7 @@ export class AirwallexGateway implements PaymentGateway {
     return {
       refundId: data.id || requestId,
       status: data.status || 'RECEIVED',
-      amountRefunded: data.amount
+      amountRefunded: data.amount,
     }
   }
 }

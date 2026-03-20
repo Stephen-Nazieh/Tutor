@@ -66,14 +66,15 @@ function generateQuizPrompt(params: QuizRequest): string {
   const difficultyGuidelines: Record<(typeof DifficultyLevels)[number], string> = {
     beginner: 'Focus on recall and basic understanding. Use straightforward language.',
     intermediate: 'Focus on application and analysis. Require some reasoning.',
-    advanced: 'Focus on synthesis and evaluation. Require critical thinking and deep understanding.',
+    advanced:
+      'Focus on synthesis and evaluation. Require critical thinking and deep understanding.',
   }
   return `
 Create a ${params.difficulty} level quiz on "${params.topic}" for ${params.subject}.
 
 SPECIFICATIONS:
 - Number of questions: ${params.questionCount}
-- Question types: ${params.questionTypes.map((t) => typeDescriptions[t]).join(', ')}
+- Question types: ${params.questionTypes.map(t => typeDescriptions[t]).join(', ')}
 - Difficulty: ${params.difficulty} (${difficultyGuidelines[params.difficulty]})
 ${params.gradeLevel ? `- Target grade level: ${params.gradeLevel}` : ''}
 ${params.learningObjectives?.length ? `- Learning objectives: ${params.learningObjectives.join(', ')}` : ''}
@@ -173,114 +174,128 @@ function parseQuizResponse(content: string, params: QuizRequest): Quiz {
   }
 }
 
-export const POST = withAuth(async (req: NextRequest, session) => {
-  const tutorId = session.user.id
+export const POST = withAuth(
+  async (req: NextRequest, session) => {
+    const tutorId = session.user.id
 
-  try {
-    const body = await req.json()
-    const validation = QuizRequestSchema.safeParse(body)
+    try {
+      const body = await req.json()
+      const validation = QuizRequestSchema.safeParse(body)
 
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: validation.error.format() },
-        { status: 400 }
+      if (!validation.success) {
+        return NextResponse.json(
+          { error: 'Invalid request', details: validation.error.format() },
+          { status: 400 }
+        )
+      }
+
+      const params = validation.data
+      const prompt = generateQuizPrompt(params)
+      const result = await generateWithFallback(prompt, {
+        temperature: 0.7,
+        maxTokens: 3000,
+      })
+
+      const quizData = parseQuizResponse(result.content, params)
+
+      let savedQuiz: { id: string } | null = null
+      try {
+        const [inserted] = await drizzleDb
+          .insert(quiz)
+          .values({
+            id: randomUUID(),
+            tutorId,
+            title: quizData.title,
+            description: quizData.description,
+            type: 'generated',
+            status: 'draft',
+            timeLimit: quizData.timeLimit ?? null,
+            allowedAttempts: 3,
+            shuffleQuestions: true,
+            shuffleOptions: true,
+            showCorrectAnswers: 'after_submit',
+            questions: quizData.questions,
+            totalPoints: quizData.totalPoints,
+            tags: [],
+          })
+          .returning({ id: quiz.id })
+        savedQuiz = inserted ?? null
+      } catch {
+        // Quiz table save skipped
+      }
+
+      try {
+        await drizzleDb.insert(aIAssistantInsight).values({
+          id: randomUUID(),
+          sessionId: body.sessionId || 'temp',
+          type: 'content_suggestion',
+          title: `Generated Quiz: ${quizData.title}`,
+          content: `${quizData.questions.length} questions on ${quizData.topic}`,
+          relatedData: {
+            topic: quizData.topic,
+            difficulty: quizData.difficulty,
+            questionCount: quizData.questions.length,
+          },
+          applied: false,
+        })
+      } catch {
+        // continue
+      }
+
+      return NextResponse.json({
+        quiz: quizData,
+        saved: !!savedQuiz,
+        quizId: savedQuiz?.id,
+        metadata: {
+          provider: result.provider,
+          latencyMs: result.latencyMs,
+          generatedAt: new Date().toISOString(),
+        },
+      })
+    } catch (error) {
+      console.error('Quiz generation error:', error)
+      return handleApiError(
+        error,
+        'Failed to generate quiz',
+        'api/tutor/ai-assistant/quiz/route.ts'
       )
     }
-
-    const params = validation.data
-    const prompt = generateQuizPrompt(params)
-    const result = await generateWithFallback(prompt, {
-      temperature: 0.7,
-      maxTokens: 3000,
-    })
-
-    const quizData = parseQuizResponse(result.content, params)
-
-    let savedQuiz: { id: string } | null = null
-    try {
-      const [inserted] = await drizzleDb
-        .insert(quiz)
-        .values({
-          id: randomUUID(),
-          tutorId,
-          title: quizData.title,
-          description: quizData.description,
-          type: 'generated',
-          status: 'draft',
-          timeLimit: quizData.timeLimit ?? null,
-          allowedAttempts: 3,
-          shuffleQuestions: true,
-          shuffleOptions: true,
-          showCorrectAnswers: 'after_submit',
-          questions: quizData.questions,
-          totalPoints: quizData.totalPoints,
-          tags: [],
-        })
-        .returning({ id: quiz.id })
-      savedQuiz = inserted ?? null
-    } catch {
-      // Quiz table save skipped
-    }
-
-    try {
-      await drizzleDb.insert(aIAssistantInsight).values({
-        id: randomUUID(),
-        sessionId: body.sessionId || 'temp',
-        type: 'content_suggestion',
-        title: `Generated Quiz: ${quizData.title}`,
-        content: `${quizData.questions.length} questions on ${quizData.topic}`,
-        relatedData: {
-          topic: quizData.topic,
-          difficulty: quizData.difficulty,
-          questionCount: quizData.questions.length,
-        },
-        applied: false,
-      })
-    } catch {
-      // continue
-    }
-
-    return NextResponse.json({
-      quiz: quizData,
-      saved: !!savedQuiz,
-      quizId: savedQuiz?.id,
-      metadata: {
-        provider: result.provider,
-        latencyMs: result.latencyMs,
-        generatedAt: new Date().toISOString(),
-      },
-    })
-  } catch (error) {
-    console.error('Quiz generation error:', error)
-    return handleApiError(error, 'Failed to generate quiz', 'api/tutor/ai-assistant/quiz/route.ts')
-  }
-}, { role: 'TUTOR' })
+  },
+  { role: 'TUTOR' }
+)
 
 // GET - List generated quizzes
-export const GET = withAuth(async (_req: NextRequest, session) => {
-  const tutorId = session.user.id
-  try {
-    const rows = await drizzleDb
-      .select({
-        id: quiz.id,
-        title: quiz.title,
-        createdAt: quiz.createdAt,
-      })
-      .from(quiz)
-      .where(eq(quiz.tutorId, tutorId))
-      .orderBy(desc(quiz.createdAt))
+export const GET = withAuth(
+  async (_req: NextRequest, session) => {
+    const tutorId = session.user.id
+    try {
+      const rows = await drizzleDb
+        .select({
+          id: quiz.id,
+          title: quiz.title,
+          createdAt: quiz.createdAt,
+        })
+        .from(quiz)
+        .where(eq(quiz.tutorId, tutorId))
+        .orderBy(desc(quiz.createdAt))
 
-    const quizzes = rows.map((r) => ({
-      id: r.id,
-      title: r.title,
-      topic: null as string | null,
-      subject: null as string | null,
-      difficulty: null as string | null,
-      createdAt: r.createdAt,
-    }))
-    return NextResponse.json({ quizzes })
-  } catch (error) {
-    console.error('Fetch quizzes error:', error)
-    return handleApiError(error, 'Failed to fetch quizzes', 'api/tutor/ai-assistant/quiz/route.ts')
-  }
-}, { role: 'TUTOR' })
+      const quizzes = rows.map(r => ({
+        id: r.id,
+        title: r.title,
+        topic: null as string | null,
+        subject: null as string | null,
+        difficulty: null as string | null,
+        createdAt: r.createdAt,
+      }))
+      return NextResponse.json({ quizzes })
+    } catch (error) {
+      console.error('Fetch quizzes error:', error)
+      return handleApiError(
+        error,
+        'Failed to fetch quizzes',
+        'api/tutor/ai-assistant/quiz/route.ts'
+      )
+    }
+  },
+  { role: 'TUTOR' }
+)

@@ -51,15 +51,12 @@ export async function GET(req: NextRequest) {
           .select()
           .from(curriculumEnrollment)
           .where(eq(curriculumEnrollment.studentId, studentId))
-        const curriculumIds = enrollmentsRows.map((r) => r.curriculumId)
+        const curriculumIds = enrollmentsRows.map(r => r.curriculumId)
         const curricula =
           curriculumIds.length > 0
-            ? await drizzleDb
-                .select()
-                .from(curriculum)
-                .where(inArray(curriculum.id, curriculumIds))
+            ? await drizzleDb.select().from(curriculum).where(inArray(curriculum.id, curriculumIds))
             : []
-        const curriculumMap = new Map(curricula.map((c) => [c.id, c]))
+        const curriculumMap = new Map(curricula.map(c => [c.id, c]))
         const modules =
           curriculumIds.length > 0
             ? await drizzleDb
@@ -67,28 +64,32 @@ export async function GET(req: NextRequest) {
                 .from(curriculumModule)
                 .where(inArray(curriculumModule.curriculumId, curriculumIds))
             : []
-        const moduleIds = modules.map((m) => m.id)
+        const moduleIds = modules.map(m => m.id)
         const lessons =
           moduleIds.length > 0
             ? await drizzleDb
-                .select({ id: curriculumLesson.id, title: curriculumLesson.title, order: curriculumLesson.order, duration: curriculumLesson.duration, moduleId: curriculumLesson.moduleId })
+                .select({
+                  id: curriculumLesson.id,
+                  title: curriculumLesson.title,
+                  order: curriculumLesson.order,
+                  duration: curriculumLesson.duration,
+                  moduleId: curriculumLesson.moduleId,
+                })
                 .from(curriculumLesson)
                 .where(inArray(curriculumLesson.moduleId, moduleIds))
             : []
-        const allLessonIds = lessons.map((l) => l.id)
+        const allLessonIds = lessons.map(l => l.id)
         const lessonProgress =
           allLessonIds.length > 0
             ? await drizzleDb
                 .select()
                 .from(curriculumLessonProgress)
-                .where(
-                  eq(curriculumLessonProgress.studentId, studentId)
-                )
+                .where(eq(curriculumLessonProgress.studentId, studentId))
             : []
         const progressMap = new Map(
           lessonProgress
-            .filter((lp) => allLessonIds.includes(lp.lessonId))
-            .map((lp) => [lp.lessonId, lp])
+            .filter(lp => allLessonIds.includes(lp.lessonId))
+            .map(lp => [lp.lessonId, lp])
         )
 
         const performances = await drizzleDb
@@ -129,27 +130,22 @@ export async function GET(req: NextRequest) {
           lessonsByModule.set(l.moduleId, list)
         }
 
-        const courses = enrollmentsRows.map((enrollment) => {
+        const courses = enrollmentsRows.map(enrollment => {
           const curr = curriculumMap.get(enrollment.curriculumId)
           const mods = moduleByCurriculum.get(enrollment.curriculumId) ?? []
-          const allLessons = mods.flatMap((m) => lessonsByModule.get(m.id) ?? [])
+          const allLessons = mods.flatMap(m => lessonsByModule.get(m.id) ?? [])
           const completedLessons = allLessons.filter(
-            (l) => progressMap.get(l.id)?.status === 'COMPLETED'
+            l => progressMap.get(l.id)?.status === 'COMPLETED'
           )
           const inProgressLessons = allLessons.filter(
-            (l) => progressMap.get(l.id)?.status === 'IN_PROGRESS'
+            l => progressMap.get(l.id)?.status === 'IN_PROGRESS'
           )
           const scores = completedLessons
-            .map((l) => progressMap.get(l.id)?.score)
+            .map(l => progressMap.get(l.id)?.score)
             .filter((s): s is number => s != null)
           const avgScore =
-            scores.length > 0
-              ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-              : null
-          const studyMinutes = completedLessons.reduce(
-            (sum, l) => sum + (l.duration || 30),
-            0
-          )
+            scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null
+          const studyMinutes = completedLessons.reduce((sum, l) => sum + (l.duration || 30), 0)
           return {
             id: curr?.id ?? enrollment.curriculumId,
             name: curr?.name ?? '',
@@ -166,17 +162,13 @@ export async function GET(req: NextRequest) {
           }
         })
 
-        const allStrengths: string[] = performances.flatMap(
-          (p) => (p.strengths as string[]) || []
-        )
-        const allWeaknesses: string[] = performances.flatMap(
-          (p) => (p.weaknesses as string[]) || []
-        )
+        const allStrengths: string[] = performances.flatMap(p => (p.strengths as string[]) || [])
+        const allWeaknesses: string[] = performances.flatMap(p => (p.weaknesses as string[]) || [])
         const strengthCounts = countFrequency(allStrengths)
         const weaknessCounts = countFrequency(allWeaknesses)
 
         const allHistory: Array<{ date: string; score: number }> = performances.flatMap(
-          (p) => (p.taskHistory as any[]) || []
+          p => (p.taskHistory as any[]) || []
         )
         const scoreTrend = allHistory
           .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
@@ -186,10 +178,7 @@ export async function GET(req: NextRequest) {
         const totalLessons = courses.reduce((s, c) => s + c.totalLessons, 0)
         const overallAvg =
           performances.length > 0
-            ? Math.round(
-                performances.reduce((s, p) => s + p.averageScore, 0) /
-                  performances.length
-              )
+            ? Math.round(performances.reduce((s, p) => s + p.averageScore, 0) / performances.length)
             : null
 
         return {
@@ -208,7 +197,7 @@ export async function GET(req: NextRequest) {
           strengths: strengthCounts.slice(0, 5),
           weaknesses: weaknessCounts.slice(0, 5),
           scoreTrend,
-          achievements: achievements.map((a) => ({
+          achievements: achievements.map(a => ({
             id: a.id,
             type: a.type,
             title: a.title,
@@ -225,21 +214,21 @@ export async function GET(req: NextRequest) {
       }
     )
 
-        const res = NextResponse.json({ success: true, data })
-        res.headers.set('X-Response-Time', `${Date.now() - startTime}ms`)
-        return res
-    } catch (error) {
-        console.error('Failed to fetch student progress:', error)
-        return handleApiError(error, 'Failed to fetch progress', 'api/student/progress/route.ts')
-    }
+    const res = NextResponse.json({ success: true, data })
+    res.headers.set('X-Response-Time', `${Date.now() - startTime}ms`)
+    return res
+  } catch (error) {
+    console.error('Failed to fetch student progress:', error)
+    return handleApiError(error, 'Failed to fetch progress', 'api/student/progress/route.ts')
+  }
 }
 
 function countFrequency(items: string[]): Array<{ topic: string; count: number }> {
-    const freq: Record<string, number> = {}
-    for (const item of items) {
-        freq[item] = (freq[item] || 0) + 1
-    }
-    return Object.entries(freq)
-        .map(([topic, count]) => ({ topic, count }))
-        .sort((a, b) => b.count - a.count)
+  const freq: Record<string, number> = {}
+  for (const item of items) {
+    freq[item] = (freq[item] || 0) + 1
+  }
+  return Object.entries(freq)
+    .map(([topic, count]) => ({ topic, count }))
+    .sort((a, b) => b.count - a.count)
 }

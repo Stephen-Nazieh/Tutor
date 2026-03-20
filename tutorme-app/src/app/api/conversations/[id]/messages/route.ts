@@ -46,8 +46,16 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   }
 
   const [p1, p2] = await Promise.all([
-    drizzleDb.select({ role: user.role }).from(user).where(eq(user.id, conv.participant1Id)).limit(1),
-    drizzleDb.select({ role: user.role }).from(user).where(eq(user.id, conv.participant2Id)).limit(1),
+    drizzleDb
+      .select({ role: user.role })
+      .from(user)
+      .where(eq(user.id, conv.participant1Id))
+      .limit(1),
+    drizzleDb
+      .select({ role: user.role })
+      .from(user)
+      .where(eq(user.id, conv.participant2Id))
+      .limit(1),
   ])
   if (
     !p1[0] ||
@@ -57,7 +65,17 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
   }
 
-  let messages: { id: string; conversationId: string; senderId: string; content: string; type: string; attachmentUrl: string | null; read: boolean; readAt: Date | null; createdAt: Date }[]
+  let messages: {
+    id: string
+    conversationId: string
+    senderId: string
+    content: string
+    type: string
+    attachmentUrl: string | null
+    read: boolean
+    readAt: Date | null
+    createdAt: Date
+  }[]
   if (cursor) {
     const [cursorMsg] = await drizzleDb
       .select()
@@ -69,12 +87,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       ? await drizzleDb
           .select()
           .from(directMessage)
-          .where(
-            and(
-              eq(directMessage.conversationId, id),
-              lt(directMessage.createdAt, cursorTime)
-            )
-          )
+          .where(and(eq(directMessage.conversationId, id), lt(directMessage.createdAt, cursorTime)))
           .orderBy(desc(directMessage.createdAt))
           .limit(limit)
       : await drizzleDb
@@ -103,22 +116,22 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       )
     )
 
-  const senderIds = [...new Set(messages.map((m) => m.senderId))]
+  const senderIds = [...new Set(messages.map(m => m.senderId))]
   const senders = await drizzleDb.select().from(user).where(inArray(user.id, senderIds))
-  const profiles = await drizzleDb
-    .select()
-    .from(profile)
-    .where(inArray(profile.userId, senderIds))
-  const profileByUserId = Object.fromEntries(profiles.map((p) => [p.userId, p]))
-  const userById = Object.fromEntries(senders.map((u) => [u.id, u]))
+  const profiles = await drizzleDb.select().from(profile).where(inArray(profile.userId, senderIds))
+  const profileByUserId = Object.fromEntries(profiles.map(p => [p.userId, p]))
+  const userById = Object.fromEntries(senders.map(u => [u.id, u]))
 
-  const messagesWithSender = messages.map((m) => ({
+  const messagesWithSender = messages.map(m => ({
     ...m,
     sender: userById[m.senderId]
       ? {
           id: userById[m.senderId].id,
           profile: profileByUserId[m.senderId]
-            ? { name: profileByUserId[m.senderId].name, avatarUrl: profileByUserId[m.senderId].avatarUrl }
+            ? {
+                name: profileByUserId[m.senderId].name,
+                avatarUrl: profileByUserId[m.senderId].avatarUrl,
+              }
             : null,
         }
       : null,
@@ -143,10 +156,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     const { content, type = 'text', attachmentUrl } = body
 
     if (!content && !attachmentUrl) {
-      return NextResponse.json(
-        { error: 'Content or attachment is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Content or attachment is required' }, { status: 400 })
     }
 
     const [conv] = await drizzleDb
@@ -165,8 +175,16 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     }
 
     const [p1, p2] = await Promise.all([
-      drizzleDb.select({ role: user.role }).from(user).where(eq(user.id, conv.participant1Id)).limit(1),
-      drizzleDb.select({ role: user.role }).from(user).where(eq(user.id, conv.participant2Id)).limit(1),
+      drizzleDb
+        .select({ role: user.role })
+        .from(user)
+        .where(eq(user.id, conv.participant1Id))
+        .limit(1),
+      drizzleDb
+        .select({ role: user.role })
+        .from(user)
+        .where(eq(user.id, conv.participant2Id))
+        .limit(1),
     ])
     if (
       !p1[0] ||
@@ -187,7 +205,10 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
       read: false,
     })
 
-    await drizzleDb.update(conversation).set({ updatedAt: new Date() }).where(eq(conversation.id, id))
+    await drizzleDb
+      .update(conversation)
+      .set({ updatedAt: new Date() })
+      .where(eq(conversation.id, id))
 
     const recipientId = conv.participant1Id === userId ? conv.participant2Id : conv.participant1Id
     const recipientRole = conv.participant1Id === userId ? p2[0].role : p1[0].role
@@ -202,7 +223,10 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
       read: false,
     })
 
-    const [message] = await drizzleDb.select().from(directMessage).where(eq(directMessage.id, messageId))
+    const [message] = await drizzleDb
+      .select()
+      .from(directMessage)
+      .where(eq(directMessage.id, messageId))
     const [sender] = await drizzleDb.select().from(user).where(eq(user.id, userId))
     const [senderProfile] = await drizzleDb.select().from(profile).where(eq(profile.userId, userId))
 
@@ -220,7 +244,12 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
       ? {
           ...message,
           sender: sender
-            ? { id: sender.id, profile: senderProfile ? { name: senderProfile.name, avatarUrl: senderProfile.avatarUrl } : null }
+            ? {
+                id: sender.id,
+                profile: senderProfile
+                  ? { name: senderProfile.name, avatarUrl: senderProfile.avatarUrl }
+                  : null,
+              }
             : null,
         }
       : null
@@ -228,6 +257,10 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ message: messageResponse }, { status: 201 })
   } catch (error) {
     console.error('Send message error:', error)
-    return handleApiError(error, 'Failed to send message', 'api/conversations/[id]/messages/route.ts')
+    return handleApiError(
+      error,
+      'Failed to send message',
+      'api/conversations/[id]/messages/route.ts'
+    )
   }
 })

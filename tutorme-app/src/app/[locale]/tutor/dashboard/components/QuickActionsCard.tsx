@@ -14,11 +14,19 @@ export function QuickActionsCard() {
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          <Button variant="outline" className="w-full justify-start" onClick={() => router.push('/tutor/reports')}>
-            <BookOpen className="w-4 h-4 mr-2" /> View Reports
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+            onClick={() => router.push('/tutor/reports')}
+          >
+            <BookOpen className="mr-2 h-4 w-4" /> View Reports
           </Button>
-          <Button variant="outline" className="w-full justify-start" onClick={() => router.push('/tutor/settings')}>
-            <Settings className="w-4 h-4 mr-2" /> Settings
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+            onClick={() => router.push('/tutor/settings')}
+          >
+            <Settings className="mr-2 h-4 w-4" /> Settings
           </Button>
         </div>
       </CardContent>

@@ -78,4 +78,3 @@ describe('grading agent batch quiz grading', () => {
     expect(res.summary).toContain('You scored 1 out of 2')
   })
 })
-

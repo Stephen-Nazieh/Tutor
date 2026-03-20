@@ -13,16 +13,15 @@ interface PdfOverlayProps {
   pageNumber: number
   width: number
   height: number
-  onPageRender?: (pageInfo: { width: number; height: number; pageNum: number; totalPages: number }) => void
+  onPageRender?: (pageInfo: {
+    width: number
+    height: number
+    pageNum: number
+    totalPages: number
+  }) => void
 }
 
-export function PdfOverlay({
-  pdfUrl,
-  pageNumber,
-  width,
-  height,
-  onPageRender,
-}: PdfOverlayProps) {
+export function PdfOverlay({ pdfUrl, pageNumber, width, height, onPageRender }: PdfOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -138,11 +137,11 @@ export function PdfOverlay({
   if (error) {
     return (
       <div
-        className="flex items-center justify-center bg-red-50 border border-red-200 rounded"
+        className="flex items-center justify-center rounded border border-red-200 bg-red-50"
         style={{ width, height }}
       >
-        <div className="text-center p-4">
-          <p className="text-red-600 text-sm">PDF Error: {error}</p>
+        <div className="p-4 text-center">
+          <p className="text-sm text-red-600">PDF Error: {error}</p>
         </div>
       </div>
     )
@@ -162,10 +161,13 @@ export function PdfOverlay({
       {isLoading && (
         <div
           className="absolute inset-0 flex items-center justify-center bg-white/90"
-          style={{ width: canvasRef.current?.width || width, height: canvasRef.current?.height || height }}
+          style={{
+            width: canvasRef.current?.width || width,
+            height: canvasRef.current?.height || height,
+          }}
         >
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
             <p className="mt-2 text-xs text-slate-500">Loading PDF...</p>
           </div>
         </div>
@@ -194,32 +196,34 @@ export function PdfUploader({ onPdfUpload, className = '' }: PdfUploaderProps) {
     setIsDragging(false)
   }, [])
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      setIsDragging(false)
 
-    const file = e.dataTransfer.files[0]
-    if (file && file.type === 'application/pdf') {
-      const url = URL.createObjectURL(file)
-      onPdfUpload(file, url)
-    }
-  }, [onPdfUpload])
+      const file = e.dataTransfer.files[0]
+      if (file && file.type === 'application/pdf') {
+        const url = URL.createObjectURL(file)
+        onPdfUpload(file, url)
+      }
+    },
+    [onPdfUpload]
+  )
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file && file.type === 'application/pdf') {
-      const url = URL.createObjectURL(file)
-      onPdfUpload(file, url)
-    }
-  }, [onPdfUpload])
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (file && file.type === 'application/pdf') {
+        const url = URL.createObjectURL(file)
+        onPdfUpload(file, url)
+      }
+    },
+    [onPdfUpload]
+  )
 
   return (
     <div
-      className={`
-        border-2 border-dashed rounded-lg p-8 text-center transition-colors
-        ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-slate-300 hover:border-slate-400'}
-        ${className}
-      `}
+      className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-slate-300 hover:border-slate-400'} ${className} `}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -249,12 +253,8 @@ export function PdfUploader({ onPdfUpload, className = '' }: PdfUploaderProps) {
       </svg>
 
       <div className="mt-4">
-        <p className="text-sm font-medium text-slate-700">
-          Drop PDF here or click to upload
-        </p>
-        <p className="mt-1 text-xs text-slate-500">
-          Supports PDF worksheets and documents
-        </p>
+        <p className="text-sm font-medium text-slate-700">Drop PDF here or click to upload</p>
+        <p className="mt-1 text-xs text-slate-500">Supports PDF worksheets and documents</p>
       </div>
     </div>
   )
@@ -277,39 +277,40 @@ export function PdfPageManager({
   fileName,
 }: PdfPageManagerProps) {
   return (
-    <div className="flex items-center gap-4 bg-white border rounded-lg px-4 py-2 shadow-sm">
+    <div className="flex items-center gap-4 rounded-lg border bg-white px-4 py-2 shadow-sm">
       <div className="flex items-center gap-2">
         <span className="text-sm text-slate-500">PDF:</span>
-        {fileName && (
-          <span className="text-sm font-medium truncate max-w-[150px]">
-            {fileName}
-          </span>
-        )}
+        {fileName && <span className="max-w-[150px] truncate text-sm font-medium">{fileName}</span>}
       </div>
 
-      <div className="w-px h-6 bg-slate-200" />
+      <div className="h-6 w-px bg-slate-200" />
 
       <div className="flex items-center gap-2">
         <button
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage <= 1}
-          className="p-1 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded p-1 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </button>
 
-        <span className="text-sm min-w-[80px] text-center">
+        <span className="min-w-[80px] text-center text-sm">
           Page {currentPage} of {totalPages}
         </span>
 
         <button
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage >= totalPages}
-          className="p-1 rounded hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded p-1 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
@@ -317,11 +318,8 @@ export function PdfPageManager({
 
       {onClose && (
         <>
-          <div className="w-px h-6 bg-slate-200" />
-          <button
-            onClick={onClose}
-            className="text-sm text-red-600 hover:text-red-700"
-          >
+          <div className="h-6 w-px bg-slate-200" />
+          <button onClick={onClose} className="text-sm text-red-600 hover:text-red-700">
             Remove PDF
           </button>
         </>

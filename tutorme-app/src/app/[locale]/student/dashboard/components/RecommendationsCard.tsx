@@ -19,18 +19,25 @@ interface RecommendationsCardProps {
 
 function getPriorityColor(priority: string) {
   switch (priority) {
-    case 'high': return 'border-border bg-primary/10'
-    case 'medium': return 'border-border bg-accent/50'
-    default: return 'border-border bg-muted/60'
+    case 'high':
+      return 'border-border bg-primary/10'
+    case 'medium':
+      return 'border-border bg-accent/50'
+    default:
+      return 'border-border bg-muted/60'
   }
 }
 
 function getTypeIcon(type: string) {
   switch (type) {
-    case 'review': return '🔄'
-    case 'practice': return '✏️'
-    case 'new_topic': return '📚'
-    default: return '💡'
+    case 'review':
+      return '🔄'
+    case 'practice':
+      return '✏️'
+    case 'new_topic':
+      return '📚'
+    default:
+      return '💡'
   }
 }
 
@@ -38,52 +45,59 @@ export function RecommendationsCard({ recommendations }: RecommendationsCardProp
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Lightbulb className="w-5 h-5 text-yellow-500" />
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Lightbulb className="h-5 w-5 text-yellow-500" />
           Recommended for you
         </CardTitle>
       </CardHeader>
       <CardContent>
         {recommendations.length === 0 ? (
           <div className="py-6 text-center text-muted-foreground">
-            <Lightbulb className="w-12 h-12 mx-auto mb-2 text-muted-foreground/60" />
+            <Lightbulb className="mx-auto mb-2 h-12 w-12 text-muted-foreground/60" />
             <p className="text-sm font-medium text-foreground">No recommendations yet</p>
-            <p className="text-xs mt-1">Complete lessons and quizzes to get personalized suggestions.</p>
+            <p className="mt-1 text-xs">
+              Complete lessons and quizzes to get personalized suggestions.
+            </p>
             <Link href="/student/subjects/browse">
-              <Button variant="outline" size="sm" className="mt-3">Browse subjects</Button>
+              <Button variant="outline" size="sm" className="mt-3">
+                Browse subjects
+              </Button>
             </Link>
           </div>
         ) : (
           <div className="space-y-3">
             {recommendations.slice(0, 3).map((rec, idx) => (
-              <div
-                key={idx}
-                className={`p-4 rounded-lg border ${getPriorityColor(rec.priority)}`}
-              >
+              <div key={idx} className={`rounded-lg border p-4 ${getPriorityColor(rec.priority)}`}>
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
                     <span className="text-2xl">{getTypeIcon(rec.type)}</span>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="font-semibold text-sm">{rec.title}</h4>
-                        <span className={`text-xs px-2 py-0.5 rounded ${
-                          rec.priority === 'high' ? 'bg-primary/20 text-foreground' :
-                          rec.priority === 'medium' ? 'bg-accent/70 text-foreground' :
-                          'bg-muted/70 text-foreground'
-                        }`}>
+                        <h4 className="text-sm font-semibold">{rec.title}</h4>
+                        <span
+                          className={`rounded px-2 py-0.5 text-xs ${
+                            rec.priority === 'high'
+                              ? 'bg-primary/20 text-foreground'
+                              : rec.priority === 'medium'
+                                ? 'bg-accent/70 text-foreground'
+                                : 'bg-muted/70 text-foreground'
+                          }`}
+                        >
                           {rec.priority}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{rec.description}</p>
-                      <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-                        <Clock className="w-3 h-3" />
+                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                        {rec.description}
+                      </p>
+                      <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
                         {rec.estimatedTime}
                       </div>
                     </div>
                   </div>
                   <Link href="/student/missions">
                     <Button size="sm" variant="ghost" className="shrink-0">
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="h-4 w-4" />
                     </Button>
                   </Link>
                 </div>

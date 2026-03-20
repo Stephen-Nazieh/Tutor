@@ -6,7 +6,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { and, eq } from 'drizzle-orm'
 import { getServerSession, authOptions } from '@/lib/auth'
-import { generateAndDistributeTasks, saveGeneratedTasks, TaskConfiguration, DistributionMode } from '@/lib/agents/task-generator'
+import {
+  generateAndDistributeTasks,
+  saveGeneratedTasks,
+  TaskConfiguration,
+  DistributionMode,
+} from '@/lib/agents/task-generator'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { liveSession } from '@/lib/db/schema'
 import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
@@ -21,7 +26,6 @@ const GenerateTasksSchema = z.object({
   description: z.string().max(2000).optional(),
   type: z.string().max(50).default('assignment'),
 })
-
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,33 +47,17 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: '请求参数无效' }, { status: 400 })
     }
-    const {
-      mode,
-      config,
-      targetStudentIds,
-      roomId,
-      title,
-      description,
-      type
-    } = parsed.data
+    const { mode, config, targetStudentIds, roomId, title, description, type } = parsed.data
 
     if (!mode || !config || !roomId) {
-      return NextResponse.json(
-        { error: '缺少必要参数: mode, config, roomId' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: '缺少必要参数: mode, config, roomId' }, { status: 400 })
     }
 
     // Verify tutor owns the room
     const [room] = await drizzleDb
       .select()
       .from(liveSession)
-      .where(
-        and(
-          eq(liveSession.id, roomId),
-          eq(liveSession.tutorId, session.user.id)
-        )
-      )
+      .where(and(eq(liveSession.id, roomId), eq(liveSession.tutorId, session.user.id)))
       .limit(1)
 
     if (!room) {
@@ -77,10 +65,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate tasks
-    const result = await generateAndDistributeTasks(mode as DistributionMode, config as unknown as TaskConfiguration, {
-      studentIds: targetStudentIds,
-      targetStudentId: targetStudentIds?.[0]
-    })
+    const result = await generateAndDistributeTasks(
+      mode as DistributionMode,
+      config as unknown as TaskConfiguration,
+      {
+        studentIds: targetStudentIds,
+        targetStudentId: targetStudentIds?.[0],
+      }
+    )
 
     if (!result.success || !result.tasks) {
       return handleApiError(
@@ -97,7 +89,7 @@ export async function POST(request: NextRequest) {
       distributionMode: mode as DistributionMode,
       title,
       description,
-      type
+      type,
     })
 
     if (!saveResult.success) {
@@ -113,8 +105,8 @@ export async function POST(request: NextRequest) {
       data: {
         taskIds: saveResult.taskIds,
         studentCount: result.tasks.size,
-        mode
-      }
+        mode,
+      },
     })
   } catch (error) {
     console.error('Failed to generate tasks:', error)

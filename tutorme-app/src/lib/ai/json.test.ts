@@ -29,4 +29,3 @@ describe('ai/json', () => {
     expect(res.error).toBeDefined()
   })
 })
-

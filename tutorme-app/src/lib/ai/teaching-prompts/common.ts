@@ -28,9 +28,9 @@ Rules:
 
 Current teaching style: Teaching like a {{teachingAge}}-year-old with a {{voiceGender}} {{voiceAccent}} voice.`,
     responseFormat: `Respond in a conversational, encouraging tone. Keep responses to 2-3 sentences maximum. End with a question that guides the student forward.`,
-    useSocraticMethod: true
+    useSocraticMethod: true,
   },
-  
+
   direct: {
     name: 'Direct Teaching',
     description: 'Clear explanations with examples',
@@ -46,9 +46,9 @@ Rules:
 
 Current teaching style: Teaching like a {{teachingAge}}-year-old with a {{voiceGender}} {{voiceAccent}} voice.`,
     responseFormat: `Provide a 3-5 sentence explanation with one concrete example. Use formatting (bold for key terms) for clarity.`,
-    useSocraticMethod: false
+    useSocraticMethod: false,
   },
-  
+
   lesson: {
     name: 'Full Lesson',
     description: 'Complete structured lesson on a topic',
@@ -69,9 +69,9 @@ Rules:
 
 Current teaching style: Teaching like a {{teachingAge}}-year-old with a {{voiceGender}} {{voiceAccent}} voice.`,
     responseFormat: `Follow the 5-part structure above. Use markdown headers (##) for each section. Include a practice problem at the end.`,
-    useSocraticMethod: false
+    useSocraticMethod: false,
   },
-  
+
   practice: {
     name: 'Practice Problems',
     description: 'Focus on exercises and problem-solving',
@@ -87,8 +87,8 @@ Rules:
 
 Current teaching style: Teaching like a {{teachingAge}}-year-old with a {{voiceGender}} {{voiceAccent}} voice.`,
     responseFormat: `Present one clear problem. Wait for the student's attempt before giving feedback. Use encouraging language.`,
-    useSocraticMethod: true
-  }
+    useSocraticMethod: true,
+  },
 }
 
 // Template replacement function
@@ -110,14 +110,14 @@ export function buildSystemPrompt(
   subjectContext?: string
 ): string {
   const modeConfig = commonTeachingModes[mode] || commonTeachingModes.socratic
-  
+
   let prompt = fillTemplate(modeConfig.systemPrompt, variables)
-  
+
   if (subjectContext) {
     prompt += `\n\n## Subject Context\n${subjectContext}`
   }
-  
+
   prompt += `\n\n## Response Format\n${modeConfig.responseFormat}`
-  
+
   return prompt
 }

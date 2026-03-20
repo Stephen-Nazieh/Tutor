@@ -23,7 +23,28 @@ const nextConfig = {
   turbopack: {
     root: __dirname,
   },
-  serverExternalPackages: ['pg', 'pg-native'],
+  serverExternalPackages: ['pg', 'pg-native', 'jspdf', 'jspdf-autotable'],
+  webpack: (config, { isServer }) => {
+    // Fix for jspdf/fflate Node.js worker issue
+    // Redirect node-specific fflate to browser version
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'fflate/lib/node.cjs': false,
+      'fflate/lib/node.js': false,
+    };
+    
+    // Handle jspdf node-specific imports
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+      };
+    }
+    
+    return config;
+  },
   async headers() {
     return [
       {

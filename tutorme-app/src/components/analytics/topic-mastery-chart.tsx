@@ -5,7 +5,17 @@
  * Bar chart showing mastery level per topic
  */
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  ReferenceLine,
+} from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ClientOnly } from '@/components/common/ClientOnly'
 
@@ -19,10 +29,10 @@ interface TopicMasteryChartProps {
   showTarget?: boolean
 }
 
-export function TopicMasteryChart({ 
-  data, 
+export function TopicMasteryChart({
+  data,
   title = '知识点掌握情况',
-  showTarget = true
+  showTarget = true,
 }: TopicMasteryChartProps) {
   const getMasteryColor = (mastery: number) => {
     if (mastery >= 80) return '#22c55e' // green - mastered
@@ -44,49 +54,50 @@ export function TopicMasteryChart({
       <CardHeader>
         <CardTitle className="text-lg">{title}</CardTitle>
         <p className="text-sm text-muted-foreground">
-          已掌握: <span className="font-semibold text-green-500">{masteredCount}</span> / {totalCount} 知识点
+          已掌握: <span className="font-semibold text-green-500">{masteredCount}</span> /{' '}
+          {totalCount} 知识点
         </p>
       </CardHeader>
       <CardContent>
         <div className="h-[300px] min-h-[300px]">
           <ClientOnly fallback={<div className="h-full w-full" />}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart 
-                data={data} 
+              <BarChart
+                data={data}
                 layout="vertical"
                 margin={{ top: 10, right: 30, left: 80, bottom: 10 }}
               >
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                <XAxis 
-                  type="number" 
+                <XAxis
+                  type="number"
                   domain={[0, 100]}
                   tick={{ fontSize: 12 }}
                   axisLine={false}
-                  tickFormatter={(value) => `${value}%`}
+                  tickFormatter={value => `${value}%`}
                 />
-                <YAxis 
-                  type="category" 
+                <YAxis
+                  type="category"
                   dataKey="topic"
                   tick={{ fontSize: 11 }}
                   width={75}
                   axisLine={false}
                 />
-                <Tooltip 
+                <Tooltip
                   formatter={(value, name, props) => {
                     const mastery = Number(value)
                     const label = getMasteryLabel(mastery)
                     return [`${mastery.toFixed(1)}% - ${label}`, '掌握度']
                   }}
-                  contentStyle={{ 
-                    borderRadius: '8px', 
-                    border: 'none', 
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
+                  contentStyle={{
+                    borderRadius: '8px',
+                    border: 'none',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                   }}
                 />
                 {showTarget && (
-                  <ReferenceLine 
-                    x={80} 
-                    stroke="#22c55e" 
+                  <ReferenceLine
+                    x={80}
+                    stroke="#22c55e"
                     strokeDasharray="3 3"
                     label={{ value: '掌握目标', position: 'top' }}
                   />
@@ -100,17 +111,17 @@ export function TopicMasteryChart({
             </ResponsiveContainer>
           </ClientOnly>
         </div>
-        <div className="flex justify-center gap-4 mt-4 text-xs">
+        <div className="mt-4 flex justify-center gap-4 text-xs">
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded bg-green-500" />
+            <div className="h-3 w-3 rounded bg-green-500" />
             <span>已掌握 (≥80%)</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded bg-yellow-500" />
+            <div className="h-3 w-3 rounded bg-yellow-500" />
             <span>学习中 (60-79%)</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded bg-red-500" />
+            <div className="h-3 w-3 rounded bg-red-500" />
             <span>需加强 (&lt;60%)</span>
           </div>
         </div>

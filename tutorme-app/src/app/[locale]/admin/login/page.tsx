@@ -61,9 +61,7 @@ export default function AdminLoginPage() {
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">Sign in</CardTitle>
-            <CardDescription>
-              Enter your admin email to access the admin panel
-            </CardDescription>
+            <CardDescription>Enter your admin email to access the admin panel</CardDescription>
           </CardHeader>
           <CardContent>
             {error && (
@@ -81,7 +79,7 @@ export default function AdminLoginPage() {
                   type="email"
                   placeholder="admin@tutorme.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={e => setEmail(e.target.value)}
                   required
                   disabled={isLoading}
                 />
@@ -93,7 +91,7 @@ export default function AdminLoginPage() {
                   type="password"
                   placeholder="Enter admin password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={e => setPassword(e.target.value)}
                   required
                   disabled={isLoading}
                 />

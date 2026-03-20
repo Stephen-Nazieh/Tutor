@@ -13,10 +13,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { 
-  BookOpen, 
-  Clock, 
-  ChevronRight, 
+import {
+  BookOpen,
+  Clock,
+  ChevronRight,
   Play,
   CheckCircle2,
   Lock,
@@ -29,7 +29,7 @@ import {
   Heart,
   ShoppingCart,
   Star,
-  Sparkles
+  Sparkles,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -88,7 +88,7 @@ const DIFFICULTY_COLORS: Record<string, string> = {
   beginner: 'bg-green-100 text-green-800',
   intermediate: 'bg-yellow-100 text-yellow-800',
   advanced: 'bg-red-100 text-red-800',
-  expert: 'bg-purple-100 text-purple-800'
+  expert: 'bg-purple-100 text-purple-800',
 }
 
 const SECTION_NAMES: Record<string, string> = {
@@ -96,7 +96,7 @@ const SECTION_NAMES: Record<string, string> = {
   concept: 'Concept',
   example: 'Example',
   practice: 'Practice',
-  review: 'Review'
+  review: 'Review',
 }
 
 const renderMarkdown = (text: string) => {
@@ -114,7 +114,7 @@ const renderMarkdown = (text: string) => {
 export default function CurriculumDetailPage() {
   const params = useParams()
   const curriculumId = params.curriculumId as string
-  
+
   const [curriculum, setCurriculum] = useState<CurriculumDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
@@ -142,7 +142,7 @@ export default function CurriculumDetailPage() {
   const checkEnrollment = async () => {
     try {
       const res = await fetch(`/api/student/enrollments/check?curriculumId=${curriculumId}`, {
-        credentials: 'include'
+        credentials: 'include',
       })
       if (res.ok) {
         const data = await res.json()
@@ -156,7 +156,7 @@ export default function CurriculumDetailPage() {
   const toggleFavorite = () => {
     const saved = localStorage.getItem('tutorme-favorites')
     const parsed = saved ? JSON.parse(saved) : { tutors: [], courses: [] }
-    
+
     if (isFavorited) {
       parsed.courses = parsed.courses.filter((id: string) => id !== curriculumId)
       toast.success('Removed from favorites')
@@ -164,7 +164,7 @@ export default function CurriculumDetailPage() {
       parsed.courses = [...(parsed.courses || []), curriculumId]
       toast.success('Added to favorites')
     }
-    
+
     localStorage.setItem('tutorme-favorites', JSON.stringify(parsed))
     setIsFavorited(!isFavorited)
   }
@@ -180,14 +180,14 @@ export default function CurriculumDetailPage() {
       const csrf = await getCsrf()
       const res = await fetch('/api/student/enrollments', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          ...(csrf && { 'X-CSRF-Token': csrf })
+          ...(csrf && { 'X-CSRF-Token': csrf }),
         },
         credentials: 'include',
-        body: JSON.stringify({ curriculumId })
+        body: JSON.stringify({ curriculumId }),
       })
-      
+
       if (res.ok) {
         toast.success('Successfully enrolled!')
         setIsEnrolled(true)
@@ -217,7 +217,7 @@ export default function CurriculumDetailPage() {
           rating: 4.5 + Math.random() * 0.5,
           reviewCount: Math.floor(Math.random() * 100) + 20,
           price: data.curriculum.price || Math.floor(Math.random() * 100) + 50,
-          currency: data.curriculum.currency || 'USD'
+          currency: data.curriculum.currency || 'USD',
         })
         // Expand first module by default
         if (data.curriculum.modules.length > 0) {
@@ -245,7 +245,7 @@ export default function CurriculumDetailPage() {
 
   const getNextLesson = () => {
     if (!curriculum) return null
-    
+
     for (const module of curriculum.modules) {
       for (const lesson of module.lessons) {
         if (lesson.status === 'NOT_STARTED' && !lesson.isLocked) {
@@ -261,9 +261,9 @@ export default function CurriculumDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-600"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -272,11 +272,11 @@ export default function CurriculumDetailPage() {
 
   if (!curriculum) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Course not found</h3>
-          <p className="text-gray-600 mb-4">This course does not exist or has been removed.</p>
+          <BookOpen className="mx-auto mb-4 h-16 w-16 text-gray-300" />
+          <h3 className="mb-2 text-lg font-medium text-gray-900">Course not found</h3>
+          <p className="mb-4 text-gray-600">This course does not exist or has been removed.</p>
           <Link href="/curriculum">
             <Button>Back to courses</Button>
           </Link>
@@ -293,19 +293,19 @@ export default function CurriculumDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Link 
-            href="/curriculum" 
-            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 mb-4"
+      <header className="border-b border-gray-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <Link
+            href="/curriculum"
+            className="mb-4 inline-flex items-center text-sm text-gray-500 hover:text-gray-900"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" />
+            <ArrowLeft className="mr-1 h-4 w-4" />
             Back to courses
           </Link>
 
           <div className="flex items-start justify-between">
             <div>
-              <div className="flex items-center gap-3 mb-2">
+              <div className="mb-2 flex items-center gap-3">
                 <h1 className="text-3xl font-bold text-gray-900">{curriculum.name}</h1>
                 <Badge className={DIFFICULTY_COLORS[curriculum.difficulty]}>
                   {curriculum.difficulty === 'beginner' && 'Beginner'}
@@ -314,32 +314,34 @@ export default function CurriculumDetailPage() {
                   {curriculum.difficulty === 'expert' && 'Expert'}
                 </Badge>
               </div>
-              <p className="text-gray-600 max-w-2xl">{curriculum.description}</p>
-              
-              <div className="flex items-center gap-6 mt-4 text-sm text-gray-500">
+              <p className="max-w-2xl text-gray-600">{curriculum.description}</p>
+
+              <div className="mt-4 flex items-center gap-6 text-sm text-gray-500">
                 <div className="flex items-center gap-1">
-                  <BookOpen className="w-4 h-4" />
+                  <BookOpen className="h-4 w-4" />
                   <span>{curriculum.modules.length} modules</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Target className="w-4 h-4" />
+                  <Target className="h-4 w-4" />
                   <span>{curriculum.progress.totalLessons} lessons</span>
                 </div>
                 {curriculum.hasOutline && curriculum.estimatedHours > 0 && (
                   <div className="flex items-center gap-1">
-                    <Clock4 className="w-4 h-4" />
+                    <Clock4 className="h-4 w-4" />
                     <span>{curriculum.estimatedHours} hours</span>
                   </div>
                 )}
                 {curriculum.rating && (
                   <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    <span>{curriculum.rating.toFixed(1)} ({curriculum.reviewCount} reviews)</span>
+                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <span>
+                      {curriculum.rating.toFixed(1)} ({curriculum.reviewCount} reviews)
+                    </span>
                   </div>
                 )}
                 {curriculum.progress.averageScore && (
                   <div className="flex items-center gap-1">
-                    <Award className="w-4 h-4" />
+                    <Award className="h-4 w-4" />
                     <span>Avg score: {Math.round(curriculum.progress.averageScore)}%</span>
                   </div>
                 )}
@@ -347,7 +349,7 @@ export default function CurriculumDetailPage() {
 
               {curriculum.tutorName && (
                 <div className="mt-3">
-                  <Link 
+                  <Link
                     href={curriculum.tutorUsername ? `/u/${curriculum.tutorUsername}` : '#'}
                     className="text-sm text-indigo-600 hover:text-indigo-800"
                   >
@@ -366,12 +368,12 @@ export default function CurriculumDetailPage() {
               >
                 <Heart className={`h-5 w-5 ${isFavorited ? 'fill-red-500' : ''}`} />
               </Button>
-              
+
               {isEnrolled ? (
                 nextLesson && (
                   <Link href={`/curriculum/lessons/${nextLesson.id}`}>
                     <Button size="lg" className="gap-2">
-                      <Play className="w-5 h-5" />
+                      <Play className="h-5 w-5" />
                       {nextLesson.status === 'IN_PROGRESS' ? 'Continue' : 'Start learning'}
                     </Button>
                   </Link>
@@ -387,7 +389,7 @@ export default function CurriculumDetailPage() {
                     </div>
                   )}
                   <Button size="lg" className="gap-2" onClick={handleEnroll}>
-                    <ShoppingCart className="w-5 h-5" />
+                    <ShoppingCart className="h-5 w-5" />
                     Enroll Now
                   </Button>
                 </div>
@@ -397,14 +399,15 @@ export default function CurriculumDetailPage() {
 
           {/* Overall Progress */}
           {isEnrolled && (
-            <div className="mt-8 bg-gray-50 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
+            <div className="mt-8 rounded-lg bg-gray-50 p-4">
+              <div className="mb-2 flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Overall progress</span>
                 <span className="text-sm font-medium text-gray-900">{progressPercent}%</span>
               </div>
               <Progress value={progressPercent} className="h-3" />
-              <p className="text-sm text-gray-500 mt-2">
-                Completed {curriculum.progress.lessonsCompleted} / {curriculum.progress.totalLessons} lessons
+              <p className="mt-2 text-sm text-gray-500">
+                Completed {curriculum.progress.lessonsCompleted} /{' '}
+                {curriculum.progress.totalLessons} lessons
                 {curriculum.progress.startedAt && (
                   <span className="ml-4">
                     Started: {new Date(curriculum.progress.startedAt).toLocaleDateString('en-US')}
@@ -418,22 +421,20 @@ export default function CurriculumDetailPage() {
 
       {/* Course Pitch */}
       {curriculum.coursePitch && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <section className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
           <Card className="border-indigo-200 bg-gradient-to-br from-indigo-50/50 to-purple-50/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-indigo-900">
                 <Sparkles className="h-5 w-5 text-indigo-600" />
                 About This Course
               </CardTitle>
-              <CardDescription>
-                Everything you need to know before enrolling
-              </CardDescription>
+              <CardDescription>Everything you need to know before enrolling</CardDescription>
             </CardHeader>
             <CardContent>
-              <div 
+              <div
                 className="prose prose-slate prose-indigo max-w-none"
-                dangerouslySetInnerHTML={{ 
-                  __html: renderMarkdown(curriculum.coursePitch) 
+                dangerouslySetInnerHTML={{
+                  __html: renderMarkdown(curriculum.coursePitch),
                 }}
               />
             </CardContent>
@@ -442,23 +443,25 @@ export default function CurriculumDetailPage() {
       )}
 
       {/* Modules */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="space-y-4">
           {curriculum.modules.map((module, moduleIndex) => {
             const isExpanded = expandedModules.has(module.id)
             const moduleProgress = Math.round(
-              (module.lessons.filter(l => l.status === 'COMPLETED').length / module.lessons.length) * 100
+              (module.lessons.filter(l => l.status === 'COMPLETED').length /
+                module.lessons.length) *
+                100
             )
 
             return (
               <Card key={module.id} className="overflow-hidden">
-                <div 
-                  className="p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                <div
+                  className="cursor-pointer bg-gray-50 p-4 transition-colors hover:bg-gray-100"
                   onClick={() => toggleModule(module.id)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-600">
                         {moduleIndex + 1}
                       </div>
                       <div>
@@ -470,11 +473,12 @@ export default function CurriculumDetailPage() {
                       <div className="text-right">
                         <p className="text-sm font-medium text-gray-700">{moduleProgress}%</p>
                         <p className="text-xs text-gray-500">
-                          {module.lessons.filter(l => l.status === 'COMPLETED').length} / {module.lessons.length} lessons
+                          {module.lessons.filter(l => l.status === 'COMPLETED').length} /{' '}
+                          {module.lessons.length} lessons
                         </p>
                       </div>
-                      <ChevronRight 
-                        className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} 
+                      <ChevronRight
+                        className={`h-5 w-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
                       />
                     </div>
                   </div>
@@ -483,46 +487,55 @@ export default function CurriculumDetailPage() {
                 {isExpanded && (
                   <div className="border-t border-gray-200">
                     {module.lessons.map((lesson, lessonIndex) => (
-                      <div 
+                      <div
                         key={lesson.id}
-                        className={`flex items-center justify-between p-4 hover:bg-gray-50 transition-colors ${
-                          lessonIndex !== module.lessons.length - 1 ? 'border-b border-gray-100' : ''
+                        className={`flex items-center justify-between p-4 transition-colors hover:bg-gray-50 ${
+                          lessonIndex !== module.lessons.length - 1
+                            ? 'border-b border-gray-100'
+                            : ''
                         }`}
                       >
                         <div className="flex items-center gap-4">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            lesson.status === 'COMPLETED' 
-                              ? 'bg-green-100 text-green-600' 
-                              : lesson.status === 'IN_PROGRESS'
-                              ? 'bg-indigo-100 text-indigo-600'
-                              : lesson.isLocked
-                              ? 'bg-gray-100 text-gray-400'
-                              : 'bg-gray-100 text-gray-600'
-                          }`}>
+                          <div
+                            className={`flex h-8 w-8 items-center justify-center rounded-full ${
+                              lesson.status === 'COMPLETED'
+                                ? 'bg-green-100 text-green-600'
+                                : lesson.status === 'IN_PROGRESS'
+                                  ? 'bg-indigo-100 text-indigo-600'
+                                  : lesson.isLocked
+                                    ? 'bg-gray-100 text-gray-400'
+                                    : 'bg-gray-100 text-gray-600'
+                            }`}
+                          >
                             {lesson.status === 'COMPLETED' ? (
-                              <CheckCircle2 className="w-5 h-5" />
+                              <CheckCircle2 className="h-5 w-5" />
                             ) : lesson.isLocked ? (
-                              <Lock className="w-4 h-4" />
+                              <Lock className="h-4 w-4" />
                             ) : (
                               <span className="text-sm font-medium">{lessonIndex + 1}</span>
                             )}
                           </div>
                           <div>
-                            <h4 className={`font-medium ${
-                              lesson.isLocked ? 'text-gray-400' : 'text-gray-900'
-                            }`}>
+                            <h4
+                              className={`font-medium ${
+                                lesson.isLocked ? 'text-gray-400' : 'text-gray-900'
+                              }`}
+                            >
                               {lesson.title}
                             </h4>
-                            <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                            <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
                               <span className="flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
+                                <Clock className="h-3 w-3" />
                                 {lesson.duration} min
                               </span>
-                              {lesson.progress?.currentSection && lesson.status === 'IN_PROGRESS' && (
-                                <span className="text-indigo-600">
-                                  Current: {SECTION_NAMES[lesson.progress.currentSection] || lesson.progress.currentSection}
-                                </span>
-                              )}
+                              {lesson.progress?.currentSection &&
+                                lesson.status === 'IN_PROGRESS' && (
+                                  <span className="text-indigo-600">
+                                    Current:{' '}
+                                    {SECTION_NAMES[lesson.progress.currentSection] ||
+                                      lesson.progress.currentSection}
+                                  </span>
+                                )}
                               {lesson.progress?.score && (
                                 <span className="text-green-600">
                                   Score: {Math.round(lesson.progress.score)}%
@@ -534,12 +547,15 @@ export default function CurriculumDetailPage() {
 
                         {!lesson.isLocked && isEnrolled && (
                           <Link href={`/curriculum/lessons/${lesson.id}`}>
-                            <Button 
+                            <Button
                               variant={lesson.status === 'COMPLETED' ? 'outline' : 'default'}
                               size="sm"
                             >
-                              {lesson.status === 'COMPLETED' ? 'Review' : 
-                               lesson.status === 'IN_PROGRESS' ? 'Continue' : 'Start'}
+                              {lesson.status === 'COMPLETED'
+                                ? 'Review'
+                                : lesson.status === 'IN_PROGRESS'
+                                  ? 'Continue'
+                                  : 'Start'}
                             </Button>
                           </Link>
                         )}

@@ -10,10 +10,13 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import { aITutorDailyUsage, aITutorSubscription } from '@/lib/db/schema'
 
 // GET - Check current usage and limits
-export const GET = withAuth(async (req, session) => {
-  const result = await checkUsage(session.user.id)
-  return NextResponse.json(result)
-}, { role: 'STUDENT' })
+export const GET = withAuth(
+  async (req, session) => {
+    const result = await checkUsage(session.user.id)
+    return NextResponse.json(result)
+  },
+  { role: 'STUDENT' }
+)
 
 export async function checkUsage(userId: string) {
   const [subscription] = await drizzleDb
@@ -38,12 +41,7 @@ export async function checkUsage(userId: string) {
   const [existing] = await drizzleDb
     .select()
     .from(aITutorDailyUsage)
-    .where(
-      and(
-        eq(aITutorDailyUsage.userId, userId),
-        eq(aITutorDailyUsage.date, today)
-      )
-    )
+    .where(and(eq(aITutorDailyUsage.userId, userId), eq(aITutorDailyUsage.date, today)))
     .limit(1)
 
   let dailyUsage: { messageCount: number; sessionCount: number }
@@ -80,61 +78,63 @@ export async function checkUsage(userId: string) {
     remainingMessages,
     remainingSessions,
     tier: subscription.tier,
-    resetsAt: new Date(today.getTime() + 24 * 60 * 60 * 1000)
+    resetsAt: new Date(today.getTime() + 24 * 60 * 60 * 1000),
   }
 }
 
 // POST - Record usage increment
-export const POST = withCsrf(withAuth(async (req, session) => {
-  const { type, amount = 1 } = await req.json()
-  
-  if (!['message', 'session', 'minute'].includes(type)) {
-    throw new ValidationError('Invalid usage type')
-  }
+export const POST = withCsrf(
+  withAuth(
+    async (req, session) => {
+      const { type, amount = 1 } = await req.json()
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+      if (!['message', 'session', 'minute'].includes(type)) {
+        throw new ValidationError('Invalid usage type')
+      }
 
-  const [row] = await drizzleDb
-    .select()
-    .from(aITutorDailyUsage)
-    .where(
-      and(
-        eq(aITutorDailyUsage.userId, session.user.id),
-        eq(aITutorDailyUsage.date, today)
-      )
-    )
-    .limit(1)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
 
-  if (row) {
-    if (type === 'message') {
-      await drizzleDb
-        .update(aITutorDailyUsage)
-        .set({ messageCount: row.messageCount + amount })
-        .where(eq(aITutorDailyUsage.id, row.id))
-    } else if (type === 'session') {
-      await drizzleDb
-        .update(aITutorDailyUsage)
-        .set({ sessionCount: row.sessionCount + amount })
-        .where(eq(aITutorDailyUsage.id, row.id))
-    } else if (type === 'minute') {
-      await drizzleDb
-        .update(aITutorDailyUsage)
-        .set({ minutesUsed: row.minutesUsed + amount })
-        .where(eq(aITutorDailyUsage.id, row.id))
-    }
-  } else {
-    await drizzleDb.insert(aITutorDailyUsage).values({
-      id: crypto.randomUUID(),
-      userId: session.user.id,
-      date: today,
-      sessionCount: type === 'session' ? amount : 0,
-      messageCount: type === 'message' ? amount : 0,
-      minutesUsed: type === 'minute' ? amount : 0,
-    })
-  }
+      const [row] = await drizzleDb
+        .select()
+        .from(aITutorDailyUsage)
+        .where(
+          and(eq(aITutorDailyUsage.userId, session.user.id), eq(aITutorDailyUsage.date, today))
+        )
+        .limit(1)
 
-  // Return updated usage
-  const result = await checkUsage(session.user.id)
-  return NextResponse.json(result)
-}, { role: 'STUDENT' }))
+      if (row) {
+        if (type === 'message') {
+          await drizzleDb
+            .update(aITutorDailyUsage)
+            .set({ messageCount: row.messageCount + amount })
+            .where(eq(aITutorDailyUsage.id, row.id))
+        } else if (type === 'session') {
+          await drizzleDb
+            .update(aITutorDailyUsage)
+            .set({ sessionCount: row.sessionCount + amount })
+            .where(eq(aITutorDailyUsage.id, row.id))
+        } else if (type === 'minute') {
+          await drizzleDb
+            .update(aITutorDailyUsage)
+            .set({ minutesUsed: row.minutesUsed + amount })
+            .where(eq(aITutorDailyUsage.id, row.id))
+        }
+      } else {
+        await drizzleDb.insert(aITutorDailyUsage).values({
+          id: crypto.randomUUID(),
+          userId: session.user.id,
+          date: today,
+          sessionCount: type === 'session' ? amount : 0,
+          messageCount: type === 'message' ? amount : 0,
+          minutesUsed: type === 'minute' ? amount : 0,
+        })
+      }
+
+      // Return updated usage
+      const result = await checkUsage(session.user.id)
+      return NextResponse.json(result)
+    },
+    { role: 'STUDENT' }
+  )
+)

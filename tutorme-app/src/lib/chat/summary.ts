@@ -56,7 +56,7 @@ export async function generateSessionSummary(
       .leftJoin(profile, eq(user.id, profile.userId))
       .where(eq(message.sessionId, sessionId))
       .orderBy(asc(message.timestamp))
-    const messages = messagesRows.map((m) => ({
+    const messages = messagesRows.map(m => ({
       userId: m.userId,
       content: m.content,
       timestamp: m.timestamp,
@@ -68,7 +68,7 @@ export async function generateSessionSummary(
       return { success: false, error: '没有找到聊天记录' }
     }
 
-    const formattedChat = messages.map((m) => ({
+    const formattedChat = messages.map(m => ({
       user: m.user?.profile?.name || m.userId,
       content: m.content,
       time: m.timestamp,
@@ -80,10 +80,13 @@ export async function generateSessionSummary(
     const parsed = parseSummaryResponse(result.content)
 
     // Calculate metrics
-    const uniqueParticipants = new Set(messages.map((m) => m.userId)).size
-    const duration = messages.length > 1
-      ? (messages[messages.length - 1].timestamp.getTime() - messages[0].timestamp.getTime()) / 1000 / 60
-      : 0
+    const uniqueParticipants = new Set(messages.map(m => m.userId)).size
+    const duration =
+      messages.length > 1
+        ? (messages[messages.length - 1].timestamp.getTime() - messages[0].timestamp.getTime()) /
+          1000 /
+          60
+        : 0
 
     const summary: ChatSummary = {
       id: `summary_${sessionId}_${Date.now()}`,
@@ -98,7 +101,7 @@ export async function generateSessionSummary(
       duration: Math.round(duration),
       messageCount: messages.length,
       participantCount: uniqueParticipants,
-      generatedAt: new Date()
+      generatedAt: new Date(),
     }
 
     // Save summary to database for future reference
@@ -109,7 +112,7 @@ export async function generateSessionSummary(
     console.error('Failed to generate chat summary:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : '生成总结失败'
+      error: error instanceof Error ? error.message : '生成总结失败',
     }
   }
 }
@@ -135,7 +138,7 @@ export async function generateBreakoutSummary(
       .leftJoin(profile, eq(user.id, profile.userId))
       .where(like(message.sessionId, `breakout_${breakoutRoomId}%`))
       .orderBy(asc(message.timestamp))
-    const messages = messagesRows.map((m) => ({
+    const messages = messagesRows.map(m => ({
       userId: m.userId,
       content: m.content,
       timestamp: m.timestamp,
@@ -151,7 +154,7 @@ export async function generateBreakoutSummary(
       user: m.user?.profile?.name || m.userId,
       content: m.content,
       time: m.timestamp,
-      type: m.type
+      type: m.type,
     }))
 
     const prompt = createBreakoutSummaryPrompt(formattedChat, options)
@@ -159,9 +162,12 @@ export async function generateBreakoutSummary(
     const parsed = parseSummaryResponse(result.content)
 
     const uniqueParticipants = new Set(messages.map(m => m.userId)).size
-    const duration = messages.length > 1
-      ? (messages[messages.length - 1].timestamp.getTime() - messages[0].timestamp.getTime()) / 1000 / 60
-      : 0
+    const duration =
+      messages.length > 1
+        ? (messages[messages.length - 1].timestamp.getTime() - messages[0].timestamp.getTime()) /
+          1000 /
+          60
+        : 0
 
     const summary: ChatSummary = {
       id: `breakout_summary_${breakoutRoomId}_${Date.now()}`,
@@ -175,7 +181,7 @@ export async function generateBreakoutSummary(
       duration: Math.round(duration),
       messageCount: messages.length,
       participantCount: uniqueParticipants,
-      generatedAt: new Date()
+      generatedAt: new Date(),
     }
 
     return { success: true, summary }
@@ -195,7 +201,7 @@ function createSummaryPrompt(
   const lengthMap = {
     short: '100-150字',
     medium: '200-300字',
-    detailed: '400-500字'
+    detailed: '400-500字',
   }
 
   const chatText = messages.map(m => `${m.user}: ${m.content}`).join('\n')
@@ -269,7 +275,7 @@ function parseSummaryResponse(response: string): {
       return {
         overview: response.substring(0, 500),
         keyPoints: [],
-        sentiment: 'neutral'
+        sentiment: 'neutral',
       }
     }
 
@@ -283,14 +289,14 @@ function parseSummaryResponse(response: string): {
       actionItems: parsed.actionItems || parsed.actions || [],
       sentiment: ['positive', 'neutral', 'negative'].includes(parsed.sentiment)
         ? parsed.sentiment
-        : 'neutral'
+        : 'neutral',
     }
   } catch (error) {
     console.error('Failed to parse summary:', error)
     return {
       overview: response.substring(0, 500),
       keyPoints: [],
-      sentiment: 'neutral'
+      sentiment: 'neutral',
     }
   }
 }
@@ -307,9 +313,12 @@ function calculateEngagementScore(
   const totalMessages = messages.length
 
   // Calculate message frequency (messages per minute)
-  const duration = messages.length > 1
-    ? (messages[messages.length - 1].timestamp.getTime() - messages[0].timestamp.getTime()) / 1000 / 60
-    : 1
+  const duration =
+    messages.length > 1
+      ? (messages[messages.length - 1].timestamp.getTime() - messages[0].timestamp.getTime()) /
+        1000 /
+        60
+      : 1
 
   const frequency = duration > 0 ? totalMessages / duration : totalMessages
 
@@ -345,9 +354,7 @@ async function saveSummary(sessionId: string, summary: ChatSummary): Promise<voi
 /**
  * Get cached summary for a session
  */
-export async function getCachedSummary(
-  sessionId: string
-): Promise<ChatSummary | null> {
+export async function getCachedSummary(sessionId: string): Promise<ChatSummary | null> {
   // This would query the database for a cached summary
   // For now, return null to regenerate
   return null

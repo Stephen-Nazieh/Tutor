@@ -11,22 +11,22 @@ const options = {
       description: 'AI-powered hybrid tutoring platform API',
       contact: {
         name: 'Solocorn Support',
-        email: 'support@solocorn.co'
-      }
+        email: 'support@solocorn.co',
+      },
     },
     servers: [
       {
         url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3003',
-        description: 'Production server'
-      }
+        description: 'Production server',
+      },
     ],
     components: {
       securitySchemes: {
         bearerAuth: {
           type: 'http',
           scheme: 'bearer',
-          bearerFormat: 'JWT'
-        }
+          bearerFormat: 'JWT',
+        },
       },
       schemas: {
         Error: {
@@ -34,8 +34,8 @@ const options = {
           properties: {
             error: { type: 'string' },
             code: { type: 'string' },
-            details: { type: 'object' }
-          }
+            details: { type: 'object' },
+          },
         },
         User: {
           type: 'object',
@@ -43,17 +43,13 @@ const options = {
             id: { type: 'string' },
             name: { type: 'string' },
             email: { type: 'string', format: 'email' },
-            role: { type: 'string', enum: ['STUDENT', 'TUTOR', 'ADMIN'] }
-          }
-        }
-      }
-    }
+            role: { type: 'string', enum: ['STUDENT', 'TUTOR', 'ADMIN'] },
+          },
+        },
+      },
+    },
   },
-  apis: [
-    '**/*.route.ts',
-    '**/api.ts',
-    '**/types.ts'
-  ]
+  apis: ['**/*.route.ts', '**/api.ts', '**/types.ts'],
 }
 
 export const swaggerSpec = swaggerJSDoc(options)

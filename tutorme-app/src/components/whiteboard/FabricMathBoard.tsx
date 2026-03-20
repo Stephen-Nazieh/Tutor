@@ -6,7 +6,19 @@ import * as Y from 'yjs'
 import type { Socket } from 'socket.io-client'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Pen, Square, Circle, Type, MousePointer2, Eraser, Lock, Unlock, Wifi, WifiOff, Hand } from 'lucide-react'
+import {
+  Pen,
+  Square,
+  Circle,
+  Type,
+  MousePointer2,
+  Eraser,
+  Lock,
+  Unlock,
+  Wifi,
+  WifiOff,
+  Hand,
+} from 'lucide-react'
 
 interface FabricMathBoardProps {
   sessionId: string
@@ -55,25 +67,30 @@ export function FabricMathBoard({
   const [isConnected, setIsConnected] = useState(false)
   const [isLocked, setIsLocked] = useState(false)
   const [hasRequestedEditAccess, setHasRequestedEditAccess] = useState(false)
-  const [pendingEditRequests, setPendingEditRequests] = useState<Array<{ userId?: string; name: string; requestedAt: number }>>([])
+  const [pendingEditRequests, setPendingEditRequests] = useState<
+    Array<{ userId?: string; name: string; requestedAt: number }>
+  >([])
 
   const canEdit = role === 'tutor' || !isLocked
 
-  const applyReadonly = useCallback((readonly: boolean) => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    canvas.isDrawingMode = !readonly && (tool === 'draw' || tool === 'erase')
-    canvas.selection = !readonly && tool === 'select'
-    canvas.skipTargetFind = readonly || tool !== 'select'
-    canvas.forEachObject((obj) => {
-      obj.selectable = !readonly
-      obj.evented = !readonly
-    })
-    if (readonly) {
-      canvas.discardActiveObject()
-    }
-    canvas.renderAll()
-  }, [tool])
+  const applyReadonly = useCallback(
+    (readonly: boolean) => {
+      const canvas = canvasRef.current
+      if (!canvas) return
+      canvas.isDrawingMode = !readonly && (tool === 'draw' || tool === 'erase')
+      canvas.selection = !readonly && tool === 'select'
+      canvas.skipTargetFind = readonly || tool !== 'select'
+      canvas.forEachObject(obj => {
+        obj.selectable = !readonly
+        obj.evented = !readonly
+      })
+      if (readonly) {
+        canvas.discardActiveObject()
+      }
+      canvas.renderAll()
+    },
+    [tool]
+  )
 
   const queueSnapshotSync = useCallback(() => {
     const canvas = canvasRef.current
@@ -175,7 +192,10 @@ export function FabricMathBoard({
 
     const onConnect = () => join()
     const onDisconnect = () => setIsConnected(false)
-    const onState = (state: { locked: boolean; tldrawSnapshot?: Record<string, unknown> | null }) => {
+    const onState = (state: {
+      locked: boolean
+      tldrawSnapshot?: Record<string, unknown> | null
+    }) => {
       setIsLocked(Boolean(state.locked))
       if (!state.locked) {
         setHasRequestedEditAccess(false)
@@ -201,9 +221,9 @@ export function FabricMathBoard({
       if (role !== 'tutor') return
       const requesterName = data.requester?.name?.trim()
       if (!requesterName) return
-      setPendingEditRequests((prev) => {
+      setPendingEditRequests(prev => {
         const dedupeKey = data.requester?.userId || requesterName
-        const filtered = prev.filter((item) => (item.userId || item.name) !== dedupeKey)
+        const filtered = prev.filter(item => (item.userId || item.name) !== dedupeKey)
         return [
           ...filtered,
           {
@@ -227,7 +247,11 @@ export function FabricMathBoard({
       if (!yDoc) return
       Y.applyUpdate(yDoc, Uint8Array.from(payload.update || []), 'remote')
     }
-    const onSnapshot = (payload: { sessionId?: string; actorId?: string; snapshot?: Record<string, unknown> | null }) => {
+    const onSnapshot = (payload: {
+      sessionId?: string
+      actorId?: string
+      snapshot?: Record<string, unknown> | null
+    }) => {
       if (payload.sessionId && payload.sessionId !== sessionId) return
       if (payload.actorId && payload.actorId === userId) return
       if (!payload.snapshot) return
@@ -303,19 +327,33 @@ export function FabricMathBoard({
 
     const getPoint = (evt: fabric.TEvent): { x: number; y: number } | null => {
       const maybeEvent = evt as fabric.TEvent & { scenePoint?: { x: number; y: number } }
-      if (maybeEvent.scenePoint && Number.isFinite(maybeEvent.scenePoint.x) && Number.isFinite(maybeEvent.scenePoint.y)) {
+      if (
+        maybeEvent.scenePoint &&
+        Number.isFinite(maybeEvent.scenePoint.x) &&
+        Number.isFinite(maybeEvent.scenePoint.y)
+      ) {
         return { x: maybeEvent.scenePoint.x, y: maybeEvent.scenePoint.y }
       }
       const pointerEvent = evt.e
       if (!pointerEvent) return null
-      if (typeof (canvas as unknown as { getScenePoint?: (event: Event) => { x: number; y: number } }).getScenePoint === 'function') {
-        const scenePoint = (canvas as unknown as { getScenePoint: (event: Event) => { x: number; y: number } }).getScenePoint(pointerEvent)
+      if (
+        typeof (canvas as unknown as { getScenePoint?: (event: Event) => { x: number; y: number } })
+          .getScenePoint === 'function'
+      ) {
+        const scenePoint = (
+          canvas as unknown as { getScenePoint: (event: Event) => { x: number; y: number } }
+        ).getScenePoint(pointerEvent)
         if (Number.isFinite(scenePoint.x) && Number.isFinite(scenePoint.y)) {
           return { x: scenePoint.x, y: scenePoint.y }
         }
       }
-      if (typeof (canvas as unknown as { getPointer?: (event: Event) => { x: number; y: number } }).getPointer === 'function') {
-        const fallbackPoint = (canvas as unknown as { getPointer: (event: Event) => { x: number; y: number } }).getPointer(pointerEvent)
+      if (
+        typeof (canvas as unknown as { getPointer?: (event: Event) => { x: number; y: number } })
+          .getPointer === 'function'
+      ) {
+        const fallbackPoint = (
+          canvas as unknown as { getPointer: (event: Event) => { x: number; y: number } }
+        ).getPointer(pointerEvent)
         if (Number.isFinite(fallbackPoint.x) && Number.isFinite(fallbackPoint.y)) {
           return { x: fallbackPoint.x, y: fallbackPoint.y }
         }
@@ -385,7 +423,11 @@ export function FabricMathBoard({
         const height = Math.abs(pointer.y - startPointRef.current.y)
         drawingShapeRef.current.set({ left: x, top: y, width, height })
       } else if (drawingShapeRef.current instanceof fabric.Circle) {
-        const radius = Math.max(Math.abs(pointer.x - startPointRef.current.x), Math.abs(pointer.y - startPointRef.current.y)) / 2
+        const radius =
+          Math.max(
+            Math.abs(pointer.x - startPointRef.current.x),
+            Math.abs(pointer.y - startPointRef.current.y)
+          ) / 2
         drawingShapeRef.current.set({
           radius,
           left: startPointRef.current.x - radius,
@@ -434,7 +476,11 @@ export function FabricMathBoard({
       canvas.off('mouse:move', onMouseMove)
       canvas.off('mouse:up', onMouseUp)
       canvas.dispose()
-      if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production' && window.__fabricMathBoards) {
+      if (
+        typeof window !== 'undefined' &&
+        process.env.NODE_ENV !== 'production' &&
+        window.__fabricMathBoards
+      ) {
         delete window.__fabricMathBoards[sessionId]
       }
       canvasRef.current = null
@@ -500,12 +546,17 @@ export function FabricMathBoard({
   }
 
   return (
-    <div className={`h-full min-h-0 flex flex-col rounded-lg border bg-white ${className}`} data-testid="fabric-math-board">
+    <div
+      className={`flex h-full min-h-0 flex-col rounded-lg border bg-white ${className}`}
+      data-testid="fabric-math-board"
+    >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-semibold">Math Whiteboard</h3>
           {statusBadge}
-          <Badge variant={canEdit ? 'default' : 'secondary'}>{canEdit ? 'Editable' : 'Read only'}</Badge>
+          <Badge variant={canEdit ? 'default' : 'secondary'}>
+            {canEdit ? 'Editable' : 'Read only'}
+          </Badge>
         </div>
 
         <div className="flex flex-wrap items-center gap-1">
@@ -554,7 +605,7 @@ export function FabricMathBoard({
         </div>
       </div>
 
-      <div ref={rootRef} className="relative flex-1 min-h-0 touch-none p-1">
+      <div ref={rootRef} className="relative min-h-0 flex-1 touch-none p-1">
         {role === 'student' && !canEdit && (
           <div className="absolute left-3 right-3 top-3 z-10 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 shadow-sm">
             Board locked by tutor. You can view only until access is granted.

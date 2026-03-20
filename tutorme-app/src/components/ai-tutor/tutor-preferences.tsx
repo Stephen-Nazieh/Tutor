@@ -56,7 +56,11 @@ const BACKGROUND_COLORS = [
   { value: 'dark', label: 'Dark', color: 'bg-gray-900', textColor: 'text-gray-100' },
 ]
 
-export function TutorPreferences({ enrollmentId, currentPreferences, onUpdate }: TutorPreferencesProps) {
+export function TutorPreferences({
+  enrollmentId,
+  currentPreferences,
+  onUpdate,
+}: TutorPreferencesProps) {
   const [preferences, setPreferences] = useState(currentPreferences)
   const [saving, setSaving] = useState(false)
 
@@ -68,8 +72,8 @@ export function TutorPreferences({ enrollmentId, currentPreferences, onUpdate }:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           enrollmentId,
-          updates: preferences
-        })
+          updates: preferences,
+        }),
       })
 
       if (!res.ok) throw new Error('Failed to save')
@@ -87,33 +91,31 @@ export function TutorPreferences({ enrollmentId, currentPreferences, onUpdate }:
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Palette className="w-5 h-5" />
+          <Palette className="h-5 w-5" />
           Tutor Preferences
         </CardTitle>
-        <CardDescription>
-          Customize how your AI tutor teaches and communicates
-        </CardDescription>
+        <CardDescription>Customize how your AI tutor teaches and communicates</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Teaching Age */}
         <div>
-          <label className="text-sm font-medium flex items-center gap-2 mb-3">
-            <User className="w-4 h-4" />
+          <label className="mb-3 flex items-center gap-2 text-sm font-medium">
+            <User className="h-4 w-4" />
             Teach me like I'm...
           </label>
           <div className="grid grid-cols-2 gap-2">
-            {AGE_OPTIONS.map((age) => (
+            {AGE_OPTIONS.map(age => (
               <button
                 key={age.value}
                 onClick={() => setPreferences(prev => ({ ...prev, teachingAge: age.value }))}
-                className={`p-3 rounded-lg border text-left transition-all ${
+                className={`rounded-lg border p-3 text-left transition-all ${
                   preferences.teachingAge === age.value
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <span className="font-medium text-sm">{age.label}</span>
-                <p className="text-xs text-gray-500 mt-1">{age.description}</p>
+                <span className="text-sm font-medium">{age.label}</span>
+                <p className="mt-1 text-xs text-gray-500">{age.description}</p>
               </button>
             ))}
           </div>
@@ -121,23 +123,23 @@ export function TutorPreferences({ enrollmentId, currentPreferences, onUpdate }:
 
         {/* Voice Gender */}
         <div>
-          <label className="text-sm font-medium flex items-center gap-2 mb-3">
-            <Volume2 className="w-4 h-4" />
+          <label className="mb-3 flex items-center gap-2 text-sm font-medium">
+            <Volume2 className="h-4 w-4" />
             Voice Gender
           </label>
           <div className="flex gap-2">
-            {GENDER_OPTIONS.map((gender) => (
+            {GENDER_OPTIONS.map(gender => (
               <button
                 key={gender.value}
                 onClick={() => setPreferences(prev => ({ ...prev, voiceGender: gender.value }))}
-                className={`flex-1 p-3 rounded-lg border text-center transition-all ${
+                className={`flex-1 rounded-lg border p-3 text-center transition-all ${
                   preferences.voiceGender === gender.value
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
                 <span className="text-2xl">{gender.emoji}</span>
-                <p className="text-sm mt-1">{gender.label}</p>
+                <p className="mt-1 text-sm">{gender.label}</p>
               </button>
             ))}
           </div>
@@ -145,23 +147,23 @@ export function TutorPreferences({ enrollmentId, currentPreferences, onUpdate }:
 
         {/* Voice Accent */}
         <div>
-          <label className="text-sm font-medium flex items-center gap-2 mb-3">
-            <Globe className="w-4 h-4" />
+          <label className="mb-3 flex items-center gap-2 text-sm font-medium">
+            <Globe className="h-4 w-4" />
             Voice Accent
           </label>
           <div className="flex gap-2">
-            {ACCENT_OPTIONS.map((accent) => (
+            {ACCENT_OPTIONS.map(accent => (
               <button
                 key={accent.value}
                 onClick={() => setPreferences(prev => ({ ...prev, voiceAccent: accent.value }))}
-                className={`flex-1 p-3 rounded-lg border text-center transition-all ${
+                className={`flex-1 rounded-lg border p-3 text-center transition-all ${
                   preferences.voiceAccent === accent.value
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
                 <span className="text-2xl">{accent.flag}</span>
-                <p className="text-sm mt-1">{accent.label}</p>
+                <p className="mt-1 text-sm">{accent.label}</p>
               </button>
             ))}
           </div>
@@ -169,23 +171,23 @@ export function TutorPreferences({ enrollmentId, currentPreferences, onUpdate }:
 
         {/* Avatar Style */}
         <div>
-          <label className="text-sm font-medium flex items-center gap-2 mb-3">
-            <Palette className="w-4 h-4" />
+          <label className="mb-3 flex items-center gap-2 text-sm font-medium">
+            <Palette className="h-4 w-4" />
             Avatar Style
           </label>
           <div className="flex gap-2">
-            {AVATAR_STYLES.map((style) => (
+            {AVATAR_STYLES.map(style => (
               <button
                 key={style.value}
                 onClick={() => setPreferences(prev => ({ ...prev, avatarStyle: style.value }))}
-                className={`flex-1 p-3 rounded-lg border text-center transition-all ${
+                className={`flex-1 rounded-lg border p-3 text-center transition-all ${
                   preferences.avatarStyle === style.value
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <p className="font-medium text-sm">{style.label}</p>
-                <p className="text-xs text-gray-500 mt-1">{style.description}</p>
+                <p className="text-sm font-medium">{style.label}</p>
+                <p className="mt-1 text-xs text-gray-500">{style.description}</p>
               </button>
             ))}
           </div>
@@ -193,22 +195,22 @@ export function TutorPreferences({ enrollmentId, currentPreferences, onUpdate }:
 
         {/* Background Color */}
         <div>
-          <label className="text-sm font-medium flex items-center gap-2 mb-3">
-            <Palette className="w-4 h-4" />
+          <label className="mb-3 flex items-center gap-2 text-sm font-medium">
+            <Palette className="h-4 w-4" />
             Chat Background
           </label>
           <div className="grid grid-cols-3 gap-2">
-            {BACKGROUND_COLORS.map((bg) => (
+            {BACKGROUND_COLORS.map(bg => (
               <button
                 key={bg.value}
                 onClick={() => setPreferences(prev => ({ ...prev, backgroundColor: bg.value }))}
-                className={`p-3 rounded-lg border-2 transition-all ${
+                className={`rounded-lg border-2 p-3 transition-all ${
                   preferences.backgroundColor === bg.value
                     ? 'border-blue-500 ring-2 ring-blue-200'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <div className={`w-full h-8 rounded-md ${bg.color} mb-2`} />
+                <div className={`h-8 w-full rounded-md ${bg.color} mb-2`} />
                 <p className={`text-xs font-medium ${bg.textColor}`}>{bg.label}</p>
               </button>
             ))}
@@ -216,12 +218,8 @@ export function TutorPreferences({ enrollmentId, currentPreferences, onUpdate }:
         </div>
 
         {/* Save Button */}
-        <Button 
-          className="w-full" 
-          onClick={handleSave}
-          disabled={saving}
-        >
-          <Save className="w-4 h-4 mr-2" />
+        <Button className="w-full" onClick={handleSave} disabled={saving}>
+          <Save className="mr-2 h-4 w-4" />
           {saving ? 'Saving...' : 'Save Preferences'}
         </Button>
       </CardContent>

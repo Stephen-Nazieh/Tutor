@@ -6,7 +6,13 @@ import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { ArrowLeft, BookOpen, Loader2, FileText, GraduationCap, Users } from 'lucide-react'
 import { TutorList } from './components/TutorList'
 import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
@@ -36,7 +42,7 @@ export default function SubjectCoursesPage() {
 
   // Theme state with localStorage persistence
   const [themeId, setThemeId] = useState('current')
-  const selectedTheme = DASHBOARD_THEMES.find((theme) => theme.id === themeId) ?? DASHBOARD_THEMES[0]
+  const selectedTheme = DASHBOARD_THEMES.find(theme => theme.id === themeId) ?? DASHBOARD_THEMES[0]
   const themeStyle = getThemeStyle(selectedTheme)
 
   useEffect(() => {
@@ -58,21 +64,25 @@ export default function SubjectCoursesPage() {
     let cancelled = false
     setLoading(true)
     setError(null)
-    fetch(`/api/curriculums/list?subject=${encodeURIComponent(subjectCode)}`, { credentials: 'include' })
-      .then((res) => {
+    fetch(`/api/curriculums/list?subject=${encodeURIComponent(subjectCode)}`, {
+      credentials: 'include',
+    })
+      .then(res => {
         if (!res.ok) throw new Error('Failed to load courses')
         return res.json()
       })
       .then((data: { curriculums: CurriculumListItem[] }) => {
         if (!cancelled) setCurriculums(data.curriculums ?? [])
       })
-      .catch((e) => {
+      .catch(e => {
         if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load courses')
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [subjectCode])
 
   const formatPrice = (price: number | null, currency: string | null) => {
@@ -83,22 +93,22 @@ export default function SubjectCoursesPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
-      <div className="max-w-3xl mx-auto p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="mx-auto max-w-3xl p-4 sm:p-6">
+        <div className="mb-6 flex items-center justify-between">
           <Link
             href={signupUrl}
             className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to signup
           </Link>
           {/* Theme Selector */}
           <Select value={themeId} onValueChange={setThemeId}>
-            <SelectTrigger className="h-8 w-[160px] border-border bg-card text-foreground text-xs">
+            <SelectTrigger className="h-8 w-[160px] border-border bg-card text-xs text-foreground">
               <SelectValue placeholder="Theme" />
             </SelectTrigger>
             <SelectContent>
-              {DASHBOARD_THEMES.map((theme) => (
+              {DASHBOARD_THEMES.map(theme => (
                 <SelectItem key={theme.id} value={theme.id}>
                   {theme.name}
                 </SelectItem>
@@ -107,21 +117,21 @@ export default function SubjectCoursesPage() {
           </Select>
         </div>
 
-        <h1 className="text-2xl font-semibold text-foreground mb-2">
+        <h1 className="mb-2 text-2xl font-semibold text-foreground">
           Choose a Course / Tutor — {subjectLabel}
         </h1>
-        <p className="text-sm text-muted-foreground mb-6">
+        <p className="mb-6 text-sm text-muted-foreground">
           Select a course to enroll or find a tutor for personalized help.
         </p>
 
         <Tabs defaultValue="courses" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 bg-muted">
             <TabsTrigger value="courses" className="flex items-center gap-2">
-              <GraduationCap className="w-4 h-4" />
+              <GraduationCap className="h-4 w-4" />
               Courses
             </TabsTrigger>
             <TabsTrigger value="tutors" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
+              <Users className="h-4 w-4" />
               Tutors
             </TabsTrigger>
           </TabsList>
@@ -129,7 +139,7 @@ export default function SubjectCoursesPage() {
           <TabsContent value="courses" className="space-y-4">
             {loading && (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             )}
 
@@ -145,11 +155,11 @@ export default function SubjectCoursesPage() {
             )}
 
             {!loading && !error && curriculums.length === 0 && (
-              <Card className="bg-card border-border">
+              <Card className="border-border bg-card">
                 <CardContent className="pt-6">
-                  <div className="flex flex-col items-center text-center py-8">
-                    <BookOpen className="w-12 h-12 text-muted mb-4" />
-                    <p className="text-muted-foreground mb-4">
+                  <div className="flex flex-col items-center py-8 text-center">
+                    <BookOpen className="mb-4 h-12 w-12 text-muted" />
+                    <p className="mb-4 text-muted-foreground">
                       No courses available for {subjectLabel} yet.
                     </p>
                     <Button variant="outline" asChild>
@@ -162,45 +172,51 @@ export default function SubjectCoursesPage() {
 
             {!loading && !error && curriculums.length > 0 && (
               <ul className="space-y-4">
-                {curriculums.map((c) => (
+                {curriculums.map(c => (
                   <li key={c.id}>
-                    <Card className="bg-card border-border hover:border-accent transition-colors">
+                    <Card className="border-border bg-card transition-colors hover:border-accent">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-lg text-foreground">{c.name}</CardTitle>
                         {(c.gradeLevel || c.difficulty) && (
-                          <CardDescription className="flex flex-wrap gap-2 mt-1">
+                          <CardDescription className="mt-1 flex flex-wrap gap-2">
                             {c.gradeLevel && <span>{c.gradeLevel}</span>}
-                            {c.difficulty && (
-                              <span className="capitalize">{c.difficulty}</span>
-                            )}
+                            {c.difficulty && <span className="capitalize">{c.difficulty}</span>}
                           </CardDescription>
                         )}
                       </CardHeader>
                       <CardContent className="space-y-3">
                         {c.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
+                          <p className="line-clamp-2 text-sm text-muted-foreground">
                             {c.description}
                           </p>
                         )}
                         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                           <span>{c.estimatedHours}h estimated</span>
-                          <span>{c.modulesCount} modules · {c.lessonsCount} lessons</span>
-                          {c.studentCount > 0 && (
-                            <span>{c.studentCount} students</span>
-                          )}
+                          <span>
+                            {c.modulesCount} modules · {c.lessonsCount} lessons
+                          </span>
+                          {c.studentCount > 0 && <span>{c.studentCount} students</span>}
                           <span className="font-medium text-foreground">
                             {formatPrice(c.price, c.currency)}
                           </span>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <Button asChild className="w-full sm:w-auto">
-                            <Link href={`/student/subjects/${encodeURIComponent(subjectCode)}/courses/${encodeURIComponent(c.id)}`}>
+                            <Link
+                              href={`/student/subjects/${encodeURIComponent(subjectCode)}/courses/${encodeURIComponent(c.id)}`}
+                            >
                               Select
                             </Link>
                           </Button>
-                          <Button variant="outline" asChild className="w-full sm:w-auto border-border">
-                            <Link href={`/student/subjects/${encodeURIComponent(subjectCode)}/courses/${encodeURIComponent(c.id)}/details`}>
-                              <FileText className="w-3 h-3 mr-1" />
+                          <Button
+                            variant="outline"
+                            asChild
+                            className="w-full border-border sm:w-auto"
+                          >
+                            <Link
+                              href={`/student/subjects/${encodeURIComponent(subjectCode)}/courses/${encodeURIComponent(c.id)}/details`}
+                            >
+                              <FileText className="mr-1 h-3 w-3" />
                               View course details
                             </Link>
                           </Button>

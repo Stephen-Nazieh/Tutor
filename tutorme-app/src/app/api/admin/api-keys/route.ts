@@ -27,7 +27,8 @@ export const POST = async (req: NextRequest) => {
   const ipErr = requireAdminIp(req)
   if (ipErr) return ipErr
   const body = await req.json().catch(() => ({}))
-  const name = typeof body.name === 'string' ? sanitizeHtmlWithMax(body.name.trim(), 100) : 'Unnamed key'
+  const name =
+    typeof body.name === 'string' ? sanitizeHtmlWithMax(body.name.trim(), 100) : 'Unnamed key'
   if (!name) {
     return NextResponse.json({ error: 'name is required' }, { status: 400 })
   }
@@ -36,6 +37,6 @@ export const POST = async (req: NextRequest) => {
     id: result.id,
     name: result.name,
     key: result.key,
-    message: 'Store the key securely; it will not be shown again.'
+    message: 'Store the key securely; it will not be shown again.',
   })
 }

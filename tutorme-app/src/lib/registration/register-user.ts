@@ -14,12 +14,20 @@ import {
   tutorApplication,
 } from '@/lib/db/schema'
 import { RegisterUserSchema, type RegisterUserInput } from '@/lib/validation/schemas'
-import { tutorAdditionalDataSchema, tutorProfileDataSchema } from '@/lib/validation/user-registration'
+import {
+  tutorAdditionalDataSchema,
+  tutorProfileDataSchema,
+} from '@/lib/validation/user-registration'
 import { ValidationError } from '@/lib/api/middleware'
 import { sanitizeHtml } from '@/lib/security/sanitize'
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_PRESETS } from '@/lib/security/rate-limit'
 import { verifyAllChildren, isStudentAlreadyLinked } from '@/lib/security/parent-child-queries'
-import { HANDLE_REGEX, assertValidHandle, normalizeHandle, isReservedHandle } from '@/lib/mentions/handles'
+import {
+  HANDLE_REGEX,
+  assertValidHandle,
+  normalizeHandle,
+  isReservedHandle,
+} from '@/lib/mentions/handles'
 import type { NextRequest } from 'next/server'
 
 const MAX_AVATAR_SIZE_BYTES = 8 * 1024 * 1024
@@ -78,7 +86,9 @@ export async function performRegistration(
 ): Promise<RegistrationResult> {
   const parsed = RegisterUserSchema.safeParse(payload)
   if (!parsed.success) {
-    const messages = parsed.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`).join(', ')
+    const messages = parsed.error.issues
+      .map(issue => `${issue.path.join('.')}: ${issue.message}`)
+      .join(', ')
     return { status: 400, body: { error: messages } }
   }
 
@@ -110,7 +120,9 @@ export async function performRegistration(
     }
   }
 
-  let verifiedStudents: Map<number, import('@/lib/security/parent-child-queries').VerifiedStudent> | undefined
+  let verifiedStudents:
+    | Map<number, import('@/lib/security/parent-child-queries').VerifiedStudent>
+    | undefined
 
   const [existingUser] = await drizzleDb
     .select()
@@ -122,14 +134,16 @@ export async function performRegistration(
   }
 
   if (role === 'PARENT') {
-    const additionalData = data.additionalData as {
-      students?: import('@/lib/validation/parent-child-security').StudentLinkingInput[]
-      emergencyContacts?: Array<{ name: string; relationship: string; phone: string }>
-    } | undefined
+    const additionalData = data.additionalData as
+      | {
+          students?: import('@/lib/validation/parent-child-security').StudentLinkingInput[]
+          emergencyContacts?: Array<{ name: string; relationship: string; phone: string }>
+        }
+      | undefined
     if (additionalData?.students?.length) {
       const { verified, errors } = await verifyAllChildren(additionalData.students)
       if (errors.length > 0) {
-        const msg = errors.map((e) => `Child ${e.index + 1}: ${e.message}`).join('; ')
+        const msg = errors.map(e => `Child ${e.index + 1}: ${e.message}`).join('; ')
         return { status: 400, body: { error: msg } }
       }
       verifiedStudents = verified
@@ -137,7 +151,9 @@ export async function performRegistration(
         if (await isStudentAlreadyLinked(student.userId)) {
           return {
             status: 400,
-            body: { error: `Student ${student.email} is already linked to another parent account.` },
+            body: {
+              error: `Student ${student.email} is already linked to another parent account.`,
+            },
           }
         }
       }
@@ -146,11 +162,15 @@ export async function performRegistration(
 
   const hashedPassword = await bcrypt.hash(password, 10)
 
-  const newUser = await drizzleDb.transaction(async (tx) => {
+  const newUser = await drizzleDb.transaction(async tx => {
     const userId = crypto.randomUUID()
 
     const checkHandle = async (handle: string) => {
-      const [existing] = await tx.select({ id: user.id }).from(user).where(eq(user.handle, handle)).limit(1)
+      const [existing] = await tx
+        .select({ id: user.id })
+        .from(user)
+        .where(eq(user.handle, handle))
+        .limit(1)
       return !!existing
     }
 
@@ -179,7 +199,8 @@ export async function performRegistration(
       handle: finalHandle,
     })
 
-    const profileData = role === 'TUTOR' ? tutorProfileDataSchema.parse(data.profileData) : undefined
+    const profileData =
+      role === 'TUTOR' ? tutorProfileDataSchema.parse(data.profileData) : undefined
 
     await tx.insert(profile).values({
       id: crypto.randomUUID(),
@@ -248,11 +269,15 @@ export async function performRegistration(
     }
 
     if (role === 'PARENT') {
-      const ad = data.additionalData as {
-        students?: Array<{ name?: string }>
-        emergencyContacts?: Array<{ name: string; relationship: string; phone: string }>
-      } | undefined
-      const profileDataRaw = data.profileData as { phoneNumber?: string; timezone?: string } | undefined
+      const ad = data.additionalData as
+        | {
+            students?: Array<{ name?: string }>
+            emergencyContacts?: Array<{ name: string; relationship: string; phone: string }>
+          }
+        | undefined
+      const profileDataRaw = data.profileData as
+        | { phoneNumber?: string; timezone?: string }
+        | undefined
       const familyAccountId = crypto.randomUUID()
       await tx.insert(familyAccount).values({
         id: familyAccountId,
@@ -279,7 +304,11 @@ export async function performRegistration(
       const contacts = (ad?.emergencyContacts || []).filter(
         (c: { name?: string; phone?: string }) => c.name && c.phone
       )
-      for (const contact of contacts as Array<{ name: string; relationship: string; phone: string }>) {
+      for (const contact of contacts as Array<{
+        name: string
+        relationship: string
+        phone: string
+      }>) {
         await tx.insert(emergencyContact).values({
           id: crypto.randomUUID(),
           parentId: familyAccountId,
@@ -313,10 +342,7 @@ export async function performRegistration(
 
   if (role === 'TUTOR' && options?.avatarFile) {
     const avatarUrl = await saveAvatar(newUser.id, options.avatarFile)
-    await drizzleDb
-      .update(profile)
-      .set({ avatarUrl })
-      .where(eq(profile.userId, newUser.id))
+    await drizzleDb.update(profile).set({ avatarUrl }).where(eq(profile.userId, newUser.id))
   }
 
   let studentUniqueId: string | undefined

@@ -139,7 +139,10 @@ export const complianceAudit = {
         .from(securityEvent)
         .where(
           and(
-            inArray(securityEvent.eventType, ['compliance_pipl_consent_created', 'compliance_pipl_cross_border']),
+            inArray(securityEvent.eventType, [
+              'compliance_pipl_consent_created',
+              'compliance_pipl_cross_border',
+            ]),
             gte(securityEvent.createdAt, cutoff)
           )
         )

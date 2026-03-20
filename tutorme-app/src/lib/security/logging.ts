@@ -19,6 +19,6 @@ export const securityLogger = {
       description: event.description,
       severity,
       ...event.metadata,
-    }).catch((err) => console.error('Security log failed:', err))
+    }).catch(err => console.error('Security log failed:', err))
   },
 }

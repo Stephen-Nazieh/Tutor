@@ -31,14 +31,7 @@ const CreatePollSchema = z.object({
 })
 
 function getOptionColor(index: number): string {
-  const colors = [
-    '#3b82f6',
-    '#10b981',
-    '#f59e0b',
-    '#ef4444',
-    '#8b5cf6',
-    '#ec4899',
-  ]
+  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
   return colors[index % colors.length]
 }
 
@@ -54,10 +47,7 @@ export async function GET(request: NextRequest) {
     const sessionId = searchParams.get('sessionId')
 
     if (!sessionId) {
-      return NextResponse.json(
-        { error: 'Session ID required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Session ID required' }, { status: 400 })
     }
 
     const polls = await drizzleDb
@@ -67,7 +57,7 @@ export async function GET(request: NextRequest) {
       .orderBy(desc(poll.createdAt))
 
     const formattedPolls = await Promise.all(
-      polls.map(async (pollRow) => {
+      polls.map(async pollRow => {
         const options = await drizzleDb
           .select()
           .from(pollOption)
@@ -87,7 +77,7 @@ export async function GET(request: NextRequest) {
           ...pollRow,
           options,
           responses: pollRow.isAnonymous
-            ? responses.map((r) => ({ ...r, studentId: undefined }))
+            ? responses.map(r => ({ ...r, studentId: undefined }))
             : responses,
           totalResponses: responses.length,
         }
@@ -148,11 +138,7 @@ export async function POST(request: NextRequest) {
       await drizzleDb.insert(pollOption).values(options)
     }
 
-    const [created] = await drizzleDb
-      .select()
-      .from(poll)
-      .where(eq(poll.id, pollId))
-      .limit(1)
+    const [created] = await drizzleDb.select().from(poll).where(eq(poll.id, pollId)).limit(1)
     const optionsList = await drizzleDb
       .select()
       .from(pollOption)

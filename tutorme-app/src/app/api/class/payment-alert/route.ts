@@ -10,7 +10,13 @@ import { handleApiError } from '@/lib/api/middleware'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { familyMember, curriculum, payment, curriculumEnrollment, familyNotification } from '@/lib/db/schema'
+import {
+  familyMember,
+  curriculum,
+  payment,
+  curriculumEnrollment,
+  familyNotification,
+} from '@/lib/db/schema'
 import { eq, and, inArray, sql } from 'drizzle-orm'
 import { logAudit, AUDIT_ACTIONS } from '@/lib/security/audit'
 import crypto from 'crypto'
@@ -39,9 +45,10 @@ export async function POST(request: NextRequest) {
     const parsed = await request.json()
     body = bodySchema.parse(parsed)
   } catch (err: unknown) {
-    const message = err instanceof z.ZodError
-      ? err.issues.map((e: { message: string }) => e.message).join(', ')
-      : 'Invalid request body'
+    const message =
+      err instanceof z.ZodError
+        ? err.issues.map((e: { message: string }) => e.message).join(', ')
+        : 'Invalid request body'
     return NextResponse.json({ error: message }, { status: 400 })
   }
 
@@ -50,7 +57,12 @@ export async function POST(request: NextRequest) {
     const [member] = await drizzleDb
       .select()
       .from(familyMember)
-      .where(and(eq(familyMember.userId, session.user.id), inArray(familyMember.relation, childRelations)))
+      .where(
+        and(
+          eq(familyMember.userId, session.user.id),
+          inArray(familyMember.relation, childRelations)
+        )
+      )
       .limit(1)
 
     if (!member) {
@@ -69,10 +81,7 @@ export async function POST(request: NextRequest) {
       .limit(1)
 
     if (!curriculumRow) {
-      return NextResponse.json(
-        { error: 'Course not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Course not found' }, { status: 404 })
     }
 
     const isPaidCourse = (curriculumRow.price ?? 0) > 0
@@ -90,7 +99,12 @@ export async function POST(request: NextRequest) {
     const enrollmentIds = await drizzleDb
       .select({ id: curriculumEnrollment.id })
       .from(curriculumEnrollment)
-      .where(and(eq(curriculumEnrollment.curriculumId, body.courseId), eq(curriculumEnrollment.studentId, session.user.id)))
+      .where(
+        and(
+          eq(curriculumEnrollment.curriculumId, body.courseId),
+          eq(curriculumEnrollment.studentId, session.user.id)
+        )
+      )
 
     const completedByEnrollment =
       enrollmentIds.length > 0
@@ -100,7 +114,10 @@ export async function POST(request: NextRequest) {
             .where(
               and(
                 eq(payment.status, 'COMPLETED'),
-                inArray(payment.enrollmentId, enrollmentIds.map((e) => e.id))
+                inArray(
+                  payment.enrollmentId,
+                  enrollmentIds.map(e => e.id)
+                )
               )
             )
         : []
@@ -152,6 +169,10 @@ export async function POST(request: NextRequest) {
       { status: 402 }
     )
   } catch (error) {
-    return handleApiError(error, 'Failed to process payment alert', 'api/class/payment-alert/route.ts')
+    return handleApiError(
+      error,
+      'Failed to process payment alert',
+      'api/class/payment-alert/route.ts'
+    )
   }
 }

@@ -20,7 +20,7 @@ import {
   TrendingDown,
   Flame,
   ChevronRight,
-  MoreHorizontal
+  MoreHorizontal,
 } from 'lucide-react'
 
 interface ReviewItem {
@@ -44,10 +44,10 @@ interface SmartReviewQueueProps {
   onReviewComplete?: () => void
 }
 
-export function SmartReviewQueue({ 
-  reviews, 
+export function SmartReviewQueue({
+  reviews,
   streakDays = 0,
-  onReviewComplete 
+  onReviewComplete,
 }: SmartReviewQueueProps) {
   const router = useRouter()
   const [selectedReviews, setSelectedReviews] = useState<Set<string>>(new Set())
@@ -57,7 +57,7 @@ export function SmartReviewQueue({
   const sortedReviews = [...reviews].sort((a, b) => {
     // Priority weights
     const priorityWeight = { critical: 4, high: 3, medium: 2, low: 1 }
-    
+
     // Calculate urgency score
     const getUrgencyScore = (r: ReviewItem) => {
       let score = priorityWeight[r.priority] * 25
@@ -65,7 +65,7 @@ export function SmartReviewQueue({
       score += r.daysOverdue * 10 // Overdue adds urgency
       return score
     }
-    
+
     return getUrgencyScore(b) - getUrgencyScore(a)
   })
 
@@ -101,7 +101,7 @@ export function SmartReviewQueue({
       toast.error('Please select at least one review')
       return
     }
-    
+
     // Navigate to batch review page with selected IDs
     const ids = selected.map(r => r.contentId).join(',')
     router.push(`/student/review/batch?ids=${ids}`)
@@ -136,10 +136,10 @@ export function SmartReviewQueue({
 
   // Get retention icon
   const getRetentionIcon = (retention: number) => {
-    if (retention >= 80) return <CheckCircle2 className="w-4 h-4 text-green-500" />
-    if (retention >= 60) return <Brain className="w-4 h-4 text-yellow-500" />
-    if (retention >= 40) return <TrendingDown className="w-4 h-4 text-orange-500" />
-    return <AlertCircle className="w-4 h-4 text-red-500" />
+    if (retention >= 80) return <CheckCircle2 className="h-4 w-4 text-green-500" />
+    if (retention >= 60) return <Brain className="h-4 w-4 text-yellow-500" />
+    if (retention >= 40) return <TrendingDown className="h-4 w-4 text-orange-500" />
+    return <AlertCircle className="h-4 w-4 text-red-500" />
   }
 
   // Format time
@@ -152,19 +152,17 @@ export function SmartReviewQueue({
 
   if (sortedReviews.length === 0) {
     return (
-      <Card className="bg-green-50 border-green-200">
+      <Card className="border-green-200 bg-green-50">
         <CardContent className="py-8 text-center">
-          <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
+          <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-green-500" />
           <h3 className="font-medium text-green-900">All Caught Up!</h3>
-          <p className="text-sm text-green-700 mt-1">
+          <p className="mt-1 text-sm text-green-700">
             You have no reviews due. Great job maintaining your memory!
           </p>
           {streakDays > 0 && (
-            <div className="flex items-center justify-center gap-2 mt-3">
-              <Flame className="w-4 h-4 text-orange-500" />
-              <span className="text-sm font-medium text-orange-700">
-                {streakDays} day streak!
-              </span>
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <Flame className="h-4 w-4 text-orange-500" />
+              <span className="text-sm font-medium text-orange-700">{streakDays} day streak!</span>
             </div>
           )}
         </CardContent>
@@ -177,42 +175,38 @@ export function SmartReviewQueue({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-yellow-500" />
+            <Zap className="h-5 w-5 text-yellow-500" />
             <CardTitle className="text-lg">Smart Review Queue</CardTitle>
           </div>
           <div className="flex items-center gap-2">
             {streakDays > 0 && (
               <Badge variant="outline" className="gap-1 bg-orange-50">
-                <Flame className="w-3 h-3 text-orange-500" />
+                <Flame className="h-3 w-3 text-orange-500" />
                 {streakDays} day streak
               </Badge>
             )}
-            <Badge variant={overdueCount > 0 ? "destructive" : "default"}>
+            <Badge variant={overdueCount > 0 ? 'destructive' : 'default'}>
               {sortedReviews.length} due
             </Badge>
           </div>
         </div>
-        
+
         {/* Summary Bar */}
-        <div className="flex items-center justify-between text-sm text-gray-500 mt-2">
+        <div className="mt-2 flex items-center justify-between text-sm text-gray-500">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
+              <Clock className="h-4 w-4" />
               {formatTime(totalTime)} total
             </span>
             {criticalCount > 0 && (
               <span className="flex items-center gap-1 text-red-600">
-                <AlertCircle className="w-4 h-4" />
+                <AlertCircle className="h-4 w-4" />
                 {criticalCount} critical
               </span>
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => setIsBatchMode(!isBatchMode)}
-            >
+            <Button variant="ghost" size="sm" onClick={() => setIsBatchMode(!isBatchMode)}>
               {isBatchMode ? 'Done' : 'Select Multiple'}
             </Button>
           </div>
@@ -222,82 +216,77 @@ export function SmartReviewQueue({
       <CardContent className="space-y-3">
         {/* Batch Actions */}
         {isBatchMode && (
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
             <div className="flex items-center gap-3">
-              <Checkbox 
+              <Checkbox
                 checked={selectedReviews.size === sortedReviews.length}
                 onCheckedChange={selectAll}
               />
               <span className="text-sm font-medium">
-                {selectedReviews.size === 0 
-                  ? 'Select all' 
-                  : `${selectedReviews.size} selected`
-                }
+                {selectedReviews.size === 0 ? 'Select all' : `${selectedReviews.size} selected`}
               </span>
             </div>
-            <Button 
-              size="sm" 
-              onClick={startBatchReview}
-              disabled={selectedReviews.size === 0}
-            >
-              <Play className="w-4 h-4 mr-2" />
-              Start Batch ({formatTime(
+            <Button size="sm" onClick={startBatchReview} disabled={selectedReviews.size === 0}>
+              <Play className="mr-2 h-4 w-4" />
+              Start Batch (
+              {formatTime(
                 sortedReviews
                   .filter(r => selectedReviews.has(r.id))
                   .reduce((sum, r) => sum + r.estimatedMinutes, 0)
-              )})
+              )}
+              )
             </Button>
           </div>
         )}
 
         {/* Review List */}
-        <div className="space-y-2 max-h-[400px] overflow-y-auto">
+        <div className="max-h-[400px] space-y-2 overflow-y-auto">
           {sortedReviews.slice(0, 8).map((review, index) => (
-            <div 
+            <div
               key={review.id}
               className={cn(
-                "flex items-center gap-3 p-3 rounded-lg border transition-all",
-                review.daysOverdue > 0 
-                  ? "bg-red-50 border-red-200" 
-                  : "bg-white border-gray-200 hover:border-gray-300",
-                index === 0 && !isBatchMode && "ring-2 ring-yellow-400 ring-offset-1"
+                'flex items-center gap-3 rounded-lg border p-3 transition-all',
+                review.daysOverdue > 0
+                  ? 'border-red-200 bg-red-50'
+                  : 'border-gray-200 bg-white hover:border-gray-300',
+                index === 0 && !isBatchMode && 'ring-2 ring-yellow-400 ring-offset-1'
               )}
             >
               {isBatchMode && (
-                <Checkbox 
+                <Checkbox
                   checked={selectedReviews.has(review.id)}
                   onCheckedChange={() => toggleSelection(review.id)}
                 />
               )}
-              
+
               {/* Subject Color Indicator */}
-              <div 
-                className="w-1 h-10 rounded-full flex-shrink-0"
+              <div
+                className="h-10 w-1 flex-shrink-0 rounded-full"
                 style={{ backgroundColor: review.subjectColor }}
               />
-              
+
               {/* Content */}
-              <div className="flex-1 min-w-0">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="font-medium text-sm truncate">{review.contentTitle}</p>
-                  <Badge 
-                    variant="outline" 
-                    className={cn("text-xs", getPriorityStyles(review.priority))}
+                  <p className="truncate text-sm font-medium">{review.contentTitle}</p>
+                  <Badge
+                    variant="outline"
+                    className={cn('text-xs', getPriorityStyles(review.priority))}
                   >
                     {review.priority}
                   </Badge>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
                   <span>{review.subjectName}</span>
                   <span>•</span>
                   <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
+                    <Clock className="h-3 w-3" />
                     {review.estimatedMinutes}m
                   </span>
                   {review.daysOverdue > 0 && (
                     <>
                       <span>•</span>
-                      <span className="text-red-600 font-medium">
+                      <span className="font-medium text-red-600">
                         {review.daysOverdue}d overdue
                       </span>
                     </>
@@ -309,30 +298,29 @@ export function SmartReviewQueue({
               <div className="flex items-center gap-2">
                 {getRetentionIcon(review.currentRetention)}
                 <div className="text-right">
-                  <p className={cn("text-sm font-bold", getRetentionColor(review.currentRetention))}>
+                  <p
+                    className={cn('text-sm font-bold', getRetentionColor(review.currentRetention))}
+                  >
                     {review.currentRetention}%
                   </p>
-                  <Progress 
-                    value={review.currentRetention} 
-                    className="w-16 h-1"
-                  />
+                  <Progress value={review.currentRetention} className="h-1 w-16" />
                 </div>
               </div>
 
               {/* Action */}
               {!isBatchMode && (
-                <Button 
-                  size="sm" 
-                  variant={index === 0 ? "default" : "outline"}
+                <Button
+                  size="sm"
+                  variant={index === 0 ? 'default' : 'outline'}
                   onClick={() => quickReview(review)}
                 >
                   {index === 0 ? (
                     <>
-                      <Play className="w-3 h-3 mr-1" />
+                      <Play className="mr-1 h-3 w-3" />
                       Start
                     </>
                   ) : (
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="h-4 w-4" />
                   )}
                 </Button>
               )}
@@ -341,7 +329,7 @@ export function SmartReviewQueue({
 
           {sortedReviews.length > 8 && (
             <Button variant="ghost" className="w-full">
-              <MoreHorizontal className="w-4 h-4 mr-2" />
+              <MoreHorizontal className="mr-2 h-4 w-4" />
               View {sortedReviews.length - 8} more reviews
             </Button>
           )}
@@ -349,12 +337,8 @@ export function SmartReviewQueue({
 
         {/* Start All Button */}
         {!isBatchMode && sortedReviews.length > 0 && (
-          <Button 
-            className="w-full" 
-            size="lg"
-            onClick={() => quickReview(sortedReviews[0])}
-          >
-            <Play className="w-4 h-4 mr-2" />
+          <Button className="w-full" size="lg" onClick={() => quickReview(sortedReviews[0])}>
+            <Play className="mr-2 h-4 w-4" />
             Start Top Priority Review
             <span className="ml-2 text-xs opacity-70">
               ({formatTime(sortedReviews[0].estimatedMinutes)})

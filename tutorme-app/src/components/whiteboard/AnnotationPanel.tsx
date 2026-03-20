@@ -1,6 +1,6 @@
 /**
  * Annotation Panel Component
- * 
+ *
  * Displays and manages sticky notes, comments, and annotations on the whiteboard.
  */
 
@@ -10,14 +10,7 @@ import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { MentionInput } from '@/components/mentions/MentionInput'
-import { 
-  StickyNote, 
-  MessageSquare, 
-  Check,
-  X,
-  Send,
-  MoreHorizontal,
-} from 'lucide-react'
+import { StickyNote, MessageSquare, Check, X, Send, MoreHorizontal } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +26,11 @@ interface AnnotationPanelProps {
   currentUserId: string
   currentUserName: string
   currentUserColor: string
-  onCreateThread: (type: 'sticky' | 'comment' | 'question', position: { x: number; y: number }, content: string) => void
+  onCreateThread: (
+    type: 'sticky' | 'comment' | 'question',
+    position: { x: number; y: number },
+    content: string
+  ) => void
   onAddReply: (threadId: string, content: string) => void
   onResolveThread: (threadId: string) => void
   onDeleteThread: (threadId: string) => void
@@ -64,25 +61,26 @@ export function AnnotationPanel({
     }
   }, [selectedThreadId, replyContent, onAddReply])
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault()
-      handleReplySubmit()
-    }
-  }, [handleReplySubmit])
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        handleReplySubmit()
+      }
+    },
+    [handleReplySubmit]
+  )
 
   const unresolvedThreads = threads.filter(t => !t.isResolved)
   const resolvedThreads = threads.filter(t => t.isResolved)
 
   return (
-    <div className={cn('bg-white border rounded-lg shadow-sm flex flex-col', className)}>
+    <div className={cn('flex flex-col rounded-lg border bg-white shadow-sm', className)}>
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b">
+      <div className="flex items-center justify-between border-b p-3">
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-medium">
-            Annotations ({unresolvedThreads.length})
-          </span>
+          <MessageSquare className="h-4 w-4 text-gray-500" />
+          <span className="text-sm font-medium">Annotations ({unresolvedThreads.length})</span>
         </div>
         <div className="flex gap-1">
           <Button
@@ -91,7 +89,7 @@ export function AnnotationPanel({
             className="h-7 w-7"
             onClick={() => onCreateThread('sticky', { x: 100, y: 100 }, 'New sticky note')}
           >
-            <StickyNote className="w-4 h-4" />
+            <StickyNote className="h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -111,19 +109,19 @@ export function AnnotationPanel({
             </Button>
 
             {/* Original Post */}
-            <div className="flex gap-3 mb-4">
-              <Avatar className="w-8 h-8" style={{ backgroundColor: selectedThread.authorColor }}>
+            <div className="mb-4 flex gap-3">
+              <Avatar className="h-8 w-8" style={{ backgroundColor: selectedThread.authorColor }}>
                 <AvatarFallback>{selectedThread.authorName[0]}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm">{selectedThread.authorName}</span>
+                  <span className="text-sm font-medium">{selectedThread.authorName}</span>
                   <span className="text-xs text-gray-400">
                     {new Date(selectedThread.timestamp).toLocaleDateString()}
                   </span>
                 </div>
-                <div 
-                  className="mt-1 p-3 rounded-lg text-sm"
+                <div
+                  className="mt-1 rounded-lg p-3 text-sm"
                   style={{ backgroundColor: selectedThread.color }}
                 >
                   {renderMentions(selectedThread.content)}
@@ -132,13 +130,13 @@ export function AnnotationPanel({
             </div>
 
             {/* Replies */}
-            <div className="space-y-3 ml-11">
-              {selectedThread.replies.map((reply) => (
+            <div className="ml-11 space-y-3">
+              {selectedThread.replies.map(reply => (
                 <div key={reply.id} className="flex gap-2">
-                  <Avatar className="w-6 h-6" style={{ backgroundColor: reply.authorColor }}>
+                  <Avatar className="h-6 w-6" style={{ backgroundColor: reply.authorColor }}>
                     <AvatarFallback className="text-xs">{reply.authorName[0]}</AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 bg-gray-50 p-2 rounded">
+                  <div className="flex-1 rounded bg-gray-50 p-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-medium">{reply.authorName}</span>
                       {reply.authorId === currentUserId && (
@@ -146,18 +144,18 @@ export function AnnotationPanel({
                           onClick={() => onDeleteReply(selectedThread.id, reply.id)}
                           className="text-xs text-red-500 hover:text-red-700"
                         >
-                          <X className="w-3 h-3" />
+                          <X className="h-3 w-3" />
                         </button>
                       )}
                     </div>
-                    <p className="text-sm mt-1">{renderMentions(reply.content)}</p>
+                    <p className="mt-1 text-sm">{renderMentions(reply.content)}</p>
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Reply Input */}
-            <div className="mt-4 ml-11 relative">
+            <div className="relative ml-11 mt-4">
               <MentionInput
                 value={replyContent}
                 onChange={setReplyContent}
@@ -166,12 +164,10 @@ export function AnnotationPanel({
                 className="min-h-[80px] text-sm"
               />
 
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-xs text-gray-400">
-                  Cmd+Enter to send
-                </span>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="text-xs text-gray-400">Cmd+Enter to send</span>
                 <Button size="sm" onClick={handleReplySubmit} disabled={!replyContent.trim()}>
-                  <Send className="w-3 h-3 mr-1" />
+                  <Send className="mr-1 h-3 w-3" />
                   Reply
                 </Button>
               </div>
@@ -183,34 +179,34 @@ export function AnnotationPanel({
             {/* Unresolved Threads */}
             {unresolvedThreads.length === 0 && resolvedThreads.length === 0 ? (
               <div className="p-8 text-center text-gray-400">
-                <MessageSquare className="w-8 h-8 mx-auto mb-2" />
+                <MessageSquare className="mx-auto mb-2 h-8 w-8" />
                 <p className="text-sm">No annotations yet</p>
               </div>
             ) : (
               <>
-                {unresolvedThreads.map((thread) => (
+                {unresolvedThreads.map(thread => (
                   <div
                     key={thread.id}
-                    className="p-3 border-b hover:bg-gray-50 cursor-pointer"
+                    className="cursor-pointer border-b p-3 hover:bg-gray-50"
                     onClick={() => setSelectedThreadId(thread.id)}
                   >
                     <div className="flex items-start gap-2">
-                      <div 
-                        className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
+                      <div
+                        className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full"
                         style={{ backgroundColor: thread.color }}
                       />
-                      <div className="flex-1 min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm truncate">
+                          <span className="truncate text-sm font-medium">
                             {thread.title || thread.content.slice(0, 30)}
                           </span>
                           {thread.replies.length > 0 && (
-                            <span className="text-xs bg-gray-100 px-1.5 rounded">
+                            <span className="rounded bg-gray-100 px-1.5 text-xs">
                               {thread.replies.length}
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 truncate">
+                        <p className="truncate text-xs text-gray-500">
                           {thread.authorName} • {new Date(thread.timestamp).toLocaleDateString()}
                         </p>
                       </div>
@@ -218,19 +214,19 @@ export function AnnotationPanel({
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-6 w-6">
-                              <MoreHorizontal className="w-3 h-3" />
+                              <MoreHorizontal className="h-3 w-3" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => onResolveThread(thread.id)}>
-                              <Check className="w-4 h-4 mr-2" />
+                              <Check className="mr-2 h-4 w-4" />
                               Resolve
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => onDeleteThread(thread.id)}
                               className="text-red-600"
                             >
-                              <X className="w-4 h-4 mr-2" />
+                              <X className="mr-2 h-4 w-4" />
                               Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -243,17 +239,17 @@ export function AnnotationPanel({
                 {/* Resolved Threads */}
                 {resolvedThreads.length > 0 && (
                   <>
-                    <div className="px-3 py-2 bg-gray-50 text-xs font-medium text-gray-500">
+                    <div className="bg-gray-50 px-3 py-2 text-xs font-medium text-gray-500">
                       Resolved ({resolvedThreads.length})
                     </div>
-                    {resolvedThreads.map((thread) => (
+                    {resolvedThreads.map(thread => (
                       <div
                         key={thread.id}
-                        className="p-3 border-b hover:bg-gray-50 cursor-pointer opacity-60"
+                        className="cursor-pointer border-b p-3 opacity-60 hover:bg-gray-50"
                         onClick={() => setSelectedThreadId(thread.id)}
                       >
                         <div className="flex items-center gap-2">
-                          <Check className="w-3 h-3 text-green-500" />
+                          <Check className="h-3 w-3 text-green-500" />
                           <span className="text-sm line-through">
                             {thread.title || thread.content.slice(0, 30)}
                           </span>

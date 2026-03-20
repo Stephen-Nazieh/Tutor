@@ -3,7 +3,13 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { BookOpen, RefreshCw, Loader2 } from 'lucide-react'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
 import type { Module as CourseBuilderModule } from '../../dashboard/components/CourseBuilder'
@@ -23,7 +29,12 @@ interface CourseStructureLinkPanelProps {
   onMakeVisibleToStudents?: (payload: VisibleDocumentPayload) => void
 }
 
-export function CourseStructureLinkPanel({ buttonClassName, initialCourseId, classSubject, onMakeVisibleToStudents }: CourseStructureLinkPanelProps) {
+export function CourseStructureLinkPanel({
+  buttonClassName,
+  initialCourseId,
+  classSubject,
+  onMakeVisibleToStudents,
+}: CourseStructureLinkPanelProps) {
   const [open, setOpen] = useState(false)
   const [courses, setCourses] = useState<CourseSummary[]>([])
   const [selectedCourseId, setSelectedCourseId] = useState<string>('')
@@ -36,7 +47,7 @@ export function CourseStructureLinkPanel({ buttonClassName, initialCourseId, cla
   const isResizingRef = useRef(false)
 
   const selectedCourse = useMemo(
-    () => courses.find((course) => course.id === selectedCourseId) || null,
+    () => courses.find(course => course.id === selectedCourseId) || null,
     [courses, selectedCourseId]
   )
 
@@ -49,9 +60,10 @@ export function CourseStructureLinkPanel({ buttonClassName, initialCourseId, cla
       const nextCourses = (Array.isArray(data.courses) ? data.courses : []) as CourseSummary[]
       setCourses(nextCourses)
 
-      const preferred = initialCourseId && nextCourses.some((course) => course.id === initialCourseId)
-        ? initialCourseId
-        : null
+      const preferred =
+        initialCourseId && nextCourses.some(course => course.id === initialCourseId)
+          ? initialCourseId
+          : null
       if (preferred) {
         setSelectedCourseId(preferred)
       } else if (!selectedCourseId && nextCourses.length > 0) {
@@ -68,11 +80,13 @@ export function CourseStructureLinkPanel({ buttonClassName, initialCourseId, cla
     if (!courseId) return
     setLoadingBuilder(true)
     try {
-      const res = await fetch(`/api/tutor/courses/${courseId}/curriculum`, { credentials: 'include' })
+      const res = await fetch(`/api/tutor/courses/${courseId}/curriculum`, {
+        credentials: 'include',
+      })
       if (!res.ok) throw new Error('Failed to load course builder data')
       const data = await res.json()
       setModules(Array.isArray(data.modules) ? (data.modules as CourseBuilderModule[]) : [])
-      setBuilderVersion((prev) => prev + 1)
+      setBuilderVersion(prev => prev + 1)
     } catch {
       setModules([])
       toast.error('Failed to load course content')
@@ -133,7 +147,8 @@ export function CourseStructureLinkPanel({ buttonClassName, initialCourseId, cla
     }
   }
 
-  const buttonLabel = selectedCourse?.name ?? (classSubject ? `${classSubject} Class` : 'Course Builder')
+  const buttonLabel =
+    selectedCourse?.name ?? (classSubject ? `${classSubject} Class` : 'Course Builder')
 
   useEffect(() => {
     const applyDefaultWidth = () => {
@@ -192,7 +207,7 @@ export function CourseStructureLinkPanel({ buttonClassName, initialCourseId, cla
   return (
     <>
       <Button variant="outline" size="sm" className={buttonClassName} onClick={() => setOpen(true)}>
-        <BookOpen className="w-4 h-4 mr-2" />
+        <BookOpen className="mr-2 h-4 w-4" />
         <span className="max-w-[220px] truncate">{buttonLabel}</span>
       </Button>
 
@@ -224,72 +239,72 @@ export function CourseStructureLinkPanel({ buttonClassName, initialCourseId, cla
                 </div>
               </div>
 
-            <div className="flex items-center gap-2 border-b px-6 py-3">
-              <div className="w-[360px]">
-                <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={loadingCourses ? 'Loading courses…' : 'Select a course'} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {courses.map((course) => (
-                      <SelectItem key={course.id} value={course.id}>
-                        {course.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center gap-2 border-b px-6 py-3">
+                <div className="w-[360px]">
+                  <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={loadingCourses ? 'Loading courses…' : 'Select a course'}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {courses.map(course => (
+                        <SelectItem key={course.id} value={course.id}>
+                          {course.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={!selectedCourseId || loadingBuilder}
+                  onClick={() => loadBuilderTree(selectedCourseId)}
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  {loadingBuilder ? 'Syncing…' : 'Sync'}
+                </Button>
+                {savingBuilder && <Badge variant="secondary">Saving…</Badge>}
               </div>
-              <Button
+
+              <div className="min-h-0 flex-1 overflow-hidden">
+                {!selectedCourseId ? (
+                  <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                    Select a course to open the builder.
+                  </div>
+                ) : loadingBuilder || modules === null ? (
+                  <div className="flex h-full items-center justify-center">
+                    <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+                  </div>
+                ) : (
+                  <div className="h-full overflow-auto px-4 py-4">
+                    <CourseBuilder
+                      key={`${selectedCourseId}:${builderVersion}`}
+                      courseId={selectedCourseId}
+                      courseName={selectedCourse?.name}
+                      panelMode="live-class"
+                      initialModules={modules}
+                      onSave={handleSave}
+                      onMakeVisibleToStudents={payload => {
+                        setOpen(false)
+                        onMakeVisibleToStudents?.(payload)
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <button
                 type="button"
-                variant="outline"
-                size="sm"
-                disabled={!selectedCourseId || loadingBuilder}
-                onClick={() => loadBuilderTree(selectedCourseId)}
+                className="absolute right-4 top-4 rounded border border-border bg-background px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => setOpen(false)}
               >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                {loadingBuilder ? 'Syncing…' : 'Sync'}
-              </Button>
-              {savingBuilder && (
-                <Badge variant="secondary">Saving…</Badge>
-              )}
+                Close
+              </button>
             </div>
-
-            <div className="min-h-0 flex-1 overflow-hidden">
-              {!selectedCourseId ? (
-                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                  Select a course to open the builder.
-                </div>
-              ) : loadingBuilder || modules === null ? (
-                <div className="flex h-full items-center justify-center">
-                  <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-                </div>
-              ) : (
-                <div className="h-full overflow-auto px-4 py-4">
-                  <CourseBuilder
-                    key={`${selectedCourseId}:${builderVersion}`}
-                    courseId={selectedCourseId}
-                    courseName={selectedCourse?.name}
-                    panelMode="live-class"
-                    initialModules={modules}
-                    onSave={handleSave}
-                    onMakeVisibleToStudents={(payload) => {
-                      setOpen(false)
-                      onMakeVisibleToStudents?.(payload)
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-
-            <button
-              type="button"
-              className="absolute right-4 top-4 rounded border border-border bg-background px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
-              onClick={() => setOpen(false)}
-            >
-              Close
-            </button>
           </div>
-        </div>
         </div>
       )}
     </>

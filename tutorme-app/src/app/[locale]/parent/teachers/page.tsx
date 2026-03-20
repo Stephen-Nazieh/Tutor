@@ -15,7 +15,7 @@ const teachers = [
     rating: 4.9,
     classes: 12,
     nextClass: 'Today, 16:00',
-    email: 'zhang@tutorme.com'
+    email: 'zhang@tutorme.com',
   },
   {
     id: '2',
@@ -25,7 +25,7 @@ const teachers = [
     rating: 4.8,
     classes: 8,
     nextClass: 'Tomorrow, 15:00',
-    email: 'li@tutorme.com'
+    email: 'li@tutorme.com',
   },
   {
     id: '3',
@@ -35,8 +35,8 @@ const teachers = [
     rating: 4.7,
     classes: 6,
     nextClass: 'Sat, 10:00',
-    email: 'wang@tutorme.com'
-  }
+    email: 'wang@tutorme.com',
+  },
 ]
 
 export default function ParentTeachersPage() {
@@ -44,24 +44,24 @@ export default function ParentTeachersPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Teachers</h1>
-        <p className="text-gray-500 mt-1">Connect with your children&apos;s tutors</p>
+        <p className="mt-1 text-gray-500">Connect with your children&apos;s tutors</p>
       </div>
 
       <div className="grid gap-4">
-        {teachers.map((teacher) => (
+        {teachers.map(teacher => (
           <Card key={teacher.id}>
             <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16">
-                    <AvatarFallback className="text-xl bg-blue-600 text-white">
+                    <AvatarFallback className="bg-blue-600 text-xl text-white">
                       {teacher.name[0]}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-semibold text-lg">{teacher.name}</h3>
+                    <h3 className="text-lg font-semibold">{teacher.name}</h3>
                     <p className="text-gray-500">{teacher.subject} Teacher</p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="mt-1 flex items-center gap-2">
                       <Badge variant="secondary">For: {teacher.student}</Badge>
                       <div className="flex items-center gap-1 text-yellow-600">
                         <Star className="h-4 w-4 fill-current" />
@@ -84,11 +84,11 @@ export default function ParentTeachersPage() {
 
                 <div className="flex gap-2">
                   <Button variant="outline">
-                    <MessageSquare className="h-4 w-4 mr-2" />
+                    <MessageSquare className="mr-2 h-4 w-4" />
                     Message
                   </Button>
                   <Button variant="outline">
-                    <Calendar className="h-4 w-4 mr-2" />
+                    <Calendar className="mr-2 h-4 w-4" />
                     Schedule
                   </Button>
                 </div>

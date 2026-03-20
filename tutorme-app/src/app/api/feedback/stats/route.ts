@@ -18,7 +18,7 @@ async function getHandler(_request: NextRequest, session: Session) {
 
     return NextResponse.json({
       success: true,
-      data: stats
+      data: stats,
     })
   } catch (error) {
     console.error('Failed to get feedback stats:', error)

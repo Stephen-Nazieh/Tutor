@@ -6,7 +6,12 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import { clinic } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 
-export async function GET(req: NextRequest, context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }) {
+export async function GET(
+  req: NextRequest,
+  context?: {
+    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  }
+) {
   try {
     const session = await getServerSession(authOptions, req)
 

@@ -23,10 +23,7 @@ export const GET = withAuth(
     try {
       const family = await getFamilyAccountForParent(session)
       if (!family) {
-        return NextResponse.json(
-          { error: '未找到家庭账户' },
-          { status: 404 }
-        )
+        return NextResponse.json({ error: '未找到家庭账户' }, { status: 404 })
       }
 
       const cacheKey = `parent:financial:budget:${family.id}`
@@ -45,11 +42,7 @@ export const GET = withAuth(
       const budgetAmount = budgetRecord?.amount ?? family.monthlyBudget
       const spent = budgetRecord?.spent ?? summary.totalSpent
 
-      const budgetVsActual = computeBudgetVsActual(
-        budgetAmount,
-        spent,
-        family.defaultCurrency
-      )
+      const budgetVsActual = computeBudgetVsActual(budgetAmount, spent, family.defaultCurrency)
 
       const budgetRecords = await drizzleDb.query.familyBudget.findMany({
         where: eq(familyBudget.parentId, family.id),

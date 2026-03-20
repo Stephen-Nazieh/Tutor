@@ -46,7 +46,10 @@ interface AnalysisResult {
   }[]
 }
 
-async function fetchPerformanceData(_tutorId: string, _params: AnalyzeRequest): Promise<PerformanceData[]> {
+async function fetchPerformanceData(
+  _tutorId: string,
+  _params: AnalyzeRequest
+): Promise<PerformanceData[]> {
   return [
     { studentName: 'Alice Zhang', scores: [85, 88, 92, 90], attendance: 95, participation: 90 },
     { studentName: 'Bob Li', scores: [72, 75, 78, 80], attendance: 85, participation: 70 },
@@ -63,7 +66,7 @@ function generateAnalysisPrompt(
 ): string {
   const dataSummary = data
     .map(
-      (d) =>
+      d =>
         `- ${d.studentName}: Scores [${d.scores.join(', ')}], Attendance ${d.attendance}%, Participation ${d.participation}%`
     )
     .join('\n')
@@ -125,7 +128,7 @@ Prioritize recommendations by expected impact.`,
 }
 
 function parseAnalysisResponse(content: string, _type: AnalyzeRequest['type']): AnalysisResult {
-  const lines = content.split('\n').filter((l) => l.trim())
+  const lines = content.split('\n').filter(l => l.trim())
   const findings: string[] = []
   const recommendations: string[] = []
   const actionItems: AnalysisResult['actionItems'] = []
@@ -153,7 +156,8 @@ function parseAnalysisResponse(content: string, _type: AnalyzeRequest['type']): 
         const priority: 'high' | 'medium' | 'low' =
           trimmed.toLowerCase().includes('urgent') || trimmed.toLowerCase().includes('immediate')
             ? 'high'
-            : trimmed.toLowerCase().includes('consider') || trimmed.toLowerCase().includes('optional')
+            : trimmed.toLowerCase().includes('consider') ||
+                trimmed.toLowerCase().includes('optional')
               ? 'low'
               : 'medium'
         actionItems.push({ priority, action: text })
@@ -173,74 +177,82 @@ function parseAnalysisResponse(content: string, _type: AnalyzeRequest['type']): 
             { priority: 'medium' as const, action: 'Implement suggested strategies' },
           ],
     trends: [
-      { direction: 'improving' as const, metric: 'Average scores', description: 'Overall upward trend' },
+      {
+        direction: 'improving' as const,
+        metric: 'Average scores',
+        description: 'Overall upward trend',
+      },
     ],
   }
 }
 
-export const POST = withAuth(async (req: NextRequest, session) => {
-  const tutorId = session.user.id
-
-  try {
-    const body = await req.json()
-    const validation = AnalyzeRequestSchema.safeParse(body)
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: validation.error.format() },
-        { status: 400 }
-      )
-    }
-
-    const params = validation.data
-    const performanceData = await fetchPerformanceData(tutorId, params)
-
-    if (performanceData.length === 0) {
-      return NextResponse.json(
-        { error: 'No data available for analysis' },
-        { status: 404 }
-      )
-    }
-
-    const prompt = generateAnalysisPrompt(params.type, performanceData, params.context)
-    const result = await generateWithFallback(prompt, {
-      temperature: 0.5,
-      maxTokens: 2000,
-    })
-
-    const analysis = parseAnalysisResponse(result.content, params.type)
+export const POST = withAuth(
+  async (req: NextRequest, session) => {
+    const tutorId = session.user.id
 
     try {
-      await drizzleDb.insert(aIAssistantInsight).values({
-        id: randomUUID(),
-        sessionId: body.sessionId || 'temp',
-        type: 'student_analysis',
-        title: `${params.type.charAt(0).toUpperCase() + params.type.slice(1)} Analysis`,
-        content: analysis.summary,
-        relatedData: {
-          analysisType: params.type,
-          timeRange: params.timeRange,
-          studentCount: performanceData.length,
-        },
-        applied: false,
-      })
-    } catch {
-      // continue
-    }
+      const body = await req.json()
+      const validation = AnalyzeRequestSchema.safeParse(body)
 
-    return NextResponse.json({
-      analysis,
-      rawResponse: result.content,
-      metadata: {
-        type: params.type,
-        studentCount: performanceData.length,
-        provider: result.provider,
-        latencyMs: result.latencyMs,
-        generatedAt: new Date().toISOString(),
-      },
-    })
-  } catch (error) {
-    console.error('Analysis error:', error)
-    return handleApiError(error, 'Failed to generate analysis', 'api/tutor/ai-assistant/analyze/route.ts')
-  }
-}, { role: 'TUTOR' })
+      if (!validation.success) {
+        return NextResponse.json(
+          { error: 'Invalid request', details: validation.error.format() },
+          { status: 400 }
+        )
+      }
+
+      const params = validation.data
+      const performanceData = await fetchPerformanceData(tutorId, params)
+
+      if (performanceData.length === 0) {
+        return NextResponse.json({ error: 'No data available for analysis' }, { status: 404 })
+      }
+
+      const prompt = generateAnalysisPrompt(params.type, performanceData, params.context)
+      const result = await generateWithFallback(prompt, {
+        temperature: 0.5,
+        maxTokens: 2000,
+      })
+
+      const analysis = parseAnalysisResponse(result.content, params.type)
+
+      try {
+        await drizzleDb.insert(aIAssistantInsight).values({
+          id: randomUUID(),
+          sessionId: body.sessionId || 'temp',
+          type: 'student_analysis',
+          title: `${params.type.charAt(0).toUpperCase() + params.type.slice(1)} Analysis`,
+          content: analysis.summary,
+          relatedData: {
+            analysisType: params.type,
+            timeRange: params.timeRange,
+            studentCount: performanceData.length,
+          },
+          applied: false,
+        })
+      } catch {
+        // continue
+      }
+
+      return NextResponse.json({
+        analysis,
+        rawResponse: result.content,
+        metadata: {
+          type: params.type,
+          studentCount: performanceData.length,
+          provider: result.provider,
+          latencyMs: result.latencyMs,
+          generatedAt: new Date().toISOString(),
+        },
+      })
+    } catch (error) {
+      console.error('Analysis error:', error)
+      return handleApiError(
+        error,
+        'Failed to generate analysis',
+        'api/tutor/ai-assistant/analyze/route.ts'
+      )
+    }
+  },
+  { role: 'TUTOR' }
+)

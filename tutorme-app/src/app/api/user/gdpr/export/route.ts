@@ -50,7 +50,7 @@ export const GET = withAuth(async (_req, session) => {
     .innerJoin(clinic, eq(clinicBooking.clinicId, clinic.id))
     .where(eq(clinicBooking.studentId, userId))
 
-  const bookingIds = bookingsWithClinic.map((b) => b.id)
+  const bookingIds = bookingsWithClinic.map(b => b.id)
   const paymentsSummary =
     bookingIds.length > 0
       ? await drizzleDb
@@ -68,7 +68,7 @@ export const GET = withAuth(async (_req, session) => {
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
   }
 
-  const clinicBookings = bookingsWithClinic.map((b) => ({
+  const clinicBookings = bookingsWithClinic.map(b => ({
     id: b.id,
     clinicId: b.clinicId,
     bookedAt: b.bookedAt,

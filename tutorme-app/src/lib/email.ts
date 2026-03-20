@@ -17,14 +17,14 @@ const transporter = nodemailer.createTransport({
 /**
  * Send an inquiry email to support@solocorn.co.
  */
-export async function sendInquiryEmail({ 
-  name, 
-  email, 
-  message 
-}: { 
-  name: string; 
-  email: string; 
-  message: string; 
+export async function sendInquiryEmail({
+  name,
+  email,
+  message,
+}: {
+  name: string
+  email: string
+  message: string
 }) {
   const mailOptions = {
     from: `"Solocorn Landing" <${process.env.EMAIL_USER || 'support@solocorn.co'}>`,
@@ -55,11 +55,11 @@ Message: ${message}`,
 export async function sendTutorSignupEmail({
   username,
   bio,
-  country
+  country,
 }: {
-  username: string;
-  bio?: string | null;
-  country?: string | null;
+  username: string
+  bio?: string | null
+  country?: string | null
 }) {
   const mailOptions = {
     from: `"Solocorn Landing" <${process.env.EMAIL_USER || 'support@solocorn.co'}>`,

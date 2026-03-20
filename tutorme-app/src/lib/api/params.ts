@@ -17,7 +17,10 @@ export function getParam(
  * Await params if it's a Promise, then get a single string param.
  */
 export async function getParamAsync(
-  params: Promise<Record<string, string | string[]>> | Record<string, string | string[]> | undefined,
+  params:
+    | Promise<Record<string, string | string[]>>
+    | Record<string, string | string[]>
+    | undefined,
   key: string
 ): Promise<string | undefined> {
   const resolved = params instanceof Promise ? await params : params

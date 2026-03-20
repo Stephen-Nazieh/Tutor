@@ -62,20 +62,18 @@ async function seedAdminSystem() {
       {
         name: 'SUPPORT',
         description: 'Customer support - can view users and provide support',
-        permissions: [
-          'users:read',
-          'users:impersonate',
-          'content:read',
-          'audit:read',
-        ],
+        permissions: ['users:read', 'users:impersonate', 'content:read', 'audit:read'],
       },
     ]
 
     for (const role of roles) {
-      await drizzleDb.insert(adminRole).values({
-        id: crypto.randomUUID(),
-        ...role,
-      }).onConflictDoNothing({ target: adminRole.name })
+      await drizzleDb
+        .insert(adminRole)
+        .values({
+          id: crypto.randomUUID(),
+          ...role,
+        })
+        .onConflictDoNothing({ target: adminRole.name })
       console.log(`  ✓ Role: ${role.name}`)
     }
 
@@ -97,7 +95,7 @@ async function seedAdminSystem() {
     if (!existingAdmin) {
       console.log('Creating default admin user...')
       adminUserId = crypto.randomUUID()
-      await drizzleDb.transaction(async (tx) => {
+      await drizzleDb.transaction(async tx => {
         await tx.insert(user).values({
           id: adminUserId,
           email: adminEmail,
@@ -125,9 +123,7 @@ async function seedAdminSystem() {
     } else {
       adminUserId = existingAdmin.id
       console.log(`  ℹ Admin user exists: ${adminEmail}`)
-      await drizzleDb.update(user)
-        .set({ password: hashedPassword })
-        .where(eq(user.id, adminUserId))
+      await drizzleDb.update(user).set({ password: hashedPassword }).where(eq(user.id, adminUserId))
       console.log(`  ✓ Updated password so admin123 works for login`)
     }
 
@@ -141,16 +137,19 @@ async function seedAdminSystem() {
       .limit(1)
 
     if (superAdminRole) {
-      await drizzleDb.insert(adminAssignment).values({
-        id: crypto.randomUUID(),
-        userId: adminUserId,
-        roleId: superAdminRole.id,
-        assignedBy: adminUserId,
-        isActive: true,
-      }).onConflictDoUpdate({
-        target: [adminAssignment.userId, adminAssignment.roleId],
-        set: { isActive: true }
-      })
+      await drizzleDb
+        .insert(adminAssignment)
+        .values({
+          id: crypto.randomUUID(),
+          userId: adminUserId,
+          roleId: superAdminRole.id,
+          assignedBy: adminUserId,
+          isActive: true,
+        })
+        .onConflictDoUpdate({
+          target: [adminAssignment.userId, adminAssignment.roleId],
+          set: { isActive: true },
+        })
       console.log(`  ✓ Assigned SUPER_ADMIN role`)
     }
 
@@ -233,12 +232,15 @@ async function seedAdminSystem() {
     ]
 
     for (const setting of defaultSettings) {
-      await drizzleDb.insert(systemSetting).values({
-        id: crypto.randomUUID(),
-        ...setting,
-        settingValue: setting.settingValue as object,
-        updatedBy: adminUserId,
-      }).onConflictDoNothing({ target: [systemSetting.category, systemSetting.key] })
+      await drizzleDb
+        .insert(systemSetting)
+        .values({
+          id: crypto.randomUUID(),
+          ...setting,
+          settingValue: setting.settingValue as object,
+          updatedBy: adminUserId,
+        })
+        .onConflictDoNothing({ target: [systemSetting.category, systemSetting.key] })
     }
     console.log(`  ✓ Created ${defaultSettings.length} system settings`)
 
@@ -247,7 +249,6 @@ async function seedAdminSystem() {
     console.log(`   Email: ${adminEmail}`)
     console.log(`   Password: ${adminPassword}`)
     console.log('\n⚠️  IMPORTANT: Change the default password after first login!')
-
   } catch (error) {
     console.error('\n❌ Seeding failed:', error)
     process.exit(1)
@@ -260,4 +261,3 @@ if (require.main === module) {
 }
 
 export { seedAdminSystem }
-

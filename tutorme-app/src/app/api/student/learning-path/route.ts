@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
       .from(curriculumEnrollment)
       .where(eq(curriculumEnrollment.studentId, studentId))
 
-    const curriculumIds = enrollmentRows.map((e) => e.curriculumId)
+    const curriculumIds = enrollmentRows.map(e => e.curriculumId)
     if (curriculumIds.length === 0) {
       return NextResponse.json({
         success: true,
@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
       .from(curriculum)
       .where(inArray(curriculum.id, curriculumIds))
 
-    const curriculumMap = new Map(curricula.map((c) => [c.id, c]))
+    const curriculumMap = new Map(curricula.map(c => [c.id, c]))
 
     const modules = await drizzleDb
       .select()
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
       .where(inArray(curriculumModule.curriculumId, curriculumIds))
       .orderBy(asc(curriculumModule.order))
 
-    const moduleIds = modules.map((m) => m.id)
+    const moduleIds = modules.map(m => m.id)
     const lessons =
       moduleIds.length > 0
         ? await drizzleDb
@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
             .orderBy(asc(curriculumLesson.order))
         : []
 
-    const moduleMap = new Map(modules.map((m) => [m.id, m]))
+    const moduleMap = new Map(modules.map(m => [m.id, m]))
     const lessonsByModule = new Map<string, typeof lessons>()
     for (const l of lessons) {
       const list = lessonsByModule.get(l.moduleId) ?? []
@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
       lessonsByModule.set(l.moduleId, list)
     }
 
-    const allLessonIds = lessons.map((l) => l.id)
+    const allLessonIds = lessons.map(l => l.id)
     const lessonProgress =
       allLessonIds.length > 0
         ? await drizzleDb
@@ -96,18 +96,14 @@ export async function GET(req: NextRequest) {
             )
         : []
 
-    const progressMap = new Map(
-      lessonProgress.map((lp) => [lp.lessonId, lp])
-    )
+    const progressMap = new Map(lessonProgress.map(lp => [lp.lessonId, lp]))
 
     const performances = await drizzleDb
       .select()
       .from(studentPerformance)
       .where(eq(studentPerformance.studentId, studentId))
 
-    const allWeaknesses: string[] = performances.flatMap(
-      (p) => (p.weaknesses as string[]) || []
-    )
+    const allWeaknesses: string[] = performances.flatMap(p => (p.weaknesses as string[]) || [])
 
     type PathEntry = {
       lessonId: string
@@ -128,9 +124,7 @@ export async function GET(req: NextRequest) {
     for (const enrollment of enrollmentRows) {
       const curriculumRow = curriculumMap.get(enrollment.curriculumId)
       if (!curriculumRow) continue
-      const curriculumModules = modules.filter(
-        (m) => m.curriculumId === enrollment.curriculumId
-      )
+      const curriculumModules = modules.filter(m => m.curriculumId === enrollment.curriculumId)
       for (const mod of curriculumModules) {
         const modLessons = lessonsByModule.get(mod.id) ?? []
         for (const lesson of modLessons) {
@@ -159,19 +153,17 @@ export async function GET(req: NextRequest) {
     }
 
     const currentLesson =
-      pathEntries.find((e) => e.status === 'in_progress') ??
-      pathEntries.find((e) => e.status === 'not_started') ??
+      pathEntries.find(e => e.status === 'in_progress') ??
+      pathEntries.find(e => e.status === 'not_started') ??
       null
 
     const notStarted = pathEntries.filter(
-      (e) =>
-        e.status === 'not_started' &&
-        e.lessonId !== currentLesson?.lessonId
+      e => e.status === 'not_started' && e.lessonId !== currentLesson?.lessonId
     )
 
-    const scored = notStarted.map((lesson) => {
+    const scored = notStarted.map(lesson => {
       const weaknessBoost = allWeaknesses.some(
-        (w) =>
+        w =>
           lesson.title.toLowerCase().includes(w.toLowerCase()) ||
           (lesson.description || '').toLowerCase().includes(w.toLowerCase())
       )
@@ -189,9 +181,7 @@ export async function GET(req: NextRequest) {
       .slice(0, 3)
       .map(([topic, count]) => ({ topic, frequency: count }))
 
-    const completedCount = pathEntries.filter(
-      (e) => e.status === 'completed'
-    ).length
+    const completedCount = pathEntries.filter(e => e.status === 'completed').length
     const totalCount = pathEntries.length
 
     return NextResponse.json({
@@ -202,12 +192,15 @@ export async function GET(req: NextRequest) {
         focusAreas,
         completedCount,
         totalCount,
-        progressPercent:
-          totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
+        progressPercent: totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
       },
     })
   } catch (error) {
     console.error('Failed to fetch learning path:', error)
-    return handleApiError(error, 'Failed to fetch learning path', 'api/student/learning-path/route.ts')
+    return handleApiError(
+      error,
+      'Failed to fetch learning path',
+      'api/student/learning-path/route.ts'
+    )
   }
 }

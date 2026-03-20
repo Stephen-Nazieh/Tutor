@@ -11,7 +11,10 @@ import { z } from 'zod'
 
 const bodySchema = z.object({
   language: z.enum(['python', 'javascript']),
-  code: z.string().min(1).max(16 * 1024),
+  code: z
+    .string()
+    .min(1)
+    .max(16 * 1024),
 })
 
 async function postHandler(req: NextRequest) {
@@ -25,10 +28,7 @@ async function postHandler(req: NextRequest) {
   try {
     body = await req.json()
   } catch {
-    return NextResponse.json(
-      { error: 'Invalid JSON body' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
   const parsed = bodySchema.safeParse(body)

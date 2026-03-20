@@ -55,8 +55,19 @@ const providerTypes = [
 ]
 
 export default function LlmConfigPage() {
-  const { providers, isLoading: providersLoading, createProvider, updateProvider } = useLlmProviders()
-  const { rules, isLoading: rulesLoading, createRule, updateRule, deleteRule } = useLlmRoutingRules()
+  const {
+    providers,
+    isLoading: providersLoading,
+    createProvider,
+    updateProvider,
+  } = useLlmProviders()
+  const {
+    rules,
+    isLoading: rulesLoading,
+    createRule,
+    updateRule,
+    deleteRule,
+  } = useLlmRoutingRules()
   const [activeTab, setActiveTab] = useState('providers')
   const [isAddProviderOpen, setIsAddProviderOpen] = useState(false)
   const [isAddRuleOpen, setIsAddRuleOpen] = useState(false)
@@ -95,11 +106,12 @@ export default function LlmConfigPage() {
   }
 
   // Get all models from all providers
-  const allModels = providers.flatMap((p: Record<string, unknown>) =>
-    (p.models as Record<string, unknown>[])?.map((m) => ({
-      ...m,
-      providerName: p.name,
-    })) || []
+  const allModels = providers.flatMap(
+    (p: Record<string, unknown>) =>
+      (p.models as Record<string, unknown>[])?.map(m => ({
+        ...m,
+        providerName: p.name,
+      })) || []
   )
 
   return (
@@ -108,9 +120,7 @@ export default function LlmConfigPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">AI Configuration</h1>
-          <p className="text-slate-500">
-            Manage LLM providers and routing rules
-          </p>
+          <p className="text-slate-500">Manage LLM providers and routing rules</p>
         </div>
       </div>
 
@@ -150,20 +160,20 @@ export default function LlmConfigPage() {
                     <Input
                       placeholder="e.g., OpenAI Production"
                       value={newProvider.name}
-                      onChange={(e) => setNewProvider({ ...newProvider, name: e.target.value })}
+                      onChange={e => setNewProvider({ ...newProvider, name: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Provider Type</Label>
                     <Select
                       value={newProvider.providerType}
-                      onValueChange={(v) => setNewProvider({ ...newProvider, providerType: v })}
+                      onValueChange={v => setNewProvider({ ...newProvider, providerType: v })}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {providerTypes.map((type) => (
+                        {providerTypes.map(type => (
                           <SelectItem key={type.value} value={type.value}>
                             {type.label}
                           </SelectItem>
@@ -177,7 +187,7 @@ export default function LlmConfigPage() {
                       type="password"
                       placeholder="sk-..."
                       value={newProvider.apiKey}
-                      onChange={(e) => setNewProvider({ ...newProvider, apiKey: e.target.value })}
+                      onChange={e => setNewProvider({ ...newProvider, apiKey: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
@@ -185,7 +195,7 @@ export default function LlmConfigPage() {
                     <Input
                       placeholder="https://api.openai.com/v1"
                       value={newProvider.baseUrl}
-                      onChange={(e) => setNewProvider({ ...newProvider, baseUrl: e.target.value })}
+                      onChange={e => setNewProvider({ ...newProvider, baseUrl: e.target.value })}
                     />
                   </div>
                 </div>
@@ -203,13 +213,15 @@ export default function LlmConfigPage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             {providersLoading ? (
-              Array(4).fill(0).map((_, i) => (
-                <Card key={i}>
-                  <CardContent className="p-6">
-                    <Skeleton className="h-24 w-full" />
-                  </CardContent>
-                </Card>
-              ))
+              Array(4)
+                .fill(0)
+                .map((_, i) => (
+                  <Card key={i}>
+                    <CardContent className="p-6">
+                      <Skeleton className="h-24 w-full" />
+                    </CardContent>
+                  </Card>
+                ))
             ) : providers.length === 0 ? (
               <Card className="col-span-2">
                 <CardContent className="p-12 text-center">
@@ -235,7 +247,7 @@ export default function LlmConfigPage() {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm text-slate-500 capitalize">
+                        <p className="text-sm capitalize text-slate-500">
                           {provider.providerType as string}
                         </p>
                       </div>
@@ -294,9 +306,7 @@ export default function LlmConfigPage() {
           <Card>
             <CardHeader>
               <CardTitle>Routing Rules</CardTitle>
-              <CardDescription>
-                Define which models to use based on conditions
-              </CardDescription>
+              <CardDescription>Define which models to use based on conditions</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -311,15 +321,27 @@ export default function LlmConfigPage() {
                 </TableHeader>
                 <TableBody>
                   {rulesLoading ? (
-                    Array(3).fill(0).map((_, i) => (
-                      <TableRow key={i}>
-                        <TableCell><Skeleton className="h-10 w-full" /></TableCell>
-                        <TableCell><Skeleton className="h-6 w-32" /></TableCell>
-                        <TableCell><Skeleton className="h-6 w-24" /></TableCell>
-                        <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-                        <TableCell><Skeleton className="h-8 w-8" /></TableCell>
-                      </TableRow>
-                    ))
+                    Array(3)
+                      .fill(0)
+                      .map((_, i) => (
+                        <TableRow key={i}>
+                          <TableCell>
+                            <Skeleton className="h-10 w-full" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-6 w-32" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-6 w-24" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-6 w-16" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-8 w-8" />
+                          </TableCell>
+                        </TableRow>
+                      ))
                   ) : rules.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="h-32 text-center">
@@ -334,23 +356,27 @@ export default function LlmConfigPage() {
                       <TableRow key={rule.id as string}>
                         <TableCell>
                           <div>
-                            <p className="font-medium">{rule.name as string || 'Untitled Rule'}</p>
+                            <p className="font-medium">
+                              {(rule.name as string) || 'Untitled Rule'}
+                            </p>
                             <p className="text-sm text-slate-500">
                               Priority: {rule.priority as number}
                             </p>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <code className="text-xs bg-slate-100 px-2 py-1 rounded">
+                          <code className="rounded bg-slate-100 px-2 py-1 text-xs">
                             {JSON.stringify(rule.conditions)}
                           </code>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <span className="text-sm">
-                              {(rule.targetModel as Record<string, unknown>)?.name as string || (rule.targetModel as Record<string, unknown>)?.modelId as string}
+                              {((rule.targetModel as Record<string, unknown>)?.name as string) ||
+                                ((rule.targetModel as Record<string, unknown>)?.modelId as string)}
                             </span>
-                            {typeof (rule.fallbackModel as Record<string, string> | undefined)?.name === 'string' && (
+                            {typeof (rule.fallbackModel as Record<string, string> | undefined)
+                              ?.name === 'string' && (
                               <>
                                 <ArrowRight className="h-4 w-4 text-slate-400" />
                                 <span className="text-sm text-slate-500">

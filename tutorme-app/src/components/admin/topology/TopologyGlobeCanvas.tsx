@@ -48,19 +48,142 @@ interface HoveredNode {
 const GLOBE_RADIUS = 2.2
 
 const CONTINENT_OUTLINES: Array<Array<[number, number]>> = [
-  [[72, -165], [60, -150], [50, -135], [42, -124], [33, -118], [25, -105], [18, -95], [25, -84], [30, -97], [40, -110], [52, -125], [62, -140], [72, -165]], // N. America
-  [[13, -81], [7, -79], [-5, -76], [-15, -70], [-27, -63], [-40, -60], [-53, -68], [-47, -75], [-30, -73], [-16, -65], [-6, -58], [3, -52], [9, -60], [13, -70], [13, -81]], // S. America
-  [[70, -10], [64, 8], [58, 25], [50, 32], [43, 25], [38, 10], [35, -2], [38, -10], [46, -8], [55, -4], [64, -6], [70, -10]], // Europe
-  [[35, -17], [22, -15], [10, -10], [0, 7], [-10, 20], [-20, 30], [-30, 30], [-34, 18], [-30, 8], [-20, -2], [-5, -10], [10, -16], [22, -18], [35, -17]], // Africa
-  [[70, 40], [63, 60], [55, 85], [50, 110], [45, 125], [35, 135], [25, 123], [18, 110], [10, 95], [8, 75], [20, 58], [33, 45], [47, 38], [60, 35], [70, 40]], // Asia
-  [[-10, 112], [-20, 118], [-27, 132], [-35, 146], [-37, 155], [-28, 153], [-19, 144], [-14, 130], [-10, 120], [-10, 112]], // Australia
+  [
+    [72, -165],
+    [60, -150],
+    [50, -135],
+    [42, -124],
+    [33, -118],
+    [25, -105],
+    [18, -95],
+    [25, -84],
+    [30, -97],
+    [40, -110],
+    [52, -125],
+    [62, -140],
+    [72, -165],
+  ], // N. America
+  [
+    [13, -81],
+    [7, -79],
+    [-5, -76],
+    [-15, -70],
+    [-27, -63],
+    [-40, -60],
+    [-53, -68],
+    [-47, -75],
+    [-30, -73],
+    [-16, -65],
+    [-6, -58],
+    [3, -52],
+    [9, -60],
+    [13, -70],
+    [13, -81],
+  ], // S. America
+  [
+    [70, -10],
+    [64, 8],
+    [58, 25],
+    [50, 32],
+    [43, 25],
+    [38, 10],
+    [35, -2],
+    [38, -10],
+    [46, -8],
+    [55, -4],
+    [64, -6],
+    [70, -10],
+  ], // Europe
+  [
+    [35, -17],
+    [22, -15],
+    [10, -10],
+    [0, 7],
+    [-10, 20],
+    [-20, 30],
+    [-30, 30],
+    [-34, 18],
+    [-30, 8],
+    [-20, -2],
+    [-5, -10],
+    [10, -16],
+    [22, -18],
+    [35, -17],
+  ], // Africa
+  [
+    [70, 40],
+    [63, 60],
+    [55, 85],
+    [50, 110],
+    [45, 125],
+    [35, 135],
+    [25, 123],
+    [18, 110],
+    [10, 95],
+    [8, 75],
+    [20, 58],
+    [33, 45],
+    [47, 38],
+    [60, 35],
+    [70, 40],
+  ], // Asia
+  [
+    [-10, 112],
+    [-20, 118],
+    [-27, 132],
+    [-35, 146],
+    [-37, 155],
+    [-28, 153],
+    [-19, 144],
+    [-14, 130],
+    [-10, 120],
+    [-10, 112],
+  ], // Australia
 ]
 
 const COUNTRY_HINT_OUTLINES: Array<Array<[number, number]>> = [
-  [[49, -125], [49, -95], [31, -95], [25, -106], [32, -117], [41, -124], [49, -125]], // USA rough
-  [[53, 73], [50, 95], [45, 112], [35, 121], [23, 117], [20, 102], [29, 87], [40, 78], [53, 73]], // China rough
-  [[35, 68], [30, 76], [24, 83], [20, 78], [9, 76], [8, 72], [16, 69], [25, 70], [35, 68]], // India rough
-  [[5, -75], [-8, -71], [-16, -60], [-24, -54], [-31, -56], [-28, -62], [-18, -67], [-5, -70], [5, -75]], // Brazil rough
+  [
+    [49, -125],
+    [49, -95],
+    [31, -95],
+    [25, -106],
+    [32, -117],
+    [41, -124],
+    [49, -125],
+  ], // USA rough
+  [
+    [53, 73],
+    [50, 95],
+    [45, 112],
+    [35, 121],
+    [23, 117],
+    [20, 102],
+    [29, 87],
+    [40, 78],
+    [53, 73],
+  ], // China rough
+  [
+    [35, 68],
+    [30, 76],
+    [24, 83],
+    [20, 78],
+    [9, 76],
+    [8, 72],
+    [16, 69],
+    [25, 70],
+    [35, 68],
+  ], // India rough
+  [
+    [5, -75],
+    [-8, -71],
+    [-16, -60],
+    [-24, -54],
+    [-31, -56],
+    [-28, -62],
+    [-18, -67],
+    [-5, -70],
+    [5, -75],
+  ], // Brazil rough
 ]
 
 function latLonToVector3(lat: number, lon: number, radius: number): THREE.Vector3 {
@@ -74,7 +197,11 @@ function latLonToVector3(lat: number, lon: number, radius: number): THREE.Vector
   return new THREE.Vector3(x, y, z)
 }
 
-function buildArcPoints(start: THREE.Vector3, end: THREE.Vector3, active: boolean): THREE.Vector3[] {
+function buildArcPoints(
+  start: THREE.Vector3,
+  end: THREE.Vector3,
+  active: boolean
+): THREE.Vector3[] {
   const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5)
   const lift = active ? 1.45 : 1.28
   mid.normalize().multiplyScalar(GLOBE_RADIUS * lift)
@@ -139,7 +266,14 @@ function Constellations() {
   return (
     <group>
       {groups.map((points, idx) => (
-        <Line key={`constellation-${idx}`} points={points} color="#a5b4fc" transparent opacity={0.55} lineWidth={1.6} />
+        <Line
+          key={`constellation-${idx}`}
+          points={points}
+          color="#a5b4fc"
+          transparent
+          opacity={0.55}
+          lineWidth={1.6}
+        />
       ))}
     </group>
   )
@@ -184,15 +318,18 @@ function NebulaClouds() {
 }
 
 function initials(name: string): string {
-  const tokens = name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
+  const tokens = name.split(/\s+/).filter(Boolean).slice(0, 2)
   if (tokens.length === 0) return '?'
-  return tokens.map((t) => t[0]?.toUpperCase() || '').join('')
+  return tokens.map(t => t[0]?.toUpperCase() || '').join('')
 }
 
-export default function TopologyGlobeCanvas({ nodes, edges, focusedTutorId, onTutorFocus, className }: Props) {
+export default function TopologyGlobeCanvas({
+  nodes,
+  edges,
+  focusedTutorId,
+  onTutorFocus,
+  className,
+}: Props) {
   const [pulse, setPulse] = useState(0)
   const [hoveredNode, setHoveredNode] = useState<HoveredNode | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -215,7 +352,7 @@ export default function TopologyGlobeCanvas({ nodes, edges, focusedTutorId, onTu
 
   const continentLines = useMemo(
     () =>
-      CONTINENT_OUTLINES.map((outline) =>
+      CONTINENT_OUTLINES.map(outline =>
         outline.map(([lat, lon]) => latLonToVector3(lat, lon, GLOBE_RADIUS + 0.055))
       ),
     []
@@ -223,7 +360,7 @@ export default function TopologyGlobeCanvas({ nodes, edges, focusedTutorId, onTu
 
   const countryLines = useMemo(
     () =>
-      COUNTRY_HINT_OUTLINES.map((outline) =>
+      COUNTRY_HINT_OUTLINES.map(outline =>
         outline.map(([lat, lon]) => latLonToVector3(lat, lon, GLOBE_RADIUS + 0.06))
       ),
     []
@@ -231,7 +368,7 @@ export default function TopologyGlobeCanvas({ nodes, edges, focusedTutorId, onTu
 
   const renderedEdges = useMemo(() => {
     return edges
-      .map((edge) => {
+      .map(edge => {
         const tutorPos = nodePositions.get(edge.tutorId)
         const studentPos = nodePositions.get(edge.studentId)
         if (!tutorPos || !studentPos) return null
@@ -246,7 +383,7 @@ export default function TopologyGlobeCanvas({ nodes, edges, focusedTutorId, onTu
 
   const edgeCountsByNode = useMemo(() => {
     const counts = new Map<string, { total: number; active: number }>()
-    edges.forEach((edge) => {
+    edges.forEach(edge => {
       const tutor = counts.get(edge.tutorId) || { total: 0, active: 0 }
       tutor.total += 1
       tutor.active += edge.isActive ? 1 : 0
@@ -294,7 +431,13 @@ export default function TopologyGlobeCanvas({ nodes, edges, focusedTutorId, onTu
         <Constellations />
 
         <Sphere args={[GLOBE_RADIUS, 96, 96]}>
-          <meshStandardMaterial color="#0c2a43" emissive="#0b3b5e" emissiveIntensity={0.36} metalness={0.2} roughness={0.52} />
+          <meshStandardMaterial
+            color="#0c2a43"
+            emissive="#0b3b5e"
+            emissiveIntensity={0.36}
+            metalness={0.2}
+            roughness={0.52}
+          />
         </Sphere>
 
         <Sphere args={[GLOBE_RADIUS + 0.04, 96, 96]}>
@@ -306,14 +449,28 @@ export default function TopologyGlobeCanvas({ nodes, edges, focusedTutorId, onTu
         </Sphere>
 
         {continentLines.map((line, idx) => (
-          <Line key={`continent-${idx}`} points={line} color="#7dd3fc" transparent opacity={0.28} lineWidth={1.5} />
+          <Line
+            key={`continent-${idx}`}
+            points={line}
+            color="#7dd3fc"
+            transparent
+            opacity={0.28}
+            lineWidth={1.5}
+          />
         ))}
 
         {countryLines.map((line, idx) => (
-          <Line key={`country-${idx}`} points={line} color="#a5f3fc" transparent opacity={0.2} lineWidth={1.1} />
+          <Line
+            key={`country-${idx}`}
+            points={line}
+            color="#a5f3fc"
+            transparent
+            opacity={0.2}
+            lineWidth={1.1}
+          />
         ))}
 
-        {renderedEdges.map((edge) => {
+        {renderedEdges.map(edge => {
           const activeOpacity = 0.45 + pulse * 0.45
           const focusBoost = focusedTutorId && edge.tutorId === focusedTutorId
           return (
@@ -338,27 +495,28 @@ export default function TopologyGlobeCanvas({ nodes, edges, focusedTutorId, onTu
           )
         })}
 
-        {nodes.map((node) => {
+        {nodes.map(node => {
           const point = nodePositions.get(node.id)
           if (!point) return null
 
           const nodeScale = node.role === 'TUTOR' ? 0.08 : 0.062
           const activeBoost = node.activeSessions > 0 ? 1 + pulse * 0.35 : 1
-          const isFocusedTutor = focusedTutorId && node.role === 'TUTOR' && node.id === focusedTutorId
+          const isFocusedTutor =
+            focusedTutorId && node.role === 'TUTOR' && node.id === focusedTutorId
 
           return (
             <group key={node.id} position={[point.x, point.y, point.z]}>
               <Sphere
                 args={[nodeScale * activeBoost, 16, 16]}
-                onPointerOver={(event) => {
+                onPointerOver={event => {
                   event.stopPropagation()
                   setHoveredAtPointer(node, event.clientX, event.clientY)
                 }}
-                onPointerMove={(event) => {
+                onPointerMove={event => {
                   setHoveredAtPointer(node, event.clientX, event.clientY)
                 }}
                 onPointerOut={() => setHoveredNode(null)}
-                onClick={(event) => {
+                onClick={event => {
                   event.stopPropagation()
                   if (node.role === 'TUTOR') onTutorFocus?.(node.id)
                 }}
@@ -371,7 +529,11 @@ export default function TopologyGlobeCanvas({ nodes, edges, focusedTutorId, onTu
               </Sphere>
               {node.activeSessions > 0 || isFocusedTutor ? (
                 <Sphere args={[nodeScale * 2.4 * activeBoost, 12, 12]}>
-                  <meshBasicMaterial color={isFocusedTutor ? '#f0abfc' : '#86efac'} transparent opacity={0.14 + pulse * 0.22} />
+                  <meshBasicMaterial
+                    color={isFocusedTutor ? '#f0abfc' : '#86efac'}
+                    transparent
+                    opacity={0.14 + pulse * 0.22}
+                  />
                 </Sphere>
               ) : null}
             </group>
@@ -394,7 +556,10 @@ export default function TopologyGlobeCanvas({ nodes, edges, focusedTutorId, onTu
         <div
           className="pointer-events-none absolute z-30 w-72 -translate-y-2 rounded-xl border border-slate-500/60 bg-slate-950/95 p-3 text-slate-100 shadow-[0_0_24px_rgba(34,211,238,0.2)]"
           style={{
-            left: Math.max(8, Math.min(hoveredNode.x + 12, 8 + (containerRef.current?.clientWidth || 0) - 304)),
+            left: Math.max(
+              8,
+              Math.min(hoveredNode.x + 12, 8 + (containerRef.current?.clientWidth || 0) - 304)
+            ),
             top: Math.max(16, hoveredNode.y - 24),
           }}
         >
@@ -417,19 +582,31 @@ export default function TopologyGlobeCanvas({ nodes, edges, focusedTutorId, onTu
               <p className="truncate text-sm font-semibold">{hoveredNode.node.name}</p>
               <p className="truncate text-xs text-slate-300">{hoveredNode.node.email}</p>
             </div>
-            <span className={`rounded px-2 py-1 text-[10px] font-semibold ${hoveredNode.node.role === 'TUTOR' ? 'bg-cyan-500/20 text-cyan-200' : 'bg-indigo-500/20 text-indigo-200'}`}>
+            <span
+              className={`rounded px-2 py-1 text-[10px] font-semibold ${hoveredNode.node.role === 'TUTOR' ? 'bg-cyan-500/20 text-cyan-200' : 'bg-indigo-500/20 text-indigo-200'}`}
+            >
               {hoveredNode.node.role}
             </span>
           </div>
 
           <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-300">
-            <div className="rounded border border-slate-700 px-2 py-1">TZ: {hoveredNode.node.timezone}</div>
-            <div className="rounded border border-slate-700 px-2 py-1">Active links: {hoveredNode.activeLinks}</div>
-            <div className="rounded border border-slate-700 px-2 py-1">Total links: {hoveredNode.totalLinks}</div>
-            <div className="rounded border border-slate-700 px-2 py-1">Sessions: {hoveredNode.node.activeSessions}</div>
+            <div className="rounded border border-slate-700 px-2 py-1">
+              TZ: {hoveredNode.node.timezone}
+            </div>
+            <div className="rounded border border-slate-700 px-2 py-1">
+              Active links: {hoveredNode.activeLinks}
+            </div>
+            <div className="rounded border border-slate-700 px-2 py-1">
+              Total links: {hoveredNode.totalLinks}
+            </div>
+            <div className="rounded border border-slate-700 px-2 py-1">
+              Sessions: {hoveredNode.node.activeSessions}
+            </div>
           </div>
           {hoveredNode.node.role === 'TUTOR' ? (
-            <p className="mt-2 text-[11px] text-slate-400">Click tutor node to focus and isolate tutor-student network.</p>
+            <p className="mt-2 text-[11px] text-slate-400">
+              Click tutor node to focus and isolate tutor-student network.
+            </p>
           ) : null}
         </div>
       ) : null}

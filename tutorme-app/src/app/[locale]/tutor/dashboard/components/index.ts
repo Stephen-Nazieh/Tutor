@@ -2,7 +2,10 @@ export { CreateClassDialog } from './CreateClassDialog'
 export { CreateCourseDialog } from './CreateCourseDialog'
 export { StatsCards } from './StatsCards'
 export { UpcomingClassesCard, type UpcomingClass } from './UpcomingClassesCard'
-export { StudentsNeedingAttentionCard, type StudentNeedingAttention } from './StudentsNeedingAttentionCard'
+export {
+  StudentsNeedingAttentionCard,
+  type StudentNeedingAttention,
+} from './StudentsNeedingAttentionCard'
 export { AIInsightsCard } from './AIInsightsCard'
 export { QuickActionsCard } from './QuickActionsCard'
 export { AITeachingAssistantWidget } from './AITeachingAssistantWidget'

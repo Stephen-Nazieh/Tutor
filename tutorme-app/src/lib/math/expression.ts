@@ -1,57 +1,69 @@
-import { Parser } from 'expr-eval'
+import { create, all, type MathNode } from 'mathjs'
 
-const parser = new Parser({
-  operators: {
-    add: true,
-    subtract: true,
-    multiply: true,
-    divide: true,
-    remainder: true,
-    power: true,
-    factorial: false,
-    comparison: false,
-    logical: false,
-    conditional: false,
-    in: false,
-    assignment: false,
-  },
-  allowMemberAccess: false,
+// Create a secure math instance with limited functions
+const math = create(all, {
+  number: 'number',
+  precision: 14,
 })
 
-parser.functions = {
-  sin: Math.sin,
-  cos: Math.cos,
-  tan: Math.tan,
-  asin: Math.asin,
-  acos: Math.acos,
-  atan: Math.atan,
-  sinh: Math.sinh,
-  cosh: Math.cosh,
-  tanh: Math.tanh,
-  sqrt: Math.sqrt,
-  abs: Math.abs,
-  log: Math.log,
-  log10: Math.log10,
-  ln: Math.log,
-  exp: Math.exp,
-  floor: Math.floor,
-  ceil: Math.ceil,
-  round: Math.round,
-  min: Math.min,
-  max: Math.max,
-  pow: Math.pow,
-}
+// Whitelist of allowed functions and constants
+const ALLOWED_FUNCTIONS = new Set([
+  'sin',
+  'cos',
+  'tan',
+  'asin',
+  'acos',
+  'atan',
+  'sinh',
+  'cosh',
+  'tanh',
+  'sqrt',
+  'abs',
+  'log',
+  'log10',
+  'ln',
+  'exp',
+  'floor',
+  'ceil',
+  'round',
+  'min',
+  'max',
+  'pow',
+  'pi',
+  'e',
+  'x',
+])
 
-parser.consts = {
-  pi: Math.PI,
-  e: Math.E,
-}
-
+/**
+ * Compile a mathematical expression into a function
+ * Uses mathjs for secure evaluation with a whitelist of allowed functions
+ */
 export function compileExpression(expression: string): (x: number) => number | null {
   const trimmed = expression.trim()
   if (!trimmed) return () => null
+
   try {
-    const compiled = parser.parse(trimmed)
+    // Parse the expression to check for unsafe elements
+    const parsed = math.parse(trimmed)
+
+    // Check that all symbols are allowed
+    const symbols: string[] = []
+    parsed.traverse((node: MathNode) => {
+      if (node.type === 'SymbolNode' && 'name' in node && typeof node.name === 'string') {
+        symbols.push(node.name)
+      }
+    })
+
+    for (const symbol of symbols) {
+      if (!ALLOWED_FUNCTIONS.has(symbol)) {
+        console.warn(`[Expression] Disallowed symbol in expression: ${symbol}`)
+        return () => null
+      }
+    }
+
+    // Compile the expression
+    const compiled = parsed.compile()
+
     return (x: number) => {
       try {
         const result = compiled.evaluate({ x })

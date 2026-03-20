@@ -45,7 +45,9 @@ interface QuestionResult {
 
 export async function POST(
   request: NextRequest,
-  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
+  context?: {
+    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  }
 ) {
   try {
     const session = await getServerSession(authOptions, request)
@@ -109,12 +111,7 @@ export async function POST(
     const existingSubmissions = await drizzleDb
       .select()
       .from(taskSubmission)
-      .where(
-        and(
-          eq(taskSubmission.taskId, taskId),
-          eq(taskSubmission.studentId, studentId)
-        )
-      )
+      .where(and(eq(taskSubmission.taskId, taskId), eq(taskSubmission.studentId, studentId)))
       .orderBy(desc(taskSubmission.submittedAt))
 
     const attemptNumber = existingSubmissions.length + 1
@@ -149,13 +146,15 @@ export async function POST(
         correct = studentAnswer === q.correctAnswer
         earned = correct ? qPoints : 0
       } else if (type === 'true_false' || type === 'truefalse') {
-        correct =
-          String(studentAnswer).toLowerCase() ===
-          String(q.correctAnswer).toLowerCase()
+        correct = String(studentAnswer).toLowerCase() === String(q.correctAnswer).toLowerCase()
         earned = correct ? qPoints : 0
       } else if (type === 'short_answer' || type === 'shortanswer') {
-        const sa = String(studentAnswer || '').trim().toLowerCase()
-        const ca = String(q.correctAnswer || '').trim().toLowerCase()
+        const sa = String(studentAnswer || '')
+          .trim()
+          .toLowerCase()
+        const ca = String(q.correctAnswer || '')
+          .trim()
+          .toLowerCase()
         correct = sa === ca
         earned = correct ? qPoints : 0
       } else {
@@ -177,7 +176,13 @@ export async function POST(
     const scoreRounded = Math.round(score * 100) / 100
     const maxScoreVal = task.maxScore || totalMax
 
-    let submission: { id: string; score: number | null; maxScore: number; status: string; attempts: number }
+    let submission: {
+      id: string
+      score: number | null
+      maxScore: number
+      status: string
+      attempts: number
+    }
     if (existingSubmissions.length > 0 && task.maxAttempts > 1) {
       const existing = existingSubmissions[0]
       await drizzleDb
@@ -334,7 +339,7 @@ export async function POST(
     }
 
     if (curriculumId) {
-      updateStudentPerformanceRecord(studentId, curriculumId).catch((err) =>
+      updateStudentPerformanceRecord(studentId, curriculumId).catch(err =>
         console.error('Failed to update performance:', err)
       )
     }
@@ -354,19 +359,18 @@ export async function POST(
     })
   } catch (error) {
     console.error('Failed to submit task:', error)
-    return handleApiError(error, 'Failed to submit', 'api/student/assignments/[taskId]/submit/route.ts')
+    return handleApiError(
+      error,
+      'Failed to submit',
+      'api/student/assignments/[taskId]/submit/route.ts'
+    )
   }
 }
 
-function calculateXP(
-  scorePercent: number,
-  questionCount: number,
-  difficulty: string
-): number {
+function calculateXP(scorePercent: number, questionCount: number, difficulty: string): number {
   const base = Math.max(questionCount, 1) * 10
   const scoreMult =
     scorePercent >= 90 ? 1.5 : scorePercent >= 70 ? 1.2 : scorePercent >= 50 ? 1.0 : 0.5
-  const diffMult =
-    difficulty === 'hard' ? 1.5 : difficulty === 'medium' ? 1.2 : 1.0
+  const diffMult = difficulty === 'hard' ? 1.5 : difficulty === 'medium' ? 1.2 : 1.0
   return Math.round(base * scoreMult * diffMult)
 }

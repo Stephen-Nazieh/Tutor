@@ -5,7 +5,14 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -47,7 +54,7 @@ import {
   VolumeX,
   ChevronRight,
   ChevronLeft,
-  Sparkles
+  Sparkles,
 } from 'lucide-react'
 
 interface VideoClassroomProps {
@@ -80,10 +87,15 @@ interface Reaction {
 
 const REACTIONS = ['👍', '👏', '❤️', '😂', '😮', '🎉', '✋', '💡']
 
-export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = 'Live Class' }: VideoClassroomProps) {
+export function VideoClassroom({
+  sessionId,
+  roomUrl,
+  roomToken,
+  sessionTitle = 'Live Class',
+}: VideoClassroomProps) {
   const router = useRouter()
   const videoContainerRef = useRef<HTMLDivElement>(null)
-  
+
   // Video call hook
   const {
     call,
@@ -99,10 +111,10 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
     startScreenShare,
     stopScreenShare,
     startRecording,
-    stopRecording
+    stopRecording,
   } = useDailyCall({
     onRecordingStarted: () => toast.success('Recording started'),
-    onRecordingStopped: () => toast.success('Recording stopped')
+    onRecordingStopped: () => toast.success('Recording stopped'),
   })
 
   // Local state
@@ -124,7 +136,7 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [chatUnreadCount, setChatUnreadCount] = useState(0)
   const [handRaisedUsers, setHandRaisedUsers] = useState<Set<string>>(new Set())
-  
+
   // Video quality settings
   const [videoQuality, setVideoQuality] = useState<'low' | 'medium' | 'high'>('high')
   const [isLowBandwidth, setIsLowBandwidth] = useState(false)
@@ -134,7 +146,7 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
     if (roomUrl && !isJoined) {
       join(roomUrl, roomToken)
     }
-    
+
     return () => {
       if (isJoined) {
         leave()
@@ -159,11 +171,11 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
       id: `react-${Date.now()}`,
       emoji,
       participantId: 'local',
-      timestamp: Date.now()
+      timestamp: Date.now(),
     }
     setActiveReactions(prev => [...prev, newReaction])
     setShowReactions(false)
-    
+
     // Clear reaction after 3 seconds
     setTimeout(() => {
       setActiveReactions(prev => prev.filter(r => r.id !== newReaction.id))
@@ -171,22 +183,25 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
   }, [])
 
   // Toggle recording
-  const persistRecordingState = useCallback(async (recording: boolean) => {
-    try {
-      const fallbackRecordingUrl = recording ? null : roomUrl
-      await fetch(`/api/tutor/live-sessions/${sessionId}/recording`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          isRecording: recording,
-          recordingUrl: fallbackRecordingUrl,
-        }),
-      })
-    } catch {
-      // Non-fatal.
-    }
-  }, [roomUrl, sessionId])
+  const persistRecordingState = useCallback(
+    async (recording: boolean) => {
+      try {
+        const fallbackRecordingUrl = recording ? null : roomUrl
+        await fetch(`/api/tutor/live-sessions/${sessionId}/recording`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            isRecording: recording,
+            recordingUrl: fallbackRecordingUrl,
+          }),
+        })
+      } catch {
+        // Non-fatal.
+      }
+    },
+    [roomUrl, sessionId]
+  )
 
   const handleToggleRecording = useCallback(() => {
     const generateReplayArtifact = async () => {
@@ -275,7 +290,9 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
   }
 
   // Get active participants
-  const activeParticipants = participants.filter(p => p.isScreenSharing || pinnedParticipant === p.userId)
+  const activeParticipants = participants.filter(
+    p => p.isScreenSharing || pinnedParticipant === p.userId
+  )
   const mainParticipant = activeParticipants[0] || participants[0]
   const otherParticipants = participants.filter(p => p.userId !== mainParticipant?.userId)
 
@@ -290,21 +307,18 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
 
   return (
     <TooltipProvider>
-      <div 
-        ref={videoContainerRef}
-        className="h-screen flex flex-col bg-gray-900 overflow-hidden"
-      >
+      <div ref={videoContainerRef} className="flex h-screen flex-col overflow-hidden bg-gray-900">
         {/* Header */}
-        <header className="bg-gray-800 border-b border-gray-700 px-4 py-2 flex items-center justify-between shrink-0">
+        <header className="flex shrink-0 items-center justify-between border-b border-gray-700 bg-gray-800 px-4 py-2">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-              <span className="text-white font-medium">LIVE</span>
+              <div className="h-3 w-3 animate-pulse rounded-full bg-red-500" />
+              <span className="font-medium text-white">LIVE</span>
             </div>
             <div className="h-6 w-px bg-gray-600" />
             <div>
-              <h1 className="text-white font-medium">{sessionTitle}</h1>
-              <p className="text-gray-400 text-xs">Session ID: {sessionId}</p>
+              <h1 className="font-medium text-white">{sessionTitle}</h1>
+              <p className="text-xs text-gray-400">Session ID: {sessionId}</p>
             </div>
           </div>
 
@@ -313,19 +327,19 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
               variant={isRecording ? 'destructive' : 'outline'}
               size="sm"
               className={cn(
-                "gap-2",
-                !isRecording && "border-gray-600 bg-gray-700 text-white hover:bg-gray-600"
+                'gap-2',
+                !isRecording && 'border-gray-600 bg-gray-700 text-white hover:bg-gray-600'
               )}
               onClick={handleToggleRecording}
             >
-              <Radio className={cn("w-4 h-4", isRecording && "animate-pulse")} />
+              <Radio className={cn('h-4 w-4', isRecording && 'animate-pulse')} />
               {isRecording ? 'Stop Recording' : 'Start Recording'}
             </Button>
 
             {/* Recording Indicator */}
             {isRecording && (
-              <RecordingIndicator 
-                duration={recordingDuration} 
+              <RecordingIndicator
+                duration={recordingDuration}
                 isPaused={isPaused}
                 onPause={handleTogglePause}
                 onStop={handleToggleRecording}
@@ -333,7 +347,7 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
             )}
 
             {/* Layout Switcher */}
-            <div className="flex items-center bg-gray-700 rounded-lg p-1">
+            <div className="flex items-center rounded-lg bg-gray-700 p-1">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -342,7 +356,7 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
                     className="h-8 w-8"
                     onClick={() => setLayout('grid')}
                   >
-                    <LayoutGrid className="w-4 h-4 text-white" />
+                    <LayoutGrid className="h-4 w-4 text-white" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Grid View</TooltipContent>
@@ -355,7 +369,7 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
                     className="h-8 w-8"
                     onClick={() => setLayout('spotlight')}
                   >
-                    <Pin className="w-4 h-4 text-white" />
+                    <Pin className="h-4 w-4 text-white" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Spotlight View</TooltipContent>
@@ -370,15 +384,15 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
             )}
 
             {/* Participant Count */}
-            <Badge variant="secondary" className="gap-1 bg-gray-700 text-white border-gray-600">
-              <Users className="w-3 h-3" />
+            <Badge variant="secondary" className="gap-1 border-gray-600 bg-gray-700 text-white">
+              <Users className="h-3 w-3" />
               {participants.length}
             </Badge>
 
             {/* Hand Raised Count */}
             {handRaisedUsers.size > 0 && (
               <Badge variant="default" className="gap-1 bg-yellow-600">
-                <Hand className="w-3 h-3" />
+                <Hand className="h-3 w-3" />
                 {handRaisedUsers.size}
               </Badge>
             )}
@@ -386,56 +400,61 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
         </header>
 
         {/* Main Content */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex flex-1 overflow-hidden">
           {/* Video Area */}
-          <div className="flex-1 relative">
+          <div className="relative flex-1">
             {/* Video Grid */}
-            <div className={cn(
-              "h-full p-4 gap-4",
-              layout === 'grid' && `grid ${getGridCols()} auto-rows-fr`,
-              layout === 'spotlight' && 'flex flex-col',
-              layout === 'sidebar' && 'flex'
-            )}>
+            <div
+              className={cn(
+                'h-full gap-4 p-4',
+                layout === 'grid' && `grid ${getGridCols()} auto-rows-fr`,
+                layout === 'spotlight' && 'flex flex-col',
+                layout === 'sidebar' && 'flex'
+              )}
+            >
               {participants.map((participant, index) => (
                 <div
                   key={participant.id}
                   className={cn(
-                    "relative rounded-lg overflow-hidden bg-gray-800",
-                    layout === 'spotlight' && index === 0 && "flex-[2]",
-                    layout === 'spotlight' && index > 0 && "flex-1",
-                    layout === 'sidebar' && index === 0 && "flex-1",
-                    layout === 'sidebar' && index > 0 && "w-48",
-                    pinnedParticipant === participant.userId && "ring-2 ring-blue-500"
+                    'relative overflow-hidden rounded-lg bg-gray-800',
+                    layout === 'spotlight' && index === 0 && 'flex-[2]',
+                    layout === 'spotlight' && index > 0 && 'flex-1',
+                    layout === 'sidebar' && index === 0 && 'flex-1',
+                    layout === 'sidebar' && index > 0 && 'w-48',
+                    pinnedParticipant === participant.userId && 'ring-2 ring-blue-500'
                   )}
                 >
                   {/* Video Placeholder */}
                   <div className="absolute inset-0 flex items-center justify-center">
                     {participant.isVideoEnabled ? (
-                      <div className="w-full h-full bg-gray-700 flex items-center justify-center text-gray-500">
+                      <div className="flex h-full w-full items-center justify-center bg-gray-700 text-gray-500">
                         Video Feed
                       </div>
                     ) : (
                       <div className="flex flex-col items-center gap-2">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
-                          {participant.name.split(' ').map(n => n[0]).join('')}
+                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-2xl font-bold text-white">
+                          {participant.name
+                            .split(' ')
+                            .map(n => n[0])
+                            .join('')}
                         </div>
-                        <span className="text-white font-medium">{participant.name}</span>
+                        <span className="font-medium text-white">{participant.name}</span>
                       </div>
                     )}
                   </div>
 
                   {/* Screen Share Indicator */}
                   {participant.isScreenSharing && (
-                    <div className="absolute top-2 left-2 bg-green-600 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
-                      <MonitorUp className="w-3 h-3" />
+                    <div className="absolute left-2 top-2 flex items-center gap-1 rounded bg-green-600 px-2 py-1 text-xs text-white">
+                      <MonitorUp className="h-3 w-3" />
                       Sharing
                     </div>
                   )}
 
                   {/* Hand Raised Indicator */}
                   {handRaisedUsers.has(participant.userId) && (
-                    <div className="absolute top-2 right-2 bg-yellow-500 text-white p-1.5 rounded-full">
-                      <Hand className="w-4 h-4" />
+                    <div className="absolute right-2 top-2 rounded-full bg-yellow-500 p-1.5 text-white">
+                      <Hand className="h-4 w-4" />
                     </div>
                   )}
 
@@ -445,23 +464,20 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
                     .map(reaction => (
                       <div
                         key={reaction.id}
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-6xl animate-bounce"
+                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-bounce text-6xl"
                       >
                         {reaction.emoji}
                       </div>
-                    ))
-                  }
+                    ))}
 
                   {/* Video Controls Overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 hover:opacity-100 transition-opacity">
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 opacity-0 transition-opacity hover:opacity-100">
                     <div className="flex items-center justify-between">
-                      <span className="text-white text-sm font-medium">
-                        {participant.name}
-                      </span>
+                      <span className="text-sm font-medium text-white">{participant.name}</span>
                       <div className="flex items-center gap-1">
                         {!participant.isAudioEnabled && (
-                          <div className="p-1 bg-red-500 rounded">
-                            <MicOff className="w-3 h-3 text-white" />
+                          <div className="rounded bg-red-500 p-1">
+                            <MicOff className="h-3 w-3 text-white" />
                           </div>
                         )}
                         <Tooltip>
@@ -470,14 +486,18 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
                               variant="ghost"
                               size="icon"
                               className="h-6 w-6 text-white hover:bg-white/20"
-                              onClick={() => setPinnedParticipant(
-                                pinnedParticipant === participant.userId ? null : participant.userId
-                              )}
+                              onClick={() =>
+                                setPinnedParticipant(
+                                  pinnedParticipant === participant.userId
+                                    ? null
+                                    : participant.userId
+                                )
+                              }
                             >
                               {pinnedParticipant === participant.userId ? (
-                                <PinOff className="w-3 h-3" />
+                                <PinOff className="h-3 w-3" />
                               ) : (
-                                <Pin className="w-3 h-3" />
+                                <Pin className="h-3 w-3" />
                               )}
                             </Button>
                           </TooltipTrigger>
@@ -493,14 +513,10 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
             </div>
 
             {/* Screen Share Overlay */}
-            {showScreenShare && isScreenSharing && (
-              <ScreenShareView onStop={stopScreenShare} />
-            )}
+            {showScreenShare && isScreenSharing && <ScreenShareView onStop={stopScreenShare} />}
 
             {/* Whiteboard Overlay */}
-            {showWhiteboard && (
-              <WhiteboardPanel onClose={() => setShowWhiteboard(false)} />
-            )}
+            {showWhiteboard && <WhiteboardPanel onClose={() => setShowWhiteboard(false)} />}
 
             {/* Reactions Overlay */}
             {showReactions && (
@@ -514,18 +530,21 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
 
           {/* Side Panel */}
           {(showChat || showParticipants) && (
-            <div className="w-[350px] bg-gray-800 border-l border-gray-700 flex flex-col">
+            <div className="flex w-[350px] flex-col border-l border-gray-700 bg-gray-800">
               {/* Panel Tabs */}
               <div className="flex border-b border-gray-700">
                 <button
                   className={cn(
-                    "flex-1 py-3 text-sm font-medium text-white border-b-2 transition-colors",
-                    showChat ? "border-blue-500" : "border-transparent hover:border-gray-600"
+                    'flex-1 border-b-2 py-3 text-sm font-medium text-white transition-colors',
+                    showChat ? 'border-blue-500' : 'border-transparent hover:border-gray-600'
                   )}
-                  onClick={() => { setShowChat(true); setShowParticipants(false); }}
+                  onClick={() => {
+                    setShowChat(true)
+                    setShowParticipants(false)
+                  }}
                 >
                   <div className="flex items-center justify-center gap-2">
-                    <MessageSquare className="w-4 h-4" />
+                    <MessageSquare className="h-4 w-4" />
                     Chat
                     {chatUnreadCount > 0 && (
                       <Badge variant="destructive" className="text-xs">
@@ -536,13 +555,18 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
                 </button>
                 <button
                   className={cn(
-                    "flex-1 py-3 text-sm font-medium text-white border-b-2 transition-colors",
-                    showParticipants ? "border-blue-500" : "border-transparent hover:border-gray-600"
+                    'flex-1 border-b-2 py-3 text-sm font-medium text-white transition-colors',
+                    showParticipants
+                      ? 'border-blue-500'
+                      : 'border-transparent hover:border-gray-600'
                   )}
-                  onClick={() => { setShowChat(false); setShowParticipants(true); }}
+                  onClick={() => {
+                    setShowChat(false)
+                    setShowParticipants(true)
+                  }}
                 >
                   <div className="flex items-center justify-center gap-2">
-                    <Users className="w-4 h-4" />
+                    <Users className="h-4 w-4" />
                     People
                   </div>
                 </button>
@@ -551,13 +575,10 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
               {/* Panel Content */}
               <div className="flex-1 overflow-hidden">
                 {showChat && (
-                  <ChatPanel 
-                    onUnreadChange={setChatUnreadCount}
-                    participants={participants}
-                  />
+                  <ChatPanel onUnreadChange={setChatUnreadCount} participants={participants} />
                 )}
                 {showParticipants && (
-                  <ParticipantsPanel 
+                  <ParticipantsPanel
                     participants={participants}
                     handRaisedUsers={handRaisedUsers}
                     onToggleHand={handleToggleHand}
@@ -569,7 +590,7 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
         </div>
 
         {/* Control Bar */}
-        <div className="bg-gray-800 border-t border-gray-700 px-4 py-3 flex items-center justify-between shrink-0">
+        <div className="flex shrink-0 items-center justify-between border-t border-gray-700 bg-gray-800 px-4 py-3">
           {/* Left - Info */}
           <div className="flex items-center gap-4">
             <Tooltip>
@@ -580,15 +601,15 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
                   className="text-white hover:bg-gray-700"
                   onClick={() => setShowParticipants(!showParticipants)}
                 >
-                  <ChevronRight className={cn("w-5 h-5 transition-transform", showParticipants && "rotate-180")} />
+                  <ChevronRight
+                    className={cn('h-5 w-5 transition-transform', showParticipants && 'rotate-180')}
+                  />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Toggle Panel</TooltipContent>
             </Tooltip>
 
-            <div className="text-gray-400 text-sm">
-              {participants.length} participants
-            </div>
+            <div className="text-sm text-gray-400">{participants.length} participants</div>
           </div>
 
           {/* Center - Main Controls */}
@@ -599,13 +620,16 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
                 <Button
                   variant={isAudioEnabled ? 'outline' : 'destructive'}
                   size="icon"
-                  className={cn("h-12 w-12 rounded-full border-2", isAudioEnabled && "border-gray-600 bg-gray-700 hover:bg-gray-600")}
+                  className={cn(
+                    'h-12 w-12 rounded-full border-2',
+                    isAudioEnabled && 'border-gray-600 bg-gray-700 hover:bg-gray-600'
+                  )}
                   onClick={toggleAudio}
                 >
                   {isAudioEnabled ? (
-                    <Mic className="w-5 h-5 text-white" />
+                    <Mic className="h-5 w-5 text-white" />
                   ) : (
-                    <MicOff className="w-5 h-5 text-white" />
+                    <MicOff className="h-5 w-5 text-white" />
                   )}
                 </Button>
               </TooltipTrigger>
@@ -618,13 +642,16 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
                 <Button
                   variant={isVideoEnabled ? 'outline' : 'destructive'}
                   size="icon"
-                  className={cn("h-12 w-12 rounded-full border-2", isVideoEnabled && "border-gray-600 bg-gray-700 hover:bg-gray-600")}
+                  className={cn(
+                    'h-12 w-12 rounded-full border-2',
+                    isVideoEnabled && 'border-gray-600 bg-gray-700 hover:bg-gray-600'
+                  )}
                   onClick={toggleVideo}
                 >
                   {isVideoEnabled ? (
-                    <Video className="w-5 h-5 text-white" />
+                    <Video className="h-5 w-5 text-white" />
                   ) : (
-                    <VideoOff className="w-5 h-5 text-white" />
+                    <VideoOff className="h-5 w-5 text-white" />
                   )}
                 </Button>
               </TooltipTrigger>
@@ -640,7 +667,7 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
                   className="h-12 w-12 rounded-full border-2 border-gray-600 bg-gray-700 hover:bg-gray-600"
                   onClick={() => setShowReactions(!showReactions)}
                 >
-                  <Smile className="w-5 h-5 text-white" />
+                  <Smile className="h-5 w-5 text-white" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Reactions</TooltipContent>
@@ -653,17 +680,19 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
                   variant={handRaisedUsers.has('local') ? 'default' : 'outline'}
                   size="icon"
                   className={cn(
-                    "h-12 w-12 rounded-full border-2",
-                    handRaisedUsers.has('local') 
-                      ? "bg-yellow-600 border-yellow-600 hover:bg-yellow-700" 
-                      : "border-gray-600 bg-gray-700 hover:bg-gray-600"
+                    'h-12 w-12 rounded-full border-2',
+                    handRaisedUsers.has('local')
+                      ? 'border-yellow-600 bg-yellow-600 hover:bg-yellow-700'
+                      : 'border-gray-600 bg-gray-700 hover:bg-gray-600'
                   )}
                   onClick={handleToggleHand}
                 >
-                  <Hand className="w-5 h-5 text-white" />
+                  <Hand className="h-5 w-5 text-white" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>{handRaisedUsers.has('local') ? 'Lower Hand' : 'Raise Hand'}</TooltipContent>
+              <TooltipContent>
+                {handRaisedUsers.has('local') ? 'Lower Hand' : 'Raise Hand'}
+              </TooltipContent>
             </Tooltip>
 
             {/* Screen Share */}
@@ -673,17 +702,17 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
                   variant={isScreenSharing ? 'default' : 'outline'}
                   size="icon"
                   className={cn(
-                    "h-12 w-12 rounded-full border-2",
-                    isScreenSharing 
-                      ? "bg-green-600 border-green-600 hover:bg-green-700" 
-                      : "border-gray-600 bg-gray-700 hover:bg-gray-600"
+                    'h-12 w-12 rounded-full border-2',
+                    isScreenSharing
+                      ? 'border-green-600 bg-green-600 hover:bg-green-700'
+                      : 'border-gray-600 bg-gray-700 hover:bg-gray-600'
                   )}
                   onClick={isScreenSharing ? stopScreenShare : startScreenShare}
                 >
                   {isScreenSharing ? (
-                    <MonitorOff className="w-5 h-5 text-white" />
+                    <MonitorOff className="h-5 w-5 text-white" />
                   ) : (
-                    <MonitorUp className="w-5 h-5 text-white" />
+                    <MonitorUp className="h-5 w-5 text-white" />
                   )}
                 </Button>
               </TooltipTrigger>
@@ -697,12 +726,17 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
                   variant={isRecording ? 'destructive' : 'outline'}
                   size="icon"
                   className={cn(
-                    "h-12 w-12 rounded-full border-2",
-                    !isRecording && "border-gray-600 bg-gray-700 hover:bg-gray-600"
+                    'h-12 w-12 rounded-full border-2',
+                    !isRecording && 'border-gray-600 bg-gray-700 hover:bg-gray-600'
                   )}
                   onClick={handleToggleRecording}
                 >
-                  <Radio className={cn("w-5 h-5", isRecording ? "text-white animate-pulse" : "text-white")} />
+                  <Radio
+                    className={cn(
+                      'h-5 w-5',
+                      isRecording ? 'animate-pulse text-white' : 'text-white'
+                    )}
+                  />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>{isRecording ? 'Stop Recording' : 'Start Recording'}</TooltipContent>
@@ -717,7 +751,7 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
                   className="h-12 w-12 rounded-full border-2 border-gray-600 bg-gray-700 hover:bg-gray-600"
                   onClick={() => setShowSettings(true)}
                 >
-                  <MoreHorizontal className="w-5 h-5 text-white" />
+                  <MoreHorizontal className="h-5 w-5 text-white" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>More Options</TooltipContent>
@@ -731,10 +765,14 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
                 <Button
                   variant="outline"
                   size="icon"
-                  className="text-white border-gray-600 hover:bg-gray-700"
+                  className="border-gray-600 text-white hover:bg-gray-700"
                   onClick={toggleFullscreen}
                 >
-                  {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+                  {isFullscreen ? (
+                    <Minimize2 className="h-5 w-5" />
+                  ) : (
+                    <Maximize2 className="h-5 w-5" />
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</TooltipContent>
@@ -742,10 +780,10 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
 
             <Button
               variant="destructive"
-              className="gap-2 px-6 bg-red-600 hover:bg-red-700"
+              className="gap-2 bg-red-600 px-6 hover:bg-red-700"
               onClick={() => setShowEndDialog(true)}
             >
-              <PhoneOff className="w-5 h-5" />
+              <PhoneOff className="h-5 w-5" />
               End
             </Button>
           </div>
@@ -756,7 +794,7 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Settings className="w-5 h-5" />
+                <Settings className="h-5 w-5" />
                 Classroom Settings
               </DialogTitle>
             </DialogHeader>
@@ -765,7 +803,7 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Video Quality</Label>
                 <div className="flex gap-2">
-                  {(['low', 'medium', 'high'] as const).map((quality) => (
+                  {(['low', 'medium', 'high'] as const).map(quality => (
                     <Button
                       key={quality}
                       variant={videoQuality === quality ? 'default' : 'outline'}
@@ -798,16 +836,34 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Tools</Label>
                 <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" onClick={() => { setShowWhiteboard(true); setShowSettings(false); }}>
-                    <Palette className="w-4 h-4 mr-2" />
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowWhiteboard(true)
+                      setShowSettings(false)
+                    }}
+                  >
+                    <Palette className="mr-2 h-4 w-4" />
                     Whiteboard
                   </Button>
-                  <Button variant="outline" onClick={() => { setShowPollCreator(true); setShowSettings(false); }}>
-                    <BarChart3 className="w-4 h-4 mr-2" />
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowPollCreator(true)
+                      setShowSettings(false)
+                    }}
+                  >
+                    <BarChart3 className="mr-2 h-4 w-4" />
                     Create Poll
                   </Button>
-                  <Button variant="outline" onClick={() => { setShowBreakoutControl(true); setShowSettings(false); }}>
-                    <Users className="w-4 h-4 mr-2" />
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowBreakoutControl(true)
+                      setShowSettings(false)
+                    }}
+                  >
+                    <Users className="mr-2 h-4 w-4" />
                     Breakout Rooms
                   </Button>
                 </div>
@@ -822,8 +878,8 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
             <DialogHeader>
               <DialogTitle>End Class Session?</DialogTitle>
               <DialogDescription>
-                {isRecording 
-                  ? 'You are currently recording. The recording will be saved.' 
+                {isRecording
+                  ? 'You are currently recording. The recording will be saved.'
                   : 'All participants will be disconnected.'}
               </DialogDescription>
             </DialogHeader>
@@ -841,17 +897,14 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
         {/* Poll Creator Dialog */}
         <Dialog open={showPollCreator} onOpenChange={setShowPollCreator}>
           <DialogContent className="sm:max-w-lg">
-            <PollCreator 
-              onClose={() => setShowPollCreator(false)}
-              participants={participants}
-            />
+            <PollCreator onClose={() => setShowPollCreator(false)} participants={participants} />
           </DialogContent>
         </Dialog>
 
         {/* Breakout Rooms Dialog */}
         <Dialog open={showBreakoutControl} onOpenChange={setShowBreakoutControl}>
           <DialogContent className="sm:max-w-2xl">
-            <BreakoutRoomControl 
+            <BreakoutRoomControl
               onClose={() => setShowBreakoutControl(false)}
               participants={participants}
             />
@@ -864,9 +917,5 @@ export function VideoClassroom({ sessionId, roomUrl, roomToken, sessionTitle = '
 
 // Label component for settings
 function Label({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <label className={cn("text-sm font-medium text-gray-700", className)}>
-      {children}
-    </label>
-  )
+  return <label className={cn('text-sm font-medium text-gray-700', className)}>{children}</label>
 }

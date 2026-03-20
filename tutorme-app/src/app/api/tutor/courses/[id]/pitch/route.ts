@@ -55,84 +55,90 @@ A compelling call-to-action (2-3 sentences) encouraging enrollment.
 
 Use markdown formatting. Be enthusiastic but professional. Focus on benefits, not just features. Make it feel personal and exciting.`
 
-export const POST = withCsrf(withAuth(async (req, session, context) => {
-  const id = await getParamAsync(context?.params, 'id')
+export const POST = withCsrf(
+  withAuth(
+    async (req, session, context) => {
+      const id = await getParamAsync(context?.params, 'id')
 
-  try {
-    if (!id) {
-      return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
-    }
-    const [course] = await drizzleDb
-      .select()
-      .from(curriculum)
-      .where(eq(curriculum.id, id))
-      .limit(1)
+      try {
+        if (!id) {
+          return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
+        }
+        const [course] = await drizzleDb
+          .select()
+          .from(curriculum)
+          .where(eq(curriculum.id, id))
+          .limit(1)
 
-    if (!course) {
-      return NextResponse.json({ error: 'Course not found' }, { status: 404 })
-    }
+        if (!course) {
+          return NextResponse.json({ error: 'Course not found' }, { status: 404 })
+        }
 
-    const modules = await drizzleDb
-      .select()
-      .from(curriculumModule)
-      .where(eq(curriculumModule.curriculumId, id))
-      .orderBy(asc(curriculumModule.order))
+        const modules = await drizzleDb
+          .select()
+          .from(curriculumModule)
+          .where(eq(curriculumModule.curriculumId, id))
+          .orderBy(asc(curriculumModule.order))
 
-    const moduleIds = modules.map((m) => m.id)
-    const lessons = moduleIds.length
-      ? await drizzleDb
-          .select({
-            moduleId: curriculumLesson.moduleId,
-            title: curriculumLesson.title,
-            description: curriculumLesson.description,
-            duration: curriculumLesson.duration,
-            difficulty: curriculumLesson.difficulty,
-            learningObjectives: curriculumLesson.learningObjectives,
-            order: curriculumLesson.order,
-          })
-          .from(curriculumLesson)
-          .where(inArray(curriculumLesson.moduleId, moduleIds))
-          .orderBy(asc(curriculumLesson.order))
-      : []
+        const moduleIds = modules.map(m => m.id)
+        const lessons = moduleIds.length
+          ? await drizzleDb
+              .select({
+                moduleId: curriculumLesson.moduleId,
+                title: curriculumLesson.title,
+                description: curriculumLesson.description,
+                duration: curriculumLesson.duration,
+                difficulty: curriculumLesson.difficulty,
+                learningObjectives: curriculumLesson.learningObjectives,
+                order: curriculumLesson.order,
+              })
+              .from(curriculumLesson)
+              .where(inArray(curriculumLesson.moduleId, moduleIds))
+              .orderBy(asc(curriculumLesson.order))
+          : []
 
-    const lessonsByModuleId = new Map<string, typeof lessons>()
-    for (const lesson of lessons) {
-      const list = lessonsByModuleId.get(lesson.moduleId) ?? []
-      list.push(lesson)
-      lessonsByModuleId.set(lesson.moduleId, list)
-    }
+        const lessonsByModuleId = new Map<string, typeof lessons>()
+        for (const lesson of lessons) {
+          const list = lessonsByModuleId.get(lesson.moduleId) ?? []
+          list.push(lesson)
+          lessonsByModuleId.set(lesson.moduleId, list)
+        }
 
-    const tutorProfile = course.creatorId
-      ? (await drizzleDb
-          .select({
-            name: profile.name,
-            bio: profile.bio,
-            specialties: profile.specialties,
-            credentials: profile.credentials,
-          })
-          .from(profile)
-          .where(eq(profile.userId, course.creatorId))
-          .limit(1))[0]
-      : null
+        const tutorProfile = course.creatorId
+          ? (
+              await drizzleDb
+                .select({
+                  name: profile.name,
+                  bio: profile.bio,
+                  specialties: profile.specialties,
+                  credentials: profile.credentials,
+                })
+                .from(profile)
+                .where(eq(profile.userId, course.creatorId))
+                .limit(1)
+            )[0]
+          : null
 
-    // Build context for AI
-    const modulesContext = modules.map((m) => ({
-      title: m.title,
-      description: m.description,
-      lessons: (lessonsByModuleId.get(m.id) ?? []).map((l) => ({
-        title: l.title,
-        duration: l.duration,
-        objectives: l.learningObjectives
-      }))
-    }))
-    const tutorContext = tutorProfile ? {
-      name: tutorProfile.name,
-      bio: tutorProfile.bio,
-      specialties: tutorProfile.specialties,
-      credentials: tutorProfile.credentials,
-    } : null
+        // Build context for AI
+        const modulesContext = modules.map(m => ({
+          title: m.title,
+          description: m.description,
+          lessons: (lessonsByModuleId.get(m.id) ?? []).map(l => ({
+            title: l.title,
+            duration: l.duration,
+            objectives: l.learningObjectives,
+          })),
+        }))
+        const tutorContext = tutorProfile
+          ? {
+              name: tutorProfile.name,
+              bio: tutorProfile.bio,
+              specialties: tutorProfile.specialties,
+              credentials: tutorProfile.credentials,
+            }
+          : null
 
-    const prompt = `${COURSE_PITCH_PROMPT}
+        const prompt = `${COURSE_PITCH_PROMPT}
 
 COURSE INFORMATION:
 - Name: ${course.name}
@@ -143,106 +149,132 @@ COURSE INFORMATION:
 - Description: ${course.description || 'N/A'}
 
 TUTOR INFORMATION:
-${tutorContext ? `- Name: ${tutorContext.name}
+${
+  tutorContext
+    ? `- Name: ${tutorContext.name}
 - Bio: ${tutorContext.bio || 'N/A'}
 - Specialties: ${tutorContext.specialties?.join(', ') || 'N/A'}
-- Credentials: ${tutorContext.credentials || 'N/A'}` : 'Information not available'}
+- Credentials: ${tutorContext.credentials || 'N/A'}`
+    : 'Information not available'
+}
 
 COURSE MODULES AND LESSONS:
 ${JSON.stringify(modulesContext, null, 2)}
 
 Generate a compelling, persuasive course pitch based on this information.`
 
-    const result = await generateWithFallback(prompt, {
-      temperature: 0.8,
-      maxTokens: 2500,
-    })
+        const result = await generateWithFallback(prompt, {
+          temperature: 0.8,
+          maxTokens: 2500,
+        })
 
-    // Save the generated pitch
-    await drizzleDb
-      .update(curriculum)
-      .set({ coursePitch: result.content })
-      .where(eq(curriculum.id, id))
+        // Save the generated pitch
+        await drizzleDb
+          .update(curriculum)
+          .set({ coursePitch: result.content })
+          .where(eq(curriculum.id, id))
 
-    return NextResponse.json({ 
-      pitch: result.content,
-      provider: result.provider 
-    })
+        return NextResponse.json({
+          pitch: result.content,
+          provider: result.provider,
+        })
+      } catch (error) {
+        console.error('Failed to generate course pitch:', error)
+        return handleApiError(
+          error,
+          'Failed to generate course pitch',
+          'api/tutor/courses/[id]/pitch/route.ts'
+        )
+      }
+    },
+    { role: 'TUTOR' }
+  )
+)
 
-  } catch (error) {
-    console.error('Failed to generate course pitch:', error)
-    return handleApiError(error, 'Failed to generate course pitch', 'api/tutor/courses/[id]/pitch/route.ts')
-  }
-}, { role: 'TUTOR' }))
+export const GET = withAuth(
+  async (req, session, context) => {
+    const id = await getParamAsync(context?.params, 'id')
 
-export const GET = withAuth(async (req, session, context) => {
-  const id = await getParamAsync(context?.params, 'id')
+    try {
+      if (!id) {
+        return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
+      }
+      const [course] = await drizzleDb
+        .select({ coursePitch: curriculum.coursePitch })
+        .from(curriculum)
+        .where(eq(curriculum.id, id))
+        .limit(1)
 
-  try {
-    if (!id) {
-      return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
-    }
-    const [course] = await drizzleDb
-      .select({ coursePitch: curriculum.coursePitch })
-      .from(curriculum)
-      .where(eq(curriculum.id, id))
-      .limit(1)
+      if (!course) {
+        return NextResponse.json({ error: 'Course not found' }, { status: 404 })
+      }
 
-    if (!course) {
-      return NextResponse.json({ error: 'Course not found' }, { status: 404 })
-    }
-
-    return NextResponse.json({ pitch: course.coursePitch })
-  } catch (error) {
-    console.error('Failed to fetch course pitch:', error)
-    return handleApiError(error, 'Failed to fetch course pitch', 'api/tutor/courses/[id]/pitch/route.ts')
-  }
-}, { role: 'TUTOR' })
-
-export const PATCH = withCsrf(withAuth(async (req, session, context) => {
-  const id = await getParamAsync(context?.params, 'id')
-
-  try {
-    if (!id) {
-      return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
-    }
-    const body = await req.json()
-    const { pitch } = body
-
-    if (typeof pitch !== 'string') {
-      return NextResponse.json(
-        { error: 'Invalid pitch format' },
-        { status: 400 }
+      return NextResponse.json({ pitch: course.coursePitch })
+    } catch (error) {
+      console.error('Failed to fetch course pitch:', error)
+      return handleApiError(
+        error,
+        'Failed to fetch course pitch',
+        'api/tutor/courses/[id]/pitch/route.ts'
       )
     }
+  },
+  { role: 'TUTOR' }
+)
 
-    await drizzleDb
-      .update(curriculum)
-      .set({ coursePitch: pitch })
-      .where(eq(curriculum.id, id))
+export const PATCH = withCsrf(
+  withAuth(
+    async (req, session, context) => {
+      const id = await getParamAsync(context?.params, 'id')
 
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Failed to update course pitch:', error)
-    return handleApiError(error, 'Failed to update course pitch', 'api/tutor/courses/[id]/pitch/route.ts')
-  }
-}, { role: 'TUTOR' }))
+      try {
+        if (!id) {
+          return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
+        }
+        const body = await req.json()
+        const { pitch } = body
 
-export const DELETE = withCsrf(withAuth(async (req, session, context) => {
-  const id = await getParamAsync(context?.params, 'id')
+        if (typeof pitch !== 'string') {
+          return NextResponse.json({ error: 'Invalid pitch format' }, { status: 400 })
+        }
 
-  try {
-    if (!id) {
-      return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
-    }
-    await drizzleDb
-      .update(curriculum)
-      .set({ coursePitch: null })
-      .where(eq(curriculum.id, id))
+        await drizzleDb.update(curriculum).set({ coursePitch: pitch }).where(eq(curriculum.id, id))
 
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Failed to delete course pitch:', error)
-    return handleApiError(error, 'Failed to delete course pitch', 'api/tutor/courses/[id]/pitch/route.ts')
-  }
-}, { role: 'TUTOR' }))
+        return NextResponse.json({ success: true })
+      } catch (error) {
+        console.error('Failed to update course pitch:', error)
+        return handleApiError(
+          error,
+          'Failed to update course pitch',
+          'api/tutor/courses/[id]/pitch/route.ts'
+        )
+      }
+    },
+    { role: 'TUTOR' }
+  )
+)
+
+export const DELETE = withCsrf(
+  withAuth(
+    async (req, session, context) => {
+      const id = await getParamAsync(context?.params, 'id')
+
+      try {
+        if (!id) {
+          return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
+        }
+        await drizzleDb.update(curriculum).set({ coursePitch: null }).where(eq(curriculum.id, id))
+
+        return NextResponse.json({ success: true })
+      } catch (error) {
+        console.error('Failed to delete course pitch:', error)
+        return handleApiError(
+          error,
+          'Failed to delete course pitch',
+          'api/tutor/courses/[id]/pitch/route.ts'
+        )
+      }
+    },
+    { role: 'TUTOR' }
+  )
+)

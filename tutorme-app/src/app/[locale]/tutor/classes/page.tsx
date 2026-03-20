@@ -6,16 +6,23 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { UserNav } from '@/components/user-nav'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { 
-  ArrowLeft, 
-  Copy, 
-  BookOpen, 
-  Plus, 
-  Search, 
+import {
+  ArrowLeft,
+  Copy,
+  BookOpen,
+  Plus,
+  Search,
   Filter,
   Video,
   Play,
@@ -26,10 +33,16 @@ import {
   List,
   Zap,
   ChevronRight,
-  MoreVertical
+  MoreVertical,
 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { toast } from 'sonner'
 import { formatClassTime } from '@/lib/format-class-time'
 import { cn } from '@/lib/utils'
@@ -48,7 +61,8 @@ interface TutorClass {
 type FilterStatus = 'all' | 'live' | 'upcoming' | 'scheduled' | 'completed'
 
 function copyJoinLink(classId: string) {
-  const url = typeof window !== 'undefined' ? `${window.location.origin}/tutor/live-class/${classId}` : ''
+  const url =
+    typeof window !== 'undefined' ? `${window.location.origin}/tutor/live-class/${classId}` : ''
   if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(url).then(() => toast.success('Join link copied to clipboard'))
   }
@@ -59,7 +73,7 @@ function getTimeRemaining(scheduledAt: string): string {
   const scheduled = new Date(scheduledAt)
   const diffMs = scheduled.getTime() - now.getTime()
   const diffMins = Math.floor(diffMs / 60000)
-  
+
   if (diffMins < 0) return 'Started'
   if (diffMins < 60) return `in ${diffMins} min`
   const diffHours = Math.floor(diffMins / 60)
@@ -77,14 +91,16 @@ export default function TutorClassesPage() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all')
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [calendarEvents, setCalendarEvents] = useState<Array<{
-    id: string
-    title: string
-    subject: string
-    scheduledAt: string
-    duration: number
-    status: string
-  }>>([])
+  const [calendarEvents, setCalendarEvents] = useState<
+    Array<{
+      id: string
+      title: string
+      subject: string
+      scheduledAt: string
+      duration: number
+      status: string
+    }>
+  >([])
 
   // Schedule training modal state
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false)
@@ -99,11 +115,11 @@ export default function TutorClassesPage() {
 
   useEffect(() => {
     fetch('/api/tutor/classes', { credentials: 'include' })
-      .then((res) => {
+      .then(res => {
         if (!res.ok) throw new Error('Failed to load classes')
         return res.json()
       })
-      .then((data) => {
+      .then(data => {
         setClasses(data.classes ?? [])
         setError(null)
       })
@@ -118,7 +134,7 @@ export default function TutorClassesPage() {
       const month = currentDate.getMonth()
       const start = new Date(year, month, 1).toISOString()
       const end = new Date(year, month + 1, 0, 23, 59, 59).toISOString()
-      
+
       try {
         const res = await fetch(`/api/tutor/calendar/events?start=${start}&end=${end}`, {
           credentials: 'include',
@@ -137,54 +153,60 @@ export default function TutorClassesPage() {
   // Categorize classes
   const categorizedClasses = useMemo(() => {
     const now = new Date()
-    
-    return classes.reduce((acc, cls) => {
-      const scheduled = new Date(cls.scheduledAt)
-      const isLive = cls.status === 'live' || (scheduled <= now && scheduled.getTime() + (cls.duration * 60000) > now.getTime())
-      const isPast = scheduled.getTime() + (cls.duration * 60000) < now.getTime() || cls.status === 'completed'
-      const isUpcoming = scheduled > now && scheduled.getTime() - now.getTime() < 24 * 60 * 60 * 1000 // Within 24 hours
-      
-      if (isLive) {
-        acc.live.push(cls)
-      } else if (isPast) {
-        acc.past.push(cls)
-      } else if (isUpcoming) {
-        acc.upcoming.push(cls)
-      } else {
-        acc.scheduled.push(cls)
+
+    return classes.reduce(
+      (acc, cls) => {
+        const scheduled = new Date(cls.scheduledAt)
+        const isLive =
+          cls.status === 'live' ||
+          (scheduled <= now && scheduled.getTime() + cls.duration * 60000 > now.getTime())
+        const isPast =
+          scheduled.getTime() + cls.duration * 60000 < now.getTime() || cls.status === 'completed'
+        const isUpcoming =
+          scheduled > now && scheduled.getTime() - now.getTime() < 24 * 60 * 60 * 1000 // Within 24 hours
+
+        if (isLive) {
+          acc.live.push(cls)
+        } else if (isPast) {
+          acc.past.push(cls)
+        } else if (isUpcoming) {
+          acc.upcoming.push(cls)
+        } else {
+          acc.scheduled.push(cls)
+        }
+        return acc
+      },
+      {
+        live: [] as TutorClass[],
+        upcoming: [] as TutorClass[],
+        scheduled: [] as TutorClass[],
+        past: [] as TutorClass[],
       }
-      return acc
-    }, {
-      live: [] as TutorClass[],
-      upcoming: [] as TutorClass[],
-      scheduled: [] as TutorClass[],
-      past: [] as TutorClass[]
-    })
+    )
   }, [classes])
 
   // Filter classes based on search and status filter
   const filteredClasses = useMemo(() => {
     let filtered = classes
-    
+
     if (filterStatus !== 'all') {
       const categoryMap: Record<string, TutorClass[]> = {
         live: categorizedClasses.live,
         upcoming: categorizedClasses.upcoming,
         scheduled: categorizedClasses.scheduled,
         past: categorizedClasses.past,
-        completed: categorizedClasses.past
+        completed: categorizedClasses.past,
       }
       filtered = categoryMap[filterStatus] || classes
     }
-    
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(cls => 
-        cls.title.toLowerCase().includes(query) ||
-        cls.subject.toLowerCase().includes(query)
+      filtered = filtered.filter(
+        cls => cls.title.toLowerCase().includes(query) || cls.subject.toLowerCase().includes(query)
       )
     }
-    
+
     return filtered
   }, [classes, filterStatus, categorizedClasses, searchQuery])
 
@@ -225,10 +247,10 @@ export default function TutorClassesPage() {
 
   const handleScheduleTraining = async () => {
     if (!selectedDate || !scheduleForm.title.trim()) return
-    
+
     const scheduledAt = new Date(selectedDate)
     scheduledAt.setHours(scheduleForm.hour, scheduleForm.minute)
-    
+
     try {
       const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
       const csrfData = await csrfRes.json().catch(() => ({}))
@@ -285,7 +307,7 @@ export default function TutorClassesPage() {
     const lastDayOfMonth = new Date(year, month + 1, 0)
     const daysInMonth = lastDayOfMonth.getDate()
     const startingDayOfWeek = firstDayOfMonth.getDay()
-    
+
     const days = []
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null)
@@ -299,9 +321,11 @@ export default function TutorClassesPage() {
   const getEventsForDay = (day: number) => {
     return calendarEvents.filter(event => {
       const eventDate = new Date(event.scheduledAt)
-      return eventDate.getDate() === day && 
-             eventDate.getMonth() === currentDate.getMonth() &&
-             eventDate.getFullYear() === currentDate.getFullYear()
+      return (
+        eventDate.getDate() === day &&
+        eventDate.getMonth() === currentDate.getMonth() &&
+        eventDate.getFullYear() === currentDate.getFullYear()
+      )
     })
   }
 
@@ -313,40 +337,41 @@ export default function TutorClassesPage() {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))
   }
 
-  const renderClassCard = (cls: TutorClass, isLive: boolean = false, isUpcoming: boolean = false) => {
+  const renderClassCard = (
+    cls: TutorClass,
+    isLive: boolean = false,
+    isUpcoming: boolean = false
+  ) => {
     const time = formatClassTime(cls.scheduledAt)
     const timeRemaining = getTimeRemaining(cls.scheduledAt)
-    
+
     return (
       <div
         key={cls.id}
         className={cn(
-          "flex items-center justify-between p-4 border rounded-lg transition-colors",
-          isLive ? "bg-red-50 border-red-200" : "hover:bg-gray-50"
+          'flex items-center justify-between rounded-lg border p-4 transition-colors',
+          isLive ? 'border-red-200 bg-red-50' : 'hover:bg-gray-50'
         )}
       >
         <div className="flex items-center gap-4">
-          <div className={cn(
-            "w-12 h-12 rounded-lg flex items-center justify-center",
-            isLive ? "bg-red-100" : isUpcoming ? "bg-yellow-100" : "bg-blue-100"
-          )}>
+          <div
+            className={cn(
+              'flex h-12 w-12 items-center justify-center rounded-lg',
+              isLive ? 'bg-red-100' : isUpcoming ? 'bg-yellow-100' : 'bg-blue-100'
+            )}
+          >
             {isLive ? (
-              <Video className="w-6 h-6 text-red-600" />
+              <Video className="h-6 w-6 text-red-600" />
             ) : (
-              <BookOpen className={cn(
-                "w-6 h-6",
-                isUpcoming ? "text-yellow-600" : "text-blue-600"
-              )} />
+              <BookOpen
+                className={cn('h-6 w-6', isUpcoming ? 'text-yellow-600' : 'text-blue-600')}
+              />
             )}
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-medium">{cls.title}</h3>
-              {isLive && (
-                <Badge className="bg-red-500 text-white animate-pulse">
-                  🔴 LIVE
-                </Badge>
-              )}
+              {isLive && <Badge className="animate-pulse bg-red-500 text-white">🔴 LIVE</Badge>}
               {isUpcoming && !isLive && (
                 <Badge variant="outline" className="border-yellow-500 text-yellow-600">
                   ⏰ {timeRemaining}
@@ -356,15 +381,15 @@ export default function TutorClassesPage() {
             <p className="text-sm text-gray-500">
               {cls.subject} • {time.formatted}
               {time.relative && !isLive && !isUpcoming && (
-                <span className="text-blue-600 font-medium"> • {time.relative}</span>
+                <span className="font-medium text-blue-600"> • {time.relative}</span>
               )}
             </p>
             <p className="text-xs text-gray-400">
-              <Users className="w-3 h-3 inline mr-1" />
+              <Users className="mr-1 inline h-3 w-3" />
               {cls.enrolledStudents}/{cls.maxStudents} students
               {cls.duration > 0 && (
                 <>
-                  <Clock className="w-3 h-3 inline mx-1" />
+                  <Clock className="mx-1 inline h-3 w-3" />
                   {cls.duration} min
                 </>
               )}
@@ -378,22 +403,17 @@ export default function TutorClassesPage() {
             onClick={() => copyJoinLink(cls.id)}
             title="Copy join link"
           >
-            <Copy className="w-4 h-4" />
+            <Copy className="h-4 w-4" />
           </Button>
           <Link href={`/tutor/live-class/${cls.id}`}>
-            <Button 
-              size="sm" 
-              className={cn(
-                isLive && "bg-red-600 hover:bg-red-700"
-              )}
-            >
+            <Button size="sm" className={cn(isLive && 'bg-red-600 hover:bg-red-700')}>
               {isLive ? (
                 <>
-                  <Play className="w-4 h-4 mr-1" /> Enter
+                  <Play className="mr-1 h-4 w-4" /> Enter
                 </>
               ) : (
                 <>
-                  <Play className="w-4 h-4 mr-1" /> Go Live
+                  <Play className="mr-1 h-4 w-4" /> Go Live
                 </>
               )}
             </Button>
@@ -406,15 +426,15 @@ export default function TutorClassesPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <nav className="bg-white border-b sticky top-0 z-50 safe-top">
+      <nav className="safe-top sticky top-0 z-50 border-b bg-white">
         <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
+          <div className="flex h-16 justify-between">
             <div className="flex items-center gap-4">
               <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600">
                 Solocorn
               </Link>
               <Button variant="ghost" size="sm" onClick={() => router.push('/tutor/dashboard')}>
-                <ArrowLeft className="w-4 h-4 mr-1" /> Dashboard
+                <ArrowLeft className="mr-1 h-4 w-4" /> Dashboard
               </Button>
             </div>
             <div className="flex items-center">
@@ -424,185 +444,201 @@ export default function TutorClassesPage() {
         </div>
       </nav>
 
-      <main className="w-full px-4 sm:px-6 lg:px-8 py-8">
+      <main className="w-full px-4 py-8 sm:px-6 lg:px-8">
         {/* Title & Quick Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold">Coming up</h1>
-            <p className="text-sm text-gray-500">
-              Your upcoming classes and live sessions
-            </p>
+            <p className="text-sm text-gray-500">Your upcoming classes and live sessions</p>
           </div>
-          <div className="flex gap-2">
-            {/* Buttons removed as per training page flow */}
-          </div>
+          <div className="flex gap-2">{/* Buttons removed as per training page flow */}</div>
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
             {error}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.location.reload()}
-            >
+            <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
               Retry
             </Button>
           </div>
         )}
 
-        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'list' | 'calendar')} className="space-y-6">
+        <Tabs
+          value={viewMode}
+          onValueChange={v => setViewMode(v as 'list' | 'calendar')}
+          className="space-y-6"
+        >
           <div className="flex items-center justify-between">
             <TabsList>
               <TabsTrigger value="list" className="gap-2">
-                <List className="w-4 h-4" /> List
+                <List className="h-4 w-4" /> List
               </TabsTrigger>
               <TabsTrigger value="calendar" className="gap-2">
-                <CalendarDays className="w-4 h-4" /> Calendar
+                <CalendarDays className="h-4 w-4" /> Calendar
               </TabsTrigger>
             </TabsList>
           </div>
 
           <TabsContent value="list" className="space-y-6">
             {/* Search & Filter */}
-            <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              placeholder="Search classes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <div className="flex gap-2">
-            {(['all', 'live', 'upcoming', 'scheduled', 'completed'] as FilterStatus[]).map((status) => (
-              <Button
-                key={status}
-                variant={filterStatus === status ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilterStatus(status)}
-                className="capitalize"
-              >
-                {status === 'live' && categorizedClasses.live.length > 0 && (
-                  <span className="w-2 h-2 bg-red-500 rounded-full mr-1 animate-pulse" />
-                )}
-                {status === 'completed' ? 'Completed' : status}
-                {status !== 'all' && (
-                  <span className="ml-1 text-xs opacity-70">
-                    ({categorizedClasses[status === 'completed' ? 'past' : status]?.length || 0})
-                  </span>
-                )}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* Content */}
-        {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded-lg animate-pulse" />
-            ))}
-          </div>
-        ) : classes.length === 0 ? (
-          <Card>
-            <CardContent className="py-12">
-              <div className="text-center">
-                <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <h3 className="text-lg font-medium text-gray-900 mb-1">No classes yet</h3>
-                <p className="text-sm text-gray-500 mb-4">Create your first class to get started</p>
-                <div className="flex gap-2 justify-center">
-                  <Button variant="outline" onClick={handleCreateInstantClass}>
-                    <Zap className="w-4 h-4 mr-2" /> Start Instant Class
-                  </Button>
-                  <Link href="/tutor/dashboard?create=1">
-                    <Button>
-                      <Plus className="w-4 h-4 mr-2" /> Schedule Class
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  placeholder="Search classes..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <div className="flex gap-2">
+                {(['all', 'live', 'upcoming', 'scheduled', 'completed'] as FilterStatus[]).map(
+                  status => (
+                    <Button
+                      key={status}
+                      variant={filterStatus === status ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setFilterStatus(status)}
+                      className="capitalize"
+                    >
+                      {status === 'live' && categorizedClasses.live.length > 0 && (
+                        <span className="mr-1 h-2 w-2 animate-pulse rounded-full bg-red-500" />
+                      )}
+                      {status === 'completed' ? 'Completed' : status}
+                      {status !== 'all' && (
+                        <span className="ml-1 text-xs opacity-70">
+                          (
+                          {categorizedClasses[status === 'completed' ? 'past' : status]?.length ||
+                            0}
+                          )
+                        </span>
+                      )}
                     </Button>
-                  </Link>
-                </div>
+                  )
+                )}
               </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-6">
-            {/* LIVE NOW Section */}
-            {categorizedClasses.live.length > 0 && filterStatus !== 'scheduled' && filterStatus !== 'completed' && (
-              <Card className="border-red-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-red-600">
-                    <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                    🔴 Live Now ({categorizedClasses.live.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {categorizedClasses.live.map((cls) => renderClassCard(cls, true))}
-                </CardContent>
-              </Card>
-            )}
+            </div>
 
-            {/* UPCOMING Section */}
-            {categorizedClasses.upcoming.length > 0 && filterStatus !== 'live' && filterStatus !== 'completed' && (
+            {/* Content */}
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="h-24 animate-pulse rounded-lg bg-gray-200" />
+                ))}
+              </div>
+            ) : classes.length === 0 ? (
               <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-yellow-600" />
-                    ⏰ Starting Soon ({categorizedClasses.upcoming.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {categorizedClasses.upcoming.map((cls) => renderClassCard(cls, false, true))}
+                <CardContent className="py-12">
+                  <div className="text-center">
+                    <Calendar className="mx-auto mb-3 h-12 w-12 text-gray-400" />
+                    <h3 className="mb-1 text-lg font-medium text-gray-900">No classes yet</h3>
+                    <p className="mb-4 text-sm text-gray-500">
+                      Create your first class to get started
+                    </p>
+                    <div className="flex justify-center gap-2">
+                      <Button variant="outline" onClick={handleCreateInstantClass}>
+                        <Zap className="mr-2 h-4 w-4" /> Start Instant Class
+                      </Button>
+                      <Link href="/tutor/dashboard?create=1">
+                        <Button>
+                          <Plus className="mr-2 h-4 w-4" /> Schedule Class
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
-            )}
+            ) : (
+              <div className="space-y-6">
+                {/* LIVE NOW Section */}
+                {categorizedClasses.live.length > 0 &&
+                  filterStatus !== 'scheduled' &&
+                  filterStatus !== 'completed' && (
+                    <Card className="border-red-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-red-600">
+                          <span className="h-3 w-3 animate-pulse rounded-full bg-red-500" />
+                          🔴 Live Now ({categorizedClasses.live.length})
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {categorizedClasses.live.map(cls => renderClassCard(cls, true))}
+                      </CardContent>
+                    </Card>
+                  )}
 
-            {/* SCHEDULED Section */}
-            {(filterStatus === 'all' || filterStatus === 'scheduled') && categorizedClasses.scheduled.length > 0 && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-blue-600" />
-                    📅 Scheduled ({categorizedClasses.scheduled.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {categorizedClasses.scheduled.map((cls) => renderClassCard(cls))}
-                </CardContent>
-              </Card>
-            )}
+                {/* UPCOMING Section */}
+                {categorizedClasses.upcoming.length > 0 &&
+                  filterStatus !== 'live' &&
+                  filterStatus !== 'completed' && (
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2">
+                          <Clock className="h-5 w-5 text-yellow-600" />⏰ Starting Soon (
+                          {categorizedClasses.upcoming.length})
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {categorizedClasses.upcoming.map(cls => renderClassCard(cls, false, true))}
+                      </CardContent>
+                    </Card>
+                  )}
 
-            {/* COMPLETED Section */}
-            {(filterStatus === 'all' || filterStatus === 'completed') && categorizedClasses.past.length > 0 && (
-              <Card className="opacity-75">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-gray-500">
-                    <Clock className="w-5 h-5" />
-                    Completed ({categorizedClasses.past.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {categorizedClasses.past.map((cls) => renderClassCard(cls))}
-                </CardContent>
-              </Card>
-            )}
+                {/* SCHEDULED Section */}
+                {(filterStatus === 'all' || filterStatus === 'scheduled') &&
+                  categorizedClasses.scheduled.length > 0 && (
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2">
+                          <Calendar className="h-5 w-5 text-blue-600" />
+                          📅 Scheduled ({categorizedClasses.scheduled.length})
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {categorizedClasses.scheduled.map(cls => renderClassCard(cls))}
+                      </CardContent>
+                    </Card>
+                  )}
 
-            {/* Empty State for Filtered Results */}
-            {filteredClasses.length === 0 && classes.length > 0 && (
-              <div className="text-center py-12">
-                <Filter className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-600">
-                  {filterStatus === 'completed' 
-                    ? 'No completed classes yet' 
-                    : 'No classes match your filter'}
-                </p>
-                <Button variant="outline" className="mt-2" onClick={() => {setFilterStatus('all'); setSearchQuery('')}}>
-                  Clear Filters
-                </Button>
+                {/* COMPLETED Section */}
+                {(filterStatus === 'all' || filterStatus === 'completed') &&
+                  categorizedClasses.past.length > 0 && (
+                    <Card className="opacity-75">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-gray-500">
+                          <Clock className="h-5 w-5" />
+                          Completed ({categorizedClasses.past.length})
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {categorizedClasses.past.map(cls => renderClassCard(cls))}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                {/* Empty State for Filtered Results */}
+                {filteredClasses.length === 0 && classes.length > 0 && (
+                  <div className="py-12 text-center">
+                    <Filter className="mx-auto mb-3 h-12 w-12 text-gray-400" />
+                    <p className="text-gray-600">
+                      {filterStatus === 'completed'
+                        ? 'No completed classes yet'
+                        : 'No classes match your filter'}
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="mt-2"
+                      onClick={() => {
+                        setFilterStatus('all')
+                        setSearchQuery('')
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        )}
           </TabsContent>
 
           <TabsContent value="calendar" className="space-y-6">
@@ -622,9 +658,9 @@ export default function TutorClassesPage() {
             {/* Calendar Grid */}
             <Card>
               <CardContent className="p-6">
-                <div className="grid grid-cols-7 gap-1 mb-2">
+                <div className="mb-2 grid grid-cols-7 gap-1">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+                    <div key={day} className="py-2 text-center text-sm font-medium text-gray-500">
                       {day}
                     </div>
                   ))}
@@ -635,36 +671,36 @@ export default function TutorClassesPage() {
                       return <div key={`empty-${index}`} className="h-24" />
                     }
                     const dayEvents = getEventsForDay(day)
-                    const isToday = new Date().getDate() === day && 
-                                    new Date().getMonth() === currentDate.getMonth() &&
-                                    new Date().getFullYear() === currentDate.getFullYear()
+                    const isToday =
+                      new Date().getDate() === day &&
+                      new Date().getMonth() === currentDate.getMonth() &&
+                      new Date().getFullYear() === currentDate.getFullYear()
                     return (
-                      <div 
-                        key={day} 
+                      <div
+                        key={day}
                         onClick={() => openScheduleModal(day)}
                         className={cn(
-                          "h-24 border rounded-lg p-2 overflow-hidden cursor-pointer hover:bg-gray-50 transition-colors",
-                          isToday && "bg-blue-50 border-blue-300"
+                          'h-24 cursor-pointer overflow-hidden rounded-lg border p-2 transition-colors hover:bg-gray-50',
+                          isToday && 'border-blue-300 bg-blue-50'
                         )}
                       >
-                        <div className={cn(
-                          "text-sm font-medium mb-1",
-                          isToday && "text-blue-600"
-                        )}>
+                        <div className={cn('mb-1 text-sm font-medium', isToday && 'text-blue-600')}>
                           {day}
                         </div>
                         <div className="space-y-1">
                           {dayEvents.slice(0, 2).map(event => (
-                            <Link 
-                              key={event.id} 
+                            <Link
+                              key={event.id}
                               href={`/tutor/live-class/${event.id}`}
-                              className="block text-xs p-1 bg-blue-100 rounded truncate hover:bg-blue-200"
+                              className="block truncate rounded bg-blue-100 p-1 text-xs hover:bg-blue-200"
                             >
                               {event.title}
                             </Link>
                           ))}
                           {dayEvents.length > 2 && (
-                            <div className="text-xs text-gray-500">+{dayEvents.length - 2} more</div>
+                            <div className="text-xs text-gray-500">
+                              +{dayEvents.length - 2} more
+                            </div>
                           )}
                         </div>
                       </div>
@@ -681,10 +717,13 @@ export default function TutorClassesPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {calendarEvents.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">No classes scheduled this month</p>
+                  <p className="py-4 text-center text-gray-500">No classes scheduled this month</p>
                 ) : (
                   calendarEvents.slice(0, 5).map(event => (
-                    <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div
+                      key={event.id}
+                      className="flex items-center justify-between rounded-lg border p-3"
+                    >
                       <div>
                         <p className="font-medium">{event.title}</p>
                         <p className="text-sm text-gray-500">
@@ -692,7 +731,9 @@ export default function TutorClassesPage() {
                         </p>
                       </div>
                       <Link href={`/tutor/live-class/${event.id}`}>
-                        <Button size="sm"><Play className="w-3 h-3 mr-1" /> Go Live</Button>
+                        <Button size="sm">
+                          <Play className="mr-1 h-3 w-3" /> Go Live
+                        </Button>
                       </Link>
                     </div>
                   ))
@@ -709,7 +750,16 @@ export default function TutorClassesPage() {
               <DialogTitle>Schedule Training Session</DialogTitle>
               <DialogDescription>
                 {selectedDate && (
-                  <>Schedule a training session for <strong>{selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</strong></>
+                  <>
+                    Schedule a training session for{' '}
+                    <strong>
+                      {selectedDate.toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </strong>
+                  </>
                 )}
               </DialogDescription>
             </DialogHeader>
@@ -719,15 +769,15 @@ export default function TutorClassesPage() {
                 <Input
                   placeholder="e.g., Advanced Calculus Training"
                   value={scheduleForm.title}
-                  onChange={(e) => setScheduleForm(prev => ({ ...prev, title: e.target.value }))}
+                  onChange={e => setScheduleForm(prev => ({ ...prev, title: e.target.value }))}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Subject</Label>
-                  <Select 
-                    value={scheduleForm.subject} 
-                    onValueChange={(v) => setScheduleForm(prev => ({ ...prev, subject: v }))}
+                  <Select
+                    value={scheduleForm.subject}
+                    onValueChange={v => setScheduleForm(prev => ({ ...prev, subject: v }))}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -745,9 +795,9 @@ export default function TutorClassesPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Duration (minutes)</Label>
-                  <Select 
-                    value={String(scheduleForm.duration)} 
-                    onValueChange={(v) => setScheduleForm(prev => ({ ...prev, duration: Number(v) }))}
+                  <Select
+                    value={String(scheduleForm.duration)}
+                    onValueChange={v => setScheduleForm(prev => ({ ...prev, duration: Number(v) }))}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -765,9 +815,9 @@ export default function TutorClassesPage() {
               <div className="space-y-2">
                 <Label>Time</Label>
                 <div className="flex items-center gap-2">
-                  <Select 
-                    value={String(scheduleForm.hour)} 
-                    onValueChange={(v) => setScheduleForm(prev => ({ ...prev, hour: Number(v) }))}
+                  <Select
+                    value={String(scheduleForm.hour)}
+                    onValueChange={v => setScheduleForm(prev => ({ ...prev, hour: Number(v) }))}
                   >
                     <SelectTrigger className="w-24">
                       <SelectValue />
@@ -781,9 +831,9 @@ export default function TutorClassesPage() {
                     </SelectContent>
                   </Select>
                   <span className="text-lg">:</span>
-                  <Select 
-                    value={String(scheduleForm.minute)} 
-                    onValueChange={(v) => setScheduleForm(prev => ({ ...prev, minute: Number(v) }))}
+                  <Select
+                    value={String(scheduleForm.minute)}
+                    onValueChange={v => setScheduleForm(prev => ({ ...prev, minute: Number(v) }))}
                   >
                     <SelectTrigger className="w-24">
                       <SelectValue />
@@ -802,10 +852,7 @@ export default function TutorClassesPage() {
               <Button variant="outline" onClick={() => setScheduleModalOpen(false)}>
                 Cancel
               </Button>
-              <Button 
-                onClick={handleScheduleTraining}
-                disabled={!scheduleForm.title.trim()}
-              >
+              <Button onClick={handleScheduleTraining} disabled={!scheduleForm.title.trim()}>
                 Schedule Session
               </Button>
             </DialogFooter>

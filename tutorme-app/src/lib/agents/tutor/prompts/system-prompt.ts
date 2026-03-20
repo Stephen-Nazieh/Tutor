@@ -2,21 +2,21 @@
  * ============================================================================
  * TUTOR AGENT - SYSTEM PROMPT
  * ============================================================================
- * 
+ *
  * UI LOCATION: /student/ai-tutor - Main chat interface
  * This prompt defines the core behavior of the AI tutor.
- * 
+ *
  * EDIT THIS FILE to change the tutor's personality and rules.
  */
 
-import { Student, Curriculum, ProgressData } from '../../shared-data';
+import { Student, Curriculum, ProgressData } from '../../shared-data'
 
 export interface TutorContext {
-  student: Student;
-  subject: string;
-  curriculum?: Curriculum;
-  progress?: ProgressData;
-  conversationHistory: string;
+  student: Student
+  subject: string
+  curriculum?: Curriculum
+  progress?: ProgressData
+  conversationHistory: string
 }
 
 /**
@@ -70,7 +70,7 @@ Stay focused on ${context.subject} concepts. If asked off-topic, gently redirect
 ## CONVERSATION HISTORY
 ${context.conversationHistory}
 
-Remember: Your goal is to make the student independent, not dependent on you.`;
+Remember: Your goal is to make the student independent, not dependent on you.`
 }
 
 /**
@@ -87,7 +87,7 @@ Provide a HINT that:
 3. References a concept they should apply
 4. Is 1-2 sentences maximum
 
-Hint:`;
+Hint:`
 }
 
 /**
@@ -101,5 +101,5 @@ Requirements:
 1. Use the Socratic method - include 2-3 guiding questions
 2. Use analogies relevant to their age group
 3. Break into small, digestible parts
-4. End with "Does that make sense? What part would you like to explore further?"`;
+4. End with "Does that make sense? What part would you like to explore further?"`
 }

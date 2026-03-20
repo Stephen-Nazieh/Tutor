@@ -16,7 +16,7 @@ export const AUDIT_ACTIONS = {
   PAYMENT_ALERT: 'audit_payment_alert',
   COURSE_SHARE: 'audit_course_share',
   ADMIN_ACCESS: 'audit_admin_access',
-  SENSITIVE_ACCESS: 'audit_sensitive_access'
+  SENSITIVE_ACCESS: 'audit_sensitive_access',
 } as const
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS]

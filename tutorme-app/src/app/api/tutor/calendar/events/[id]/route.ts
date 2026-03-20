@@ -28,246 +28,289 @@ const UpdateEventSchema = z.object({
   batchId: z.string().optional().nullable(),
   studentId: z.string().optional().nullable(),
   maxAttendees: z.number().min(1).optional(),
-  attendees: z.array(z.object({
-    userId: z.string().optional(),
-    email: z.string(),
-    name: z.string(),
-    status: z.enum(['pending', 'accepted', 'declined']).default('pending'),
-  })).optional(),
-  reminders: z.array(z.object({
-    minutes: z.number(),
-    type: z.enum(['email', 'push', 'sms']),
-  })).optional(),
+  attendees: z
+    .array(
+      z.object({
+        userId: z.string().optional(),
+        email: z.string(),
+        name: z.string(),
+        status: z.enum(['pending', 'accepted', 'declined']).default('pending'),
+      })
+    )
+    .optional(),
+  reminders: z
+    .array(
+      z.object({
+        minutes: z.number(),
+        type: z.enum(['email', 'push', 'sms']),
+      })
+    )
+    .optional(),
   color: z.string().optional(),
   status: z.enum(['CONFIRMED', 'TENTATIVE', 'CANCELLED']).optional(),
   isCancelled: z.boolean().optional(),
 })
 
-export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const id = await getParamAsync(context?.params, 'id')
-  if (!id) {
-    return NextResponse.json({ error: 'Event ID required' }, { status: 400 })
-  }
-  const tutorId = session.user.id
+export const GET = withAuth(
+  async (req: NextRequest, session, context) => {
+    const id = await getParamAsync(context?.params, 'id')
+    if (!id) {
+      return NextResponse.json({ error: 'Event ID required' }, { status: 400 })
+    }
+    const tutorId = session.user.id
 
-  try {
-    const [row] = await drizzleDb
-      .select({
-        event: calendarEvent,
-        curriculumId: curriculum.id,
-        curriculumName: curriculum.name,
-        curriculumSubject: curriculum.subject,
-        batchId: courseBatch.id,
-        batchName: courseBatch.name,
-      })
-      .from(calendarEvent)
-      .leftJoin(curriculum, eq(calendarEvent.curriculumId, curriculum.id))
-      .leftJoin(courseBatch, eq(calendarEvent.batchId, courseBatch.id))
-      .where(and(eq(calendarEvent.id, id), eq(calendarEvent.tutorId, tutorId), isNull(calendarEvent.deletedAt)))
-      .limit(1)
+    try {
+      const [row] = await drizzleDb
+        .select({
+          event: calendarEvent,
+          curriculumId: curriculum.id,
+          curriculumName: curriculum.name,
+          curriculumSubject: curriculum.subject,
+          batchId: courseBatch.id,
+          batchName: courseBatch.name,
+        })
+        .from(calendarEvent)
+        .leftJoin(curriculum, eq(calendarEvent.curriculumId, curriculum.id))
+        .leftJoin(courseBatch, eq(calendarEvent.batchId, courseBatch.id))
+        .where(
+          and(
+            eq(calendarEvent.id, id),
+            eq(calendarEvent.tutorId, tutorId),
+            isNull(calendarEvent.deletedAt)
+          )
+        )
+        .limit(1)
 
-    if (!row) {
-      return NextResponse.json(
-        { error: 'Event not found' },
-        { status: 404 }
+      if (!row) {
+        return NextResponse.json({ error: 'Event not found' }, { status: 404 })
+      }
+
+      const event = {
+        ...row.event,
+        curriculum: row.curriculumId
+          ? { id: row.curriculumId, name: row.curriculumName, subject: row.curriculumSubject }
+          : null,
+        batch: row.batchId ? { id: row.batchId, name: row.batchName } : null,
+      }
+
+      return NextResponse.json({ event })
+    } catch (error) {
+      console.error('Fetch event error:', error)
+      return handleApiError(
+        error,
+        'Failed to fetch event',
+        'api/tutor/calendar/events/[id]/route.ts'
       )
     }
+  },
+  { role: 'TUTOR' }
+)
 
-    const event = {
-      ...row.event,
-      curriculum: row.curriculumId
-        ? { id: row.curriculumId, name: row.curriculumName, subject: row.curriculumSubject }
-        : null,
-      batch: row.batchId ? { id: row.batchId, name: row.batchName } : null,
+export const PUT = withAuth(
+  async (req: NextRequest, session, context) => {
+    const id = await getParamAsync(context?.params, 'id')
+    if (!id) {
+      return NextResponse.json({ error: 'Event ID required' }, { status: 400 })
     }
+    const tutorId = session.user.id
 
-    return NextResponse.json({ event })
-  } catch (error) {
-    console.error('Fetch event error:', error)
-    return handleApiError(error, 'Failed to fetch event', 'api/tutor/calendar/events/[id]/route.ts')
-  }
-}, { role: 'TUTOR' })
+    try {
+      const body = await req.json()
+      const validation = UpdateEventSchema.safeParse(body)
 
-export const PUT = withAuth(async (req: NextRequest, session, context) => {
-  const id = await getParamAsync(context?.params, 'id')
-  if (!id) {
-    return NextResponse.json({ error: 'Event ID required' }, { status: 400 })
-  }
-  const tutorId = session.user.id
+      if (!validation.success) {
+        return NextResponse.json(
+          { error: 'Invalid request', details: validation.error.format() },
+          { status: 400 }
+        )
+      }
 
-  try {
-    const body = await req.json()
-    const validation = UpdateEventSchema.safeParse(body)
+      const data = validation.data
 
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: validation.error.format() },
-        { status: 400 }
-      )
-    }
-
-    const data = validation.data
-
-    const [existingEvent] = await drizzleDb
-      .select()
-      .from(calendarEvent)
-      .where(and(eq(calendarEvent.id, id), eq(calendarEvent.tutorId, tutorId), isNull(calendarEvent.deletedAt)))
-      .limit(1)
-
-    if (!existingEvent) {
-      return NextResponse.json(
-        { error: 'Event not found' },
-        { status: 404 }
-      )
-    }
-
-    if ((data.startTime || data.endTime) && existingEvent.type !== 'PERSONAL') {
-      const newStart = data.startTime ? new Date(data.startTime) : existingEvent.startTime
-      const newEnd = data.endTime ? new Date(data.endTime) : existingEvent.endTime
-
-      const conflicts = await drizzleDb
+      const [existingEvent] = await drizzleDb
         .select()
         .from(calendarEvent)
         .where(
           and(
+            eq(calendarEvent.id, id),
             eq(calendarEvent.tutorId, tutorId),
-            ne(calendarEvent.id, id),
-            isNull(calendarEvent.deletedAt),
-            eq(calendarEvent.isCancelled, false),
-            lt(calendarEvent.startTime, newEnd),
-            gt(calendarEvent.endTime, newStart)
+            isNull(calendarEvent.deletedAt)
           )
         )
+        .limit(1)
 
-      if (conflicts.length > 0) {
-        return NextResponse.json({
-          error: 'Schedule conflict detected',
-          conflicts: conflicts.map((c) => ({
-            id: c.id,
-            title: c.title,
-            startTime: c.startTime,
-            endTime: c.endTime,
-          })),
-        }, { status: 409 })
+      if (!existingEvent) {
+        return NextResponse.json({ error: 'Event not found' }, { status: 404 })
       }
-    }
 
-    const updatePayload: Record<string, unknown> = {}
-    if (data.title !== undefined) updatePayload.title = data.title
-    if (data.description !== undefined) updatePayload.description = data.description
-    if (data.type !== undefined) updatePayload.type = data.type
-    if (data.startTime !== undefined) updatePayload.startTime = new Date(data.startTime)
-    if (data.endTime !== undefined) updatePayload.endTime = new Date(data.endTime)
-    if (data.timezone !== undefined) updatePayload.timezone = data.timezone
-    if (data.isAllDay !== undefined) updatePayload.isAllDay = data.isAllDay
-    if (data.location !== undefined) updatePayload.location = data.location
-    if (data.meetingUrl !== undefined) updatePayload.meetingUrl = data.meetingUrl
-    if (data.isVirtual !== undefined) updatePayload.isVirtual = data.isVirtual
-    if (data.curriculumId !== undefined) updatePayload.curriculumId = data.curriculumId
-    if (data.batchId !== undefined) updatePayload.batchId = data.batchId
-    if (data.studentId !== undefined) updatePayload.studentId = data.studentId
-    if (data.maxAttendees !== undefined) updatePayload.maxAttendees = data.maxAttendees
-    if (data.attendees !== undefined) updatePayload.attendees = data.attendees
-    if (data.reminders !== undefined) updatePayload.reminders = data.reminders
-    if (data.color !== undefined) updatePayload.color = data.color
-    if (data.status !== undefined) updatePayload.status = data.status
-    if (data.isCancelled !== undefined) updatePayload.isCancelled = data.isCancelled
+      if ((data.startTime || data.endTime) && existingEvent.type !== 'PERSONAL') {
+        const newStart = data.startTime ? new Date(data.startTime) : existingEvent.startTime
+        const newEnd = data.endTime ? new Date(data.endTime) : existingEvent.endTime
 
-    const [updated] = await drizzleDb
-      .update(calendarEvent)
-      .set(updatePayload as typeof calendarEvent.$inferInsert)
-      .where(eq(calendarEvent.id, id))
-      .returning()
+        const conflicts = await drizzleDb
+          .select()
+          .from(calendarEvent)
+          .where(
+            and(
+              eq(calendarEvent.tutorId, tutorId),
+              ne(calendarEvent.id, id),
+              isNull(calendarEvent.deletedAt),
+              eq(calendarEvent.isCancelled, false),
+              lt(calendarEvent.startTime, newEnd),
+              gt(calendarEvent.endTime, newStart)
+            )
+          )
 
-    if (!updated) {
+        if (conflicts.length > 0) {
+          return NextResponse.json(
+            {
+              error: 'Schedule conflict detected',
+              conflicts: conflicts.map(c => ({
+                id: c.id,
+                title: c.title,
+                startTime: c.startTime,
+                endTime: c.endTime,
+              })),
+            },
+            { status: 409 }
+          )
+        }
+      }
+
+      const updatePayload: Record<string, unknown> = {}
+      if (data.title !== undefined) updatePayload.title = data.title
+      if (data.description !== undefined) updatePayload.description = data.description
+      if (data.type !== undefined) updatePayload.type = data.type
+      if (data.startTime !== undefined) updatePayload.startTime = new Date(data.startTime)
+      if (data.endTime !== undefined) updatePayload.endTime = new Date(data.endTime)
+      if (data.timezone !== undefined) updatePayload.timezone = data.timezone
+      if (data.isAllDay !== undefined) updatePayload.isAllDay = data.isAllDay
+      if (data.location !== undefined) updatePayload.location = data.location
+      if (data.meetingUrl !== undefined) updatePayload.meetingUrl = data.meetingUrl
+      if (data.isVirtual !== undefined) updatePayload.isVirtual = data.isVirtual
+      if (data.curriculumId !== undefined) updatePayload.curriculumId = data.curriculumId
+      if (data.batchId !== undefined) updatePayload.batchId = data.batchId
+      if (data.studentId !== undefined) updatePayload.studentId = data.studentId
+      if (data.maxAttendees !== undefined) updatePayload.maxAttendees = data.maxAttendees
+      if (data.attendees !== undefined) updatePayload.attendees = data.attendees
+      if (data.reminders !== undefined) updatePayload.reminders = data.reminders
+      if (data.color !== undefined) updatePayload.color = data.color
+      if (data.status !== undefined) updatePayload.status = data.status
+      if (data.isCancelled !== undefined) updatePayload.isCancelled = data.isCancelled
+
+      const [updated] = await drizzleDb
+        .update(calendarEvent)
+        .set(updatePayload as typeof calendarEvent.$inferInsert)
+        .where(eq(calendarEvent.id, id))
+        .returning()
+
+      if (!updated) {
+        return handleApiError(
+          new Error('Failed to update event'),
+          'Failed to update event',
+          'api/tutor/calendar/events/[id]/route.ts'
+        )
+      }
+
+      const [curriculumRow] = updated.curriculumId
+        ? await drizzleDb
+            .select({ id: curriculum.id, name: curriculum.name, subject: curriculum.subject })
+            .from(curriculum)
+            .where(eq(curriculum.id, updated.curriculumId))
+            .limit(1)
+        : [null]
+      const [batchRow] = updated.batchId
+        ? await drizzleDb
+            .select({ id: courseBatch.id, name: courseBatch.name })
+            .from(courseBatch)
+            .where(eq(courseBatch.id, updated.batchId))
+            .limit(1)
+        : [null]
+
+      const event = {
+        ...updated,
+        curriculum: curriculumRow
+          ? { id: curriculumRow.id, name: curriculumRow.name, subject: curriculumRow.subject }
+          : null,
+        batch: batchRow ? { id: batchRow.id, name: batchRow.name } : null,
+      }
+
+      return NextResponse.json({ event })
+    } catch (error) {
+      console.error('Update event error:', error)
       return handleApiError(
-        new Error('Failed to update event'),
+        error,
         'Failed to update event',
         'api/tutor/calendar/events/[id]/route.ts'
       )
     }
+  },
+  { role: 'TUTOR' }
+)
 
-    const [curriculumRow] = updated.curriculumId
-      ? await drizzleDb
-          .select({ id: curriculum.id, name: curriculum.name, subject: curriculum.subject })
-          .from(curriculum)
-          .where(eq(curriculum.id, updated.curriculumId))
-          .limit(1)
-      : [null]
-    const [batchRow] = updated.batchId
-      ? await drizzleDb
-          .select({ id: courseBatch.id, name: courseBatch.name })
-          .from(courseBatch)
-          .where(eq(courseBatch.id, updated.batchId))
-          .limit(1)
-      : [null]
-
-    const event = {
-      ...updated,
-      curriculum: curriculumRow ? { id: curriculumRow.id, name: curriculumRow.name, subject: curriculumRow.subject } : null,
-      batch: batchRow ? { id: batchRow.id, name: batchRow.name } : null,
+export const DELETE = withAuth(
+  async (req: NextRequest, session, context) => {
+    const id = await getParamAsync(context?.params, 'id')
+    if (!id) {
+      return NextResponse.json({ error: 'Event ID required' }, { status: 400 })
     }
+    const tutorId = session.user.id
+    const { searchParams } = new URL(req.url)
+    const deleteSeries = searchParams.get('series') === 'true'
 
-    return NextResponse.json({ event })
-  } catch (error) {
-    console.error('Update event error:', error)
-    return handleApiError(error, 'Failed to update event', 'api/tutor/calendar/events/[id]/route.ts')
-  }
-}, { role: 'TUTOR' })
+    try {
+      const [existingEvent] = await drizzleDb
+        .select()
+        .from(calendarEvent)
+        .where(
+          and(
+            eq(calendarEvent.id, id),
+            eq(calendarEvent.tutorId, tutorId),
+            isNull(calendarEvent.deletedAt)
+          )
+        )
+        .limit(1)
 
-export const DELETE = withAuth(async (req: NextRequest, session, context) => {
-  const id = await getParamAsync(context?.params, 'id')
-  if (!id) {
-    return NextResponse.json({ error: 'Event ID required' }, { status: 400 })
-  }
-  const tutorId = session.user.id
-  const { searchParams } = new URL(req.url)
-  const deleteSeries = searchParams.get('series') === 'true'
+      if (!existingEvent) {
+        return NextResponse.json({ error: 'Event not found' }, { status: 404 })
+      }
 
-  try {
-    const [existingEvent] = await drizzleDb
-      .select()
-      .from(calendarEvent)
-      .where(and(eq(calendarEvent.id, id), eq(calendarEvent.tutorId, tutorId), isNull(calendarEvent.deletedAt)))
-      .limit(1)
+      const now = new Date()
 
-    if (!existingEvent) {
-      return NextResponse.json(
-        { error: 'Event not found' },
-        { status: 404 }
-      )
-    }
+      if (deleteSeries && existingEvent.isRecurring) {
+        await drizzleDb
+          .update(calendarEvent)
+          .set({ deletedAt: now, isCancelled: true })
+          .where(
+            and(
+              eq(calendarEvent.tutorId, tutorId),
+              or(eq(calendarEvent.id, id), eq(calendarEvent.recurringEventId, id))
+            )
+          )
 
-    const now = new Date()
+        return NextResponse.json({
+          message: 'Recurring event series deleted',
+          deletedCount: 'multiple',
+        })
+      }
 
-    if (deleteSeries && existingEvent.isRecurring) {
       await drizzleDb
         .update(calendarEvent)
         .set({ deletedAt: now, isCancelled: true })
-        .where(
-          and(
-            eq(calendarEvent.tutorId, tutorId),
-            or(eq(calendarEvent.id, id), eq(calendarEvent.recurringEventId, id))
-          )
-        )
+        .where(eq(calendarEvent.id, id))
 
       return NextResponse.json({
-        message: 'Recurring event series deleted',
-        deletedCount: 'multiple',
+        message: 'Event deleted successfully',
+        deletedCount: 1,
       })
+    } catch (error) {
+      console.error('Delete event error:', error)
+      return handleApiError(
+        error,
+        'Failed to delete event',
+        'api/tutor/calendar/events/[id]/route.ts'
+      )
     }
-
-    await drizzleDb
-      .update(calendarEvent)
-      .set({ deletedAt: now, isCancelled: true })
-      .where(eq(calendarEvent.id, id))
-
-    return NextResponse.json({
-      message: 'Event deleted successfully',
-      deletedCount: 1,
-    })
-  } catch (error) {
-    console.error('Delete event error:', error)
-    return handleApiError(error, 'Failed to delete event', 'api/tutor/calendar/events/[id]/route.ts')
-  }
-}, { role: 'TUTOR' })
+  },
+  { role: 'TUTOR' }
+)

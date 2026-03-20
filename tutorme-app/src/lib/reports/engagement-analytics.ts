@@ -42,7 +42,7 @@ export async function calculateClassEngagement(
     .select({ studentId: curriculumEnrollment.studentId })
     .from(curriculumEnrollment)
     .where(eq(curriculumEnrollment.curriculumId, classId))
-  const studentIds = enrollments.map((e) => e.studentId)
+  const studentIds = enrollments.map(e => e.studentId)
 
   if (studentIds.length === 0) {
     return {
@@ -80,7 +80,7 @@ export async function calculateClassEngagement(
   // 6. Calculate Overall Engagement Score (weighted average)
   const weights = {
     attendance: 0.25,
-    participation: 0.20,
+    participation: 0.2,
     assignment: 0.25,
     quiz: 0.15,
     discussion: 0.15,
@@ -88,10 +88,10 @@ export async function calculateClassEngagement(
 
   const overallEngagement = Math.round(
     attendanceMetrics.rate * weights.attendance +
-    participationMetrics.rate * weights.participation +
-    assignmentMetrics.rate * weights.assignment +
-    quizMetrics.rate * weights.quiz +
-    discussionMetrics.rate * weights.discussion
+      participationMetrics.rate * weights.participation +
+      assignmentMetrics.rate * weights.assignment +
+      quizMetrics.rate * weights.quiz +
+      discussionMetrics.rate * weights.discussion
   )
 
   // 7. Get Daily Trend
@@ -164,7 +164,7 @@ async function calculateAttendanceRate(
           inArray(sessionParticipant.studentId, studentIds)
         )
       )
-    actualAttendances += participants.filter((p) => p.joinedAt != null).length
+    actualAttendances += participants.filter(p => p.joinedAt != null).length
   }
   const totalPossibleAttendances = studentIds.length * sessions.length
 
@@ -197,7 +197,10 @@ async function calculateParticipationRate(
 
   // Participation rate based on messages per student per week
   // Assuming 5 messages per week per student = 100% participation
-  const weeks = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)))
+  const weeks = Math.max(
+    1,
+    Math.ceil((endDate.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000))
+  )
   const expectedMessages = studentIds.length * weeks * 5
 
   return {
@@ -225,7 +228,7 @@ async function calculateAssignmentCompletion(
       )
     )
 
-  const completed = submissions.filter((s) => s.status === 'graded').length
+  const completed = submissions.filter(s => s.status === 'graded').length
 
   // Get total assignments (unique tasks assigned to these students)
   const uniqueTasks = new Set(submissions.map(s => s.taskId)).size
@@ -287,17 +290,23 @@ async function calculateDiscussionActivity(
       )
     )
 
-  const discussionMessages = messages.filter((m) => {
+  const discussionMessages = messages.filter(m => {
     const content = String(m.content ?? '')
     return content.length > 50 || content.includes('?')
   })
 
   // Activity rate: 2 discussion messages per week per student = 100%
-  const weeks = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)))
+  const weeks = Math.max(
+    1,
+    Math.ceil((endDate.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000))
+  )
   const expectedDiscussions = studentIds.length * weeks * 2
 
   return {
-    rate: expectedDiscussions > 0 ? Math.min(100, (discussionMessages.length / expectedDiscussions) * 100) : 0,
+    rate:
+      expectedDiscussions > 0
+        ? Math.min(100, (discussionMessages.length / expectedDiscussions) * 100)
+        : 0,
     posts: discussionMessages.length,
     reactions: 0, // Would require reaction tracking
   }
@@ -343,7 +352,7 @@ async function calculateDailyTrend(
             inArray(sessionParticipant.studentId, studentIds)
           )
         )
-      actualAttended += participants.filter((p) => p.joinedAt != null).length
+      actualAttended += participants.filter(p => p.joinedAt != null).length
     }
     const totalPossible = studentIds.length * daySessions.length
     const dayAttendance = totalPossible > 0 ? (actualAttended / totalPossible) * 100 : 0
@@ -400,7 +409,7 @@ async function calculateHourlyPattern(
     hourCounts[i] = 0
   }
 
-  messages.forEach((m) => {
+  messages.forEach(m => {
     const hour = new Date(m.timestamp).getHours()
     hourCounts[hour]++
   })
@@ -435,22 +444,14 @@ async function identifyStudentsAtRisk(
       .select({ count: sql<number>`count(*)::int` })
       .from(sessionParticipant)
       .where(
-        and(
-          eq(sessionParticipant.studentId, studentId),
-          isNotNull(sessionParticipant.joinedAt)
-        )
+        and(eq(sessionParticipant.studentId, studentId), isNotNull(sessionParticipant.joinedAt))
       )
     const attendanceCount = attRow?.count ?? 0
 
     const [assignRow] = await drizzleDb
       .select({ count: sql<number>`count(*)::int` })
       .from(taskSubmission)
-      .where(
-        and(
-          eq(taskSubmission.studentId, studentId),
-          eq(taskSubmission.status, 'graded')
-        )
-      )
+      .where(and(eq(taskSubmission.studentId, studentId), eq(taskSubmission.status, 'graded')))
     const assignmentCount = assignRow?.count ?? 0
 
     const [quizRow] = await drizzleDb
@@ -460,11 +461,7 @@ async function identifyStudentsAtRisk(
     const quizCount = quizRow?.count ?? 0
 
     if (attendanceCount < 2 || assignmentCount < 2 || quizCount < 1) {
-      const [userRow] = await drizzleDb
-        .select()
-        .from(user)
-        .where(eq(user.id, studentId))
-        .limit(1)
+      const [userRow] = await drizzleDb.select().from(user).where(eq(user.id, studentId)).limit(1)
       const [profileRow] = userRow
         ? await drizzleDb
             .select({ name: profile.name })
@@ -515,15 +512,10 @@ export async function getLiveSessionEngagement(sessionId: string): Promise<{
   const [recentMsgRow] = await drizzleDb
     .select({ count: sql<number>`count(*)::int` })
     .from(message)
-    .where(
-      and(
-        eq(message.sessionId, sessionId),
-        gte(message.timestamp, fiveMinutesAgo)
-      )
-    )
+    .where(and(eq(message.sessionId, sessionId), gte(message.timestamp, fiveMinutesAgo)))
   const recentMessages = recentMsgRow?.count ?? 0
 
-  const activeParticipants = participants.filter((p) => {
+  const activeParticipants = participants.filter(p => {
     if (!p.joinedAt) return false
     // Consider active if joined within last 30 minutes
     const joinedTime = new Date(p.joinedAt).getTime()
@@ -539,15 +531,15 @@ export async function getLiveSessionEngagement(sessionId: string): Promise<{
       return (left - joined) / 1000 / 60 // minutes
     })
 
-  const avgSessionTime = sessionTimes.length > 0
-    ? sessionTimes.reduce((a: number, b: number) => a + b, 0) / sessionTimes.length
-    : 0
+  const avgSessionTime =
+    sessionTimes.length > 0
+      ? sessionTimes.reduce((a: number, b: number) => a + b, 0) / sessionTimes.length
+      : 0
 
   // Determine engagement level (use participants.length instead of _count)
   const totalParticipants = participants.length
-  const participationRate = totalParticipants > 0
-    ? (activeParticipants.length / totalParticipants) * 100
-    : 0
+  const participationRate =
+    totalParticipants > 0 ? (activeParticipants.length / totalParticipants) * 100 : 0
 
   let engagementLevel: 'high' | 'medium' | 'low' = 'low'
   if (participationRate >= 70 && recentMessages >= 5) {

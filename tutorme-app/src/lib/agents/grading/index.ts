@@ -2,40 +2,33 @@
  * ============================================================================
  * GRADING AGENT - Main Implementation
  * ============================================================================
- * 
+ *
  * UI LOCATIONS:
  * - /tutor/courses/[id]/tasks - "Auto Grade" button
  * - /student/quizzes/[id]/results - Shows AI-generated feedback
  * - /tutor/grading - Batch grading interface
- * 
+ *
  * This agent automatically grades student submissions.
  */
 
-import { generateWithFallback } from '@/lib/agents';
-import { 
-  Question, 
-  StudentAnswer, 
-  Student, 
-  ProgressData,
-  Quiz,
-  getStudent
-} from '../shared-data';
-import { 
+import { generateWithFallback } from '@/lib/agents'
+import { Question, StudentAnswer, Student, ProgressData, Quiz, getStudent } from '../shared-data'
+import {
   buildShortAnswerGradingPrompt,
   buildEssayGradingPrompt,
   buildMathGradingPrompt,
   buildFeedbackTonePrompt,
   GradingRequest,
-  GradingResult 
-} from './prompts/grader-prompts';
-import { safeJsonParseWithSchema } from '@/lib/ai/json';
-import { z } from 'zod';
+  GradingResult,
+} from './prompts/grader-prompts'
+import { safeJsonParseWithSchema } from '@/lib/ai/json'
+import { z } from 'zod'
 
 function tryParseJson<T>(content: string): T | null {
   try {
-    return JSON.parse(content) as T;
+    return JSON.parse(content) as T
   } catch {
-    return null;
+    return null
   }
 }
 
@@ -46,28 +39,35 @@ const quizGradeSchema = z.object({
   explanation: z.string(),
   nextSteps: z.array(z.string()).optional(),
   relatedStruggles: z.array(z.string()).optional(),
-});
+})
 
 export interface QuizGradeRequest {
-  question: string;
-  rubric: string;
-  studentAnswer: string;
-  maxScore: number;
+  question: string
+  rubric: string
+  studentAnswer: string
+  maxScore: number
   studentContext?: {
-    recentStruggles: Array<{ topic: string; errorType: string; severity: number }>;
-    masteredTopics: string[];
-    learningStyle: 'visual' | 'auditory' | 'kinesthetic' | 'reading' | 'analytical' | 'mixed';
-    currentMood: 'frustrated' | 'neutral' | 'engaged' | 'confident' | 'curious' | 'anxious' | 'bored';
-  };
+    recentStruggles: Array<{ topic: string; errorType: string; severity: number }>
+    masteredTopics: string[]
+    learningStyle: 'visual' | 'auditory' | 'kinesthetic' | 'reading' | 'analytical' | 'mixed'
+    currentMood:
+      | 'frustrated'
+      | 'neutral'
+      | 'engaged'
+      | 'confident'
+      | 'curious'
+      | 'anxious'
+      | 'bored'
+  }
 }
 
 export type QuizGradeResult = z.infer<typeof quizGradeSchema> & {
-  isPersonalized: boolean;
-  provider: string;
-};
+  isPersonalized: boolean
+  provider: string
+}
 
 function buildQuizGradePrompt(req: QuizGradeRequest): { prompt: string; isPersonalized: boolean } {
-  const ctx = req.studentContext;
+  const ctx = req.studentContext
   if (ctx) {
     const contextInfo = `
 
@@ -75,7 +75,7 @@ Student Context:
 - Recent struggles: ${ctx.recentStruggles.map(s => s.topic).join(', ') || 'none'}
 - Mastered topics: ${ctx.masteredTopics.join(', ') || 'none'}
 - Learning style: ${ctx.learningStyle}
-- Current mood: ${ctx.currentMood}`;
+- Current mood: ${ctx.currentMood}`
 
     return {
       isPersonalized: true,
@@ -104,7 +104,7 @@ Return JSON:
   "nextSteps": ["Specific suggestion 1", "Specific suggestion 2"],
   "relatedStruggles": ["Related historical struggle topics"]
 }`,
-    };
+    }
   }
 
   return {
@@ -126,7 +126,7 @@ Return JSON:
   "feedback": "Brief feedback for student",
   "explanation": "Explanation of grading"
 }`,
-  };
+  }
 }
 
 /**
@@ -135,15 +135,15 @@ Return JSON:
  * Used by `/api/quiz/grade` to keep grading under the agents layer.
  */
 export async function gradeQuizAnswer(request: QuizGradeRequest): Promise<QuizGradeResult> {
-  const { prompt, isPersonalized } = buildQuizGradePrompt(request);
+  const { prompt, isPersonalized } = buildQuizGradePrompt(request)
   const result = await generateWithFallback(prompt, {
     temperature: 0.3,
     maxTokens: 900,
-  });
+  })
 
-  const parsed = safeJsonParseWithSchema(result.content, quizGradeSchema, { extract: true });
+  const parsed = safeJsonParseWithSchema(result.content, quizGradeSchema, { extract: true })
   if (parsed.data) {
-    return { ...parsed.data, isPersonalized, provider: result.provider };
+    return { ...parsed.data, isPersonalized, provider: result.provider }
   }
 
   return {
@@ -155,35 +155,35 @@ export async function gradeQuizAnswer(request: QuizGradeRequest): Promise<QuizGr
     relatedStruggles: [],
     isPersonalized,
     provider: result.provider,
-  };
+  }
 }
 
 export interface BatchGradingRequest {
-  quizId: string;
-  studentId: string;
-  answers: Map<string, string>; // questionId -> answer
+  quizId: string
+  studentId: string
+  answers: Map<string, string> // questionId -> answer
 }
 
 export interface BatchGradingResult {
-  totalScore: number;
-  maxScore: number;
-  percentage: number;
-  gradedAnswers: GradedAnswer[];
-  summary: string;
-  recommendations: string[];
+  totalScore: number
+  maxScore: number
+  percentage: number
+  gradedAnswers: GradedAnswer[]
+  summary: string
+  recommendations: string[]
 }
 
 export interface GradedAnswer {
-  questionId: string;
-  score: number;
-  maxScore: number;
-  isCorrect: boolean;
-  feedback: string;
+  questionId: string
+  score: number
+  maxScore: number
+  isCorrect: boolean
+  feedback: string
 }
 
 /**
  * Grade a single short answer submission
- * 
+ *
  * UI FLOW:
  * 1. Student submits quiz /student/quizzes/[id]
  * 2. Or tutor clicks "Auto Grade" in /tutor/courses/[id]/tasks
@@ -195,27 +195,27 @@ export async function gradeShortAnswer(
   studentAnswer: string,
   studentId: string
 ): Promise<GradingResult> {
-  const student = await getStudent(studentId);
-  if (!student) throw new Error('Student not found');
-  
+  const student = await getStudent(studentId)
+  if (!student) throw new Error('Student not found')
+
   const request: GradingRequest = {
     question,
     studentAnswer,
     student,
-    maxPoints: question.points
-  };
-  
-  const prompt = buildShortAnswerGradingPrompt(request);
-  
+    maxPoints: question.points,
+  }
+
+  const prompt = buildShortAnswerGradingPrompt(request)
+
   const result = await generateWithFallback(prompt, {
     temperature: 0.3, // Lower for consistent grading
-    maxTokens: 1000
-  });
-  
+    maxTokens: 1000,
+  })
+
   try {
-    const grading = tryParseJson<GradingResult>(result.content);
-    if (!grading) throw new Error('Invalid grading JSON');
-    
+    const grading = tryParseJson<GradingResult>(result.content)
+    if (!grading) throw new Error('Invalid grading JSON')
+
     // Adjust feedback tone based on performance
     const adjustedFeedback = await adjustFeedbackTone(
       grading.feedback,
@@ -223,14 +223,14 @@ export async function gradeShortAnswer(
       question.points,
       'Student',
       false
-    );
-    
+    )
+
     return {
       ...grading,
-      feedback: adjustedFeedback
-    };
+      feedback: adjustedFeedback,
+    }
   } catch (error) {
-    console.error('Failed to parse grading result:', error);
+    console.error('Failed to parse grading result:', error)
     // Fallback: mark as incorrect with generic feedback
     return {
       score: 0,
@@ -238,14 +238,14 @@ export async function gradeShortAnswer(
       isCorrect: false,
       feedback: 'Unable to auto-grade this submission. A tutor will review it.',
       misconceptions: [],
-      suggestions: ['Wait for tutor feedback']
-    };
+      suggestions: ['Wait for tutor feedback'],
+    }
   }
 }
 
 /**
  * Grade an essay submission
- * 
+ *
  * UI: Essay submission in course assignments
  */
 export async function gradeEssay(
@@ -255,54 +255,58 @@ export async function gradeEssay(
   maxPoints: number,
   studentId: string
 ): Promise<{
-  totalScore: number;
-  rubricScores: Array<{ criterion: string; score: number; comment: string }>;
-  overallFeedback: string;
-  strengths: string[];
-  improvements: string[];
-  isPassing: boolean;
+  totalScore: number
+  rubricScores: Array<{ criterion: string; score: number; comment: string }>
+  overallFeedback: string
+  strengths: string[]
+  improvements: string[]
+  isPassing: boolean
 }> {
-  const student = await getStudent(studentId);
-  if (!student) throw new Error('Student not found');
-  
+  const student = await getStudent(studentId)
+  if (!student) throw new Error('Student not found')
+
   const prompt = buildEssayGradingPrompt(
     essayQuestion,
     rubric,
     studentEssay,
     maxPoints,
     student.currentLevel
-  );
-  
+  )
+
   const result = await generateWithFallback(prompt, {
     temperature: 0.4,
-    maxTokens: 2000
-  });
-  
+    maxTokens: 2000,
+  })
+
   const parsed = tryParseJson<{
-    totalScore: number;
-    rubricScores: Array<{ criterion: string; score: number; comment: string }>;
-    overallFeedback: string;
-    strengths: string[];
-    improvements: string[];
-    isPassing: boolean;
-  }>(result.content);
+    totalScore: number
+    rubricScores: Array<{ criterion: string; score: number; comment: string }>
+    overallFeedback: string
+    strengths: string[]
+    improvements: string[]
+    isPassing: boolean
+  }>(result.content)
 
-  if (parsed) return parsed;
+  if (parsed) return parsed
 
-  console.error('Failed to parse essay grading:', result.content);
+  console.error('Failed to parse essay grading:', result.content)
   return {
     totalScore: 0,
-    rubricScores: rubric.map((criterion) => ({ criterion, score: 0, comment: 'Auto-grading failed.' })),
+    rubricScores: rubric.map(criterion => ({
+      criterion,
+      score: 0,
+      comment: 'Auto-grading failed.',
+    })),
     overallFeedback: 'Unable to auto-grade this essay. A tutor will review it.',
     strengths: [],
     improvements: ['Await tutor feedback'],
     isPassing: false,
-  };
+  }
 }
 
 /**
  * Grade a math problem with step checking
- * 
+ *
  * UI: Math quiz submissions
  */
 export async function gradeMathProblem(
@@ -312,12 +316,12 @@ export async function gradeMathProblem(
   studentWork: string,
   maxPoints: number
 ): Promise<{
-  score: number;
-  stepBreakdown: Array<{ step: number; correct: boolean; feedback: string }>;
-  finalAnswerCorrect: boolean;
-  errorType: 'calculation' | 'conceptual' | 'missing_step' | 'none';
-  feedback: string;
-  hints: string[];
+  score: number
+  stepBreakdown: Array<{ step: number; correct: boolean; feedback: string }>
+  finalAnswerCorrect: boolean
+  errorType: 'calculation' | 'conceptual' | 'missing_step' | 'none'
+  feedback: string
+  hints: string[]
 }> {
   const prompt = buildMathGradingPrompt(
     problem,
@@ -325,25 +329,25 @@ export async function gradeMathProblem(
     correctSteps,
     studentWork,
     maxPoints
-  );
-  
+  )
+
   const result = await generateWithFallback(prompt, {
     temperature: 0.3,
-    maxTokens: 1500
-  });
-  
+    maxTokens: 1500,
+  })
+
   const parsed = tryParseJson<{
-    score: number;
-    stepBreakdown: Array<{ step: number; correct: boolean; feedback: string }>;
-    finalAnswerCorrect: boolean;
-    errorType: 'calculation' | 'conceptual' | 'missing_step' | 'none';
-    feedback: string;
-    hints: string[];
-  }>(result.content);
+    score: number
+    stepBreakdown: Array<{ step: number; correct: boolean; feedback: string }>
+    finalAnswerCorrect: boolean
+    errorType: 'calculation' | 'conceptual' | 'missing_step' | 'none'
+    feedback: string
+    hints: string[]
+  }>(result.content)
 
-  if (parsed) return parsed;
+  if (parsed) return parsed
 
-  console.error('Failed to parse math grading:', result.content);
+  console.error('Failed to parse math grading:', result.content)
   return {
     score: 0,
     stepBreakdown: [],
@@ -351,7 +355,7 @@ export async function gradeMathProblem(
     errorType: 'none',
     feedback: 'Unable to auto-grade this submission. A tutor will review it.',
     hints: ['Try again and show each step clearly.'],
-  };
+  }
 }
 
 /**
@@ -364,95 +368,83 @@ async function adjustFeedbackTone(
   studentName: string,
   isStruggling: boolean
 ): Promise<string> {
-  const prompt = buildFeedbackTonePrompt(
-    baseFeedback,
-    score,
-    maxScore,
-    studentName,
-    isStruggling
-  );
-  
+  const prompt = buildFeedbackTonePrompt(baseFeedback, score, maxScore, studentName, isStruggling)
+
   const result = await generateWithFallback(prompt, {
     temperature: 0.5,
-    maxTokens: 500
-  });
-  
-  return result.content;
+    maxTokens: 500,
+  })
+
+  return result.content
 }
 
 /**
  * Batch grade an entire quiz
- * 
+ *
  * UI: "Auto Grade All" button in tutor interface
  */
-export async function gradeQuizBatch(
-  request: BatchGradingRequest
-): Promise<BatchGradingResult> {
-  const quiz = await getQuiz(request.quizId);
-  if (!quiz) throw new Error('Quiz not found');
-  
-  const gradedAnswers: GradedAnswer[] = [];
-  let totalScore = 0;
-  let maxScore = 0;
-  
+export async function gradeQuizBatch(request: BatchGradingRequest): Promise<BatchGradingResult> {
+  const quiz = await getQuiz(request.quizId)
+  if (!quiz) throw new Error('Quiz not found')
+
+  const gradedAnswers: GradedAnswer[] = []
+  let totalScore = 0
+  let maxScore = 0
+
   // Grade each answer
   for (const [questionId, answer] of request.answers) {
-    const question = quiz.questions.find(q => q.id === questionId);
-    if (!question) continue;
-    
-    let graded: GradedAnswer;
-    
+    const question = quiz.questions.find(q => q.id === questionId)
+    if (!question) continue
+
+    let graded: GradedAnswer
+
     if (question.type === 'multiple_choice') {
       // Auto-grade MCQ immediately
-      const isCorrect = answer.trim().toLowerCase() === question.correctAnswer.trim().toLowerCase();
+      const isCorrect = answer.trim().toLowerCase() === question.correctAnswer.trim().toLowerCase()
       graded = {
         questionId,
         score: isCorrect ? question.points : 0,
         maxScore: question.points,
         isCorrect,
-        feedback: isCorrect ? 'Correct!' : `The correct answer is: ${question.correctAnswer}`
-      };
+        feedback: isCorrect ? 'Correct!' : `The correct answer is: ${question.correctAnswer}`,
+      }
     } else {
       // Use AI for short answer/essay
-      const result = await gradeShortAnswer(question, answer, request.studentId);
+      const result = await gradeShortAnswer(question, answer, request.studentId)
       graded = {
         questionId,
         score: result.score,
         maxScore: question.points,
         isCorrect: result.isCorrect,
-        feedback: result.feedback
-      };
+        feedback: result.feedback,
+      }
     }
-    
-    gradedAnswers.push(graded);
-    totalScore += graded.score;
-    maxScore += question.points;
+
+    gradedAnswers.push(graded)
+    totalScore += graded.score
+    maxScore += question.points
   }
-  
-  const percentage = (totalScore / maxScore) * 100;
-  
+
+  const percentage = (totalScore / maxScore) * 100
+
   // Generate summary
-  const summary = await generateGradingSummary(
-    gradedAnswers,
-    quiz.questions,
-    percentage
-  );
-  
+  const summary = await generateGradingSummary(gradedAnswers, quiz.questions, percentage)
+
   // Generate recommendations
   const recommendations = await generateRecommendations(
     gradedAnswers,
     quiz.questions,
     request.studentId
-  );
-  
+  )
+
   return {
     totalScore,
     maxScore,
     percentage,
     gradedAnswers,
     summary,
-    recommendations
-  };
+    recommendations,
+  }
 }
 
 /**
@@ -463,16 +455,16 @@ async function generateGradingSummary(
   questions: Question[],
   percentage: number
 ): Promise<string> {
-  const correctCount = gradedAnswers.filter(a => a.isCorrect).length;
-  const totalCount = gradedAnswers.length;
-  
-  let performance = '';
-  if (percentage >= 90) performance = 'excellent';
-  else if (percentage >= 70) performance = 'good';
-  else if (percentage >= 50) performance = 'needs improvement';
-  else performance = 'significant struggles';
-  
-  return `You scored ${correctCount} out of ${totalCount} (${percentage.toFixed(1)}%). This is a ${performance} performance.`;
+  const correctCount = gradedAnswers.filter(a => a.isCorrect).length
+  const totalCount = gradedAnswers.length
+
+  let performance = ''
+  if (percentage >= 90) performance = 'excellent'
+  else if (percentage >= 70) performance = 'good'
+  else if (percentage >= 50) performance = 'needs improvement'
+  else performance = 'significant struggles'
+
+  return `You scored ${correctCount} out of ${totalCount} (${percentage.toFixed(1)}%). This is a ${performance} performance.`
 }
 
 /**
@@ -484,23 +476,23 @@ async function generateRecommendations(
   studentId: string
 ): Promise<string[]> {
   // Identify weak topics
-  const weakTopics: string[] = [];
-  
+  const weakTopics: string[] = []
+
   gradedAnswers.forEach(answer => {
     if (!answer.isCorrect) {
-      const question = questions.find(q => q.id === answer.questionId);
+      const question = questions.find(q => q.id === answer.questionId)
       if (question && !weakTopics.includes(question.difficulty)) {
-        weakTopics.push(question.difficulty);
+        weakTopics.push(question.difficulty)
       }
     }
-  });
-  
+  })
+
   return [
     'Review the questions you missed',
     'Focus on ' + (weakTopics.join(', ') || 'fundamentals'),
     'Try the practice exercises for these topics',
-    'Ask the AI tutor for help with difficult concepts'
-  ];
+    'Ask the AI tutor for help with difficult concepts',
+  ]
 }
 
 // Helper function - need to implement in shared-data.ts

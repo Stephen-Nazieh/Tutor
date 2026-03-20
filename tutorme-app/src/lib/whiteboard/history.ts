@@ -35,11 +35,14 @@ export interface WhiteboardSession {
 }
 
 // In-memory cache for active sessions
-const activeSessions = new Map<string, {
-  elements: WhiteboardElement[]
-  startTime: Date
-  lastActivity: Date
-}>()
+const activeSessions = new Map<
+  string,
+  {
+    elements: WhiteboardElement[]
+    startTime: Date
+    lastActivity: Date
+  }
+>()
 
 /**
  * Start a new whiteboard session
@@ -55,7 +58,7 @@ export async function startWhiteboardSession(
     activeSessions.set(id, {
       elements: [],
       startTime: new Date(),
-      lastActivity: new Date()
+      lastActivity: new Date(),
     })
 
     return { success: true, sessionId: id }
@@ -64,7 +67,7 @@ export async function startWhiteboardSession(
     return {
       success: false,
       sessionId: '',
-      error: error instanceof Error ? error.message : '启动白板会话失败'
+      error: error instanceof Error ? error.message : '启动白板会话失败',
     }
   }
 }
@@ -84,7 +87,7 @@ export function addWhiteboardElement(
 
     session.elements.push({
       ...element,
-      timestamp: new Date()
+      timestamp: new Date(),
     })
     session.lastActivity = new Date()
 
@@ -121,7 +124,7 @@ export async function createSnapshot(
       timestamp: now,
       duration: Math.round(duration),
       elements: [...session.elements],
-      createdBy
+      createdBy,
     }
 
     // In a real implementation, we would save to database here
@@ -214,9 +217,7 @@ export async function getWhiteboardStateAtTime(
   try {
     const activeSession = activeSessions.get(sessionId)
     if (activeSession) {
-      const elements = activeSession.elements.filter(
-        e => e.timestamp <= timestamp
-      )
+      const elements = activeSession.elements.filter(e => e.timestamp <= timestamp)
       return { success: true, elements }
     }
 
@@ -242,12 +243,16 @@ export async function exportWhiteboard(
     }
 
     if (format === 'json') {
-      const data = JSON.stringify({
-        sessionId,
-        createdAt: session.startTime,
-        elementCount: session.elements.length,
-        elements: session.elements
-      }, null, 2)
+      const data = JSON.stringify(
+        {
+          sessionId,
+          createdAt: session.startTime,
+          elementCount: session.elements.length,
+          elements: session.elements,
+        },
+        null,
+        2
+      )
       return { success: true, data }
     }
 
@@ -262,17 +267,15 @@ export async function exportWhiteboard(
 /**
  * Get statistics for a whiteboard session
  */
-export async function getWhiteboardStats(
-  sessionId: string
-): Promise<{
-  success: boolean;
+export async function getWhiteboardStats(sessionId: string): Promise<{
+  success: boolean
   stats?: {
     elementCount: number
     participantCount: number
     duration: number // seconds
     drawingTime: number // estimated
     mostActiveUser?: string
-  };
+  }
   error?: string
 }> {
   try {
@@ -291,8 +294,7 @@ export async function getWhiteboardStats(
     elements.forEach(e => {
       userCounts[e.userId] = (userCounts[e.userId] || 0) + 1
     })
-    const mostActiveUser = Object.entries(userCounts)
-      .sort((a, b) => b[1] - a[1])[0]?.[0]
+    const mostActiveUser = Object.entries(userCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
 
     return {
       success: true,
@@ -301,8 +303,8 @@ export async function getWhiteboardStats(
         participantCount: uniqueUsers.size,
         duration: Math.round(duration),
         drawingTime: Math.round(duration * 0.7), // Estimate
-        mostActiveUser
-      }
+        mostActiveUser,
+      },
     }
   } catch (error) {
     console.error('Failed to get whiteboard stats:', error)
@@ -362,9 +364,12 @@ export function cleanupInactiveSessions(maxInactiveMinutes: number = 30): number
 }
 
 // Run cleanup every 5 minutes
-setInterval(() => {
-  const cleaned = cleanupInactiveSessions()
-  if (cleaned > 0) {
-    console.log(`Cleaned up ${cleaned} inactive whiteboard sessions`)
-  }
-}, 5 * 60 * 1000)
+setInterval(
+  () => {
+    const cleaned = cleanupInactiveSessions()
+    if (cleaned > 0) {
+      console.log(`Cleaned up ${cleaned} inactive whiteboard sessions`)
+    }
+  },
+  5 * 60 * 1000
+)

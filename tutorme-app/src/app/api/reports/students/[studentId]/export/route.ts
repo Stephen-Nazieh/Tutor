@@ -15,10 +15,7 @@ import { eq } from 'drizzle-orm'
 export const GET = withAuth(async (req: NextRequest, session, context) => {
   const studentId = await getParamAsync(context?.params, 'studentId')
   if (!studentId) {
-    return NextResponse.json(
-      { success: false, error: 'Student ID required' },
-      { status: 400 }
-    )
+    return NextResponse.json({ success: false, error: 'Student ID required' }, { status: 400 })
   }
   const { searchParams } = new URL(req.url)
   const format = searchParams.get('format') || 'pdf'
@@ -44,10 +41,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       .limit(1)
 
     if (!studentRow) {
-      return NextResponse.json(
-        { success: false, error: 'Student not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ success: false, error: 'Student not found' }, { status: 404 })
     }
 
     const performance = await getStudentPerformance(studentId, classId || undefined)

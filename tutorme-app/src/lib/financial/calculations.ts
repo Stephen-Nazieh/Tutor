@@ -174,8 +174,7 @@ export function generateRevenueForecast(
       : 0
   const stdDev = Math.sqrt(variance)
   const cv = avg > 0 ? stdDev / avg : 0
-  const confidence: RevenueForecast['confidence'] =
-    cv < 0.2 ? 'high' : cv < 0.5 ? 'medium' : 'low'
+  const confidence: RevenueForecast['confidence'] = cv < 0.2 ? 'high' : cv < 0.5 ? 'medium' : 'low'
 
   const forecasts: RevenueForecast[] = []
   const lastYear = new Date().getFullYear()

@@ -41,7 +41,7 @@ export function useAIChat(context?: AIChatContext) {
       timestamp: new Date(),
     }
 
-    setMessages((prev) => [...prev, userMessage])
+    setMessages(prev => [...prev, userMessage])
     setInput('')
     setIsLoading(true)
 
@@ -54,7 +54,7 @@ export function useAIChat(context?: AIChatContext) {
           subject: context?.subject,
           context: {
             ...context,
-            previousMessages: messages.slice(-5).map((m) => ({
+            previousMessages: messages.slice(-5).map(m => ({
               role: m.role,
               content: m.content,
             })),
@@ -75,16 +75,15 @@ export function useAIChat(context?: AIChatContext) {
         relevantConcepts: data.relevantConcepts,
       }
 
-      setMessages((prev) => [...prev, assistantMessage])
+      setMessages(prev => [...prev, assistantMessage])
     } catch {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content:
-          'I apologize, but I am having trouble responding right now. Please try again.',
+        content: 'I apologize, but I am having trouble responding right now. Please try again.',
         timestamp: new Date(),
       }
-      setMessages((prev) => [...prev, errorMessage])
+      setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }

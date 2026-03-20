@@ -29,7 +29,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}))
     const realm = body?.realm === 'tutor' ? 'tutor' : body?.realm === 'student' ? 'student' : null
     if (!realm) {
-      return NextResponse.json({ error: 'Missing or invalid realm (tutor|student)' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Missing or invalid realm (tutor|student)' },
+        { status: 400 }
+      )
     }
 
     const token = await getToken({

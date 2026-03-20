@@ -89,7 +89,11 @@ async function ensurePdfWhiteboard(userId: string, roomId: string) {
     texts: [],
     images: [],
   })
-  const [created] = await drizzleDb.select().from(whiteboard).where(eq(whiteboard.id, whiteboardId)).limit(1)
+  const [created] = await drizzleDb
+    .select()
+    .from(whiteboard)
+    .where(eq(whiteboard.id, whiteboardId))
+    .limit(1)
   return created!
 }
 
@@ -159,5 +163,17 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     .where(eq(whiteboardSnapshot.id, snapshotId))
     .limit(1)
 
-  return NextResponse.json({ snapshot: snapshot ?? { id: snapshotId, whiteboardId: wb.id, name: name ?? '', pages: [], createdBy: userId, createdAt: new Date() } }, { status: 201 })
+  return NextResponse.json(
+    {
+      snapshot: snapshot ?? {
+        id: snapshotId,
+        whiteboardId: wb.id,
+        name: name ?? '',
+        pages: [],
+        createdBy: userId,
+        createdAt: new Date(),
+      },
+    },
+    { status: 201 }
+  )
 })

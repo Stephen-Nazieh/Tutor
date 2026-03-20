@@ -22,34 +22,33 @@ export default function StudentsPage() {
 
   useEffect(() => {
     fetch('/api/tutor/students', { credentials: 'include' })
-      .then(res => res.ok ? res.json() : { students: [] })
+      .then(res => (res.ok ? res.json() : { students: [] }))
       .then(data => setStudents(data.students ?? []))
       .catch(() => setStudents([]))
       .finally(() => setLoading(false))
   }, [])
 
-  const filteredStudents = students.filter(s => 
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredStudents = students.filter(
+    s =>
+      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.email.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Students</h1>
-        <p className="text-gray-600 mt-1">
-          Manage your students and view their progress
-        </p>
+        <p className="mt-1 text-gray-600">Manage your students and view their progress</p>
       </div>
 
       <Card className="mb-6">
         <CardContent className="pt-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
             <Input
               placeholder="Search students by name or email..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -58,11 +57,11 @@ export default function StudentsPage() {
 
       {loading ? (
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3].map(i => (
             <Card key={i} className="animate-pulse">
               <CardContent className="p-6">
-                <div className="h-4 w-48 bg-gray-200 rounded mb-2" />
-                <div className="h-3 w-32 bg-gray-200 rounded" />
+                <div className="mb-2 h-4 w-48 rounded bg-gray-200" />
+                <div className="h-3 w-32 rounded bg-gray-200" />
               </CardContent>
             </Card>
           ))}
@@ -70,25 +69,25 @@ export default function StudentsPage() {
       ) : filteredStudents.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-700 mb-2">
+            <Users className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+            <h3 className="mb-2 text-lg font-medium text-gray-700">
               {searchQuery ? 'No students found' : 'No students yet'}
             </h3>
             <p className="text-gray-500">
-              {searchQuery 
-                ? 'Try adjusting your search query' 
+              {searchQuery
+                ? 'Try adjusting your search query'
                 : 'Students will appear here when they enroll in your classes'}
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
-          {filteredStudents.map((student) => (
+          {filteredStudents.map(student => (
             <Card key={student.id}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
                       <Users className="h-6 w-6 text-blue-600" />
                     </div>
                     <div>

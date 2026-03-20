@@ -1,7 +1,7 @@
 /**
  * Login Page
  * Users can sign in with email/password
- * 
+ *
  * URL: /login
  */
 
@@ -39,7 +39,7 @@ function LoginForm() {
       const result = await signIn('credentials', {
         email,
         password,
-        redirect: false
+        redirect: false,
       })
 
       if (result?.error) {
@@ -87,20 +87,18 @@ function LoginForm() {
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Login to Solocorn</CardTitle>
-        <CardDescription>
-          Enter your email and password to continue
-        </CardDescription>
+        <CardDescription>Enter your email and password to continue</CardDescription>
       </CardHeader>
       <CardContent>
         {registered && (
-          <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm">
+          <div className="mb-4 rounded-lg bg-green-50 p-3 text-sm text-green-700">
             Registration successful! Please log in.
           </div>
         )}
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm flex items-center gap-2">
-            <AlertCircle className="w-4 h-4" />
+          <div className="mb-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+            <AlertCircle className="h-4 w-4" />
             {error}
           </div>
         )}
@@ -113,7 +111,7 @@ function LoginForm() {
               type="email"
               placeholder="your@email.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
               required
               disabled={isLoading}
             />
@@ -123,7 +121,7 @@ function LoginForm() {
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
               <Link
-                href="/forgot-password"
+                href={`${localePrefix}/forgot-password`}
                 className="text-sm text-[#1D4ED8] hover:underline"
               >
                 Forgot Password?
@@ -135,7 +133,7 @@ function LoginForm() {
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
               />
@@ -168,19 +166,13 @@ function LoginForm() {
 
         <div className="mt-6 text-center text-sm">
           <span className="text-gray-600">Don&apos;t have an account?</span>{' '}
-          <Link
-            href="/register"
-            className="text-[#1D4ED8] hover:underline font-medium"
-          >
+          <Link href="/register" className="font-medium text-[#1D4ED8] hover:underline">
             Sign up
           </Link>
         </div>
 
-        <div className="mt-4 pt-4 border-t text-center">
-          <Link
-            href="/"
-            className="text-sm text-gray-500 hover:text-gray-700"
-          >
+        <div className="mt-4 border-t pt-4 text-center">
+          <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
             ← Back to home
           </Link>
         </div>
@@ -194,9 +186,7 @@ function LoginFormFallback() {
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Login to Solocorn</CardTitle>
-        <CardDescription>
-          Enter your email and password to continue
-        </CardDescription>
+        <CardDescription>Enter your email and password to continue</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-center py-8">
@@ -209,7 +199,7 @@ function LoginFormFallback() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4 safe-top safe-bottom">
+    <div className="safe-top safe-bottom flex min-h-screen items-center justify-center bg-white p-4">
       <Suspense fallback={<LoginFormFallback />}>
         <LoginForm />
       </Suspense>

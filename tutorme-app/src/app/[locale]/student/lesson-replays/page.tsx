@@ -30,42 +30,52 @@ export default function LessonReplaysPage() {
 
   useEffect(() => {
     fetch('/api/student/lesson-replays')
-      .then((res) => res.json())
-      .then((payload) => {
+      .then(res => res.json())
+      .then(payload => {
         if (payload.success) setSessions(payload.data.sessions || [])
       })
       .finally(() => setLoading(false))
   }, [])
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
           <Video className="h-6 w-6" />
           Lesson Replays
         </h1>
-        <p className="text-gray-600 mt-1">Recordings, tasks, and AI lesson recap from attended sessions.</p>
+        <p className="mt-1 text-gray-600">
+          Recordings, tasks, and AI lesson recap from attended sessions.
+        </p>
       </div>
 
       {loading ? (
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i}><CardContent className="pt-6"><Skeleton className="h-20" /></CardContent></Card>
+          {[1, 2, 3].map(i => (
+            <Card key={i}>
+              <CardContent className="pt-6">
+                <Skeleton className="h-20" />
+              </CardContent>
+            </Card>
           ))}
         </div>
       ) : sessions.length === 0 ? (
         <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">No lesson replays yet.</CardContent>
+          <CardContent className="py-10 text-center text-sm text-muted-foreground">
+            No lesson replays yet.
+          </CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
-          {sessions.map((session) => (
+          {sessions.map(session => (
             <Card key={session.id}>
-              <CardContent className="pt-5 pb-5 space-y-3">
+              <CardContent className="space-y-3 pb-5 pt-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="font-medium">{session.title}</h3>
-                    <p className="text-sm text-muted-foreground">{session.subject} · {session.tutorName}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {session.subject} · {session.tutorName}
+                    </p>
                   </div>
                   <Badge variant="outline" className="gap-1">
                     <CheckCircle2 className="h-3.5 w-3.5" />
@@ -73,15 +83,15 @@ export default function LessonReplaysPage() {
                   </Badge>
                 </div>
 
-                <div className="text-xs text-muted-foreground flex gap-3">
+                <div className="flex gap-3 text-xs text-muted-foreground">
                   <span>Tasks: {session.taskCount}</span>
                   <span>Submitted: {session.submittedCount}</span>
                   <span>Replay: {session.replayStatus}</span>
                 </div>
 
                 {session.summaryPreview && (
-                  <div className="rounded-md border bg-muted/30 p-2.5 text-xs flex gap-2">
-                    <FileText className="h-3.5 w-3.5 mt-0.5" />
+                  <div className="flex gap-2 rounded-md border bg-muted/30 p-2.5 text-xs">
+                    <FileText className="mt-0.5 h-3.5 w-3.5" />
                     <span>{session.summaryPreview}</span>
                   </div>
                 )}
@@ -90,9 +100,9 @@ export default function LessonReplaysPage() {
                   {session.hasRecording && session.recordingUrl ? (
                     <a href={session.recordingUrl} target="_blank" rel="noreferrer">
                       <Button size="sm" className="gap-1.5">
-                        <Play className="w-3.5 h-3.5" />
+                        <Play className="h-3.5 w-3.5" />
                         Watch Replay
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="h-3 w-3" />
                       </Button>
                     </a>
                   ) : (

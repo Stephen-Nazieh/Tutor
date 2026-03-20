@@ -42,7 +42,9 @@ export default function LearnPage() {
   const [isBookmarked, setIsBookmarked] = useState(false)
   const [activeQuiz, setActiveQuiz] = useState<QuizCheckpoint | null>(null)
   const csrfRef = useRef<string | null>(null)
-  const watchEventsRef = useRef<Array<{ eventType: string; videoSeconds: number; metadata?: unknown }>>([])
+  const watchEventsRef = useRef<
+    Array<{ eventType: string; videoSeconds: number; metadata?: unknown }>
+  >([])
   const progressThrottleRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastProgressRef = useRef({ progress: 0, lastPosition: 0 })
 
@@ -74,7 +76,12 @@ export default function LearnPage() {
       fetch('/api/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token && { 'X-CSRF-Token': token }) },
-        body: JSON.stringify({ contentId, progress: Math.round(progress), lastPosition, completed: progress >= 99 }),
+        body: JSON.stringify({
+          contentId,
+          progress: Math.round(progress),
+          lastPosition,
+          completed: progress >= 99,
+        }),
         credentials: 'include',
       }).catch(() => {})
     },
@@ -116,7 +123,9 @@ export default function LearnPage() {
     fetch('/api/bookmarks')
       .then(res => res.json())
       .then(data => {
-        const bookmarked = data.bookmarks?.some((b: { contentId: string }) => b.contentId === contentId)
+        const bookmarked = data.bookmarks?.some(
+          (b: { contentId: string }) => b.contentId === contentId
+        )
         setIsBookmarked(bookmarked)
       })
       .catch(() => {})
@@ -124,7 +133,9 @@ export default function LearnPage() {
 
   useEffect(() => {
     const t = progressThrottleRef.current
-    return () => { if (t) clearTimeout(t) }
+    return () => {
+      if (t) clearTimeout(t)
+    }
   }, [])
 
   const handleQuizSkip = useCallback(
@@ -145,7 +156,7 @@ export default function LearnPage() {
       const res = await fetch('/api/bookmarks', {
         method: isBookmarked ? 'DELETE' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contentId })
+        body: JSON.stringify({ contentId }),
       })
       if (res.ok) setIsBookmarked(!isBookmarked)
     } catch (err) {
@@ -155,9 +166,9 @@ export default function LearnPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
           <p className="mt-2 text-gray-600">Loading lesson...</p>
         </div>
       </div>
@@ -166,12 +177,12 @@ export default function LearnPage() {
 
   if (error || !content) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="pt-8 pb-8 text-center">
-            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">Content Not Found</h2>
-            <p className="text-gray-600 mb-4">{error || 'The lesson does not exist.'}</p>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="pb-8 pt-8 text-center">
+            <AlertCircle className="mx-auto mb-4 h-16 w-16 text-red-500" />
+            <h2 className="mb-2 text-xl font-bold">Content Not Found</h2>
+            <p className="mb-4 text-gray-600">{error || 'The lesson does not exist.'}</p>
             <Link href="/student/dashboard">
               <Button>Back to Dashboard</Button>
             </Link>
@@ -183,12 +194,12 @@ export default function LearnPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b sticky top-0 z-40 safe-top">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="safe-top sticky top-0 z-40 border-b bg-white">
+        <div className="container mx-auto flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-4">
             <Link href="/student/dashboard">
               <Button variant="ghost" size="icon">
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="h-5 w-5" />
               </Button>
             </Link>
             <div>
@@ -202,7 +213,7 @@ export default function LearnPage() {
               className={isBookmarked ? 'text-yellow-500' : 'text-gray-400'}
               title={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
             >
-              <Bookmark className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`} />
+              <Bookmark className={`h-5 w-5 ${isBookmarked ? 'fill-current' : ''}`} />
             </Button>
           </div>
           <UserNav />
@@ -210,8 +221,8 @@ export default function LearnPage() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 relative">
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="relative lg:col-span-2">
             {content.videoUrl ? (
               <>
                 <VideoPlayer
@@ -219,7 +230,7 @@ export default function LearnPage() {
                   title={content.topic}
                   videoVariants={content.videoVariants}
                   quizTimestamps={content.quizTimestamps ?? []}
-                  onProgress={(data) => {
+                  onProgress={data => {
                     setCurrentTime(data.currentTime)
                     if (progressThrottleRef.current) clearTimeout(progressThrottleRef.current)
                     progressThrottleRef.current = setTimeout(() => {
@@ -227,10 +238,10 @@ export default function LearnPage() {
                       progressThrottleRef.current = null
                     }, 5000)
                   }}
-                  onPlay={(t) => {
+                  onPlay={t => {
                     watchEventsRef.current.push({ eventType: 'play', videoSeconds: t })
                   }}
-                  onPause={(t) => {
+                  onPause={t => {
                     watchEventsRef.current.push({ eventType: 'pause', videoSeconds: t })
                     flushWatchEvents()
                   }}
@@ -249,9 +260,9 @@ export default function LearnPage() {
                     flushWatchEvents()
                     saveProgress(100, content.duration || 0)
                   }}
-                  onQuizTrigger={(timestamp) => {
+                  onQuizTrigger={timestamp => {
                     const cp = content.quizCheckpoints?.find(
-                      (c) => Math.abs(c.videoTimestampSec - timestamp) < 2
+                      c => Math.abs(c.videoTimestampSec - timestamp) < 2
                     )
                     setActiveQuiz(cp ?? null)
                   }}
@@ -284,7 +295,7 @@ export default function LearnPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700">{content.transcript || '—'}</p>
-                <p className="text-sm text-gray-400 mt-4">
+                <p className="mt-4 text-sm text-gray-400">
                   Duration: {content.duration ? Math.floor(content.duration / 60) : 0} minutes
                 </p>
               </CardContent>
@@ -295,7 +306,7 @@ export default function LearnPage() {
             <NotesSidebar
               videoId={contentId}
               currentTime={currentTime}
-              onSeekToTimestamp={(timestamp) => console.log('Seek to:', timestamp)}
+              onSeekToTimestamp={timestamp => console.log('Seek to:', timestamp)}
             />
           </div>
         </div>
@@ -305,7 +316,7 @@ export default function LearnPage() {
         context={{
           videoTitle: content.topic,
           currentTimestamp: currentTime,
-          subject: content.subject
+          subject: content.subject,
         }}
       />
     </div>

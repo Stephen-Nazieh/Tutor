@@ -1,7 +1,7 @@
 /**
  * AI Providers Status API
  * Returns the status of all AI providers
- * 
+ *
  * GET /api/ai/status
  */
 
@@ -22,10 +22,10 @@ export async function GET(request: NextRequest) {
     }
 
     const providers = await getAIProvidersStatus()
-    
+
     return NextResponse.json({
       providers,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     })
   } catch (error) {
     console.error('AI status check failed:', error)

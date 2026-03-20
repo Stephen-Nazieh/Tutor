@@ -30,7 +30,10 @@ export const POST = withAuth(async (req: NextRequest) => {
   const body = await req.json()
   const parsed = schema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Invalid payload', details: parsed.error.flatten() },
+      { status: 400 }
+    )
   }
 
   const pdfLib = await loadOptionalServerModule<any>('pdf-lib')
@@ -38,10 +41,13 @@ export const POST = withAuth(async (req: NextRequest) => {
   const rgb = pdfLib?.rgb
 
   if (!PDFDocument || !rgb) {
-    return NextResponse.json({
-      error: 'pdf-lib is not installed',
-      hint: 'Install pdf-lib to enable PDF flattening: npm install pdf-lib',
-    }, { status: 503 })
+    return NextResponse.json(
+      {
+        error: 'pdf-lib is not installed',
+        hint: 'Install pdf-lib to enable PDF flattening: npm install pdf-lib',
+      },
+      { status: 503 }
+    )
   }
 
   const originalBytes = Buffer.from(parsed.data.originalPdfBase64, 'base64')

@@ -6,14 +6,14 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
-import { 
-  Wifi, 
-  WifiOff, 
-  Smartphone, 
-  Laptop, 
+import {
+  Wifi,
+  WifiOff,
+  Smartphone,
+  Laptop,
   Tablet,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
 } from 'lucide-react'
 import type { LiveStudent } from '../types'
 
@@ -22,7 +22,10 @@ interface StudentEngagementMonitorProps {
   onStudentClick?: (student: LiveStudent) => void
 }
 
-export function StudentEngagementMonitor({ students, onStudentClick }: StudentEngagementMonitorProps) {
+export function StudentEngagementMonitor({
+  students,
+  onStudentClick,
+}: StudentEngagementMonitorProps) {
   // Sort students: online first, then by attention level
   const attentionLevelValue = { high: 3, medium: 2, low: 1 }
   const sortedStudents = [...students].sort((a, b) => {
@@ -34,19 +37,27 @@ export function StudentEngagementMonitor({ students, onStudentClick }: StudentEn
 
   const getDeviceIcon = (device?: string) => {
     switch (device) {
-      case 'mobile': return <Smartphone className="w-3 h-3" />
-      case 'tablet': return <Tablet className="w-3 h-3" />
-      default: return <Laptop className="w-3 h-3" />
+      case 'mobile':
+        return <Smartphone className="h-3 w-3" />
+      case 'tablet':
+        return <Tablet className="h-3 w-3" />
+      default:
+        return <Laptop className="h-3 w-3" />
     }
   }
 
   const getConnectionColor = (quality?: string) => {
     switch (quality) {
-      case 'excellent': return 'text-green-500'
-      case 'good': return 'text-blue-500'
-      case 'fair': return 'text-yellow-500'
-      case 'poor': return 'text-red-500'
-      default: return 'text-gray-400'
+      case 'excellent':
+        return 'text-green-500'
+      case 'good':
+        return 'text-blue-500'
+      case 'fair':
+        return 'text-yellow-500'
+      case 'poor':
+        return 'text-red-500'
+      default:
+        return 'text-gray-400'
     }
   }
 
@@ -57,21 +68,23 @@ export function StudentEngagementMonitor({ students, onStudentClick }: StudentEn
   }
 
   const onlineCount = students.filter(s => s.status === 'online').length
-  const atRiskCount = students.filter(s => s.status === 'online' && s.attentionLevel === 'low').length
+  const atRiskCount = students.filter(
+    s => s.status === 'online' && s.attentionLevel === 'low'
+  ).length
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="flex h-full flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium">Students</CardTitle>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-xs">
-              <CheckCircle2 className="w-3 h-3 mr-1 text-green-500" />
+              <CheckCircle2 className="mr-1 h-3 w-3 text-green-500" />
               {onlineCount} Online
             </Badge>
             {atRiskCount > 0 && (
               <Badge variant="destructive" className="text-xs">
-                <AlertTriangle className="w-3 h-3 mr-1" />
+                <AlertTriangle className="mr-1 h-3 w-3" />
                 {atRiskCount} At Risk
               </Badge>
             )}
@@ -81,47 +94,52 @@ export function StudentEngagementMonitor({ students, onStudentClick }: StudentEn
       <CardContent className="flex-1 p-0">
         <ScrollArea className="h-[calc(100%-60px)]">
           <div className="space-y-2 px-4 pb-4">
-            {sortedStudents.map((student) => {
+            {sortedStudents.map(student => {
               const isOnline = student.status === 'online'
               const isAtRisk = isOnline && student.attentionLevel === 'low'
-              
+
               return (
                 <div
                   key={student.id}
                   onClick={() => onStudentClick?.(student)}
                   className={cn(
-                    "p-3 rounded-lg border transition-all cursor-pointer",
-                    isOnline 
-                      ? "bg-white hover:bg-gray-50" 
-                      : "bg-gray-50 opacity-60",
-                    isAtRisk && "border-red-200 bg-red-50"
+                    'cursor-pointer rounded-lg border p-3 transition-all',
+                    isOnline ? 'bg-white hover:bg-gray-50' : 'bg-gray-50 opacity-60',
+                    isAtRisk && 'border-red-200 bg-red-50'
                   )}
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback className={cn(
-                          "text-xs",
-                          isOnline ? "bg-blue-100 text-blue-700" : "bg-gray-200 text-gray-500"
-                        )}>
-                          {student.name.split(' ').map(n => n[0]).join('')}
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback
+                          className={cn(
+                            'text-xs',
+                            isOnline ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-500'
+                          )}
+                        >
+                          {student.name
+                            .split(' ')
+                            .map(n => n[0])
+                            .join('')}
                         </AvatarFallback>
                       </Avatar>
-                      <div className={cn(
-                        "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white",
-                        isOnline ? "bg-green-500" : "bg-gray-400"
-                      )} />
+                      <div
+                        className={cn(
+                          'absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white',
+                          isOnline ? 'bg-green-500' : 'bg-gray-400'
+                        )}
+                      />
                     </div>
 
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between">
-                        <p className="font-medium text-sm truncate">{student.name}</p>
+                        <p className="truncate text-sm font-medium">{student.name}</p>
                         <div className="flex items-center gap-1">
-                          <Laptop className="w-3 h-3 text-gray-400" />
+                          <Laptop className="h-3 w-3 text-gray-400" />
                           {isOnline ? (
-                            <Wifi className="w-3 h-3 text-green-500" />
+                            <Wifi className="h-3 w-3 text-green-500" />
                           ) : (
-                            <WifiOff className="w-3 h-3 text-gray-400" />
+                            <WifiOff className="h-3 w-3 text-gray-400" />
                           )}
                         </div>
                       </div>
@@ -130,28 +148,37 @@ export function StudentEngagementMonitor({ students, onStudentClick }: StudentEn
                         <div className="mt-2 space-y-1">
                           <div className="flex items-center justify-between text-xs">
                             <span className="text-gray-500">Attention</span>
-                            <span className={cn(
-                              student.attentionLevel === 'low' ? "text-red-600" : "text-gray-700"
-                            )}>{student.attentionLevel}</span>
+                            <span
+                              className={cn(
+                                student.attentionLevel === 'low' ? 'text-red-600' : 'text-gray-700'
+                              )}
+                            >
+                              {student.attentionLevel}
+                            </span>
                           </div>
-                          <Progress 
-                            value={student.engagementScore} 
-                            className="h-1.5"
-                          />
+                          <Progress value={student.engagementScore} className="h-1.5" />
 
-                          <div className="flex items-center justify-between text-xs mt-1">
+                          <div className="mt-1 flex items-center justify-between text-xs">
                             <span className="text-gray-500">Engagement</span>
                             <span className="text-gray-700">{student.engagementScore}%</span>
                           </div>
-                          <div className={cn("h-1 rounded-full", getEngagementColor(student.engagementScore))} 
+                          <div
+                            className={cn(
+                              'h-1 rounded-full',
+                              getEngagementColor(student.engagementScore)
+                            )}
                             style={{ width: `${student.engagementScore}%` }}
                           />
                         </div>
                       )}
 
                       {!isOnline && (
-                        <p className="text-xs text-gray-400 mt-1">
-                          Last seen {new Date(student.lastActive).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <p className="mt-1 text-xs text-gray-400">
+                          Last seen{' '}
+                          {new Date(student.lastActive).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
                         </p>
                       )}
                     </div>

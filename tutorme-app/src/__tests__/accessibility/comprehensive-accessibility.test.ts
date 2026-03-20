@@ -20,7 +20,9 @@ import {
 const WCAG_TAGS = [...AxeRules.WCAG2_1_AA]
 
 test.describe('Comprehensive Accessibility Tests', () => {
-  test('should have no detectable WCAG 2.1 Level A/AA violations on home page', async ({ page }) => {
+  test('should have no detectable WCAG 2.1 Level A/AA violations on home page', async ({
+    page,
+  }) => {
     await page.goto('/')
     const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze()
     expect(results.violations).toEqual([])

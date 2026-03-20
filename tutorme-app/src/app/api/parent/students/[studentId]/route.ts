@@ -28,15 +28,10 @@ export const GET = withAuth(
     }
 
     if (!family.studentIds.includes(studentId)) {
-      return NextResponse.json(
-        { error: '无权查看该学生' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: '无权查看该学生' }, { status: 403 })
     }
 
-    const member = family.members.find(
-      (m) => m.userId === studentId || m.id === studentId
-    )
+    const member = family.members.find(m => m.userId === studentId || m.id === studentId)
     if (!member?.userId) {
       return NextResponse.json({ error: '学生未关联' }, { status: 404 })
     }
@@ -54,22 +49,22 @@ export const GET = withAuth(
       drizzleDb.query.user.findFirst({
         where: eq(user.id, studentId),
         with: {
-          profile: { columns: { name: true } }
+          profile: { columns: { name: true } },
         },
         columns: {
           id: true,
           email: true,
-        }
+        },
       }),
       drizzleDb.query.curriculumEnrollment.findMany({
         where: eq(curriculumEnrollment.studentId, studentId),
         with: {
-          curriculum: { columns: { id: true, name: true } }
-        }
+          curriculum: { columns: { id: true, name: true } },
+        },
       }),
       drizzleDb.query.userGamification.findFirst({
-        where: eq(userGamification.userId, studentId)
-      })
+        where: eq(userGamification.userId, studentId),
+      }),
     ])
 
     if (!userData) {

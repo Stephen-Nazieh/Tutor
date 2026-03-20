@@ -27,4 +27,3 @@ export function getInboxPathByRole(role: AppRole): string {
       return '/admin'
   }
 }
-

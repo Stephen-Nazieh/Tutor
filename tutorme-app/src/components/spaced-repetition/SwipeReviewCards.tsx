@@ -8,16 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import {
-  X,
-  Check,
-  RotateCcw,
-  ChevronUp,
-  Brain,
-  Clock,
-  Zap,
-  Undo2
-} from 'lucide-react'
+import { X, Check, RotateCcw, ChevronUp, Brain, Clock, Zap, Undo2 } from 'lucide-react'
 
 interface ReviewCard {
   id: string
@@ -40,7 +31,7 @@ export function SwipeReviewCards({ cards, onComplete }: SwipeReviewCardsProps) {
   const [results, setResults] = useState<Record<string, 'easy' | 'medium' | 'hard' | 'skipped'>>({})
   const [showAnswer, setShowAnswer] = useState(false)
   const [exitDirection, setExitDirection] = useState<'left' | 'right' | 'up' | 'down' | null>(null)
-  
+
   // Touch/drag state
   const cardRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ x: 0, y: 0 })
@@ -53,12 +44,12 @@ export function SwipeReviewCards({ cards, onComplete }: SwipeReviewCardsProps) {
   // Handle swipe action
   const handleSwipe = (direction: 'left' | 'right' | 'up' | 'down') => {
     if (!currentCard) return
-    
+
     setExitDirection(direction)
-    
+
     setTimeout(() => {
       let rating: 'easy' | 'medium' | 'hard' | 'skipped'
-      
+
       switch (direction) {
         case 'right': // Easy - 4+ days
           rating = 'easy'
@@ -75,7 +66,7 @@ export function SwipeReviewCards({ cards, onComplete }: SwipeReviewCardsProps) {
         default:
           rating = 'medium'
       }
-      
+
       setResults(prev => ({ ...prev, [currentCard.id]: rating }))
       setCurrentIndex(prev => prev + 1)
       setPosition({ x: 0, y: 0 })
@@ -94,23 +85,23 @@ export function SwipeReviewCards({ cards, onComplete }: SwipeReviewCardsProps) {
 
   const handleTouchMove = (e: React.TouchEvent | React.MouseEvent) => {
     if (!isDragging) return
-    
+
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-    
+
     const deltaX = clientX - startPos.current.x
     const deltaY = clientY - startPos.current.y
-    
+
     setPosition({ x: deltaX, y: deltaY })
   }
 
   const handleTouchEnd = () => {
     if (!isDragging) return
     setIsDragging(false)
-    
+
     const threshold = 100
     const { x, y } = position
-    
+
     if (Math.abs(x) > Math.abs(y)) {
       // Horizontal swipe
       if (x > threshold) {
@@ -136,7 +127,7 @@ export function SwipeReviewCards({ cards, onComplete }: SwipeReviewCardsProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isComplete) return
-      
+
       switch (e.key) {
         case 'ArrowRight':
           handleSwipe('right')
@@ -156,7 +147,7 @@ export function SwipeReviewCards({ cards, onComplete }: SwipeReviewCardsProps) {
           break
       }
     }
-    
+
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [currentIndex, isComplete])
@@ -168,12 +159,14 @@ export function SwipeReviewCards({ cards, onComplete }: SwipeReviewCardsProps) {
   const getHintOpacity = () => {
     const threshold = 50
     const maxOffset = 150
-    
+
     if (Math.abs(position.x) > Math.abs(position.y)) {
       if (position.x > threshold) return Math.min(1, (position.x - threshold) / maxOffset)
-      if (position.x < -threshold) return Math.min(1, (Math.abs(position.x) - threshold) / maxOffset)
+      if (position.x < -threshold)
+        return Math.min(1, (Math.abs(position.x) - threshold) / maxOffset)
     } else {
-      if (position.y < -threshold) return Math.min(1, (Math.abs(position.y) - threshold) / maxOffset)
+      if (position.y < -threshold)
+        return Math.min(1, (Math.abs(position.y) - threshold) / maxOffset)
       if (position.y > threshold) return Math.min(1, (position.y - threshold) / maxOffset)
     }
     return 0
@@ -186,38 +179,40 @@ export function SwipeReviewCards({ cards, onComplete }: SwipeReviewCardsProps) {
     const skipped = Object.values(results).filter(r => r === 'skipped').length
 
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <Card className="max-w-md w-full text-center">
-          <CardContent className="pt-8 pb-8">
-            <div className="p-4 bg-green-50 rounded-full w-fit mx-auto mb-4">
-              <Check className="w-12 h-12 text-green-600" />
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
+        <Card className="w-full max-w-md text-center">
+          <CardContent className="pb-8 pt-8">
+            <div className="mx-auto mb-4 w-fit rounded-full bg-green-50 p-4">
+              <Check className="h-12 w-12 text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">Review Complete!</h2>
-            <p className="text-gray-500 mb-6">
-              You reviewed {cards.length} items
-            </p>
+            <h2 className="mb-2 text-2xl font-bold">Review Complete!</h2>
+            <p className="mb-6 text-gray-500">You reviewed {cards.length} items</p>
 
-            <div className="grid grid-cols-4 gap-3 mb-6">
-              <div className="p-3 bg-green-50 rounded-lg">
+            <div className="mb-6 grid grid-cols-4 gap-3">
+              <div className="rounded-lg bg-green-50 p-3">
                 <p className="text-xl font-bold text-green-600">{easy}</p>
                 <p className="text-xs text-gray-500">Easy</p>
               </div>
-              <div className="p-3 bg-yellow-50 rounded-lg">
+              <div className="rounded-lg bg-yellow-50 p-3">
                 <p className="text-xl font-bold text-yellow-600">{medium}</p>
                 <p className="text-xs text-gray-500">Medium</p>
               </div>
-              <div className="p-3 bg-red-50 rounded-lg">
+              <div className="rounded-lg bg-red-50 p-3">
                 <p className="text-xl font-bold text-red-600">{hard}</p>
                 <p className="text-xs text-gray-500">Hard</p>
               </div>
-              <div className="p-3 bg-gray-50 rounded-lg">
+              <div className="rounded-lg bg-gray-50 p-3">
                 <p className="text-xl font-bold text-gray-600">{skipped}</p>
                 <p className="text-xs text-gray-500">Skipped</p>
               </div>
             </div>
 
             <div className="flex gap-3">
-              <Button variant="outline" className="flex-1" onClick={() => router.push('/student/dashboard')}>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => router.push('/student/dashboard')}
+              >
                 Dashboard
               </Button>
               <Button className="flex-1" onClick={() => onComplete(results)}>
@@ -233,9 +228,9 @@ export function SwipeReviewCards({ cards, onComplete }: SwipeReviewCardsProps) {
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <Button variant="ghost" onClick={() => router.push('/student/dashboard')}>
-          <X className="w-5 h-5" />
+          <X className="h-5 w-5" />
         </Button>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500">
@@ -251,11 +246,11 @@ export function SwipeReviewCards({ cards, onComplete }: SwipeReviewCardsProps) {
       </div>
 
       {/* Card Stack */}
-      <div className="relative h-[400px] max-w-md mx-auto">
+      <div className="relative mx-auto h-[400px] max-w-md">
         {/* Next card (background) */}
         {currentIndex < cards.length - 1 && (
-          <Card className="absolute inset-0 scale-95 opacity-50 translate-y-4">
-            <CardContent className="h-full flex items-center justify-center">
+          <Card className="absolute inset-0 translate-y-4 scale-95 opacity-50">
+            <CardContent className="flex h-full items-center justify-center">
               <p className="text-gray-400">Next review...</p>
             </CardContent>
           </Card>
@@ -265,15 +260,21 @@ export function SwipeReviewCards({ cards, onComplete }: SwipeReviewCardsProps) {
         <Card
           ref={cardRef}
           className={cn(
-            "absolute inset-0 cursor-grab active:cursor-grabbing touch-none",
-            exitDirection && "transition-all duration-200"
+            'absolute inset-0 cursor-grab touch-none active:cursor-grabbing',
+            exitDirection && 'transition-all duration-200'
           )}
           style={{
             transform: `translate(${position.x}px, ${position.y}px) rotate(${rotation}deg)`,
-            ...(exitDirection === 'right' && { transform: 'translate(200%, 0) rotate(20deg)', opacity: 0 }),
-            ...(exitDirection === 'left' && { transform: 'translate(-200%, 0) rotate(-20deg)', opacity: 0 }),
+            ...(exitDirection === 'right' && {
+              transform: 'translate(200%, 0) rotate(20deg)',
+              opacity: 0,
+            }),
+            ...(exitDirection === 'left' && {
+              transform: 'translate(-200%, 0) rotate(-20deg)',
+              opacity: 0,
+            }),
             ...(exitDirection === 'up' && { transform: 'translate(0, -200%)', opacity: 0 }),
-            ...(exitDirection === 'down' && { transform: 'translate(0, 200%)', opacity: 0 })
+            ...(exitDirection === 'down' && { transform: 'translate(0, 200%)', opacity: 0 }),
           }}
           onMouseDown={handleTouchStart}
           onMouseMove={handleTouchMove}
@@ -283,84 +284,82 @@ export function SwipeReviewCards({ cards, onComplete }: SwipeReviewCardsProps) {
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          <CardContent className="h-full flex flex-col p-6">
+          <CardContent className="flex h-full flex-col p-6">
             {/* Swipe Hints */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg">
+            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-lg">
               {/* Easy hint (right) */}
-              <div 
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-green-500 rounded-full transition-opacity"
+              <div
+                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-green-500 p-3 transition-opacity"
                 style={{ opacity: position.x > 50 ? getHintOpacity() : 0 }}
               >
-                <Check className="w-8 h-8 text-white" />
+                <Check className="h-8 w-8 text-white" />
               </div>
-              
+
               {/* Hard hint (left) */}
-              <div 
-                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-red-500 rounded-full transition-opacity"
+              <div
+                className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-red-500 p-3 transition-opacity"
                 style={{ opacity: position.x < -50 ? getHintOpacity() : 0 }}
               >
-                <RotateCcw className="w-8 h-8 text-white" />
+                <RotateCcw className="h-8 w-8 text-white" />
               </div>
-              
+
               {/* Medium hint (up) */}
-              <div 
-                className="absolute top-4 left-1/2 -translate-x-1/2 p-3 bg-yellow-500 rounded-full transition-opacity"
+              <div
+                className="absolute left-1/2 top-4 -translate-x-1/2 rounded-full bg-yellow-500 p-3 transition-opacity"
                 style={{ opacity: position.y < -50 ? getHintOpacity() : 0 }}
               >
-                <Zap className="w-8 h-8 text-white" />
+                <Zap className="h-8 w-8 text-white" />
               </div>
-              
+
               {/* Skip hint (down) */}
-              <div 
-                className="absolute bottom-4 left-1/2 -translate-x-1/2 p-3 bg-gray-500 rounded-full transition-opacity"
+              <div
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-gray-500 p-3 transition-opacity"
                 style={{ opacity: position.y > 50 ? getHintOpacity() : 0 }}
               >
-                <Undo2 className="w-8 h-8 text-white" />
+                <Undo2 className="h-8 w-8 text-white" />
               </div>
             </div>
 
             {/* Content */}
-            <div className="flex-1 flex flex-col items-center justify-center text-center">
-              <Badge 
-                variant="outline" 
+            <div className="flex flex-1 flex-col items-center justify-center text-center">
+              <Badge
+                variant="outline"
                 className="mb-4"
                 style={{ borderColor: currentCard.subjectColor }}
               >
                 {currentCard.subjectName}
               </Badge>
 
-              <h3 className="text-xl font-semibold mb-4">{currentCard.contentTitle}</h3>
+              <h3 className="mb-4 text-xl font-semibold">{currentCard.contentTitle}</h3>
 
               {!showAnswer ? (
                 <Button onClick={() => setShowAnswer(true)} size="lg">
-                  <Brain className="w-5 h-5 mr-2" />
+                  <Brain className="mr-2 h-5 w-5" />
                   Show Answer
                 </Button>
               ) : (
-                <div className="space-y-4 w-full">
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <p className="text-sm text-blue-800">
-                      How well did you remember this?
-                    </p>
+                <div className="w-full space-y-4">
+                  <div className="rounded-lg bg-blue-50 p-4">
+                    <p className="text-sm text-blue-800">How well did you remember this?</p>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="border-red-200 hover:bg-red-50"
                       onClick={() => handleSwipe('left')}
                     >
                       Hard
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="border-yellow-200 hover:bg-yellow-50"
                       onClick={() => handleSwipe('up')}
                     >
                       Medium
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="border-green-200 hover:bg-green-50"
                       onClick={() => handleSwipe('right')}
                     >
@@ -373,7 +372,7 @@ export function SwipeReviewCards({ cards, onComplete }: SwipeReviewCardsProps) {
 
             {/* Retention indicator */}
             <div className="mt-4">
-              <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+              <div className="mb-1 flex items-center justify-between text-xs text-gray-500">
                 <span>Current Retention</span>
                 <span>{currentCard.currentRetention}%</span>
               </div>
@@ -384,51 +383,51 @@ export function SwipeReviewCards({ cards, onComplete }: SwipeReviewCardsProps) {
       </div>
 
       {/* Instructions */}
-      <div className="max-w-md mx-auto mt-8">
-        <p className="text-center text-sm text-gray-500 mb-4">
+      <div className="mx-auto mt-8 max-w-md">
+        <p className="mb-4 text-center text-sm text-gray-500">
           Swipe to rate, or use buttons below
         </p>
-        
+
         <div className="grid grid-cols-4 gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => handleSwipe('left')}
-            className="flex flex-col items-center py-3 h-auto border-red-200"
+            className="flex h-auto flex-col items-center border-red-200 py-3"
           >
-            <RotateCcw className="w-4 h-4 mb-1 text-red-500" />
+            <RotateCcw className="mb-1 h-4 w-4 text-red-500" />
             <span className="text-xs">Hard</span>
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => handleSwipe('down')}
-            className="flex flex-col items-center py-3 h-auto"
+            className="flex h-auto flex-col items-center py-3"
           >
-            <Undo2 className="w-4 h-4 mb-1" />
+            <Undo2 className="mb-1 h-4 w-4" />
             <span className="text-xs">Skip</span>
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => handleSwipe('up')}
-            className="flex flex-col items-center py-3 h-auto border-yellow-200"
+            className="flex h-auto flex-col items-center border-yellow-200 py-3"
           >
-            <Zap className="w-4 h-4 mb-1 text-yellow-500" />
+            <Zap className="mb-1 h-4 w-4 text-yellow-500" />
             <span className="text-xs">Medium</span>
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => handleSwipe('right')}
-            className="flex flex-col items-center py-3 h-auto border-green-200"
+            className="flex h-auto flex-col items-center border-green-200 py-3"
           >
-            <Check className="w-4 h-4 mb-1 text-green-500" />
+            <Check className="mb-1 h-4 w-4 text-green-500" />
             <span className="text-xs">Easy</span>
           </Button>
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-4">
+        <p className="mt-4 text-center text-xs text-gray-400">
           Keyboard: ← Hard • ↓ Skip • ↑ Medium → Easy • Space Show Answer
         </p>
       </div>

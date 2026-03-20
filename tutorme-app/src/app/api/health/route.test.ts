@@ -11,7 +11,14 @@ vi.mock('@/lib/db', () => ({
   },
 }))
 vi.mock('@/lib/db/monitor', () => ({
-  getHealthCheck: vi.fn().mockResolvedValue({ status: 'healthy', database: true, cache: false, latency: 1, stats: {}, issues: [] }),
+  getHealthCheck: vi.fn().mockResolvedValue({
+    status: 'healthy',
+    database: true,
+    cache: false,
+    latency: 1,
+    stats: {},
+    issues: [],
+  }),
   dbMonitor: { getStats: vi.fn().mockReturnValue({}), reset: vi.fn() },
 }))
 

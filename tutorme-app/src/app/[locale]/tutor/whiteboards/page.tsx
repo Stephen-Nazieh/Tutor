@@ -24,12 +24,12 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Plus, 
-  MoreVertical, 
-  Trash2, 
-  Copy, 
-  Download, 
+import {
+  Plus,
+  MoreVertical,
+  Trash2,
+  Copy,
+  Download,
   Grid3X3,
   Layout,
   Search,
@@ -37,7 +37,7 @@ import {
   Clock,
   FileText,
   ArrowLeft,
-  Loader2
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
@@ -104,7 +104,7 @@ export default function WhiteboardsPage() {
       })
 
       if (!res.ok) throw new Error('Failed to create whiteboard')
-      
+
       const data = await res.json()
       toast.success('Whiteboard created')
       setShowCreateDialog(false)
@@ -114,7 +114,7 @@ export default function WhiteboardsPage() {
         backgroundColor: '#ffffff',
         backgroundStyle: 'solid',
       })
-      
+
       // Navigate to the new whiteboard
       router.push(`/tutor/whiteboards/${data.whiteboard.id}`)
     } catch (error) {
@@ -135,7 +135,7 @@ export default function WhiteboardsPage() {
       })
 
       if (!res.ok) throw new Error('Failed to delete whiteboard')
-      
+
       toast.success('Whiteboard deleted')
       setWhiteboards(whiteboards.filter(wb => wb.id !== id))
     } catch (error) {
@@ -159,7 +159,7 @@ export default function WhiteboardsPage() {
       })
 
       if (!res.ok) throw new Error('Failed to duplicate whiteboard')
-      
+
       const data = await res.json()
       toast.success('Whiteboard duplicated')
       fetchWhiteboards()
@@ -174,9 +174,9 @@ export default function WhiteboardsPage() {
       const res = await fetch(`/api/whiteboards/${id}/export?format=${format}`, {
         credentials: 'include',
       })
-      
+
       if (!res.ok) throw new Error('Failed to export')
-      
+
       if (format === 'json') {
         const data = await res.json()
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -193,7 +193,7 @@ export default function WhiteboardsPage() {
         a.download = `whiteboard-${id}.${format}`
         a.click()
       }
-      
+
       toast.success('Export downloaded')
     } catch (error) {
       toast.error('Failed to export whiteboard')
@@ -201,9 +201,10 @@ export default function WhiteboardsPage() {
     }
   }
 
-  const filteredWhiteboards = whiteboards.filter(wb =>
-    wb.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (wb.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
+  const filteredWhiteboards = whiteboards.filter(
+    wb =>
+      wb.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (wb.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
   )
 
   const getBackgroundStyle = (style: string) => {
@@ -223,8 +224,8 @@ export default function WhiteboardsPage() {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="w-full">
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          <div className="flex h-64 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
           </div>
         </div>
       </div>
@@ -235,11 +236,11 @@ export default function WhiteboardsPage() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="w-full">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/tutor/dashboard">
               <Button variant="ghost" size="icon">
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
             <div>
@@ -247,11 +248,11 @@ export default function WhiteboardsPage() {
               <p className="text-gray-600">Create and manage your teaching whiteboards</p>
             </div>
           </div>
-          
+
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
               <Button>
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 New Whiteboard
               </Button>
             </DialogTrigger>
@@ -262,7 +263,7 @@ export default function WhiteboardsPage() {
                   Create a new whiteboard for your teaching sessions.
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Title *</Label>
@@ -270,47 +271,53 @@ export default function WhiteboardsPage() {
                     id="title"
                     placeholder="e.g., Math Diagrams"
                     value={newWhiteboard.title}
-                    onChange={(e) => setNewWhiteboard({ ...newWhiteboard, title: e.target.value })}
+                    onChange={e => setNewWhiteboard({ ...newWhiteboard, title: e.target.value })}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
                   <Input
                     id="description"
                     placeholder="Optional description"
                     value={newWhiteboard.description}
-                    onChange={(e) => setNewWhiteboard({ ...newWhiteboard, description: e.target.value })}
+                    onChange={e =>
+                      setNewWhiteboard({ ...newWhiteboard, description: e.target.value })
+                    }
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Background Style</Label>
                   <div className="grid grid-cols-4 gap-2">
-                    {['solid', 'grid', 'dots', 'lines'].map((style) => (
+                    {['solid', 'grid', 'dots', 'lines'].map(style => (
                       <button
                         key={style}
-                        onClick={() => setNewWhiteboard({ ...newWhiteboard, backgroundStyle: style as any })}
-                        className={`p-3 rounded-lg border-2 transition-all ${
+                        onClick={() =>
+                          setNewWhiteboard({ ...newWhiteboard, backgroundStyle: style as any })
+                        }
+                        className={`rounded-lg border-2 p-3 transition-all ${
                           newWhiteboard.backgroundStyle === style
                             ? 'border-blue-500 bg-blue-50'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
-                        <div className={`w-full h-8 rounded ${getBackgroundStyle(style)} bg-gray-50`} />
-                        <span className="text-xs mt-1 block capitalize">{style}</span>
+                        <div
+                          className={`h-8 w-full rounded ${getBackgroundStyle(style)} bg-gray-50`}
+                        />
+                        <span className="mt-1 block text-xs capitalize">{style}</span>
                       </button>
                     ))}
                   </div>
                 </div>
               </div>
-              
+
               <DialogFooter>
                 <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
                   Cancel
                 </Button>
                 <Button onClick={handleCreate} disabled={creating}>
-                  {creating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create
                 </Button>
               </DialogFooter>
@@ -320,11 +327,11 @@ export default function WhiteboardsPage() {
 
         {/* Search */}
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
             placeholder="Search whiteboards..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -333,105 +340,105 @@ export default function WhiteboardsPage() {
         {filteredWhiteboards.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="py-12 text-center">
-              <Palette className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <Palette className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+              <h3 className="mb-2 text-lg font-medium text-gray-900">
                 {searchQuery ? 'No whiteboards found' : 'No whiteboards yet'}
               </h3>
-              <p className="text-gray-500 mb-4">
-                {searchQuery 
+              <p className="mb-4 text-gray-500">
+                {searchQuery
                   ? 'Try adjusting your search query'
                   : 'Create your first whiteboard to get started'}
               </p>
               {!searchQuery && (
                 <Button onClick={() => setShowCreateDialog(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Plus className="mr-2 h-4 w-4" />
                   Create Whiteboard
                 </Button>
               )}
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredWhiteboards.map((whiteboard) => (
-              <Card key={whiteboard.id} className="group hover:shadow-lg transition-shadow">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filteredWhiteboards.map(whiteboard => (
+              <Card key={whiteboard.id} className="group transition-shadow hover:shadow-lg">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg truncate">
-                        <Link 
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="truncate text-lg">
+                        <Link
                           href={`/tutor/whiteboards/${whiteboard.id}`}
-                          className="hover:text-blue-600 transition-colors"
+                          className="transition-colors hover:text-blue-600"
                         >
                           {whiteboard.title}
                         </Link>
                       </CardTitle>
                       {whiteboard.description && (
-                        <p className="text-sm text-gray-500 truncate mt-1">
+                        <p className="mt-1 truncate text-sm text-gray-500">
                           {whiteboard.description}
                         </p>
                       )}
                     </div>
-                    
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <MoreVertical className="w-4 h-4" />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="opacity-0 transition-opacity group-hover:opacity-100"
+                        >
+                          <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleDuplicate(whiteboard)}>
-                          <Copy className="w-4 h-4 mr-2" />
+                          <Copy className="mr-2 h-4 w-4" />
                           Duplicate
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleExport(whiteboard.id, 'json')}>
-                          <Download className="w-4 h-4 mr-2" />
+                          <Download className="mr-2 h-4 w-4" />
                           Export JSON
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleExport(whiteboard.id, 'svg')}>
-                          <Download className="w-4 h-4 mr-2" />
+                          <Download className="mr-2 h-4 w-4" />
                           Export SVG
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleDelete(whiteboard.id)}
                           className="text-red-600"
                         >
-                          <Trash2 className="w-4 h-4 mr-2" />
+                          <Trash2 className="mr-2 h-4 w-4" />
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent>
                   {/* Preview */}
                   <Link href={`/tutor/whiteboards/${whiteboard.id}`}>
-                    <div 
-                      className={`h-32 rounded-lg border-2 border-gray-100 mb-4 ${getBackgroundStyle(whiteboard.backgroundStyle)}`}
+                    <div
+                      className={`mb-4 h-32 rounded-lg border-2 border-gray-100 ${getBackgroundStyle(whiteboard.backgroundStyle)}`}
                       style={{ backgroundColor: whiteboard.backgroundColor }}
                     />
                   </Link>
-                  
+
                   {/* Stats */}
                   <div className="flex items-center gap-4 text-sm text-gray-500">
                     <span className="flex items-center gap-1">
-                      <FileText className="w-4 h-4" />
+                      <FileText className="h-4 w-4" />
                       {whiteboard._count.pages} page{whiteboard._count.pages !== 1 ? 's' : ''}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
+                      <Clock className="h-4 w-4" />
                       {formatDistanceToNow(new Date(whiteboard.updatedAt), { addSuffix: true })}
                     </span>
                   </div>
-                  
+
                   {/* Badges */}
-                  <div className="flex gap-2 mt-3">
-                    {whiteboard.isTemplate && (
-                      <Badge variant="secondary">Template</Badge>
-                    )}
-                    {whiteboard.isPublic && (
-                      <Badge variant="outline">Public</Badge>
-                    )}
+                  <div className="mt-3 flex gap-2">
+                    {whiteboard.isTemplate && <Badge variant="secondary">Template</Badge>}
+                    {whiteboard.isPublic && <Badge variant="outline">Public</Badge>}
                   </div>
                 </CardContent>
               </Card>

@@ -17,7 +17,12 @@ import {
   profile,
 } from '@/lib/db/schema'
 
-export async function GET(req: NextRequest, context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }) {
+export async function GET(
+  req: NextRequest,
+  context?: {
+    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  }
+) {
   const session = await getServerSession(authOptions, req)
 
   if (!session?.user?.id) {
@@ -25,10 +30,7 @@ export async function GET(req: NextRequest, context?: { params?: Promise<Record<
   }
 
   if (session.user.role !== 'PARENT' && session.user.role !== 'ADMIN') {
-    return NextResponse.json(
-      { error: 'Only parents can view shared courses' },
-      { status: 403 }
-    )
+    return NextResponse.json({ error: 'Only parents can view shared courses' }, { status: 403 })
   }
 
   const shareId = await getParamAsync(context?.params, 'id')
@@ -78,7 +80,7 @@ export async function GET(req: NextRequest, context?: { params?: Promise<Record<
     .orderBy(asc(curriculumModule.order))
 
   const modulesWithLessons = await Promise.all(
-    modulesList.map(async (m) => {
+    modulesList.map(async m => {
       const lessons = await drizzleDb
         .select({
           id: curriculumLesson.id,

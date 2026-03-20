@@ -40,12 +40,12 @@ export default function PaymentPage() {
     if (curriculumId) {
       // Load course details
       fetch(`/api/curriculum/${curriculumId}`)
-        .then(res => res.ok ? res.json() : null)
+        .then(res => (res.ok ? res.json() : null))
         .then(data => {
           if (data?.curriculum) {
             setCourse({
               name: data.curriculum.name,
-              subject: data.curriculum.subject
+              subject: data.curriculum.subject,
             })
           }
         })
@@ -68,7 +68,7 @@ export default function PaymentPage() {
       // Use different endpoints for Chinese gateways vs standard gateways
       const isChineseGateway = selectedGateway === 'WECHAT_PAY' || selectedGateway === 'ALIPAY'
       const endpoint = isChineseGateway ? '/api/payments/chinese-gateways' : '/api/payments/create'
-      
+
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -121,18 +121,16 @@ export default function PaymentPage() {
 
   if (!curriculumId || !amount) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+        <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Invalid Payment Request</CardTitle>
-            <CardDescription>
-              Missing required payment information.
-            </CardDescription>
+            <CardDescription>Missing required payment information.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full">
               <Link href="/curriculum">
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Courses
               </Link>
             </Button>
@@ -143,11 +141,11 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-md mx-auto">
+    <div className="min-h-screen bg-gray-50 px-4 py-12">
+      <div className="mx-auto max-w-md">
         <Button variant="ghost" className="mb-4" asChild>
           <Link href={`/curriculum/${curriculumId}`}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Course
           </Link>
         </Button>
@@ -158,26 +156,22 @@ export default function PaymentPage() {
               <CreditCard className="h-5 w-5" />
               Complete Payment
             </CardTitle>
-            <CardDescription>
-              Secure payment for your course enrollment
-            </CardDescription>
+            <CardDescription>Secure payment for your course enrollment</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Course Info */}
             {course && (
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-600 font-medium">Course</p>
+              <div className="rounded-lg bg-blue-50 p-4">
+                <p className="text-sm font-medium text-blue-600">Course</p>
                 <p className="text-lg font-semibold text-blue-900">{course.name}</p>
                 <p className="text-sm text-blue-700">{course.subject}</p>
               </div>
             )}
 
             {/* Amount */}
-            <div className="text-center py-6 border-y">
-              <p className="text-sm text-gray-500 mb-1">Total Amount</p>
-              <p className="text-4xl font-bold text-gray-900">
-                {formatCurrency(amount, currency)}
-              </p>
+            <div className="border-y py-6 text-center">
+              <p className="mb-1 text-sm text-gray-500">Total Amount</p>
+              <p className="text-4xl font-bold text-gray-900">{formatCurrency(amount, currency)}</p>
             </div>
 
             {/* Payment Method Selection */}
@@ -185,14 +179,14 @@ export default function PaymentPage() {
               <Label>Payment Method</Label>
               <Select
                 value={selectedGateway}
-                onValueChange={(v) => setSelectedGateway(v as GatewayOption)}
+                onValueChange={v => setSelectedGateway(v as GatewayOption)}
                 disabled={loading}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Choose payment method" />
                 </SelectTrigger>
                 <SelectContent>
-                  {gatewayOptions.map((opt) => (
+                  {gatewayOptions.map(opt => (
                     <SelectItem key={opt.value} value={opt.value}>
                       {opt.label} — {opt.description}
                     </SelectItem>
@@ -208,12 +202,7 @@ export default function PaymentPage() {
             </div>
 
             {/* Pay Button */}
-            <Button
-              className="w-full gap-2"
-              size="lg"
-              onClick={handlePayment}
-              disabled={loading}
-            >
+            <Button className="w-full gap-2" size="lg" onClick={handlePayment} disabled={loading}>
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -227,7 +216,7 @@ export default function PaymentPage() {
               )}
             </Button>
 
-            <p className="text-xs text-center text-gray-400">
+            <p className="text-center text-xs text-gray-400">
               You will be redirected to our secure payment partner to complete the transaction.
             </p>
           </CardContent>

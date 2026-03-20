@@ -54,7 +54,7 @@ const PIPL_ACTIONS = {
   RECTIFICATION: 'pipl_rectification',
   CROSS_BORDER: 'pipl_cross_border',
   AI_EXPLANATION: 'pipl_ai_explanation',
-  PRIVACY_POLICY_CHANGE: 'pipl_privacy_policy_change'
+  PRIVACY_POLICY_CHANGE: 'pipl_privacy_policy_change',
 } as const
 
 /** PII sensitivity levels per PIPL */
@@ -72,12 +72,21 @@ const PII_PATTERNS: Record<string, { level: PIILevel; labelZh: string }> = {
   bio: { level: 'general', labelZh: '个人简介' },
   password: { level: 'critical', labelZh: '密码' },
   wechatId: { level: 'sensitive', labelZh: '微信ID' },
-  bankAccount: { level: 'critical', labelZh: '银行账户' }
+  bankAccount: { level: 'critical', labelZh: '银行账户' },
 }
 
 /** Regions that require cross-border transfer documentation when data leaves China */
 const CROSS_BORDER_DESTINATIONS = new Set([
-  'US', 'EU', 'SG', 'HK', 'JP', 'KR', 'TW', 'AU', 'UK', 'CA'
+  'US',
+  'EU',
+  'SG',
+  'HK',
+  'JP',
+  'KR',
+  'TW',
+  'AU',
+  'UK',
+  'CA',
 ])
 
 // =============================================================================
@@ -121,7 +130,7 @@ export const PIPL_ARTICLE_6 = {
       purpose,
       legalBasis: options?.legalBasis ?? 'explicit_consent',
       createdAt: new Date(),
-      expiresAt: options?.expiresAt
+      expiresAt: options?.expiresAt,
     }
 
     await logUserActivity(userId, PIPL_ACTIONS.CONSENT_CREATED, {
@@ -129,7 +138,7 @@ export const PIPL_ARTICLE_6 = {
       dataTypes,
       purpose,
       legalBasis: record.legalBasis,
-      expiresAt: record.expiresAt?.toISOString()
+      expiresAt: record.expiresAt?.toISOString(),
     })
 
     const elapsed = performance.now() - start
@@ -137,7 +146,7 @@ export const PIPL_ARTICLE_6 = {
       console.warn(`[PIPL] Consent creation took ${elapsed.toFixed(0)}ms (target <100ms)`)
     }
     return record
-  }
+  },
 }
 
 // =============================================================================
@@ -182,13 +191,17 @@ export const PIPL_ARTICLE_15 = {
         emailVerified: user.emailVerified,
         image: user.image,
         createdAt: user.createdAt,
-        updatedAt: user.updatedAt
+        updatedAt: user.updatedAt,
       })
       .from(user)
       .where(eq(user.id, userId))
       .limit(1)
 
-    const [profileRow] = await drizzleDb.select().from(profile).where(eq(profile.userId, userId)).limit(1)
+    const [profileRow] = await drizzleDb
+      .select()
+      .from(profile)
+      .where(eq(profile.userId, userId))
+      .limit(1)
     const accounts = await drizzleDb
       .select({ provider: account.provider, type: account.type })
       .from(account)
@@ -198,37 +211,65 @@ export const PIPL_ARTICLE_15 = {
       .select()
       .from(clinicBooking)
       .where(eq(clinicBooking.studentId, userId))
-    const clinicIds = [...new Set(clinicBookingsRaw.map((b) => b.clinicId))]
+    const clinicIds = [...new Set(clinicBookingsRaw.map(b => b.clinicId))]
     const clinics =
       clinicIds.length > 0
-        ? await drizzleDb.select({ id: clinic.id, title: clinic.title, startTime: clinic.startTime }).from(clinic).where(inArray(clinic.id, clinicIds))
+        ? await drizzleDb
+            .select({ id: clinic.id, title: clinic.title, startTime: clinic.startTime })
+            .from(clinic)
+            .where(inArray(clinic.id, clinicIds))
         : []
-    const clinicById = Object.fromEntries(clinics.map((c) => [c.id, c]))
-    const clinicBookings = clinicBookingsRaw.map((b) => ({ ...b, clinic: clinicById[b.clinicId] ?? null }))
+    const clinicById = Object.fromEntries(clinics.map(c => [c.id, c]))
+    const clinicBookings = clinicBookingsRaw.map(b => ({
+      ...b,
+      clinic: clinicById[b.clinicId] ?? null,
+    }))
 
-    const curriculumEnrollmentsRaw = await drizzleDb.select().from(curriculumEnrollment).where(eq(curriculumEnrollment.studentId, userId))
-    const currIds = [...new Set(curriculumEnrollmentsRaw.map((e) => e.curriculumId))]
+    const curriculumEnrollmentsRaw = await drizzleDb
+      .select()
+      .from(curriculumEnrollment)
+      .where(eq(curriculumEnrollment.studentId, userId))
+    const currIds = [...new Set(curriculumEnrollmentsRaw.map(e => e.curriculumId))]
     const curricula =
       currIds.length > 0
-        ? await drizzleDb.select({ id: curriculum.id, name: curriculum.name, subject: curriculum.subject }).from(curriculum).where(inArray(curriculum.id, currIds))
+        ? await drizzleDb
+            .select({ id: curriculum.id, name: curriculum.name, subject: curriculum.subject })
+            .from(curriculum)
+            .where(inArray(curriculum.id, currIds))
         : []
-    const curriculumById = Object.fromEntries(curricula.map((c) => [c.id, c]))
-    const curriculumEnrollments = curriculumEnrollmentsRaw.map((e) => ({ ...e, curriculum: curriculumById[e.curriculumId] ?? null }))
+    const curriculumById = Object.fromEntries(curricula.map(c => [c.id, c]))
+    const curriculumEnrollments = curriculumEnrollmentsRaw.map(e => ({
+      ...e,
+      curriculum: curriculumById[e.curriculumId] ?? null,
+    }))
 
     const messages = await drizzleDb
-      .select({ id: message.id, content: message.content, source: message.source, timestamp: message.timestamp })
+      .select({
+        id: message.id,
+        content: message.content,
+        source: message.source,
+        timestamp: message.timestamp,
+      })
       .from(message)
       .where(eq(message.userId, userId))
       .orderBy(desc(message.timestamp))
       .limit(500)
 
     const aiEnrollments = await drizzleDb
-      .select({ subjectCode: aITutorEnrollment.subjectCode, status: aITutorEnrollment.status, enrolledAt: aITutorEnrollment.enrolledAt })
+      .select({
+        subjectCode: aITutorEnrollment.subjectCode,
+        status: aITutorEnrollment.status,
+        enrolledAt: aITutorEnrollment.enrolledAt,
+      })
       .from(aITutorEnrollment)
       .where(eq(aITutorEnrollment.studentId, userId))
 
     const quizAttempts = await drizzleDb
-      .select({ id: quizAttempt.id, score: quizAttempt.score, completedAt: quizAttempt.completedAt })
+      .select({
+        id: quizAttempt.id,
+        score: quizAttempt.score,
+        completedAt: quizAttempt.completedAt,
+      })
       .from(quizAttempt)
       .where(eq(quizAttempt.studentId, userId))
       .limit(200)
@@ -240,11 +281,16 @@ export const PIPL_ARTICLE_15 = {
       .orderBy(desc(userActivityLog.createdAt))
       .limit(100)
 
-    const bookingIds = clinicBookingsRaw.map((b) => b.id)
+    const bookingIds = clinicBookingsRaw.map(b => b.id)
     const payments =
       bookingIds.length > 0
         ? await drizzleDb
-            .select({ id: payment.id, amount: payment.amount, status: payment.status, createdAt: payment.createdAt })
+            .select({
+              id: payment.id,
+              amount: payment.amount,
+              status: payment.status,
+              createdAt: payment.createdAt,
+            })
             .from(payment)
             .where(inArray(payment.bookingId, bookingIds))
         : []
@@ -261,7 +307,7 @@ export const PIPL_ARTICLE_15 = {
       accounts: accounts ?? [],
       enrollments: [
         ...(curriculumEnrollments ?? []),
-        ...(aiEnrollments ?? []).map((e) => ({ type: 'ai_tutor', ...e }))
+        ...(aiEnrollments ?? []).map(e => ({ type: 'ai_tutor', ...e })),
       ],
       bookings: clinicBookings ?? [],
       payments,
@@ -269,14 +315,14 @@ export const PIPL_ARTICLE_15 = {
       activitySummary: {
         totalActivityLogs: activityLogs?.length ?? 0,
         recentActions: activityLogs?.slice(0, 20) ?? [],
-        quizAttempts: quizAttempts?.length ?? 0
+        quizAttempts: quizAttempts?.length ?? 0,
       },
-      piiClassification
+      piiClassification,
     }
 
     await logUserActivity(userId, PIPL_ACTIONS.ACCESS_REQUEST, {
       requestType: 'data_subject_report',
-      fulfilledAt: new Date().toISOString()
+      fulfilledAt: new Date().toISOString(),
     })
 
     const elapsed = performance.now() - start
@@ -298,16 +344,16 @@ export const PIPL_ARTICLE_15 = {
       requestId,
       userId,
       requestedData,
-      fulfilledAt: new Date()
+      fulfilledAt: new Date(),
     }
 
     await logUserActivity(userId, PIPL_ACTIONS.ACCESS_REQUEST, {
       requestId,
       requestedData,
-      fulfilledAt: record.fulfilledAt.toISOString()
+      fulfilledAt: record.fulfilledAt.toISOString(),
     })
     return record
-  }
+  },
 }
 
 // =============================================================================
@@ -339,17 +385,17 @@ export const PIPL_ARTICLE_16 = {
       field,
       oldValue: String(oldValue),
       newValue: String(newValue),
-      timestamp: new Date()
+      timestamp: new Date(),
     }
 
     await logUserActivity(userId, PIPL_ACTIONS.RECTIFICATION, {
       rectificationId: record.id,
       field,
       oldValue: record.oldValue,
-      newValue: record.newValue
+      newValue: record.newValue,
     })
     return record
-  }
+  },
 }
 
 // =============================================================================
@@ -387,7 +433,7 @@ export const PIPL_ARTICLE_29 = {
       transferType,
       dataCategories: options?.dataCategories ?? ['profile', 'usage'],
       legalBasis: options?.legalBasis ?? 'user_consent',
-      timestamp: new Date()
+      timestamp: new Date(),
     }
 
     await logUserActivity(userId, PIPL_ACTIONS.CROSS_BORDER, {
@@ -395,7 +441,7 @@ export const PIPL_ARTICLE_29 = {
       region,
       transferType,
       dataCategories: record.dataCategories,
-      legalBasis: record.legalBasis
+      legalBasis: record.legalBasis,
     })
 
     const elapsed = performance.now() - start
@@ -413,7 +459,7 @@ export const PIPL_ARTICLE_29 = {
     if (!region) return false
     // Documentation required when data leaves China for these destinations
     return CROSS_BORDER_DESTINATIONS.has(region)
-  }
+  },
 }
 
 // =============================================================================
@@ -440,12 +486,12 @@ export const PIPL_ARTICLE_41 = {
       userId,
       algorithmDecision,
       explanation,
-      timestamp: new Date()
+      timestamp: new Date(),
     }
 
     await logUserActivity(userId, PIPL_ACTIONS.AI_EXPLANATION, {
       algorithmDecision,
-      explanation
+      explanation,
     })
     return record
   },
@@ -476,7 +522,7 @@ ${decision.context ? `背景：${decision.context}` : ''}
       const result = await generateWithFallback(prompt, {
         temperature: 0.3,
         maxTokens: 200,
-        timeoutMs: 5000
+        timeoutMs: 5000,
       })
       const explanation = result.content.trim()
 
@@ -489,7 +535,7 @@ ${decision.context ? `背景：${decision.context}` : ''}
       await this.createAccessRightsRecord(userId, decision.type, fallback)
       return fallback
     }
-  }
+  },
 }
 
 // =============================================================================
@@ -536,7 +582,7 @@ export function classifyPII(record: Record<string, unknown>): PIIClassificationR
           field: fullKey,
           level: match.level,
           labelZh: match.labelZh,
-          hasValue: value !== '' && value != null
+          hasValue: value !== '' && value != null,
         })
       }
     }
@@ -561,7 +607,7 @@ export function classifyField(fieldName: string, _value: unknown): PIIClassifica
         field: fieldName,
         level: config.level,
         labelZh: config.labelZh,
-        hasValue: true
+        hasValue: true,
       }
     }
   }
@@ -578,8 +624,8 @@ export const PIPL_NOTIFICATIONS = {
     zh: {
       title: '隐私政策更新通知',
       body: '我们已更新《隐私政策》。请查阅最新版本以了解我们如何收集、使用和保护您的个人信息。如有疑问，请联系我们。',
-      action: '查看隐私政策'
-    }
+      action: '查看隐私政策',
+    },
   },
 
   /** Consent request - Chinese */
@@ -587,8 +633,8 @@ export const PIPL_NOTIFICATIONS = {
     zh: {
       title: '需要您的同意',
       body: '为继续使用此功能，我们需要您明确同意我们处理以下类型的个人数据：{dataTypes}。处理目的：{purpose}。',
-      action: '同意'
-    }
+      action: '同意',
+    },
   },
 
   /** Data export ready - Chinese */
@@ -596,8 +642,8 @@ export const PIPL_NOTIFICATIONS = {
     zh: {
       title: '个人数据导出已就绪',
       body: '您请求的个人数据副本已准备完毕，可在15天内下载。',
-      action: '下载数据'
-    }
+      action: '下载数据',
+    },
   },
 
   /** Cross-border transfer notice - Chinese */
@@ -605,9 +651,9 @@ export const PIPL_NOTIFICATIONS = {
     zh: {
       title: '跨境数据传输告知',
       body: '您的部分数据可能被传输至中国境外进行处理。我们已采取适当保护措施，并已获得您的同意。',
-      action: '了解更多'
-    }
-  }
+      action: '了解更多',
+    },
+  },
 } as const
 
 /**
@@ -620,7 +666,10 @@ export function getPrivacyPolicyChangeNotification(locale = 'zh'): {
 } {
   const notifications = PIPL_NOTIFICATIONS.PRIVACY_POLICY_CHANGE
   const fallback = notifications.zh
-  return (notifications as Record<string, { title: string; body: string; action: string }>)[locale] ?? fallback
+  return (
+    (notifications as Record<string, { title: string; body: string; action: string }>)[locale] ??
+    fallback
+  )
 }
 
 /**
@@ -634,7 +683,7 @@ export async function logPrivacyPolicyChange(
   await logUserActivity(userId, PIPL_ACTIONS.PRIVACY_POLICY_CHANGE, {
     version,
     changeSummary,
-    notifiedAt: new Date().toISOString()
+    notifiedAt: new Date().toISOString(),
   })
 }
 
@@ -652,5 +701,5 @@ export const piplCompliance = {
   classifyField,
   notifications: PIPL_NOTIFICATIONS,
   getPrivacyPolicyChangeNotification,
-  logPrivacyPolicyChange
+  logPrivacyPolicyChange,
 }

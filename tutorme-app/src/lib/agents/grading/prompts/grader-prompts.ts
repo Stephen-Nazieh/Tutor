@@ -2,30 +2,30 @@
  * ============================================================================
  * GRADING AGENT - GRADING PROMPTS
  * ============================================================================
- * 
- * UI LOCATION: 
+ *
+ * UI LOCATION:
  * - /tutor/courses/[id]/tasks - "Auto Grade" button
  * - /student/quizzes/[id]/results - Shows AI feedback
- * 
+ *
  * EDIT THIS FILE to change how submissions are graded.
  */
 
-import { Question, Student } from '../../shared-data';
+import { Question, Student } from '../../shared-data'
 
 export interface GradingRequest {
-  question: Question;
-  studentAnswer: string;
-  student: Student;
-  maxPoints: number;
+  question: Question
+  studentAnswer: string
+  student: Student
+  maxPoints: number
 }
 
 export interface GradingResult {
-  score: number;
-  maxScore: number;
-  isCorrect: boolean;
-  feedback: string;
-  misconceptions: string[];
-  suggestions: string[];
+  score: number
+  maxScore: number
+  isCorrect: boolean
+  feedback: string
+  misconceptions: string[]
+  suggestions: string[]
 }
 
 /**
@@ -62,7 +62,7 @@ STUDENT INFO:
   "suggestions": ["Specific suggestions for improvement"]
 }
 
-Grade this submission now:`;
+Grade this submission now:`
 }
 
 /**
@@ -108,7 +108,7 @@ STUDENT LEVEL: ${studentLevel}
   "isPassing": boolean (score >= ${maxPoints * 0.6})
 }
 
-Grade now:`;
+Grade now:`
 }
 
 /**
@@ -158,7 +158,7 @@ ${studentWork}
   "hints": ["Hints for similar problems"]
 }
 
-Grade now:`;
+Grade now:`
 }
 
 /**
@@ -172,21 +172,21 @@ export function buildFeedbackTonePrompt(
   studentLabel: string,
   isStruggling: boolean
 ): string {
-  const percentage = (score / maxScore) * 100;
-  
-  let tone = '';
+  const percentage = (score / maxScore) * 100
+
+  let tone = ''
   if (percentage >= 90) {
-    tone = 'Enthusiastic and celebratory. Acknowledge excellence.';
+    tone = 'Enthusiastic and celebratory. Acknowledge excellence.'
   } else if (percentage >= 70) {
-    tone = 'Encouraging and constructive. Recognize good work with gentle guidance.';
+    tone = 'Encouraging and constructive. Recognize good work with gentle guidance.'
   } else if (percentage >= 50) {
-    tone = 'Supportive and guiding. Emphasize growth mindset. Offer specific help.';
+    tone = 'Supportive and guiding. Emphasize growth mindset. Offer specific help.'
   } else {
-    tone = isStruggling 
+    tone = isStruggling
       ? 'Very supportive and non-judgmental. Focus on effort. Offer concrete next steps and encouragement.'
-      : 'Supportive but direct about gaps. Clear action items for improvement.';
+      : 'Supportive but direct about gaps. Clear action items for improvement.'
   }
-  
+
   return `Rewrite this feedback for ${studentLabel} in a ${tone}
 
 ORIGINAL FEEDBACK:
@@ -199,5 +199,5 @@ REQUIREMENTS:
 - Keep length similar
 - Sign off as "Solocorn AI"
 
-Rewritten feedback:`;
+Rewritten feedback:`
 }

@@ -21,17 +21,11 @@ async function postHandler(request: NextRequest, session: Session) {
     const { ids } = (body || {}) as { ids?: string[] }
 
     if (!Array.isArray(ids) || ids.length === 0) {
-      return NextResponse.json(
-        { error: '请提供要审核的反馈ID列表' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: '请提供要审核的反馈ID列表' }, { status: 400 })
     }
 
     if (ids.length > 50) {
-      return NextResponse.json(
-        { error: '单次最多审核50条反馈' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: '单次最多审核50条反馈' }, { status: 400 })
     }
 
     const result = await batchApproveFeedback(ids, session.user.id)
@@ -41,8 +35,8 @@ async function postHandler(request: NextRequest, session: Session) {
       data: {
         approved: result.approved,
         failed: result.failed,
-        total: ids.length
-      }
+        total: ids.length,
+      },
     })
   } catch (error) {
     console.error('Failed to batch approve feedback:', error)

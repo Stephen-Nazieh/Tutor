@@ -7,7 +7,11 @@ import createMiddleware from 'next-intl/middleware'
 import { withAuth } from 'next-auth/middleware'
 import { NextResponse } from 'next/server'
 import { routing } from '@/i18n/routing'
-import { checkRateLimit, checkRateLimitPreset, getClientIdentifier } from '@/lib/security/rate-limit'
+import {
+  checkRateLimit,
+  checkRateLimitPreset,
+  getClientIdentifier,
+} from '@/lib/security/rate-limit'
 
 const intlMiddleware = createMiddleware(routing)
 
@@ -43,16 +47,12 @@ function getCspHeader(): string {
 // Allowed origins for CORS - uses env var in production, localhost in dev
 function getAllowedOrigins(): string[] {
   const productionOrigin = process.env.NEXT_PUBLIC_APP_URL
-  const devOrigins = [
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://localhost:3003',
-  ]
-  
+  const devOrigins = ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3003']
+
   if (productionOrigin) {
     return [productionOrigin, ...devOrigins]
   }
-  
+
   return devOrigins
 }
 
@@ -61,7 +61,7 @@ function addSecurityHeaders(res: NextResponse, req?: Request): NextResponse {
   res.headers.set('X-Frame-Options', 'SAMEORIGIN')
   res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   res.headers.set('Content-Security-Policy', getCspHeader())
-  
+
   // Add CORS headers for API requests from landing page
   if (req) {
     const origin = req.headers.get('origin')
@@ -72,7 +72,7 @@ function addSecurityHeaders(res: NextResponse, req?: Request): NextResponse {
       res.headers.set('Access-Control-Allow-Credentials', 'true')
     }
   }
-  
+
   return res
 }
 
@@ -100,7 +100,8 @@ export default withAuth(
     }
 
     // Stricter rate limit for login (POST to signin; NextAuth uses signin/credentials)
-    const isSignin = (path === '/api/auth/signin' || path === '/api/auth/signin/credentials') && method === 'POST'
+    const isSignin =
+      (path === '/api/auth/signin' || path === '/api/auth/signin/credentials') && method === 'POST'
     if (isSignin) {
       try {
         const { allowed, resetAt } = await checkRateLimitPreset(req as unknown as Request, 'login')
@@ -125,14 +126,14 @@ export default withAuth(
     }
 
     // Rate limit API (except auth, health, webhooks)
-    if (path.startsWith('/api') && !RATE_LIMIT_SKIP.some((p) => path.startsWith(p))) {
+    if (path.startsWith('/api') && !RATE_LIMIT_SKIP.some(p => path.startsWith(p))) {
       try {
         const key = getClientIdentifier(req as unknown as Request)
         const { allowed } = await checkRateLimit(key, API_RATE_LIMIT_MAX)
         if (!allowed) {
           const res = new NextResponse(JSON.stringify({ error: 'Too many requests' }), {
             status: 429,
-            headers: { 'Content-Type': 'application/json', 'Retry-After': '60' }
+            headers: { 'Content-Type': 'application/json', 'Retry-After': '60' },
           })
           addSecurityHeaders(res, req as unknown as Request)
           return res
@@ -157,7 +158,11 @@ export default withAuth(
     }
 
     // Protect student routes
-    if (normalizedPath.startsWith('/student') && token?.role !== 'STUDENT' && token?.role !== 'ADMIN') {
+    if (
+      normalizedPath.startsWith('/student') &&
+      token?.role !== 'STUDENT' &&
+      token?.role !== 'ADMIN'
+    ) {
       return NextResponse.redirect(new URL('/login', req.url))
     }
 
@@ -182,7 +187,12 @@ export default withAuth(
     }
 
     // Enforce TOS acceptance
-    if (token && !token.tosAccepted && !normalizedPath.startsWith('/student/agreement') && !path.startsWith('/api')) {
+    if (
+      token &&
+      !token.tosAccepted &&
+      !normalizedPath.startsWith('/student/agreement') &&
+      !path.startsWith('/api')
+    ) {
       return NextResponse.redirect(new URL('/student/agreement', req.url))
     }
 
@@ -202,9 +212,7 @@ export default withAuth(
       authorized({ req, token }) {
         const pathname = req.nextUrl.pathname
         const normalizedPath = pathname.startsWith('/api') ? pathname : stripLocalePrefix(pathname)
-        const publicExactPaths = [
-          '/',
-        ]
+        const publicExactPaths = ['/']
         const publicPrefixPaths = [
           '/api/auth',
           '/api/health',
@@ -217,19 +225,19 @@ export default withAuth(
           '/api/admin/',
           '/api/admin/auth',
           '/login',
+          '/forgot-password',
           '/register',
         ]
         const isPublicExact = publicExactPaths.includes(normalizedPath)
-        const isPublicPrefix = publicPrefixPaths.some((p) => {
+        const isPublicPrefix = publicPrefixPaths.some(p => {
           if (p.endsWith('/')) return normalizedPath.startsWith(p)
           return normalizedPath === p || normalizedPath.startsWith(`${p}/`)
         })
-        const isPublicPath =
-          isPublicExact || isPublicPrefix
+        const isPublicPath = isPublicExact || isPublicPrefix
         if (isPublicPath) return true
         return token !== null
-      }
-    }
+      },
+    },
   }
 )
 
@@ -244,6 +252,6 @@ export const config = {
     // Auth and API (for rate limiting)
     '/api/auth/signin',
     '/api/auth/signin/credentials',
-    '/api/((?!auth|health).*)'
-  ]
+    '/api/((?!auth|health).*)',
+  ],
 }

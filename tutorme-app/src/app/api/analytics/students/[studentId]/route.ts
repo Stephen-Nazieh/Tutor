@@ -9,7 +9,6 @@ import { getParamAsync } from '@/lib/api/params'
 import { getStudentPerformance } from '@/lib/performance/student-analytics'
 import { tutorHasStudent } from '@/lib/security/tutor-student-access'
 
-
 export const GET = withAuth(async (req, session, context) => {
   const studentId = await getParamAsync(context?.params, 'studentId')
   if (!studentId) {
@@ -37,6 +36,6 @@ export const GET = withAuth(async (req, session, context) => {
 
   return NextResponse.json({
     success: true,
-    data: performance
+    data: performance,
   })
 })

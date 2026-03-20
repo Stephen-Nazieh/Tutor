@@ -31,10 +31,7 @@ function prune(): void {
   }
 }
 
-function checkRateLimitMemory(
-  key: string,
-  options: RateLimitOptions
-): RateLimitResult {
+function checkRateLimitMemory(key: string, options: RateLimitOptions): RateLimitResult {
   const windowMs = options.windowMs ?? DEFAULT_WINDOW_MS
   const { max } = options
   const now = Date.now()
@@ -68,7 +65,7 @@ async function getRedisClient(): Promise<import('ioredis').Redis | null> {
       try {
         const { Redis } = await import('ioredis')
         const client = new Redis(url, {
-          retryStrategy: (times) => Math.min(times * 50, 2000),
+          retryStrategy: times => Math.min(times * 50, 2000),
           maxRetriesPerRequest: 3,
         })
         client.on('error', () => {})
@@ -173,7 +170,7 @@ export function getClientIdentifier(req: Request): string {
   const cfIp = req.headers.get('cf-connecting-ip')
 
   const firstForwarded = forwarded?.split(',')[0]?.trim()
-  const candidate = trustProxy ? (firstForwarded || realIp || cfIp) : (realIp || cfIp)
+  const candidate = trustProxy ? firstForwarded || realIp || cfIp : realIp || cfIp
   const ip = normalizeIp(candidate)
   if (ip !== 'unknown') return ip
 

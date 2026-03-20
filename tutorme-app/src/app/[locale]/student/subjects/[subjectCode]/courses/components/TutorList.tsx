@@ -32,23 +32,23 @@ export function TutorList({ subjectCode }: TutorListProps) {
 
   useEffect(() => {
     let cancelled = false
-    
+
     async function fetchTutors() {
       try {
         setLoading(true)
         setError(null)
-        
+
         const response = await fetch(
           `/api/tutors/by-subject?subject=${encodeURIComponent(subjectCode)}`,
           { credentials: 'include' }
         )
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch tutors')
         }
-        
+
         const data = await response.json()
-        
+
         if (!cancelled) {
           setTutors(data.tutors || [])
         }
@@ -64,19 +64,21 @@ export function TutorList({ subjectCode }: TutorListProps) {
     }
 
     fetchTutors()
-    
-    return () => { cancelled = true }
+
+    return () => {
+      cancelled = true
+    }
   }, [subjectCode])
 
   // Loading state
   if (loading) {
     return (
       <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
+        {[1, 2, 3].map(i => (
           <Card key={i}>
             <CardContent className="p-4">
               <div className="flex gap-4">
-                <Skeleton className="w-16 h-16 rounded-full" />
+                <Skeleton className="h-16 w-16 rounded-full" />
                 <div className="flex-1 space-y-2">
                   <Skeleton className="h-5 w-48" />
                   <Skeleton className="h-4 w-32" />
@@ -95,12 +97,9 @@ export function TutorList({ subjectCode }: TutorListProps) {
     return (
       <Card className="border-destructive/50">
         <CardContent className="pt-6 text-center">
-          <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
-          <p className="text-destructive mb-4">{error}</p>
-          <Button 
-            variant="outline" 
-            onClick={() => window.location.reload()}
-          >
+          <AlertCircle className="mx-auto mb-4 h-12 w-12 text-destructive" />
+          <p className="mb-4 text-destructive">{error}</p>
+          <Button variant="outline" onClick={() => window.location.reload()}>
             Try Again
           </Button>
         </CardContent>
@@ -111,19 +110,17 @@ export function TutorList({ subjectCode }: TutorListProps) {
   // Empty state
   if (tutors.length === 0) {
     return (
-      <Card className="bg-card border-border">
-        <CardContent className="pt-12 pb-12 text-center">
-          <Users className="w-16 h-16 text-muted mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-2">
-            No tutors available yet
-          </h3>
-          <p className="text-muted-foreground max-w-md mx-auto mb-6">
-            We&apos;re working on adding tutors for this subject. 
-            Check back soon or try the AI tutor option!
+      <Card className="border-border bg-card">
+        <CardContent className="pb-12 pt-12 text-center">
+          <Users className="mx-auto mb-4 h-16 w-16 text-muted" />
+          <h3 className="mb-2 text-lg font-medium text-foreground">No tutors available yet</h3>
+          <p className="mx-auto mb-6 max-w-md text-muted-foreground">
+            We&apos;re working on adding tutors for this subject. Check back soon or try the AI
+            tutor option!
           </p>
           <Button asChild variant="outline" className="border-border">
             <a href={`/student/subjects/${subjectCode}/chat`}>
-              <Search className="w-4 h-4 mr-2" />
+              <Search className="mr-2 h-4 w-4" />
               Try AI Tutor
             </a>
           </Button>
@@ -135,15 +132,11 @@ export function TutorList({ subjectCode }: TutorListProps) {
   // Tutors list
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground mb-4">
+      <p className="mb-4 text-sm text-muted-foreground">
         {tutors.length} tutor{tutors.length !== 1 ? 's' : ''} available for this subject
       </p>
-      {tutors.map((tutor) => (
-        <TutorCard 
-          key={tutor.id} 
-          tutor={tutor} 
-          subjectCode={subjectCode}
-        />
+      {tutors.map(tutor => (
+        <TutorCard key={tutor.id} tutor={tutor} subjectCode={subjectCode} />
       ))}
     </div>
   )

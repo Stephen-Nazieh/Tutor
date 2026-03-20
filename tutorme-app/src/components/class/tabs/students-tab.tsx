@@ -12,18 +12,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { 
-  Users, 
-  MoreVertical, 
-  Mic, 
-  MicOff, 
+import {
+  Users,
+  MoreVertical,
+  Mic,
+  MicOff,
   MessageSquare,
   UserX,
   Award,
   Search,
   SignalHigh,
   SignalMedium,
-  SignalLow
+  SignalLow,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSocket } from '@/hooks/use-socket'
@@ -62,9 +62,42 @@ export function StudentsTab({ sessionId }: StudentsTabProps) {
       } catch (error) {
         console.error('Failed to fetch students:', error)
         setStudents([
-          { id: '1', name: 'Alice Zhang', isOnline: true, isMuted: false, hasCameraOn: true, engagementScore: 85, attentionLevel: 'focused', handRaised: false, speakingTime: 120, messagesCount: 3 },
-          { id: '2', name: 'Bob Li', isOnline: true, isMuted: true, hasCameraOn: false, engagementScore: 45, attentionLevel: 'distracted', handRaised: true, speakingTime: 0, messagesCount: 1 },
-          { id: '3', name: 'Carol Wang', isOnline: true, isMuted: false, hasCameraOn: true, engagementScore: 92, attentionLevel: 'focused', handRaised: false, speakingTime: 180, messagesCount: 5 },
+          {
+            id: '1',
+            name: 'Alice Zhang',
+            isOnline: true,
+            isMuted: false,
+            hasCameraOn: true,
+            engagementScore: 85,
+            attentionLevel: 'focused',
+            handRaised: false,
+            speakingTime: 120,
+            messagesCount: 3,
+          },
+          {
+            id: '2',
+            name: 'Bob Li',
+            isOnline: true,
+            isMuted: true,
+            hasCameraOn: false,
+            engagementScore: 45,
+            attentionLevel: 'distracted',
+            handRaised: true,
+            speakingTime: 0,
+            messagesCount: 1,
+          },
+          {
+            id: '3',
+            name: 'Carol Wang',
+            isOnline: true,
+            isMuted: false,
+            hasCameraOn: true,
+            engagementScore: 92,
+            attentionLevel: 'focused',
+            handRaised: false,
+            speakingTime: 180,
+            messagesCount: 5,
+          },
         ])
       }
     }
@@ -74,11 +107,14 @@ export function StudentsTab({ sessionId }: StudentsTabProps) {
   useEffect(() => {
     if (!socket) return
 
-    socket.on('student:status-change', (update: { studentId: string, status: Partial<Student> }) => {
-      setStudents(prev => prev.map(s => 
-        s.id === update.studentId ? { ...s, ...update.status } : s
-      ))
-    })
+    socket.on(
+      'student:status-change',
+      (update: { studentId: string; status: Partial<Student> }) => {
+        setStudents(prev =>
+          prev.map(s => (s.id === update.studentId ? { ...s, ...update.status } : s))
+        )
+      }
+    )
 
     return () => {
       socket.off('student:status-change')
@@ -87,12 +123,16 @@ export function StudentsTab({ sessionId }: StudentsTabProps) {
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesFilter = 
-      filter === 'all' ? true :
-      filter === 'online' ? student.isOnline :
-      filter === 'raised-hand' ? student.handRaised :
-      filter === 'low-engagement' ? student.engagementScore < 50 :
-      true
+    const matchesFilter =
+      filter === 'all'
+        ? true
+        : filter === 'online'
+          ? student.isOnline
+          : filter === 'raised-hand'
+            ? student.handRaised
+            : filter === 'low-engagement'
+              ? student.engagementScore < 50
+              : true
     return matchesSearch && matchesFilter
   })
 
@@ -123,9 +163,10 @@ export function StudentsTab({ sessionId }: StudentsTabProps) {
   }
 
   const onlineCount = students.filter(s => s.isOnline).length
-  const totalEngagement = students.length > 0 
-    ? Math.round(students.reduce((acc, s) => acc + s.engagementScore, 0) / students.length)
-    : 0
+  const totalEngagement =
+    students.length > 0
+      ? Math.round(students.reduce((acc, s) => acc + s.engagementScore, 0) / students.length)
+      : 0
 
   return (
     <div className="space-y-4">
@@ -135,7 +176,9 @@ export function StudentsTab({ sessionId }: StudentsTabProps) {
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-blue-500" />
               <div>
-                <p className="text-2xl font-bold">{onlineCount}/{students.length}</p>
+                <p className="text-2xl font-bold">
+                  {onlineCount}/{students.length}
+                </p>
                 <p className="text-xs text-gray-500">Students Online</p>
               </div>
             </div>
@@ -155,8 +198,8 @@ export function StudentsTab({ sessionId }: StudentsTabProps) {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center">
-                <span className="text-white text-xs">✋</span>
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-yellow-500">
+                <span className="text-xs text-white">✋</span>
               </div>
               <div>
                 <p className="text-2xl font-bold">{students.filter(s => s.handRaised).length}</p>
@@ -169,18 +212,18 @@ export function StudentsTab({ sessionId }: StudentsTabProps) {
 
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
             placeholder="Search students..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="pl-10"
           />
         </div>
         <select
           value={filter}
-          onChange={(e) => setFilter(e.target.value as any)}
-          className="px-3 py-2 border rounded-md text-sm"
+          onChange={e => setFilter(e.target.value as any)}
+          className="rounded-md border px-3 py-2 text-sm"
         >
           <option value="all">All Students</option>
           <option value="online">Online Only</option>
@@ -191,42 +234,52 @@ export function StudentsTab({ sessionId }: StudentsTabProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Students ({filteredStudents.length})</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Students ({filteredStudents.length})
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {filteredStudents.map((student) => (
+            {filteredStudents.map(student => (
               <div
                 key={student.id}
                 className={cn(
-                  'flex items-center gap-3 p-3 rounded-lg border',
-                  student.handRaised ? 'bg-yellow-50 border-yellow-200' : 'bg-white border-gray-200'
+                  'flex items-center gap-3 rounded-lg border p-3',
+                  student.handRaised ? 'border-yellow-200 bg-yellow-50' : 'border-gray-200 bg-white'
                 )}
               >
                 <div className="relative">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback className="bg-blue-100 text-blue-700">
-                      {student.name.split(' ').map(n => n[0]).join('')}
+                      {student.name
+                        .split(' ')
+                        .map(n => n[0])
+                        .join('')}
                     </AvatarFallback>
                   </Avatar>
                   {student.isOnline && (
-                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
                   )}
                 </div>
 
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium truncate">{student.name}</p>
+                    <p className="truncate font-medium">{student.name}</p>
                     {student.handRaised && (
-                      <Badge className="bg-yellow-500 text-white text-xs">✋ Raised Hand</Badge>
+                      <Badge className="bg-yellow-500 text-xs text-white">✋ Raised Hand</Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge className={cn('text-xs',
-                      student.attentionLevel === 'focused' ? 'bg-green-100 text-green-700' :
-                      student.attentionLevel === 'neutral' ? 'bg-gray-100 text-gray-700' :
-                      'bg-red-100 text-red-700'
-                    )}>
+                  <div className="mt-1 flex items-center gap-2">
+                    <Badge
+                      className={cn(
+                        'text-xs',
+                        student.attentionLevel === 'focused'
+                          ? 'bg-green-100 text-green-700'
+                          : student.attentionLevel === 'neutral'
+                            ? 'bg-gray-100 text-gray-700'
+                            : 'bg-red-100 text-red-700'
+                      )}
+                    >
                       {student.attentionLevel}
                     </Badge>
                     <span className="text-xs text-gray-500">
@@ -251,22 +304,26 @@ export function StudentsTab({ sessionId }: StudentsTabProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => handleMuteToggle(student.id)}>
-                        {student.isMuted ? <Mic className="h-4 w-4 mr-2" /> : <MicOff className="h-4 w-4 mr-2" />}
+                        {student.isMuted ? (
+                          <Mic className="mr-2 h-4 w-4" />
+                        ) : (
+                          <MicOff className="mr-2 h-4 w-4" />
+                        )}
                         {student.isMuted ? 'Unmute' : 'Mute'}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleSendMessage(student.id)}>
-                        <MessageSquare className="h-4 w-4 mr-2" />
+                        <MessageSquare className="mr-2 h-4 w-4" />
                         Send Message
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleAwardPoints(student.id)}>
-                        <Award className="h-4 w-4 mr-2" />
+                        <Award className="mr-2 h-4 w-4" />
                         Award Points
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => handleRemoveStudent(student.id)}
                         className="text-red-600"
                       >
-                        <UserX className="h-4 w-4 mr-2" />
+                        <UserX className="mr-2 h-4 w-4" />
                         Remove from Session
                       </DropdownMenuItem>
                     </DropdownMenuContent>

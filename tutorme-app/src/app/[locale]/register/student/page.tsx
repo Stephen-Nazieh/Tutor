@@ -7,15 +7,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
-import {
-  ArrowLeft,
-  BookOpen,
-  Eye,
-  EyeOff,
-} from 'lucide-react'
+import { ArrowLeft, BookOpen, Eye, EyeOff } from 'lucide-react'
 import { REGIONS } from '@/lib/tutoring/categories-new'
 
 export default function StudentRegistrationPage() {
@@ -38,7 +39,7 @@ export default function StudentRegistrationPage() {
   })
 
   const selectedRegion = useMemo(
-    () => REGIONS.find((region) => region.id === formData.region),
+    () => REGIONS.find(region => region.id === formData.region),
     [formData.region]
   )
   const countryOptions = useMemo(
@@ -46,12 +47,12 @@ export default function StudentRegistrationPage() {
     [selectedRegion]
   )
   const selectedCountry = useMemo(
-    () => countryOptions.find((country) => country.code === formData.country),
+    () => countryOptions.find(country => country.code === formData.country),
     [countryOptions, formData.country]
   )
 
-  const goNext = () => setStep((prev) => Math.min(4, prev + 1))
-  const goBack = () => setStep((prev) => Math.max(1, prev - 1))
+  const goNext = () => setStep(prev => Math.min(4, prev + 1))
+  const goBack = () => setStep(prev => Math.max(1, prev - 1))
 
   const validateStep = () => {
     if (step === 1) {
@@ -146,18 +147,18 @@ export default function StudentRegistrationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white py-8 px-4">
-      <div className="max-w-lg mx-auto">
+    <div className="min-h-screen bg-white px-4 py-8">
+      <div className="mx-auto max-w-lg">
         <Link
           href="/register"
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
+          className="mb-4 inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
         >
-          <ArrowLeft className="h-4 w-4 mr-1" />
+          <ArrowLeft className="mr-1 h-4 w-4" />
           Back to Registration
         </Link>
 
-        <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-[#4FD1C5]/20 rounded-full flex items-center justify-center mb-4">
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#4FD1C5]/20">
             <BookOpen className="h-8 w-8 text-[#4FD1C5]" />
           </div>
           <h1 className="text-3xl font-bold text-[#1F2933]">Student Registration</h1>
@@ -187,7 +188,7 @@ export default function StudentRegistrationPage() {
                       id="firstName"
                       autoComplete="given-name"
                       value={formData.firstName}
-                      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                      onChange={e => setFormData({ ...formData, firstName: e.target.value })}
                       placeholder="John"
                     />
                   </div>
@@ -197,7 +198,7 @@ export default function StudentRegistrationPage() {
                       id="lastName"
                       autoComplete="family-name"
                       value={formData.lastName}
-                      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                      onChange={e => setFormData({ ...formData, lastName: e.target.value })}
                       placeholder="Doe"
                     />
                   </div>
@@ -210,7 +211,7 @@ export default function StudentRegistrationPage() {
                     type="email"
                     autoComplete="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={e => setFormData({ ...formData, email: e.target.value })}
                     placeholder="student@example.com"
                   />
                 </div>
@@ -229,16 +230,20 @@ export default function StudentRegistrationPage() {
                         autoComplete="new-password"
                         type={showPassword ? 'text' : 'password'}
                         value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        onChange={e => setFormData({ ...formData, password: e.target.value })}
                         placeholder="Create password"
                       />
                       <button
                         type="button"
-                        onClick={() => setShowPassword((prev) => !prev)}
+                        onClick={() => setShowPassword(prev => !prev)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                         aria-label={showPassword ? 'Hide password' : 'Show password'}
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -251,16 +256,22 @@ export default function StudentRegistrationPage() {
                         autoComplete="new-password"
                         type={showConfirmPassword ? 'text' : 'password'}
                         value={formData.confirmPassword}
-                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                        onChange={e =>
+                          setFormData({ ...formData, confirmPassword: e.target.value })
+                        }
                         placeholder="Confirm password"
                       />
                       <button
                         type="button"
-                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                        onClick={() => setShowConfirmPassword(prev => !prev)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                         aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                       >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -279,42 +290,46 @@ export default function StudentRegistrationPage() {
                       min={5}
                       max={100}
                       value={formData.age}
-                      onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                      onChange={e => setFormData({ ...formData, age: e.target.value })}
                       placeholder="Enter age"
                     />
                   </div>
                   <div className="space-y-2">
-                  <Label htmlFor="region">Region</Label>
-                  <Select
-                    value={formData.region}
-                    onValueChange={(value) => setFormData({ ...formData, region: value, country: '' })}
-                  >
-                    <SelectTrigger id="region">
-                      <SelectValue placeholder="Select region" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {REGIONS.map((region) => (
-                        <SelectItem key={region.id} value={region.id}>
-                          {region.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    <Label htmlFor="region">Region</Label>
+                    <Select
+                      value={formData.region}
+                      onValueChange={value =>
+                        setFormData({ ...formData, region: value, country: '' })
+                      }
+                    >
+                      <SelectTrigger id="region">
+                        <SelectValue placeholder="Select region" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {REGIONS.map(region => (
+                          <SelectItem key={region.id} value={region.id}>
+                            {region.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="country">Country</Label>
                   <Select
                     value={formData.country}
-                    onValueChange={(value) => setFormData({ ...formData, country: value })}
+                    onValueChange={value => setFormData({ ...formData, country: value })}
                     disabled={!formData.region}
                   >
                     <SelectTrigger id="country">
-                      <SelectValue placeholder={formData.region ? 'Select country' : 'Select region first'} />
+                      <SelectValue
+                        placeholder={formData.region ? 'Select country' : 'Select region first'}
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {countryOptions.map((country) => (
+                      {countryOptions.map(country => (
                         <SelectItem key={country.code} value={country.code}>
                           {country.name}
                         </SelectItem>
@@ -327,12 +342,12 @@ export default function StudentRegistrationPage() {
                   <Checkbox
                     id="isSixteen"
                     checked={formData.isSixteen}
-                    onCheckedChange={(checked) =>
-                      setFormData((prev) => ({ ...prev, isSixteen: checked === true }))
+                    onCheckedChange={checked =>
+                      setFormData(prev => ({ ...prev, isSixteen: checked === true }))
                     }
                   />
                   <div className="space-y-1">
-                    <Label htmlFor="isSixteen" className="font-medium cursor-pointer">
+                    <Label htmlFor="isSixteen" className="cursor-pointer font-medium">
                       Are you 16 years of age or older?
                     </Label>
                   </div>
@@ -342,22 +357,25 @@ export default function StudentRegistrationPage() {
 
             {step === 4 && (
               <>
-                <div className="rounded-lg border p-4 bg-slate-50">
-                  <h3 className="text-sm font-semibold text-slate-800">Agree to Terms of Service</h3>
-                  <p className="text-sm text-slate-600 mt-2">
-                    Please review and agree to the Terms of Service and Privacy Policy to complete your registration.
+                <div className="rounded-lg border bg-slate-50 p-4">
+                  <h3 className="text-sm font-semibold text-slate-800">
+                    Agree to Terms of Service
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Please review and agree to the Terms of Service and Privacy Policy to complete
+                    your registration.
                   </p>
                 </div>
                 <div className="flex items-start space-x-3 rounded-lg border p-4">
                   <Checkbox
                     id="tosAccepted"
                     checked={formData.tosAccepted}
-                    onCheckedChange={(checked) =>
-                      setFormData((prev) => ({ ...prev, tosAccepted: checked === true }))
+                    onCheckedChange={checked =>
+                      setFormData(prev => ({ ...prev, tosAccepted: checked === true }))
                     }
                   />
                   <div className="space-y-1">
-                    <Label htmlFor="tosAccepted" className="font-medium cursor-pointer">
+                    <Label htmlFor="tosAccepted" className="cursor-pointer font-medium">
                       I accept the Terms of Service and Privacy Policy
                     </Label>
                     <p className="text-sm text-gray-500">
@@ -373,7 +391,11 @@ export default function StudentRegistrationPage() {
                 Back
               </Button>
               {step < 4 ? (
-                <Button className="bg-[#4FD1C5] hover:bg-[#3bc4b2]" onClick={handleNext} disabled={isLoading}>
+                <Button
+                  className="bg-[#4FD1C5] hover:bg-[#3bc4b2]"
+                  onClick={handleNext}
+                  disabled={isLoading}
+                >
                   Continue
                 </Button>
               ) : (
@@ -389,9 +411,9 @@ export default function StudentRegistrationPage() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="mt-6 text-center text-sm text-gray-500">
           Already have an account?{' '}
-          <Link href="/login" className="text-[#1D4ED8] hover:underline font-medium">
+          <Link href="/login" className="font-medium text-[#1D4ED8] hover:underline">
             Sign in
           </Link>
         </p>

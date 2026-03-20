@@ -5,8 +5,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -55,7 +68,7 @@ import {
   RefreshCw,
   ExternalLink,
   Copy,
-  Layers
+  Layers,
 } from 'lucide-react'
 
 // Date manipulation
@@ -68,7 +81,7 @@ import {
   startOfDay,
   startOfWeek,
   eachDayOfInterval,
-  isWithinInterval
+  isWithinInterval,
 } from 'date-fns'
 
 interface CalendarEvent {
@@ -125,7 +138,7 @@ const SUBJECTS = [
   { name: 'Chemistry', color: 'bg-orange-500' },
   { name: 'Biology', color: 'bg-pink-500' },
   { name: 'History', color: 'bg-red-500' },
-  { name: 'Office Hours', color: 'bg-gray-500' }
+  { name: 'Office Hours', color: 'bg-gray-500' },
 ]
 
 const generateDemoEvents = (): CalendarEvent[] => {
@@ -134,18 +147,74 @@ const generateDemoEvents = (): CalendarEvent[] => {
 
   // Generate recurring weekly classes
   const recurringClasses = [
-    { title: 'Advanced Mathematics', subject: 'Mathematics', duration: 60, students: 12, max: 20, day: 1, time: 14, color: 'bg-blue-500', isRecurring: true, pattern: 'weekly' as const },
-    { title: 'Physics 101', subject: 'Physics', duration: 90, students: 8, max: 15, day: 2, time: 16, color: 'bg-purple-500', isRecurring: true, pattern: 'weekly' as const },
-    { title: 'English Literature', subject: 'English', duration: 60, students: 15, max: 25, day: 3, time: 14, color: 'bg-green-500', isRecurring: true, pattern: 'weekly' as const },
-    { title: 'Chemistry Lab', subject: 'Chemistry', duration: 120, students: 6, max: 10, day: 4, time: 15, color: 'bg-orange-500', isRecurring: true, pattern: 'weekly' as const },
-    { title: 'Office Hours', subject: 'Office Hours', duration: 60, students: 0, max: 5, day: 5, time: 17, color: 'bg-gray-500', type: 'office_hours' as const, isRecurring: true, pattern: 'weekly' as const },
+    {
+      title: 'Advanced Mathematics',
+      subject: 'Mathematics',
+      duration: 60,
+      students: 12,
+      max: 20,
+      day: 1,
+      time: 14,
+      color: 'bg-blue-500',
+      isRecurring: true,
+      pattern: 'weekly' as const,
+    },
+    {
+      title: 'Physics 101',
+      subject: 'Physics',
+      duration: 90,
+      students: 8,
+      max: 15,
+      day: 2,
+      time: 16,
+      color: 'bg-purple-500',
+      isRecurring: true,
+      pattern: 'weekly' as const,
+    },
+    {
+      title: 'English Literature',
+      subject: 'English',
+      duration: 60,
+      students: 15,
+      max: 25,
+      day: 3,
+      time: 14,
+      color: 'bg-green-500',
+      isRecurring: true,
+      pattern: 'weekly' as const,
+    },
+    {
+      title: 'Chemistry Lab',
+      subject: 'Chemistry',
+      duration: 120,
+      students: 6,
+      max: 10,
+      day: 4,
+      time: 15,
+      color: 'bg-orange-500',
+      isRecurring: true,
+      pattern: 'weekly' as const,
+    },
+    {
+      title: 'Office Hours',
+      subject: 'Office Hours',
+      duration: 60,
+      students: 0,
+      max: 5,
+      day: 5,
+      time: 17,
+      color: 'bg-gray-500',
+      type: 'office_hours' as const,
+      isRecurring: true,
+      pattern: 'weekly' as const,
+    },
   ]
 
   // Generate 4 weeks of recurring classes
   for (let week = 0; week < 4; week++) {
     recurringClasses.forEach((cls, idx) => {
       const eventDate = new Date(today)
-      eventDate.setDate(today.getDate() - today.getDay() + cls.day + (week * 7))
+      eventDate.setDate(today.getDate() - today.getDay() + cls.day + week * 7)
       eventDate.setHours(cls.time, 0, 0, 0)
 
       if (eventDate >= new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)) {
@@ -163,7 +232,7 @@ const generateDemoEvents = (): CalendarEvent[] => {
           description: `Regular ${cls.pattern} class session`,
           color: cls.color,
           isRecurring: cls.isRecurring,
-          recurringPattern: cls.pattern
+          recurringPattern: cls.pattern,
         })
       }
     })
@@ -178,16 +247,27 @@ const generateDemoEvents = (): CalendarEvent[] => {
     type: 'personal',
     status: 'scheduled',
     subject: 'Office Hours',
-    color: 'bg-red-500'
+    color: 'bg-red-500',
   })
 
   return events
 }
 
 const TIME_SLOTS = [
-  '08:00', '09:00', '10:00', '11:00', '12:00',
-  '13:00', '14:00', '15:00', '16:00', '17:00',
-  '18:00', '19:00', '20:00', '21:00'
+  '08:00',
+  '09:00',
+  '10:00',
+  '11:00',
+  '12:00',
+  '13:00',
+  '14:00',
+  '15:00',
+  '16:00',
+  '17:00',
+  '18:00',
+  '19:00',
+  '20:00',
+  '21:00',
 ]
 
 const DEFAULT_TIMEZONE =
@@ -218,7 +298,7 @@ function DraggableEvent({
   event,
   onClick,
   hasConflict,
-  style = {}
+  style = {},
 }: {
   event: CalendarEvent
   onClick: () => void
@@ -227,7 +307,7 @@ function DraggableEvent({
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: event.id,
-    data: { event }
+    data: { event },
   })
 
   const cssTransform = CSS.Transform.toString(transform)
@@ -241,13 +321,13 @@ function DraggableEvent({
         ...style,
         transform: cssTransform,
         opacity: isDragging ? 0.5 : 1,
-        cursor: 'grab'
+        cursor: 'grab',
       }}
       className={cn(
-        "absolute left-1 right-1 rounded p-2 cursor-pointer text-xs overflow-hidden group",
+        'group absolute left-1 right-1 cursor-pointer overflow-hidden rounded p-2 text-xs',
         event.color || 'bg-blue-500',
-        event.status === 'cancelled' && "opacity-50",
-        hasConflict && "ring-2 ring-red-500 ring-offset-1"
+        event.status === 'cancelled' && 'opacity-50',
+        hasConflict && 'ring-2 ring-red-500 ring-offset-1'
       )}
       onClick={(e: any) => {
         e.stopPropagation()
@@ -255,17 +335,15 @@ function DraggableEvent({
       }}
     >
       <div className="flex items-start justify-between">
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-white truncate">{event.title}</p>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-medium text-white">{event.title}</p>
           <p className="text-white/80">
             {event.date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
-        <GripVertical className="w-3 h-3 text-white/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <GripVertical className="h-3 w-3 text-white/50 opacity-0 transition-opacity group-hover:opacity-100" />
       </div>
-      {hasConflict && (
-        <AlertTriangle className="w-3 h-3 text-white absolute top-1 right-1" />
-      )}
+      {hasConflict && <AlertTriangle className="absolute right-1 top-1 h-3 w-3 text-white" />}
     </div>
   )
 }
@@ -279,11 +357,15 @@ export function InteractiveCalendar({
   loading,
   mode = 'tutor',
   initialView = 'month',
-  dayClickMode = 'callback'
+  dayClickMode = 'callback',
 }: InteractiveCalendarProps) {
   const isStudent = mode === 'student'
-  const [events, setEvents] = useState<CalendarEvent[]>(initialEvents || (isStudent ? [] : generateDemoEvents()))
-  const [availability, setAvailability] = useState<AvailabilityBlock[]>(isStudent ? [] : generateAvailability())
+  const [events, setEvents] = useState<CalendarEvent[]>(
+    initialEvents || (isStudent ? [] : generateDemoEvents())
+  )
+  const [availability, setAvailability] = useState<AvailabilityBlock[]>(
+    isStudent ? [] : generateAvailability()
+  )
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<CalendarView>(initialView)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
@@ -343,12 +425,13 @@ export function InteractiveCalendar({
           setTimezone(apiAvailability[0].timezone || DEFAULT_TIMEZONE)
         }
         const base = generateAvailability()
-        const normalized = base.map((block) => {
-          const found = apiAvailability.some((slot: any) =>
-            slot.dayOfWeek === block.dayOfWeek &&
-            slot.startTime === block.startTime &&
-            slot.endTime === block.endTime &&
-            slot.isAvailable === true
+        const normalized = base.map(block => {
+          const found = apiAvailability.some(
+            (slot: any) =>
+              slot.dayOfWeek === block.dayOfWeek &&
+              slot.startTime === block.startTime &&
+              slot.endTime === block.endTime &&
+              slot.isAvailable === true
           )
           return { ...block, isAvailable: found }
         })
@@ -390,7 +473,7 @@ export function InteractiveCalendar({
           const start2 = event2.date.getTime()
           const end2 = start2 + event2.duration * 60000
 
-          if ((start1 < end2 && end1 > start2)) {
+          if (start1 < end2 && end1 > start2) {
             conflicts.push(event1, event2)
           }
         }
@@ -424,8 +507,20 @@ export function InteractiveCalendar({
   }, [events, subjectFilter, typeFilter])
 
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December']
+  const monthNames = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ]
 
   const headerLabel = useMemo(() => {
     if (view === 'week') {
@@ -469,10 +564,12 @@ export function InteractiveCalendar({
   }, [currentDate])
 
   const getEventsForDate = (date: Date) => {
-    return filteredEvents.filter(event => {
-      const eventDate = new Date(event.date)
-      return eventDate.toDateString() === date.toDateString()
-    }).sort((a, b) => a.date.getTime() - b.date.getTime())
+    return filteredEvents
+      .filter(event => {
+        const eventDate = new Date(event.date)
+        return eventDate.toDateString() === date.toDateString()
+      })
+      .sort((a, b) => a.date.getTime() - b.date.getTime())
   }
 
   const navigatePeriod = (direction: number) => {
@@ -526,19 +623,19 @@ export function InteractiveCalendar({
     if (!availabilityDate) return []
     const dayIndex = availabilityDate.getDay()
     return availability
-      .filter((block) => block.dayOfWeek === dayIndex)
+      .filter(block => block.dayOfWeek === dayIndex)
       .sort((a, b) => a.startTime.localeCompare(b.startTime))
   }, [availability, availabilityDate])
 
   const toggleAvailability = async (id: string) => {
     if (availabilitySaving || mode !== 'tutor') return
-    const target = availability.find((block) => block.id === id)
+    const target = availability.find(block => block.id === id)
     if (!target) return
 
     const nextValue = !target.isAvailable
-    setAvailability(prev => prev.map(block =>
-      block.id === id ? { ...block, isAvailable: nextValue } : block
-    ))
+    setAvailability(prev =>
+      prev.map(block => (block.id === id ? { ...block, isAvailable: nextValue } : block))
+    )
     setAvailabilitySaving(true)
 
     try {
@@ -567,9 +664,9 @@ export function InteractiveCalendar({
         throw new Error(data?.error || 'Failed to update availability')
       }
     } catch (error) {
-      setAvailability(prev => prev.map(block =>
-        block.id === id ? { ...block, isAvailable: target.isAvailable } : block
-      ))
+      setAvailability(prev =>
+        prev.map(block => (block.id === id ? { ...block, isAvailable: target.isAvailable } : block))
+      )
       toast.error(error instanceof Error ? error.message : 'Failed to update availability')
     } finally {
       setAvailabilitySaving(false)
@@ -577,39 +674,45 @@ export function InteractiveCalendar({
   }
 
   // DnD Handlers
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    const { active } = event
-    const draggedEvent = events.find(e => e.id === active.id)
-    if (draggedEvent) {
-      setActiveDragEvent(draggedEvent)
-    }
-  }, [events])
-
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event
-
-    if (over && active.id !== over.id) {
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const { active } = event
       const draggedEvent = events.find(e => e.id === active.id)
-      const dropData = over.data.current as { date?: Date; hour?: number } | undefined
-
-      if (draggedEvent && dropData?.date) {
-        const newDate = new Date(dropData.date)
-        if (dropData.hour !== undefined) {
-          newDate.setHours(dropData.hour, draggedEvent.date.getMinutes(), 0, 0)
-        } else {
-          newDate.setHours(draggedEvent.date.getHours(), draggedEvent.date.getMinutes(), 0, 0)
-        }
-
-        const updatedEvent = { ...draggedEvent, date: newDate }
-
-        setEvents(prev => prev.map(e => e.id === draggedEvent.id ? updatedEvent : e))
-        onEventUpdate?.(updatedEvent)
-        toast.success(`Rescheduled: ${draggedEvent.title} to ${format(newDate, 'MMM d, h:mm a')}`)
+      if (draggedEvent) {
+        setActiveDragEvent(draggedEvent)
       }
-    }
+    },
+    [events]
+  )
 
-    setActiveDragEvent(null)
-  }, [events, onEventUpdate])
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event
+
+      if (over && active.id !== over.id) {
+        const draggedEvent = events.find(e => e.id === active.id)
+        const dropData = over.data.current as { date?: Date; hour?: number } | undefined
+
+        if (draggedEvent && dropData?.date) {
+          const newDate = new Date(dropData.date)
+          if (dropData.hour !== undefined) {
+            newDate.setHours(dropData.hour, draggedEvent.date.getMinutes(), 0, 0)
+          } else {
+            newDate.setHours(draggedEvent.date.getHours(), draggedEvent.date.getMinutes(), 0, 0)
+          }
+
+          const updatedEvent = { ...draggedEvent, date: newDate }
+
+          setEvents(prev => prev.map(e => (e.id === draggedEvent.id ? updatedEvent : e)))
+          onEventUpdate?.(updatedEvent)
+          toast.success(`Rescheduled: ${draggedEvent.title} to ${format(newDate, 'MMM d, h:mm a')}`)
+        }
+      }
+
+      setActiveDragEvent(null)
+    },
+    [events, onEventUpdate]
+  )
 
   // Calendar Integration Handlers
   const connectCalendar = (provider: 'google' | 'outlook' | 'apple') => {
@@ -618,30 +721,34 @@ export function InteractiveCalendar({
 
     // Simulate connection
     setTimeout(() => {
-      setCalendarConnections(prev => prev.map(conn =>
-        conn.provider === provider
-          ? { ...conn, connected: true, email: `tutor@${provider}.com`, lastSynced: new Date() }
-          : conn
-      ))
+      setCalendarConnections(prev =>
+        prev.map(conn =>
+          conn.provider === provider
+            ? { ...conn, connected: true, email: `tutor@${provider}.com`, lastSynced: new Date() }
+            : conn
+        )
+      )
       toast.success(`Connected to ${provider} calendar!`)
     }, 1500)
   }
 
   const disconnectCalendar = (provider: string) => {
-    setCalendarConnections(prev => prev.map(conn =>
-      conn.provider === provider
-        ? { ...conn, connected: false, email: undefined, lastSynced: undefined }
-        : conn
-    ))
+    setCalendarConnections(prev =>
+      prev.map(conn =>
+        conn.provider === provider
+          ? { ...conn, connected: false, email: undefined, lastSynced: undefined }
+          : conn
+      )
+    )
     toast.success(`Disconnected from ${provider}`)
   }
 
   const syncCalendars = () => {
     toast.loading('Syncing calendars...')
     setTimeout(() => {
-      setCalendarConnections(prev => prev.map(conn =>
-        conn.connected ? { ...conn, lastSynced: new Date() } : conn
-      ))
+      setCalendarConnections(prev =>
+        prev.map(conn => (conn.connected ? { ...conn, lastSynced: new Date() } : conn))
+      )
       toast.success('Calendars synced!')
     }, 2000)
   }
@@ -649,8 +756,8 @@ export function InteractiveCalendar({
   if (loading) {
     return (
       <Card className="h-[600px]">
-        <CardContent className="flex items-center justify-center h-full">
-          <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+        <CardContent className="flex h-full items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
         </CardContent>
       </Card>
     )
@@ -663,19 +770,17 @@ export function InteractiveCalendar({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <Card className="h-full border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md">
+      <Card className="h-full border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="icon" onClick={() => navigatePeriod(-1)}>
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <h2 className="text-lg font-semibold min-w-[150px] text-center">
-                  {headerLabel}
-                </h2>
+                <h2 className="min-w-[150px] text-center text-lg font-semibold">{headerLabel}</h2>
                 <Button variant="outline" size="icon" onClick={() => navigatePeriod(1)}>
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
               <Button variant="outline" size="sm" onClick={goToToday}>
@@ -688,7 +793,7 @@ export function InteractiveCalendar({
                       <SelectValue placeholder="Select timezone" />
                     </SelectTrigger>
                     <SelectContent>
-                      {supportedTimezones.map((tz) => (
+                      {supportedTimezones.map(tz => (
                         <SelectItem key={tz} value={tz}>
                           {tz}
                         </SelectItem>
@@ -706,27 +811,25 @@ export function InteractiveCalendar({
                     size="sm"
                     onClick={() => setShowCalendarIntegrations(true)}
                   >
-                    <RefreshCw className={cn(
-                      "w-4 h-4 mr-2",
-                      calendarConnections.some(c => c.connected) && "text-green-500"
-                    )} />
+                    <RefreshCw
+                      className={cn(
+                        'mr-2 h-4 w-4',
+                        calendarConnections.some(c => c.connected) && 'text-green-500'
+                      )}
+                    />
                     Sync
                   </Button>
 
                   {/* Batch Create */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowBatchModal(true)}
-                  >
-                    <Layers className="w-4 h-4 mr-2" />
+                  <Button variant="outline" size="sm" onClick={() => setShowBatchModal(true)}>
+                    <Layers className="mr-2 h-4 w-4" />
                     Batch
                   </Button>
                 </>
               )}
               {notifications.length > 0 && (
                 <Badge variant="destructive" className="text-xs">
-                  <Bell className="w-3 h-3 mr-1" />
+                  <Bell className="mr-1 h-3 w-3" />
                   {notifications.length}
                 </Badge>
               )}
@@ -736,26 +839,33 @@ export function InteractiveCalendar({
               {/* Filters */}
               <Select value={subjectFilter} onValueChange={setSubjectFilter}>
                 <SelectTrigger className="w-36">
-                  <Filter className="w-4 h-4 mr-2" />
+                  <Filter className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Filter" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  {(categoryOptions.length ? categoryOptions : SUBJECTS.map(s => s.name)).map((name) => (
-                    <SelectItem key={name} value={name}>{name}</SelectItem>
-                  ))}
+                  {(categoryOptions.length ? categoryOptions : SUBJECTS.map(s => s.name)).map(
+                    name => (
+                      <SelectItem key={name} value={name}>
+                        {name}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
 
               {/* View Toggle */}
-              <div className="flex bg-gray-100 rounded-lg p-1 border border-gray-200">
-                {(isStudent ? (['month', 'week', 'day'] as CalendarView[]) : (['month', 'week', 'day', 'availability'] as CalendarView[])).map((v) => (
+              <div className="flex rounded-lg border border-gray-200 bg-gray-100 p-1">
+                {(isStudent
+                  ? (['month', 'week', 'day'] as CalendarView[])
+                  : (['month', 'week', 'day', 'availability'] as CalendarView[])
+                ).map(v => (
                   <button
                     key={v}
                     onClick={() => setView(v)}
                     className={cn(
-                      "px-3 py-1 rounded-md text-sm font-medium transition-colors capitalize",
-                      view === v ? "bg-white shadow-sm" : "text-gray-600 hover:text-gray-900"
+                      'rounded-md px-3 py-1 text-sm font-medium capitalize transition-colors',
+                      view === v ? 'bg-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
                     )}
                   >
                     {v === 'availability' ? 'My Availability' : v}
@@ -767,37 +877,43 @@ export function InteractiveCalendar({
 
           {/* Conflict Warning Banner */}
           {showConflictWarning.length > 0 && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
+            <div className="mt-4 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-3">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-red-800">
                   {showConflictWarning.length / 2} scheduling conflicts detected
                 </p>
                 <p className="text-xs text-red-600">
-                  Some classes overlap in time. Drag events to reschedule or click &quot;View&quot; to see conflicts.
+                  Some classes overlap in time. Drag events to reschedule or click &quot;View&quot;
+                  to see conflicts.
                 </p>
               </div>
               <Button variant="outline" size="sm" onClick={() => setView('week')}>
                 View
               </Button>
               <Button variant="ghost" size="sm" onClick={() => setShowConflictWarning([])}>
-                <X className="w-4 h-4" />
+                <X className="h-4 w-4" />
               </Button>
             </div>
           )}
 
           {/* Legend */}
-          <div className="flex items-center gap-4 mt-4 text-sm flex-wrap">
-            {(categoryOptions.length ? categoryOptions : SUBJECTS.map(s => s.name)).map((name) => (
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
+            {(categoryOptions.length ? categoryOptions : SUBJECTS.map(s => s.name)).map(name => (
               <button
                 key={name}
                 onClick={() => setSubjectFilter(subjectFilter === name ? 'all' : name)}
                 className={cn(
-                  "flex items-center gap-1 px-2 py-1 rounded-full transition-colors",
-                  subjectFilter === name ? "bg-gray-200" : "hover:bg-gray-100"
+                  'flex items-center gap-1 rounded-full px-2 py-1 transition-colors',
+                  subjectFilter === name ? 'bg-gray-200' : 'hover:bg-gray-100'
                 )}
               >
-                <div className={cn("w-3 h-3 rounded-full", SUBJECTS.find(s => s.name === name)?.color || 'bg-gray-300')} />
+                <div
+                  className={cn(
+                    'h-3 w-3 rounded-full',
+                    SUBJECTS.find(s => s.name === name)?.color || 'bg-gray-300'
+                  )}
+                />
                 <span>{name}</span>
               </button>
             ))}
@@ -841,7 +957,7 @@ export function InteractiveCalendar({
             />
           )}
 
-        {!isStudent && view === 'availability' && (
+          {!isStudent && view === 'availability' && (
             <AvailabilityView
               availability={availability}
               onToggle={toggleAvailability}
@@ -853,9 +969,12 @@ export function InteractiveCalendar({
           )}
         </CardContent>
 
-        <Dialog open={!!availabilityDate} onOpenChange={(open) => {
-          if (!open) setAvailabilityDate(null)
-        }}>
+        <Dialog
+          open={!!availabilityDate}
+          onOpenChange={open => {
+            if (!open) setAvailabilityDate(null)
+          }}
+        >
           <DialogContent className="max-w-3xl">
             <DialogHeader>
               <DialogTitle>Schedule availability</DialogTitle>
@@ -875,30 +994,28 @@ export function InteractiveCalendar({
               <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
                 Loading availability...
               </div>
+            ) : availabilitySlotsForDay.length === 0 ? (
+              <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+                No time slots configured.
+              </div>
             ) : (
-              availabilitySlotsForDay.length === 0 ? (
-                <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
-                  No time slots configured.
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {availabilitySlotsForDay.map((slot) => (
-                    <button
-                      key={slot.id}
-                      type="button"
-                      onClick={() => toggleAvailability(slot.id)}
-                      className={cn(
-                        'rounded-md border px-3 py-2 text-xs font-medium transition-colors',
-                        slot.isAvailable
-                          ? 'border-emerald-500 bg-emerald-500 text-white'
-                          : 'border-slate-200 text-slate-600 hover:border-emerald-300'
-                      )}
-                    >
-                      {slot.startTime}
-                    </button>
-                  ))}
-                </div>
-              )
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {availabilitySlotsForDay.map(slot => (
+                  <button
+                    key={slot.id}
+                    type="button"
+                    onClick={() => toggleAvailability(slot.id)}
+                    className={cn(
+                      'rounded-md border px-3 py-2 text-xs font-medium transition-colors',
+                      slot.isAvailable
+                        ? 'border-emerald-500 bg-emerald-500 text-white'
+                        : 'border-slate-200 text-slate-600 hover:border-emerald-300'
+                    )}
+                  >
+                    {slot.startTime}
+                  </button>
+                ))}
+              </div>
             )}
             <DialogFooter>
               <Button variant="outline" onClick={() => setAvailabilityDate(null)}>
@@ -910,7 +1027,7 @@ export function InteractiveCalendar({
 
         {/* Event Detail Dialog */}
         <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl">
+          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto border border-slate-200 shadow-2xl">
             {selectedEvent && (
               <>
                 <DialogHeader>
@@ -927,7 +1044,7 @@ export function InteractiveCalendar({
                       </Badge>
                       {selectedEvent.isRecurring && (
                         <Badge variant="outline" className="gap-1">
-                          <Repeat className="w-3 h-3" />
+                          <Repeat className="h-3 w-3" />
                           {selectedEvent.recurringPattern}
                         </Badge>
                       )}
@@ -936,33 +1053,41 @@ export function InteractiveCalendar({
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <Clock className="w-5 h-5 text-gray-500" />
+                  <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
+                    <Clock className="h-5 w-5 text-gray-500" />
                     <div>
                       <p className="font-medium">
                         {selectedEvent.date.toLocaleDateString('en-US', {
                           weekday: 'long',
                           month: 'long',
-                          day: 'numeric'
+                          day: 'numeric',
                         })}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {selectedEvent.date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} -
-                        {new Date(selectedEvent.date.getTime() + selectedEvent.duration * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                        {selectedEvent.date.toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}{' '}
+                        -
+                        {new Date(
+                          selectedEvent.date.getTime() + selectedEvent.duration * 60000
+                        ).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
 
                   {selectedEvent.type === 'class' && (
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                      <Users className="w-5 h-5 text-gray-500" />
+                    <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
+                      <Users className="h-5 w-5 text-gray-500" />
                       <div>
                         <p className="font-medium">
                           {selectedEvent.studentCount} / {selectedEvent.maxStudents} students
                         </p>
                         <p className="text-sm text-gray-500">
-                          {selectedEvent.maxStudents && selectedEvent.studentCount &&
-                            selectedEvent.maxStudents - selectedEvent.studentCount} spots remaining
+                          {selectedEvent.maxStudents &&
+                            selectedEvent.studentCount &&
+                            selectedEvent.maxStudents - selectedEvent.studentCount}{' '}
+                          spots remaining
                         </p>
                       </div>
                     </div>
@@ -970,23 +1095,21 @@ export function InteractiveCalendar({
 
                   {/* Session Info */}
                   {selectedEvent.type === 'class' && (
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                      <BookOpen className="w-5 h-5 text-gray-500" />
+                    <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
+                      <BookOpen className="h-5 w-5 text-gray-500" />
                       <div>
                         <p className="font-medium">
                           Session {selectedEvent.isRecurring ? '1' : '1'} of 12
                         </p>
-                        <p className="text-sm text-gray-500">
-                          Total Sessions: 12
-                        </p>
+                        <p className="text-sm text-gray-500">Total Sessions: 12</p>
                       </div>
                     </div>
                   )}
 
                   {/* Conflict Warning in Detail */}
                   {showConflictWarning.find(e => e.id === selectedEvent.id) && (
-                    <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 rounded-lg">
-                      <AlertTriangle className="w-5 h-5" />
+                    <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-red-700">
+                      <AlertTriangle className="h-5 w-5" />
                       <span>This class has a scheduling conflict!</span>
                     </div>
                   )}
@@ -1003,7 +1126,7 @@ export function InteractiveCalendar({
                       setSelectedEvent(null)
                     }}
                   >
-                    <ExternalLink className="w-4 h-4 mr-2" />
+                    <ExternalLink className="mr-2 h-4 w-4" />
                     Open
                   </Button>
                 </DialogFooter>
@@ -1020,7 +1143,7 @@ export function InteractiveCalendar({
                 {selectedDate?.toLocaleDateString('en-US', {
                   weekday: 'long',
                   month: 'long',
-                  day: 'numeric'
+                  day: 'numeric',
                 })}
               </DialogTitle>
               <DialogDescription>
@@ -1032,30 +1155,33 @@ export function InteractiveCalendar({
               {getEventsForDate(selectedDate || new Date()).map((event: any) => (
                 <div
                   key={event.id}
-                  className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  className="cursor-pointer rounded-lg border p-3 hover:bg-gray-50"
                   onClick={() => {
                     setSelectedDate(null)
                     handleEventClick(event)
                   }}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={cn("w-3 h-3 rounded-full", event.color || 'bg-blue-500')} />
+                    <div className={cn('h-3 w-3 rounded-full', event.color || 'bg-blue-500')} />
                     <div className="flex-1">
                       <p className="font-medium">{event.title}</p>
                       <p className="text-sm text-gray-500">
-                        {event.date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                        {event.date.toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
                       </p>
                     </div>
                     {showConflictWarning.find(e => e.id === event.id) && (
-                      <AlertTriangle className="w-4 h-4 text-red-500" />
+                      <AlertTriangle className="h-4 w-4 text-red-500" />
                     )}
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                    <ChevronRight className="h-4 w-4 text-gray-400" />
                   </div>
                 </div>
               ))}
 
               {getEventsForDate(selectedDate || new Date()).length === 0 && (
-                <p className="text-center text-gray-500 py-4">No events scheduled for this day</p>
+                <p className="py-4 text-center text-gray-500">No events scheduled for this day</p>
               )}
             </div>
 
@@ -1064,11 +1190,13 @@ export function InteractiveCalendar({
                 Close
               </Button>
               {!isStudent && (
-                <Button onClick={() => {
-                  onCreateClass?.(selectedDate || new Date())
-                  setSelectedDate(null)
-                }}>
-                  <Plus className="w-4 h-4 mr-2" />
+                <Button
+                  onClick={() => {
+                    onCreateClass?.(selectedDate || new Date())
+                    setSelectedDate(null)
+                  }}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
                   Schedule Class
                 </Button>
               )}
@@ -1083,40 +1211,46 @@ export function InteractiveCalendar({
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
-                    <RefreshCw className="w-5 h-5" />
+                    <RefreshCw className="h-5 w-5" />
                     Calendar Integrations
                   </DialogTitle>
-                  <DialogDescription>
-                    Sync your schedule with external calendars
-                  </DialogDescription>
+                  <DialogDescription>Sync your schedule with external calendars</DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
-                  {calendarConnections.map((connection) => (
+                  {calendarConnections.map(connection => (
                     <div
                       key={connection.id}
                       className={cn(
-                        "p-4 border rounded-lg transition-colors",
-                        connection.connected ? "border-green-200 bg-green-50/50" : "border-gray-200"
+                        'rounded-lg border p-4 transition-colors',
+                        connection.connected ? 'border-green-200 bg-green-50/50' : 'border-gray-200'
                       )}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className={cn(
-                            "w-10 h-10 rounded-lg flex items-center justify-center",
-                            connection.provider === 'google' && "bg-blue-100 text-blue-600",
-                            connection.provider === 'outlook' && "bg-blue-600 text-white",
-                            connection.provider === 'apple' && "bg-gray-900 text-white"
-                          )}>
-                            {connection.provider === 'google' && <CalendarIcon className="w-5 h-5" />}
-                            {connection.provider === 'outlook' && <ExternalLink className="w-5 h-5" />}
-                            {connection.provider === 'apple' && <CalendarIcon className="w-5 h-5" />}
+                          <div
+                            className={cn(
+                              'flex h-10 w-10 items-center justify-center rounded-lg',
+                              connection.provider === 'google' && 'bg-blue-100 text-blue-600',
+                              connection.provider === 'outlook' && 'bg-blue-600 text-white',
+                              connection.provider === 'apple' && 'bg-gray-900 text-white'
+                            )}
+                          >
+                            {connection.provider === 'google' && (
+                              <CalendarIcon className="h-5 w-5" />
+                            )}
+                            {connection.provider === 'outlook' && (
+                              <ExternalLink className="h-5 w-5" />
+                            )}
+                            {connection.provider === 'apple' && (
+                              <CalendarIcon className="h-5 w-5" />
+                            )}
                           </div>
                           <div>
                             <p className="font-medium capitalize">{connection.provider} Calendar</p>
                             {connection.connected ? (
-                              <p className="text-xs text-green-600 flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3" />
+                              <p className="flex items-center gap-1 text-xs text-green-600">
+                                <CheckCircle2 className="h-3 w-3" />
                                 Connected{connection.email && ` • ${connection.email}`}
                               </p>
                             ) : (
@@ -1130,10 +1264,12 @@ export function InteractiveCalendar({
                             <>
                               <Switch
                                 checked={connection.syncEnabled}
-                                onCheckedChange={(checked) => {
-                                  setCalendarConnections(prev => prev.map(c =>
-                                    c.id === connection.id ? { ...c, syncEnabled: checked } : c
-                                  ))
+                                onCheckedChange={checked => {
+                                  setCalendarConnections(prev =>
+                                    prev.map(c =>
+                                      c.id === connection.id ? { ...c, syncEnabled: checked } : c
+                                    )
+                                  )
                                 }}
                               />
                               <Button
@@ -1141,14 +1277,11 @@ export function InteractiveCalendar({
                                 size="sm"
                                 onClick={() => disconnectCalendar(connection.provider)}
                               >
-                                <X className="w-4 h-4" />
+                                <X className="h-4 w-4" />
                               </Button>
                             </>
                           ) : (
-                            <Button
-                              size="sm"
-                              onClick={() => connectCalendar(connection.provider)}
-                            >
+                            <Button size="sm" onClick={() => connectCalendar(connection.provider)}>
                               Connect
                             </Button>
                           )}
@@ -1156,7 +1289,7 @@ export function InteractiveCalendar({
                       </div>
 
                       {connection.connected && connection.lastSynced && (
-                        <p className="text-xs text-gray-500 mt-2">
+                        <p className="mt-2 text-xs text-gray-500">
                           Last synced: {format(connection.lastSynced, 'MMM d, h:mm a')}
                         </p>
                       )}
@@ -1169,7 +1302,7 @@ export function InteractiveCalendar({
                     Close
                   </Button>
                   <Button onClick={syncCalendars} className="gap-2">
-                    <RefreshCw className="w-4 h-4" />
+                    <RefreshCw className="h-4 w-4" />
                     Sync All
                   </Button>
                 </DialogFooter>
@@ -1180,7 +1313,7 @@ export function InteractiveCalendar({
             <BatchClassModal
               open={showBatchModal}
               onClose={() => setShowBatchModal(false)}
-              onCreate={(newEvents) => {
+              onCreate={newEvents => {
                 setEvents(prev => [...prev, ...newEvents])
                 toast.success(`Created ${newEvents.length} classes!`)
               }}
@@ -1191,10 +1324,12 @@ export function InteractiveCalendar({
         {/* Drag Overlay */}
         <DragOverlay>
           {activeDragEvent ? (
-            <div className={cn(
-              "p-2 rounded text-xs opacity-90 shadow-lg",
-              activeDragEvent.color || 'bg-blue-500'
-            )}>
+            <div
+              className={cn(
+                'rounded p-2 text-xs opacity-90 shadow-lg',
+                activeDragEvent.color || 'bg-blue-500'
+              )}
+            >
               <p className="font-medium text-white">{activeDragEvent.title}</p>
             </div>
           ) : null}
@@ -1206,49 +1341,66 @@ export function InteractiveCalendar({
 
 // Sub-components
 
-function DroppableDay({ date, children, className }: { date: Date; children: React.ReactNode; className?: string }) {
+function DroppableDay({
+  date,
+  children,
+  className,
+}: {
+  date: Date
+  children: React.ReactNode
+  className?: string
+}) {
   const { setNodeRef, isOver } = useDroppable({
     id: `day-${format(date, 'yyyy-MM-dd')}`,
-    data: { date }
+    data: { date },
   })
 
   return (
     <div
       ref={setNodeRef}
-      className={cn(
-        className,
-        isOver && "bg-blue-50 ring-2 ring-blue-400 ring-inset"
-      )}
+      className={cn(className, isOver && 'bg-blue-50 ring-2 ring-inset ring-blue-400')}
     >
       {children}
     </div>
   )
 }
 
-function DroppableHour({ date, hour, children, className }: { date: Date; hour: number; children?: React.ReactNode; className?: string }) {
+function DroppableHour({
+  date,
+  hour,
+  children,
+  className,
+}: {
+  date: Date
+  hour: number
+  children?: React.ReactNode
+  className?: string
+}) {
   const { setNodeRef, isOver } = useDroppable({
     id: `hour-${format(date, 'yyyy-MM-dd')}-${hour}`,
-    data: { date, hour }
+    data: { date, hour },
   })
 
   return (
-    <div
-      ref={setNodeRef}
-      className={cn(
-        className,
-        isOver && "bg-blue-50/50"
-      )}
-    >
+    <div ref={setNodeRef} className={cn(className, isOver && 'bg-blue-50/50')}>
       {children}
     </div>
   )
 }
 
-function MonthView({ days, events, onDateClick, onEventClick, isToday, getEventsForDate, conflicts }: any) {
+function MonthView({
+  days,
+  events,
+  onDateClick,
+  onEventClick,
+  isToday,
+  getEventsForDate,
+  conflicts,
+}: any) {
   return (
-    <div className="border border-slate-200 rounded-lg overflow-hidden border border-slate-200 shadow-lg">
-      <div className="grid grid-cols-7 bg-white/50 border-b border-gray-100">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+    <div className="overflow-hidden rounded-lg border border-slate-200 shadow-lg">
+      <div className="grid grid-cols-7 border-b border-gray-100 bg-white/50">
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
           <div key={day} className="p-2 text-center text-sm font-medium text-gray-600">
             {day}
           </div>
@@ -1261,47 +1413,57 @@ function MonthView({ days, events, onDateClick, onEventClick, isToday, getEvents
             key={index}
             date={date || new Date()}
             className={cn(
-              "min-h-[100px] p-2 border-r border-b last:border-r-0",
-              !date && "bg-gray-50/50",
-              date && "hover:bg-gray-50 cursor-pointer"
+              'min-h-[100px] border-b border-r p-2 last:border-r-0',
+              !date && 'bg-gray-50/50',
+              date && 'cursor-pointer hover:bg-gray-50'
             )}
           >
             {date && (
               <div onClick={() => onDateClick(date)}>
-                <div className={cn(
-                  "text-sm font-medium mb-1 w-7 h-7 flex items-center justify-center rounded-full",
-                  isToday(date) && "bg-blue-600 text-white"
-                )}>
+                <div
+                  className={cn(
+                    'mb-1 flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium',
+                    isToday(date) && 'bg-blue-600 text-white'
+                  )}
+                >
                   {date.getDate()}
                 </div>
                 <div className="space-y-1">
-                  {getEventsForDate(date).slice(0, 3).map((event: CalendarEvent) => {
-                    const hasConflict = conflicts.find((e: CalendarEvent) => e.id === event.id)
-                    return (
-                      <div
-                        key={event.id}
-                        className={cn(
-                          "text-xs p-1.5 rounded cursor-pointer truncate",
-                          event.color || 'bg-blue-100',
-                          event.status === 'cancelled' && "opacity-50 line-through",
-                          hasConflict && "ring-1 ring-red-400"
-                        )}
-                        onClick={(e: any) => {
-                          e.stopPropagation()
-                          onEventClick(event)
-                        }}
-                      >
-                        <div className="flex items-center gap-1">
-                          <div className={cn("w-1.5 h-1.5 rounded-full", event.color?.replace('bg-', 'bg-opacity-100 ') || 'bg-blue-500')} />
-                          <span className="font-medium truncate">
-                            {event.date.getHours()}:{event.date.getMinutes().toString().padStart(2, '0')} {event.title}
-                          </span>
+                  {getEventsForDate(date)
+                    .slice(0, 3)
+                    .map((event: CalendarEvent) => {
+                      const hasConflict = conflicts.find((e: CalendarEvent) => e.id === event.id)
+                      return (
+                        <div
+                          key={event.id}
+                          className={cn(
+                            'cursor-pointer truncate rounded p-1.5 text-xs',
+                            event.color || 'bg-blue-100',
+                            event.status === 'cancelled' && 'line-through opacity-50',
+                            hasConflict && 'ring-1 ring-red-400'
+                          )}
+                          onClick={(e: any) => {
+                            e.stopPropagation()
+                            onEventClick(event)
+                          }}
+                        >
+                          <div className="flex items-center gap-1">
+                            <div
+                              className={cn(
+                                'h-1.5 w-1.5 rounded-full',
+                                event.color?.replace('bg-', 'bg-opacity-100') || 'bg-blue-500'
+                              )}
+                            />
+                            <span className="truncate font-medium">
+                              {event.date.getHours()}:
+                              {event.date.getMinutes().toString().padStart(2, '0')} {event.title}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
                   {getEventsForDate(date).length > 3 && (
-                    <p className="text-xs text-gray-500 pl-1">
+                    <p className="pl-1 text-xs text-gray-500">
                       +{getEventsForDate(date).length - 3} more
                     </p>
                   )}
@@ -1328,36 +1490,38 @@ function WeekView({ currentDate, events, onEventClick, onDateClick, conflicts }:
   const hours = Array.from({ length: 12 }, (_, i) => i + 8)
 
   return (
-    <div className="flex border border-slate-200 rounded-lg overflow-hidden border border-slate-200 shadow-lg bg-white/50">
+    <div className="flex overflow-hidden rounded-lg border border-slate-200 bg-white/50 shadow-lg">
       <div className="w-16 border-r bg-gray-50">
         <div className="h-12 border-b" />
-        {hours.map((hour) => (
-          <div key={hour} className="h-16 border-b text-xs text-gray-500 text-center pt-2">
+        {hours.map(hour => (
+          <div key={hour} className="h-16 border-b pt-2 text-center text-xs text-gray-500">
             {hour}:00
           </div>
         ))}
       </div>
 
-      <div className="flex-1 grid grid-cols-7">
+      <div className="grid flex-1 grid-cols-7">
         {weekDays.map((day, index) => (
           <div key={index} className="border-r last:border-r-0">
             <div
-              className="h-12 border-b p-2 text-center cursor-pointer hover:bg-gray-50"
+              className="h-12 cursor-pointer border-b p-2 text-center hover:bg-gray-50"
               onClick={() => onDateClick(day)}
             >
-              <p className="text-xs text-gray-500">{day.toLocaleDateString('en-US', { weekday: 'short' })}</p>
-              <p className={cn("text-sm font-medium", day.toDateString() === new Date().toDateString() && "text-blue-600")}>
+              <p className="text-xs text-gray-500">
+                {day.toLocaleDateString('en-US', { weekday: 'short' })}
+              </p>
+              <p
+                className={cn(
+                  'text-sm font-medium',
+                  day.toDateString() === new Date().toDateString() && 'text-blue-600'
+                )}
+              >
                 {day.getDate()}
               </p>
             </div>
             <div className="relative">
-              {hours.map((hour) => (
-                <DroppableHour
-                  key={hour}
-                  date={day}
-                  hour={hour}
-                  className="h-16 border-b"
-                />
+              {hours.map(hour => (
+                <DroppableHour key={hour} date={day} hour={hour} className="h-16 border-b" />
               ))}
 
               {events
@@ -1375,7 +1539,11 @@ function WeekView({ currentDate, events, onEventClick, onDateClick, conflicts }:
                       event={event}
                       onClick={() => onEventClick(event)}
                       hasConflict={hasConflict}
-                      style={{ top: `${top}px`, height: `${Math.max(height, 32)}px`, position: 'absolute' }}
+                      style={{
+                        top: `${top}px`,
+                        height: `${Math.max(height, 32)}px`,
+                        position: 'absolute',
+                      }}
                     />
                   )
                 })}
@@ -1390,28 +1558,23 @@ function WeekView({ currentDate, events, onEventClick, onDateClick, conflicts }:
 function DayView({ currentDate, events, onEventClick, conflicts }: any) {
   const hours = Array.from({ length: 14 }, (_, i) => i + 7)
 
-  const dayEvents = events.filter(
-    (event: CalendarEvent) => event.date.toDateString() === currentDate.toDateString()
-  ).sort((a: CalendarEvent, b: CalendarEvent) => a.date.getTime() - b.date.getTime())
+  const dayEvents = events
+    .filter((event: CalendarEvent) => event.date.toDateString() === currentDate.toDateString())
+    .sort((a: CalendarEvent, b: CalendarEvent) => a.date.getTime() - b.date.getTime())
 
   return (
-    <div className="flex border border-slate-200 rounded-lg overflow-hidden border border-slate-200 shadow-lg bg-white/50">
+    <div className="flex overflow-hidden rounded-lg border border-slate-200 bg-white/50 shadow-lg">
       <div className="w-20 border-r bg-gray-50">
-        {hours.map((hour) => (
-          <div key={hour} className="h-20 border-b px-2 py-2 text-sm text-gray-600 text-right">
+        {hours.map(hour => (
+          <div key={hour} className="h-20 border-b px-2 py-2 text-right text-sm text-gray-600">
             {hour}:00
           </div>
         ))}
       </div>
 
-      <div className="flex-1 relative">
-        {hours.map((hour) => (
-          <DroppableHour
-            key={hour}
-            date={currentDate}
-            hour={hour}
-            className="h-20 border-b"
-          />
+      <div className="relative flex-1">
+        {hours.map(hour => (
+          <DroppableHour key={hour} date={currentDate} hour={hour} className="h-20 border-b" />
         ))}
 
         {dayEvents.map((event: CalendarEvent) => {
@@ -1427,7 +1590,13 @@ function DayView({ currentDate, events, onEventClick, conflicts }: any) {
               event={event}
               onClick={() => onEventClick(event)}
               hasConflict={hasConflict}
-              style={{ top: `${top}px`, height: `${Math.max(height, 40)}px`, position: 'absolute', left: '8px', right: '8px' }}
+              style={{
+                top: `${top}px`,
+                height: `${Math.max(height, 40)}px`,
+                position: 'absolute',
+                left: '8px',
+                right: '8px',
+              }}
             />
           )
         })}
@@ -1445,30 +1614,31 @@ function DayView({ currentDate, events, onEventClick, conflicts }: any) {
 function AvailabilityView({ availability, onToggle, onSave }: any) {
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(days.map((day) => [day, false]))
+    Object.fromEntries(days.map(day => [day, false]))
   )
 
   return (
     <div className="space-y-6">
-      <div className="bg-blue-50 p-4 rounded-lg">
-        <h3 className="font-medium text-blue-900 mb-2">Set Your Availability</h3>
+      <div className="rounded-lg bg-blue-50 p-4">
+        <h3 className="mb-2 font-medium text-blue-900">Set Your Availability</h3>
         <p className="text-sm text-blue-700">
-          Mark when you&apos;re available for classes. Students will only be able to book during these times.
+          Mark when you&apos;re available for classes. Students will only be able to book during
+          these times.
         </p>
       </div>
 
       <div className="space-y-4">
         {days.map((day, dayIndex) => {
           const isExpanded = expandedDays[day]
-          const dayBlocks = availability.filter((block: AvailabilityBlock) => block.dayOfWeek === dayIndex)
+          const dayBlocks = availability.filter(
+            (block: AvailabilityBlock) => block.dayOfWeek === dayIndex
+          )
           return (
-            <div key={day} className="border border-slate-200 rounded-lg p-4 bg-white/50">
+            <div key={day} className="rounded-lg border border-slate-200 bg-white/50 p-4">
               <button
                 type="button"
-                className="w-full flex items-center justify-between text-left"
-                onClick={() =>
-                  setExpandedDays((prev) => ({ ...prev, [day]: !prev[day] }))
-                }
+                className="flex w-full items-center justify-between text-left"
+                onClick={() => setExpandedDays(prev => ({ ...prev, [day]: !prev[day] }))}
               >
                 <div className="flex items-center gap-2">
                   {isExpanded ? (
@@ -1483,24 +1653,26 @@ function AvailabilityView({ availability, onToggle, onSave }: any) {
                 </span>
               </button>
               {isExpanded && (
-                <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 mt-3">
+                <div className="mt-3 grid grid-cols-4 gap-2 md:grid-cols-6 lg:grid-cols-8">
                   {dayBlocks.map((block: AvailabilityBlock) => (
                     <div
                       key={block.id}
                       className={cn(
-                        "p-3 rounded-lg border cursor-pointer transition-all",
+                        'cursor-pointer rounded-lg border p-3 transition-all',
                         block.isAvailable
-                          ? "bg-green-50 border-green-200"
-                          : "bg-gray-50 border-gray-200 opacity-50"
+                          ? 'border-green-200 bg-green-50'
+                          : 'border-gray-200 bg-gray-50 opacity-50'
                       )}
                       onClick={() => onToggle(block.id)}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-medium">{block.startTime} - {block.endTime}</span>
+                        <span className="font-medium">
+                          {block.startTime} - {block.endTime}
+                        </span>
                         {block.isAvailable ? (
-                          <CheckCircle2 className="w-5 h-5 text-green-500" />
+                          <CheckCircle2 className="h-5 w-5 text-green-500" />
                         ) : (
-                          <X className="w-5 h-5 text-gray-400" />
+                          <X className="h-5 w-5 text-gray-400" />
                         )}
                       </div>
                     </div>
@@ -1535,7 +1707,9 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
   const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [startTime, setStartTime] = useState('14:00')
   const [duration, setDuration] = useState(60)
-  const [recurringPattern, setRecurringPattern] = useState<'daily' | 'weekly' | 'biweekly'>('weekly')
+  const [recurringPattern, setRecurringPattern] = useState<'daily' | 'weekly' | 'biweekly'>(
+    'weekly'
+  )
   const [occurrences, setOccurrences] = useState(4)
   const [maxStudents, setMaxStudents] = useState(20)
   const [isOnline, setIsOnline] = useState(true)
@@ -1551,9 +1725,9 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
       if (recurringPattern === 'daily') {
         eventDate.setDate(baseDate.getDate() + i)
       } else if (recurringPattern === 'weekly') {
-        eventDate.setDate(baseDate.getDate() + (i * 7))
+        eventDate.setDate(baseDate.getDate() + i * 7)
       } else if (recurringPattern === 'biweekly') {
-        eventDate.setDate(baseDate.getDate() + (i * 14))
+        eventDate.setDate(baseDate.getDate() + i * 14)
       }
 
       eventDate.setHours(hours, minutes, 0, 0)
@@ -1573,7 +1747,7 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
         isOnline,
         color: subjectColor,
         isRecurring: occurrences > 1,
-        recurringPattern: occurrences > 1 ? recurringPattern : undefined
+        recurringPattern: occurrences > 1 ? recurringPattern : undefined,
       })
     }
 
@@ -1590,12 +1764,10 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <CalendarPlus className="w-5 h-5" />
+            <CalendarPlus className="h-5 w-5" />
             Batch Create Classes
           </DialogTitle>
-          <DialogDescription>
-            Create multiple recurring classes at once
-          </DialogDescription>
+          <DialogDescription>Create multiple recurring classes at once</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
@@ -1616,7 +1788,9 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {SUBJECTS.filter(s => s.name !== 'Office Hours').map(s => (
-                    <SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>
+                    <SelectItem key={s.name} value={s.name}>
+                      {s.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -1677,7 +1851,7 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
           <div className="space-y-2">
             <Label>Recurring Pattern</Label>
             <div className="flex gap-2">
-              {(['weekly', 'biweekly', 'daily'] as const).map((pattern) => (
+              {(['weekly', 'biweekly', 'daily'] as const).map(pattern => (
                 <Button
                   key={pattern}
                   type="button"
@@ -1692,19 +1866,19 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
             <div className="flex items-center gap-2">
-              <Video className="w-4 h-4 text-gray-500" />
+              <Video className="h-4 w-4 text-gray-500" />
               <span className="text-sm">Online Class</span>
             </div>
             <Switch checked={isOnline} onCheckedChange={setIsOnline} />
           </div>
 
-          <div className="p-3 bg-blue-50 rounded-lg text-sm">
+          <div className="rounded-lg bg-blue-50 p-3 text-sm">
             <p className="font-medium text-blue-900">Preview</p>
             <p className="text-blue-700">
-              Will create <strong>{occurrences}</strong> {recurringPattern} classes
-              starting <strong>{format(new Date(startDate), 'MMM d, yyyy')}</strong>
+              Will create <strong>{occurrences}</strong> {recurringPattern} classes starting{' '}
+              <strong>{format(new Date(startDate), 'MMM d, yyyy')}</strong>
             </p>
           </div>
         </div>
@@ -1714,7 +1888,7 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
             Cancel
           </Button>
           <Button onClick={handleCreate} className="gap-2">
-            <Copy className="w-4 h-4" />
+            <Copy className="h-4 w-4" />
             Create {occurrences} Classes
           </Button>
         </DialogFooter>

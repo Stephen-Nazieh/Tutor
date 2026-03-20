@@ -39,33 +39,45 @@ interface Viewport {
 export function InfiniteWhiteboard({ onUpdate, readOnly = false }: InfiniteWhiteboardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  
+
   const [isDrawing, setIsDrawing] = useState(false)
   const [isPanning, setIsPanning] = useState(false)
-  const [pages, setPages] = useState<Page[]>([{ id: 'page-1', strokes: [], backgroundColor: '#1f2937' }])
+  const [pages, setPages] = useState<Page[]>([
+    { id: 'page-1', strokes: [], backgroundColor: '#1f2937' },
+  ])
   const [currentPage, setCurrentPage] = useState(0)
-  
+
   const strokes = pages[currentPage]?.strokes || []
   const setStrokes = (updater: Stroke[] | ((prev: Stroke[]) => Stroke[])) => {
     setPages(prev => {
       const newPages = [...prev]
-      const newStrokes = typeof updater === 'function' ? updater(newPages[currentPage].strokes) : updater
+      const newStrokes =
+        typeof updater === 'function' ? updater(newPages[currentPage].strokes) : updater
       newPages[currentPage] = { ...newPages[currentPage], strokes: newStrokes }
       return newPages
     })
   }
-  
+
   const [currentStroke, setCurrentStroke] = useState<Point[]>([])
   const [color, setColor] = useState('#ffffff')
   const [lineWidth, setLineWidth] = useState(3)
   const [tool, setTool] = useState<'pen' | 'pan'>('pen')
-  
+
   // Viewport state for pan/zoom
   const [viewport, setViewport] = useState<Viewport>({ x: 0, y: 0, zoom: 1 })
   const lastPanPoint = useRef<Point | null>(null)
 
   // Colors palette
-  const colors = ['#ffffff', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7', '#ec4899']
+  const colors = [
+    '#ffffff',
+    '#ef4444',
+    '#f97316',
+    '#eab308',
+    '#22c55e',
+    '#3b82f6',
+    '#a855f7',
+    '#ec4899',
+  ]
 
   // Initialize canvas
   useEffect(() => {
@@ -87,20 +99,26 @@ export function InfiniteWhiteboard({ onUpdate, readOnly = false }: InfiniteWhite
   }, [])
 
   // Convert screen coordinates to world coordinates
-  const screenToWorld = useCallback((screenX: number, screenY: number): Point => {
-    return {
-      x: (screenX - viewport.x) / viewport.zoom,
-      y: (screenY - viewport.y) / viewport.zoom
-    }
-  }, [viewport])
+  const screenToWorld = useCallback(
+    (screenX: number, screenY: number): Point => {
+      return {
+        x: (screenX - viewport.x) / viewport.zoom,
+        y: (screenY - viewport.y) / viewport.zoom,
+      }
+    },
+    [viewport]
+  )
 
   // Convert world coordinates to screen coordinates
-  const worldToScreen = useCallback((worldX: number, worldY: number): Point => {
-    return {
-      x: worldX * viewport.zoom + viewport.x,
-      y: worldY * viewport.zoom + viewport.y
-    }
-  }, [viewport])
+  const worldToScreen = useCallback(
+    (worldX: number, worldY: number): Point => {
+      return {
+        x: worldX * viewport.zoom + viewport.x,
+        y: worldY * viewport.zoom + viewport.y,
+      }
+    },
+    [viewport]
+  )
 
   // Redraw all strokes
   const redrawCanvas = useCallback(() => {
@@ -183,11 +201,11 @@ export function InfiniteWhiteboard({ onUpdate, readOnly = false }: InfiniteWhite
 
     ctx.beginPath()
     ctx.moveTo(points[0].x, points[0].y)
-    
+
     for (let i = 1; i < points.length; i++) {
       ctx.lineTo(points[i].x, points[i].y)
     }
-    
+
     ctx.stroke()
   }
 
@@ -199,14 +217,14 @@ export function InfiniteWhiteboard({ onUpdate, readOnly = false }: InfiniteWhite
   // Mouse/Touch handlers
   const handleStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (readOnly) return
-    
+
     const canvas = canvasRef.current
     if (!canvas) return
 
     const rect = canvas.getBoundingClientRect()
     const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX
     const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY
-    
+
     const x = clientX - rect.left
     const y = clientY - rect.top
 
@@ -227,7 +245,7 @@ export function InfiniteWhiteboard({ onUpdate, readOnly = false }: InfiniteWhite
     const rect = canvas.getBoundingClientRect()
     const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX
     const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY
-    
+
     const x = clientX - rect.left
     const y = clientY - rect.top
 
@@ -248,11 +266,11 @@ export function InfiniteWhiteboard({ onUpdate, readOnly = false }: InfiniteWhite
         id: `stroke-${Date.now()}`,
         points: currentStroke,
         color,
-        width: lineWidth
+        width: lineWidth,
       }
       const newStrokes = [...strokes, newStroke]
       setStrokes(newStrokes)
-      onUpdate?.(pages.map((p, i) => i === currentPage ? { ...p, strokes: newStrokes } : p))
+      onUpdate?.(pages.map((p, i) => (i === currentPage ? { ...p, strokes: newStrokes } : p)))
     }
     setIsDrawing(false)
     setIsPanning(false)
@@ -275,7 +293,7 @@ export function InfiniteWhiteboard({ onUpdate, readOnly = false }: InfiniteWhite
       setViewport({
         x: canvas.width / 2,
         y: canvas.height / 2,
-        zoom: 1
+        zoom: 1,
       })
     }
   }
@@ -283,12 +301,12 @@ export function InfiniteWhiteboard({ onUpdate, readOnly = false }: InfiniteWhite
   const undo = () => {
     const newStrokes = strokes.slice(0, -1)
     setStrokes(newStrokes)
-    onUpdate?.(pages.map((p, i) => i === currentPage ? { ...p, strokes: newStrokes } : p))
+    onUpdate?.(pages.map((p, i) => (i === currentPage ? { ...p, strokes: newStrokes } : p)))
   }
 
   const clear = () => {
     setStrokes([])
-    onUpdate?.(pages.map((p, i) => i === currentPage ? { ...p, strokes: [] } : p))
+    onUpdate?.(pages.map((p, i) => (i === currentPage ? { ...p, strokes: [] } : p)))
   }
 
   // Reset view on mount
@@ -297,7 +315,7 @@ export function InfiniteWhiteboard({ onUpdate, readOnly = false }: InfiniteWhite
   }, [])
 
   return (
-    <div ref={containerRef} className="relative w-full h-full bg-gray-800 overflow-hidden">
+    <div ref={containerRef} className="relative h-full w-full overflow-hidden bg-gray-800">
       {/* Canvas */}
       <canvas
         ref={canvasRef}
@@ -312,7 +330,7 @@ export function InfiniteWhiteboard({ onUpdate, readOnly = false }: InfiniteWhite
       />
 
       {/* Toolbar */}
-      <div className="absolute top-4 left-4 flex flex-col gap-2 bg-gray-900/90 p-2 rounded-lg border border-gray-700">
+      <div className="absolute left-4 top-4 flex flex-col gap-2 rounded-lg border border-gray-700 bg-gray-900/90 p-2">
         {/* Tools */}
         <div className="flex gap-1">
           <Button
@@ -321,7 +339,13 @@ export function InfiniteWhiteboard({ onUpdate, readOnly = false }: InfiniteWhite
             onClick={() => setTool('pen')}
             className="h-8 w-8"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M12 19l7-7 3 3-7 7-3-3z" />
               <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
               <path d="M2 2l7.586 7.586" />
@@ -334,11 +358,11 @@ export function InfiniteWhiteboard({ onUpdate, readOnly = false }: InfiniteWhite
             onClick={() => setTool('pan')}
             className="h-8 w-8"
           >
-            <Hand className="w-4 h-4" />
+            <Hand className="h-4 w-4" />
           </Button>
         </div>
 
-        <div className="w-full h-px bg-gray-700" />
+        <div className="h-px w-full bg-gray-700" />
 
         {/* Colors */}
         <div className="grid grid-cols-2 gap-1">
@@ -346,13 +370,13 @@ export function InfiniteWhiteboard({ onUpdate, readOnly = false }: InfiniteWhite
             <button
               key={c}
               onClick={() => setColor(c)}
-              className={`w-6 h-6 rounded-full border-2 ${color === c ? 'border-white' : 'border-transparent'}`}
+              className={`h-6 w-6 rounded-full border-2 ${color === c ? 'border-white' : 'border-transparent'}`}
               style={{ backgroundColor: c }}
             />
           ))}
         </div>
 
-        <div className="w-full h-px bg-gray-700" />
+        <div className="h-px w-full bg-gray-700" />
 
         {/* Line width */}
         <div className="flex flex-col gap-1">
@@ -360,7 +384,7 @@ export function InfiniteWhiteboard({ onUpdate, readOnly = false }: InfiniteWhite
             <button
               key={width}
               onClick={() => setLineWidth(width)}
-              className={`w-full py-1 rounded ${lineWidth === width ? 'bg-blue-500' : 'hover:bg-gray-700'}`}
+              className={`w-full rounded py-1 ${lineWidth === width ? 'bg-blue-500' : 'hover:bg-gray-700'}`}
             >
               <div
                 className="mx-auto rounded-full bg-white"
@@ -370,25 +394,37 @@ export function InfiniteWhiteboard({ onUpdate, readOnly = false }: InfiniteWhite
           ))}
         </div>
 
-        <div className="w-full h-px bg-gray-700" />
+        <div className="h-px w-full bg-gray-700" />
 
         {/* Actions */}
-        <Button variant="ghost" size="icon" onClick={undo} className="h-8 w-8" disabled={strokes.length === 0}>
-          <Undo className="w-4 h-4" />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={undo}
+          className="h-8 w-8"
+          disabled={strokes.length === 0}
+        >
+          <Undo className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" onClick={clear} className="h-8 w-8" disabled={strokes.length === 0}>
-          <Trash2 className="w-4 h-4" />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={clear}
+          className="h-8 w-8"
+          disabled={strokes.length === 0}
+        >
+          <Trash2 className="h-4 w-4" />
         </Button>
       </div>
 
       {/* Zoom controls */}
-      <div className="absolute bottom-4 right-4 flex items-center gap-2 bg-gray-900/90 p-2 rounded-lg border border-gray-700">
+      <div className="absolute bottom-4 right-4 flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-900/90 p-2">
         <Button variant="ghost" size="icon" onClick={zoomOut} className="h-8 w-8">
-          <Minus className="w-4 h-4" />
+          <Minus className="h-4 w-4" />
         </Button>
-        <span className="text-sm w-16 text-center">{Math.round(viewport.zoom * 100)}%</span>
+        <span className="w-16 text-center text-sm">{Math.round(viewport.zoom * 100)}%</span>
         <Button variant="ghost" size="icon" onClick={zoomIn} className="h-8 w-8">
-          <Plus className="w-4 h-4" />
+          <Plus className="h-4 w-4" />
         </Button>
         <Button variant="ghost" size="sm" onClick={resetView} className="text-xs">
           Reset
@@ -396,7 +432,7 @@ export function InfiniteWhiteboard({ onUpdate, readOnly = false }: InfiniteWhite
       </div>
 
       {/* Instructions */}
-      <div className="absolute bottom-4 left-4 text-xs text-gray-400 bg-gray-900/80 px-3 py-2 rounded-lg">
+      <div className="absolute bottom-4 left-4 rounded-lg bg-gray-900/80 px-3 py-2 text-xs text-gray-400">
         <p>🖱️ Draw with mouse | ✋ Middle-click/Select Pan to move</p>
         <p>🔍 Zoom: Ctrl+Scroll or use buttons</p>
       </div>

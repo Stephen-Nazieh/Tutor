@@ -5,7 +5,17 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { BookOpen, ChevronRight, Loader2, Plus, List, UserPlus, FileText, School, Trophy } from 'lucide-react'
+import {
+  BookOpen,
+  ChevronRight,
+  Loader2,
+  Plus,
+  List,
+  UserPlus,
+  FileText,
+  School,
+  Trophy,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 export interface EnrolledCourse {
@@ -32,9 +42,8 @@ export function MyCoursesCard({ courses, onCourseRemoved }: MyCoursesCardProps) 
   const [showAll, setShowAll] = useState(false)
   const [removingSubject, setRemovingSubject] = useState<string | null>(null)
 
-  const visibleCourses = showAll || courses.length <= VISIBLE_COURSES
-    ? courses
-    : courses.slice(0, VISIBLE_COURSES)
+  const visibleCourses =
+    showAll || courses.length <= VISIBLE_COURSES ? courses : courses.slice(0, VISIBLE_COURSES)
   const hasMore = courses.length > VISIBLE_COURSES
   const isExpanded = showAll && hasMore
 
@@ -71,25 +80,21 @@ export function MyCoursesCard({ courses, onCourseRemoved }: MyCoursesCardProps) 
   return (
     <Card className="mb-8">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-blue-500" />
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <BookOpen className="h-5 w-5 text-blue-500" />
             My courses
           </CardTitle>
           <div className="flex items-center gap-2">
             <Link href="/student/courses?tab=browse">
               <Button variant="ghost" size="sm">
-                <Plus className="w-4 h-4 mr-1" />
+                <Plus className="mr-1 h-4 w-4" />
                 Add subject
               </Button>
             </Link>
             {courses.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowAll((s) => !s)}
-              >
-                <List className="w-4 h-4 mr-1" />
+              <Button variant="ghost" size="sm" onClick={() => setShowAll(s => !s)}>
+                <List className="mr-1 h-4 w-4" />
                 {isExpanded ? 'Show less' : 'Browse all'}
               </Button>
             )}
@@ -99,108 +104,93 @@ export function MyCoursesCard({ courses, onCourseRemoved }: MyCoursesCardProps) 
       <CardContent>
         {courses.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground">
-            <BookOpen className="w-12 h-12 mx-auto mb-3 text-muted-foreground/60" />
+            <BookOpen className="mx-auto mb-3 h-12 w-12 text-muted-foreground/60" />
             <p className="font-medium text-foreground">No courses yet</p>
-            <p className="text-sm mt-1">Browse subjects and enroll in a course to get started.</p>
+            <p className="mt-1 text-sm">Browse subjects and enroll in a course to get started.</p>
             <Link href="/student/courses?tab=browse">
               <Button className="mt-4">Add subject</Button>
             </Link>
           </div>
         ) : (
           <div className="space-y-4">
-            {visibleCourses.map((course) => (
+            {visibleCourses.map(course => (
               <div
                 key={course.id}
-                className="flex flex-wrap items-center gap-4 px-3 py-4 sm:py-3 rounded-lg border border-border hover:bg-muted/60 transition-colors"
+                className="flex flex-wrap items-center gap-4 rounded-lg border border-border px-3 py-4 transition-colors hover:bg-muted/60 sm:py-3"
               >
-                <Link href={`/student/subjects/${encodeURIComponent(course.subject)}`} className="flex flex-1 min-w-0 items-center gap-4">
-                  <div className="w-12 h-12 bg-primary/15 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <BookOpen className="w-6 h-6 text-primary" />
+                <Link
+                  href={`/student/subjects/${encodeURIComponent(course.subject)}`}
+                  className="flex min-w-0 flex-1 items-center gap-4"
+                >
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-primary/15">
+                    <BookOpen className="h-6 w-6 text-primary" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">{course.name}</h3>
-                    <p className="text-sm text-muted-foreground capitalize">{course.subject}</p>
-                    <div className="flex items-center gap-2 mt-1">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate font-medium">{course.name}</h3>
+                    <p className="text-sm capitalize text-muted-foreground">{course.subject}</p>
+                    <div className="mt-1 flex items-center gap-2">
                       <Progress value={course.progress} className="h-2 flex-1" />
-                      <span className="text-xs text-muted-foreground w-10 text-right">{course.progress}%</span>
+                      <span className="w-10 text-right text-xs text-muted-foreground">
+                        {course.progress}%
+                      </span>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                  <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
                 </Link>
-                <div className="flex items-center gap-2 sm:gap-1 shrink-0 flex-wrap justify-end">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="h-8 text-xs"
-                    asChild
-                  >
+                <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-1">
+                  <Button variant="default" size="sm" className="h-8 text-xs" asChild>
                     <Link
-                      href={course.enrollmentSource === 'browse'
-                        ? `/student/subjects/${encodeURIComponent(course.subject)}/signup`
-                        : `/student/courses?subject=${encodeURIComponent(course.subject)}`}
-                      onClick={(e) => e.stopPropagation()}
+                      href={
+                        course.enrollmentSource === 'browse'
+                          ? `/student/subjects/${encodeURIComponent(course.subject)}/signup`
+                          : `/student/courses?subject=${encodeURIComponent(course.subject)}`
+                      }
+                      onClick={e => e.stopPropagation()}
                     >
-                      <School className="w-3 h-3 mr-1" />
+                      <School className="mr-1 h-3 w-3" />
                       Enter classroom
                     </Link>
                   </Button>
                   {course.enrollmentSource === 'signup' || course.enrollmentSource == null ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      disabled
-                    >
-                      <UserPlus className="w-3 h-3 mr-1" />
+                    <Button variant="outline" size="sm" className="h-8 text-xs" disabled>
+                      <UserPlus className="mr-1 h-3 w-3" />
                       Enrolled
                     </Button>
                   ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      asChild
-                    >
-                      <Link href={`/student/subjects/${encodeURIComponent(course.subject)}/signup`} onClick={(e) => e.stopPropagation()}>
-                        <UserPlus className="w-3 h-3 mr-1" />
+                    <Button variant="outline" size="sm" className="h-8 text-xs" asChild>
+                      <Link
+                        href={`/student/subjects/${encodeURIComponent(course.subject)}/signup`}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <UserPlus className="mr-1 h-3 w-3" />
                         Sign up
                       </Link>
                     </Button>
                   )}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-xs"
-                    asChild
-                  >
-                    <Link href="/student/scores" onClick={(e) => e.stopPropagation()}>
-                      <Trophy className="w-3 h-3 mr-1" />
+                  <Button variant="outline" size="sm" className="h-8 text-xs" asChild>
+                    <Link href="/student/scores" onClick={e => e.stopPropagation()}>
+                      <Trophy className="mr-1 h-3 w-3" />
                       My scores
                     </Link>
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-xs"
-                    asChild
-                  >
+                  <Button variant="outline" size="sm" className="h-8 text-xs" asChild>
                     <Link
                       href={`/student/subjects/${encodeURIComponent(course.subject)}/courses/${encodeURIComponent(course.id)}/details`}
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={e => e.stopPropagation()}
                     >
-                      <FileText className="w-3 h-3 mr-1" />
+                      <FileText className="mr-1 h-3 w-3" />
                       View course details
                     </Link>
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                    className="h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
                     onClick={() => handleRemove(course)}
                     disabled={removingSubject === course.subject}
                   >
                     {removingSubject === course.subject ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       'Remove'
                     )}

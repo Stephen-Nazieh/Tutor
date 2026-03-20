@@ -1,6 +1,6 @@
 // @ts-nocheck
-import { memo, useMemo, useCallback, lazy, Suspense, useState, useEffect, useRef } from 'react';
-import dynamic from 'next/dynamic';
+import { memo, useMemo, useCallback, lazy, Suspense, useState, useEffect, useRef } from 'react'
+import dynamic from 'next/dynamic'
 
 /**
  * Advanced React performance optimizations for Solocorn platform
@@ -8,35 +8,38 @@ import dynamic from 'next/dynamic';
 
 // 1. Smart Memoization Components
 interface DashboardOptimizationProps {
-  data: any;
-  loadingState?: 'loading' | 'error' | 'success';
-  children?: React.ReactNode;
+  data: any
+  loadingState?: 'loading' | 'error' | 'success'
+  children?: React.ReactNode
 }
 
-export const MemoizedDashboard = memo(function MemoizedDashboard({
-  data,
-  loadingState = 'loading',
-  children
-}: DashboardOptimizationProps) {
-  if (loadingState === 'loading') {
-    return <DashboardSkeleton />;
-  }
+export const MemoizedDashboard = memo(
+  function MemoizedDashboard({
+    data,
+    loadingState = 'loading',
+    children,
+  }: DashboardOptimizationProps) {
+    if (loadingState === 'loading') {
+      return <DashboardSkeleton />
+    }
 
-  return (
-    <div className="dashboard-container" data-loading-state={loadingState}>
-      {children}
-    </div>
-  );
-}, (prevProps, nextProps) => {
-  // Compare loading state and data (deep equality via JSON for dashboard payloads; avoid for very large objects)
-  if (prevProps.loadingState !== nextProps.loadingState) return false
-  if (prevProps.data === nextProps.data) return true
-  try {
-    return JSON.stringify(prevProps.data) === JSON.stringify(nextProps.data)
-  } catch {
-    return false
+    return (
+      <div className="dashboard-container" data-loading-state={loadingState}>
+        {children}
+      </div>
+    )
+  },
+  (prevProps, nextProps) => {
+    // Compare loading state and data (deep equality via JSON for dashboard payloads; avoid for very large objects)
+    if (prevProps.loadingState !== nextProps.loadingState) return false
+    if (prevProps.data === nextProps.data) return true
+    try {
+      return JSON.stringify(prevProps.data) === JSON.stringify(nextProps.data)
+    } catch {
+      return false
+    }
   }
-});
+)
 
 // 2. Dynamic Imports for Code Splitting
 export const DashboardComponents = {
@@ -47,22 +50,22 @@ export const DashboardComponents = {
   AIChatComponent: lazy(() => import('../components/ai/AIChatComponent')),
   WhiteboardComponent: lazy(() => import('../components/whiteboard/WhiteboardComponent')),
   LiveClassComponent: lazy(() => import('../components/live/LiveClassComponent')),
-  PaymentComponent: lazy(() => import('../components/payment/PaymentComponent'))
-};
+  PaymentComponent: lazy(() => import('../components/payment/PaymentComponent')),
+}
 
 // 3. Virtual Scrolling for Large Lists
 interface VirtualizedListProps {
-  items: any[];
-  renderItem: (item: any, index: number) => React.ReactNode;
-  estimateSize?: () => number;
-  overscan?: number;
+  items: any[]
+  renderItem: (item: any, index: number) => React.ReactNode
+  estimateSize?: () => number
+  overscan?: number
 }
 
 export function VirtualizedList({
   items,
   renderItem,
   estimateSize = () => 80,
-  overscan = 5
+  overscan = 5,
 }: VirtualizedListProps) {
   const parentRef = useRef<HTMLDivElement>(null)
   const [scrollTop, setScrollTop] = useState(0)
@@ -98,7 +101,7 @@ export function VirtualizedList({
     <div
       ref={parentRef}
       className="virtualized-list-container"
-      onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
+      onScroll={event => setScrollTop(event.currentTarget.scrollTop)}
     >
       <div
         style={{
@@ -107,7 +110,7 @@ export function VirtualizedList({
           position: 'relative',
         }}
       >
-        {visibleItems.map((index) => (
+        {visibleItems.map(index => (
           <div
             key={index}
             style={{
@@ -125,55 +128,58 @@ export function VirtualizedList({
         ))}
       </div>
     </div>
-  );
+  )
 }
 
 // 4. Image Optimization Hook
-export const useOptimizedImage = (src: string, options: {
-  sizes?: string;
-  formats?: ('webp' | 'avif')[];
-  quality?: number;
-  priority?: boolean;
-} = {}) => {
-  const { quality = 85 } = options;
-  const formatsStr = (options.formats || ['webp', 'avif']).join(',');
+export const useOptimizedImage = (
+  src: string,
+  options: {
+    sizes?: string
+    formats?: ('webp' | 'avif')[]
+    quality?: number
+    priority?: boolean
+  } = {}
+) => {
+  const { quality = 85 } = options
+  const formatsStr = (options.formats || ['webp', 'avif']).join(',')
 
   const optimizedSrc = useMemo(() => {
     return {
       src: `${src}?format=${formatsStr}&quality=${quality}`,
-      srcSet: `data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA` // Placeholder
-    };
-  }, [src, formatsStr, quality]);
+      srcSet: `data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA`, // Placeholder
+    }
+  }, [src, formatsStr, quality])
 
-  return optimizedSrc;
-};
+  return optimizedSrc
+}
 
 // 5. Service Worker Background Sync
 export class BackgroundSyncManager {
-  private queue: Promise<any>[] = [];
+  private queue: Promise<any>[] = []
 
   async syncWhenOnline(request: Promise<any>) {
     if (!navigator.onLine) {
-      this.queue.push(request);
+      this.queue.push(request)
 
       // Listen for online status
       window.addEventListener('online', async () => {
-        await this.processQueue();
-      });
+        await this.processQueue()
+      })
     } else {
-      return request;
+      return request
     }
   }
 
   private async processQueue() {
     while (this.queue.length > 0) {
-      const request = this.queue.shift();
+      const request = this.queue.shift()
       try {
-        console.log('Processing queued request:', request);
-        await request;
-        console.log('Queued request processed successfully');
+        console.log('Processing queued request:', request)
+        await request
+        console.log('Queued request processed successfully')
       } catch (error) {
-        console.error('Failed to process queued request:', error);
+        console.error('Failed to process queued request:', error)
       }
     }
   }
@@ -186,52 +192,55 @@ export const useBundleOptimization = () => {
     if (typeof window !== 'undefined') {
       // Dynamic imports for non-critical features
       import('../utils/non-critical-features').catch(() => {
-        console.log('Non-critical features loaded on demand');
-      });
+        console.log('Non-critical features loaded on demand')
+      })
     }
-  }, []);
+  }, [])
 
-  return { optimizeBundle };
-};
+  return { optimizeBundle }
+}
 
 // 7. Loading State Optimization
 interface LoadingOptimizationOptions {
-  minimumLoadingTime?: number;
-  transitionDelay?: number;
-  skeletonComponent?: React.ComponentType;
+  minimumLoadingTime?: number
+  transitionDelay?: number
+  skeletonComponent?: React.ComponentType
 }
 
-export const useLoadingOptimization = (loading: boolean, options: LoadingOptimizationOptions = {}) => {
-  const { minimumLoadingTime = 200, transitionDelay = 50, skeletonComponent } = options;
-  const [showLoading, setShowLoading] = useState(loading);
+export const useLoadingOptimization = (
+  loading: boolean,
+  options: LoadingOptimizationOptions = {}
+) => {
+  const { minimumLoadingTime = 200, transitionDelay = 50, skeletonComponent } = options
+  const [showLoading, setShowLoading] = useState(loading)
 
   useEffect(() => {
     if (loading) {
-      setShowLoading(true);
+      setShowLoading(true)
     } else {
       // Add transition to prevent flash
-      setTimeout(() => setShowLoading(false), transitionDelay);
+      setTimeout(() => setShowLoading(false), transitionDelay)
     }
-  }, [loading, transitionDelay]);
+  }, [loading, transitionDelay])
 
-  const LoadingComponent = skeletonComponent || DashboardSkeleton;
+  const LoadingComponent = skeletonComponent || DashboardSkeleton
 
-  return { showLoading, LoadingComponent };
-};
+  return { showLoading, LoadingComponent }
+}
 
 // 8. Dashboard Skeleton Component
 const DashboardSkeleton: React.FC = () => {
   return (
     <div className="animate-pulse space-y-4">
-      <div className="h-12 bg-gray-200 rounded-lg w-full"></div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="h-32 bg-gray-200 rounded-lg"></div>
-        <div className="h-32 bg-gray-200 rounded-lg"></div>
-        <div className="h-32 bg-gray-200 rounded-lg"></div>
+      <div className="h-12 w-full rounded-lg bg-gray-200"></div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="h-32 rounded-lg bg-gray-200"></div>
+        <div className="h-32 rounded-lg bg-gray-200"></div>
+        <div className="h-32 rounded-lg bg-gray-200"></div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // 9. Resource Optimization Hook
 export const useResourceOptimization = () => {
@@ -240,56 +249,56 @@ export const useResourceOptimization = () => {
     if (typeof window !== 'undefined') {
       // Cancel pending requests
       document.querySelectorAll('[data-loading="true"]').forEach(element => {
-        element.setAttribute('data-loading', 'false');
-      });
+        element.setAttribute('data-loading', 'false')
+      })
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
     return () => {
-      cleanupResources();
-    };
-  }, [cleanupResources]);
+      cleanupResources()
+    }
+  }, [cleanupResources])
 
-  return { cleanupResources };
-};
+  return { cleanupResources }
+}
 
 // 10. Performance Monitoring Integration
 interface PerformanceMetrics {
-  loadTime: number;
-  renderTime: number;
-  memoryUsage?: number;
-  bundleSize: number;
+  loadTime: number
+  renderTime: number
+  memoryUsage?: number
+  bundleSize: number
 }
 
 export const usePerformanceMonitoring = (componentName: string) => {
-  const startTime = Date.now();
+  const startTime = Date.now()
 
   useEffect(() => {
     const measurePerformance = () => {
       if (typeof PerformanceObserver !== 'undefined') {
-        const observer = new PerformanceObserver((list) => {
+        const observer = new PerformanceObserver(list => {
           for (const entry of list.getEntries()) {
             if (entry.name.includes(componentName)) {
               console.log(`${componentName} Performance:`, {
                 loadTime: entry.duration,
                 renderTime: startTime - Date.now(),
                 memoryUsage: performance.memory?.usedJSHeapSize,
-                timestamp: entry.startTime
-              });
+                timestamp: entry.startTime,
+              })
             }
           }
-        });
+        })
 
-        observer.observe({ entryTypes: ['measure', 'navigation'] });
+        observer.observe({ entryTypes: ['measure', 'navigation'] })
 
-        return () => observer.disconnect();
+        return () => observer.disconnect()
       }
-    };
+    }
 
-    measurePerformance();
-  }, [componentName, startTime]);
-};
+    measurePerformance()
+  }, [componentName, startTime])
+}
 
 export default {
   MemoizedDashboard,
@@ -300,5 +309,5 @@ export default {
   usePerformanceMonitoring,
   BackgroundSyncManager,
   useBundleOptimization,
-  useResourceOptimization
-};
+  useResourceOptimization,
+}
