@@ -253,9 +253,9 @@ async function extractXlsxText(file: File): Promise<string> {
     const workbook = new ExcelJS.Workbook()
     await workbook.xlsx.load(arrayBuffer)
     const lines: string[] = []
-    workbook.eachWorksheet((sheet) => {
+    workbook.eachWorksheet(sheet => {
       const sheetLines: string[] = []
-      sheet.eachRow((row) => {
+      sheet.eachRow(row => {
         const rowText = row.values
           ?.filter((v): v is string | number => v !== null && v !== undefined)
           .join('\t')

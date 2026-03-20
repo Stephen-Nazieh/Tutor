@@ -380,7 +380,10 @@ export async function generateClassReportExcel(data: ClassExportData): Promise<B
   return Buffer.from(buffer)
 }
 
-export async function generateEngagementReportExcel(data: EngagementMetrics, classTitle: string): Promise<Buffer> {
+export async function generateEngagementReportExcel(
+  data: EngagementMetrics,
+  classTitle: string
+): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook()
 
   // Sheet 1: Overview

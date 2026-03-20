@@ -8,11 +8,30 @@ const math = create(all, {
 
 // Whitelist of allowed functions and constants
 const ALLOWED_FUNCTIONS = new Set([
-  'sin', 'cos', 'tan', 'asin', 'acos', 'atan',
-  'sinh', 'cosh', 'tanh', 'sqrt', 'abs',
-  'log', 'log10', 'ln', 'exp',
-  'floor', 'ceil', 'round', 'min', 'max', 'pow',
-  'pi', 'e', 'x'
+  'sin',
+  'cos',
+  'tan',
+  'asin',
+  'acos',
+  'atan',
+  'sinh',
+  'cosh',
+  'tanh',
+  'sqrt',
+  'abs',
+  'log',
+  'log10',
+  'ln',
+  'exp',
+  'floor',
+  'ceil',
+  'round',
+  'min',
+  'max',
+  'pow',
+  'pi',
+  'e',
+  'x',
 ])
 
 /**
@@ -26,7 +45,7 @@ export function compileExpression(expression: string): (x: number) => number | n
   try {
     // Parse the expression to check for unsafe elements
     const parsed = math.parse(trimmed)
-    
+
     // Check that all symbols are allowed
     const symbols: string[] = []
     parsed.traverse((node: MathNode) => {
@@ -34,7 +53,7 @@ export function compileExpression(expression: string): (x: number) => number | n
         symbols.push(node.name)
       }
     })
-    
+
     for (const symbol of symbols) {
       if (!ALLOWED_FUNCTIONS.has(symbol)) {
         console.warn(`[Expression] Disallowed symbol in expression: ${symbol}`)
@@ -44,7 +63,7 @@ export function compileExpression(expression: string): (x: number) => number | n
 
     // Compile the expression
     const compiled = parsed.compile()
-    
+
     return (x: number) => {
       try {
         const result = compiled.evaluate({ x })
