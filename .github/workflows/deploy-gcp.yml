@@ -125,16 +125,44 @@ jobs:
           MAX_RETRIES=5
           RETRY_DELAY=15
           
+          # First, try to use the URL from the deploy action output
+          # The deploy-cloudrun action sets the 'url' output to the service URL
+          DEPLOY_URL="${{ steps.deploy-preview.outputs.url }}"
+          if [ -n "$DEPLOY_URL" ]; then
+            echo "✓ Using URL from deploy action: ${DEPLOY_URL}"
+            echo "url=${DEPLOY_URL}" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "Deploy action URL not available, querying for tagged revision..."
+          
           for i in $(seq 1 $MAX_RETRIES); do
             echo "Attempt $i/$MAX_RETRIES: Querying for tagged revision..."
             
-            PREVIEW_URL=$(gcloud run services describe "${{ env.SERVICE_NAME }}" \
+            # Get all traffic configs and find the one with our tag
+            TRAFFIC_JSON=$(gcloud run services describe "${{ env.SERVICE_NAME }}" \
               --region="${{ env.REGION }}" \
-              --format="value(status.traffic[?tag='${TAG}'].url)")
+              --format="json" 2>/dev/null)
+            
+            # Extract URL for our tag using jq
+            PREVIEW_URL=$(echo "$TRAFFIC_JSON" | \
+              jq -r ".status.traffic[]? | select(.tag == \"${TAG}\") | .url" | \
+              grep -v "^null$" | head -1)
             
             if [ -n "$PREVIEW_URL" ]; then
               echo "✓ Found preview URL: ${PREVIEW_URL}"
               echo "url=${PREVIEW_URL}" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            
+            # Alternative: construct URL from known pattern
+            # Cloud Run URLs follow: https://{tag}---{service}-{hash}.{region}.run.app
+            SERVICE_URL=$(echo "$TRAFFIC_JSON" | jq -r '.status.url // empty')
+            if [ -n "$SERVICE_URL" ]; then
+              # Extract the base domain parts
+              CONSTRUCTED_URL="https://${TAG}---$(echo "$SERVICE_URL" | sed 's|^https://||')"
+              echo "✓ Constructed URL: ${CONSTRUCTED_URL}"
+              echo "url=${CONSTRUCTED_URL}" >> $GITHUB_OUTPUT
               exit 0
             fi
             
@@ -148,7 +176,7 @@ jobs:
           echo "Debugging information:"
           gcloud run services describe "${{ env.SERVICE_NAME }}" \
             --region="${{ env.REGION }}" \
-            --format="table(status.traffic[].tag,status.traffic[].url)" >&2
+            --format="json" 2>/dev/null | jq '.status' >&2
           exit 1
 
       - name: Comment PR with preview URL
