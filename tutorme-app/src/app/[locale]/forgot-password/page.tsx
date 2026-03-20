@@ -28,9 +28,24 @@ export default function ForgotPasswordPage() {
     e.preventDefault()
     if (isLoading) return
     setIsLoading(true)
+    setError('')
+    
     try {
-      // Placeholder: wire to your auth API when available (e.g. POST /api/auth/forgot-password)
-      await new Promise((r) => setTimeout(r, 800))
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        setError(data.message || 'Something went wrong. Please try again.')
+        return
+      }
+      
       setSubmitted(true)
     } catch {
       setError('Something went wrong. Please try again.')
