@@ -5,7 +5,7 @@
 
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 
 // Type definitions for export data
 export interface StudentExportData {
@@ -282,11 +282,12 @@ export function generateStudentReportPDF(
 // Excel Export Functions
 // ============================================
 
-export function generateClassReportExcel(data: ClassExportData): Buffer {
-  const workbook = XLSX.utils.book_new()
+export async function generateClassReportExcel(data: ClassExportData): Promise<Buffer> {
+  const workbook = new ExcelJS.Workbook()
 
   // Sheet 1: Summary
-  const summaryData = [
+  const summarySheet = workbook.addWorksheet('Summary')
+  summarySheet.addRows([
     ['Class Performance Report'],
     [''],
     ['Class Information'],
@@ -314,13 +315,11 @@ export function generateClassReportExcel(data: ClassExportData): Buffer {
     ['Cluster Distribution'],
     ['Level', 'Count', 'Percentage'],
     ...data.clusterDistribution.map(d => [d.name, d.count, `${d.percentage.toFixed(1)}%`]),
-  ]
-
-  const summarySheet = XLSX.utils.aoa_to_sheet(summaryData)
-  XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary')
+  ])
 
   // Sheet 2: All Students
-  const studentHeaders = [
+  const studentsSheet = workbook.addWorksheet('All Students')
+  studentsSheet.addRow([
     'Name',
     'Email',
     'Average Score (%)',
@@ -333,66 +332,60 @@ export function generateClassReportExcel(data: ClassExportData): Buffer {
     'Learning Style',
     'Strengths',
     'Weaknesses',
-  ]
-
-  const studentData = data.students.map(s => [
-    s.name,
-    s.email || '',
-    s.averageScore,
-    s.completionRate,
-    s.engagementScore,
-    s.attendanceRate,
-    s.participationRate,
-    s.cluster.charAt(0).toUpperCase() + s.cluster.slice(1),
-    s.pace.charAt(0).toUpperCase() + s.pace.slice(1),
-    s.learningStyle ? s.learningStyle.charAt(0).toUpperCase() + s.learningStyle.slice(1) : '',
-    s.strengths.join('; '),
-    s.weaknesses.join('; '),
   ])
-
-  const studentsSheet = XLSX.utils.aoa_to_sheet([studentHeaders, ...studentData])
-  XLSX.utils.book_append_sheet(workbook, studentsSheet, 'All Students')
+  data.students.forEach(s => {
+    studentsSheet.addRow([
+      s.name,
+      s.email || '',
+      s.averageScore,
+      s.completionRate,
+      s.engagementScore,
+      s.attendanceRate,
+      s.participationRate,
+      s.cluster.charAt(0).toUpperCase() + s.cluster.slice(1),
+      s.pace.charAt(0).toUpperCase() + s.pace.slice(1),
+      s.learningStyle ? s.learningStyle.charAt(0).toUpperCase() + s.learningStyle.slice(1) : '',
+      s.strengths.join('; '),
+      s.weaknesses.join('; '),
+    ])
+  })
 
   // Sheet 3: Top Performers
-  const topHeaders = [
-    'Rank',
-    'Name',
-    'Average Score (%)',
-    'Completion Rate (%)',
-    'Performance Level',
-  ]
-  const topData = data.topPerformers.map((s, i) => [
-    i + 1,
-    s.name,
-    s.averageScore,
-    s.completionRate,
-    s.cluster.charAt(0).toUpperCase() + s.cluster.slice(1),
-  ])
-
-  const topSheet = XLSX.utils.aoa_to_sheet([topHeaders, ...topData])
-  XLSX.utils.book_append_sheet(workbook, topSheet, 'Top Performers')
+  const topSheet = workbook.addWorksheet('Top Performers')
+  topSheet.addRow(['Rank', 'Name', 'Average Score (%)', 'Completion Rate (%)', 'Performance Level'])
+  data.topPerformers.forEach((s, i) => {
+    topSheet.addRow([
+      i + 1,
+      s.name,
+      s.averageScore,
+      s.completionRate,
+      s.cluster.charAt(0).toUpperCase() + s.cluster.slice(1),
+    ])
+  })
 
   // Sheet 4: Needs Attention
-  const attentionHeaders = ['Name', 'Average Score (%)', 'Performance Level', 'Areas of Concern']
-  const attentionData = data.needsAttention.map(s => [
-    s.name,
-    s.averageScore,
-    s.cluster.charAt(0).toUpperCase() + s.cluster.slice(1),
-    s.weaknesses.slice(0, 3).join('; '),
-  ])
-
-  const attentionSheet = XLSX.utils.aoa_to_sheet([attentionHeaders, ...attentionData])
-  XLSX.utils.book_append_sheet(workbook, attentionSheet, 'Needs Attention')
+  const attentionSheet = workbook.addWorksheet('Needs Attention')
+  attentionSheet.addRow(['Name', 'Average Score (%)', 'Performance Level', 'Areas of Concern'])
+  data.needsAttention.forEach(s => {
+    attentionSheet.addRow([
+      s.name,
+      s.averageScore,
+      s.cluster.charAt(0).toUpperCase() + s.cluster.slice(1),
+      s.weaknesses.slice(0, 3).join('; '),
+    ])
+  })
 
   // Generate buffer
-  return Buffer.from(XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }))
+  const buffer = await workbook.xlsx.writeBuffer()
+  return Buffer.from(buffer)
 }
 
-export function generateEngagementReportExcel(data: EngagementMetrics, classTitle: string): Buffer {
-  const workbook = XLSX.utils.book_new()
+export async function generateEngagementReportExcel(data: EngagementMetrics, classTitle: string): Promise<Buffer> {
+  const workbook = new ExcelJS.Workbook()
 
   // Sheet 1: Overview
-  const overviewData = [
+  const overviewSheet = workbook.addWorksheet('Overview')
+  overviewSheet.addRows([
     ['Class Engagement Report'],
     [''],
     ['Class', classTitle],
@@ -413,26 +406,24 @@ export function generateEngagementReportExcel(data: EngagementMetrics, classTitl
     [''],
     ['Students At Risk', data.studentsAtRisk.length],
     ...data.studentsAtRisk.map((id, i) => [`Student ${i + 1}`, id]),
-  ]
-
-  const overviewSheet = XLSX.utils.aoa_to_sheet(overviewData)
-  XLSX.utils.book_append_sheet(workbook, overviewSheet, 'Overview')
+  ])
 
   // Sheet 2: Daily Trend
-  const dailyHeaders = ['Date', 'Engagement Score (%)', 'Attendance Rate (%)']
-  const dailyData = data.dailyTrend.map(d => [d.date, d.engagement, d.attendance])
-
-  const dailySheet = XLSX.utils.aoa_to_sheet([dailyHeaders, ...dailyData])
-  XLSX.utils.book_append_sheet(workbook, dailySheet, 'Daily Trend')
+  const dailySheet = workbook.addWorksheet('Daily Trend')
+  dailySheet.addRow(['Date', 'Engagement Score (%)', 'Attendance Rate (%)'])
+  data.dailyTrend.forEach(d => {
+    dailySheet.addRow([d.date, d.engagement, d.attendance])
+  })
 
   // Sheet 3: Hourly Pattern
-  const hourlyHeaders = ['Hour', 'Activity Level']
-  const hourlyData = data.hourlyPattern.map(h => [`${h.hour}:00`, h.activity])
+  const hourlySheet = workbook.addWorksheet('Hourly Pattern')
+  hourlySheet.addRow(['Hour', 'Activity Level'])
+  data.hourlyPattern.forEach(h => {
+    hourlySheet.addRow([`${h.hour}:00`, h.activity])
+  })
 
-  const hourlySheet = XLSX.utils.aoa_to_sheet([hourlyHeaders, ...hourlyData])
-  XLSX.utils.book_append_sheet(workbook, hourlySheet, 'Hourly Pattern')
-
-  return Buffer.from(XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }))
+  const buffer = await workbook.xlsx.writeBuffer()
+  return Buffer.from(buffer)
 }
 
 // ============================================

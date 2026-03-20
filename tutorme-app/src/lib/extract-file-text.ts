@@ -244,22 +244,30 @@ function extractTextFromXml(xml: string): string {
 }
 
 /**
- * Extract text from XLSX files using the xlsx library.
+ * Extract text from XLSX files using the exceljs library.
  */
 async function extractXlsxText(file: File): Promise<string> {
   try {
-    const XLSX = await import('xlsx')
+    const ExcelJS = await import('exceljs')
     const arrayBuffer = await file.arrayBuffer()
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' })
+    const workbook = new ExcelJS.Workbook()
+    await workbook.xlsx.load(arrayBuffer)
     const lines: string[] = []
-    for (const sheetName of workbook.SheetNames) {
-      const sheet = workbook.Sheets[sheetName]
-      const csv = XLSX.utils.sheet_to_csv(sheet)
-      if (csv.trim()) {
-        lines.push(`=== Sheet: ${sheetName} ===`)
-        lines.push(csv)
+    workbook.eachWorksheet((sheet) => {
+      const sheetLines: string[] = []
+      sheet.eachRow((row) => {
+        const rowText = row.values
+          ?.filter((v): v is string | number => v !== null && v !== undefined)
+          .join('\t')
+        if (rowText) {
+          sheetLines.push(rowText)
+        }
+      })
+      if (sheetLines.length > 0) {
+        lines.push(`=== Sheet: ${sheet.name} ===`)
+        lines.push(...sheetLines)
       }
-    }
+    })
     return lines.join('\n\n').trim() || `[No text content in ${file.name}]`
   } catch {
     return `[Failed to extract text from ${file.name}]`

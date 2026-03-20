@@ -42,7 +42,7 @@ export const GET = withAuth(
         includeHourlyPattern: true,
       })
 
-      const excelBuffer = generateEngagementReportExcel(engagement, curriculumRow.name)
+      const excelBuffer = await generateEngagementReportExcel(engagement, curriculumRow.name)
 
       return new NextResponse(excelBuffer as any, {
         headers: {

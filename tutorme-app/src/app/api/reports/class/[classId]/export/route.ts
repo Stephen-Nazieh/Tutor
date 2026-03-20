@@ -188,7 +188,7 @@ export const GET = withAuth(
 
         case 'excel':
         case 'xlsx': {
-          const excelBuffer = generateClassReportExcel(data)
+          const excelBuffer = await generateClassReportExcel(data)
           return new NextResponse(excelBuffer as any, {
             headers: {
               'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
