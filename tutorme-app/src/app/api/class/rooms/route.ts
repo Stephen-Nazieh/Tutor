@@ -46,7 +46,6 @@ export const POST = withCsrf(
       const room = await dailyProvider.createRoom(userId, {
         maxParticipants,
         durationMinutes: data.durationMinutes,
-        enableRecording: data.enableRecording,
       })
 
       // Create meeting token for tutor (as owner)

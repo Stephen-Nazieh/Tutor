@@ -140,7 +140,6 @@ export const CreateRoomSchema = z.object({
   scheduledAt: z.string().datetime('Invalid scheduled date/time').optional(),
   maxStudents: z.number().int().min(1).max(500).default(50),
   durationMinutes: z.number().int().min(15).max(480).default(120),
-  enableRecording: z.boolean().default(true),
 })
 
 export const JoinRoomSchema = z.object({

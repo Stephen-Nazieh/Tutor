@@ -10,7 +10,10 @@ const connectionString =
   process.env.DATABASE_POOL_URL || process.env.DIRECT_URL || process.env.DATABASE_URL
 
 // Singleton pool for server (avoid many connections in dev)
-const globalForDrizzle = globalThis as unknown as { drizzlePool: Pool | undefined; drizzleDb?: NodePgDatabase<typeof schema> }
+const globalForDrizzle = globalThis as unknown as {
+  drizzlePool: Pool | undefined
+  drizzleDb?: NodePgDatabase<typeof schema>
+}
 
 function getPool(): Pool {
   if (!connectionString) {

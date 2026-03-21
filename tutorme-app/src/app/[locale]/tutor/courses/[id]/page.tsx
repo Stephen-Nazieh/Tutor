@@ -599,7 +599,6 @@ export default function TutorCoursePage() {
         curriculumId: course.id,
         maxStudents: 50,
         durationMinutes: Math.max(15, Math.min(480, durationFromSchedule)),
-        enableRecording: false,
       }
       if (normalizedDescription) payload.description = normalizedDescription
       if (normalizedGradeLevel) payload.gradeLevel = normalizedGradeLevel
@@ -1409,11 +1408,18 @@ export default function TutorCoursePage() {
                             })
                           }
                           return (
-                            <button
-                              type="button"
+                            <div
                               key={`${day}-${timeStr}`}
+                              role="button"
+                              tabIndex={0}
                               onClick={toggleSlot}
-                              className={`min-h-[28px] w-full border-b border-r border-dashed p-1 text-left transition-colors hover:bg-blue-50 ${inRange ? 'bg-blue-200 ring-1 ring-blue-400' : 'bg-white hover:bg-slate-50'}`}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  toggleSlot()
+                                }
+                              }}
+                              className={`min-h-[28px] w-full cursor-pointer border-b border-r border-dashed p-1 text-left transition-colors hover:bg-blue-50 ${inRange ? 'bg-blue-200 ring-1 ring-blue-400' : 'bg-white hover:bg-slate-50'}`}
                               aria-pressed={inRange}
                               aria-label={`${day} ${displayTime}${inRange ? ', selected' : ''}. Click to ${inRange ? 'remove' : 'add'} session.`}
                             >
@@ -1433,7 +1439,7 @@ export default function TutorCoursePage() {
                                   </button>
                                 </span>
                               )}
-                            </button>
+                            </div>
                           )
                         })}
                       </div>

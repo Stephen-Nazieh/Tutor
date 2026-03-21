@@ -28,7 +28,7 @@
     "typecheck": "tsc --noEmit",
     "type-check": "tsc --noEmit",
     "db:setup": "bash scripts/setup-db.sh",
-    "db:migrate": "drizzle-kit push",
+    "db:migrate": "drizzle-kit migrate",
     "db:migrate:deploy": "tsx src/lib/db/drizzle-migrate.ts",
     "studio": "bash scripts/studio.sh",
     "test:register": "bash scripts/test-register.sh",
