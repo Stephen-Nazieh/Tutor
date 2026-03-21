@@ -5638,8 +5638,10 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       panelMode = 'default',
       initialModules = [],
       lessonBankMode = false,
+      readOnly = false,
       onSave,
       onMakeVisibleToStudents,
+      onTaskSelect,
     },
     ref
   ) {
@@ -8378,7 +8380,10 @@ FEEDBACK: [your explanation]`
                                                         onTaskSelect?.({
                                                           id: task.id,
                                                           title: task.title,
-                                                          content: task.description || task.shortDescription || '',
+                                                          content:
+                                                            task.description ||
+                                                            task.shortDescription ||
+                                                            '',
                                                         })
                                                       }}
                                                     >
