@@ -28,7 +28,6 @@ export interface VideoProvider {
     options?: {
       maxParticipants?: number
       durationMinutes?: number
-      enableRecording?: boolean
     }
   ): Promise<VideoRoom>
 

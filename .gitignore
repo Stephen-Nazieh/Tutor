@@ -1,1 +1,6 @@
 services/adk/node_modules/
+.env
+.env.local
+.env.*.local
+node_modules/
+.next/

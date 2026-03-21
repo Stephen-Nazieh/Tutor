@@ -41,10 +41,11 @@ export const POST = withCsrf(
       }
 
       // Create video room via Daily.co
+      // Cap at 10 to stay within Daily.co plan limits (most plans support 10-20)
+      const maxParticipants = Math.min(data.maxStudents + 1, 10) // +1 for tutor, capped at 10
       const room = await dailyProvider.createRoom(userId, {
-        maxParticipants: data.maxStudents + 1, // +1 for tutor
+        maxParticipants,
         durationMinutes: data.durationMinutes,
-        enableRecording: data.enableRecording,
       })
 
       // Create meeting token for tutor (as owner)

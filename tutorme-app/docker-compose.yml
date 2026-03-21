@@ -16,7 +16,7 @@ services:
       POSTGRES_EFFECTIVE_CACHE_SIZE: 1GB
       POSTGRES_WORK_MEM: 16MB
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro

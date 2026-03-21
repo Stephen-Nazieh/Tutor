@@ -582,7 +582,6 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
         curriculumId: course.curriculumId || courseId,
         maxStudents: 50,
         durationMinutes: Math.max(15, Math.min(480, durationFromCourseSchedule)),
-        enableRecording: false,
       }
       if (normalizedDescription) payload.description = normalizedDescription
       if (normalizedGradeLevel) payload.gradeLevel = normalizedGradeLevel

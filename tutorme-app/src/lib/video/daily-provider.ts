@@ -48,7 +48,6 @@ export class DailyCoProvider implements VideoProvider {
     options?: {
       maxParticipants?: number
       durationMinutes?: number
-      enableRecording?: boolean
     }
   ): Promise<VideoRoom> {
     const roomName = `tutorme-${sessionId}-${Date.now()}`
@@ -73,14 +72,14 @@ export class DailyCoProvider implements VideoProvider {
         name: roomName,
         privacy: 'public',
         properties: {
-          max_participants: options?.maxParticipants || 50,
+          max_participants: options?.maxParticipants || 10, // 10 is safe for most Daily.co plans
           enable_screenshare: true,
           enable_chat: false, // We use our own chat
-          enable_recording: options?.enableRecording ? 'cloud' : 'false',
           exp: Math.floor(expiry.getTime() / 1000),
           // Auto-join with mic/video off for students
           start_audio_off: true,
           start_video_off: true,
+          // Note: Recording is not supported on current Daily.co plan
         },
       }),
     })
@@ -122,7 +121,7 @@ export class DailyCoProvider implements VideoProvider {
           max_participants: 2, // 1:1 breakout
           enable_screenshare: true,
           enable_chat: false,
-          enable_recording: 'cloud',
+          // Note: enable_recording omitted - many Daily.co plans don't support it
           exp: Math.floor(expiry.getTime() / 1000),
           start_audio_off: false,
           start_video_off: false,
