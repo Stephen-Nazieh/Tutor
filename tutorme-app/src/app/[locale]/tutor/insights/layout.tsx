@@ -93,22 +93,25 @@ export default function InsightsLayout({ children }: { children: React.ReactNode
       setAnalytics(data)
     })
 
-    socket.on('poll_response_received', ({ pollId, response }: { pollId: string; response: PollResponse }) => {
-      setAnalytics(prev => ({
-        ...prev,
-        pollResults: prev.pollResults.map(poll =>
-          poll.pollId === pollId
-            ? {
-                ...poll,
-                responses: poll.responses.map(r =>
-                  r.option === response.option ? { ...r, count: r.count + 1 } : r
-                ),
-                totalResponses: poll.totalResponses + 1,
-              }
-            : poll
-        ),
-      }))
-    })
+    socket.on(
+      'poll_response_received',
+      ({ pollId, response }: { pollId: string; response: PollResponse }) => {
+        setAnalytics(prev => ({
+          ...prev,
+          pollResults: prev.pollResults.map(poll =>
+            poll.pollId === pollId
+              ? {
+                  ...poll,
+                  responses: poll.responses.map(r =>
+                    r.option === response.option ? { ...r, count: r.count + 1 } : r
+                  ),
+                  totalResponses: poll.totalResponses + 1,
+                }
+              : poll
+          ),
+        }))
+      }
+    )
 
     return () => {
       socket.off('analytics_updated')
@@ -254,7 +257,9 @@ export default function InsightsLayout({ children }: { children: React.ReactNode
                         <CardContent>
                           <div className="flex items-center gap-2">
                             <CheckCircle2 className="h-5 w-5 text-green-500" />
-                            <span className="text-2xl font-bold">{analytics.taskCompletionRate}%</span>
+                            <span className="text-2xl font-bold">
+                              {analytics.taskCompletionRate}%
+                            </span>
                           </div>
                         </CardContent>
                       </Card>
@@ -289,7 +294,9 @@ export default function InsightsLayout({ children }: { children: React.ReactNode
                           <Card key={poll.pollId}>
                             <CardHeader className="pb-2">
                               <CardTitle className="text-sm">{poll.question}</CardTitle>
-                              <p className="text-xs text-gray-500">{poll.totalResponses} responses</p>
+                              <p className="text-xs text-gray-500">
+                                {poll.totalResponses} responses
+                              </p>
                             </CardHeader>
                             <CardContent>
                               <div className="space-y-2">
@@ -307,7 +314,9 @@ export default function InsightsLayout({ children }: { children: React.ReactNode
                                         }}
                                       />
                                     </div>
-                                    <span className="w-8 text-right text-xs text-gray-500">{r.count}</span>
+                                    <span className="w-8 text-right text-xs text-gray-500">
+                                      {r.count}
+                                    </span>
                                   </div>
                                 ))}
                               </div>

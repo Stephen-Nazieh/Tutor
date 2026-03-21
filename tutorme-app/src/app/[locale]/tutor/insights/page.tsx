@@ -16,7 +16,9 @@ export default function InsightsPage() {
     return (
       <div className="flex h-full flex-col items-center justify-center p-8 text-center">
         <h2 className="text-xl font-semibold text-gray-700">No Course Selected</h2>
-        <p className="mt-2 text-gray-500">Please select a course to access the Insights & Builder</p>
+        <p className="mt-2 text-gray-500">
+          Please select a course to access the Insights & Builder
+        </p>
       </div>
     )
   }
