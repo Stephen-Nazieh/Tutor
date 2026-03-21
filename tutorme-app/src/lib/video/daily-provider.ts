@@ -67,21 +67,29 @@ export class DailyCoProvider implements VideoProvider {
       }
     }
 
+    // Build properties object - only include enable_recording if explicitly requested
+    // Many Daily.co plans don't support recording, so we omit it by default
+    const properties: Record<string, unknown> = {
+      max_participants: options?.maxParticipants || 10, // 10 is safe for most Daily.co plans
+      enable_screenshare: true,
+      enable_chat: false, // We use our own chat
+      exp: Math.floor(expiry.getTime() / 1000),
+      // Auto-join with mic/video off for students
+      start_audio_off: true,
+      start_video_off: true,
+    }
+
+    // Only add enable_recording if explicitly requested (many plans don't support it)
+    if (options?.enableRecording) {
+      properties.enable_recording = 'cloud'
+    }
+
     const room = await this.fetchDaily('/rooms', {
       method: 'POST',
       body: JSON.stringify({
         name: roomName,
         privacy: 'public',
-        properties: {
-          max_participants: options?.maxParticipants || 10, // 10 is safe for most Daily.co plans
-          enable_screenshare: true,
-          enable_chat: false, // We use our own chat
-          enable_recording: options?.enableRecording ? 'cloud' : 'false',
-          exp: Math.floor(expiry.getTime() / 1000),
-          // Auto-join with mic/video off for students
-          start_audio_off: true,
-          start_video_off: true,
-        },
+        properties,
       }),
     })
 
@@ -122,7 +130,7 @@ export class DailyCoProvider implements VideoProvider {
           max_participants: 2, // 1:1 breakout
           enable_screenshare: true,
           enable_chat: false,
-          enable_recording: 'cloud',
+          // Note: enable_recording omitted - many Daily.co plans don't support it
           exp: Math.floor(expiry.getTime() / 1000),
           start_audio_off: false,
           start_video_off: false,
