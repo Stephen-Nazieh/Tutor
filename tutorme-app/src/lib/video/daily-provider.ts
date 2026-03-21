@@ -73,7 +73,7 @@ export class DailyCoProvider implements VideoProvider {
         name: roomName,
         privacy: 'public',
         properties: {
-          max_participants: options?.maxParticipants || 50,
+          max_participants: options?.maxParticipants || 10, // 10 is safe for most Daily.co plans
           enable_screenshare: true,
           enable_chat: false, // We use our own chat
           enable_recording: options?.enableRecording ? 'cloud' : 'false',
