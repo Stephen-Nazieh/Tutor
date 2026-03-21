@@ -20,6 +20,7 @@ import {
   FileText,
   Compass,
   Briefcase,
+  MessageCircle,
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -32,6 +33,7 @@ const navItems: NavItem[] = [
   { href: '/student/tutors', label: 'Find Tutors', icon: Compass },
   { href: '/student/courses', label: 'My Courses', icon: GraduationCap },
   { href: '/student/work', label: 'My Work', icon: Briefcase },
+  { href: '/student/feedback', label: 'Feedback', icon: MessageCircle },
   { href: '/student/ai-tutor', label: 'AI Tutor', icon: Sparkles },
   { href: '/student/messages', label: 'Messages', icon: MessageSquare },
   { href: '/student/help', label: 'Help', icon: HelpCircle },

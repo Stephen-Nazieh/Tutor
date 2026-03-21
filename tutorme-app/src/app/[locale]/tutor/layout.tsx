@@ -25,6 +25,7 @@ import {
   Wrench,
   LogOut,
   User,
+  Lightbulb,
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -44,6 +45,7 @@ const navItems: NavItem[] = [
   { href: '/tutor/lessons', label: 'Lesson Bank', icon: BookOpen },
   { href: '/tutor/groups', label: 'Groups', icon: Users },
   { href: '/tutor/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/tutor/insights', label: 'Insights', icon: Lightbulb },
   { href: '/tutor/reports', label: 'Analytics', icon: BarChart3 },
   { href: '/tutor/training', label: 'Training', icon: GraduationCap },
   { href: '/tutor/support', label: 'Support', icon: HelpCircle },
