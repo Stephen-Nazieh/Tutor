@@ -99,13 +99,17 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   const isLessonBank = pathname === '/tutor/lessons' || pathname?.startsWith('/tutor/lessons/')
   const isAccountPage = pathname === '/tutor/settings' || pathname?.startsWith('/tutor/settings/')
 
+  // Insights page has its own layout with course builder integrated
+  const isInsightsPage = pathname === '/tutor/insights' || pathname?.startsWith('/tutor/insights/')
+
   if (
     isCourseBuilder ||
     isCoursePublishPage ||
     isLiveClass ||
     isMyPage ||
     isLessonBank ||
-    isAccountPage
+    isAccountPage ||
+    isInsightsPage
   ) {
     return <>{children}</>
   }

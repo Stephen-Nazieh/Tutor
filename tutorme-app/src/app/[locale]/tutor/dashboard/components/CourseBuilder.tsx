@@ -368,11 +368,12 @@ export interface Module extends WithDifficultyVariants {
 // ============================================
 
 interface CourseBuilderProps {
-  courseId: string
+  courseId?: string
   courseName?: string
   panelMode?: 'default' | 'live-class'
   initialModules?: Module[]
   lessonBankMode?: boolean
+  readOnly?: boolean
   onMakeVisibleToStudents?: (payload: VisibleDocumentPayload) => void
   onSave?: (
     modules: Module[],
@@ -381,6 +382,7 @@ interface CourseBuilderProps {
       previewDifficulty: 'all' | 'beginner' | 'intermediate' | 'advanced'
     }
   ) => void
+  onTaskSelect?: (task: { id: string; title: string; content: string }) => void
 }
 
 export interface CourseBuilderRef {
@@ -8372,6 +8374,12 @@ FEEDBACK: [your explanation]`
                                                         })
                                                         loadTaskIntoBuilder(task)
                                                         setMainBuilderTab('task')
+                                                        // Notify parent component of task selection
+                                                        onTaskSelect?.({
+                                                          id: task.id,
+                                                          title: task.title,
+                                                          content: task.description || task.shortDescription || '',
+                                                        })
                                                       }}
                                                     >
                                                       <ListTodo className="h-3 w-3 shrink-0 text-orange-500" />
