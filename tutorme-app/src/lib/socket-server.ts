@@ -1129,7 +1129,7 @@ export function initBreakoutHandlers(io: SocketIOServer, socket: Socket) {
           topicAdherence: 0,
           lastUpdated: new Date().toISOString(),
         },
-        maxParticipants: config.participantsPerRoom,
+        maxParticipants: Math.min(config.participantsPerRoom, 10), // Cap at 10 for Daily.co plan limits
       }))
 
       emitBreakoutEvent(
