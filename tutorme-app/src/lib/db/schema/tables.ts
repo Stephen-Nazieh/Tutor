@@ -2952,6 +2952,75 @@ export const builderTaskVersion = pgTable(
 )
 
 // ============================================
+// TASK FEEDBACK TABLES - For Polls and Questions
+// ============================================
+
+export const taskPoll = pgTable(
+  'TaskPoll',
+  {
+    id: text('id').primaryKey().notNull(),
+    taskId: text('taskId').notNull(),
+    tutorId: text('tutorId').notNull(),
+    sessionId: text('sessionId').notNull(), // Live session this poll belongs to
+    question: text('question').notNull(),
+    options: jsonb('options').notNull().$type<number[]>(), // [1, 2, 3, 4, 5]
+    responses: jsonb('responses').notNull().default({}).$type<Record<string, number>>(), // studentId -> option
+    isActive: boolean('isActive').notNull().default(true),
+    sentAt: timestamp('sentAt', { withTimezone: true }).notNull().defaultNow(),
+    closedAt: timestamp('closedAt', { withTimezone: true }),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  },
+  table => ({
+    TaskPoll_taskId_idx: index('TaskPoll_taskId_idx').on(table.taskId),
+    TaskPoll_sessionId_idx: index('TaskPoll_sessionId_idx').on(table.sessionId),
+    TaskPoll_tutorId_idx: index('TaskPoll_tutorId_idx').on(table.tutorId),
+    TaskPoll_isActive_idx: index('TaskPoll_isActive_idx').on(table.isActive),
+  })
+)
+
+export const taskQuestion = pgTable(
+  'TaskQuestion',
+  {
+    id: text('id').primaryKey().notNull(),
+    taskId: text('taskId').notNull(),
+    tutorId: text('tutorId').notNull(),
+    sessionId: text('sessionId').notNull(), // Live session this question belongs to
+    question: text('question').notNull(),
+    answers: jsonb('answers')
+      .notNull()
+      .default({})
+      .$type<Record<string, { answer: string; answeredAt: string }>>(),
+    sentAt: timestamp('sentAt', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  },
+  table => ({
+    TaskQuestion_taskId_idx: index('TaskQuestion_taskId_idx').on(table.taskId),
+    TaskQuestion_sessionId_idx: index('TaskQuestion_sessionId_idx').on(table.sessionId),
+    TaskQuestion_tutorId_idx: index('TaskQuestion_tutorId_idx').on(table.tutorId),
+  })
+)
+
+export const taskDeployment = pgTable(
+  'TaskDeployment',
+  {
+    id: text('id').primaryKey().notNull(),
+    taskId: text('taskId').notNull(),
+    tutorId: text('tutorId').notNull(),
+    sessionId: text('sessionId').notNull(),
+    studentIds: jsonb('studentIds').notNull().$type<string[]>(), // Target students
+    deployedAt: timestamp('deployedAt', { withTimezone: true }).notNull().defaultNow(),
+    status: text('status').notNull().default('active'), // 'active', 'closed'
+    closedAt: timestamp('closedAt', { withTimezone: true }),
+  },
+  table => ({
+    TaskDeployment_taskId_idx: index('TaskDeployment_taskId_idx').on(table.taskId),
+    TaskDeployment_sessionId_idx: index('TaskDeployment_sessionId_idx').on(table.sessionId),
+    TaskDeployment_tutorId_idx: index('TaskDeployment_tutorId_idx').on(table.tutorId),
+    TaskDeployment_status_idx: index('TaskDeployment_status_idx').on(table.status),
+  })
+)
+
+// ============================================
 // TUTOR ASSETS TABLE - For Course Builder Assets
 // ============================================
 
