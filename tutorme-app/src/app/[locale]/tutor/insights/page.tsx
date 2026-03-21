@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useParams, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { CourseBuilderContent } from '../courses/components/CourseBuilderContent'
 
 export default function InsightsPage() {

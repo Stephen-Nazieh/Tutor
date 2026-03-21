@@ -50,7 +50,7 @@ export async function GET() {
       .from(builderTask)
       .where(
         and(
-          eq(builderTask.status, 'published'),
+          eq(builderTask.status, 'published')
           // Add any other filters needed
         )
       )
@@ -72,9 +72,6 @@ export async function GET() {
     return NextResponse.json({ tasks: formattedTasks })
   } catch (error) {
     console.error('Error fetching deployed tasks:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch deployed tasks' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to fetch deployed tasks' }, { status: 500 })
   }
 }

@@ -1612,43 +1612,51 @@ async function hashString(input: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
-
 // ============================================
 // FEEDBACK & INSIGHTS HANDLERS
 // ============================================
 
 // Store for deployed tasks and feedback items
-const deployedTasks = new Map<string, {
-  id: string
-  taskId: string
-  title: string
-  content: string
-  type: 'task' | 'assessment'
-  deployedAt: string
-  tutorId: string
-  tutorName: string
-  students: Set<string>
-}>()
+const deployedTasks = new Map<
+  string,
+  {
+    id: string
+    taskId: string
+    title: string
+    content: string
+    type: 'task' | 'assessment'
+    deployedAt: string
+    tutorId: string
+    tutorName: string
+    students: Set<string>
+  }
+>()
 
-const feedbackPolls = new Map<string, {
-  id: string
-  taskId: string
-  question: string
-  options: number[]
-  responses: Map<string, number> // studentId -> option
-  isActive: boolean
-  sentAt: string
-  tutorId: string
-}>()
+const feedbackPolls = new Map<
+  string,
+  {
+    id: string
+    taskId: string
+    question: string
+    options: number[]
+    responses: Map<string, number> // studentId -> option
+    isActive: boolean
+    sentAt: string
+    tutorId: string
+  }
+>()
 
-const feedbackQuestions = new Map<string, {
-  id: string
-  taskId: string
-  question: string
-  answers: Map<string, { answer: string; answeredAt: string }>
-  sentAt: string
-  tutorId: string
-}>()
+const feedbackQuestions = new Map<
+  string,
+  {
+    id: string
+    taskId: string
+    question: string
+    answers: Map<string, { answer: string; answeredAt: string }>
+    sentAt: string
+    tutorId: string
+  }
+>()
 
 export function initFeedbackHandlers(io: SocketIOServer, socket: Socket) {
   // Student joins feedback room
@@ -1666,198 +1674,201 @@ export function initFeedbackHandlers(io: SocketIOServer, socket: Socket) {
   })
 
   // Tutor deploys a task
-  socket.on('deploy_task', (data: {
-    taskId: string
-    title: string
-    content: string
-    type: 'task' | 'assessment'
-    tutorId: string
-    tutorName: string
-    studentIds: string[]
-  }) => {
-    if (socket.data.role !== 'tutor') return
+  socket.on(
+    'deploy_task',
+    (data: {
+      taskId: string
+      title: string
+      content: string
+      type: 'task' | 'assessment'
+      tutorId: string
+      tutorName: string
+      studentIds: string[]
+    }) => {
+      if (socket.data.role !== 'tutor') return
 
-    const deploymentId = `deploy-${Date.now()}`
-    const deployedTask = {
-      id: deploymentId,
-      taskId: data.taskId,
-      title: data.title,
-      content: data.content,
-      type: data.type,
-      deployedAt: new Date().toISOString(),
-      tutorId: data.tutorId,
-      tutorName: data.tutorName,
-      students: new Set(data.studentIds),
-    }
-
-    deployedTasks.set(deploymentId, deployedTask)
-
-    // Notify all targeted students
-    data.studentIds.forEach(studentId => {
-      io.to(`feedback:student:${studentId}`).emit('task_deployed', {
+      const deploymentId = `deploy-${Date.now()}`
+      const deployedTask = {
         id: deploymentId,
         taskId: data.taskId,
         title: data.title,
         content: data.content,
         type: data.type,
-        deployedAt: deployedTask.deployedAt,
+        deployedAt: new Date().toISOString(),
         tutorId: data.tutorId,
         tutorName: data.tutorName,
+        students: new Set(data.studentIds),
+      }
+
+      deployedTasks.set(deploymentId, deployedTask)
+
+      // Notify all targeted students
+      data.studentIds.forEach(studentId => {
+        io.to(`feedback:student:${studentId}`).emit('task_deployed', {
+          id: deploymentId,
+          taskId: data.taskId,
+          title: data.title,
+          content: data.content,
+          type: data.type,
+          deployedAt: deployedTask.deployedAt,
+          tutorId: data.tutorId,
+          tutorName: data.tutorName,
+        })
       })
-    })
-  })
+    }
+  )
 
   // Tutor sends a poll
-  socket.on('send_poll', (data: {
-    id: string
-    question: string
-    options: number[]
-    sentAt: string
-    tutorId: string
-    tutorName: string
-  }) => {
-    if (socket.data.role !== 'tutor') return
+  socket.on(
+    'send_poll',
+    (data: {
+      id: string
+      question: string
+      options: number[]
+      sentAt: string
+      tutorId: string
+      tutorName: string
+    }) => {
+      if (socket.data.role !== 'tutor') return
 
-    const poll = {
-      id: data.id,
-      taskId: '', // Will be set when linked to a task
-      question: data.question,
-      options: data.options,
-      responses: new Map<string, number>(),
-      isActive: true,
-      sentAt: data.sentAt,
-      tutorId: data.tutorId,
+      const poll = {
+        id: data.id,
+        taskId: '', // Will be set when linked to a task
+        question: data.question,
+        options: data.options,
+        responses: new Map<string, number>(),
+        isActive: true,
+        sentAt: data.sentAt,
+        tutorId: data.tutorId,
+      }
+
+      feedbackPolls.set(data.id, poll)
+
+      // Broadcast to all connected students
+      io.emit('poll_received', {
+        id: data.id,
+        taskId: '',
+        question: data.question,
+        options: data.options,
+        responses: {},
+        isActive: true,
+        sentAt: data.sentAt,
+      })
+
+      // Notify tutor of success
+      socket.emit('poll_sent', { pollId: data.id, success: true })
     }
-
-    feedbackPolls.set(data.id, poll)
-
-    // Broadcast to all connected students
-    io.emit('poll_received', {
-      id: data.id,
-      taskId: '',
-      question: data.question,
-      options: data.options,
-      responses: {},
-      isActive: true,
-      sentAt: data.sentAt,
-    })
-
-    // Notify tutor of success
-    socket.emit('poll_sent', { pollId: data.id, success: true })
-  })
+  )
 
   // Tutor sends a question
-  socket.on('send_question', (data: {
-    id: string
-    question: string
-    sentAt: string
-    tutorId: string
-    tutorName: string
-  }) => {
-    if (socket.data.role !== 'tutor') return
+  socket.on(
+    'send_question',
+    (data: {
+      id: string
+      question: string
+      sentAt: string
+      tutorId: string
+      tutorName: string
+    }) => {
+      if (socket.data.role !== 'tutor') return
 
-    const question = {
-      id: data.id,
-      taskId: '', // Will be set when linked to a task
-      question: data.question,
-      answers: new Map<string, { answer: string; answeredAt: string }>(),
-      sentAt: data.sentAt,
-      tutorId: data.tutorId,
+      const question = {
+        id: data.id,
+        taskId: '', // Will be set when linked to a task
+        question: data.question,
+        answers: new Map<string, { answer: string; answeredAt: string }>(),
+        sentAt: data.sentAt,
+        tutorId: data.tutorId,
+      }
+
+      feedbackQuestions.set(data.id, question)
+
+      // Broadcast to all connected students
+      io.emit('question_received', {
+        id: data.id,
+        taskId: '',
+        question: data.question,
+        sentAt: data.sentAt,
+      })
+
+      // Notify tutor of success
+      socket.emit('question_sent', { questionId: data.id, success: true })
     }
-
-    feedbackQuestions.set(data.id, question)
-
-    // Broadcast to all connected students
-    io.emit('question_received', {
-      id: data.id,
-      taskId: '',
-      question: data.question,
-      sentAt: data.sentAt,
-    })
-
-    // Notify tutor of success
-    socket.emit('question_sent', { questionId: data.id, success: true })
-  })
+  )
 
   // Student responds to a poll
-  socket.on('poll_response', (data: {
-    pollId: string
-    studentId: string
-    option: number
-    taskId?: string
-  }) => {
-    if (socket.data.role !== 'student') return
+  socket.on(
+    'poll_response',
+    (data: { pollId: string; studentId: string; option: number; taskId?: string }) => {
+      if (socket.data.role !== 'student') return
 
-    const poll = feedbackPolls.get(data.pollId)
-    if (!poll || !poll.isActive) return
+      const poll = feedbackPolls.get(data.pollId)
+      if (!poll || !poll.isActive) return
 
-    // Store response
-    poll.responses.set(data.studentId, data.option)
+      // Store response
+      poll.responses.set(data.studentId, data.option)
 
-    // Notify tutor
-    io.to(`insights:tutor:${poll.tutorId}`).emit('poll_response_received', {
-      pollId: data.pollId,
-      response: {
-        studentId: data.studentId,
-        option: data.option,
-        respondedAt: new Date().toISOString(),
-      },
-    })
+      // Notify tutor
+      io.to(`insights:tutor:${poll.tutorId}`).emit('poll_response_received', {
+        pollId: data.pollId,
+        response: {
+          studentId: data.studentId,
+          option: data.option,
+          respondedAt: new Date().toISOString(),
+        },
+      })
 
-    // Update all students with new poll data
-    io.emit('poll_updated', {
-      id: poll.id,
-      taskId: poll.taskId,
-      question: poll.question,
-      options: poll.options,
-      responses: Object.fromEntries(poll.responses),
-      isActive: poll.isActive,
-      sentAt: poll.sentAt,
-    })
-  })
+      // Update all students with new poll data
+      io.emit('poll_updated', {
+        id: poll.id,
+        taskId: poll.taskId,
+        question: poll.question,
+        options: poll.options,
+        responses: Object.fromEntries(poll.responses),
+        isActive: poll.isActive,
+        sentAt: poll.sentAt,
+      })
+    }
+  )
 
   // Student answers a question
-  socket.on('question_answer', (data: {
-    questionId: string
-    studentId: string
-    answer: string
-    taskId?: string
-  }) => {
-    if (socket.data.role !== 'student') return
+  socket.on(
+    'question_answer',
+    (data: { questionId: string; studentId: string; answer: string; taskId?: string }) => {
+      if (socket.data.role !== 'student') return
 
-    const question = feedbackQuestions.get(data.questionId)
-    if (!question) return
+      const question = feedbackQuestions.get(data.questionId)
+      if (!question) return
 
-    // Store answer
-    question.answers.set(data.studentId, {
-      answer: data.answer,
-      answeredAt: new Date().toISOString(),
-    })
+      // Store answer
+      question.answers.set(data.studentId, {
+        answer: data.answer,
+        answeredAt: new Date().toISOString(),
+      })
 
-    // Notify tutor
-    io.to(`insights:tutor:${question.tutorId}`).emit('question_answer_received', {
-      questionId: data.questionId,
-      studentId: data.studentId,
-      answer: data.answer,
-      answeredAt: new Date().toISOString(),
-    })
-  })
+      // Notify tutor
+      io.to(`insights:tutor:${question.tutorId}`).emit('question_answer_received', {
+        questionId: data.questionId,
+        studentId: data.studentId,
+        answer: data.answer,
+        answeredAt: new Date().toISOString(),
+      })
+    }
+  )
 
   // Student sends chat message
-  socket.on('feedback_chat_message', (data: {
-    studentId: string
-    message: string
-    taskId?: string
-    timestamp: string
-  }) => {
-    // Broadcast to tutor
-    io.emit('feedback_chat_received', {
-      studentId: data.studentId,
-      message: data.message,
-      taskId: data.taskId,
-      timestamp: data.timestamp,
-    })
-  })
+  socket.on(
+    'feedback_chat_message',
+    (data: { studentId: string; message: string; taskId?: string; timestamp: string }) => {
+      // Broadcast to tutor
+      io.emit('feedback_chat_received', {
+        studentId: data.studentId,
+        message: data.message,
+        taskId: data.taskId,
+        timestamp: data.timestamp,
+      })
+    }
+  )
 
   // Tutor closes a poll
   socket.on('close_poll', (data: { pollId: string }) => {
@@ -1879,42 +1890,50 @@ export function initFeedbackHandlers(io: SocketIOServer, socket: Socket) {
   })
 
   // Get analytics data
-  socket.on('get_analytics', (data: { tutorId: string }, callback: (data: {
-    activeStudents: number
-    taskCompletionRate: number
-    averageScore: number
-    activePolls: number
-    pendingQuestions: number
-    pollResults: {
-      pollId: string
-      question: string
-      responses: { option: number; count: number }[]
-      totalResponses: number
-    }[]
-  }) => void) => {
-    if (socket.data.role !== 'tutor') return
+  socket.on(
+    'get_analytics',
+    (
+      data: { tutorId: string },
+      callback: (data: {
+        activeStudents: number
+        taskCompletionRate: number
+        averageScore: number
+        activePolls: number
+        pendingQuestions: number
+        pollResults: {
+          pollId: string
+          question: string
+          responses: { option: number; count: number }[]
+          totalResponses: number
+        }[]
+      }) => void
+    ) => {
+      if (socket.data.role !== 'tutor') return
 
-    // Calculate analytics
-    const activePolls = Array.from(feedbackPolls.values()).filter(p => p.isActive).length
-    const pendingQuestions = Array.from(feedbackQuestions.values()).filter(q => q.answers.size === 0).length
+      // Calculate analytics
+      const activePolls = Array.from(feedbackPolls.values()).filter(p => p.isActive).length
+      const pendingQuestions = Array.from(feedbackQuestions.values()).filter(
+        q => q.answers.size === 0
+      ).length
 
-    const pollResults = Array.from(feedbackPolls.values()).map(poll => ({
-      pollId: poll.id,
-      question: poll.question,
-      responses: poll.options.map(option => ({
-        option,
-        count: Array.from(poll.responses.values()).filter(r => r === option).length,
-      })),
-      totalResponses: poll.responses.size,
-    }))
+      const pollResults = Array.from(feedbackPolls.values()).map(poll => ({
+        pollId: poll.id,
+        question: poll.question,
+        responses: poll.options.map(option => ({
+          option,
+          count: Array.from(poll.responses.values()).filter(r => r === option).length,
+        })),
+        totalResponses: poll.responses.size,
+      }))
 
-    callback({
-      activeStudents: io.engine.clientsCount,
-      taskCompletionRate: 0, // Would calculate from actual data
-      averageScore: 0, // Would calculate from actual data
-      activePolls,
-      pendingQuestions,
-      pollResults,
-    })
-  })
+      callback({
+        activeStudents: io.engine.clientsCount,
+        taskCompletionRate: 0, // Would calculate from actual data
+        averageScore: 0, // Would calculate from actual data
+        activePolls,
+        pendingQuestions,
+        pollResults,
+      })
+    }
+  )
 }
