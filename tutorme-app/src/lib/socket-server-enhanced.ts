@@ -8,7 +8,11 @@ import { Server as SocketIOServer, Socket } from 'socket.io'
 import { jwtVerify } from 'jose'
 import { createClient } from 'redis'
 import { promisify } from 'util'
-import { registerLiveClassWhiteboardHandlers, cleanupLcwbPresence } from './socket-server'
+import {
+  registerLiveClassWhiteboardHandlers,
+  cleanupLcwbPresence,
+  initFeedbackHandlers,
+} from './socket-server'
 
 // Types from original socket-server.ts
 export type StudentStatus = 'on_track' | 'needs_help' | 'struggling' | 'idle'
@@ -468,6 +472,9 @@ export async function initEnhancedSocketServer(server: NetServer) {
 
     // Live-class whiteboard (lcwb_*) handlers — shared with socket-server.ts
     registerLiveClassWhiteboardHandlers(io, socket)
+
+    // Feedback & Insights handlers — shared with socket-server.ts
+    initFeedbackHandlers(io, socket)
 
     // Enhanced room management with authentication
     socket.on('join_class', async (data: { roomId: string; name?: string }) => {
