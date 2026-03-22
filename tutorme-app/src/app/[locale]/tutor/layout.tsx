@@ -47,6 +47,7 @@ const navItems: NavItem[] = [
   { href: '/tutor/lessons', label: 'Lesson Bank', icon: BookOpen },
   { href: '/tutor/groups', label: 'Groups', icon: Users },
   { href: '/tutor/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/tutor/insights', label: 'Insights', icon: Lightbulb },
   { href: '/tutor/reports', label: 'Analytics', icon: BarChart3 },
   { href: '/tutor/training', label: 'Training', icon: GraduationCap },
   { href: '/tutor/support', label: 'Support', icon: HelpCircle },
@@ -103,7 +104,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   // Check if we're on My Page - hide sidebar and show back button instead
   const isMyPage = pathname === '/tutor/my-page' || pathname?.startsWith('/tutor/my-page/')
 
-  // Insights should use a focused layout without the sidebar
+  // Insights page has its own layout with course builder integrated
   const isInsightsPage = pathname === '/tutor/insights' || pathname?.startsWith('/tutor/insights/')
 
   // Lesson Bank should use a focused layout without the sidebar
