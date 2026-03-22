@@ -25,12 +25,60 @@ export interface ChatMessage {
   isAI?: boolean
 }
 
+export interface LiveTaskPollResponse {
+  studentId: string
+  value: number
+  submittedAt: number
+}
+
+export interface LiveTaskQuestionResponse {
+  studentId: string
+  answer: string
+  submittedAt: number
+}
+
+export interface LiveTaskPoll {
+  id: string
+  taskId: string
+  question: string
+  options: number[]
+  status: 'open' | 'closed'
+  responses: LiveTaskPollResponse[]
+  createdAt: number
+}
+
+export interface LiveTaskQuestion {
+  id: string
+  taskId: string
+  prompt: string
+  responses: LiveTaskQuestionResponse[]
+  createdAt: number
+}
+
+export interface LiveTaskDmiItem {
+  id: string
+  questionNumber: number
+  questionText: string
+}
+
+export interface LiveTask {
+  id: string
+  title: string
+  content: string
+  source: 'task' | 'assessment'
+  dmiItems?: LiveTaskDmiItem[]
+  deployedAt: number
+  polls: LiveTaskPoll[]
+  questions: LiveTaskQuestion[]
+}
+
 export interface ClassRoom {
   id: string
   tutorId: string
   students: Map<string, StudentState>
   whiteboardData?: unknown[]
   chatHistory: ChatMessage[]
+  tasks?: LiveTask[]
   createdAt: Date
 }
 

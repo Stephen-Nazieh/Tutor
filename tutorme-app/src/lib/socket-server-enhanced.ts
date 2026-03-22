@@ -35,6 +35,7 @@ export interface ClassRoom {
   students: Map<string, StudentState>
   whiteboardData?: any
   chatHistory: ChatMessage[]
+  tasks: LiveTask[]
   createdAt: Date
   lastActivity: number
 }
@@ -46,6 +47,53 @@ export interface ChatMessage {
   text: string
   timestamp: number
   isAI?: boolean
+}
+
+export interface LiveTaskPollResponse {
+  studentId: string
+  value: number
+  submittedAt: number
+}
+
+export interface LiveTaskQuestionResponse {
+  studentId: string
+  answer: string
+  submittedAt: number
+}
+
+export interface LiveTaskPoll {
+  id: string
+  taskId: string
+  question: string
+  options: number[]
+  status: 'open' | 'closed'
+  responses: LiveTaskPollResponse[]
+  createdAt: number
+}
+
+export interface LiveTaskQuestion {
+  id: string
+  taskId: string
+  prompt: string
+  responses: LiveTaskQuestionResponse[]
+  createdAt: number
+}
+
+export interface LiveTaskDmiItem {
+  id: string
+  questionNumber: number
+  questionText: string
+}
+
+export interface LiveTask {
+  id: string
+  title: string
+  content: string
+  source: 'task' | 'assessment'
+  dmiItems?: LiveTaskDmiItem[]
+  deployedAt: number
+  polls: LiveTaskPoll[]
+  questions: LiveTaskQuestion[]
 }
 
 // Environment validation
@@ -311,6 +359,7 @@ async function persistRoomToRedis(roomId: string, room: ClassRoom) {
         tutorId: room.tutorId,
         students: Array.from(room.students.entries()),
         chatHistory: room.chatHistory,
+        tasks: room.tasks,
         createdAt: room.createdAt,
         lastActivity: room.lastActivity,
       })
@@ -331,6 +380,7 @@ async function getRoomFromRedis(roomId: string): Promise<ClassRoom | null> {
     return {
       ...parsed,
       students: new Map(parsed.students),
+      tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
     }
   } catch (error) {
     console.error('Failed to retrieve room from Redis:', error)
@@ -508,6 +558,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
           tutorId: userId,
           students: new Map(),
           chatHistory: [],
+          tasks: [],
           createdAt: new Date(),
           lastActivity: Date.now(),
         }
@@ -517,6 +568,150 @@ export async function initEnhancedSocketServer(server: NetServer) {
       // Add user to room with activity tracking
       role === 'student' ? addStudentToRoom(socket, room) : addTutorToRoom(socket, room)
     })
+
+    socket.on('task:deploy', async (data: { roomId: string; task: LiveTask }) => {
+      if (socket.data.role !== 'tutor') return
+      const { roomId, task } = data
+      if (!roomId || !task?.id) return
+      const room = activeRooms.get(roomId)
+      if (!room) return
+
+      const normalizedTask: LiveTask = {
+        id: task.id,
+        title: task.title,
+        content: task.content,
+        source: task.source || 'task',
+        dmiItems: task.dmiItems,
+        deployedAt: task.deployedAt || Date.now(),
+        polls: Array.isArray(task.polls) ? task.polls : [],
+        questions: Array.isArray(task.questions) ? task.questions : [],
+      }
+
+      const existingIndex = room.tasks.findIndex(existing => existing.id === normalizedTask.id)
+      if (existingIndex >= 0) {
+        room.tasks[existingIndex] = {
+          ...room.tasks[existingIndex],
+          ...normalizedTask,
+          polls: room.tasks[existingIndex].polls,
+          questions: room.tasks[existingIndex].questions,
+        }
+      } else {
+        room.tasks.push(normalizedTask)
+      }
+
+      room.lastActivity = Date.now()
+      void persistRoomToRedis(roomId, room)
+      io.to(roomId).emit('task:deployed', normalizedTask)
+      io.to(roomId).emit('task:updated', { task: normalizedTask })
+    })
+
+    socket.on(
+      'insight:send',
+      (data: { roomId: string; taskId: string; type: 'poll' | 'question'; prompt: string }) => {
+        if (socket.data.role !== 'tutor') return
+        const { roomId, taskId, type, prompt } = data
+        if (!roomId || !taskId) return
+        const room = activeRooms.get(roomId)
+        if (!room) return
+
+        const task = room.tasks.find(item => item.id === taskId)
+        if (!task) return
+
+        if (type === 'poll') {
+          const poll: LiveTaskPoll = {
+            id: `poll-${taskId}-${Date.now()}`,
+            taskId,
+            question: prompt || 'Did you find this task difficult?',
+            options: [1, 2, 3, 4, 5],
+            status: 'open',
+            responses: [],
+            createdAt: Date.now(),
+          }
+          task.polls.push(poll)
+          room.lastActivity = Date.now()
+          void persistRoomToRedis(roomId, room)
+          io.to(roomId).emit('insight:sent', { taskId, type: 'poll', item: poll })
+          io.to(roomId).emit('task:updated', { task })
+          return
+        }
+
+        const question: LiveTaskQuestion = {
+          id: `question-${taskId}-${Date.now()}`,
+          taskId,
+          prompt: prompt || 'Do you have a question about this task?',
+          responses: [],
+          createdAt: Date.now(),
+        }
+        task.questions.push(question)
+        room.lastActivity = Date.now()
+        void persistRoomToRedis(roomId, room)
+        io.to(roomId).emit('insight:sent', { taskId, type: 'question', item: question })
+        io.to(roomId).emit('task:updated', { task })
+      }
+    )
+
+    socket.on(
+      'insight:respond',
+      (data: {
+        roomId: string
+        taskId: string
+        type: 'poll' | 'question'
+        insightId: string
+        value?: number
+        answer?: string
+      }) => {
+        const { roomId, taskId, type, insightId, value, answer } = data
+        if (!roomId || !taskId || !insightId) return
+        const room = activeRooms.get(roomId)
+        if (!room) return
+
+        const task = room.tasks.find(item => item.id === taskId)
+        if (!task) return
+
+        if (type === 'poll') {
+          const poll = task.polls.find(item => item.id === insightId)
+          if (!poll || poll.status === 'closed' || typeof value !== 'number') return
+          const studentId = socket.data.userId
+          if (!studentId) return
+          const existingIndex = poll.responses.findIndex(r => r.studentId === studentId)
+          const response: LiveTaskPollResponse = {
+            studentId,
+            value,
+            submittedAt: Date.now(),
+          }
+          if (existingIndex >= 0) {
+            poll.responses[existingIndex] = response
+          } else {
+            poll.responses.push(response)
+          }
+          room.lastActivity = Date.now()
+          void persistRoomToRedis(roomId, room)
+          io.to(roomId).emit('insight:response', { taskId, type: 'poll', item: poll })
+          io.to(roomId).emit('task:updated', { task })
+          return
+        }
+
+        const question = task.questions.find(item => item.id === insightId)
+        if (!question) return
+        const studentId = socket.data.userId
+        if (!studentId || !answer?.trim()) return
+        const existingIndex = question.responses.findIndex(r => r.studentId === studentId)
+        const response: LiveTaskQuestionResponse = {
+          studentId,
+          answer: answer.trim(),
+          submittedAt: Date.now(),
+        }
+        if (existingIndex >= 0) {
+          question.responses[existingIndex] = response
+        } else {
+          question.responses.push(response)
+        }
+        room.lastActivity = Date.now()
+        void persistRoomToRedis(roomId, room)
+        io.to(roomId).emit('insight:response', { taskId, type: 'question', item: question })
+        io.to(roomId).emit('task:updated', { task })
+      }
+    )
 
     // Enhanced disconnect handler with cleanup
     socket.on('disconnect', () => {
@@ -598,6 +793,7 @@ function addStudentToRoom(socket: Socket, room: ClassRoom) {
     students: Array.from(room.students.values()),
     chatHistory: room.chatHistory.slice(-50),
     whiteboardData: room.whiteboardData,
+    tasks: room.tasks,
   })
 }
 
@@ -608,6 +804,7 @@ function addTutorToRoom(socket: Socket, room: ClassRoom) {
     students: Array.from(room.students.values()),
     chatHistory: room.chatHistory,
     whiteboardData: room.whiteboardData,
+    tasks: room.tasks,
   })
 }
 

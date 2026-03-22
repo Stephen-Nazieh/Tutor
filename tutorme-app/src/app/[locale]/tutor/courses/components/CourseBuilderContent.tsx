@@ -7,9 +7,11 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -25,6 +27,7 @@ import type {
 } from '../../dashboard/components/CourseBuilder'
 import { toast } from 'sonner'
 import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
+import type { LiveTask } from '@/lib/socket'
 
 interface CourseData {
   id: string
@@ -70,13 +73,47 @@ function normalizeVariantLinks(data: unknown): AdaptiveVariantLink[] {
     .sort((a, b) => DIFFICULTY_ORDER[a.difficulty] - DIFFICULTY_ORDER[b.difficulty])
 }
 
-export function CourseBuilderContent({ courseId }: { courseId: string | null }) {
+interface InsightsSessionOption {
+  id: string
+  title: string
+  subject: string
+  scheduledAt: string
+  status: string
+}
+
+interface CourseBuilderInsightsProps {
+  courseId?: string | null
+  courses?: Array<{ id: string; name: string }>
+  onCourseChange?: (courseId: string) => void
+  sessionId: string | null
+  sessions: InsightsSessionOption[]
+  onSessionChange: (sessionId: string) => void
+  liveTasks: LiveTask[]
+  onDeployTask: (task: LiveTask) => void
+  onSendPoll: (payload: { taskId: string; question: string }) => void
+  onSendQuestion: (payload: { taskId: string; prompt: string }) => void
+}
+
+export function CourseBuilderContent({
+  courseId,
+  insightsProps,
+  dataMode = 'default',
+  detachedStorageKey,
+  detachedCourseName,
+}: {
+  courseId: string | null
+  insightsProps?: CourseBuilderInsightsProps
+  dataMode?: 'default' | 'detached'
+  detachedStorageKey?: string
+  detachedCourseName?: string
+}) {
   const [course, setCourse] = useState<CourseData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [loadedModules, setLoadedModules] = useState<CourseBuilderModule[] | null>(null)
   const [savedVariants, setSavedVariants] = useState<AdaptiveVariantLink[]>([])
   const courseBuilderRef = useRef<CourseBuilderRef>(null)
+  const router = useRouter()
 
   // Theme state with localStorage persistence
   const [themeId, setThemeId] = useState('current')
@@ -97,7 +134,29 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
   const loadCourse = useCallback(async () => {
     if (!courseId) return
     setLoading(true)
+    const isDetached = dataMode === 'detached'
+    const storageKey = detachedStorageKey || `insights-course-builder:${courseId}`
     try {
+      if (isDetached) {
+        setCourse({
+          id: courseId,
+          name: detachedCourseName || 'Insights Builder',
+          studentCount: 0,
+          isPublished: false,
+        })
+        const stored = localStorage.getItem(storageKey)
+        if (stored) {
+          const parsed = JSON.parse(stored) as { modules?: CourseBuilderModule[] }
+          if (Array.isArray(parsed.modules) && parsed.modules.length > 0) {
+            setLoadedModules(parsed.modules)
+          } else {
+            setLoadedModules(null)
+          }
+        } else {
+          setLoadedModules(null)
+        }
+        return
+      }
       // Load course metadata
       const res = await fetch(`/api/tutor/courses/${courseId}`, { credentials: 'include' })
       if (res.ok) {
@@ -123,13 +182,13 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
     } finally {
       setLoading(false)
     }
-  }, [courseId])
+  }, [courseId, dataMode, detachedCourseName, detachedStorageKey])
 
   useEffect(() => {
     loadCourse()
   }, [loadCourse])
 
-  if (!courseId) {
+  if (!courseId && dataMode !== 'detached') {
     return (
       <div
         className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground"
@@ -163,6 +222,27 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
       previewDifficulty: 'all' | 'beginner' | 'intermediate' | 'advanced'
     }
   ) => {
+    const isDetached = dataMode === 'detached'
+    if (isDetached) {
+      const storageKey = detachedStorageKey || `insights-course-builder:${courseId ?? 'default'}`
+      try {
+        localStorage.setItem(
+          storageKey,
+          JSON.stringify({
+            modules,
+            savedAt: new Date().toISOString(),
+            options: {
+              developmentMode: options?.developmentMode ?? 'single',
+              previewDifficulty: options?.previewDifficulty ?? 'all',
+            },
+          })
+        )
+        toast.success('Insights draft saved')
+      } catch {
+        toast.error('Failed to save Insights draft')
+      }
+      return
+    }
     setSaving(true)
     try {
       const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
@@ -205,21 +285,68 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
+    <div className="flex min-h-screen flex-col bg-background text-foreground" style={themeStyle}>
       {/* Top Navigation Header - Course Builder centered at top */}
       <div className="sticky top-0 z-10 border-b border-border bg-card">
         <div className="flex w-full items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <Button variant="ghost" size="sm" asChild className="shrink-0">
-            <Link href="/tutor/dashboard">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
-            </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="shrink-0"
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.history.length > 1) {
+                router.back()
+              } else {
+                router.push('/tutor/dashboard')
+              }
+            }}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
           </Button>
-          <h1 className="pointer-events-none absolute left-0 right-0 flex flex-1 items-center justify-center gap-2 text-xl font-semibold text-foreground">
-            <BookOpen className="h-5 w-5" />
-            Course Builder
-          </h1>
+          {!insightsProps && (
+            <h1 className="pointer-events-none absolute left-0 right-0 flex flex-1 items-center justify-center gap-2 text-xl font-semibold text-foreground">
+              <BookOpen className="h-5 w-5" />
+              Course Builder
+            </h1>
+          )}
           <div className="flex shrink-0 items-center gap-3">
+            {insightsProps && (
+              <div className="flex items-center gap-2">
+                {insightsProps.courses && insightsProps.courses.length > 0 && (
+                  <Select
+                    value={insightsProps.courseId ?? undefined}
+                    onValueChange={value => insightsProps.onCourseChange?.(value)}
+                  >
+                    <SelectTrigger className="h-8 w-[200px] border-border bg-card text-foreground">
+                      <SelectValue placeholder="Select course" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {insightsProps.courses.map(course => (
+                        <SelectItem key={course.id} value={course.id}>
+                          {course.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <Select
+                  value={insightsProps.sessionId ?? undefined}
+                  onValueChange={insightsProps.onSessionChange}
+                >
+                  <SelectTrigger className="h-8 w-[220px] border-border bg-card text-foreground">
+                    <SelectValue placeholder="Select live session" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {insightsProps.sessions.map(sessionItem => (
+                      <SelectItem key={sessionItem.id} value={sessionItem.id}>
+                        {sessionItem.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             {/* Theme Selector */}
             <Select value={themeId} onValueChange={setThemeId}>
               <SelectTrigger className="h-8 w-[180px] border-border bg-card text-foreground">
@@ -241,32 +368,33 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Save Course
             </Button>
-            {courseId ? (
-              <Button variant="outline" className="gap-2" asChild>
-                <Link href={`/tutor/courses/${courseId}`}>
+            {!insightsProps &&
+              (courseId ? (
+                <Button variant="outline" className="gap-2" asChild>
+                  <Link href={`/tutor/courses/${courseId}`}>
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  type="button"
+                  onClick={() =>
+                    toast.error('Course ID not available yet. Please wait a moment and try again.')
+                  }
+                >
                   Next
                   <ChevronRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                className="gap-2"
-                type="button"
-                onClick={() =>
-                  toast.error('Course ID not available yet. Please wait a moment and try again.')
-                }
-              >
-                Next
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            )}
+                </Button>
+              ))}
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="w-full px-4 py-6 sm:px-6">
+      <div className="flex w-full flex-1 flex-col px-4 py-6 sm:px-6">
         {savedVariants.length > 0 && (
           <Card className="mb-4 border-emerald-200 bg-emerald-50/40">
             <CardHeader className="pb-2 pt-4">
@@ -318,10 +446,11 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
         ) : (
           <CourseBuilder
             ref={courseBuilderRef}
-            courseId={courseId}
+            courseId={courseId ?? ''}
             courseName={course?.name}
             initialModules={loadedModules ?? undefined}
             onSave={handleSave}
+            insightsProps={insightsProps}
           />
         )}
       </div>

@@ -38,18 +38,18 @@ function buildReq(pathname: string, token: Record<string, unknown> | null = null
 }
 
 describe('middleware auth boundaries', () => {
-  it('authorized() rejects protected locale routes without token', () => {
+  it('authorized() rejects protected locale routes without token', async () => {
     const authorized = state.withAuthOptions.callbacks.authorized
-    const allowed = authorized({
+    const allowed = await authorized({
       req: { nextUrl: new URL('http://localhost/en/student/dashboard') },
       token: null,
     })
     expect(allowed).toBe(false)
   })
 
-  it('authorized() allows public locale login route', () => {
+  it('authorized() allows public locale login route', async () => {
     const authorized = state.withAuthOptions.callbacks.authorized
-    const allowed = authorized({
+    const allowed = await authorized({
       req: { nextUrl: new URL('http://localhost/en/login') },
       token: null,
     })

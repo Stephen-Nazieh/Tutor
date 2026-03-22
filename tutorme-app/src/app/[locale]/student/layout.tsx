@@ -11,6 +11,7 @@ import {
   Sparkles,
   ClipboardList,
   MessageSquare,
+  MessageCircle,
   HelpCircle,
   Menu,
   X,
@@ -20,7 +21,6 @@ import {
   FileText,
   Compass,
   Briefcase,
-  MessageCircle,
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'

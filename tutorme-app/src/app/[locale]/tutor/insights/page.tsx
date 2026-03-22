@@ -1,28 +1,262 @@
-/**
- * Insights Page with Full Course Builder
- * Embeds the complete course builder experience with task/assessment builders and PCI
- */
-
 'use client'
 
-import { useSearchParams } from 'next/navigation'
+import { useEffect, useMemo, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { CourseBuilderContent } from '../courses/components/CourseBuilderContent'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Loader2, Wrench } from 'lucide-react'
+import { toast } from 'sonner'
+import { useSocket } from '@/hooks/use-socket'
+import type { LiveTask } from '@/lib/socket'
 
-export default function InsightsPage() {
-  const searchParams = useSearchParams()
-  const courseId = searchParams.get('courseId')
+interface CourseSummary {
+  id: string
+  name: string
+  updatedAt: string
+}
 
-  if (!courseId) {
+interface InsightsSessionOption {
+  id: string
+  title: string
+  subject: string
+  scheduledAt: string
+  status: string
+}
+
+export default function TutorInsightsPage() {
+  const { data: session } = useSession()
+  const [courses, setCourses] = useState<CourseSummary[]>([])
+  const [courseId, setCourseId] = useState<string | null>(null)
+  const [detachedCourseName, setDetachedCourseName] = useState('Course')
+  const [loading, setLoading] = useState(true)
+  const [sessions, setSessions] = useState<InsightsSessionOption[]>([])
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [liveTasks, setLiveTasks] = useState<LiveTask[]>([])
+
+  useEffect(() => {
+    const loadCourses = async () => {
+      setLoading(true)
+      try {
+        const res = await fetch('/api/tutor/courses', { credentials: 'include' })
+        if (!res.ok) throw new Error('Failed to load courses')
+        const data = await res.json()
+        const courseList = (data.courses || []) as CourseSummary[]
+        setCourses(courseList)
+        if (courseList.length > 0) {
+          const sorted = [...courseList].sort(
+            (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          )
+          setCourseId(prev => prev ?? sorted[0].id)
+          setDetachedCourseName(sorted[0].name)
+        }
+      } catch (error) {
+        toast.error('Failed to load courses')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadCourses()
+  }, [])
+
+  useEffect(() => {
+    const loadSessions = async () => {
+      try {
+        const res = await fetch('/api/tutor/classes', { credentials: 'include' })
+        if (!res.ok) throw new Error('Failed to load sessions')
+        const data = await res.json()
+        const classSessions = (data.classes || []) as InsightsSessionOption[]
+        setSessions(classSessions)
+        const activeSession = classSessions.find(item => item.status === 'active')
+        if (activeSession) {
+          setSessionId(prev => prev ?? activeSession.id)
+        } else if (classSessions.length > 0) {
+          setSessionId(prev => prev ?? classSessions[0].id)
+        }
+      } catch (error) {
+        toast.error('Failed to load live classes')
+      }
+    }
+
+    loadSessions()
+  }, [])
+
+  useEffect(() => {
+    setLiveTasks([])
+  }, [sessionId])
+
+  const socketOptions = useMemo(() => {
+    if (!sessionId || !session?.user?.id) return undefined
+    return {
+      roomId: sessionId,
+      userId: session.user.id,
+      name: session.user.name || 'Tutor',
+      role: 'tutor' as const,
+      onRoomState: (state: { tasks?: LiveTask[] }) => {
+        if (state.tasks) {
+          setLiveTasks(state.tasks)
+        }
+      },
+    }
+  }, [session?.user?.id, session?.user?.name, sessionId])
+
+  const { socket } = useSocket(socketOptions)
+
+  useEffect(() => {
+    if (!socket) return
+
+    const handleTaskDeployed = (task: LiveTask) => {
+      setLiveTasks(prev => {
+        const exists = prev.some(item => item.id === task.id)
+        if (exists) {
+          return prev.map(item => (item.id === task.id ? { ...item, ...task } : item))
+        }
+        return [...prev, task]
+      })
+    }
+
+    const handleTaskUpdated = (payload: { task: LiveTask }) => {
+      setLiveTasks(prev => prev.map(item => (item.id === payload.task.id ? payload.task : item)))
+    }
+
+    socket.on('task:deployed', handleTaskDeployed)
+    socket.on('task:updated', handleTaskUpdated)
+
+    return () => {
+      socket.off('task:deployed', handleTaskDeployed)
+      socket.off('task:updated', handleTaskUpdated)
+    }
+  }, [socket])
+
+  const handleDeployTask = (task: LiveTask) => {
+    if (!socket || !sessionId) return
+    socket.emit('task:deploy', { roomId: sessionId, task })
+  }
+
+  const handleSendPoll = (payload: { taskId: string; question: string }) => {
+    if (!socket || !sessionId) return
+    socket.emit('insight:send', {
+      roomId: sessionId,
+      taskId: payload.taskId,
+      type: 'poll',
+      prompt: payload.question,
+    })
+  }
+
+  const handleSendQuestion = (payload: { taskId: string; prompt: string }) => {
+    if (!socket || !sessionId) return
+    socket.emit('insight:send', {
+      roomId: sessionId,
+      taskId: payload.taskId,
+      type: 'question',
+      prompt: payload.prompt,
+    })
+  }
+
+  if (loading) {
     return (
-      <div className="flex h-full flex-col items-center justify-center p-8 text-center">
-        <h2 className="text-xl font-semibold text-gray-700">No Course Selected</h2>
-        <p className="mt-2 text-gray-500">
-          Please select a course to access the Insights & Builder
-        </p>
+      <div className="min-h-screen bg-gray-50">
+        <div className="p-6">
+          <div className="mx-auto max-w-xl">
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+                <Wrench className="h-8 w-8 text-blue-500" />
+                <div>
+                  <h1 className="text-lg font-semibold">Opening Insights…</h1>
+                  <p className="text-sm text-muted-foreground">Loading your latest course.</p>
+                </div>
+                <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     )
   }
 
-  // Render the full CourseBuilderContent
-  return <CourseBuilderContent courseId={courseId} />
+  if (!courseId) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="p-6">
+          <div className="mx-auto max-w-2xl">
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+                <Wrench className="h-8 w-8 text-blue-500" />
+                <div>
+                  <h1 className="text-lg font-semibold">
+                    {courses.length > 0 ? 'Select a course' : 'No courses yet'}
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    {courses.length > 0
+                      ? 'Pick a course to open the Insights builder.'
+                      : 'Create a course to access the Insights builder.'}
+                  </p>
+                </div>
+                {courses.length === 0 ? (
+                  <Button onClick={() => (window.location.href = '/tutor/courses/new')}>
+                    Create New Course
+                  </Button>
+                ) : (
+                  <div className="mt-4 grid w-full gap-3">
+                    {courses.map(course => (
+                      <button
+                        key={course.id}
+                        type="button"
+                        onClick={() => {
+                          setCourseId(course.id)
+                          setDetachedCourseName(course.name)
+                        }}
+                        className="flex w-full items-center justify-between rounded-lg border bg-white px-4 py-3 text-left transition-colors hover:border-blue-200 hover:bg-blue-50"
+                      >
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">{course.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Last updated{' '}
+                            {course.updatedAt
+                              ? new Date(course.updatedAt).toLocaleString()
+                              : 'Unavailable'}
+                          </p>
+                        </div>
+                        <span className="text-xs font-medium text-blue-600">Open</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <CourseBuilderContent
+        courseId={courseId}
+        dataMode="detached"
+        detachedStorageKey={`insights-course-builder:${courseId}`}
+        detachedCourseName={detachedCourseName}
+        insightsProps={{
+          courseId,
+          courses: courses.map(course => ({ id: course.id, name: course.name })),
+          onCourseChange: value => {
+            setCourseId(value)
+            const match = courses.find(course => course.id === value)
+            if (match) {
+              setDetachedCourseName(match.name)
+            }
+          },
+          sessionId,
+          sessions,
+          onSessionChange: setSessionId,
+          liveTasks,
+          onDeployTask: handleDeployTask,
+          onSendPoll: handleSendPoll,
+          onSendQuestion: handleSendQuestion,
+        }}
+      />
+    </div>
+  )
 }
