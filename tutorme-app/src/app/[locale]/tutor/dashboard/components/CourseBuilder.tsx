@@ -385,7 +385,7 @@ interface CourseBuilderInsightsProps {
 }
 
 interface CourseBuilderProps {
-  courseId: string
+  courseId: string | null
   courseName?: string
   panelMode?: 'default' | 'live-class'
   initialModules?: Module[]
