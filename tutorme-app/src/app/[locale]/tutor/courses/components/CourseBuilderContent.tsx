@@ -446,7 +446,7 @@ export function CourseBuilderContent({
         ) : (
           <CourseBuilder
             ref={courseBuilderRef}
-            courseId={courseId}
+            courseId={courseId ?? ''}
             courseName={course?.name}
             initialModules={loadedModules ?? undefined}
             onSave={handleSave}
