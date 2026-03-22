@@ -205,7 +205,7 @@ export default function TutorInsightsPage() {
                         type="button"
                         onClick={() => {
                           setCourseId(course.id)
-                        setDetachedCourseName(course.name)
+                          setDetachedCourseName(course.name)
                         }}
                         className="flex w-full items-center justify-between rounded-lg border bg-white px-4 py-3 text-left transition-colors hover:border-blue-200 hover:bg-blue-50"
                       >

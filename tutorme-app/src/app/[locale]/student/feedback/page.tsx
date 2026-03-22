@@ -255,9 +255,7 @@ export default function StudentFeedbackPage() {
                   </div>
                   {activeTask.dmiItems && activeTask.dmiItems.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-xs font-semibold uppercase text-gray-500">
-                        Task Prompts
-                      </p>
+                      <p className="text-xs font-semibold uppercase text-gray-500">Task Prompts</p>
                       <div className="space-y-2">
                         {activeTask.dmiItems.map(item => (
                           <div key={item.id} className="rounded-lg border bg-white p-3">
@@ -308,9 +306,7 @@ export default function StudentFeedbackPage() {
             <SheetTitle>Tasks</SheetTitle>
           </SheetHeader>
           <div className="mt-4 space-y-2">
-            {tasks.length === 0 && (
-              <p className="text-sm text-gray-500">No tasks deployed yet.</p>
-            )}
+            {tasks.length === 0 && <p className="text-sm text-gray-500">No tasks deployed yet.</p>}
             {tasks.map(task => (
               <button
                 key={task.id}
@@ -340,10 +336,7 @@ export default function StudentFeedbackPage() {
       </Sheet>
 
       <Sheet open={showFeedbackPanel} onOpenChange={setShowFeedbackPanel}>
-        <SheetContent
-          side="right"
-          className="w-full sm:max-w-[50vw] sm:w-[50vw]"
-        >
+        <SheetContent side="right" className="w-full sm:w-[50vw] sm:max-w-[50vw]">
           <SheetHeader>
             <SheetTitle>Feedback</SheetTitle>
           </SheetHeader>
