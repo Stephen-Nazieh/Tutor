@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { io, Socket } from 'socket.io-client'
-import { StudentState, ChatMessage, BreakoutRoom } from '@/lib/socket'
+import { StudentState, ChatMessage, BreakoutRoom, LiveTask } from '@/lib/socket'
 
 interface UseSocketOptions {
   roomId: string
@@ -37,6 +37,7 @@ interface UseSocketOptions {
     students: StudentState[]
     chatHistory: ChatMessage[]
     whiteboardData?: any
+    tasks?: LiveTask[]
   }) => void
 }
 

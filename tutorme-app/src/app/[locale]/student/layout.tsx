@@ -11,6 +11,7 @@ import {
   Sparkles,
   ClipboardList,
   MessageSquare,
+  MessageCircle,
   HelpCircle,
   Menu,
   X,
@@ -34,6 +35,7 @@ const navItems: NavItem[] = [
   { href: '/student/work', label: 'My Work', icon: Briefcase },
   { href: '/student/ai-tutor', label: 'AI Tutor', icon: Sparkles },
   { href: '/student/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/student/feedback', label: 'Feedback', icon: MessageCircle },
   { href: '/student/help', label: 'Help', icon: HelpCircle },
 ]
 

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useRealmSession } from '@/hooks/use-realm-session'
 import { Button } from '@/components/ui/button'
 import { UserNav } from '@/components/user-nav'
@@ -13,6 +13,7 @@ import {
   BarChart3,
   MessageSquare,
   Settings,
+  Lightbulb,
   Menu,
   X,
   Bell,
@@ -28,6 +29,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { routing } from '@/i18n/routing'
 
 type NavItem = {
   href: string
@@ -41,6 +43,7 @@ const navItems: NavItem[] = [
   { href: '/tutor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/tutor/my-page', label: 'My Page', icon: Globe },
   { href: '/tutor/course-builder', label: 'Course Builder', icon: Wrench },
+  { href: '/tutor/insights', label: 'Insights', icon: Lightbulb },
   { href: '/tutor/lessons', label: 'Lesson Bank', icon: BookOpen },
   { href: '/tutor/groups', label: 'Groups', icon: Users },
   { href: '/tutor/messages', label: 'Messages', icon: MessageSquare },
@@ -58,6 +61,13 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   const { data: realmSession, status: realmStatus } = useRealmSession('tutor')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [desktopNavOpen, setDesktopNavOpen] = useState(true)
+  const localePrefix = useMemo(() => {
+    const segments = pathname?.split('/').filter(Boolean) ?? []
+    const first = segments[0]
+    return first && routing.locales.includes(first as (typeof routing.locales)[number])
+      ? `/${first}`
+      : ''
+  }, [pathname])
 
   // Use realm session (tutor tab) first; only redirect if we don't have a tutor session and default session is another role
   useEffect(() => {
@@ -93,6 +103,9 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   // Check if we're on My Page - hide sidebar and show back button instead
   const isMyPage = pathname === '/tutor/my-page' || pathname?.startsWith('/tutor/my-page/')
 
+  // Insights should use a focused layout without the sidebar
+  const isInsightsPage = pathname === '/tutor/insights' || pathname?.startsWith('/tutor/insights/')
+
   // Lesson Bank should use a focused layout without the sidebar
   const isLessonBank = pathname === '/tutor/lessons' || pathname?.startsWith('/tutor/lessons/')
   const isAccountPage = pathname === '/tutor/settings' || pathname?.startsWith('/tutor/settings/')
@@ -102,6 +115,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
     isCoursePublishPage ||
     isLiveClass ||
     isMyPage ||
+    isInsightsPage ||
     isLessonBank ||
     isAccountPage
   ) {
@@ -152,11 +166,13 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
         <nav className="flex-1 space-y-0.5 overflow-y-auto p-4">
           {navItems.map(item => {
             const Icon = item.icon
+            const href =
+              item.href === '/tutor/insights' ? `${localePrefix}/tutor/insights` : item.href
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={href}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors',
                   item.inactive && 'pointer-events-none opacity-50',

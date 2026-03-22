@@ -5,6 +5,7 @@
 
 import createMiddleware from 'next-intl/middleware'
 import { withAuth } from 'next-auth/middleware'
+import { getToken } from 'next-auth/jwt'
 import { NextResponse } from 'next/server'
 import { routing } from '@/i18n/routing'
 import {
@@ -17,6 +18,8 @@ const intlMiddleware = createMiddleware(routing)
 
 const API_RATE_LIMIT_MAX = 100 // per minute per IP
 const RATE_LIMIT_SKIP = ['/api/auth', '/api/health', '/api/payments/webhooks']
+const REALM_COOKIE_TUTOR = 'tutor_session'
+const REALM_COOKIE_STUDENT = 'student_session'
 
 /**
  * Build a strict Content-Security-Policy.
@@ -90,7 +93,22 @@ export default withAuth(
   async function middleware(req) {
     const path = req.nextUrl.pathname
     const normalizedPath = path.startsWith('/api') ? path : stripLocalePrefix(path)
-    const token = req.nextauth.token
+    let token = req.nextauth.token
+    if (!token) {
+      const realmCookieName =
+        normalizedPath.startsWith('/tutor') || normalizedPath.startsWith('/api/tutor')
+          ? REALM_COOKIE_TUTOR
+          : normalizedPath.startsWith('/student') || normalizedPath.startsWith('/api/student')
+            ? REALM_COOKIE_STUDENT
+            : null
+      if (realmCookieName) {
+        token = await getToken({
+          req,
+          secret: process.env.NEXTAUTH_SECRET,
+          cookieName: realmCookieName,
+        })
+      }
+    }
     const method = req.method ?? 'GET'
     const handleMatch = normalizedPath.match(/^\/@([a-zA-Z0-9_]{3,15})$/)
 
@@ -209,7 +227,7 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized({ req, token }) {
+      async authorized({ req, token }) {
         const pathname = req.nextUrl.pathname
         const normalizedPath = pathname.startsWith('/api') ? pathname : stripLocalePrefix(pathname)
         const publicExactPaths = ['/']
@@ -235,7 +253,20 @@ export default withAuth(
         })
         const isPublicPath = isPublicExact || isPublicPrefix
         if (isPublicPath) return true
-        return token !== null
+        if (token) return true
+        const realmCookieName =
+          normalizedPath.startsWith('/tutor') || normalizedPath.startsWith('/api/tutor')
+            ? REALM_COOKIE_TUTOR
+            : normalizedPath.startsWith('/student') || normalizedPath.startsWith('/api/student')
+              ? REALM_COOKIE_STUDENT
+              : null
+        if (!realmCookieName) return false
+        const realmToken = await getToken({
+          req,
+          secret: process.env.NEXTAUTH_SECRET,
+          cookieName: realmCookieName,
+        })
+        return !!realmToken
       },
     },
   }

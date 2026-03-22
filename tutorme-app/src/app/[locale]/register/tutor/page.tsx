@@ -1992,6 +1992,10 @@ export default function TutorRegistrationPage() {
     setEmailStatus({ status: 'checking' })
     try {
       const res = await fetch(`/api/public/email-availability?email=${encodeURIComponent(value)}`)
+      if (!res.ok) {
+        setEmailStatus({ status: 'idle', message: 'Unable to verify right now' })
+        return true
+      }
       const data = await res.json()
       if (data.available) {
         setEmailStatus({ status: 'available', message: 'Email is available' })
@@ -2000,8 +2004,8 @@ export default function TutorRegistrationPage() {
       setEmailStatus({ status: 'taken', message: 'Email is already registered' })
       return false
     } catch {
-      setEmailStatus({ status: 'taken', message: 'Unable to verify right now' })
-      return false
+      setEmailStatus({ status: 'idle', message: 'Unable to verify right now' })
+      return true
     }
   }
 

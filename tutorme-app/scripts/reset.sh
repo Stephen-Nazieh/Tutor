@@ -3,7 +3,8 @@
 
 set -e
 
-cd /Users/nazy/ADK_WORKSPACE/Solocornkimi/tutorme-app
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${SCRIPT_DIR}/.."
 
 # Ensure .env file exists
 if [ ! -f ".env" ]; then
@@ -20,11 +21,12 @@ echo "  - Stop all Docker containers"
 echo "  - DELETE all database data"
 echo "  - Reset to clean state"
 echo ""
-read -p "Are you sure? Type 'yes' to continue: " confirm
-
-if [ "$confirm" != "yes" ]; then
-    echo "Cancelled."
-    exit 0
+if [ "${RESET_CONFIRM:-}" != "1" ]; then
+    read -p "Are you sure? Type 'yes' to continue: " confirm
+    if [ "$confirm" != "yes" ]; then
+        echo "Cancelled."
+        exit 0
+    fi
 fi
 
 echo ""
