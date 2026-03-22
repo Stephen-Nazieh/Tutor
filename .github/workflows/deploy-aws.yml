@@ -1,5 +1,5 @@
 # Deploy TutorMe app to AWS EC2 via SSM
-# Trigger: push to main, or manual dispatch.
+# Trigger: push to main, or manual dispatch.n
 # Requires: GitHub secrets AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY; optional AWS_REGION.
 
 name: Deploy to AWS
