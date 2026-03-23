@@ -12,7 +12,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  PreferenceEnrollmentDialog,
+  type ScheduleItem,
+} from '@/components/curriculum/PreferenceEnrollmentDialog'
 import {
   BookOpen,
   Clock,
@@ -21,7 +24,6 @@ import {
   CheckCircle2,
   Lock,
   Target,
-  BarChart3,
   ArrowLeft,
   GraduationCap,
   Clock4,
@@ -74,6 +76,8 @@ interface CurriculumDetail {
   rating?: number
   reviewCount?: number
   coursePitch?: string | null
+  schedule?: ScheduleItem[]
+  isFree?: boolean
   progress: {
     lessonsCompleted: number
     totalLessons: number
@@ -120,6 +124,7 @@ export default function CurriculumDetailPage() {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const [isFavorited, setIsFavorited] = useState(false)
   const [isEnrolled, setIsEnrolled] = useState(false)
+  const [showPreferenceDialog, setShowPreferenceDialog] = useState(false)
 
   useEffect(() => {
     loadCurriculum()
@@ -169,40 +174,8 @@ export default function CurriculumDetailPage() {
     setIsFavorited(!isFavorited)
   }
 
-  const getCsrf = async () => {
-    const res = await fetch('/api/csrf', { credentials: 'include' })
-    const data = await res.json().catch(() => ({}))
-    return data?.token ?? null
-  }
-
-  const handleEnroll = async () => {
-    try {
-      const csrf = await getCsrf()
-      const res = await fetch('/api/student/enrollments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(csrf && { 'X-CSRF-Token': csrf }),
-        },
-        credentials: 'include',
-        body: JSON.stringify({ curriculumId }),
-      })
-
-      if (res.ok) {
-        toast.success('Successfully enrolled!')
-        setIsEnrolled(true)
-      } else {
-        const data = await res.json()
-        if (data.requiresPayment) {
-          // Redirect to payment page
-          window.location.href = `/payment?curriculumId=${curriculumId}&amount=${curriculum?.price}&currency=${curriculum?.currency}`
-        } else {
-          toast.error(data.error || 'Failed to enroll')
-        }
-      }
-    } catch {
-      toast.error('Failed to enroll')
-    }
+  const handleEnroll = () => {
+    setShowPreferenceDialog(true)
   }
 
   const loadCurriculum = async () => {
@@ -380,17 +353,30 @@ export default function CurriculumDetailPage() {
                 )
               ) : (
                 <div className="flex flex-col items-end gap-2">
-                  {curriculum.price && (
+                  {curriculum.isFree ? (
                     <div className="text-right">
-                      <span className="text-2xl font-bold text-gray-900">
-                        {curriculum.currency === 'USD' ? '$' : curriculum.currency + ' '}
-                        {curriculum.price}
+                      <span className="text-2xl font-bold text-emerald-600">Free</span>
+                    </div>
+                  ) : (
+                    curriculum.price && (
+                      <div className="text-right">
+                        <span className="text-2xl font-bold text-gray-900">
+                          {curriculum.currency === 'USD' ? '$' : curriculum.currency + ' '}
+                          {curriculum.price}
+                        </span>
+                      </div>
+                    )
+                  )}
+                  {curriculum.isFree && (
+                    <div className="text-right">
+                      <span className="text-sm text-emerald-700">
+                        No payment required to enroll.
                       </span>
                     </div>
                   )}
                   <Button size="lg" className="gap-2" onClick={handleEnroll}>
                     <ShoppingCart className="h-5 w-5" />
-                    Enroll Now
+                    Sign Up
                   </Button>
                 </div>
               )}
@@ -418,6 +404,16 @@ export default function CurriculumDetailPage() {
           )}
         </div>
       </header>
+
+      {curriculum && (
+        <PreferenceEnrollmentDialog
+          open={showPreferenceDialog}
+          onOpenChange={setShowPreferenceDialog}
+          curriculumId={curriculum.id}
+          curriculumName={curriculum.name}
+          availabilitySlots={curriculum.schedule ?? []}
+        />
+      )}
 
       {/* Course Pitch */}
       {curriculum.coursePitch && (

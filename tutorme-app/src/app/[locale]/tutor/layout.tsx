@@ -47,7 +47,6 @@ const navItems: NavItem[] = [
   { href: '/tutor/lessons', label: 'Lesson Bank', icon: BookOpen },
   { href: '/tutor/groups', label: 'Groups', icon: Users },
   { href: '/tutor/messages', label: 'Messages', icon: MessageSquare },
-  { href: '/tutor/insights', label: 'Insights', icon: Lightbulb },
   { href: '/tutor/reports', label: 'Analytics', icon: BarChart3 },
   { href: '/tutor/training', label: 'Training', icon: GraduationCap },
   { href: '/tutor/support', label: 'Support', icon: HelpCircle },
@@ -172,7 +171,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
               <Link
-                key={item.href}
+                key={`${item.href}-${item.label}`}
                 href={href}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors',
@@ -195,7 +194,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
               <Link
-                key={item.href}
+                key={`${item.href}-${item.label}`}
                 href={item.href}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
@@ -248,7 +247,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
               return (
                 <Link
-                  key={item.href}
+                  key={`${item.href}-${item.label}`}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(

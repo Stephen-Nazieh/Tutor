@@ -17,6 +17,24 @@ import {
 } from '@/lib/db/schema'
 import { eq, and, asc, inArray } from 'drizzle-orm'
 
+interface ScheduleItem {
+  dayOfWeek: string
+  startTime: string
+  durationMinutes: number
+}
+
+function normalizeSchedule(schedule: unknown): ScheduleItem[] {
+  if (!Array.isArray(schedule)) return []
+  return schedule.filter(
+    (slot): slot is ScheduleItem =>
+      !!slot &&
+      typeof slot === 'object' &&
+      typeof (slot as ScheduleItem).dayOfWeek === 'string' &&
+      typeof (slot as ScheduleItem).startTime === 'string' &&
+      typeof (slot as ScheduleItem).durationMinutes === 'number'
+  )
+}
+
 export const GET = withAuth(
   async (_req, session, context) => {
     const curriculumId = await getParamAsync(context?.params, 'curriculumId')
@@ -158,6 +176,7 @@ export const GET = withAuth(
       Array.isArray(courseMaterials.outline) &&
       courseMaterials.outline.length > 0
     )
+    const schedule = normalizeSchedule(curriculumRow.schedule)
 
     return NextResponse.json({
       curriculum: {
@@ -168,6 +187,8 @@ export const GET = withAuth(
         difficulty: curriculumRow.difficulty,
         estimatedHours: curriculumRow.estimatedHours,
         hasOutline,
+        schedule,
+        isFree: curriculumRow.isFree,
         progress: {
           lessonsCompleted: progress?.lessonsCompleted ?? 0,
           totalLessons,

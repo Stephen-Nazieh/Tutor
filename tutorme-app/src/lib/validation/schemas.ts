@@ -222,6 +222,7 @@ export const UpdateCourseSettingsSchema = z.object({
   languageOfInstruction: z.string().min(1).max(20).optional().nullable(),
   price: z.number().min(0).optional().nullable(),
   currency: z.string().length(3).optional().nullable(),
+  isFree: z.boolean().optional().nullable(),
   curriculumSource: z.enum(['PLATFORM', 'UPLOADED']).optional().nullable(),
   outlineSource: z.enum(['SELF', 'AI']).optional().nullable(),
   schedule: z.array(ScheduleItemSchema).optional().nullable(),

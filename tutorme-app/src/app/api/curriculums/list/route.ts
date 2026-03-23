@@ -112,6 +112,7 @@ export async function GET(req: NextRequest) {
       estimatedHours: c.estimatedHours,
       price: c.price,
       currency: c.currency,
+      isFree: c.isFree,
       gradeLevel: c.gradeLevel,
       modulesCount: moduleCounts.get(c.id) || 0,
       lessonsCount: lessonsMap.get(c.id) || 0,

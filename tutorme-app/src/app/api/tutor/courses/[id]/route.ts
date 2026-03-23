@@ -99,6 +99,7 @@ export const GET = withAuth(
         languageOfInstruction: curriculumRow.languageOfInstruction,
         price: curriculumRow.price,
         currency: curriculumRow.currency,
+        isFree: curriculumRow.isFree,
         curriculumSource: curriculumRow.curriculumSource,
         outlineSource: curriculumRow.outlineSource,
         schedule: schedule ?? [],
@@ -261,10 +262,13 @@ export const PATCH = withCsrf(
         if (!hasLessons) {
           validationErrors.push('Course must have at least one lesson')
         }
-        if (curriculumRow.price === null || curriculumRow.price === undefined) {
-          validationErrors.push('Course must have a price set (use 0 for free courses)')
+        if (
+          !curriculumRow.isFree &&
+          (curriculumRow.price === null || curriculumRow.price === undefined)
+        ) {
+          validationErrors.push('Course must have a price set (use free toggle for free courses)')
         }
-        if ((curriculumRow.price ?? 0) > 0 && !curriculumRow.currency) {
+        if (!curriculumRow.isFree && (curriculumRow.price ?? 0) > 0 && !curriculumRow.currency) {
           validationErrors.push('Currency must be set for paid courses')
         }
         if (validationErrors.length > 0) {
@@ -282,12 +286,17 @@ export const PATCH = withCsrf(
         updatePayload.languageOfInstruction = data.languageOfInstruction
       if (data.price !== undefined) updatePayload.price = data.price
       if (data.currency !== undefined) updatePayload.currency = data.currency
+      if (data.isFree !== undefined) updatePayload.isFree = data.isFree
       if (data.curriculumSource !== undefined)
         updatePayload.curriculumSource = data.curriculumSource
       if (data.outlineSource !== undefined) updatePayload.outlineSource = data.outlineSource
       if (data.schedule !== undefined) updatePayload.schedule = data.schedule
       if (data.isLiveOnline !== undefined) updatePayload.isLiveOnline = data.isLiveOnline
       if (data.isPublished !== undefined) updatePayload.isPublished = data.isPublished
+      if (data.isFree === true) {
+        updatePayload.price = 0
+        updatePayload.currency = null
+      }
 
       const [updated] = await drizzleDb
         .update(curriculum)
@@ -309,6 +318,7 @@ export const PATCH = withCsrf(
           languageOfInstruction: updated.languageOfInstruction,
           price: updated.price,
           currency: updated.currency,
+          isFree: updated.isFree,
           curriculumSource: updated.curriculumSource,
           outlineSource: updated.outlineSource,
           schedule: updated.schedule,
