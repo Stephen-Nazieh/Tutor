@@ -52,7 +52,7 @@ export default function TutorCurriculumPage() {
         <Button asChild>
           <Link href="/tutor/courses/new">
             <Plus className="mr-2 h-4 w-4" />
-            Create New Course
+            New session
           </Link>
         </Button>
       </div>
@@ -100,7 +100,7 @@ export default function TutorCurriculumPage() {
             <Button asChild>
               <Link href="/tutor/courses/new">
                 <Plus className="mr-2 h-4 w-4" />
-                Create New Course
+                New session
               </Link>
             </Button>
           </CardContent>

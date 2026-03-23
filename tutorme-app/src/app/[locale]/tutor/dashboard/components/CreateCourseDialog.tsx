@@ -218,7 +218,7 @@ export function CreateCourseDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-blue-500" />
-            Create New Course
+            New session
           </DialogTitle>
           <DialogDescription>
             Create a whole course (curriculum) with modules and lessons. You can add more modules

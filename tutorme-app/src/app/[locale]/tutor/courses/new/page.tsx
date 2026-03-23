@@ -206,7 +206,7 @@ export default function CreateCoursePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-blue-500" />
-              Create New Course
+              New session
             </CardTitle>
             <CardDescription>
               Set course details and continue directly to the Course Builder.

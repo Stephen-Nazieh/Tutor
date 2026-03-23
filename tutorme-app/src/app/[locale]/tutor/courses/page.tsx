@@ -86,7 +86,7 @@ export default function CoursesPage() {
               <GraduationCap className="mx-auto mb-4 h-12 w-12 text-gray-300" />
               <h3 className="mb-2 text-lg font-medium text-gray-700">No courses yet</h3>
               <Button asChild onClick={() => router.push('/tutor/courses/new')}>
-                <a>Create New Course</a>
+                <a>New session</a>
               </Button>
             </div>
           ) : (

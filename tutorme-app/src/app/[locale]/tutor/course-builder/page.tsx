@@ -61,7 +61,7 @@ export default function CourseBuilderPage() {
             </div>
             {loading && <Loader2 className="h-6 w-6 animate-spin text-blue-500" />}
             {!loading && courses.length === 0 && (
-              <Button onClick={() => router.push('/tutor/courses/new')}>Create New Course</Button>
+              <Button onClick={() => router.push('/tutor/courses/new')}>New session</Button>
             )}
           </CardContent>
         </Card>

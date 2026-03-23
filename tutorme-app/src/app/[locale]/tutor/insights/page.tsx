@@ -195,7 +195,7 @@ export default function TutorInsightsPage() {
                 </div>
                 {courses.length === 0 ? (
                   <Button onClick={() => (window.location.href = '/tutor/courses/new')}>
-                    Create New Course
+                    New session
                   </Button>
                 ) : (
                   <div className="mt-4 grid w-full gap-3">

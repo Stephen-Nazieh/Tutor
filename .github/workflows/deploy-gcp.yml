@@ -280,6 +280,7 @@ jobs:
           image: ${{ env.IMAGE }}
           flags: |
             --allow-unauthenticated
+            --to-latest
             --cpu=1
             --memory=1Gi
             --min-instances=0

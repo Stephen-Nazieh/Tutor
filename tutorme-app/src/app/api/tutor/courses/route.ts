@@ -159,6 +159,7 @@ export const POST = withCsrf(
             schedule,
             creatorId: userId ?? null,
             isLiveOnline: data.isLiveOnline ?? false,
+            updatedAt: new Date(),
           })
           .returning()
 
