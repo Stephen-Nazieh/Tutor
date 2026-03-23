@@ -8151,7 +8151,7 @@ FEEDBACK: [your explanation]`
     return (
       <div
         className={cn(
-          'flex min-h-0 flex-1 flex-col space-y-4',
+          'flex min-h-0 flex-1 w-full flex-col space-y-4',
           panelMode === 'live-class' && 'pt-3'
         )}
       >
@@ -9203,13 +9203,8 @@ FEEDBACK: [your explanation]`
           )}
 
           {/* CENTER PANEL - New Three-Section Design */}
-          <div
-            className={cn(
-              'flex min-h-0 w-full min-w-0 flex-1 flex-col',
-              leftPanelHidden && 'w-full'
-            )}
-          >
-            <div className="flex min-h-0 flex-1 flex-col gap-4">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col w-full">
+            <div className="flex min-h-0 w-full flex-1 flex-col gap-4">
               {leftPanelHidden && (
                 <div className="flex justify-start">
                   <Button
@@ -9243,7 +9238,7 @@ FEEDBACK: [your explanation]`
                       </Button>
                     )}
                   </CardTitle>
-                  <div className="flex min-h-0 w-full flex-1 flex-col items-stretch overflow-hidden">
+                  <div className="flex min-h-0 w-full flex-1 flex-col items-stretch gap-0 overflow-hidden xl:flex-row">
                     {/* Main content with tabs */}
                     <div className="flex h-full w-full min-w-0 flex-1 flex-col pb-4">
                       <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden px-4">

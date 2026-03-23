@@ -424,7 +424,7 @@ export function CourseBuilderContent({
       </div>
 
       {/* Main Content */}
-      <div className="flex w-full flex-1 flex-col px-4 py-6 sm:px-6">
+      <div className="flex w-full flex-1 flex-col px-0 py-0">
         {savedVariants.length > 0 && (
           <Card className="mb-4 border-emerald-200 bg-emerald-50/40">
             <CardHeader className="pb-2 pt-4">
