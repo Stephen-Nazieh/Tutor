@@ -5721,6 +5721,24 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       { id: 'classroom', label: 'Classroom' },
       { id: 'student1', label: 'Whiteboard' },
     ])
+
+    // Update tabs when insightsProps changes
+    useEffect(() => {
+      if (insightsProps) {
+        setTestPciTabs([
+          { id: 'classroom', label: 'Classroom' },
+          { id: 'student1', label: 'Whiteboard' },
+          { id: 'analytics', label: 'Analytics' },
+          { id: 'poll', label: 'Poll' },
+          { id: 'question', label: 'Question' },
+        ])
+      } else {
+        setTestPciTabs([
+          { id: 'classroom', label: 'Classroom' },
+          { id: 'student1', label: 'Whiteboard' },
+        ])
+      }
+    }, [!!insightsProps])
     const [editingTabId, setEditingTabId] = useState<string | null>(null)
 
     // Builder state for Task and Assessment
@@ -9222,7 +9240,7 @@ FEEDBACK: [your explanation]`
                       </Button>
                     )}
                   </CardTitle>
-                  <div className="flex min-h-0 w-full flex-1 flex-col items-stretch gap-4 overflow-hidden xl:flex-row">
+                  <div className="flex min-h-0 w-full flex-1 flex-col items-stretch gap-4 overflow-hidden">
                     {/* Main content with tabs */}
                     <div className="flex h-full w-full min-w-0 flex-1 flex-col">
                       <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
@@ -9231,7 +9249,12 @@ FEEDBACK: [your explanation]`
                           onValueChange={setTestPciActiveTab}
                           className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-hidden"
                         >
-                          <TabsList className="grid w-full shrink-0 grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+                          <TabsList
+                            className={cn(
+                              'grid w-full shrink-0 gap-1 rounded-xl border bg-muted p-1',
+                              insightsProps ? 'grid-cols-5' : 'grid-cols-2'
+                            )}
+                          >
                             {testPciTabs.map(tab => (
                               <div key={tab.id} className="relative w-full">
                                 {editingTabId === tab.id ? (
@@ -9255,7 +9278,11 @@ FEEDBACK: [your explanation]`
                                   <TabsTrigger
                                     value={tab.id}
                                     className="w-full rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
-                                    onDoubleClick={() => setEditingTabId(tab.id)}
+                                    onDoubleClick={() => {
+                                      if (tab.id === 'classroom' || tab.id === 'student1') {
+                                        setEditingTabId(tab.id)
+                                      }
+                                    }}
                                   >
                                     {tab.label}
                                   </TabsTrigger>
@@ -9269,328 +9296,321 @@ FEEDBACK: [your explanation]`
                               value={tab.id}
                               className="mt-2 flex h-full w-full min-w-0 flex-1 flex-col self-stretch overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                             >
-                              <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg bg-muted p-4">
-                                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
-                                  {testPciContent[tab.id] || `${tab.label} view content`}
-                                </p>
-                                {/* Show AI scores if any */}
-                                {testPciScores[tab.id]?.length > 0 && (
-                                  <div className="mt-3 border-t border-gray-400 pt-3">
-                                    <p className="mb-2 text-xs font-medium text-gray-600">
-                                      AI Feedback:
-                                    </p>
-                                    {testPciScores[tab.id].map((score, idx) => (
-                                      <div
-                                        key={idx}
-                                        className="mb-2 rounded border border-gray-400 bg-white p-2"
-                                      >
-                                        <div className="flex items-center gap-2">
-                                          <Badge
-                                            variant={
-                                              score.score >= 80
-                                                ? 'default'
-                                                : score.score >= 50
-                                                  ? 'secondary'
-                                                  : 'destructive'
-                                            }
-                                            className="text-[10px]"
-                                          >
-                                            {score.score}%
-                                          </Badge>
-                                        </div>
-                                        <p className="mt-1 text-xs text-gray-600">
-                                          {score.feedback}
-                                        </p>
+                              {tab.id === 'analytics' && insightsProps ? (
+                                <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg bg-white p-4">
+                                  {insightsProps.liveTasks.length > 0 ? (
+                                    <div className="space-y-4">
+                                      <div className="flex flex-wrap items-center gap-3">
+                                        <Badge variant="secondary" className="text-xs">
+                                          Tasks deployed: {insightsProps.liveTasks.length}
+                                        </Badge>
+                                        <Badge variant="secondary" className="text-xs">
+                                          Active task:{' '}
+                                          {activeInsightsTask?.title ||
+                                            'Select a task in the builder'}
+                                        </Badge>
                                       </div>
-                                    ))}
+                                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                        <div className="rounded-lg border bg-white/90 p-3">
+                                          <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                            Task Completion
+                                          </p>
+                                          <p className="mt-1 text-lg font-semibold text-gray-900">
+                                            --
+                                          </p>
+                                          <p className="text-xs text-muted-foreground">
+                                            Waiting for submissions
+                                          </p>
+                                        </div>
+                                        <div className="rounded-lg border bg-white/90 p-3">
+                                          <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                            Assessment Scores
+                                          </p>
+                                          <p className="mt-1 text-lg font-semibold text-gray-900">
+                                            --
+                                          </p>
+                                          <p className="text-xs text-muted-foreground">
+                                            No scores yet
+                                          </p>
+                                        </div>
+                                        <div className="rounded-lg border bg-white/90 p-3">
+                                          <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                            Questions Asked
+                                          </p>
+                                          <p className="mt-1 text-lg font-semibold text-gray-900">
+                                            {insightsProps.liveTasks.reduce(
+                                              (sum, task) =>
+                                                sum +
+                                                task.questions.reduce(
+                                                  (questionSum, question) =>
+                                                    questionSum + question.responses.length,
+                                                  0
+                                                ),
+                                              0
+                                            )}
+                                          </p>
+                                          <p className="text-xs text-muted-foreground">
+                                            Live student responses
+                                          </p>
+                                        </div>
+                                      </div>
+                                      {insightsProps.liveTasks.map(task => {
+                                        const pollResponses = task.polls.reduce(
+                                          (sum, poll) => sum + poll.responses.length,
+                                          0
+                                        )
+                                        const questionResponses = task.questions.reduce(
+                                          (sum, q) => sum + q.responses.length,
+                                          0
+                                        )
+                                        return (
+                                          <div
+                                            key={task.id}
+                                            className="rounded-lg border bg-white/90 p-4"
+                                          >
+                                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                              <div>
+                                                <p className="text-sm font-semibold text-gray-900">
+                                                  {task.title}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                  Polls: {task.polls.length} • Questions:{' '}
+                                                  {task.questions.length}
+                                                </p>
+                                              </div>
+                                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                <span>Poll responses: {pollResponses}</span>
+                                                <span>Question answers: {questionResponses}</span>
+                                              </div>
+                                            </div>
+                                            {task.polls.map(poll => {
+                                              const counts = poll.options.map(option => ({
+                                                option,
+                                                count: poll.responses.filter(
+                                                  r => r.value === option
+                                                ).length,
+                                              }))
+                                              return (
+                                                <div
+                                                  key={poll.id}
+                                                  className="mt-3 rounded-md border bg-slate-50/80 p-3"
+                                                >
+                                                  <p className="text-xs font-medium text-gray-700">
+                                                    {poll.question}
+                                                  </p>
+                                                  <div className="mt-2 flex flex-wrap gap-2">
+                                                    {counts.map(entry => (
+                                                      <span
+                                                        key={`${poll.id}-${entry.option}`}
+                                                        className="rounded-full bg-white px-2 py-1 text-[11px] text-gray-600"
+                                                      >
+                                                        {entry.option}: {entry.count}
+                                                      </span>
+                                                    ))}
+                                                  </div>
+                                                </div>
+                                              )
+                                            })}
+                                            {task.questions.map(question => (
+                                              <div
+                                                key={question.id}
+                                                className="mt-3 rounded-md border bg-slate-50/80 p-3"
+                                              >
+                                                <p className="text-xs font-medium text-gray-700">
+                                                  {question.prompt}
+                                                </p>
+                                                <p className="mt-1 text-xs text-muted-foreground">
+                                                  Answers: {question.responses.length}
+                                                </p>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )
+                                      })}
+                                    </div>
+                                  ) : (
+                                    <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+                                      <BarChart3 className="mb-2 h-8 w-8 opacity-20" />
+                                      <p className="text-sm">No tasks deployed yet.</p>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : tab.id === 'poll' && insightsProps ? (
+                                <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg bg-white p-4">
+                                  <div className="rounded-lg border bg-white/90 p-4">
+                                    <p className="text-sm font-medium text-gray-900">
+                                      Poll question
+                                    </p>
+                                    <AutoTextarea
+                                      className="mt-2 min-h-[72px]"
+                                      value={pollPrompt}
+                                      onChange={event => setPollPrompt(event.target.value)}
+                                    />
+                                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                      <span>Scale:</span>
+                                      {[1, 2, 3, 4, 5].map(value => (
+                                        <span
+                                          key={value}
+                                          className="rounded-full border px-2 py-0.5"
+                                        >
+                                          {value}
+                                        </span>
+                                      ))}
+                                    </div>
+                                    <div className="mt-4 flex items-center justify-between gap-3">
+                                      <p className="text-xs text-muted-foreground">
+                                        Active task:{' '}
+                                        {activeInsightsTask?.title || 'Select a task first'}
+                                      </p>
+                                      <Button
+                                        size="sm"
+                                        disabled={
+                                          !activeInsightsTaskId ||
+                                          !activeInsightsTask ||
+                                          !insightsProps.sessionId
+                                        }
+                                        onClick={() => {
+                                          if (
+                                            !activeInsightsTaskId ||
+                                            !activeInsightsTask ||
+                                            !insightsProps.sessionId
+                                          )
+                                            return
+                                          insightsProps.onSendPoll({
+                                            taskId: activeInsightsTaskId,
+                                            question: pollPrompt,
+                                          })
+                                        }}
+                                      >
+                                        Send
+                                      </Button>
+                                    </div>
                                   </div>
-                                )}
-                              </div>
+                                </div>
+                              ) : tab.id === 'question' && insightsProps ? (
+                                <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg bg-white p-4">
+                                  <div className="rounded-lg border bg-white/90 p-4">
+                                    <p className="text-sm font-medium text-gray-900">
+                                      Question prompt
+                                    </p>
+                                    <AutoTextarea
+                                      className="mt-2 min-h-[96px]"
+                                      value={questionPrompt}
+                                      onChange={event => setQuestionPrompt(event.target.value)}
+                                    />
+                                    <div className="mt-4 flex items-center justify-between gap-3">
+                                      <p className="text-xs text-muted-foreground">
+                                        Active task:{' '}
+                                        {activeInsightsTask?.title || 'Select a task first'}
+                                      </p>
+                                      <Button
+                                        size="sm"
+                                        disabled={
+                                          !activeInsightsTaskId ||
+                                          !activeInsightsTask ||
+                                          !insightsProps.sessionId
+                                        }
+                                        onClick={() => {
+                                          if (
+                                            !activeInsightsTaskId ||
+                                            !activeInsightsTask ||
+                                            !insightsProps.sessionId
+                                          )
+                                            return
+                                          insightsProps.onSendQuestion({
+                                            taskId: activeInsightsTaskId,
+                                            prompt: questionPrompt,
+                                          })
+                                        }}
+                                      >
+                                        Send
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg bg-muted p-4">
+                                  <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                                    {testPciContent[tab.id] || `${tab.label} view content`}
+                                  </p>
+                                  {/* Show AI scores if any */}
+                                  {testPciScores[tab.id]?.length > 0 && (
+                                    <div className="mt-3 border-t border-gray-400 pt-3">
+                                      <p className="mb-2 text-xs font-medium text-gray-600">
+                                        AI Feedback:
+                                      </p>
+                                      {testPciScores[tab.id].map((score, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="mb-2 rounded border border-gray-400 bg-white p-2"
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <Badge
+                                              variant={
+                                                score.score >= 80
+                                                  ? 'default'
+                                                  : score.score >= 50
+                                                    ? 'secondary'
+                                                    : 'destructive'
+                                              }
+                                              className="text-[10px]"
+                                            >
+                                              {score.score}%
+                                            </Badge>
+                                          </div>
+                                          <p className="mt-1 text-xs text-gray-600">
+                                            {score.feedback}
+                                          </p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </TabsContent>
                           ))}
                         </Tabs>
                         {/* Persistent text input with Enter button inline */}
-                        <div className="mt-3 w-full shrink-0">
-                          <div className="flex gap-2">
-                            <Input
-                              placeholder={
-                                testPciActiveTab === 'classroom'
-                                  ? 'Enter answer (goes to both students)...'
-                                  : 'Enter answer...'
-                              }
-                              className="flex-1"
-                              value={testPciInput}
-                              onChange={(e: any) => setTestPciInput(e.target.value)}
-                              onKeyDown={(e: any) => {
-                                if (e.key === 'Enter' && testPciInput.trim() && !testPciLoading) {
-                                  e.preventDefault()
-                                  handleTestPciSubmit()
+                        {(!insightsProps ||
+                          (testPciActiveTab !== 'analytics' &&
+                            testPciActiveTab !== 'poll' &&
+                            testPciActiveTab !== 'question')) && (
+                          <div className="mt-3 w-full shrink-0">
+                            <div className="flex gap-2">
+                              <Input
+                                placeholder={
+                                  testPciActiveTab === 'classroom'
+                                    ? 'Enter answer (goes to both students)...'
+                                    : 'Enter answer...'
                                 }
-                              }}
-                            />
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={testPciLoading || !testPciInput.trim()}
-                              onClick={handleTestPciSubmit}
-                            >
-                              {testPciLoading ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <CornerDownLeft className="mr-1 h-4 w-4" />
-                              )}
-                              Enter
-                            </Button>
+                                className="flex-1"
+                                value={testPciInput}
+                                onChange={(e: any) => setTestPciInput(e.target.value)}
+                                onKeyDown={(e: any) => {
+                                  if (e.key === 'Enter' && testPciInput.trim() && !testPciLoading) {
+                                    e.preventDefault()
+                                    handleTestPciSubmit()
+                                  }
+                                }}
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={testPciLoading || !testPciInput.trim()}
+                                onClick={handleTestPciSubmit}
+                              >
+                                {testPciLoading ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <CornerDownLeft className="mr-1 h-4 w-4" />
+                                )}
+                                Enter
+                              </Button>
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </div>
-                    {insightsProps && showInsightsPanel && (
-                      <div className="min-h-0 w-full xl:w-[360px]">
-                        <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cyan-200/70 bg-gradient-to-br from-white via-slate-50 to-cyan-50 p-4 shadow-[0_10px_40px_-20px_rgba(14,116,144,0.65)] ring-1 ring-cyan-200/60">
-                          <Tabs
-                            value={insightsTab}
-                            onValueChange={value =>
-                              setInsightsTab(value as 'analytics' | 'poll' | 'question')
-                            }
-                            className="flex h-full min-h-0 flex-col"
-                          >
-                            <TabsList className="mb-4 grid w-full grid-cols-3 gap-1 rounded-xl border border-cyan-200/70 bg-white/80 p-1 shadow-sm">
-                              <TabsTrigger
-                                value="analytics"
-                                className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
-                              >
-                                Class Analytics
-                              </TabsTrigger>
-                              <TabsTrigger
-                                value="poll"
-                                className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
-                              >
-                                Poll
-                              </TabsTrigger>
-                              <TabsTrigger
-                                value="question"
-                                className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
-                              >
-                                Question
-                              </TabsTrigger>
-                            </TabsList>
-
-                            <TabsContent value="analytics" className="flex-1 space-y-4">
-                              {insightsProps.liveTasks.length > 0 && (
-                                <div className="space-y-4">
-                                  <div className="flex flex-wrap items-center gap-3">
-                                    <Badge variant="secondary" className="text-xs">
-                                      Tasks deployed: {insightsProps.liveTasks.length}
-                                    </Badge>
-                                    <Badge variant="secondary" className="text-xs">
-                                      Active task:{' '}
-                                      {activeInsightsTask?.title || 'Select a task in the builder'}
-                                    </Badge>
-                                  </div>
-                                  <div className="grid gap-3">
-                                    <div className="rounded-lg border bg-white/90 p-3">
-                                      <p className="text-xs font-semibold uppercase text-muted-foreground">
-                                        Task Completion
-                                      </p>
-                                      <p className="mt-1 text-lg font-semibold text-gray-900">--</p>
-                                      <p className="text-xs text-muted-foreground">
-                                        Waiting for submissions
-                                      </p>
-                                    </div>
-                                    <div className="rounded-lg border bg-white/90 p-3">
-                                      <p className="text-xs font-semibold uppercase text-muted-foreground">
-                                        Assessment Scores
-                                      </p>
-                                      <p className="mt-1 text-lg font-semibold text-gray-900">--</p>
-                                      <p className="text-xs text-muted-foreground">No scores yet</p>
-                                    </div>
-                                    <div className="rounded-lg border bg-white/90 p-3">
-                                      <p className="text-xs font-semibold uppercase text-muted-foreground">
-                                        Questions Asked
-                                      </p>
-                                      <p className="mt-1 text-lg font-semibold text-gray-900">
-                                        {insightsProps.liveTasks.reduce(
-                                          (sum, task) =>
-                                            sum +
-                                            task.questions.reduce(
-                                              (questionSum, question) =>
-                                                questionSum + question.responses.length,
-                                              0
-                                            ),
-                                          0
-                                        )}
-                                      </p>
-                                      <p className="text-xs text-muted-foreground">
-                                        Live student responses
-                                      </p>
-                                    </div>
-                                  </div>
-                                  {insightsProps.liveTasks.map(task => {
-                                    const pollResponses = task.polls.reduce(
-                                      (sum, poll) => sum + poll.responses.length,
-                                      0
-                                    )
-                                    const questionResponses = task.questions.reduce(
-                                      (sum, q) => sum + q.responses.length,
-                                      0
-                                    )
-                                    return (
-                                      <div
-                                        key={task.id}
-                                        className="rounded-lg border bg-white/90 p-4"
-                                      >
-                                        <div className="flex flex-wrap items-center justify-between gap-2">
-                                          <div>
-                                            <p className="text-sm font-semibold text-gray-900">
-                                              {task.title}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                              Polls: {task.polls.length} • Questions:{' '}
-                                              {task.questions.length}
-                                            </p>
-                                          </div>
-                                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                            <span>Poll responses: {pollResponses}</span>
-                                            <span>Question answers: {questionResponses}</span>
-                                          </div>
-                                        </div>
-                                        {task.polls.map(poll => {
-                                          const counts = poll.options.map(option => ({
-                                            option,
-                                            count: poll.responses.filter(r => r.value === option)
-                                              .length,
-                                          }))
-                                          return (
-                                            <div
-                                              key={poll.id}
-                                              className="mt-3 rounded-md border bg-slate-50/80 p-3"
-                                            >
-                                              <p className="text-xs font-medium text-gray-700">
-                                                {poll.question}
-                                              </p>
-                                              <div className="mt-2 flex flex-wrap gap-2">
-                                                {counts.map(entry => (
-                                                  <span
-                                                    key={`${poll.id}-${entry.option}`}
-                                                    className="rounded-full bg-white px-2 py-1 text-[11px] text-gray-600"
-                                                  >
-                                                    {entry.option}: {entry.count}
-                                                  </span>
-                                                ))}
-                                              </div>
-                                            </div>
-                                          )
-                                        })}
-                                        {task.questions.map(question => (
-                                          <div
-                                            key={question.id}
-                                            className="mt-3 rounded-md border bg-slate-50/80 p-3"
-                                          >
-                                            <p className="text-xs font-medium text-gray-700">
-                                              {question.prompt}
-                                            </p>
-                                            <p className="mt-1 text-xs text-muted-foreground">
-                                              Answers: {question.responses.length}
-                                            </p>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )
-                                  })}
-                                </div>
-                              )}
-                            </TabsContent>
-
-                            <TabsContent value="poll" className="space-y-3">
-                              <div className="rounded-lg border bg-white/90 p-4">
-                                <p className="text-sm font-medium text-gray-900">Poll question</p>
-                                <AutoTextarea
-                                  className="mt-2 min-h-[72px]"
-                                  value={pollPrompt}
-                                  onChange={event => setPollPrompt(event.target.value)}
-                                />
-                                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                  <span>Scale:</span>
-                                  {[1, 2, 3, 4, 5].map(value => (
-                                    <span key={value} className="rounded-full border px-2 py-0.5">
-                                      {value}
-                                    </span>
-                                  ))}
-                                </div>
-                                <div className="mt-4 flex items-center justify-between gap-3">
-                                  <p className="text-xs text-muted-foreground">
-                                    Active task:{' '}
-                                    {activeInsightsTask?.title || 'Select a task first'}
-                                  </p>
-                                  <Button
-                                    size="sm"
-                                    disabled={
-                                      !activeInsightsTaskId ||
-                                      !activeInsightsTask ||
-                                      !insightsProps.sessionId
-                                    }
-                                    onClick={() => {
-                                      if (
-                                        !activeInsightsTaskId ||
-                                        !activeInsightsTask ||
-                                        !insightsProps.sessionId
-                                      )
-                                        return
-                                      insightsProps.onSendPoll({
-                                        taskId: activeInsightsTaskId,
-                                        question: pollPrompt,
-                                      })
-                                    }}
-                                  >
-                                    Send
-                                  </Button>
-                                </div>
-                              </div>
-                            </TabsContent>
-
-                            <TabsContent value="question" className="space-y-3">
-                              <div className="rounded-lg border bg-white/90 p-4">
-                                <p className="text-sm font-medium text-gray-900">Question prompt</p>
-                                <AutoTextarea
-                                  className="mt-2 min-h-[96px]"
-                                  value={questionPrompt}
-                                  onChange={event => setQuestionPrompt(event.target.value)}
-                                />
-                                <div className="mt-4 flex items-center justify-between gap-3">
-                                  <p className="text-xs text-muted-foreground">
-                                    Active task:{' '}
-                                    {activeInsightsTask?.title || 'Select a task first'}
-                                  </p>
-                                  <Button
-                                    size="sm"
-                                    disabled={
-                                      !activeInsightsTaskId ||
-                                      !activeInsightsTask ||
-                                      !insightsProps.sessionId
-                                    }
-                                    onClick={() => {
-                                      if (
-                                        !activeInsightsTaskId ||
-                                        !activeInsightsTask ||
-                                        !insightsProps.sessionId
-                                      )
-                                        return
-                                      insightsProps.onSendQuestion({
-                                        taskId: activeInsightsTaskId,
-                                        prompt: questionPrompt,
-                                      })
-                                    }}
-                                  >
-                                    Send
-                                  </Button>
-                                </div>
-                              </div>
-                            </TabsContent>
-                          </Tabs>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -9895,119 +9915,6 @@ FEEDBACK: [your explanation]`
                               </Button>
                             </div>
                           </div>
-                          {/* Right panel: Extensions - resizable */}
-                          <ResizablePanel defaultWidth={192} minWidth={150} maxWidth={600}>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="mb-2 w-full"
-                              disabled={!loadedTaskId}
-                              onClick={() => {
-                                if (!loadedTaskId) return
-                                const extNumber = taskBuilder.extensions.length + 1
-                                const newExtension = {
-                                  id: `ext-${Date.now()}`,
-                                  name: `Extension ${extNumber}`,
-                                  description: '',
-                                  content: '',
-                                  pci: '',
-                                }
-                                setTaskExtensionPciMessages(prev => ({
-                                  ...prev,
-                                  [newExtension.id]: [],
-                                }))
-                                setTaskExtensionPciInputs(prev => ({
-                                  ...prev,
-                                  [newExtension.id]: '',
-                                }))
-                                setTaskBuilder(prev => ({
-                                  ...prev,
-                                  extensions: [...prev.extensions, newExtension],
-                                  activeExtensionId: newExtension.id,
-                                }))
-                                setModules(prev =>
-                                  prev.map(mod => ({
-                                    ...mod,
-                                    lessons: mod.lessons.map(lesson => ({
-                                      ...lesson,
-                                      tasks: lesson.tasks.map(t =>
-                                        t.id === loadedTaskId
-                                          ? {
-                                              ...t,
-                                              extensions: [...(t.extensions || []), newExtension],
-                                            }
-                                          : t
-                                      ),
-                                    })),
-                                  }))
-                                )
-                              }}
-                            >
-                              Extensions
-                            </Button>
-                            <div className="mb-2">
-                              <p className="truncate text-xs text-muted-foreground">
-                                {taskBuilder.title || 'Task'}
-                              </p>
-                            </div>
-                            <div className="min-h-[100px] space-y-2 rounded-lg bg-slate-50 p-3">
-                              {taskBuilder.extensions.length === 0 ? (
-                                <p className="text-xs text-muted-foreground">No extensions added</p>
-                              ) : (
-                                taskBuilder.extensions.map(ext => (
-                                  <div key={ext.id} className="group flex items-center gap-1">
-                                    <Button
-                                      variant={
-                                        taskBuilder.activeExtensionId === ext.id
-                                          ? 'default'
-                                          : 'ghost'
-                                      }
-                                      size="sm"
-                                      className="flex-1 justify-start text-xs"
-                                      onClick={() => {
-                                        if (taskBuilder.activeExtensionId === ext.id) {
-                                          setTaskBuilder(prev => ({
-                                            ...prev,
-                                            activeExtensionId: null,
-                                          }))
-                                        } else {
-                                          setTaskBuilder(prev => ({
-                                            ...prev,
-                                            activeExtensionId: ext.id,
-                                          }))
-                                        }
-                                      }}
-                                    >
-                                      <FileText className="mr-1 h-3 w-3" />
-                                      {ext.name}
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                                      onClick={(e: any) => {
-                                        e.stopPropagation()
-                                        if (confirm(`Delete "${ext.name}"?`)) {
-                                          setTaskBuilder(prev => ({
-                                            ...prev,
-                                            extensions: prev.extensions.filter(
-                                              e => e.id !== ext.id
-                                            ),
-                                            activeExtensionId:
-                                              prev.activeExtensionId === ext.id
-                                                ? null
-                                                : prev.activeExtensionId,
-                                          }))
-                                        }
-                                      }}
-                                    >
-                                      <Trash2 className="h-3 w-3 text-red-500" />
-                                    </Button>
-                                  </div>
-                                ))
-                              )}
-                            </div>
-                          </ResizablePanel>
                         </div>
                       </TabsContent>
 
@@ -10191,25 +10098,6 @@ FEEDBACK: [your explanation]`
                               </Button>
                             </div>
                           </div>
-                          {/* Right panel: DMI - resizable */}
-                          <ResizablePanel defaultWidth={192} minWidth={150} maxWidth={600}>
-                            <div className="mb-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full"
-                                onClick={() => handleGenerateDMI('assessment')}
-                              >
-                                <Sparkles className="mr-2 h-3 w-3" />
-                                Generate DMI
-                              </Button>
-                            </div>
-                            <DMIPanel
-                              items={assessmentDmiItems}
-                              onItemsChange={setAssessmentDmiItems}
-                              onDeploy={insightsProps ? handleDeployAssessmentDmi : undefined}
-                            />
-                          </ResizablePanel>
                         </div>
                       </TabsContent>
                     </Tabs>

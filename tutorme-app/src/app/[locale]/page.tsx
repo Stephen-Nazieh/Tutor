@@ -1188,56 +1188,68 @@ const CountdownTimer = () => {
 
 const BlankTutorCard = ({ theme, mode }: { theme: ColorTheme; mode: ThemeMode }) => {
   const themeColors = {
-    emerald: 'from-emerald-500/20 to-cyan-500/20 border-emerald-500/30',
-    ocean: 'from-sky-500/20 to-indigo-500/20 border-sky-500/30',
-    sunset: 'from-amber-500/20 to-rose-500/20 border-amber-500/30',
-    galaxy: 'from-purple-500/20 to-pink-500/20 border-purple-500/30',
+    emerald: 'from-emerald-500/10 to-cyan-500/10 border-emerald-500/20',
+    ocean: 'from-sky-500/10 to-indigo-500/10 border-sky-500/20',
+    sunset: 'from-amber-500/10 to-rose-500/10 border-amber-500/20',
+    galaxy: 'from-purple-500/10 to-pink-500/10 border-purple-500/20',
   }
 
   return (
     <motion.div
       whileHover={{
-        rotateY: 15,
-        rotateX: -5,
-        scale: 1.05,
-        y: -10,
+        rotateY: 20,
+        rotateX: -10,
+        scale: 1.1,
+        y: -15,
       }}
-      style={{ perspective: 1000 }}
-      className={`relative mx-6 h-64 w-48 shrink-0 overflow-hidden rounded-2xl border backdrop-blur-md transition-all duration-300 ${
+      style={{
+        perspective: 1200,
+        transformStyle: 'preserve-3d',
+      }}
+      className={`relative mx-6 h-72 w-52 shrink-0 overflow-hidden rounded-3xl border backdrop-blur-xl transition-all duration-500 ${
         mode === 'dark'
-          ? `bg-gradient-to-br ${themeColors[theme]} shadow-[0_20px_50px_rgba(0,0,0,0.5)]`
-          : `bg-white/40 border-white/50 shadow-[0_20px_50px_rgba(0,0,0,0.1)]`
+          ? `bg-gradient-to-br ${themeColors[theme]} border-white/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)]`
+          : `bg-white/20 border-white/40 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.1)]`
       }`}
     >
-      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+      {/* 3D Glass Layers */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent" />
+      <div className="absolute -inset-2 bg-gradient-to-br from-white/10 via-transparent to-black/5 opacity-50" />
 
-      {/* Profile Avatar Placeholder */}
-      <div className="flex h-full flex-col items-center justify-center p-6 text-center">
+      {/* Profile Avatar Placeholder with 3D shadow */}
+      <div
+        className="flex h-full flex-col items-center justify-center p-8 text-center"
+        style={{ transform: 'translateZ(40px)' }}
+      >
         <div
-          className={`mb-4 h-20 w-20 rounded-full border-2 border-dashed flex items-center justify-center ${
-            mode === 'dark' ? 'border-white/20 bg-white/5' : 'border-black/10 bg-black/5'
+          className={`relative mb-6 h-24 w-24 rounded-full border-2 border-dashed flex items-center justify-center shadow-inner ${
+            mode === 'dark' ? 'border-white/10 bg-white/5' : 'border-black/5 bg-black/5'
           }`}
         >
           <UserPlus
-            className={`h-8 w-8 ${mode === 'dark' ? 'text-white/20' : 'text-black/20'}`}
+            className={`h-10 w-10 ${mode === 'dark' ? 'text-white/10' : 'text-black/10'}`}
           />
+          <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-emerald-500/40 blur-md" />
         </div>
 
-        {/* Text Placeholders */}
+        {/* Text Placeholders with glow */}
         <div
-          className={`mb-2 h-4 w-24 rounded-full ${
+          className={`mb-3 h-4 w-32 rounded-full blur-[0.5px] ${
             mode === 'dark' ? 'bg-white/10' : 'bg-black/5'
           }`}
         />
         <div
-          className={`h-3 w-16 rounded-full ${
+          className={`h-3 w-20 rounded-full blur-[0.5px] ${
             mode === 'dark' ? 'bg-white/5' : 'bg-black/5'
           }`}
         />
       </div>
 
-      {/* Decorative Shine */}
-      <div className="absolute -left-full top-0 h-full w-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-all duration-500 group-hover:left-full" />
+      {/* Dynamic Shine Effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+
+      {/* Edge highlight */}
+      <div className="absolute inset-0 rounded-3xl border border-white/20 pointer-events-none" />
     </motion.div>
   )
 }

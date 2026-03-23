@@ -302,12 +302,12 @@ export default function CreateCoursePage() {
                     <Link href="/tutor/my-page">Cancel</Link>
                   </Button>
                   <Button
-                    className="flex-1"
-                    onClick={() => validateDetailsStep() && handleConfirm()}
-                    disabled={creating}
-                  >
-                    Next
-                  </Button>
+                className="flex-1"
+                onClick={() => validateDetailsStep() && setStep(2)}
+                disabled={creating}
+              >
+                Next
+              </Button>
                 </div>
               </>
             )}

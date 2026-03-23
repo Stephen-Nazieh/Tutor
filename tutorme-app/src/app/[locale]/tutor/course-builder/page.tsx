@@ -18,33 +18,37 @@ export default function CourseBuilderPage() {
   const [courses, setCourses] = useState<Course[]>([])
 
   useEffect(() => {
-    const load = async () => {
+    const loadCourses = async () => {
       setLoading(true)
       try {
         const res = await fetch('/api/tutor/courses', { credentials: 'include' })
-        if (res.ok) {
-          const data = await res.json()
-          const coursesList = data.courses || []
-          setCourses(coursesList)
-          if (coursesList.length > 0) {
-            const sorted = [...coursesList].sort(
-              (a: Course, b: Course) =>
-                new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-            )
-            router.replace(`/tutor/courses/${sorted[0].id}/builder`)
-            return
-          }
-          router.replace('/tutor/courses/new')
+        if (!res.ok) {
+          // Silent fallback if API fails
+          router.replace('/tutor/courses/builder-draft/builder')
           return
         }
-        toast.error('Failed to load courses')
+        const data = await res.json()
+        const coursesList = data.courses || []
+        setCourses(coursesList)
+        if (coursesList.length > 0) {
+          const sorted = [...coursesList].sort(
+            (a: Course, b: Course) =>
+              new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          )
+          router.replace(`/tutor/courses/${sorted[0].id}/builder`)
+        } else {
+          // No courses found, use default
+          router.replace('/tutor/courses/builder-draft/builder')
+        }
       } catch (error) {
-        toast.error('Failed to load courses')
+        // Network or other error fallback
+        router.replace('/tutor/courses/builder-draft/builder')
       } finally {
         setLoading(false)
       }
     }
-    load()
+
+    loadCourses()
   }, [router])
 
   return (
