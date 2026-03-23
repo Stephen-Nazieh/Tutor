@@ -8,6 +8,8 @@ import {
   adminRole,
   curriculum,
   curriculumEnrollment,
+  studentCoursePreference,
+  studentCoursePreferenceSlot,
   courseBatch,
   studyGroup,
   studyGroupMember,
@@ -80,6 +82,8 @@ export const userRelations = relations(user, ({ one, many }) => ({
   mentionsReceived: many(mention, { relationName: 'mentionee' }),
   tutorFollows: many(tutorFollow, { relationName: 'follower' }),
   tutorFollowers: many(tutorFollow, { relationName: 'tutor' }),
+  studentCoursePreferences: many(studentCoursePreference, { relationName: 'student' }),
+  tutorCoursePreferences: many(studentCoursePreference, { relationName: 'tutor' }),
 }))
 
 export const profileRelations = relations(profile, ({ one }) => ({
@@ -138,6 +142,7 @@ export const curriculumRelations = relations(curriculum, ({ many }) => ({
   shares: many(curriculumShare),
   progress: many(curriculumProgress),
   studentPerformances: many(studentPerformance),
+  preferences: many(studentCoursePreference),
 }))
 
 export const curriculumModuleRelations = relations(curriculumModule, ({ one, many }) => ({
@@ -211,6 +216,37 @@ export const curriculumEnrollmentRelations = relations(curriculumEnrollment, ({ 
     references: [courseBatch.id],
   }),
 }))
+
+export const studentCoursePreferenceRelations = relations(
+  studentCoursePreference,
+  ({ one, many }) => ({
+    student: one(user, {
+      fields: [studentCoursePreference.studentId],
+      references: [user.id],
+      relationName: 'student',
+    }),
+    tutor: one(user, {
+      fields: [studentCoursePreference.tutorId],
+      references: [user.id],
+      relationName: 'tutor',
+    }),
+    curriculum: one(curriculum, {
+      fields: [studentCoursePreference.curriculumId],
+      references: [curriculum.id],
+    }),
+    slots: many(studentCoursePreferenceSlot),
+  })
+)
+
+export const studentCoursePreferenceSlotRelations = relations(
+  studentCoursePreferenceSlot,
+  ({ one }) => ({
+    preference: one(studentCoursePreference, {
+      fields: [studentCoursePreferenceSlot.preferenceId],
+      references: [studentCoursePreference.id],
+    }),
+  })
+)
 
 export const curriculumShareRelations = relations(curriculumShare, ({ one }) => ({
   curriculum: one(curriculum, {

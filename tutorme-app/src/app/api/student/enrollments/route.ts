@@ -36,7 +36,7 @@ export const POST = withAuth(async (req, session) => {
     throw new NotFoundError('Course not found')
   }
 
-  if (curriculumRow.price && curriculumRow.price > 0) {
+  if (!curriculumRow.isFree && curriculumRow.price && curriculumRow.price > 0) {
     const payments = await drizzleDb
       .select()
       .from(payment)

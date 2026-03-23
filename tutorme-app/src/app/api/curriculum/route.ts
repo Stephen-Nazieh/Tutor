@@ -16,7 +16,7 @@ import {
   curriculumLesson,
   courseBatch,
 } from '@/lib/db/schema'
-import { eq, inArray, desc, sql, count } from 'drizzle-orm'
+import { eq, inArray, desc, sql } from 'drizzle-orm'
 
 const CURRICULUM_LIST_CACHE_TTL = 120 // 2 minutes
 
@@ -24,6 +24,66 @@ function hasOutline(courseMaterials: unknown): boolean {
   if (!courseMaterials || typeof courseMaterials !== 'object') return false
   const outline = (courseMaterials as { outline?: unknown[] }).outline
   return Array.isArray(outline) && outline.length > 0
+}
+
+interface ScheduleItem {
+  dayOfWeek: string
+  startTime: string
+  durationMinutes: number
+}
+
+const DAY_ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+function normalizeSchedule(schedule: unknown): ScheduleItem[] {
+  if (!Array.isArray(schedule)) return []
+  return schedule.filter(
+    (slot): slot is ScheduleItem =>
+      !!slot &&
+      typeof slot === 'object' &&
+      typeof (slot as ScheduleItem).dayOfWeek === 'string' &&
+      typeof (slot as ScheduleItem).startTime === 'string' &&
+      typeof (slot as ScheduleItem).durationMinutes === 'number'
+  )
+}
+
+function toMinutes(time: string): number {
+  const [h, m] = time.split(':').map(Number)
+  if (Number.isNaN(h) || Number.isNaN(m)) return 0
+  return h * 60 + m
+}
+
+function formatTime(minutes: number): string {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  const date = new Date()
+  date.setHours(h, m, 0, 0)
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+}
+
+function availabilitySummary(schedule: ScheduleItem[]): string | null {
+  if (schedule.length === 0) return null
+  const byDay = new Map<string, { start: number; end: number }>()
+  for (const slot of schedule) {
+    const start = toMinutes(slot.startTime)
+    const end = start + slot.durationMinutes
+    const entry = byDay.get(slot.dayOfWeek)
+    if (!entry) {
+      byDay.set(slot.dayOfWeek, { start, end })
+    } else {
+      entry.start = Math.min(entry.start, start)
+      entry.end = Math.max(entry.end, end)
+    }
+  }
+  const dayOrderIndex = new Map(DAY_ORDER.map((day, idx) => [day, idx]))
+  const days = Array.from(byDay.keys()).sort(
+    (a, b) => (dayOrderIndex.get(a) ?? 99) - (dayOrderIndex.get(b) ?? 99)
+  )
+  const dayLabel =
+    days.length <= 3 ? days.join(' & ') : `${days.slice(0, 3).join(', ')} +${days.length - 3}`
+  const ranges = Array.from(byDay.values())
+  const earliest = Math.min(...ranges.map(r => r.start))
+  const latest = Math.max(...ranges.map(r => r.end))
+  return `${dayLabel}, ${formatTime(earliest)}–${formatTime(latest)}`
 }
 
 interface CurriculumResponse {
@@ -39,6 +99,10 @@ interface CurriculumResponse {
     modules: number
     lessons: number
     batches: number
+  }
+  availability: {
+    summary: string | null
+    slots: ScheduleItem[]
   }
   progress:
     | {
@@ -142,6 +206,7 @@ export const GET = withAuth(async (req, session) => {
       // 6. Map everything together
       return curriculums.map((curr): CurriculumResponse => {
         const progress = progressByCurriculumId.get(curr.id)
+        const schedule = normalizeSchedule(curr.schedule)
         return {
           id: curr.id,
           name: curr.name,
@@ -155,6 +220,10 @@ export const GET = withAuth(async (req, session) => {
             modules: modulesMap.get(curr.id) || 0,
             lessons: lessonsMap.get(curr.id) || 0,
             batches: batchesMap.get(curr.id) || 0,
+          },
+          availability: {
+            summary: availabilitySummary(schedule),
+            slots: schedule,
           },
           progress: progress
             ? {

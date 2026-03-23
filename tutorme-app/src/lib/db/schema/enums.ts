@@ -77,3 +77,9 @@ export const mathAIInteractionTypeEnum = pgEnum('MathAIInteractionType', [
   'RECOGNIZE',
 ])
 export type MathAIInteractionType = (typeof mathAIInteractionTypeEnum.enumValues)[number]
+
+export const preferenceStatusEnum = pgEnum('PreferenceStatus', ['PENDING', 'MATCHED', 'REJECTED'])
+export type PreferenceStatus = (typeof preferenceStatusEnum.enumValues)[number]
+
+export const preferenceSlotTypeEnum = pgEnum('PreferenceSlotType', ['SELECTED', 'INTERSECTION'])
+export type PreferenceSlotType = (typeof preferenceSlotTypeEnum.enumValues)[number]

@@ -145,7 +145,7 @@ export default function CoursesPage() {
                       {/* Price */}
                       <div className="mb-4">
                         <span className="text-lg font-bold text-blue-600">
-                          {course.price ? `$${course.price}` : 'Free'}
+                          {course.isFree || !course.price ? 'Free' : `$${course.price}`}
                         </span>
                       </div>
 

@@ -19,11 +19,13 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  PreferenceEnrollmentDialog,
+  type ScheduleItem,
+} from '@/components/curriculum/PreferenceEnrollmentDialog'
 import {
   BookOpen,
   Clock,
-  BarChart3,
   ChevronRight,
   Play,
   Trophy,
@@ -49,6 +51,10 @@ interface Curriculum {
     modules: number
     lessons: number
     batches: number
+  }
+  availability: {
+    summary: string | null
+    slots: ScheduleItem[]
   }
   progress?: {
     lessonsCompleted: number
@@ -79,6 +85,7 @@ export default function CurriculumPage() {
   const [curriculums, setCurriculums] = useState<Curriculum[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'all' | 'in-progress' | 'completed'>('all')
+  const [selectedEnrollment, setSelectedEnrollment] = useState<Curriculum | null>(null)
 
   useEffect(() => {
     loadCurriculums()
@@ -96,22 +103,6 @@ export default function CurriculumPage() {
       console.error('Failed to load curriculums:', error)
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const enrollInCurriculum = async (curriculumId: string) => {
-    try {
-      const res = await fetch(`/api/curriculum/${curriculumId}/enroll`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      })
-
-      if (res.ok) {
-        // Refresh list
-        loadCurriculums()
-      }
-    } catch (error) {
-      console.error('Failed to enroll:', error)
     }
   }
 
@@ -249,6 +240,14 @@ export default function CurriculumPage() {
                     <CardDescription className="mt-2 line-clamp-2">
                       {curriculum.description || 'No description'}
                     </CardDescription>
+                    <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>
+                        {curriculum.availability?.summary
+                          ? curriculum.availability.summary
+                          : 'Schedule TBD'}
+                      </span>
+                    </div>
                   </CardHeader>
 
                   <CardContent className="space-y-4">
@@ -324,9 +323,9 @@ export default function CurriculumPage() {
                       <Button
                         className="w-full"
                         variant="outline"
-                        onClick={() => enrollInCurriculum(curriculum.id)}
+                        onClick={() => setSelectedEnrollment(curriculum)}
                       >
-                        Enroll
+                        Sign Up
                       </Button>
                     )}
                   </CardFooter>
@@ -336,6 +335,21 @@ export default function CurriculumPage() {
           </div>
         )}
       </div>
+
+      {selectedEnrollment && (
+        <PreferenceEnrollmentDialog
+          open={!!selectedEnrollment}
+          onOpenChange={open => {
+            if (!open) setSelectedEnrollment(null)
+          }}
+          curriculumId={selectedEnrollment.id}
+          curriculumName={selectedEnrollment.name}
+          availabilitySlots={selectedEnrollment.availability?.slots ?? []}
+          onSubmitted={() => {
+            setSelectedEnrollment(null)
+          }}
+        />
+      )}
     </div>
   )
 }

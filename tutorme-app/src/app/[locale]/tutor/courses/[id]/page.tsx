@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import {
   Select,
   SelectContent,
@@ -363,6 +364,7 @@ interface CourseData {
   languageOfInstruction: string | null
   price: number | null
   currency: string | null
+  isFree: boolean
   curriculumSource: string | null
   outlineSource: string | null
   schedule: ScheduleItem[]
@@ -386,6 +388,7 @@ export default function TutorCoursePage() {
   const [difficulty, setDifficulty] = useState('intermediate')
   const [languageOfInstruction, setLanguageOfInstruction] = useState<string>('')
   const [price, setPrice] = useState<string>('')
+  const [isFree, setIsFree] = useState(false)
   const [currency, setCurrency] = useState<string>('SGD')
   const [curriculumSource, setCurriculumSource] = useState<'PLATFORM' | 'UPLOADED'>('PLATFORM')
   const [curriculumCatalog, setCurriculumCatalog] = useState<{ id: string; name: string }[]>([])
@@ -488,7 +491,8 @@ export default function TutorCoursePage() {
     setGradeLevel(course.gradeLevel ?? '')
     setDifficulty(course.difficulty ?? 'intermediate')
     setLanguageOfInstruction(course.languageOfInstruction ?? '')
-    setPrice(course.price != null ? String(course.price) : '')
+    setIsFree(course.isFree ?? false)
+    setPrice(course.isFree ? '' : course.price != null ? String(course.price) : '')
     setCurrency('USD') // Fixed to USD
     setCurriculumSource((course.curriculumSource as 'PLATFORM' | 'UPLOADED') ?? 'PLATFORM')
     setOutlineSource((course.outlineSource as 'SELF' | 'AI') ?? 'SELF')
@@ -645,8 +649,9 @@ export default function TutorCoursePage() {
           gradeLevel: gradeLevel || null,
           difficulty: difficulty || null,
           languageOfInstruction: languageOfInstruction || null,
-          price: price === '' ? null : Number(price),
+          price: isFree ? 0 : price === '' ? null : Number(price),
           currency: 'USD',
+          isFree,
           categories: selectedCategories,
           curriculumSource,
           outlineSource: curriculumSource === 'UPLOADED' ? outlineSource : null,
@@ -667,8 +672,9 @@ export default function TutorCoursePage() {
               gradeLevel: gradeLevel || prev.gradeLevel,
               difficulty: difficulty || prev.difficulty,
               languageOfInstruction: languageOfInstruction || null,
-              price: price === '' ? null : Number(price),
+              price: isFree ? 0 : price === '' ? null : Number(price),
               currency: 'USD',
+              isFree,
               curriculumSource,
               outlineSource: curriculumSource === 'UPLOADED' ? outlineSource : null,
               schedule,
@@ -1164,6 +1170,24 @@ export default function TutorCoursePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="flex items-center justify-between rounded-lg border bg-muted/30 p-3">
+              <div>
+                <Label htmlFor="isFree" className="text-sm font-medium">
+                  Free course
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Students can enroll without payment.
+                </p>
+              </div>
+              <Switch
+                id="isFree"
+                checked={isFree}
+                onCheckedChange={checked => {
+                  setIsFree(checked)
+                  if (checked) setPrice('')
+                }}
+              />
+            </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="price">Cost per 1 hour session</Label>
@@ -1175,6 +1199,7 @@ export default function TutorCoursePage() {
                   value={price}
                   onChange={e => setPrice(e.target.value)}
                   placeholder="$"
+                  disabled={isFree}
                 />
               </div>
               <div className="space-y-2">
@@ -1182,12 +1207,17 @@ export default function TutorCoursePage() {
                 <Input id="currency" value="USD" disabled className="bg-muted" />
               </div>
             </div>
-            {price && Number(price) > 0 && (
+            {!isFree && price && Number(price) > 0 && (
               <div className="rounded-lg border bg-muted/30 p-3">
                 <p className="text-sm">
                   <span className="font-medium">Cost per session:</span> USD{' '}
                   {Number(price).toFixed(2)}
                 </p>
+              </div>
+            )}
+            {isFree && (
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+                This course will be listed as free.
               </div>
             )}
           </CardContent>
@@ -1200,7 +1230,8 @@ export default function TutorCoursePage() {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Cost vs Revenue - visible when price and schedule are set */}
-            {Number(price) > 0 &&
+            {!isFree &&
+              Number(price) > 0 &&
               schedule.length > 0 &&
               (() => {
                 const p = Number(price)

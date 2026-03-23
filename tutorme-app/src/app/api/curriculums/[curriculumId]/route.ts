@@ -113,6 +113,7 @@ export async function GET(
     estimatedHours: curriculumRow.estimatedHours,
     price: curriculumRow.price,
     currency: curriculumRow.currency,
+    isFree: curriculumRow.isFree,
     gradeLevel: curriculumRow.gradeLevel,
     languageOfInstruction: curriculumRow.languageOfInstruction,
     schedule: curriculumRow.schedule,

@@ -73,6 +73,7 @@ export const GET = withAuth(
           isPublished: curriculum.isPublished,
           price: curriculum.price,
           currency: curriculum.currency,
+          isFree: curriculum.isFree,
           updatedAt: curriculum.updatedAt,
           _count: {
             modules: curriculum.modules.length,

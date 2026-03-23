@@ -1,0 +1,2 @@
+ALTER TABLE "Curriculum"
+ADD COLUMN IF NOT EXISTS "isFree" boolean NOT NULL DEFAULT false;
