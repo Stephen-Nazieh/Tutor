@@ -5821,12 +5821,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
     // Main builder tab (task vs assessment)
     const [mainBuilderTab, setMainBuilderTab] = useState<'task' | 'assessment'>('task')
-    const [showInsightsPanel, setShowInsightsPanel] = useState(true)
-
-    // Insights panel state
-    const [insightsTab, setInsightsTab] = useState<'analytics' | 'poll' | 'question'>('analytics')
-    const [pollPrompt, setPollPrompt] = useState('Did you find this task difficult')
-    const [questionPrompt, setQuestionPrompt] = useState('Do you have a question about this task?')
 
     // Question Bank modal state
     const [questionBankOpen, setQuestionBankOpen] = useState(false)
@@ -5839,11 +5833,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // Track currently loaded item for saving back
     const [loadedTaskId, setLoadedTaskId] = useState<string | null>(null)
     const [loadedAssessmentId, setLoadedAssessmentId] = useState<string | null>(null)
-    const activeInsightsTaskId = mainBuilderTab === 'assessment' ? loadedAssessmentId : loadedTaskId
-    const activeInsightsTask =
-      activeInsightsTaskId && insightsProps
-        ? (insightsProps.liveTasks.find(task => task.id === activeInsightsTaskId) ?? null)
-        : null
 
     // Load task data into taskBuilder
     const parsePciTranscript = (text: string) => {
@@ -9212,18 +9201,8 @@ FEEDBACK: [your explanation]`
                       <span className="h-2 w-2 rounded-full bg-blue-500"></span>
                       Test PCI
                     </div>
-                    {insightsProps && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 px-3 text-xs"
-                        onClick={() => setShowInsightsPanel(prev => !prev)}
-                      >
-                        Insights
-                      </Button>
-                    )}
                   </CardTitle>
-                  <div className="flex min-h-0 w-full flex-1 flex-col items-stretch gap-4 overflow-hidden xl:flex-row">
+                  <div className="flex min-h-0 w-full flex-1 flex-col items-stretch gap-4 overflow-hidden">
                     {/* Main content with tabs */}
                     <div className="flex h-full w-full min-w-0 flex-1 flex-col">
                       <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
@@ -9346,252 +9325,6 @@ FEEDBACK: [your explanation]`
                         </div>
                       </div>
                     </div>
-                    {insightsProps && showInsightsPanel && (
-                      <div className="min-h-0 w-full xl:w-[360px]">
-                        <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cyan-200/70 bg-gradient-to-br from-white via-slate-50 to-cyan-50 p-4 shadow-[0_10px_40px_-20px_rgba(14,116,144,0.65)] ring-1 ring-cyan-200/60">
-                          <Tabs
-                            value={insightsTab}
-                            onValueChange={value =>
-                              setInsightsTab(value as 'analytics' | 'poll' | 'question')
-                            }
-                            className="flex h-full min-h-0 flex-col"
-                          >
-                            <TabsList className="mb-4 grid w-full grid-cols-3 gap-1 rounded-xl border border-cyan-200/70 bg-white/80 p-1 shadow-sm">
-                              <TabsTrigger
-                                value="analytics"
-                                className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
-                              >
-                                Class Analytics
-                              </TabsTrigger>
-                              <TabsTrigger
-                                value="poll"
-                                className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
-                              >
-                                Poll
-                              </TabsTrigger>
-                              <TabsTrigger
-                                value="question"
-                                className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
-                              >
-                                Question
-                              </TabsTrigger>
-                            </TabsList>
-
-                            <TabsContent value="analytics" className="flex-1 space-y-4">
-                              {insightsProps.liveTasks.length > 0 && (
-                                <div className="space-y-4">
-                                  <div className="flex flex-wrap items-center gap-3">
-                                    <Badge variant="secondary" className="text-xs">
-                                      Tasks deployed: {insightsProps.liveTasks.length}
-                                    </Badge>
-                                    <Badge variant="secondary" className="text-xs">
-                                      Active task:{' '}
-                                      {activeInsightsTask?.title || 'Select a task in the builder'}
-                                    </Badge>
-                                  </div>
-                                  <div className="grid gap-3">
-                                    <div className="rounded-lg border bg-white/90 p-3">
-                                      <p className="text-xs font-semibold uppercase text-muted-foreground">
-                                        Task Completion
-                                      </p>
-                                      <p className="mt-1 text-lg font-semibold text-gray-900">--</p>
-                                      <p className="text-xs text-muted-foreground">
-                                        Waiting for submissions
-                                      </p>
-                                    </div>
-                                    <div className="rounded-lg border bg-white/90 p-3">
-                                      <p className="text-xs font-semibold uppercase text-muted-foreground">
-                                        Assessment Scores
-                                      </p>
-                                      <p className="mt-1 text-lg font-semibold text-gray-900">--</p>
-                                      <p className="text-xs text-muted-foreground">No scores yet</p>
-                                    </div>
-                                    <div className="rounded-lg border bg-white/90 p-3">
-                                      <p className="text-xs font-semibold uppercase text-muted-foreground">
-                                        Questions Asked
-                                      </p>
-                                      <p className="mt-1 text-lg font-semibold text-gray-900">
-                                        {insightsProps.liveTasks.reduce(
-                                          (sum, task) =>
-                                            sum +
-                                            task.questions.reduce(
-                                              (questionSum, question) =>
-                                                questionSum + question.responses.length,
-                                              0
-                                            ),
-                                          0
-                                        )}
-                                      </p>
-                                      <p className="text-xs text-muted-foreground">
-                                        Live student responses
-                                      </p>
-                                    </div>
-                                  </div>
-                                  {insightsProps.liveTasks.map(task => {
-                                    const pollResponses = task.polls.reduce(
-                                      (sum, poll) => sum + poll.responses.length,
-                                      0
-                                    )
-                                    const questionResponses = task.questions.reduce(
-                                      (sum, q) => sum + q.responses.length,
-                                      0
-                                    )
-                                    return (
-                                      <div
-                                        key={task.id}
-                                        className="rounded-lg border bg-white/90 p-4"
-                                      >
-                                        <div className="flex flex-wrap items-center justify-between gap-2">
-                                          <div>
-                                            <p className="text-sm font-semibold text-gray-900">
-                                              {task.title}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                              Polls: {task.polls.length} • Questions:{' '}
-                                              {task.questions.length}
-                                            </p>
-                                          </div>
-                                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                            <span>Poll responses: {pollResponses}</span>
-                                            <span>Question answers: {questionResponses}</span>
-                                          </div>
-                                        </div>
-                                        {task.polls.map(poll => {
-                                          const counts = poll.options.map(option => ({
-                                            option,
-                                            count: poll.responses.filter(r => r.value === option)
-                                              .length,
-                                          }))
-                                          return (
-                                            <div
-                                              key={poll.id}
-                                              className="mt-3 rounded-md border bg-slate-50/80 p-3"
-                                            >
-                                              <p className="text-xs font-medium text-gray-700">
-                                                {poll.question}
-                                              </p>
-                                              <div className="mt-2 flex flex-wrap gap-2">
-                                                {counts.map(entry => (
-                                                  <span
-                                                    key={`${poll.id}-${entry.option}`}
-                                                    className="rounded-full bg-white px-2 py-1 text-[11px] text-gray-600"
-                                                  >
-                                                    {entry.option}: {entry.count}
-                                                  </span>
-                                                ))}
-                                              </div>
-                                            </div>
-                                          )
-                                        })}
-                                        {task.questions.map(question => (
-                                          <div
-                                            key={question.id}
-                                            className="mt-3 rounded-md border bg-slate-50/80 p-3"
-                                          >
-                                            <p className="text-xs font-medium text-gray-700">
-                                              {question.prompt}
-                                            </p>
-                                            <p className="mt-1 text-xs text-muted-foreground">
-                                              Answers: {question.responses.length}
-                                            </p>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )
-                                  })}
-                                </div>
-                              )}
-                            </TabsContent>
-
-                            <TabsContent value="poll" className="space-y-3">
-                              <div className="rounded-lg border bg-white/90 p-4">
-                                <p className="text-sm font-medium text-gray-900">Poll question</p>
-                                <AutoTextarea
-                                  className="mt-2 min-h-[72px]"
-                                  value={pollPrompt}
-                                  onChange={event => setPollPrompt(event.target.value)}
-                                />
-                                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                  <span>Scale:</span>
-                                  {[1, 2, 3, 4, 5].map(value => (
-                                    <span key={value} className="rounded-full border px-2 py-0.5">
-                                      {value}
-                                    </span>
-                                  ))}
-                                </div>
-                                <div className="mt-4 flex items-center justify-between gap-3">
-                                  <p className="text-xs text-muted-foreground">
-                                    Active task:{' '}
-                                    {activeInsightsTask?.title || 'Select a task first'}
-                                  </p>
-                                  <Button
-                                    size="sm"
-                                    disabled={
-                                      !activeInsightsTaskId ||
-                                      !activeInsightsTask ||
-                                      !insightsProps.sessionId
-                                    }
-                                    onClick={() => {
-                                      if (
-                                        !activeInsightsTaskId ||
-                                        !activeInsightsTask ||
-                                        !insightsProps.sessionId
-                                      )
-                                        return
-                                      insightsProps.onSendPoll({
-                                        taskId: activeInsightsTaskId,
-                                        question: pollPrompt,
-                                      })
-                                    }}
-                                  >
-                                    Send
-                                  </Button>
-                                </div>
-                              </div>
-                            </TabsContent>
-
-                            <TabsContent value="question" className="space-y-3">
-                              <div className="rounded-lg border bg-white/90 p-4">
-                                <p className="text-sm font-medium text-gray-900">Question prompt</p>
-                                <AutoTextarea
-                                  className="mt-2 min-h-[96px]"
-                                  value={questionPrompt}
-                                  onChange={event => setQuestionPrompt(event.target.value)}
-                                />
-                                <div className="mt-4 flex items-center justify-between gap-3">
-                                  <p className="text-xs text-muted-foreground">
-                                    Active task:{' '}
-                                    {activeInsightsTask?.title || 'Select a task first'}
-                                  </p>
-                                  <Button
-                                    size="sm"
-                                    disabled={
-                                      !activeInsightsTaskId ||
-                                      !activeInsightsTask ||
-                                      !insightsProps.sessionId
-                                    }
-                                    onClick={() => {
-                                      if (
-                                        !activeInsightsTaskId ||
-                                        !activeInsightsTask ||
-                                        !insightsProps.sessionId
-                                      )
-                                        return
-                                      insightsProps.onSendQuestion({
-                                        taskId: activeInsightsTaskId,
-                                        prompt: questionPrompt,
-                                      })
-                                    }}
-                                  >
-                                    Send
-                                  </Button>
-                                </div>
-                              </div>
-                            </TabsContent>
-                          </Tabs>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </CardContent>
               </Card>
