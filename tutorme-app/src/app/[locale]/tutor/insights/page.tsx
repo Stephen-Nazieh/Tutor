@@ -39,7 +39,12 @@ export default function TutorInsightsPage() {
       setLoading(true)
       try {
         const res = await fetch('/api/tutor/courses', { credentials: 'include' })
-        if (!res.ok) throw new Error('Failed to load courses')
+        if (!res.ok) {
+          // Silent fallback if API fails
+          setCourseId('insights-draft')
+          setDetachedCourseName('Insights Builder')
+          return
+        }
         const data = await res.json()
         const courseList = (data.courses || []) as CourseSummary[]
         setCourses(courseList)
@@ -49,9 +54,15 @@ export default function TutorInsightsPage() {
           )
           setCourseId(prev => prev ?? sorted[0].id)
           setDetachedCourseName(sorted[0].name)
+        } else {
+          // No courses found, use default
+          setCourseId('insights-draft')
+          setDetachedCourseName('Insights Builder')
         }
       } catch (error) {
-        toast.error('Failed to load courses')
+        // Network or other error fallback
+        setCourseId('insights-draft')
+        setDetachedCourseName('Insights Builder')
       } finally {
         setLoading(false)
       }
