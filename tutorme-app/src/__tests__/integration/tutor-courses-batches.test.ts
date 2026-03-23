@@ -51,11 +51,14 @@ function request(url: string, init: RequestInit = {}): Request {
 describe('Tutor courses and batches API integration', () => {
   beforeAll(async () => {
     tutorId = crypto.randomUUID()
+    const now = new Date()
     await drizzleDb.insert(user).values({
       id: tutorId,
       email: testTutorEmail,
       role: 'TUTOR',
       password: 'hashed',
+      createdAt: now,
+      updatedAt: now,
     })
     mockSession.user.id = tutorId
     await drizzleDb.insert(profile).values({
@@ -73,6 +76,8 @@ describe('Tutor courses and batches API integration', () => {
       isOnboarded: true,
       specialties: [],
       paidClassesEnabled: false,
+      createdAt: now,
+      updatedAt: now,
     })
   })
 

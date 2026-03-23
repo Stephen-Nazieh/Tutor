@@ -107,6 +107,7 @@ async function putHandler(req: NextRequest, session: Session) {
         .set(updateData as any)
         .where(eq(profile.userId, session.user.id))
     } else {
+      const now = new Date()
       await drizzleDb.insert(profile).values({
         id: crypto.randomUUID(),
         userId: session.user.id,
@@ -120,6 +121,8 @@ async function putHandler(req: NextRequest, session: Session) {
         preferredLanguages: (updateData.preferredLanguages as string[]) ?? [],
         learningGoals: (updateData.learningGoals as string[]) ?? [],
         specialties: (updateData.specialties as string[]) ?? [],
+        createdAt: now,
+        updatedAt: now,
         ...updateData,
       } as any)
     }

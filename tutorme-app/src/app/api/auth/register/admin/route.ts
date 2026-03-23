@@ -67,12 +67,15 @@ export async function POST(request: NextRequest) {
     const newUser = await drizzleDb.transaction(async tx => {
       const userId = crypto.randomUUID()
       const profileId = crypto.randomUUID()
+      const now = new Date()
       await tx.insert(user).values({
         id: userId,
         email,
         password: hashedPassword,
         role: 'ADMIN',
         emailVerified: null,
+        createdAt: now,
+        updatedAt: now,
       })
 
       await tx.insert(profile).values({
@@ -91,6 +94,8 @@ export async function POST(request: NextRequest) {
         isOnboarded: true,
         specialties: [],
         paidClassesEnabled: false,
+        createdAt: now,
+        updatedAt: now,
       })
 
       const roleName =

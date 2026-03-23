@@ -23,11 +23,14 @@ async function main() {
 
   // Create sample users
   const tutorId = crypto.randomUUID()
+  const now = new Date()
   await drizzleDb.insert(user).values({
     id: tutorId,
     email: 'tutor@example.com',
     role: 'TUTOR',
     password: 'hashed',
+    createdAt: now,
+    updatedAt: now,
   })
   await drizzleDb.insert(profile).values({
     id: crypto.randomUUID(),
@@ -46,6 +49,8 @@ async function main() {
     isOnboarded: true,
     specialties: [],
     paidClassesEnabled: false,
+    createdAt: now,
+    updatedAt: now,
   })
   console.log('Created tutor:', tutorId)
 
@@ -55,6 +60,8 @@ async function main() {
     email: 'student@example.com',
     role: 'STUDENT',
     password: 'hashed',
+    createdAt: now,
+    updatedAt: now,
   })
   await drizzleDb.insert(profile).values({
     id: crypto.randomUUID(),
@@ -73,6 +80,8 @@ async function main() {
     isOnboarded: true,
     specialties: [],
     paidClassesEnabled: false,
+    createdAt: now,
+    updatedAt: now,
   })
   console.log('Created student:', studentId)
 
@@ -88,6 +97,8 @@ async function main() {
     isPublished: true,
     isLiveOnline: false,
     creatorId: tutorId,
+    createdAt: now,
+    updatedAt: now,
   })
   const moduleId = crypto.randomUUID()
   await drizzleDb.insert(curriculumModule).values({

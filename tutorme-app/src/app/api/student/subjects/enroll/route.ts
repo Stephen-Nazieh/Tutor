@@ -111,6 +111,7 @@ export const POST = withCsrf(
         curriculumId = curriculumBySubject.id
       } else {
         curriculumId = crypto.randomUUID()
+        const now = new Date()
         await drizzleDb.insert(curriculum).values({
           id: curriculumId,
           name: subjectInfo.name,
@@ -120,6 +121,8 @@ export const POST = withCsrf(
           estimatedHours: 40,
           isPublished: true,
           isLiveOnline: true,
+          createdAt: now,
+          updatedAt: now,
         })
         await createDefaultModules(curriculumId, subjectCode)
       }

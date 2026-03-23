@@ -96,12 +96,15 @@ async function seedAdminSystem() {
       console.log('Creating default admin user...')
       adminUserId = crypto.randomUUID()
       await drizzleDb.transaction(async tx => {
+        const now = new Date()
         await tx.insert(user).values({
           id: adminUserId,
           email: adminEmail,
           password: hashedPassword,
           role: 'ADMIN',
           emailVerified: new Date(),
+          createdAt: now,
+          updatedAt: now,
         })
         await tx.insert(profile).values({
           id: crypto.randomUUID(),
@@ -117,6 +120,8 @@ async function seedAdminSystem() {
           isOnboarded: true,
           specialties: [],
           paidClassesEnabled: false,
+          createdAt: now,
+          updatedAt: now,
         })
       })
       console.log(`  ✓ Created admin user: ${adminEmail}`)

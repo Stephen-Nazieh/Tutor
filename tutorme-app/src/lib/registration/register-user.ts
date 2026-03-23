@@ -164,6 +164,7 @@ export async function performRegistration(
 
   const newUser = await drizzleDb.transaction(async tx => {
     const userId = crypto.randomUUID()
+    const now = new Date()
 
     const checkHandle = async (handle: string) => {
       const [existing] = await tx
@@ -197,6 +198,8 @@ export async function performRegistration(
       password: hashedPassword,
       role,
       handle: finalHandle,
+      createdAt: now,
+      updatedAt: now,
     })
 
     const profileData =
@@ -219,6 +222,8 @@ export async function performRegistration(
       specialties: [],
       paidClassesEnabled: false,
       ...(role === 'STUDENT' && { studentUniqueId: `STU-${nanoid(12)}` }),
+      createdAt: now,
+      updatedAt: now,
     })
 
     if (role === 'TUTOR') {
