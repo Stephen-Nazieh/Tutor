@@ -42,10 +42,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ChatContainer } from '@/components/solocorn-chat'
 
 // --- Types ---
-type ModalType = 'register' | 'tutor' | 'academy' | 'schools' | 'chat' | null
+type ModalType = 'register' | 'tutor' | 'academy' | 'schools' | null
 type Language = 'en' | 'zh-CN' | 'zh-HK' | 'es' | 'fr' | 'de' | 'ja' | 'ko' | 'pt' | 'hi'
 type ThemeMode = 'light' | 'dark'
 type ColorTheme = 'emerald' | 'ocean' | 'sunset' | 'galaxy'
@@ -632,43 +631,6 @@ const translations: Translations = {
     pt: 'Escuro',
     hi: 'डार्क',
   },
-  // Investor Chat
-  askSolocorn: {
-    en: 'Ask Solocorn',
-    'zh-CN': '询问 Solocorn',
-    'zh-HK': '詢問 Solocorn',
-    es: 'Preguntar a Solocorn',
-    fr: 'Demander à Solocorn',
-    de: 'Solocorn fragen',
-    ja: 'Solocorn に質問',
-    ko: 'Solocorn에게 물어보기',
-    pt: 'Perguntar ao Solocorn',
-    hi: 'Solocorn से पूछें',
-  },
-  investorChatPlaceholder: {
-    en: 'Ask about our company, technology, or investment opportunities...',
-    'zh-CN': '询问有关我们公司、技术或投资机会的问题...',
-    'zh-HK': '詢問有關我哋公司、技術或投資機會嘅問題...',
-    es: 'Pregunte sobre nuestra empresa, tecnología u oportunidades de inversión...',
-    fr: "Demandez notre entreprise, notre technologie ou nos opportunités d'investissement...",
-    de: 'Fragen Sie zu unserem Unternehmen, unserer Technologie oder Investitionsmöglichkeiten...',
-    ja: '当社、テクノロジー、または投資機会についてお尋ねください...',
-    ko: '당사, 기술 또는 투자 기회에 대해 문의하세요...',
-    pt: 'Pergunte sobre nossa empresa, tecnologia ou oportunidades de investimento...',
-    hi: 'हमारी कंपनी, तकनीक या निवेश अवसरों के बारे में पूछें...',
-  },
-  poweredBy: {
-    en: 'Powered by Solocorn AI',
-    'zh-CN': '由 Solocorn AI 驱动',
-    'zh-HK': '由 Solocorn AI 驅動',
-    es: 'Impulsado por Solocorn AI',
-    fr: 'Propulsé par Solocorn AI',
-    de: 'Powered by Solocorn AI',
-    ja: 'Solocorn AI 搭載',
-    ko: 'Solocorn AI 제공',
-    pt: 'Powered by Solocorn AI',
-    hi: 'Solocorn AI द्वारा संचालित',
-  },
 }
 
 // --- Mock Data ---
@@ -1199,7 +1161,7 @@ const LanguageSelector = ({
 }
 
 const CountdownTimer = () => {
-  const [timeLeft, setTimeLeft] = useState({ days: 12, hours: 5, minutes: 45, seconds: 30 })
+  const [timeLeft, setTimeLeft] = useState({ days: 14, hours: 5, minutes: 45, seconds: 30 })
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
@@ -1224,24 +1186,70 @@ const CountdownTimer = () => {
   )
 }
 
-const TutorStrip = () => (
-  <div className="relative overflow-hidden border-y border-white/5 bg-white/[0.02] py-12">
-    <div className="animate-marquee flex whitespace-nowrap">
-      {[...CELEBRITY_TUTORS, ...CELEBRITY_TUTORS].map((tutor, i) => (
-        <div key={i} className="group mx-8 inline-flex items-center">
-          <div className="mr-4 h-16 w-16 overflow-hidden rounded-full border-2 border-emerald-500/30 transition-colors group-hover:border-emerald-400">
-            <img
-              src={tutor.image}
-              alt={tutor.name}
-              className="h-full w-full object-cover"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-          <div>
-            <div className="text-lg font-bold">{tutor.name}</div>
-            <div className="text-sm opacity-70">{tutor.subject}</div>
-          </div>
+const BlankTutorCard = ({ theme, mode }: { theme: ColorTheme; mode: ThemeMode }) => {
+  const themeColors = {
+    emerald: 'from-emerald-500/20 to-cyan-500/20 border-emerald-500/30',
+    ocean: 'from-sky-500/20 to-indigo-500/20 border-sky-500/30',
+    sunset: 'from-amber-500/20 to-rose-500/20 border-amber-500/30',
+    galaxy: 'from-purple-500/20 to-pink-500/20 border-purple-500/30',
+  }
+
+  return (
+    <motion.div
+      whileHover={{
+        rotateY: 15,
+        rotateX: -5,
+        scale: 1.05,
+        y: -10,
+      }}
+      style={{ perspective: 1000 }}
+      className={`relative mx-6 h-64 w-48 shrink-0 overflow-hidden rounded-2xl border backdrop-blur-md transition-all duration-300 ${
+        mode === 'dark'
+          ? `bg-gradient-to-br ${themeColors[theme]} shadow-[0_20px_50px_rgba(0,0,0,0.5)]`
+          : `bg-white/40 border-white/50 shadow-[0_20px_50px_rgba(0,0,0,0.1)]`
+      }`}
+    >
+      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+
+      {/* Profile Avatar Placeholder */}
+      <div className="flex h-full flex-col items-center justify-center p-6 text-center">
+        <div
+          className={`mb-4 h-20 w-20 rounded-full border-2 border-dashed flex items-center justify-center ${
+            mode === 'dark' ? 'border-white/20 bg-white/5' : 'border-black/10 bg-black/5'
+          }`}
+        >
+          <UserPlus
+            className={`h-8 w-8 ${mode === 'dark' ? 'text-white/20' : 'text-black/20'}`}
+          />
         </div>
+
+        {/* Text Placeholders */}
+        <div
+          className={`mb-2 h-4 w-24 rounded-full ${
+            mode === 'dark' ? 'bg-white/10' : 'bg-black/5'
+          }`}
+        />
+        <div
+          className={`h-3 w-16 rounded-full ${
+            mode === 'dark' ? 'bg-white/5' : 'bg-black/5'
+          }`}
+        />
+      </div>
+
+      {/* Decorative Shine */}
+      <div className="absolute -left-full top-0 h-full w-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-all duration-500 group-hover:left-full" />
+    </motion.div>
+  )
+}
+
+const TutorStrip = ({ theme, mode }: { theme: ColorTheme; mode: ThemeMode }) => (
+  <div className="relative overflow-hidden py-12">
+    <div className="animate-marquee flex whitespace-nowrap">
+      {[...Array(12)].map((_, i) => (
+        <BlankTutorCard key={i} theme={theme} mode={mode} />
+      ))}
+      {[...Array(12)].map((_, i) => (
+        <BlankTutorCard key={`dup-${i}`} theme={theme} mode={mode} />
       ))}
     </div>
   </div>
@@ -1518,16 +1526,6 @@ const ComingSoonModal = ({
         required
         className={`w-full border ${mode === 'dark' ? 'border-white/10 bg-white/5 text-white placeholder:text-zinc-500' : 'border-black/10 bg-black/5 text-zinc-900 placeholder:text-zinc-500'}`}
       />
-      {type === 'chat' && (
-        <textarea
-          placeholder="Your inquiry"
-          value={formData.message}
-          onChange={e => setFormData({ ...formData, message: e.target.value.slice(0, 1000) })}
-          required
-          rows={3}
-          className={`w-full resize-none rounded-lg border px-3 py-2 text-sm ${mode === 'dark' ? 'border-white/10 bg-white/5 text-white placeholder:text-zinc-500' : 'border-black/10 bg-black/5 text-zinc-900 placeholder:text-zinc-500'}`}
-        />
-      )}
       {error && <p className="text-center text-sm text-red-500">{error}</p>}
       <Button
         type="submit"
@@ -1576,7 +1574,7 @@ const ComingSoonModal = ({
                 {type === 'tutor' && renderTutorForm()}
                 {type === 'academy' && renderAcademyForm()}
                 {type === 'schools' && renderSchoolsForm()}
-                {(type === 'register' || type === 'chat' || !type) && renderDefaultForm()}
+                {(type === 'register' || !type) && renderDefaultForm()}
               </form>
             </>
           ) : (
@@ -2332,7 +2330,6 @@ export default function LandingPage() {
   const [language, setLanguage] = useState<Language>('en')
   const [theme] = useState<ColorTheme>('emerald')
   const [mode] = useState<ThemeMode>('light')
-  const [chatOpen, setChatOpen] = useState(false)
   const [contactModalOpen, setContactModalOpen] = useState(false)
   const [privacyOpen, setPrivacyOpen] = useState(false)
   const [termsOpen, setTermsOpen] = useState(false)
@@ -2366,15 +2363,6 @@ export default function LandingPage() {
       <PrivacyPolicyModal isOpen={privacyOpen} onClose={() => setPrivacyOpen(false)} mode={mode} />
       <TermsOfServiceModal isOpen={termsOpen} onClose={() => setTermsOpen(false)} mode={mode} />
 
-      {/* Investor Chat */}
-      <ChatContainer
-        language={language}
-        themeColor={theme}
-        mode={mode}
-        isOpen={chatOpen}
-        onClose={() => setChatOpen(false)}
-      />
-
       <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative pt-24">
         {/* Hero Section */}
         <section className="relative overflow-hidden px-6 py-20 text-center md:py-32">
@@ -2404,45 +2392,36 @@ export default function LandingPage() {
               </span>
             </h1>
             <p
-              className={`mb-8 text-xl font-medium md:text-2xl ${mode === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}
+              className={`mb-12 text-xl font-medium md:text-2xl ${mode === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}
             >
               Live AI-Augmented Instruction Platform
             </p>
 
-            {/* Tooltip above the button */}
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className={`mb-3 text-sm ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}
-            >
-              Learn about Solocorn
-            </motion.p>
-
-            {/* Ask Solocorn Button - glowing and active */}
-            <motion.button
-              onClick={() => setModalType('chat')}
-              className={`relative mb-12 inline-flex items-center gap-2 rounded-full px-6 py-3 text-lg font-semibold transition-all ${mode === 'dark' ? 'border border-white/20 bg-white/10 text-white hover:bg-white/20' : 'border border-black/20 bg-black/10 text-zinc-900 hover:bg-black/20'}`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              animate={{
-                boxShadow: [
-                  '0 0 20px rgba(16, 185, 129, 0.3)',
-                  '0 0 40px rgba(16, 185, 129, 0.5)',
-                  '0 0 20px rgba(16, 185, 129, 0.3)',
-                ],
-              }}
-              transition={{
-                boxShadow: {
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                },
-              }}
-            >
-              <Sparkles className="h-5 w-5" />
-              {t('askSolocorn')}
-            </motion.button>
+            {/* View all Categories Button - glowing and active */}
+            <Link href="/categories">
+              <motion.button
+                className={`relative mb-12 inline-flex items-center gap-2 rounded-full px-6 py-3 text-lg font-semibold transition-all ${mode === 'dark' ? 'border border-white/20 bg-white/10 text-white hover:bg-white/20' : 'border border-black/20 bg-black/10 text-zinc-900 hover:bg-black/20'}`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                animate={{
+                  boxShadow: [
+                    '0 0 20px rgba(16, 185, 129, 0.3)',
+                    '0 0 40px rgba(16, 185, 129, 0.5)',
+                    '0 0 20px rgba(16, 185, 129, 0.3)',
+                  ],
+                }}
+                transition={{
+                  boxShadow: {
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  },
+                }}
+              >
+                <Search className="h-5 w-5" />
+                {t('viewAllCategories')}
+              </motion.button>
+            </Link>
             <div className="mb-8">
               <CountdownTimer />
             </div>
@@ -2476,14 +2455,8 @@ export default function LandingPage() {
               </h2>
               {/* Description removed as requested */}
             </div>
-            <Link
-              href="/categories"
-              className={`flex items-center gap-1 text-sm font-bold hover:underline ${mode === 'dark' ? `text-${theme}-400` : `text-${theme}-600`}`}
-            >
-              {t('viewAllCategories')} <ChevronRight className="h-4 w-4" />
-            </Link>
           </div>
-          <TutorStrip />
+          <TutorStrip theme={theme} mode={mode} />
         </section>
 
         {/* Special Access */}
