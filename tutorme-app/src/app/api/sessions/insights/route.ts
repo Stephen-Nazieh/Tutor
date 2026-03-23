@@ -170,6 +170,27 @@ export const POST = withAuth(
         timeOnTask: engagementSummary?.timeOnTaskPercentage ?? 0,
       })
 
+      // New code to safely handle engagementSummary
+      const engagementMetrics = engagementSummary
+        ? {
+            averageEngagement: engagementSummary.averageEngagement,
+            peakEngagement: engagementSummary.peakEngagement,
+            lowEngagement: engagementSummary.lowEngagement,
+            participationRate: engagementSummary.participationRate,
+            chatActivity: engagementSummary.totalChatMessages,
+            handRaises: engagementSummary.totalHandRaises,
+            timeOnTask: engagementSummary.timeOnTaskPercentage,
+          }
+        : {
+            averageEngagement: 0,
+            peakEngagement: 0,
+            lowEngagement: 0,
+            participationRate: 0,
+            chatActivity: 0,
+            handRaises: 0,
+            timeOnTask: 0,
+          }
+
       const [report] = await drizzleDb
         .select()
         .from(postSessionReport)
