@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { contentItem } from '@/lib/db/schema'
-import { getPresignedPutUrl, isS3Configured } from '@/lib/video/upload'
+import { getPresignedPutUrl, isGcsConfigured } from '@/lib/video/upload'
 
 export const POST = withCsrf(
   withAuth(
@@ -32,7 +32,7 @@ export const POST = withCsrf(
 
       const key = 'content/' + content.id + '/' + String(filename).replace(/[^a-zA-Z0-9._-]/g, '_')
 
-      if (isS3Configured()) {
+      if (isGcsConfigured()) {
         const presign = await getPresignedPutUrl(key, contentType)
         if (presign) {
           return NextResponse.json({
@@ -40,6 +40,7 @@ export const POST = withCsrf(
             uploadUrl: presign.uploadUrl,
             key: presign.key,
             publicUrl: presign.publicUrl,
+            uploadHeaders: presign.uploadHeaders ?? null,
             expiresIn: 3600,
           })
         }
@@ -47,7 +48,7 @@ export const POST = withCsrf(
 
       return NextResponse.json({
         contentId: content.id,
-        message: 'S3 not configured. Set S3_* env vars or set URL via upload-complete.',
+        message: 'GCS not configured. Set GCS_* env vars or set URL via upload-complete.',
         key,
       })
     },

@@ -1,13 +1,16 @@
 // scripts/backup.ts
 import { execSync } from 'child_process'
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import fs from 'fs'
+import { Storage } from '@google-cloud/storage'
 import { config } from './backup-config.json'
 
 export interface BackupConfig {
   schedule: string // Cron format
   retentionDays: number
-  s3Bucket: string
-  s3Region: string
+  gcsBucket: string
+  gcpProjectId?: string
+  gcpSaKey?: string
+  kmsKeyName?: string
   encryption: boolean
 }
 
@@ -23,20 +26,42 @@ export async function performBackup(): Promise<void> {
   const verifyCommand = `gzip -t /tmp/${filename}`
   execSync(verifyCommand)
   
-  // Upload to S3 with server-side encryption
-  const s3Client = new S3Client({ region: config.s3Region })
-  const uploadCommand = new PutObjectCommand({
-    Bucket: config.s3Bucket,
-    Key: `backups/${filename}`,
-    Body: fs.createReadStream(`/tmp/${filename}`),
-    ServerSideEncryption: config.encryption ? 'AES256' : undefined
+  // Upload to GCS (server-side encryption is default in GCS; optionally use KMS)
+  const credentialsJson = process.env.GCP_SA_KEY || config.gcpSaKey
+  if (!credentialsJson) {
+    throw new Error('GCP_SA_KEY is required for GCS backups')
+  }
+  const credentials = JSON.parse(credentialsJson)
+  const projectId = process.env.GCP_PROJECT_ID || config.gcpProjectId
+  const bucketName = process.env.GCS_BUCKET || config.gcsBucket
+  const storage = new Storage({ projectId, credentials })
+
+  await storage.bucket(bucketName).upload(`/tmp/${filename}`, {
+    destination: `backups/${filename}`,
+    ...(config.encryption && config.kmsKeyName ? { kmsKeyName: config.kmsKeyName } : {}),
   })
   
-  await s3Client.send(uploadCommand)
-  
   // Cleanup old backups
-  await cleanupOldBackups(s3Client, config)
+  await cleanupOldBackups(storage, bucketName, config.retentionDays)
   
   // Remove local file
   fs.unlinkSync(`/tmp/${filename}`)
+}
+
+async function cleanupOldBackups(
+  storage: Storage,
+  bucketName: string,
+  retentionDays: number
+): Promise<void> {
+  const cutoff = Date.now() - retentionDays * 24 * 60 * 60 * 1000
+  const [files] = await storage.bucket(bucketName).getFiles({ prefix: 'backups/' })
+
+  const deletions = files.map(async file => {
+    const created = file.metadata.timeCreated ? Date.parse(file.metadata.timeCreated) : null
+    if (created && created < cutoff) {
+      await file.delete({ ignoreNotFound: true })
+    }
+  })
+
+  await Promise.all(deletions)
 }

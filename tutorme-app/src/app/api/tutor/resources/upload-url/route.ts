@@ -1,8 +1,8 @@
 /**
  * GET /api/tutor/resources/upload-url
  *
- * Generates a presigned S3 PUT URL for direct browser-to-S3 upload.
- * Falls back to a server-side proxy upload route if S3 is not configured.
+ * Generates a presigned GCS PUT URL for direct browser-to-GCS upload.
+ * Falls back to a server-side proxy upload route if GCS is not configured.
  *
  * Query params:
  *   filename  — original filename (e.g. "lecture.pdf")
@@ -17,9 +17,9 @@ import {
   createPresignedUploadUrl,
   generateResourceKey,
   inferResourceType,
-  isS3Configured,
+  isGcsConfigured,
   MAX_UPLOAD_BYTES,
-} from '@/lib/storage/s3'
+} from '@/lib/storage/gcs'
 
 export const GET = withAuth(
   async (req: NextRequest, session) => {
@@ -44,13 +44,24 @@ export const GET = withAuth(
     const key = generateResourceKey(tutorId, filename)
     const type = inferResourceType(mimeType)
 
-    // Real S3 presigned upload URL
-    if (isS3Configured()) {
+    // Real GCS presigned upload URL
+    if (isGcsConfigured()) {
       try {
-        const { uploadUrl, publicUrl } = await createPresignedUploadUrl(key, mimeType, isPublic)
-        return NextResponse.json({ uploadUrl, key, type, publicUrl, usePresigned: true })
+        const { uploadUrl, publicUrl, uploadHeaders } = await createPresignedUploadUrl(
+          key,
+          mimeType,
+          isPublic
+        )
+        return NextResponse.json({
+          uploadUrl,
+          key,
+          type,
+          publicUrl,
+          uploadHeaders: uploadHeaders ?? null,
+          usePresigned: true,
+        })
       } catch (error) {
-        console.error('[upload-url] S3 presign failed:', error)
+        console.error('[upload-url] GCS presign failed:', error)
         return handleApiError(
           error,
           'Failed to generate upload URL',

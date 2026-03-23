@@ -1,7 +1,7 @@
 /**
  * GET /api/tutor/resources/[id]/download
  *
- * Generates a presigned S3 GET URL for downloading a private resource.
+ * Generates a presigned GCS GET URL for downloading a private resource.
  * For public resources, redirects directly to the public URL.
  * Increments the download counter.
  */
@@ -12,7 +12,7 @@ import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { resource, resourceShare } from '@/lib/db/schema'
 import { eq, or, and } from 'drizzle-orm'
-import { createPresignedDownloadUrl, isS3Configured } from '@/lib/storage/s3'
+import { createPresignedDownloadUrl, isGcsConfigured } from '@/lib/storage/gcs'
 
 export const GET = withAuth(
   async (req: NextRequest, session, context) => {
@@ -59,7 +59,7 @@ export const GET = withAuth(
       .then(() => {})
       .catch(() => {})
 
-    if (isS3Configured() && resourceRow.key) {
+    if (isGcsConfigured() && resourceRow.key) {
       const downloadUrl = await createPresignedDownloadUrl(resourceRow.key, 3600, resourceRow.name)
       return NextResponse.json({ downloadUrl, expiresIn: 3600 })
     }

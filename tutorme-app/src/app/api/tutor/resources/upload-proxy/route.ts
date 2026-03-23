@@ -1,17 +1,17 @@
 /**
  * POST /api/tutor/resources/upload-proxy
  *
- * Server-side upload proxy when S3 is not configured.
+ * Server-side upload proxy when GCS is not configured.
  * Stores files in /public/uploads/resources/{tutorId}/ (local dev only).
  *
- * In production, configure AWS_S3_BUCKET etc. to use real S3.
+ * In production, configure GCS_BUCKET etc. to use GCS.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
-import { inferResourceType, generateResourceKey } from '@/lib/storage/s3'
+import { inferResourceType, generateResourceKey } from '@/lib/storage/gcs'
 
 const MAX_SIZE = 100 * 1024 * 1024 // 100MB
 

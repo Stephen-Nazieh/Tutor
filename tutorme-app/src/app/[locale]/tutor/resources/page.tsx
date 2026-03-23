@@ -158,18 +158,21 @@ export default function TutorResourcesPage() {
 
       if (!urlRes.ok) throw new Error('Failed to get upload URL')
 
-      const { uploadUrl, key, type, publicUrl, usePresigned } = await urlRes.json()
+      const { uploadUrl, key, type, publicUrl, uploadHeaders, usePresigned } = await urlRes.json()
 
       let finalUrl: string
 
       if (usePresigned) {
-        // Step 2a: PUT directly to S3 presigned URL
-        const s3Res = await fetch(uploadUrl, {
+        // Step 2a: PUT directly to GCS presigned URL
+        const gcsRes = await fetch(uploadUrl, {
           method: 'PUT',
           body: selectedFile,
-          headers: { 'Content-Type': selectedFile.type },
+          headers: {
+            'Content-Type': selectedFile.type,
+            ...(uploadHeaders || {}),
+          },
         })
-        if (!s3Res.ok) throw new Error('S3 upload failed')
+        if (!gcsRes.ok) throw new Error('GCS upload failed')
         finalUrl = publicUrl || uploadUrl.split('?')[0] // strip signing params
       } else {
         // Step 2b: Proxy upload through Next.js API

@@ -142,7 +142,7 @@ services:
     container_name: tutorme-postgres-exporter
     restart: unless-stopped
     environment:
-      DATA_SOURCE_NAME: "postgresql://postgres:postgres_password@db:5432/tutorme?sslmode=disable"
+      DATA_SOURCE_NAME: "postgresql://tutorme:tutorme_password@db:5432/tutorme?sslmode=disable"
     ports:
       - "9187:9187"
     depends_on:
@@ -162,8 +162,8 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: "postgresql://postgres:postgres_password@db:5432/tutorme"
-      DATABASE_POOL_URL: "postgresql://postgres:postgres_password@pgbouncer:6432/tutorme"
+      DATABASE_URL: "postgresql://tutorme:tutorme_password@db:5432/tutorme"
+      DATABASE_POOL_URL: "postgresql://tutorme:tutorme_password@pgbouncer:6432/tutorme"
       REDIS_URL: "redis://redis:6379"
       ADK_BASE_URL: "http://adk-service:4310"
       ADK_AUTH_TOKEN: "dev-token"
@@ -189,7 +189,7 @@ services:
       - "4310:4310"
     environment:
       PORT: 4310
-      DATABASE_URL: "postgresql://postgres:postgres_password@db:5432/tutorme"
+      DATABASE_URL: "postgresql://tutorme:tutorme_password@db:5432/tutorme"
       REDIS_URL: "redis://redis:6379"
       ADK_AUTH_TOKEN: "dev-token"
       KIMI_API_KEY: "${KIMI_API_KEY}"

@@ -1,0 +1,155 @@
+/**
+ * GCS Storage Service
+ *
+ * Wraps @google-cloud/storage for file storage operations.
+ *
+ * Required env vars:
+ *   GCS_BUCKET
+ *   GCP_PROJECT_ID
+ *   GCP_SA_KEY (JSON string)
+ */
+
+import { Storage } from '@google-cloud/storage'
+import { randomUUID } from 'crypto'
+import path from 'path'
+
+// ─── Config ───────────────────────────────────────────────────────────────────
+
+const BUCKET = process.env.GCS_BUCKET || ''
+const PROJECT_ID = process.env.GCP_PROJECT_ID || ''
+const SA_KEY = process.env.GCP_SA_KEY || ''
+const MAX_UPLOAD_BYTES = 100 * 1024 * 1024 // 100 MB
+
+let cachedStorage: Storage | null = null
+
+function getStorage(): Storage {
+  if (cachedStorage) return cachedStorage
+  if (!SA_KEY) {
+    throw new Error('GCP_SA_KEY is not configured')
+  }
+  let credentials: Record<string, unknown>
+  try {
+    credentials = JSON.parse(SA_KEY) as Record<string, unknown>
+  } catch (error) {
+    throw new Error('GCP_SA_KEY must be valid JSON')
+  }
+  cachedStorage = new Storage({
+    projectId: PROJECT_ID || (credentials.project_id as string | undefined),
+    credentials,
+  })
+  return cachedStorage
+}
+
+// Check if GCS is configured
+export function isGcsConfigured(): boolean {
+  return !!(BUCKET && PROJECT_ID && SA_KEY)
+}
+
+function buildPublicUrl(key: string): string {
+  return `https://storage.googleapis.com/${BUCKET}/${key}`
+}
+
+// ─── Presigned PUT URL ────────────────────────────────────────────────────────
+
+interface PresignedUploadResult {
+  uploadUrl: string
+  key: string
+  publicUrl: string | null
+  uploadHeaders?: Record<string, string>
+}
+
+/**
+ * Generate a presigned PUT URL for direct browser-to-GCS upload.
+ * Expires in 15 minutes.
+ */
+export async function createPresignedUploadUrl(
+  key: string,
+  mimeType: string,
+  isPublic: boolean = false
+): Promise<PresignedUploadResult> {
+  const storage = getStorage()
+  const file = storage.bucket(BUCKET).file(key)
+
+  const uploadHeaders = isPublic ? { 'x-goog-acl': 'public-read' } : undefined
+
+  const [uploadUrl] = await file.getSignedUrl({
+    version: 'v4',
+    action: 'write',
+    expires: Date.now() + 15 * 60 * 1000,
+    contentType: mimeType,
+    ...(uploadHeaders ? { extensionHeaders: uploadHeaders } : {}),
+  })
+
+  const publicUrl = isPublic ? buildPublicUrl(key) : null
+
+  return { uploadUrl, key, publicUrl, ...(uploadHeaders ? { uploadHeaders } : {}) }
+}
+
+// ─── Presigned GET URL ────────────────────────────────────────────────────────
+
+/**
+ * Generate a presigned GET URL for temporary access to a private file.
+ * Default expiry: 1 hour.
+ */
+export async function createPresignedDownloadUrl(
+  key: string,
+  expiresInSeconds: number = 3600,
+  filename?: string
+): Promise<string> {
+  const storage = getStorage()
+  const file = storage.bucket(BUCKET).file(key)
+
+  const [downloadUrl] = await file.getSignedUrl({
+    version: 'v4',
+    action: 'read',
+    expires: Date.now() + expiresInSeconds * 1000,
+    ...(filename
+      ? {
+          responseDisposition: `attachment; filename="${encodeURIComponent(filename)}"`,
+        }
+      : {}),
+  })
+
+  return downloadUrl
+}
+
+// ─── Delete ───────────────────────────────────────────────────────────────────
+
+/**
+ * Delete an object from GCS.
+ */
+export async function deleteObject(key: string): Promise<void> {
+  const storage = getStorage()
+  await storage.bucket(BUCKET).file(key).delete({ ignoreNotFound: true })
+}
+
+// ─── Key Generation ───────────────────────────────────────────────────────────
+
+/**
+ * Generate a unique key for a resource.
+ * Pattern: {prefix}/{uuid}{ext}
+ */
+export function generateResourceKey(
+  tutorId: string,
+  filename: string,
+  prefix: string = 'resources'
+): string {
+  const ext = path.extname(filename).toLowerCase()
+  const uuid = randomUUID()
+  return `tutors/${tutorId}/${prefix}/${uuid}${ext}`
+}
+
+/**
+ * Infer resource type from MIME type.
+ */
+export function inferResourceType(mimeType: string): string {
+  if (mimeType.startsWith('image/')) return 'image'
+  if (mimeType.startsWith('video/')) return 'video'
+  if (mimeType === 'application/pdf' || mimeType.includes('word') || mimeType.startsWith('text/'))
+    return 'document'
+  if (mimeType.includes('excel') || mimeType.includes('sheet') || mimeType.includes('csv'))
+    return 'spreadsheet'
+  return 'other'
+}
+
+export { MAX_UPLOAD_BYTES }

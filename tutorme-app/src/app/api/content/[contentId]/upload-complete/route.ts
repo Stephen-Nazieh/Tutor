@@ -2,7 +2,7 @@
  * Mark upload complete and set video URL and duration.
  * POST /api/content/[contentId]/upload-complete
  * Body: { url?, key?, durationSeconds?, transcript? }
- * If S3 was used, send publicUrl or we build from key. Otherwise send url.
+ * If GCS was used, send publicUrl or we build from key. Otherwise send url.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -13,11 +13,8 @@ import { contentItem } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 
 function buildPublicUrl(key: string): string {
-  const bucket = process.env.S3_BUCKET
-  const region = process.env.S3_REGION
-  const endpoint = process.env.S3_ENDPOINT
-  if (endpoint) return `${endpoint.replace(/\/$/, '')}/${bucket}/${key}`
-  return `https://${bucket}.s3.${region}.amazonaws.com/${key}`
+  const bucket = process.env.GCS_BUCKET
+  return `https://storage.googleapis.com/${bucket}/${key}`
 }
 
 export const POST = withCsrf(

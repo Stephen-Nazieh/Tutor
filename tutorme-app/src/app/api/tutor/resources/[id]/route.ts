@@ -11,7 +11,7 @@ import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { resource } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
-import { deleteObject, isS3Configured } from '@/lib/storage/s3'
+import { deleteObject, isGcsConfigured } from '@/lib/storage/gcs'
 
 // GET - Resource details
 export const GET = withAuth(
@@ -109,11 +109,11 @@ export const DELETE = withAuth(
         return NextResponse.json({ error: 'Resource not found' }, { status: 404 })
       }
 
-      if (isS3Configured() && existing.key) {
+      if (isGcsConfigured() && existing.key) {
         try {
           await deleteObject(existing.key)
         } catch (err) {
-          console.error('[resource-delete] S3 delete failed:', err)
+          console.error('[resource-delete] GCS delete failed:', err)
         }
       }
 

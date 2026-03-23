@@ -1,5 +1,5 @@
 # Solocorn production image (Next.js + custom server with Socket.io)
-# Build and run: used by docker-compose for AWS deploy
+# Build and run: used by docker-compose for production deploys
 
 FROM node:20-alpine AS base
 

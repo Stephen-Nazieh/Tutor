@@ -90,7 +90,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ForgotPasswor
     }
 
     // TODO: Send password reset email
-    // This should be implemented with a proper email service like SendGrid, AWS SES, etc.
+    // This should be implemented with a proper email service like SendGrid, Mailgun, etc.
     // Example:
     // await sendPasswordResetEmail({
     //   to: normalizedEmail,
