@@ -220,6 +220,8 @@ export function CourseBuilderContent({
     options?: {
       developmentMode: 'single' | 'multi'
       previewDifficulty: 'all' | 'beginner' | 'intermediate' | 'advanced'
+      courseName?: string
+      courseDescription?: string
     }
   ) => {
     const isDetached = dataMode === 'detached'
@@ -249,7 +251,35 @@ export function CourseBuilderContent({
       const csrfData = await csrfRes.json().catch(() => ({}))
       const csrfToken = csrfData?.token ?? null
 
-      const res = await fetch(`/api/tutor/courses/${courseId}/curriculum`, {
+      let currentCourseId = courseId
+
+      // If it's a draft and we have a name, create the course first
+      if (courseId === 'builder-draft' && options?.courseName) {
+        const createRes = await fetch('/api/tutor/courses', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            name: options.courseName,
+            description: options.courseDescription || '',
+          }),
+        })
+
+        if (!createRes.ok) {
+          const err = await createRes.json().catch(() => ({}))
+          throw new Error(err.error ?? 'Failed to create course')
+        }
+
+        const newCourse = await createRes.json()
+        currentCourseId = newCourse.id
+        // Update URL to reflect the new course ID without full reload
+        router.replace(`/tutor/courses/${currentCourseId}/builder`)
+      }
+
+      const res = await fetch(`/api/tutor/courses/${currentCourseId}/curriculum`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

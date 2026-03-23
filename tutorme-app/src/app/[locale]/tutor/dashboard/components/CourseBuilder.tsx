@@ -396,6 +396,8 @@ interface CourseBuilderProps {
     options?: {
       developmentMode: 'single' | 'multi'
       previewDifficulty: 'all' | 'beginner' | 'intermediate' | 'advanced'
+      courseName?: string
+      courseDescription?: string
     }
   ) => void
   insightsProps?: CourseBuilderInsightsProps
@@ -6084,11 +6086,29 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       'all' | 'beginner' | 'intermediate' | 'advanced'
     >('all')
 
+    // State for course properties (name, description)
+    const [coursePropsModal, setCoursePropsModal] = useState({
+      isOpen: false,
+      name: courseName || '',
+      description: '',
+    })
+
     // Expose save method via ref
     useImperativeHandle(ref, () => ({
       save: () => {
+        // If courseName is missing (e.g. builder-draft), prompt for properties
+        if (!courseName && !coursePropsModal.name) {
+          setCoursePropsModal(prev => ({ ...prev, isOpen: true }))
+          return
+        }
+
         if (onSave) {
-          onSave(modules, { developmentMode: devMode, previewDifficulty })
+          onSave(modules, {
+            developmentMode: devMode,
+            previewDifficulty,
+            courseName: coursePropsModal.name || courseName,
+            courseDescription: coursePropsModal.description,
+          })
         }
       },
     }))
@@ -9223,10 +9243,10 @@ FEEDBACK: [your explanation]`
                       </Button>
                     )}
                   </CardTitle>
-                  <div className="flex min-h-0 w-full flex-1 flex-col items-stretch gap-0 overflow-hidden xl:flex-row">
+                  <div className="flex min-h-0 w-full flex-1 flex-col items-stretch overflow-hidden">
                     {/* Main content with tabs */}
-                    <div className="flex h-full w-full min-w-0 flex-1 flex-col pl-4 pb-4">
-                      <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
+                    <div className="flex h-full w-full min-w-0 flex-1 flex-col pb-4">
+                      <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden px-4">
                         <Tabs
                           value={testPciActiveTab}
                           onValueChange={setTestPciActiveTab}
@@ -10721,6 +10741,68 @@ FEEDBACK: [your explanation]`
                   }}
                 >
                   Close
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Course Properties Modal */}
+          <Dialog
+            open={coursePropsModal.isOpen}
+            onOpenChange={open => setCoursePropsModal(prev => ({ ...prev, isOpen: open }))}
+          >
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Course Properties</DialogTitle>
+                <DialogDescription>
+                  Set the name and description for your new course before saving.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="name" className="text-right">
+                    Name
+                  </Label>
+                  <Input
+                    id="name"
+                    value={coursePropsModal.name}
+                    onChange={e => setCoursePropsModal(prev => ({ ...prev, name: e.target.value }))}
+                    className="col-span-3"
+                    placeholder="e.g. Introduction to Physics"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="description" className="text-right">
+                    Description
+                  </Label>
+                  <AutoTextarea
+                    id="description"
+                    value={coursePropsModal.description}
+                    onChange={e =>
+                      setCoursePropsModal(prev => ({ ...prev, description: e.target.value }))
+                    }
+                    className="col-span-3"
+                    placeholder="Briefly describe what this course is about..."
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  type="submit"
+                  disabled={!coursePropsModal.name.trim()}
+                  onClick={() => {
+                    setCoursePropsModal(prev => ({ ...prev, isOpen: false }))
+                    if (onSave) {
+                      onSave(modules, {
+                        developmentMode: devMode,
+                        previewDifficulty,
+                        courseName: coursePropsModal.name,
+                        courseDescription: coursePropsModal.description,
+                      })
+                    }
+                  }}
+                >
+                  Save Course
                 </Button>
               </DialogFooter>
             </DialogContent>
