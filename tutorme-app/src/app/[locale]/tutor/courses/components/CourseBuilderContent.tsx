@@ -263,7 +263,7 @@ export function CourseBuilderContent({
           },
           credentials: 'include',
           body: JSON.stringify({
-            name: options.courseName,
+            title: options.courseName,
             description: options.courseDescription || '',
           }),
         })
