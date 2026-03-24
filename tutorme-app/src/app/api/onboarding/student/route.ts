@@ -5,11 +5,16 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
-import { eq } from 'drizzle-orm'
+import { z } from 'zod'
 import { withAuth, requireCsrf, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { profile as profileTable } from '@/lib/db/schema'
 import crypto from 'crypto'
+
+const onboardingSchema = z.object({
+  gradeLevel: z.string().min(1, 'Grade level is required').max(50),
+  subjectsOfInterest: z.array(z.string().max(100)).max(20).optional().default([]),
+})
 
 async function postHandler(req: NextRequest, session: Session) {
   const csrfError = await requireCsrf(req)
@@ -17,40 +22,41 @@ async function postHandler(req: NextRequest, session: Session) {
 
   try {
     const body = await req.json().catch(() => ({}))
-    const { gradeLevel, subjectsOfInterest } = body
+    const parsed = onboardingSchema.safeParse(body)
 
-    if (!gradeLevel) {
-      return NextResponse.json({ error: 'Grade level is required' }, { status: 400 })
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0]?.message ?? 'Invalid input'
+      return NextResponse.json({ error: firstError }, { status: 400 })
     }
+
+    const { gradeLevel, subjectsOfInterest } = parsed.data
 
     const [profile] = await drizzleDb
       .insert(profileTable)
       .values({
         id: crypto.randomUUID(),
         userId: session.user.id,
-        gradeLevel: String(gradeLevel),
-        subjectsOfInterest: Array.isArray(subjectsOfInterest) ? subjectsOfInterest : [],
-        timezone: 'UTC', // Required field
-        emailNotifications: true, // Required field
-        smsNotifications: false, // Required field
-        preferredLanguages: ['en'], // Required field
-        learningGoals: [], // Required field
-        tosAccepted: true, // Required field
-        isOnboarded: true, // Mark as onboarded
-        specialties: [], // Required field
-        paidClassesEnabled: false, // Required field
+        gradeLevel,
+        subjectsOfInterest,
+        timezone: 'UTC',
+        emailNotifications: true,
+        smsNotifications: false,
+        preferredLanguages: ['en'],
+        learningGoals: [],
+        tosAccepted: true,
+        isOnboarded: true,
+        specialties: [],
+        paidClassesEnabled: false,
       })
       .onConflictDoUpdate({
         target: profileTable.userId,
         set: {
-          gradeLevel: String(gradeLevel),
-          subjectsOfInterest: Array.isArray(subjectsOfInterest) ? subjectsOfInterest : [],
+          gradeLevel,
+          subjectsOfInterest,
           isOnboarded: true,
         },
       })
       .returning()
-
-    console.log('Onboarding - Profile saved:', profile.id)
 
     return NextResponse.json({
       message: 'Onboarding completed successfully',

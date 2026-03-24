@@ -208,10 +208,16 @@ export default withAuth(
     if (
       token &&
       !token.tosAccepted &&
-      !normalizedPath.startsWith('/student/agreement') &&
+      !normalizedPath.endsWith('/agreement') &&
       !path.startsWith('/api')
     ) {
-      return NextResponse.redirect(new URL('/student/agreement', req.url))
+      const agreementPath =
+        token.role === 'TUTOR'
+          ? '/tutor/agreement'
+          : token.role === 'PARENT'
+            ? '/parent/agreement'
+            : '/student/agreement'
+      return NextResponse.redirect(new URL(agreementPath, req.url))
     }
 
     // Never run i18n middleware for API routes.

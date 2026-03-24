@@ -70,7 +70,7 @@ function LoginForm() {
         } else if (userRole === 'PARENT') {
           router.push(`${localePrefix}/parent/dashboard`)
         } else if (userRole === 'ADMIN') {
-          router.push(`${localePrefix}/admin/login`)
+          router.push(`${localePrefix}/admin`)
         } else {
           router.push(`${localePrefix}/student/dashboard`)
         }
@@ -166,7 +166,7 @@ function LoginForm() {
 
         <div className="mt-6 text-center text-sm">
           <span className="text-gray-600">Don&apos;t have an account?</span>{' '}
-          <Link href="/register" className="font-medium text-[#1D4ED8] hover:underline">
+          <Link href={`${localePrefix}/register`} className="font-medium text-[#1D4ED8] hover:underline">
             Sign up
           </Link>
         </div>

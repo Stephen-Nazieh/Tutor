@@ -6,7 +6,7 @@
 import { Server as NetServer } from 'http'
 import { Server as SocketIOServer, Socket } from 'socket.io'
 import { jwtVerify } from 'jose'
-import { createClient } from 'redis'
+import Redis from 'ioredis'
 import { promisify } from 'util'
 import {
   registerLiveClassWhiteboardHandlers,
@@ -33,7 +33,7 @@ export interface ClassRoom {
   id: string
   tutorId: string
   students: Map<string, StudentState>
-  whiteboardData?: any
+  whiteboardData?: Record<string, unknown>
   chatHistory: ChatMessage[]
   tasks: LiveTask[]
   createdAt: Date
@@ -106,9 +106,9 @@ function validateEnv() {
 }
 
 // Redis configuration
-let redisClient: any = null
-let redisPubClient: any = null
-let redisSubClient: any = null
+let redisClient: Redis | null = null
+let redisPubClient: Redis | null = null
+let redisSubClient: Redis | null = null
 let ioRef: SocketIOServer | null = null
 
 // Memory management constants
@@ -299,7 +299,9 @@ function cleanupInactiveClassRooms() {
     }
   })
 
-  console.log(`Cleanup: Removed ${cleanedCount} inactive rooms`)
+  if (cleanedCount > 0) {
+    console.log(`Cleanup: Removed ${cleanedCount} inactive rooms`)
+  }
 }
 
 function cleanupInactiveDMRooms() {
@@ -318,7 +320,9 @@ function cleanupInactiveDMRooms() {
     }
   })
 
-  console.log(`Cleanup: Removed ${cleanedCount} inactive DM rooms`)
+  if (cleanedCount > 0) {
+    console.log(`Cleanup: Removed ${cleanedCount} inactive DM rooms`)
+  }
 }
 
 function cleanupInactiveWhiteboards() {
@@ -343,7 +347,9 @@ function cleanupInactiveWhiteboards() {
     }
   })
 
-  console.log(`Cleanup: Removed ${cleanedCount} inactive whiteboards`)
+  if (cleanedCount > 0) {
+    console.log(`Cleanup: Removed ${cleanedCount} inactive whiteboards`)
+  }
 }
 
 // Redis persistence helpers (stub implementation - expand later)
@@ -409,7 +415,7 @@ async function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void)
     socket.data.name = user.name
     socket.data.authenticated = true
 
-    console.log(`Socket authenticated: ${user.userId} (${user.role})`)
+    console.log(`Socket authenticated: ${socket.id} (role: ${user.role})`)
     next()
   } catch (error) {
     console.error('Socket authentication error:', error)
@@ -440,15 +446,33 @@ async function initRedis() {
       return
     }
 
-    redisClient = createClient({
-      url: process.env.REDIS_URL,
-      socket: { keepAlive: true },
+    const url = process.env.REDIS_URL
+    redisClient = new Redis(url, {
+      retryStrategy: (times) => Math.min(times * 50, 2000),
+      maxRetriesPerRequest: 3,
+      lazyConnect: true,
     })
+    redisClient.on('error', () => {})
 
-    redisPubClient = redisClient.duplicate()
-    redisSubClient = redisClient.duplicate()
+    redisPubClient = new Redis(url, {
+      retryStrategy: (times) => Math.min(times * 50, 2000),
+      maxRetriesPerRequest: 3,
+      lazyConnect: true,
+    })
+    redisPubClient.on('error', () => {})
 
-    await Promise.all([redisClient.connect(), redisPubClient.connect(), redisSubClient.connect()])
+    redisSubClient = new Redis(url, {
+      retryStrategy: (times) => Math.min(times * 50, 2000),
+      maxRetriesPerRequest: 3,
+      lazyConnect: true,
+    })
+    redisSubClient.on('error', () => {})
+
+    await Promise.all([
+      redisClient.connect(),
+      redisPubClient.connect(),
+      redisSubClient.connect(),
+    ])
 
     console.log('Redis clients initialized successfully')
   } catch (error) {
@@ -514,7 +538,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
   )
 
   io.on('connection', socket => {
-    console.log(`Authenticated client connected: ${socket.id} (user: ${socket.data.userId})`)
+    console.log(`Authenticated client connected: ${socket.id}`)
     setUserSocket(socket.data.userId, socket.id)
 
     // Apply token-bucket limiting to every incoming event packet.
@@ -715,7 +739,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
 
     // Enhanced disconnect handler with cleanup
     socket.on('disconnect', () => {
-      console.log(`Client disconnected: ${socket.id} (user: ${socket.data.userId})`)
+      console.log(`Client disconnected: ${socket.id}`)
 
       // Clean up various states
       const userId = socket.data.userId

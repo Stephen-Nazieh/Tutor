@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Payment Security Validator
  * Comprehensive fraud detection and payment security validation
@@ -138,13 +137,13 @@ export class PaymentSecurityValidator {
 
       // Risk scoring
       const riskScore = this.calculateRiskScore(fraudLevel, riskFactors.length)
-    } catch (error) {
+    } catch (error: unknown) {
       securityLogger.logEvent({
         eventType: 'PAYMENT_VALIDATION_ERROR',
         description: 'Payment validation encountered unexpected error',
         severity: 'HIGH',
         metadata: {
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           studentId: data.studentId,
           amount: data.amount,
         },
@@ -236,13 +235,13 @@ export class PaymentSecurityValidator {
           errors: errors.length,
         },
       })
-    } catch (error) {
+    } catch (error: unknown) {
       securityLogger.logEvent({
         eventType: 'WEBHOOK_VALIDATION_ERROR',
         description: 'Webhook validation encountered error',
         severity: 'HIGH',
         metadata: {
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           gateway: request.gateway,
         },
       })
@@ -362,13 +361,13 @@ export class PaymentSecurityValidator {
         isSuspicious = true
         fraudLevel = 'CRITICAL'
       }
-    } catch (error) {
+    } catch (error: unknown) {
       securityLogger.logEvent({
         eventType: 'VELOCITY_CHECK_ERROR',
         description: 'Velocity check encountered error',
         severity: 'MEDIUM',
         metadata: {
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           studentId,
         },
       })
@@ -453,13 +452,13 @@ export class PaymentSecurityValidator {
           fraudLevel = 'MEDIUM'
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       securityLogger.logEvent({
         eventType: 'DEVICE_VALIDATION_ERROR',
         description: 'Device validation encountered error',
         severity: 'LOW',
         metadata: {
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           studentId: data.studentId,
         },
       })
@@ -472,21 +471,21 @@ export class PaymentSecurityValidator {
    * Helper functions for various validation checks
    */
   private static isLoopbackAddress(ip: string): boolean {
-    return ['/127.', '/192.168.', '/10.', '/172.', 'localhost', '::1'].some(prefix =>
-      ip.includes(prefix.replace('/', ''))
-    )
+    return ['127.', '192.168.', '10.', 'localhost', '::1'].some(prefix =>
+      ip.includes(prefix)
+    ) || /^172\.(1[6-9]|2[0-9]|3[01])\./.test(ip)
   }
 
   private static upgradeFraudLevel(
     current: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL',
     upgrade: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
   ): 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' {
-    const levels = { LOW: 0, MEDIUM: 1, HIGH: 2, CRITICAL: 3 }
-    const numericCurrent = levels[current]
-    const numericUpgrade = levels[upgrade]
-    return Object.keys(levels).find(
-      key => levels[key] === Math.max(numericCurrent, numericUpgrade)
-    ) as 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+    const levels: Record<'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL', number> = { LOW: 0, MEDIUM: 1, HIGH: 2, CRITICAL: 3 }
+    const target = Math.max(levels[current], levels[upgrade])
+    const entries: Array<['LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL', number]> = [
+      ['LOW', 0], ['MEDIUM', 1], ['HIGH', 2], ['CRITICAL', 3]
+    ]
+    return (entries.find(([, v]) => v === target)?.[0]) ?? 'LOW'
   }
 
   private static calculateRiskScore(fraudLevel: string, riskFactorCount: number): number {
@@ -503,12 +502,12 @@ export class PaymentSecurityValidator {
   ): Promise<boolean> {
     try {
       return await queryFunction()
-    } catch (error) {
+    } catch (error: unknown) {
       securityLogger.logEvent({
         eventType: 'PAYMENT_VALIDATION_QUERY_ERROR',
         description: `Validation query failed: ${description}`,
         severity: 'LOW',
-        metadata: { error: error.message },
+        metadata: { error: error instanceof Error ? error.message : String(error) },
       })
       return true // Conservative approach - assume risk when queries fail
     }
@@ -543,12 +542,12 @@ export class PaymentSecurityValidator {
       if (count >= 3) {
         return { isSuspicious: true, warning: 'Repeated payment amount within 24 hours' }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       securityLogger.logEvent({
         eventType: 'AMOUNT_FREQUENCY_CHECK_ERROR',
         description: 'Failed to check amount frequency',
         severity: 'LOW',
-        metadata: { error: error.message, studentId },
+        metadata: { error: error instanceof Error ? error.message : String(error), studentId },
       })
     }
 
@@ -599,12 +598,12 @@ export class PaymentSecurityValidator {
           fraudLevel = this.upgradeFraudLevel(fraudLevel, 'MEDIUM')
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       securityLogger.logEvent({
         eventType: 'USER_PROFILE_VALIDATION_ERROR',
         description: 'User profile validation failed',
         severity: 'LOW',
-        metadata: { error: error.message, studentId },
+        metadata: { error: error instanceof Error ? error.message : String(error), studentId },
       })
     }
 
@@ -638,12 +637,12 @@ export class PaymentSecurityValidator {
       if (existing) {
         return { isDuplicate: true, existingPayment: existing }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       securityLogger.logEvent({
         eventType: 'DUPLICATE_CHECK_ERROR',
         description: 'Failed to check duplicate payments',
         severity: 'LOW',
-        metadata: { error: error.message, studentId: data.studentId },
+        metadata: { error: error instanceof Error ? error.message : String(error), studentId: data.studentId },
       })
     }
 
@@ -747,8 +746,8 @@ export class PaymentSecurityValidator {
 
       errors.push('Unsupported gateway signature validation')
       return { isValid: false, errors }
-    } catch (error) {
-      errors.push(error.message || 'Signature validation error')
+    } catch (error: unknown) {
+      errors.push(error instanceof Error ? error.message : 'Signature validation error')
       return { isValid: false, errors }
     }
   }
@@ -782,8 +781,6 @@ export class PaymentSecurityValidator {
 
   // Public export functions for compatibility
   static async createStudentHash(studentId: string): Promise<string> {
-    // Import the function from AI security - create simplified version here for dependency management
-    const crypto = require('crypto')
     const secret = process.env.NEXTAUTH_SECRET
     if (!secret || secret === 'default_secret') {
       if (process.env.NODE_ENV === 'production') {
@@ -835,5 +832,5 @@ export const validateWebhook = (
 export { PaymentSecurityValidator as default }
 
 export function resetWebhookReplayCache(): void {
-  ;(PaymentSecurityValidator as any).webhookReplayCache?.clear?.()
+  ;(PaymentSecurityValidator as unknown as { webhookReplayCache?: Map<string, number> }).webhookReplayCache?.clear?.()
 }

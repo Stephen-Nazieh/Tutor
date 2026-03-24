@@ -18,10 +18,14 @@ function getCsrfSecret(): string {
   return configured || 'dev-csrf-secret'
 }
 
-const SECRET = getCsrfSecret()
+let _csrfSecret: string | null = null
+function getSecret(): string {
+  if (!_csrfSecret) _csrfSecret = getCsrfSecret()
+  return _csrfSecret
+}
 
 function hash(value: string): string {
-  return crypto.createHmac('sha256', SECRET).update(value).digest('hex')
+  return crypto.createHmac('sha256', getSecret()).update(value).digest('hex')
 }
 
 /**

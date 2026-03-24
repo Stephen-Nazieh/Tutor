@@ -42,8 +42,6 @@ export const metadata = {
   },
 }
 
-export const dynamic = 'force-static'
-
 async function getOptimizedLocaleData() {
   const [locale, messages] = await Promise.all([getLocale(), getMessages()])
   return { locale, messages }

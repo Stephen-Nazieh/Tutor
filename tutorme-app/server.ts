@@ -33,11 +33,11 @@ function loadEnvFile(filePath: string) {
   }
 }
 
-// Load .env.local before validation
+// Load env files: .env.local first (higher priority), then .env (fallback)
 const envLocalPath = resolve(process.cwd(), '.env.local')
 const envPath = resolve(process.cwd(), '.env')
-loadEnvFile(envPath)
 loadEnvFile(envLocalPath)
+loadEnvFile(envPath)
 
 // Fail fast when required env vars are missing
 validateEnv()

@@ -26,7 +26,7 @@ function getPool(): Pool {
     globalForDrizzle.drizzlePool ??
     new Pool({
       connectionString,
-      max: 50,
+      max: process.env.NODE_ENV === 'production' ? 50 : 5,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
     })

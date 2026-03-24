@@ -45,6 +45,8 @@ const nextConfig = {
     
     return config;
   },
+  // Security headers (CSP, X-Frame-Options, etc.) are set by middleware.ts
+  // to avoid duplication and ensure consistent policy.
   async headers() {
     return [
       {
@@ -53,36 +55,21 @@ const nextConfig = {
           { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
           { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }
         ]
-      },
-      {
-        source: '/:path*',
-        headers: [
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          {
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-              "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: https: blob:",
-              "font-src 'self' data:",
-              "connect-src 'self' https: wss:",
-              "frame-src 'self' https:",
-              "frame-ancestors 'self'",
-              "base-uri 'self'",
-              "form-action 'self'"
-            ].join('; ')
-          }
-        ]
       }
     ]
   }
 };
 
-export default withSentryConfig(withNextIntl(nextConfig), {
-  org: process.env.SENTRY_ORG ?? '',
-  project: process.env.SENTRY_PROJECT ?? '',
-  silent: !process.env.CI,
-});
+const nextIntlConfig = withNextIntl(nextConfig);
+
+// Only wrap with Sentry if org and project are configured
+const sentryOrg = process.env.SENTRY_ORG;
+const sentryProject = process.env.SENTRY_PROJECT;
+
+export default sentryOrg && sentryProject
+  ? withSentryConfig(nextIntlConfig, {
+      org: sentryOrg,
+      project: sentryProject,
+      silent: !process.env.CI,
+    })
+  : nextIntlConfig;

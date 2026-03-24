@@ -12,7 +12,7 @@ import type { Session } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { eq } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { user, account, profile, session, verificationToken } from '@/lib/db/schema'
+import { user, profile } from '@/lib/db/schema'
 import bcrypt from 'bcryptjs'
 
 /** Cookie names for realm-scoped sessions (tutor tab vs student tab). */
