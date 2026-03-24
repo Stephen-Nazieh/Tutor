@@ -44,6 +44,8 @@
     "db:seed:admin": "tsx src/scripts/seed-admin.ts",
     "data-retention": "tsx scripts/data-retention.ts",
     "handles:backfill": "tsx scripts/backfill-handles.ts",
+    "test:course:create": "tsx scripts/test-course-creation.ts",
+    "test:course:api": "bash scripts/test-course-creation.sh",
     "initialize": "bash scripts/initialize.sh",
     "start:demo": "bash tutorme-start.sh",
     "initialize:win": "scripts\\initialize.bat",
