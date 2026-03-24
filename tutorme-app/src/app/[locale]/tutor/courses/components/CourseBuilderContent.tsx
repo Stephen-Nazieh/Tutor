@@ -315,9 +315,9 @@ export function CourseBuilderContent({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground" style={themeStyle}>
+    <div className="flex min-h-screen w-full flex-col items-stretch bg-background text-foreground" style={themeStyle}>
       {/* Top Navigation Header - Course Builder centered at top */}
-      <div className="sticky top-0 z-10 border-b border-border bg-card">
+      <div className="sticky top-0 z-10 w-full border-b border-border bg-card">
         <div className="flex w-full items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <Button
             variant="ghost"
@@ -424,9 +424,9 @@ export function CourseBuilderContent({
       </div>
 
       {/* Main Content */}
-      <div className="flex w-full flex-1 flex-col px-0 py-0">
+      <div className="flex w-full flex-1 flex-col overflow-hidden px-0 py-0">
         {savedVariants.length > 0 && (
-          <Card className="mb-4 border-emerald-200 bg-emerald-50/40">
+          <Card className="mb-4 w-full border-emerald-200 bg-emerald-50/40">
             <CardHeader className="pb-2 pt-4">
               <CardTitle className="text-sm text-foreground">Adaptive Variant Join Links</CardTitle>
               <CardDescription>
@@ -470,7 +470,7 @@ export function CourseBuilderContent({
         )}
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
+          <div className="flex flex-1 items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
           </div>
         ) : (

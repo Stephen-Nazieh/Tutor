@@ -243,7 +243,7 @@ export default function TutorInsightsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex min-h-screen w-full flex-col items-stretch bg-gray-50">
       <CourseBuilderContent
         courseId={courseId}
         dataMode="detached"

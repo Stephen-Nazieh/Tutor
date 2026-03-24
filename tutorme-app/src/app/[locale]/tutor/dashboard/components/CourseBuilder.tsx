@@ -8151,11 +8151,11 @@ FEEDBACK: [your explanation]`
     return (
       <div
         className={cn(
-          'flex min-h-0 flex-1 w-full flex-col space-y-4',
+          'flex h-full w-full flex-col items-stretch space-y-4',
           panelMode === 'live-class' && 'pt-3'
         )}
       >
-        <div className="flex min-h-0 w-full min-w-0 flex-1 gap-0">
+        <div className="flex h-full w-full min-w-0 flex-1 gap-0">
           {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
           {!leftPanelHidden && (
             <>
@@ -9203,8 +9203,8 @@ FEEDBACK: [your explanation]`
           )}
 
           {/* CENTER PANEL - New Three-Section Design */}
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col w-full">
-            <div className="flex min-h-0 w-full flex-1 flex-col gap-4">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col items-stretch w-full">
+            <div className="flex min-h-0 w-full flex-1 grow flex-col items-stretch gap-4">
               {leftPanelHidden && (
                 <div className="flex justify-start">
                   <Button
@@ -9220,7 +9220,7 @@ FEEDBACK: [your explanation]`
               )}
 
               {/* Test PCI Section - Moved above Task/Assessment Builder */}
-              <Card className="flex w-full min-w-0 flex-1 flex-shrink-0 overflow-hidden rounded-2xl border-2 border-border bg-card shadow-xl ring-1 ring-black/5">
+              <Card className="flex w-full min-w-0 flex-1 overflow-hidden rounded-2xl border-2 border-border bg-card shadow-xl ring-1 ring-black/5">
                 <CardContent className="flex h-full min-h-0 w-full flex-col overflow-hidden p-0 pt-4">
                   <CardTitle className="mb-3 flex items-center justify-between gap-2 px-4 text-base font-semibold">
                     <div className="flex items-center gap-2">
@@ -9238,10 +9238,13 @@ FEEDBACK: [your explanation]`
                       </Button>
                     )}
                   </CardTitle>
-                  <div className="flex min-h-0 w-full flex-1 flex-col items-stretch gap-0 overflow-hidden xl:flex-row">
+                  <div className={cn(
+                    "flex min-h-0 w-full flex-1 flex-col items-stretch gap-0 overflow-hidden",
+                    insightsProps && showInsightsPanel && "xl:flex-row"
+                  )}>
                     {/* Main content with tabs */}
-                    <div className="flex h-full w-full min-w-0 flex-1 flex-col pb-4">
-                      <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden px-4">
+                    <div className="flex h-full w-full min-w-0 flex-1 flex-col pb-0">
+                      <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden px-0">
                         <Tabs
                           value={testPciActiveTab}
                           onValueChange={setTestPciActiveTab}
