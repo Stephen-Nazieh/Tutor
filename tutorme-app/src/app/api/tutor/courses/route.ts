@@ -130,14 +130,20 @@ export const POST = withCsrf(
         }
       }
 
-      const [tutorProfile] = userId
-        ? await drizzleDb
+      let defaultCurrency = 'SGD'
+      if (userId) {
+        try {
+          const [tutorProfile] = await drizzleDb
             .select({ currency: profile.currency })
             .from(profile)
             .where(eq(profile.userId, userId))
             .limit(1)
-        : []
-      const defaultCurrency = tutorProfile?.currency ?? 'SGD'
+          defaultCurrency = tutorProfile?.currency ?? 'SGD'
+        } catch (error) {
+          console.warn('Failed to read tutor currency, falling back to SGD', error)
+          defaultCurrency = 'SGD'
+        }
+      }
 
       const schedule =
         Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : null
@@ -145,26 +151,35 @@ export const POST = withCsrf(
 
       const result = await drizzleDb.transaction(async tx => {
         const curriculumId = crypto.randomUUID()
-        const [newCurriculum] = await tx
-          .insert(curriculumTable)
-          .values({
-            id: curriculumId,
-            name: data.title,
-            description: data.description ?? null,
-            subject: data.subject ?? 'general',
-            categories: data.categories ?? [],
-            gradeLevel: data.gradeLevel ?? null,
-            difficulty: data.difficulty ?? 'intermediate',
-            estimatedHours: data.estimatedHours ?? 0,
-            isPublished: false,
-            createdAt: now,
-            updatedAt: now,
-            currency: defaultCurrency,
-            schedule,
-            creatorId: userId ?? null,
-            isLiveOnline: data.isLiveOnline ?? false,
-          })
-          .returning()
+        const baseValues = {
+          id: curriculumId,
+          name: data.title,
+          description: data.description ?? null,
+          subject: data.subject ?? 'general',
+          gradeLevel: data.gradeLevel ?? null,
+          difficulty: data.difficulty ?? 'intermediate',
+          estimatedHours: data.estimatedHours ?? 0,
+          isPublished: false,
+          createdAt: now,
+          updatedAt: now,
+          creatorId: userId ?? null,
+          isLiveOnline: data.isLiveOnline ?? false,
+        }
+
+        const extendedValues = {
+          ...baseValues,
+          categories: data.categories ?? [],
+          currency: defaultCurrency,
+          schedule,
+        }
+
+        let newCurriculum
+        try {
+          ;[newCurriculum] = await tx.insert(curriculumTable).values(extendedValues).returning()
+        } catch (error) {
+          console.warn('Course insert failed with extended fields, retrying base insert', error)
+          ;[newCurriculum] = await tx.insert(curriculumTable).values(baseValues).returning()
+        }
 
         const moduleId = crypto.randomUUID()
         await tx.insert(curriculumModule).values({
