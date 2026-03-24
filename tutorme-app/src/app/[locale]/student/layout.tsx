@@ -94,10 +94,10 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         <div className="flex items-center justify-between border-b p-4">
           <Link
             href="/student/dashboard"
-            className="inline-flex items-center"
+            className="text-lg font-bold text-blue-600"
             aria-label="Student dashboard"
           >
-            <span className="sr-only">Dashboard</span>
+            Solocorn Student
           </Link>
         </div>
 

@@ -134,12 +134,10 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         <main
           className={cn(
             'pt-16 transition-all duration-300',
-            isTopologyRoute ? 'fixed inset-0 pt-16' : ''
+            isTopologyRoute ? 'fixed inset-0 pt-16' : '',
+            isTopologyRoute ? 'ml-0' : sidebarCollapsed ? 'ml-16' : 'ml-64',
+            isTopologyRoute ? (sidebarCollapsed ? 'left-16' : 'left-64') : 'left-0'
           )}
-          style={{
-            marginLeft: isTopologyRoute ? 0 : sidebarCollapsed ? '64px' : '256px',
-            left: isTopologyRoute ? (sidebarCollapsed ? '64px' : '256px') : undefined,
-          }}
         >
           <div className={cn(isTopologyRoute ? 'h-full w-full bg-slate-950 p-0' : 'p-6')}>
             {children}
