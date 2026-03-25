@@ -7,38 +7,120 @@ import { eq } from 'drizzle-orm'
 import { CreateCurriculumSchema } from '@/lib/validation/schemas'
 import { ZodError } from 'zod'
 
-// Helper function to check if a column exists in the Curriculum table
-async function checkColumnExists(columnName: string): Promise<boolean> {
-  try {
-    const result = await drizzleDb.execute(`
-      SELECT 1 FROM information_schema.columns 
-      WHERE table_name = 'Curriculum' AND column_name = '${columnName}'
-    `)
-    return (result.rows?.length ?? 0) > 0
-  } catch {
-    return false
+// Type for curriculum insert values
+type CurriculumInsertValues = Record<string, unknown>
+
+// List of optional columns that might not exist in older databases
+const OPTIONAL_COLUMNS = [
+  'categories',
+  'currency', 
+  'schedule',
+  'isLiveOnline',
+  'isFree',
+  'difficulty',
+  'estimatedHours',
+  'languageOfInstruction',
+  'price',
+  'curriculumSource',
+  'outlineSource',
+  'courseMaterials',
+  'coursePitch',
+]
+
+// Build base insert values without optional fields
+function buildBaseValues(data: {
+  title: string
+  description?: string
+  subject?: string
+  gradeLevel?: string
+}, userId: string): CurriculumInsertValues {
+  const now = new Date()
+  return {
+    id: crypto.randomUUID(),
+    name: data.title,
+    description: data.description ?? null,
+    subject: data.subject ?? 'general',
+    gradeLevel: data.gradeLevel ?? null,
+    isPublished: false,
+    createdAt: now,
+    updatedAt: now,
+    creatorId: userId ?? null,
   }
 }
 
-// Cache column existence check results
-let columnCache: Map<string, boolean> | null = null
-let columnCacheTime = 0
-const CACHE_TTL = 60000 // 60 seconds
-
-async function getColumnExistence(): Promise<Map<string, boolean>> {
-  const now = Date.now()
-  if (columnCache && (now - columnCacheTime) < CACHE_TTL) {
-    return columnCache
+// Add optional fields to values
+function addOptionalFields(
+  baseValues: CurriculumInsertValues,
+  data: {
+    difficulty?: 'beginner' | 'intermediate' | 'advanced'
+    estimatedHours?: number
+    isLiveOnline?: boolean
+    categories?: string[]
+    schedule?: unknown[]
+  },
+  defaultCurrency: string,
+  schedule: unknown[] | null
+): CurriculumInsertValues {
+  return {
+    ...baseValues,
+    difficulty: data.difficulty ?? 'intermediate',
+    estimatedHours: data.estimatedHours ?? 0,
+    isLiveOnline: data.isLiveOnline ?? false,
+    isFree: false,
+    categories: data.categories ?? [],
+    currency: defaultCurrency,
+    schedule,
   }
+}
+
+// Try to insert curriculum, removing problematic fields on error
+async function tryInsertCurriculum(
+  tx: Parameters<Parameters<typeof drizzleDb.transaction>[0]>[0],
+  values: CurriculumInsertValues
+): Promise<{ curriculum: typeof curriculumTable.$inferSelect; usedFields: string[] }> {
+  let currentValues = { ...values }
+  let excludedFields: string[] = []
   
-  const columns = ['categories', 'currency', 'schedule', 'isLiveOnline', 'isFree', 'difficulty', 'estimatedHours']
-  const results = await Promise.all(
-    columns.map(async col => ({ col, exists: await checkColumnExists(col) }))
-  )
-  
-  columnCache = new Map(results.map(r => [r.col, r.exists]))
-  columnCacheTime = now
-  return columnCache
+  while (true) {
+    try {
+      const [curriculum] = await tx
+        .insert(curriculumTable)
+        .values(currentValues as typeof curriculumTable.$inferInsert)
+        .returning()
+      
+      const usedFields = Object.keys(currentValues)
+      if (excludedFields.length > 0) {
+        console.log(`Insert succeeded after excluding fields: ${excludedFields.join(', ')}`)
+      }
+      return { curriculum, usedFields }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      
+      // Check if error is about a missing column
+      const columnMatch = errorMessage.match(/column "([^"]+)" of relation "Curriculum" does not exist/)
+      if (columnMatch) {
+        const missingColumn = columnMatch[1]
+        console.warn(`Column '${missingColumn}' does not exist, removing from insert`)
+        
+        if (missingColumn in currentValues) {
+          excludedFields.push(missingColumn)
+          const { [missingColumn]: _, ...rest } = currentValues
+          currentValues = rest
+          continue
+        }
+      }
+      
+      // Check for other common column-related errors
+      if (errorMessage.includes('does not exist') || 
+          errorMessage.includes('column') ||
+          errorMessage.includes('field')) {
+        console.error('Column-related error:', errorMessage)
+      }
+      
+      // Re-throw if we can't handle it
+      throw error
+    }
+  }
 }
 
 export async function GET() {
@@ -102,84 +184,20 @@ export async function POST(req: NextRequest) {
     const userId = session.user.id
     const defaultCurrency = 'USD'
 
-    // Check which columns exist in the database (outside transaction)
-    const colExists = await getColumnExistence()
-    const hasCategories = colExists.get('categories') ?? false
-    const hasCurrency = colExists.get('currency') ?? false
-    const hasSchedule = colExists.get('schedule') ?? false
-    const hasIsLiveOnline = colExists.get('isLiveOnline') ?? false
-    const hasIsFree = colExists.get('isFree') ?? false
-    const hasDifficulty = colExists.get('difficulty') ?? false
-    const hasEstimatedHours = colExists.get('estimatedHours') ?? false
-
-    console.log('Column existence check:', {
-      hasCategories,
-      hasCurrency,
-      hasSchedule,
-      hasIsLiveOnline,
-      hasIsFree,
-      hasDifficulty,
-      hasEstimatedHours,
-    })
-
     const schedule =
       Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : null
-    const now = new Date()
 
-    // Build insert values dynamically based on column existence
-    const buildInsertValues = (): Record<string, unknown> => {
-      const values: Record<string, unknown> = {
-        id: crypto.randomUUID(),
-        name: data.title,
-        description: data.description ?? null,
-        subject: data.subject ?? 'general',
-        gradeLevel: data.gradeLevel ?? null,
-        isPublished: false,
-        createdAt: now,
-        updatedAt: now,
-        creatorId: userId ?? null,
-      }
-
-      // Only add these fields if columns exist
-      if (hasDifficulty) {
-        values.difficulty = data.difficulty ?? 'intermediate'
-      }
-      if (hasEstimatedHours) {
-        values.estimatedHours = data.estimatedHours ?? 0
-      }
-      if (hasIsLiveOnline) {
-        values.isLiveOnline = data.isLiveOnline ?? false
-      }
-      if (hasIsFree) {
-        values.isFree = false
-      }
-      if (hasCategories) {
-        values.categories = data.categories ?? []
-      }
-      if (hasCurrency) {
-        values.currency = defaultCurrency
-      }
-      if (hasSchedule) {
-        values.schedule = schedule
-      }
-      
-      return values
-    }
-
-    const insertValues = buildInsertValues()
-    console.log('Inserting curriculum with values:', JSON.stringify(insertValues, null, 2))
+    // Build full insert values (will remove problematic fields automatically)
+    const baseValues = buildBaseValues(data, userId)
+    const fullValues = addOptionalFields(baseValues, data, defaultCurrency, schedule)
+    
+    console.log('Attempting curriculum insert with fields:', Object.keys(fullValues).join(', '))
 
     // Start transaction for course + module + lesson creation
     const result = await drizzleDb.transaction(async tx => {
-      const curriculumId = insertValues.id as string
-
-      // Insert curriculum
-      const [newCurriculum] = await tx
-        .insert(curriculumTable)
-        .values(insertValues as typeof curriculumTable.$inferInsert)
-        .returning()
-      
-      console.log('Curriculum created successfully:', newCurriculum.id)
+      // Insert curriculum with automatic field removal on error
+      const { curriculum: newCurriculum, usedFields } = await tryInsertCurriculum(tx, fullValues)
+      console.log('Curriculum created successfully:', newCurriculum.id, 'Fields used:', usedFields.join(', '))
 
       const moduleId = crypto.randomUUID()
       await tx.insert(curriculumModule).values({
@@ -191,6 +209,9 @@ export async function POST(req: NextRequest) {
       })
       console.log('Module created:', moduleId)
 
+      // Check if difficulty was actually stored
+      const hasDifficultyInDb = usedFields.includes('difficulty')
+      
       await tx.insert(curriculumLesson).values({
         id: crypto.randomUUID(),
         moduleId: moduleId,
@@ -198,7 +219,7 @@ export async function POST(req: NextRequest) {
         description: 'Introduction to this course.',
         order: 0,
         duration: 30,
-        difficulty: hasDifficulty ? (newCurriculum.difficulty ?? 'intermediate') : 'intermediate',
+        difficulty: hasDifficultyInDb ? (newCurriculum.difficulty ?? 'intermediate') : 'intermediate',
         learningObjectives: [],
         teachingPoints: [],
         keyConcepts: [],
