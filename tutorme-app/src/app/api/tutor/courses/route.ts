@@ -6,7 +6,6 @@ import { curriculum as curriculumTable, curriculumModule, curriculumLesson } fro
 import { eq } from 'drizzle-orm'
 import { CreateCurriculumSchema } from '@/lib/validation/schemas'
 import { ZodError } from 'zod'
-// import { generateCourseOutline } from '@/lib/ai/course-outline'
 
 // Helper function to check if a column exists in the Curriculum table
 async function checkColumnExists(columnName: string): Promise<boolean> {
@@ -19,6 +18,27 @@ async function checkColumnExists(columnName: string): Promise<boolean> {
   } catch {
     return false
   }
+}
+
+// Cache column existence check results
+let columnCache: Map<string, boolean> | null = null
+let columnCacheTime = 0
+const CACHE_TTL = 60000 // 60 seconds
+
+async function getColumnExistence(): Promise<Map<string, boolean>> {
+  const now = Date.now()
+  if (columnCache && (now - columnCacheTime) < CACHE_TTL) {
+    return columnCache
+  }
+  
+  const columns = ['categories', 'currency', 'schedule', 'isLiveOnline', 'isFree', 'difficulty', 'estimatedHours']
+  const results = await Promise.all(
+    columns.map(async col => ({ col, exists: await checkColumnExists(col) }))
+  )
+  
+  columnCache = new Map(results.map(r => [r.col, r.exists]))
+  columnCacheTime = now
+  return columnCache
 }
 
 export async function GET() {
@@ -82,16 +102,15 @@ export async function POST(req: NextRequest) {
     const userId = session.user.id
     const defaultCurrency = 'USD'
 
-    // Check which columns exist in the database
-    const [hasCategories, hasCurrency, hasSchedule, hasIsLiveOnline, hasIsFree, hasDifficulty, hasEstimatedHours] = await Promise.all([
-      checkColumnExists('categories'),
-      checkColumnExists('currency'),
-      checkColumnExists('schedule'),
-      checkColumnExists('isLiveOnline'),
-      checkColumnExists('isFree'),
-      checkColumnExists('difficulty'),
-      checkColumnExists('estimatedHours'),
-    ])
+    // Check which columns exist in the database (outside transaction)
+    const colExists = await getColumnExistence()
+    const hasCategories = colExists.get('categories') ?? false
+    const hasCurrency = colExists.get('currency') ?? false
+    const hasSchedule = colExists.get('schedule') ?? false
+    const hasIsLiveOnline = colExists.get('isLiveOnline') ?? false
+    const hasIsFree = colExists.get('isFree') ?? false
+    const hasDifficulty = colExists.get('difficulty') ?? false
+    const hasEstimatedHours = colExists.get('estimatedHours') ?? false
 
     console.log('Column existence check:', {
       hasCategories,
@@ -107,12 +126,10 @@ export async function POST(req: NextRequest) {
       Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : null
     const now = new Date()
 
-    const result = await drizzleDb.transaction(async tx => {
-      const curriculumId = crypto.randomUUID()
-
-      // Build insert values dynamically based on column existence
-      const insertValues: Record<string, unknown> = {
-        id: curriculumId,
+    // Build insert values dynamically based on column existence
+    const buildInsertValues = (): Record<string, unknown> => {
+      const values: Record<string, unknown> = {
+        id: crypto.randomUUID(),
         name: data.title,
         description: data.description ?? null,
         subject: data.subject ?? 'general',
@@ -125,65 +142,44 @@ export async function POST(req: NextRequest) {
 
       // Only add these fields if columns exist
       if (hasDifficulty) {
-        insertValues.difficulty = data.difficulty ?? 'intermediate'
+        values.difficulty = data.difficulty ?? 'intermediate'
       }
       if (hasEstimatedHours) {
-        insertValues.estimatedHours = data.estimatedHours ?? 0
+        values.estimatedHours = data.estimatedHours ?? 0
       }
       if (hasIsLiveOnline) {
-        insertValues.isLiveOnline = data.isLiveOnline ?? false
+        values.isLiveOnline = data.isLiveOnline ?? false
       }
       if (hasIsFree) {
-        insertValues.isFree = false
+        values.isFree = false
       }
       if (hasCategories) {
-        insertValues.categories = data.categories ?? []
+        values.categories = data.categories ?? []
       }
       if (hasCurrency) {
-        insertValues.currency = defaultCurrency
+        values.currency = defaultCurrency
       }
       if (hasSchedule) {
-        insertValues.schedule = schedule
+        values.schedule = schedule
       }
+      
+      return values
+    }
 
-      console.log('Inserting curriculum with values:', JSON.stringify(insertValues, null, 2))
+    const insertValues = buildInsertValues()
+    console.log('Inserting curriculum with values:', JSON.stringify(insertValues, null, 2))
 
-      let newCurriculum
-      try {
-        ;[newCurriculum] = await tx.insert(curriculumTable).values(insertValues as typeof curriculumTable.$inferInsert).returning()
-        console.log('Curriculum created successfully:', newCurriculum.id)
-      } catch (insertError) {
-        console.error('Curriculum insert error:', insertError)
-        // Try minimal insert without optional fields
-        // Note: difficulty, estimatedHours, and isLiveOnline are required by the schema
-        const minimalValues: Record<string, unknown> = {
-          id: curriculumId,
-          name: data.title,
-          description: data.description ?? null,
-          subject: data.subject ?? 'general',
-          gradeLevel: data.gradeLevel ?? null,
-          isPublished: false,
-          createdAt: now,
-          updatedAt: now,
-          creatorId: userId ?? null,
-        }
-        // Add required fields if columns exist
-        if (hasDifficulty) {
-          minimalValues.difficulty = data.difficulty ?? 'intermediate'
-        }
-        if (hasEstimatedHours) {
-          minimalValues.estimatedHours = data.estimatedHours ?? 0
-        }
-        if (hasIsLiveOnline) {
-          minimalValues.isLiveOnline = data.isLiveOnline ?? false
-        }
-        if (hasIsFree) {
-          minimalValues.isFree = false
-        }
-        console.log('Retrying with minimal values:', JSON.stringify(minimalValues, null, 2))
-        ;[newCurriculum] = await tx.insert(curriculumTable).values(minimalValues as typeof curriculumTable.$inferInsert).returning()
-        console.log('Curriculum created with minimal values:', newCurriculum.id)
-      }
+    // Start transaction for course + module + lesson creation
+    const result = await drizzleDb.transaction(async tx => {
+      const curriculumId = insertValues.id as string
+
+      // Insert curriculum
+      const [newCurriculum] = await tx
+        .insert(curriculumTable)
+        .values(insertValues as typeof curriculumTable.$inferInsert)
+        .returning()
+      
+      console.log('Curriculum created successfully:', newCurriculum.id)
 
       const moduleId = crypto.randomUUID()
       await tx.insert(curriculumModule).values({
