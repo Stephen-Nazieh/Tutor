@@ -15,6 +15,41 @@ import {
 } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
+// Insert curriculum, automatically removing fields that don't exist in DB
+async function insertCurriculumSafely(
+  values: Record<string, unknown>
+): Promise<typeof curriculum.$inferSelect> {
+  let currentValues = { ...values }
+
+  while (true) {
+    try {
+      const [result] = await drizzleDb
+        .insert(curriculum)
+        .values(currentValues as typeof curriculum.$inferInsert)
+        .returning()
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+
+      // Check if error is about a missing column
+      const columnMatch = errorMessage.match(/column "([^"]+)" of relation "Curriculum" does not exist/)
+      if (columnMatch) {
+        const missingColumn = columnMatch[1]
+        console.warn(`[enroll] Column '${missingColumn}' does not exist, removing and retrying...`)
+
+        if (missingColumn in currentValues) {
+          const { [missingColumn]: _, ...rest } = currentValues
+          currentValues = rest
+          continue
+        }
+      }
+
+      // Re-throw if we can't handle it
+      throw error
+    }
+  }
+}
+
 const subjectCurriculumMap: Record<string, { name: string; description: string }> = {
   english: {
     name: 'English Language Arts',
@@ -114,7 +149,7 @@ export const POST = withCsrf(
         const now = new Date()
 
         // Insert with automatic fallback for missing columns
-        const curriculumValues = {
+        const curriculumValues: Record<string, unknown> = {
           id: curriculumId,
           name: subjectInfo.name,
           subject: subjectKey,
@@ -128,7 +163,7 @@ export const POST = withCsrf(
           updatedAt: now,
         }
 
-        await drizzleDb.insert(curriculum).values(curriculumValues)
+        await insertCurriculumSafely(curriculumValues)
         await createDefaultModules(curriculumId, subjectCode)
       }
 
