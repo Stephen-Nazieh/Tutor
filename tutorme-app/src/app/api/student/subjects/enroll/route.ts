@@ -22,7 +22,7 @@ async function insertCurriculumWithFallback(
   values: CurriculumInsertValues
 ): Promise<typeof curriculum.$inferSelect> {
   let currentValues = { ...values }
-  
+
   while (true) {
     try {
       const [result] = await drizzleDb
@@ -32,20 +32,22 @@ async function insertCurriculumWithFallback(
       return result
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      
+
       // Check if error is about a missing column
-      const columnMatch = errorMessage.match(/column "([^"]+)" of relation "Curriculum" does not exist/)
+      const columnMatch = errorMessage.match(
+        /column "([^"]+)" of relation "Curriculum" does not exist/
+      )
       if (columnMatch) {
         const missingColumn = columnMatch[1]
         console.warn(`[enroll] Column '${missingColumn}' does not exist, removing from insert`)
-        
+
         if (missingColumn in currentValues) {
           const { [missingColumn]: _, ...rest } = currentValues
           currentValues = rest
           continue
         }
       }
-      
+
       throw error
     }
   }
@@ -148,7 +150,7 @@ export const POST = withCsrf(
       } else {
         curriculumId = crypto.randomUUID()
         const now = new Date()
-        
+
         // Insert with automatic fallback for missing columns
         const curriculumValues: CurriculumInsertValues = {
           id: curriculumId,
@@ -163,7 +165,7 @@ export const POST = withCsrf(
           createdAt: now,
           updatedAt: now,
         }
-        
+
         await insertCurriculumWithFallback(curriculumValues)
         await createDefaultModules(curriculumId, subjectCode)
       }

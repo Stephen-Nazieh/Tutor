@@ -1209,7 +1209,7 @@ const BlankTutorCard = ({ theme, mode }: { theme: ColorTheme; mode: ThemeMode })
       className={`relative mx-6 h-72 w-52 shrink-0 overflow-hidden rounded-3xl border backdrop-blur-xl transition-all duration-500 ${
         mode === 'dark'
           ? `bg-gradient-to-br ${themeColors[theme]} border-white/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)]`
-          : `bg-white/20 border-white/40 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.1)]`
+          : `border-white/40 bg-white/20 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.1)]`
       }`}
     >
       {/* 3D Glass Layers */}
@@ -1222,7 +1222,7 @@ const BlankTutorCard = ({ theme, mode }: { theme: ColorTheme; mode: ThemeMode })
         style={{ transform: 'translateZ(40px)' }}
       >
         <div
-          className={`relative mb-6 h-24 w-24 rounded-full border-2 border-dashed flex items-center justify-center shadow-inner ${
+          className={`relative mb-6 flex h-24 w-24 items-center justify-center rounded-full border-2 border-dashed shadow-inner ${
             mode === 'dark' ? 'border-white/10 bg-white/5' : 'border-black/5 bg-black/5'
           }`}
         >
@@ -1249,7 +1249,7 @@ const BlankTutorCard = ({ theme, mode }: { theme: ColorTheme; mode: ThemeMode })
       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
       {/* Edge highlight */}
-      <div className="absolute inset-0 rounded-3xl border border-white/20 pointer-events-none" />
+      <div className="pointer-events-none absolute inset-0 rounded-3xl border border-white/20" />
     </motion.div>
   )
 }

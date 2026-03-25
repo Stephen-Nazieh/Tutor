@@ -13,7 +13,7 @@ type CurriculumInsertValues = Record<string, unknown>
 // List of optional columns that might not exist in older databases
 const OPTIONAL_COLUMNS = [
   'categories',
-  'currency', 
+  'currency',
   'schedule',
   'isLiveOnline',
   'isFree',
@@ -28,12 +28,15 @@ const OPTIONAL_COLUMNS = [
 ]
 
 // Build base insert values without optional fields
-function buildBaseValues(data: {
-  title: string
-  description?: string
-  subject?: string
-  gradeLevel?: string
-}, userId: string): CurriculumInsertValues {
+function buildBaseValues(
+  data: {
+    title: string
+    description?: string
+    subject?: string
+    gradeLevel?: string
+  },
+  userId: string
+): CurriculumInsertValues {
   const now = new Date()
   return {
     id: crypto.randomUUID(),
@@ -80,14 +83,14 @@ async function tryInsertCurriculum(
 ): Promise<{ curriculum: typeof curriculumTable.$inferSelect; usedFields: string[] }> {
   let currentValues = { ...values }
   let excludedFields: string[] = []
-  
+
   while (true) {
     try {
       const [curriculum] = await tx
         .insert(curriculumTable)
         .values(currentValues as typeof curriculumTable.$inferInsert)
         .returning()
-      
+
       const usedFields = Object.keys(currentValues)
       if (excludedFields.length > 0) {
         console.log(`Insert succeeded after excluding fields: ${excludedFields.join(', ')}`)
@@ -95,13 +98,15 @@ async function tryInsertCurriculum(
       return { curriculum, usedFields }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      
+
       // Check if error is about a missing column
-      const columnMatch = errorMessage.match(/column "([^"]+)" of relation "Curriculum" does not exist/)
+      const columnMatch = errorMessage.match(
+        /column "([^"]+)" of relation "Curriculum" does not exist/
+      )
       if (columnMatch) {
         const missingColumn = columnMatch[1]
         console.warn(`Column '${missingColumn}' does not exist, removing from insert`)
-        
+
         if (missingColumn in currentValues) {
           excludedFields.push(missingColumn)
           const { [missingColumn]: _, ...rest } = currentValues
@@ -109,14 +114,16 @@ async function tryInsertCurriculum(
           continue
         }
       }
-      
+
       // Check for other common column-related errors
-      if (errorMessage.includes('does not exist') || 
-          errorMessage.includes('column') ||
-          errorMessage.includes('field')) {
+      if (
+        errorMessage.includes('does not exist') ||
+        errorMessage.includes('column') ||
+        errorMessage.includes('field')
+      ) {
         console.error('Column-related error:', errorMessage)
       }
-      
+
       // Re-throw if we can't handle it
       throw error
     }
@@ -150,10 +157,7 @@ export async function GET() {
     return NextResponse.json({ courses })
   } catch (error) {
     console.error('Failed to fetch courses:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch courses' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to fetch courses' }, { status: 500 })
   }
 }
 
@@ -184,20 +188,24 @@ export async function POST(req: NextRequest) {
     const userId = session.user.id
     const defaultCurrency = 'USD'
 
-    const schedule =
-      Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : null
+    const schedule = Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : null
 
     // Build full insert values (will remove problematic fields automatically)
     const baseValues = buildBaseValues(data, userId)
     const fullValues = addOptionalFields(baseValues, data, defaultCurrency, schedule)
-    
+
     console.log('Attempting curriculum insert with fields:', Object.keys(fullValues).join(', '))
 
     // Start transaction for course + module + lesson creation
     const result = await drizzleDb.transaction(async tx => {
       // Insert curriculum with automatic field removal on error
       const { curriculum: newCurriculum, usedFields } = await tryInsertCurriculum(tx, fullValues)
-      console.log('Curriculum created successfully:', newCurriculum.id, 'Fields used:', usedFields.join(', '))
+      console.log(
+        'Curriculum created successfully:',
+        newCurriculum.id,
+        'Fields used:',
+        usedFields.join(', ')
+      )
 
       const moduleId = crypto.randomUUID()
       await tx.insert(curriculumModule).values({
@@ -211,7 +219,7 @@ export async function POST(req: NextRequest) {
 
       // Check if difficulty was actually stored
       const hasDifficultyInDb = usedFields.includes('difficulty')
-      
+
       await tx.insert(curriculumLesson).values({
         id: crypto.randomUUID(),
         moduleId: moduleId,
@@ -219,7 +227,9 @@ export async function POST(req: NextRequest) {
         description: 'Introduction to this course.',
         order: 0,
         duration: 30,
-        difficulty: hasDifficultyInDb ? (newCurriculum.difficulty ?? 'intermediate') : 'intermediate',
+        difficulty: hasDifficultyInDb
+          ? (newCurriculum.difficulty ?? 'intermediate')
+          : 'intermediate',
         learningObjectives: [],
         teachingPoints: [],
         keyConcepts: [],
@@ -246,11 +256,11 @@ export async function POST(req: NextRequest) {
     })
   } catch (error) {
     console.error('Course creation error:', error)
-    
+
     // Provide more detailed error information
     let errorMessage = 'Failed to create course'
     let errorDetails = null
-    
+
     if (error instanceof Error) {
       errorMessage = error.message
       errorDetails = {
@@ -259,9 +269,9 @@ export async function POST(req: NextRequest) {
         stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       }
     }
-    
+
     return NextResponse.json(
-      { 
+      {
         error: errorMessage,
         details: errorDetails,
       },
@@ -287,17 +297,11 @@ export async function PUT(req: NextRequest) {
     // First verify this user owns the course
     const existingCourse = await drizzleDb.query.curriculum.findFirst({
       where: (curriculum, { eq, and }) =>
-        and(
-          eq(curriculum.id, courseId),
-          eq(curriculum.creatorId, session.user.id)
-        ),
+        and(eq(curriculum.id, courseId), eq(curriculum.creatorId, session.user.id)),
     })
 
     if (!existingCourse) {
-      return NextResponse.json(
-        { error: 'Course not found or access denied' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Course not found or access denied' }, { status: 404 })
     }
 
     // Build update object with only allowed fields
@@ -324,10 +328,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ course: updatedCourse })
   } catch (error) {
     console.error('Course update error:', error)
-    return NextResponse.json(
-      { error: 'Failed to update course' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to update course' }, { status: 500 })
   }
 }
 
@@ -348,17 +349,11 @@ export async function DELETE(req: NextRequest) {
     // Verify ownership before deleting
     const existingCourse = await drizzleDb.query.curriculum.findFirst({
       where: (curriculum, { eq, and }) =>
-        and(
-          eq(curriculum.id, courseId),
-          eq(curriculum.creatorId, session.user.id)
-        ),
+        and(eq(curriculum.id, courseId), eq(curriculum.creatorId, session.user.id)),
     })
 
     if (!existingCourse) {
-      return NextResponse.json(
-        { error: 'Course not found or access denied' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Course not found or access denied' }, { status: 404 })
     }
 
     await drizzleDb.delete(curriculumTable).where(eq(curriculumTable.id, courseId))
@@ -366,9 +361,6 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Course deletion error:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete course' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to delete course' }, { status: 500 })
   }
 }

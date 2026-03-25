@@ -4,7 +4,13 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { eq, asc, sql } from 'drizzle-orm'
-import { withAuth, withCsrf, ValidationError, NotFoundError, ForbiddenError } from '@/lib/api/middleware'
+import {
+  withAuth,
+  withCsrf,
+  ValidationError,
+  NotFoundError,
+  ForbiddenError,
+} from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculum, courseBatch, curriculumEnrollment } from '@/lib/db/schema'
 import { getParamAsync } from '@/lib/api/params'
@@ -39,12 +45,10 @@ export const GET = withAuth(
       .groupBy(curriculumEnrollment.batchId)
 
     const countByBatch = new Map(
-      enrollmentCounts
-        .filter((row) => row.batchId != null)
-        .map((row) => [row.batchId!, row.count])
+      enrollmentCounts.filter(row => row.batchId != null).map(row => [row.batchId!, row.count])
     )
 
-    const batchesWithStats = batches.map((b) => ({
+    const batchesWithStats = batches.map(b => ({
       id: b.id,
       name: b.name,
       startDate: b.startDate,

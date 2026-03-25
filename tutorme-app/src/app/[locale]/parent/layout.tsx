@@ -64,7 +64,15 @@ const navigation = [
   },
 ]
 
-function SidebarContent({ pathname, unreadCount, onItemClick }: { pathname: string; unreadCount: number; onItemClick?: () => void }) {
+function SidebarContent({
+  pathname,
+  unreadCount,
+  onItemClick,
+}: {
+  pathname: string
+  unreadCount: number
+  onItemClick?: () => void
+}) {
   return (
     <>
       {/* Logo */}
@@ -147,9 +155,9 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
             <div className="flex h-full flex-col">
-              <SidebarContent 
-                pathname={pathname} 
-                unreadCount={unreadCount} 
+              <SidebarContent
+                pathname={pathname}
+                unreadCount={unreadCount}
                 onItemClick={() => setMobileMenuOpen(false)}
               />
             </div>

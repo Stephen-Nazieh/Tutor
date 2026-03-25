@@ -448,31 +448,27 @@ async function initRedis() {
 
     const url = process.env.REDIS_URL
     redisClient = new Redis(url, {
-      retryStrategy: (times) => Math.min(times * 50, 2000),
+      retryStrategy: times => Math.min(times * 50, 2000),
       maxRetriesPerRequest: 3,
       lazyConnect: true,
     })
     redisClient.on('error', () => {})
 
     redisPubClient = new Redis(url, {
-      retryStrategy: (times) => Math.min(times * 50, 2000),
+      retryStrategy: times => Math.min(times * 50, 2000),
       maxRetriesPerRequest: 3,
       lazyConnect: true,
     })
     redisPubClient.on('error', () => {})
 
     redisSubClient = new Redis(url, {
-      retryStrategy: (times) => Math.min(times * 50, 2000),
+      retryStrategy: times => Math.min(times * 50, 2000),
       maxRetriesPerRequest: 3,
       lazyConnect: true,
     })
     redisSubClient.on('error', () => {})
 
-    await Promise.all([
-      redisClient.connect(),
-      redisPubClient.connect(),
-      redisSubClient.connect(),
-    ])
+    await Promise.all([redisClient.connect(), redisPubClient.connect(), redisSubClient.connect()])
 
     console.log('Redis clients initialized successfully')
   } catch (error) {

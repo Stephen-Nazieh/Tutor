@@ -9203,7 +9203,7 @@ FEEDBACK: [your explanation]`
           )}
 
           {/* CENTER PANEL - New Three-Section Design */}
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col items-stretch w-full">
+          <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-stretch">
             <div className="flex min-h-0 w-full flex-1 grow flex-col items-stretch gap-4">
               {leftPanelHidden && (
                 <div className="flex justify-start">
@@ -9238,10 +9238,12 @@ FEEDBACK: [your explanation]`
                       </Button>
                     )}
                   </CardTitle>
-                  <div className={cn(
-                    "flex min-h-0 w-full flex-1 flex-col items-stretch gap-0 overflow-hidden",
-                    insightsProps && showInsightsPanel && "xl:flex-row"
-                  )}>
+                  <div
+                    className={cn(
+                      'flex min-h-0 w-full flex-1 flex-col items-stretch gap-0 overflow-hidden',
+                      insightsProps && showInsightsPanel && 'xl:flex-row'
+                    )}
+                  >
                     {/* Main content with tabs */}
                     <div className="flex h-full w-full min-w-0 flex-1 flex-col pb-0">
                       <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden px-0">

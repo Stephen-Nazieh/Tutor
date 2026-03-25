@@ -471,21 +471,30 @@ export class PaymentSecurityValidator {
    * Helper functions for various validation checks
    */
   private static isLoopbackAddress(ip: string): boolean {
-    return ['127.', '192.168.', '10.', 'localhost', '::1'].some(prefix =>
-      ip.includes(prefix)
-    ) || /^172\.(1[6-9]|2[0-9]|3[01])\./.test(ip)
+    return (
+      ['127.', '192.168.', '10.', 'localhost', '::1'].some(prefix => ip.includes(prefix)) ||
+      /^172\.(1[6-9]|2[0-9]|3[01])\./.test(ip)
+    )
   }
 
   private static upgradeFraudLevel(
     current: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL',
     upgrade: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
   ): 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' {
-    const levels: Record<'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL', number> = { LOW: 0, MEDIUM: 1, HIGH: 2, CRITICAL: 3 }
+    const levels: Record<'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL', number> = {
+      LOW: 0,
+      MEDIUM: 1,
+      HIGH: 2,
+      CRITICAL: 3,
+    }
     const target = Math.max(levels[current], levels[upgrade])
     const entries: Array<['LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL', number]> = [
-      ['LOW', 0], ['MEDIUM', 1], ['HIGH', 2], ['CRITICAL', 3]
+      ['LOW', 0],
+      ['MEDIUM', 1],
+      ['HIGH', 2],
+      ['CRITICAL', 3],
     ]
-    return (entries.find(([, v]) => v === target)?.[0]) ?? 'LOW'
+    return entries.find(([, v]) => v === target)?.[0] ?? 'LOW'
   }
 
   private static calculateRiskScore(fraudLevel: string, riskFactorCount: number): number {
@@ -642,7 +651,10 @@ export class PaymentSecurityValidator {
         eventType: 'DUPLICATE_CHECK_ERROR',
         description: 'Failed to check duplicate payments',
         severity: 'LOW',
-        metadata: { error: error instanceof Error ? error.message : String(error), studentId: data.studentId },
+        metadata: {
+          error: error instanceof Error ? error.message : String(error),
+          studentId: data.studentId,
+        },
       })
     }
 
@@ -832,5 +844,7 @@ export const validateWebhook = (
 export { PaymentSecurityValidator as default }
 
 export function resetWebhookReplayCache(): void {
-  ;(PaymentSecurityValidator as unknown as { webhookReplayCache?: Map<string, number> }).webhookReplayCache?.clear?.()
+  ;(
+    PaymentSecurityValidator as unknown as { webhookReplayCache?: Map<string, number> }
+  ).webhookReplayCache?.clear?.()
 }

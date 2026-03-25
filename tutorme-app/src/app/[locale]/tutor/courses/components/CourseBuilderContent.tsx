@@ -315,7 +315,10 @@ export function CourseBuilderContent({
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col items-stretch bg-background text-foreground" style={themeStyle}>
+    <div
+      className="flex min-h-screen w-full flex-col items-stretch bg-background text-foreground"
+      style={themeStyle}
+    >
       {/* Top Navigation Header - Course Builder centered at top */}
       <div className="sticky top-0 z-10 w-full border-b border-border bg-card">
         <div className="flex w-full items-center justify-between gap-4 px-4 py-3 sm:px-6">

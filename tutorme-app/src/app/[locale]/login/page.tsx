@@ -166,7 +166,10 @@ function LoginForm() {
 
         <div className="mt-6 text-center text-sm">
           <span className="text-gray-600">Don&apos;t have an account?</span>{' '}
-          <Link href={`${localePrefix}/register`} className="font-medium text-[#1D4ED8] hover:underline">
+          <Link
+            href={`${localePrefix}/register`}
+            className="font-medium text-[#1D4ED8] hover:underline"
+          >
             Sign up
           </Link>
         </div>
