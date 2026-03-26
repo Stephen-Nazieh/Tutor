@@ -45,6 +45,14 @@ export async function POST(request: NextRequest) {
         raw: true,
       })
     }
+    if (!rawToken) {
+      rawToken = await getToken({
+        req: request,
+        secret: process.env.NEXTAUTH_SECRET,
+        cookieName: '__Host-next-auth.session-token',
+        raw: true,
+      })
+    }
 
     if (typeof rawToken !== 'string') {
       return NextResponse.json({ error: 'Session token unavailable' }, { status: 400 })

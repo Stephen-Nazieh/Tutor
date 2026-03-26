@@ -23,6 +23,7 @@ function LoginForm() {
   const localePrefix = params?.locale ? `/${params.locale}` : ''
   const searchParams = useSearchParams()
   const registered = searchParams.get('registered')
+  const authError = searchParams.get('error')
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -96,10 +97,13 @@ function LoginForm() {
           </div>
         )}
 
-        {error && (
+        {(error || authError) && (
           <div className="mb-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
             <AlertCircle className="h-4 w-4" />
-            {error}
+            {error ||
+              (authError === 'SessionRequired'
+                ? 'Session expired or not found. Please log in again.'
+                : 'An authentication error occurred.')}
           </div>
         )}
 

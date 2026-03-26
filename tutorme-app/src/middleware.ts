@@ -134,6 +134,34 @@ export default withAuth(
       return NextResponse.redirect(new URL(`/${routing.defaultLocale}/u/${username}`, req.url))
     }
 
+    // Redirect to login if path is protected and no token is found
+    const isPublicPath =
+      normalizedPath === '/' ||
+      [
+        '/api/auth',
+        '/api/health',
+        '/api/csrf',
+        '/api/public',
+        '/api/landing',
+        '/onboarding',
+        '/u/',
+        '/admin',
+        '/api/admin/',
+        '/api/admin/auth',
+        '/login',
+        '/forgot-password',
+        '/register',
+      ].some(p => (p.endsWith('/') ? normalizedPath.startsWith(p) : normalizedPath === p))
+
+    if (!isPublicPath && !token) {
+      // withAuth authorized callback usually handles this, but as a secondary safety check
+      const url = new URL('/login', req.url)
+      if (normalizedPath !== '/login') {
+        url.searchParams.set('callbackUrl', req.url)
+        return NextResponse.redirect(url)
+      }
+    }
+
     // Stricter rate limit for login (POST to signin; NextAuth uses signin/credentials)
     const isSignin =
       (path === '/api/auth/signin' || path === '/api/auth/signin/credentials') && method === 'POST'
@@ -202,8 +230,17 @@ export default withAuth(
     }
 
     // Protect tutor routes
-    if (normalizedPath.startsWith('/tutor') && token?.role !== 'TUTOR' && token?.role !== 'ADMIN') {
-      return NextResponse.redirect(new URL('/login', req.url))
+    if (normalizedPath.startsWith('/tutor') || normalizedPath.startsWith('/api/tutor')) {
+      const role = token?.role?.toString().toUpperCase()
+      if (role !== 'TUTOR' && role !== 'ADMIN') {
+        // If they are logged in but have the wrong role, send them to their dashboard
+        if (role === 'STUDENT') return NextResponse.redirect(new URL('/student/dashboard', req.url))
+        if (role === 'PARENT') return NextResponse.redirect(new URL('/parent/dashboard', req.url))
+        // Otherwise, send to login but only if not already on a path that should be accessible
+        if (normalizedPath !== '/login' && !normalizedPath.endsWith('/agreement')) {
+          return NextResponse.redirect(new URL('/login', req.url))
+        }
+      }
     }
 
     // Protect parent routes - only PARENT and ADMIN roles allowed
@@ -298,13 +335,28 @@ export default withAuth(
             : normalizedPath.startsWith('/student') || normalizedPath.startsWith('/api/student')
               ? REALM_COOKIE_STUDENT
               : null
-        if (!realmCookieName) return false
-        const realmToken = await getToken({
-          req,
-          secret: process.env.NEXTAUTH_SECRET,
-          cookieName: realmCookieName,
-        })
-        return !!realmToken
+
+        if (realmCookieName) {
+          const realmToken = await getToken({
+            req,
+            secret: process.env.NEXTAUTH_SECRET,
+            cookieName: realmCookieName,
+          })
+          if (realmToken) return true
+        }
+
+        // Final thorough check for any standard NextAuth cookie variations
+        const possibleCookies = [
+          '__Secure-next-auth.session-token',
+          'next-auth.session-token',
+          '__Host-next-auth.session-token',
+        ]
+        for (const name of possibleCookies) {
+          const t = await getToken({ req, secret: process.env.NEXTAUTH_SECRET, cookieName: name })
+          if (t) return true
+        }
+
+        return false
       },
     },
   }
