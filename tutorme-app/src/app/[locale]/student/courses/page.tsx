@@ -88,7 +88,9 @@ export default function CurriculumPage() {
   const isTutor = session?.user?.role === 'TUTOR'
   const [curriculums, setCurriculums] = useState<Curriculum[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'in-progress' | 'favorites' | 'completed'>('all')
+  const [activeTab, setActiveTab] = useState<
+    'all' | 'pending' | 'in-progress' | 'favorites' | 'completed'
+  >('all')
   const [selectedEnrollment, setSelectedEnrollment] = useState<Curriculum | null>(null)
   const [favoriteIds, setFavoriteIds] = useState<string[]>([])
 
@@ -305,10 +307,10 @@ export default function CurriculumPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => toggleFavorite(curriculum.id)}
-                          className="h-8 w-8 -mr-2 -mt-2 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
+                          className="-mr-2 -mt-2 h-8 w-8 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
                         >
-                          <Heart 
-                            className={`h-4 w-4 ${favoriteIds.includes(curriculum.id) ? 'fill-current' : ''}`} 
+                          <Heart
+                            className={`h-4 w-4 ${favoriteIds.includes(curriculum.id) ? 'fill-current' : ''}`}
                           />
                         </Button>
                       </div>

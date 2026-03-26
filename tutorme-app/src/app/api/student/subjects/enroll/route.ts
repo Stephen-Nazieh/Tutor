@@ -15,7 +15,6 @@ import {
 } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
-
 const subjectCurriculumMap: Record<string, { name: string; description: string }> = {
   english: {
     name: 'English Language Arts',

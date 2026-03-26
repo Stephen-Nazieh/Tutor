@@ -10,8 +10,6 @@ import { handleApiError } from '@/lib/api/middleware'
 import { getToken } from 'next-auth/jwt'
 import { REALM_COOKIE_TUTOR, REALM_COOKIE_STUDENT } from '@/lib/auth'
 
-
-
 const MAX_AGE = 30 * 24 * 60 * 60 // 30 days
 const COOKIE_OPTIONS = {
   path: '/',

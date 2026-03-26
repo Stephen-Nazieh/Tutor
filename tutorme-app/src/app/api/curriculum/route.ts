@@ -255,7 +255,7 @@ export const GET = withAuth(async (req, session) => {
             : undefined,
           enrollment: enrollment
             ? {
-                startDate: enrollment.startDate,
+                startDate: enrollment.startDate ? enrollment.startDate.toISOString() : null,
               }
             : undefined,
         }

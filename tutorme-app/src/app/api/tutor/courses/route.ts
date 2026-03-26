@@ -7,7 +7,6 @@ import { eq } from 'drizzle-orm'
 import { CreateCurriculumSchema } from '@/lib/validation/schemas'
 import { ZodError } from 'zod'
 
-
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)

@@ -241,7 +241,7 @@ export default function CourseEnrollPage() {
                     When would you like to start?
                   </label>
                   <div className="relative">
-                    <input 
+                    <input
                       type="date"
                       value={startDate ?? ''}
                       onChange={e => setStartDate(e.target.value)}
@@ -271,7 +271,11 @@ export default function CourseEnrollPage() {
                       You will be redirected to our secure payment page. After payment, you will be
                       enrolled automatically.
                     </p>
-                    <Button className="w-full sm:w-auto" onClick={handlePayAndEnroll} disabled={paying}>
+                    <Button
+                      className="w-full sm:w-auto"
+                      onClick={handlePayAndEnroll}
+                      disabled={paying}
+                    >
                       {paying ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />

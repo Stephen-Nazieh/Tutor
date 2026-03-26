@@ -8335,7 +8335,7 @@ FEEDBACK: [your explanation]`
                                       <div className="mt-1 space-y-1">
                                         {/* Tasks - droppable so homework can be moved here */}
                                         <TreeItem depth={2} isLast={false}>
-                                        <DroppableTaskZone
+                                          <DroppableTaskZone
                                             moduleId={module.id}
                                             lessonId={primaryLesson.id}
                                             className="flex items-center gap-1.5 rounded-lg border-b-4 border-orange-600 bg-gradient-to-r from-orange-400 to-orange-500 px-3 py-2 shadow-md transition-all active:translate-y-1 active:border-b-0"
@@ -8517,7 +8517,9 @@ FEEDBACK: [your explanation]`
                                                             className="text-red-500"
                                                             onClick={e => {
                                                               e.stopPropagation()
-                                                              if (!confirm(`Delete "${task.title}"?`))
+                                                              if (
+                                                                !confirm(`Delete "${task.title}"?`)
+                                                              )
                                                                 return
                                                               deleteTask(
                                                                 module.id,

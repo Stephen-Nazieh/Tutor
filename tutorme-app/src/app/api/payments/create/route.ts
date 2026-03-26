@@ -34,7 +34,13 @@ export const POST = withCsrf(
     if (rateLimitResponse) return rateLimitResponse
 
     const body = await req.json()
-    const { bookingId, curriculumId, studentId, gateway: requestedGateway, metadata: customMetadata } = body
+    const {
+      bookingId,
+      curriculumId,
+      studentId,
+      gateway: requestedGateway,
+      metadata: customMetadata,
+    } = body
 
     let payerStudentId = session.user.id
     const userRole = (session.user.role || '').toUpperCase()
