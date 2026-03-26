@@ -10,10 +10,7 @@ import { handleApiError } from '@/lib/api/middleware'
 import { getToken } from 'next-auth/jwt'
 import { REALM_COOKIE_TUTOR, REALM_COOKIE_STUDENT } from '@/lib/auth'
 
-const DEFAULT_COOKIE_NAME =
-  process.env.NEXTAUTH_URL?.startsWith('https://') || !!process.env.VERCEL
-    ? '__Secure-next-auth.session-token'
-    : 'next-auth.session-token'
+
 
 const MAX_AGE = 30 * 24 * 60 * 60 // 30 days
 const COOKIE_OPTIONS = {
@@ -35,25 +32,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const token = await getToken({
+    // Checking both secure and non-secure cookie prefixes to avoid proxy mismatch bugs (e.g. Cloud Run)
+    let rawToken = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
-      cookieName: DEFAULT_COOKIE_NAME,
-    })
-    if (!token?.id) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
-    }
-
-    const cookieName = realm === 'tutor' ? REALM_COOKIE_TUTOR : REALM_COOKIE_STUDENT
-    const rawToken = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-      cookieName: DEFAULT_COOKIE_NAME,
+      cookieName: '__Secure-next-auth.session-token',
       raw: true,
     })
+    if (!rawToken) {
+      rawToken = await getToken({
+        req: request,
+        secret: process.env.NEXTAUTH_SECRET,
+        cookieName: 'next-auth.session-token',
+        raw: true,
+      })
+    }
+
     if (typeof rawToken !== 'string') {
       return NextResponse.json({ error: 'Session token unavailable' }, { status: 400 })
     }
+
+    const cookieName = realm === 'tutor' ? REALM_COOKIE_TUTOR : REALM_COOKIE_STUDENT
 
     const res = NextResponse.json({ ok: true })
     res.cookies.set(cookieName, rawToken, COOKIE_OPTIONS)
