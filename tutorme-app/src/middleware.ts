@@ -94,6 +94,15 @@ export default withAuth(
     const path = req.nextUrl.pathname
     const normalizedPath = path.startsWith('/api') ? path : stripLocalePrefix(path)
     let token = req.nextauth.token
+    
+    // Fallback: Manually check for both generic NextAuth cookies in case withAuth fails due to proxy secure mismatches
+    if (!token) {
+      token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET, cookieName: '__Secure-next-auth.session-token' })
+    }
+    if (!token) {
+      token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET, cookieName: 'next-auth.session-token' })
+    }
+
     if (!token) {
       const realmCookieName =
         normalizedPath.startsWith('/tutor') || normalizedPath.startsWith('/api/tutor')
@@ -260,6 +269,13 @@ export default withAuth(
         const isPublicPath = isPublicExact || isPublicPrefix
         if (isPublicPath) return true
         if (token) return true
+        
+        // Manual fallback for securely parsing the token regardless of withAuth's strict internal configuration mismatches 
+        const secureToken = await getToken({ req, secret: process.env.NEXTAUTH_SECRET, cookieName: '__Secure-next-auth.session-token' })
+        if (secureToken) return true
+        const nonSecureToken = await getToken({ req, secret: process.env.NEXTAUTH_SECRET, cookieName: 'next-auth.session-token' })
+        if (nonSecureToken) return true
+
         const realmCookieName =
           normalizedPath.startsWith('/tutor') || normalizedPath.startsWith('/api/tutor')
             ? REALM_COOKIE_TUTOR
