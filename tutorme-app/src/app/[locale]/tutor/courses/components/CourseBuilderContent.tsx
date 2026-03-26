@@ -81,6 +81,8 @@ interface InsightsSessionOption {
   status: string
 }
 
+import type { LiveStudent, EngagementMetrics } from '@/app/[locale]/tutor/live-class/types'
+
 interface CourseBuilderInsightsProps {
   courseId?: string | null
   courses?: Array<{ id: string; name: string }>
@@ -92,6 +94,9 @@ interface CourseBuilderInsightsProps {
   onDeployTask: (task: LiveTask) => void
   onSendPoll: (payload: { taskId: string; question: string }) => void
   onSendQuestion: (payload: { taskId: string; prompt: string }) => void
+  students?: LiveStudent[]
+  metrics?: EngagementMetrics | null
+  classDuration?: number
 }
 
 export function CourseBuilderContent({

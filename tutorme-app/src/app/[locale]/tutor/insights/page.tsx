@@ -9,6 +9,7 @@ import { Loader2, Wrench } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSocket } from '@/hooks/use-socket'
 import type { LiveTask } from '@/lib/socket'
+import type { LiveStudent, EngagementMetrics } from '../live-class/types'
 
 interface CourseSummary {
   id: string
@@ -33,6 +34,20 @@ export default function TutorInsightsPage() {
   const [sessions, setSessions] = useState<InsightsSessionOption[]>([])
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [liveTasks, setLiveTasks] = useState<LiveTask[]>([])
+  const [students, setStudents] = useState<LiveStudent[]>([])
+  const [metrics, setMetrics] = useState<EngagementMetrics | null>(null)
+  const [classDuration, setClassDuration] = useState(0)
+
+  useEffect(() => {
+    if (!sessionId) {
+      setStudents([])
+      setMetrics(null)
+      setClassDuration(0)
+      return
+    }
+    // Optional: Fetch live class details (students, metrics) if needed
+    // For now, initializing with empty/defaults to satisfy props
+  }, [sessionId])
 
   useEffect(() => {
     const loadCourses = async () => {
@@ -266,6 +281,9 @@ export default function TutorInsightsPage() {
           onDeployTask: handleDeployTask,
           onSendPoll: handleSendPoll,
           onSendQuestion: handleSendQuestion,
+          students,
+          metrics,
+          classDuration,
         }}
       />
     </div>

@@ -68,6 +68,8 @@ import { cn } from '@/lib/utils'
 import { extractTextFromFile } from '@/lib/extract-file-text'
 import { toast } from 'sonner'
 import type { LiveTask } from '@/lib/socket'
+import { AITeachingAssistant } from '../../live-class/components/AITeachingAssistant'
+import type { LiveStudent, EngagementMetrics } from '../../live-class/types'
 
 import {
   Plus,
@@ -388,6 +390,9 @@ interface CourseBuilderInsightsProps {
   onDeployTask: (task: LiveTask) => void
   onSendPoll: (payload: { taskId: string; question: string }) => void
   onSendQuestion: (payload: { taskId: string; prompt: string }) => void
+  students?: LiveStudent[]
+  metrics?: EngagementMetrics | null
+  classDuration?: number
 }
 
 interface CourseBuilderProps {
@@ -9318,7 +9323,24 @@ FEEDBACK: [your explanation]`
                               </TabsTrigger>
                             </TabsList>
 
-                            <TabsContent value="analytics" className="flex-1 space-y-4">
+                            <TabsContent value="analytics" className="mx-[-16px] flex-1 space-y-4">
+                              <div className="h-[400px] min-h-0 w-full px-4">
+                                <AITeachingAssistant
+                                  students={insightsProps.students || []}
+                                  metrics={insightsProps.metrics || null}
+                                  classDuration={insightsProps.classDuration || 0}
+                                  currentTopic={
+                                    insightsProps.sessions.find(
+                                      s => s.id === insightsProps.sessionId
+                                    )?.subject || 'Session Overview'
+                                  }
+                                />
+                              </div>
+
+                              <div className="px-4">
+                                <Separator className="bg-cyan-100/50" />
+                              </div>
+
                               {insightsProps.liveTasks.length > 0 && (
                                 <div className="space-y-4">
                                   <div className="flex flex-wrap items-center gap-3">
