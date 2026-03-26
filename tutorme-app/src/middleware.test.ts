@@ -57,24 +57,26 @@ describe('middleware auth boundaries', () => {
   })
 
   it('redirects unauthenticated locale student route to login', async () => {
-    const res = await middleware(buildReq('/en/student/dashboard'))
+    const res = (await middleware(buildReq('/en/student/dashboard'), {} as any)) as Response
     expect(res.status).toBe(307)
     expect(res.headers.get('location')).toContain('/login')
   })
 
   it('allows student role on locale student route', async () => {
-    const res = await middleware(
-      buildReq('/en/student/dashboard', { role: 'STUDENT', tosAccepted: true })
-    )
+    const res = (await middleware(
+      buildReq('/en/student/dashboard', { role: 'STUDENT', tosAccepted: true }),
+      {} as any
+    )) as Response
     expect(res.status).toBe(200)
     expect(res.headers.get('X-Content-Type-Options')).toBe('nosniff')
   })
 
-  it('blocks student role on locale tutor route', async () => {
-    const res = await middleware(
-      buildReq('/en/tutor/dashboard', { role: 'STUDENT', tosAccepted: true })
-    )
+  it('redirects student role on locale tutor route to student dashboard', async () => {
+    const res = (await middleware(
+      buildReq('/en/tutor/dashboard', { role: 'STUDENT', tosAccepted: true }),
+      {} as any
+    )) as Response
     expect(res.status).toBe(307)
-    expect(res.headers.get('location')).toContain('/login')
+    expect(res.headers.get('location')).toContain('/student/dashboard')
   })
 })

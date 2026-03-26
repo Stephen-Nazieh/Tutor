@@ -110,6 +110,13 @@ export default withAuth(
         cookieName: 'next-auth.session-token',
       })
     }
+    if (!token) {
+      token = await getToken({
+        req,
+        secret: process.env.NEXTAUTH_SECRET,
+        cookieName: '__Host-next-auth.session-token',
+      })
+    }
 
     if (!token) {
       const realmCookieName =
