@@ -10,9 +10,9 @@ export const GET = withAuth(async (req, session) => {
   const following = await drizzleDb
     .select({
       id: user.id,
-      name: user.name,
-      username: user.username,
-      avatarUrl: user.image,
+      name: profile.name,
+      handle: user.handle,
+      avatarUrl: profile.avatarUrl,
       bio: profile.bio,
       specialties: profile.specialties,
     })

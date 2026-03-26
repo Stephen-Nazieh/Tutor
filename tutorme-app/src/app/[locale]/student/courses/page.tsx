@@ -97,9 +97,9 @@ export default function CurriculumPage() {
   const isTutor = session?.user?.role === 'TUTOR'
   const [curriculums, setCurriculums] = useState<Curriculum[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'mine' | 'pending' | 'completed' | 'favorites' | 'following'>(
-    'mine'
-  )
+  const [activeTab, setActiveTab] = useState<
+    'mine' | 'pending' | 'completed' | 'favorites' | 'following'
+  >('mine')
   const [selectedEnrollment, setSelectedEnrollment] = useState<Curriculum | null>(null)
   const [favoriteIds, setFavoriteIds] = useState<string[]>([])
 
@@ -446,7 +446,9 @@ export default function CurriculumPage() {
                             </div>
                           </div>
                           {tutor.bio && (
-                            <p className="line-clamp-2 text-sm text-muted-foreground">{tutor.bio}</p>
+                            <p className="line-clamp-2 text-sm text-muted-foreground">
+                              {tutor.bio}
+                            </p>
                           )}
                         </CardHeader>
                         <CardContent>
