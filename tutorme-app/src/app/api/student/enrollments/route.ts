@@ -4,6 +4,8 @@
  * GET: List student's enrollments
  */
 
+export const dynamic = 'force-dynamic'
+
 import { NextResponse } from 'next/server'
 import { withAuth, NotFoundError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'

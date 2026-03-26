@@ -71,7 +71,7 @@ function CoursesPageContent() {
       const courseIds = parsed.courses || []
 
       if (courseIds.length > 0) {
-        const coursesRes = await fetch('/api/curriculum/batch?ids=' + courseIds.join(','))
+        const coursesRes = await fetch('/api/curriculum/batch?ids=' + courseIds.join(','), { cache: 'no-store' })
         if (coursesRes.ok) {
           const data = await coursesRes.json()
           setFavoriteCourses(data.curricula || [])
@@ -97,7 +97,7 @@ function CoursesPageContent() {
 
   const fetchEnrollments = async () => {
     try {
-      const res = await fetch('/api/student/enrollments')
+      const res = await fetch('/api/student/enrollments', { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         setEnrollments(data.enrollments || [])
@@ -234,24 +234,11 @@ function CoursesPageContent() {
           </div>
         </div>
 
-        {enrollments.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm">
-            <BookOpen className="mx-auto h-12 w-12 text-slate-300" />
-            <h3 className="mt-4 text-lg font-semibold text-slate-900">No courses yet</h3>
-            <p className="mt-2 text-slate-500 max-w-sm mx-auto">
-              You haven't enrolled in any courses. Browse subjects to find the right course for you.
-            </p>
-            <Button asChild className="mt-6 bg-indigo-600 hover:bg-indigo-700">
-              <Link href="/student/subjects/browse">Explore Subjects</Link>
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {renderCourseSection('Ongoing Courses', ongoingCourses, 'ongoing')}
-            {renderCourseSection('Upcoming Courses', upcomingCourses, 'upcoming')}
-            {renderCourseSection('Completed Courses', completedCourses, 'completed')}
-          </div>
-        )}
+        <div className="space-y-8">
+          {renderCourseSection('Upcoming Courses', upcomingCourses, 'upcoming')}
+          {renderCourseSection('Ongoing Courses', ongoingCourses, 'ongoing')}
+          {renderCourseSection('Completed Courses', completedCourses, 'completed')}
+        </div>
 
         {/* Favorite Courses Section */}
         {favoriteCourses.length > 0 && (
