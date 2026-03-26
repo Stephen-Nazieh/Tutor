@@ -97,7 +97,9 @@ export default function CurriculumPage() {
   const isTutor = session?.user?.role === 'TUTOR'
   const [curriculums, setCurriculums] = useState<Curriculum[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'mine' | 'pending' | 'completed' | 'favorites'>('mine')
+  const [activeTab, setActiveTab] = useState<'mine' | 'pending' | 'completed' | 'favorites' | 'following'>(
+    'mine'
+  )
   const [selectedEnrollment, setSelectedEnrollment] = useState<Curriculum | null>(null)
   const [favoriteIds, setFavoriteIds] = useState<string[]>([])
 
@@ -134,6 +136,24 @@ export default function CurriculumPage() {
     }
   }
 
+  const [followingTutors, setFollowingTutors] = useState<any[]>([])
+  const [isFollowingLoading, setIsFollowingLoading] = useState(false)
+
+  const loadFollowing = async () => {
+    setIsFollowingLoading(true)
+    try {
+      const res = await fetch('/api/follows/list')
+      if (res.ok) {
+        const data = await res.json()
+        setFollowingTutors(data.following || [])
+      }
+    } catch (error) {
+      console.error('Failed to load following tutors:', error)
+    } finally {
+      setIsFollowingLoading(false)
+    }
+  }
+
   useEffect(() => {
     loadFavorites()
     window.addEventListener('storage', loadFavorites)
@@ -141,7 +161,11 @@ export default function CurriculumPage() {
   }, [])
 
   useEffect(() => {
-    loadCurriculums()
+    if (activeTab === 'following') {
+      loadFollowing()
+    } else {
+      loadCurriculums()
+    }
   }, [activeTab])
 
   const loadCurriculums = async () => {
@@ -296,6 +320,17 @@ export default function CurriculumPage() {
           >
             Favorites ({favorites.length})
           </button>
+          <button
+            className={cn(
+              'whitespace-nowrap border-b-2 px-6 py-3 text-sm font-medium transition-colors',
+              activeTab === 'following'
+                ? 'border-indigo-600 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            )}
+            onClick={() => setActiveTab('following')}
+          >
+            Following ({followingTutors.length})
+          </button>
         </div>
 
         {isLoading ? (
@@ -343,6 +378,103 @@ export default function CurriculumPage() {
                 toggleFavorite={toggleFavorite}
                 onDetails={setDetailCourse}
               />
+            )}
+            {activeTab === 'following' && (
+              <section>
+                <div className="mb-6 flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-gray-900">Following tutors</h2>
+                  <Badge variant="outline">{followingTutors.length} tutors</Badge>
+                </div>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {isFollowingLoading ? (
+                    [1, 2, 3].map(i => (
+                      <Card key={i} className="animate-pulse border-border bg-card">
+                        <CardHeader className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-muted" />
+                            <div className="flex-1 space-y-2">
+                              <div className="h-4 w-3/4 rounded bg-muted" />
+                              <div className="h-3 w-1/2 rounded bg-muted" />
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="h-4 rounded bg-muted" />
+                          <div className="h-4 rounded bg-muted" />
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : followingTutors.length === 0 ? (
+                    <Card className="col-span-full border-border bg-card px-4 py-8 text-center">
+                      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                        <Heart className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                      <CardTitle className="mb-1 text-lg">No followed tutors</CardTitle>
+                      <CardDescription className="mb-4">
+                        Follow tutors from the directory to see them here.
+                      </CardDescription>
+                      <Link href="/student/tutors">
+                        <Button variant="outline" size="sm">
+                          Browse Tutors
+                        </Button>
+                      </Link>
+                    </Card>
+                  ) : (
+                    followingTutors.map(tutor => (
+                      <Card
+                        key={tutor.id}
+                        className="relative overflow-hidden border-border bg-card transition-all hover:-translate-y-0.5 hover:shadow-md"
+                      >
+                        <CardHeader className="space-y-3">
+                          <div className="flex items-start gap-3">
+                            {tutor.avatarUrl ? (
+                              <img
+                                src={tutor.avatarUrl}
+                                alt={tutor.name}
+                                className="h-12 w-12 shrink-0 rounded-full border border-border object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-lg font-bold">
+                                {tutor.name?.charAt(0)}
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <CardTitle className="truncate text-lg text-foreground">
+                                {tutor.name}
+                              </CardTitle>
+                              <CardDescription>@{tutor.username}</CardDescription>
+                            </div>
+                          </div>
+                          {tutor.bio && (
+                            <p className="line-clamp-2 text-sm text-muted-foreground">{tutor.bio}</p>
+                          )}
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex flex-wrap gap-2 text-xs">
+                            {tutor.specialties?.slice(0, 3).map((specialty: string) => (
+                              <Badge key={specialty} variant="secondary" className="bg-muted">
+                                {specialty}
+                              </Badge>
+                            ))}
+                          </div>
+                        </CardContent>
+                        <CardFooter className="flex gap-2">
+                          <Button
+                            asChild
+                            size="sm"
+                            className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                          >
+                            <Link href={`/student/tutors?tutorId=${tutor.id}`}>View Profile</Link>
+                          </Button>
+                          <Button asChild variant="outline" size="sm" className="flex-1">
+                            <Link href={`/curriculum`}>View Courses</Link>
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              </section>
             )}
 
             {((activeTab === 'mine' && ongoing.length === 0) ||

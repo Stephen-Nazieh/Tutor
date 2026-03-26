@@ -8,100 +8,27 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
-import { ArrowLeft, BookOpen, Loader2, Plus, X } from 'lucide-react'
-import { AGGREGATED_CATEGORIES } from '@/lib/tutoring/categories'
-
-const SUBJECTS = [
-  { value: 'math', label: 'Mathematics' },
-  { value: 'english', label: 'English' },
-  { value: 'physics', label: 'Physics' },
-  { value: 'chemistry', label: 'Chemistry' },
-  { value: 'biology', label: 'Biology' },
-  { value: 'history', label: 'History' },
-  { value: 'cs', label: 'Computer Science' },
-]
+import { ArrowLeft, BookOpen, Loader2 } from 'lucide-react'
 
 const DESCRIPTION_LIMIT = 500
 
 export default function CourseBuilderPage() {
   const router = useRouter()
   const [creating, setCreating] = useState(false)
-  const [loadingProfile, setLoadingProfile] = useState(true)
   const [subject, setSubject] = useState('general')
   const [courseName, setCourseName] = useState('')
   const [description, setDescription] = useState('')
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
-  const [categoryDraft, setCategoryDraft] = useState<string[]>([])
 
   useEffect(() => {
-    let mounted = true
-    const loadProfile = async () => {
-      try {
-        const res = await fetch('/api/user/profile', { credentials: 'include' })
-        const data = await res.json().catch(() => ({}))
-        if (!mounted) return
-        const specialties = Array.isArray(data?.profile?.specialties)
-          ? data.profile.specialties
-          : []
-        setSelectedCategories(specialties)
-      } catch {
-        // ignore profile fetch errors
-      } finally {
-        if (mounted) setLoadingProfile(false)
-      }
-    }
-    loadProfile()
-    return () => {
-      mounted = false
-    }
+    // Component is mounted
   }, [])
 
   const descriptionCount = useMemo(() => description.length, [description])
 
-  const openCategoryDialog = () => {
-    setCategoryDraft(selectedCategories)
-    setCategoryDialogOpen(true)
-  }
-
-  const toggleDraftCategory = (category: string) => {
-    setCategoryDraft(prev =>
-      prev.includes(category) ? prev.filter(item => item !== category) : [...prev, category]
-    )
-  }
-
-  const applyCategories = () => {
-    setSelectedCategories(Array.from(new Set(categoryDraft)))
-    setCategoryDialogOpen(false)
-  }
-
-  const removeCategory = (category: string) => {
-    setSelectedCategories(prev => prev.filter(item => item !== category))
-  }
-
   const validateDetailsStep = () => {
     if (!courseName.trim()) {
       toast.error('Course name is required')
-      return false
-    }
-    if (selectedCategories.length === 0) {
-      toast.error('Select at least one category')
       return false
     }
     if (descriptionCount > DESCRIPTION_LIMIT) {
@@ -130,7 +57,7 @@ export default function CourseBuilderPage() {
           title: courseName.trim(),
           description: description.trim() || undefined,
           subject,
-          categories: selectedCategories,
+          categories: [],
           schedule: [],
           isLiveOnline: false,
         }),
@@ -174,56 +101,20 @@ export default function CourseBuilderPage() {
           <CardContent className="space-y-6">
             <>
               <div className="space-y-2">
-                <Label htmlFor="courseName">Course Name *</Label>
+                <Label htmlFor="course-name">Course Name *</Label>
                 <Input
-                  id="courseName"
+                  id="course-name"
+                  placeholder="e.g., Algebra 101, Introduction to Python"
                   value={courseName}
                   onChange={e => setCourseName(e.target.value)}
-                  placeholder="e.g. AP Calculus Mastery"
+                  className="mt-1 shadow-sm focus-visible:ring-blue-600"
                   disabled={creating}
                 />
               </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label>Categories *</Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={openCategoryDialog}
-                    disabled={creating || loadingProfile}
-                  >
-                    <Plus className="mr-1 h-4 w-4" />
-                    New
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {selectedCategories.length === 0 && (
-                    <p className="text-sm text-gray-500">No categories selected yet.</p>
-                  )}
-                  {selectedCategories.map(category => (
-                    <span
-                      key={category}
-                      className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700"
-                    >
-                      {category}
-                      <button
-                        type="button"
-                        onClick={() => removeCategory(category)}
-                        className="text-blue-400 hover:text-blue-700"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">Description (Max {DESCRIPTION_LIMIT} chars)</Label>
                   <span
                     className={`text-xs ${descriptionCount > DESCRIPTION_LIMIT ? 'text-red-600' : 'text-gray-500'}`}
                   >
@@ -237,48 +128,29 @@ export default function CourseBuilderPage() {
                   placeholder="Describe the course focus, expected outcomes, and who it is for."
                   rows={5}
                   disabled={creating}
+                  className="mt-1 shadow-sm focus-visible:ring-blue-600"
                 />
               </div>
 
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-3 pt-4">
                 <Button variant="outline" className="flex-1" asChild disabled={creating}>
                   <Link href="/tutor/dashboard">Cancel</Link>
                 </Button>
                 <Button className="flex-1" onClick={handleConfirm} disabled={creating}>
-                  Next
+                  {creating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    'Create Course'
+                  )}
                 </Button>
               </div>
             </>
           </CardContent>
         </Card>
       </div>
-
-      <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Select Categories</DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[60vh] space-y-3 overflow-y-auto">
-            {AGGREGATED_CATEGORIES.map(category => (
-              <label key={category} className="flex items-center gap-3 text-sm">
-                <Checkbox
-                  checked={categoryDraft.includes(category)}
-                  onCheckedChange={() => toggleDraftCategory(category)}
-                />
-                <span>{category}</span>
-              </label>
-            ))}
-          </div>
-          <DialogFooter className="gap-2 sm:gap-3">
-            <Button type="button" variant="outline" onClick={() => setCategoryDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="button" onClick={applyCategories}>
-              Ok
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

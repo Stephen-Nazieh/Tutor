@@ -668,9 +668,9 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
           <div className="flex items-center gap-4">
             <h1
               className="max-w-[200px] truncate font-semibold text-gray-900"
-              title={course?.name || `Course ${courseId.slice(0, 8)}`}
+              title={course?.name || 'Course Builder'}
             >
-              {course?.name || `Course ${courseId.slice(0, 8)}...`}
+              {course?.name || 'Course Builder'}
             </h1>
             {course && <PublishStatusBadge isPublished={course.isPublished} />}
           </div>
@@ -682,7 +682,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
         <div className="flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
             <div className="truncate font-semibold text-gray-900">
-              {course?.name || `Course ${courseId.slice(0, 8)}...`}
+              {course?.name || 'Course Builder'}
             </div>
           </div>
         </div>

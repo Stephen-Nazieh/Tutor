@@ -2072,9 +2072,6 @@ function DMIPanel({ items, onItemsChange, onDeploy }: DMIPanelProps) {
         <Button size="sm" variant="outline" onClick={() => setPreviewOpen(true)}>
           Preview
         </Button>
-        <Button size="sm" onClick={handleDeploy}>
-          Deploy
-        </Button>
       </div>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
@@ -9527,7 +9524,7 @@ FEEDBACK: [your explanation]`
                               <div className="rounded-lg border bg-white/90 p-4">
                                 <p className="text-sm font-medium text-gray-900">Poll question</p>
                                 <AutoTextarea
-                                  className="mt-2 min-h-[72px]"
+                                  className="mt-2 min-h-[72px] shadow-sm focus-visible:ring-blue-600"
                                   value={pollPrompt}
                                   onChange={event => setPollPrompt(event.target.value)}
                                 />
@@ -9574,7 +9571,7 @@ FEEDBACK: [your explanation]`
                               <div className="rounded-lg border bg-white/90 p-4">
                                 <p className="text-sm font-medium text-gray-900">Question prompt</p>
                                 <AutoTextarea
-                                  className="mt-2 min-h-[96px]"
+                                  className="mt-2 min-h-[96px] shadow-sm focus-visible:ring-blue-600"
                                   value={questionPrompt}
                                   onChange={event => setQuestionPrompt(event.target.value)}
                                 />

@@ -99,7 +99,7 @@ export default function StudentTutorDirectoryPage() {
   const [sortBy, setSortBy] = useState<'popular' | 'newest' | 'courses' | 'rate'>('popular')
   const [activeTutor, setActiveTutor] = useState<TutorDirectoryItem | null>(null)
   const [dataSource, setDataSource] = useState<'db' | 'mock'>('db')
-  const [favorites, setFavorites] = useState<Set<string>>(new Set())
+  const [following, setFollowing] = useState<Set<string>>(new Set())
 
   // Theme state with localStorage persistence
   const [themeId, setThemeId] = useState('current')
@@ -117,36 +117,51 @@ export default function StudentTutorDirectoryPage() {
     localStorage.setItem('student-dashboard-theme', themeId)
   }, [themeId])
 
-  // Load favorites from localStorage on mount
+  // Load following from API on mount
   useEffect(() => {
-    const saved = localStorage.getItem('tutorme-favorites')
-    if (saved) {
+    const loadFollowing = async () => {
       try {
-        const parsed = JSON.parse(saved)
-        setFavorites(new Set(parsed.tutors || []))
-      } catch {
-        // ignore
+        const res = await fetch('/api/follows/list')
+        if (res.ok) {
+          const data = await res.json()
+          setFollowing(new Set(data.following.map((t: any) => t.id)))
+        }
+      } catch (error) {
+        console.error('Failed to load following list:', error)
       }
     }
+    loadFollowing()
   }, [])
 
-  // Save favorites to localStorage
-  const toggleFavorite = (tutorId: string) => {
-    setFavorites(prev => {
-      const next = new Set(prev)
-      if (next.has(tutorId)) {
-        next.delete(tutorId)
-        toast.success('Removed from favorites')
+  // Toggle follow
+  const toggleFollow = async (tutorId: string) => {
+    const isFollowing = following.has(tutorId)
+    const method = isFollowing ? 'DELETE' : 'POST'
+    try {
+      const res = await fetch('/api/follows', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tutorId }),
+      })
+      if (res.ok) {
+        setFollowing(prev => {
+          const next = new Set(prev)
+          if (isFollowing) {
+            next.delete(tutorId)
+            toast.success('Unfollowed tutor')
+          } else {
+            next.add(tutorId)
+            toast.success('Following tutor')
+          }
+          return next
+        })
       } else {
-        next.add(tutorId)
-        toast.success('Added to favorites')
+        const data = await res.json()
+        toast.error(data.error || `Failed to ${isFollowing ? 'unfollow' : 'follow'} tutor`)
       }
-      const saved = localStorage.getItem('tutorme-favorites')
-      const parsed = saved ? JSON.parse(saved) : { tutors: [], courses: [] }
-      parsed.tutors = Array.from(next)
-      localStorage.setItem('tutorme-favorites', JSON.stringify(parsed))
-      return next
-    })
+    } catch (error) {
+      toast.error('Network error. Please try again.')
+    }
   }
 
   useEffect(() => {
@@ -374,18 +389,17 @@ export default function StudentTutorDirectoryPage() {
               )}
               onClick={() => setActiveTutor(tutor)}
             >
-              <button
-                type="button"
+              <Button
+                variant={following.has(tutor.id) ? 'default' : 'outline'}
+                size="sm"
                 onClick={e => {
                   e.stopPropagation()
-                  toggleFavorite(tutor.id)
+                  toggleFollow(tutor.id)
                 }}
-                className="absolute right-3 top-3 z-10 rounded-full p-2 transition-colors hover:bg-muted"
+                className="absolute right-3 top-3 z-10 h-8 gap-1 rounded-full px-3 text-xs"
               >
-                <Heart
-                  className={`h-5 w-5 ${favorites.has(tutor.id) ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`}
-                />
-              </button>
+                {following.has(tutor.id) ? 'Following' : 'Follow'}
+              </Button>
               <CardHeader className="space-y-3">
                 <div className="flex items-start gap-3">
                   <Avatar className="h-12 w-12 border border-border">
@@ -568,12 +582,6 @@ export default function StudentTutorDirectoryPage() {
                       Open Full Public Page
                       <ExternalLink className="ml-2 h-4 w-4" />
                     </Link>
-                  </Button>
-                  <Button variant="outline" onClick={() => toggleFavorite(activeTutor.id)}>
-                    <Heart
-                      className={`mr-2 h-4 w-4 ${favorites.has(activeTutor.id) ? 'fill-red-500 text-red-500' : ''}`}
-                    />
-                    {favorites.has(activeTutor.id) ? 'Favorited' : 'Add to Favorites'}
                   </Button>
                 </div>
               </div>

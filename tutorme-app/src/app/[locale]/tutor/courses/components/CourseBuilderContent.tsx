@@ -327,90 +327,56 @@ export function CourseBuilderContent({
       className="flex h-screen w-full flex-col items-stretch overflow-hidden bg-background text-foreground"
       style={themeStyle}
     >
-      {/* Top Navigation Header - Course Builder centered at top */}
-      <div className="sticky top-0 z-10 w-full border-b border-border bg-card">
-        <div className="flex w-full items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="shrink-0"
-            onClick={() => {
-              if (typeof window !== 'undefined' && window.history.length > 1) {
-                router.back()
-              } else {
-                router.push('/tutor/dashboard')
-              }
-            }}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          {!insightsProps && (
+      {/* Top Navigation Header - only hide if in insights mode to avoid duplicate headers and fix bottom visibility */}
+      {!insightsProps && (
+        <div className="sticky top-0 z-10 w-full border-b border-border bg-card">
+          <div className="flex w-full items-center justify-between gap-4 px-4 py-3 sm:px-6">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="shrink-0"
+              onClick={() => {
+                if (typeof window !== 'undefined' && window.history.length > 1) {
+                  router.back()
+                } else {
+                  router.push('/tutor/dashboard')
+                }
+              }}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
             <h1 className="pointer-events-none absolute left-0 right-0 flex flex-1 items-center justify-center gap-2 text-xl font-semibold text-foreground">
               <BookOpen className="h-5 w-5" />
               Course Builder
             </h1>
-          )}
-          <div className="flex shrink-0 items-center gap-3">
-            {insightsProps && (
-              <div className="flex items-center gap-2">
-                {insightsProps.courses && insightsProps.courses.length > 0 && (
-                  <Select
-                    value={insightsProps.courseId ?? undefined}
-                    onValueChange={value => insightsProps.onCourseChange?.(value)}
-                  >
-                    <SelectTrigger className="h-8 w-[200px] border-border bg-card text-foreground">
-                      <SelectValue placeholder="Select course" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {insightsProps.courses.map(course => (
-                        <SelectItem key={course.id} value={course.id}>
-                          {course.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            <div className="flex shrink-0 items-center gap-3">
+              {/* Theme Selector */}
+              <Select value={themeId} onValueChange={setThemeId}>
+                <SelectTrigger className="h-8 w-[180px] border-border bg-card text-foreground">
+                  <SelectValue placeholder="Select theme" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DASHBOARD_THEMES.map(theme => (
+                    <SelectItem key={theme.id} value={theme.id}>
+                      {theme.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                className="gap-2"
+                onClick={() => courseBuilderRef.current?.save()}
+                disabled={saving}
+              >
+                {saving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
                 )}
-                <Select
-                  value={insightsProps.sessionId ?? undefined}
-                  onValueChange={insightsProps.onSessionChange}
-                >
-                  <SelectTrigger className="h-8 w-[220px] border-border bg-card text-foreground">
-                    <SelectValue placeholder="Select live session" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {insightsProps.sessions.map(sessionItem => (
-                      <SelectItem key={sessionItem.id} value={sessionItem.id}>
-                        {sessionItem.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            {/* Theme Selector */}
-            <Select value={themeId} onValueChange={setThemeId}>
-              <SelectTrigger className="h-8 w-[180px] border-border bg-card text-foreground">
-                <SelectValue placeholder="Select theme" />
-              </SelectTrigger>
-              <SelectContent>
-                {DASHBOARD_THEMES.map(theme => (
-                  <SelectItem key={theme.id} value={theme.id}>
-                    {theme.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              className="gap-2"
-              onClick={() => courseBuilderRef.current?.save()}
-              disabled={saving}
-            >
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Save Course
-            </Button>
-            {!insightsProps &&
-              (courseId ? (
+                Save Course
+              </Button>
+              {courseId ? (
                 <Button variant="outline" className="gap-2" asChild>
                   <Link href={`/tutor/courses/${courseId}`}>
                     Next
@@ -429,10 +395,11 @@ export function CourseBuilderContent({
                   Next
                   <ChevronRight className="h-4 w-4" />
                 </Button>
-              ))}
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Main Content */}
       <div className="flex w-full flex-1 flex-col overflow-hidden px-0 py-0">

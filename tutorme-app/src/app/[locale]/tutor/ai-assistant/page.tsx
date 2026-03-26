@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { toast } from 'sonner'
 import {
   Sparkles,
@@ -309,16 +310,25 @@ export default function AIAssistantPage() {
 
                   {/* Input */}
                   <div className="border-t p-4">
-                    <div className="flex gap-2">
-                      <Input
+                    <div className="flex items-end gap-2">
+                      <AutoTextarea
                         placeholder="Ask the AI Assistant..."
                         value={input}
-                        onChange={e => setInput(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && !sending && sendMessage()}
+                        onChange={(e: any) => setInput(e.target.value)}
+                        onKeyDown={(e: any) => {
+                          if (e.key === 'Enter' && !e.shiftKey && !sending) {
+                            e.preventDefault()
+                            sendMessage()
+                          }
+                        }}
                         disabled={sending}
-                        className="flex-1"
+                        className="min-h-[44px] flex-1 shadow-sm focus-visible:ring-blue-600"
                       />
-                      <Button onClick={sendMessage} disabled={sending || !input.trim()}>
+                      <Button
+                        onClick={sendMessage}
+                        disabled={sending || !input.trim()}
+                        className="mb-1"
+                      >
                         {sending ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
