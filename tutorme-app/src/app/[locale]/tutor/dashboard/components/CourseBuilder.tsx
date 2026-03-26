@@ -384,8 +384,18 @@ export interface Module extends WithDifficultyVariants {
 // PROPS
 // ============================================
 
+interface InsightsSessionOption {
+  id: string
+  title: string
+  subject: string
+  scheduledAt: string
+  status: string
+}
+
 interface CourseBuilderInsightsProps {
   sessionId: string | null
+  sessions: InsightsSessionOption[]
+  onSessionChange: (sessionId: string) => void
   liveTasks: LiveTask[]
   onDeployTask: (task: LiveTask) => void
   onSendPoll: (payload: { taskId: string; question: string }) => void
@@ -9331,7 +9341,7 @@ FEEDBACK: [your explanation]`
                                   classDuration={insightsProps.classDuration || 0}
                                   currentTopic={
                                     insightsProps.sessions.find(
-                                      s => s.id === insightsProps.sessionId
+                                      (s: InsightsSessionOption) => s.id === insightsProps.sessionId
                                     )?.subject || 'Session Overview'
                                   }
                                 />
