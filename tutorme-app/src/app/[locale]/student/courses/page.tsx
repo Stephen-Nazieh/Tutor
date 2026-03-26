@@ -174,8 +174,9 @@ export default function CurriculumPage() {
   )
 
   const completed = myCourses.filter(c => c.progress?.isCompleted)
-
-  const favorites = curriculums.filter(c => favoriteIds.includes(c.id))
+  const favorites = curriculums.filter(
+    c => favoriteIds.includes(c.id) && !myCourses.some(mc => mc.id === c.id)
+  )
 
   const [detailCourse, setDetailCourse] = useState<Curriculum | null>(null)
 

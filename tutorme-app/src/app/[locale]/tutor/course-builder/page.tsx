@@ -43,7 +43,7 @@ export default function CourseBuilderPage() {
   const router = useRouter()
   const [creating, setCreating] = useState(false)
   const [loadingProfile, setLoadingProfile] = useState(true)
-  const [subject, setSubject] = useState('')
+  const [subject, setSubject] = useState('general')
   const [courseName, setCourseName] = useState('')
   const [description, setDescription] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
@@ -98,10 +98,6 @@ export default function CourseBuilderPage() {
   const validateDetailsStep = () => {
     if (!courseName.trim()) {
       toast.error('Course name is required')
-      return false
-    }
-    if (!subject) {
-      toast.error('Please select a subject')
       return false
     }
     if (selectedCategories.length === 0) {
@@ -190,7 +186,7 @@ export default function CourseBuilderPage() {
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label>Subject Categories *</Label>
+                  <Label>Categories *</Label>
                   <Button
                     type="button"
                     variant="outline"
@@ -224,21 +220,6 @@ export default function CourseBuilderPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="subject">Select Subject *</Label>
-                <Select value={subject} onValueChange={setSubject} disabled={creating}>
-                  <SelectTrigger id="subject">
-                    <SelectValue placeholder="Select a subject" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SUBJECTS.map(s => (
-                      <SelectItem key={s.value} value={s.value}>
-                        {s.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">

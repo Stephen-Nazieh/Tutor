@@ -344,7 +344,7 @@ export default function CurriculumDetailPage() {
 
               {isEnrolled ? (
                 nextLesson && (
-                  <Link href={`/curriculum/lessons/${nextLesson.id}`}>
+                  <Link href={`/student/feedback`}>
                     <Button size="lg" className="gap-2">
                       <Play className="h-5 w-5" />
                       {nextLesson.status === 'IN_PROGRESS' ? 'Continue' : 'Start learning'}
@@ -542,7 +542,7 @@ export default function CurriculumDetailPage() {
                         </div>
 
                         {!lesson.isLocked && isEnrolled && (
-                          <Link href={`/curriculum/lessons/${lesson.id}`}>
+                          <Link href={`/student/feedback`}>
                             <Button
                               variant={lesson.status === 'COMPLETED' ? 'outline' : 'default'}
                               size="sm"
