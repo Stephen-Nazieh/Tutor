@@ -21,7 +21,7 @@ import {
   Frown,
   Meh,
 } from 'lucide-react'
-import type { ChatMessage, LiveStudent } from '../types'
+import type { ChatMessage, LiveStudent } from '@/types/live-session'
 import type { Socket } from 'socket.io-client'
 
 interface ChatMonitorProps {

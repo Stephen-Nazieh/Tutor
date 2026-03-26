@@ -698,14 +698,14 @@ export default function WhiteboardEditorPage() {
             <Label>Share Link</Label>
             <div className="mt-2 flex gap-2">
               <Input
-                value={`${window.location.origin}/tutor/live-class/${whiteboardId}`}
+                value={`${window.location.origin}/tutor/insights?sessionId=${whiteboardId}`}
                 readOnly
               />
               <Button
                 variant="outline"
                 onClick={() => {
                   navigator.clipboard.writeText(
-                    `${window.location.origin}/tutor/live-class/${whiteboardId}`
+                    `${window.location.origin}/tutor/insights?sessionId=${whiteboardId}`
                   )
                   toast.success('Link copied')
                 }}

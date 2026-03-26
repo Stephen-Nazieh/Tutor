@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import { CourseBuilderContent } from '../courses/components/CourseBuilderContent'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -27,6 +28,7 @@ interface InsightsSessionOption {
 
 export default function TutorInsightsPage() {
   const { data: session } = useSession()
+  const searchParams = useSearchParams()
   const [courses, setCourses] = useState<CourseSummary[]>([])
   const [courseId, setCourseId] = useState<string | null>(null)
   const [detachedCourseName, setDetachedCourseName] = useState('Course')
@@ -37,6 +39,68 @@ export default function TutorInsightsPage() {
   const [students, setStudents] = useState<LiveStudent[]>([])
   const [metrics, setMetrics] = useState<EngagementMetrics | null>(null)
   const [classDuration, setClassDuration] = useState(0)
+  const [isRecording, setIsRecording] = useState(false)
+  const [recordingDurationSeconds, setRecordingDurationSeconds] = useState(0)
+
+  useEffect(() => {
+    if (!isRecording) {
+      setRecordingDurationSeconds(0)
+      return
+    }
+    const interval = setInterval(() => {
+      setRecordingDurationSeconds(prev => prev + 1)
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [isRecording])
+
+  const persistRecordingState = useCallback(
+    async (recording: boolean) => {
+      if (!sessionId) return
+      await fetch(`/api/tutor/live-sessions/${sessionId}/recording`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          isRecording: recording,
+          recordingUrl: null, // Insights only tracks state
+        }),
+      })
+    },
+    [sessionId]
+  )
+
+  const generateReplayArtifact = useCallback(async () => {
+    if (!sessionId) return
+    const response = await fetch(`/api/tutor/live-sessions/${sessionId}/replay-artifact/generate`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+    if (!response.ok) {
+      throw new Error('Replay artifact generation failed')
+    }
+  }, [sessionId])
+
+  const handleToggleRecording = useCallback(async () => {
+    try {
+      if (isRecording) {
+        setIsRecording(false)
+        await persistRecordingState(false)
+        toast.success('Recording stopped. Building transcript and AI lesson summary...')
+        await generateReplayArtifact()
+        toast.success('Replay artifact ready')
+        return
+      }
+
+      setIsRecording(true)
+      setRecordingDurationSeconds(0)
+      await persistRecordingState(true)
+      toast.success('Recording started')
+    } catch (error) {
+      setIsRecording(false)
+      setRecordingDurationSeconds(0)
+      toast.error(error instanceof Error ? error.message : 'Recording action failed')
+    }
+  }, [generateReplayArtifact, isRecording, persistRecordingState])
 
   useEffect(() => {
     if (!sessionId) {
@@ -94,8 +158,13 @@ export default function TutorInsightsPage() {
         const data = await res.json()
         const classSessions = (data.classes || []) as InsightsSessionOption[]
         setSessions(classSessions)
+
+        const querySessionId = searchParams.get('sessionId')
         const activeSession = classSessions.find(item => item.status === 'active')
-        if (activeSession) {
+
+        if (querySessionId && classSessions.some(s => s.id === querySessionId)) {
+          setSessionId(querySessionId)
+        } else if (activeSession) {
           setSessionId(prev => prev ?? activeSession.id)
         } else if (classSessions.length > 0) {
           setSessionId(prev => prev ?? classSessions[0].id)
@@ -284,6 +353,9 @@ export default function TutorInsightsPage() {
           students,
           metrics,
           classDuration,
+          isRecording,
+          recordingDuration: recordingDurationSeconds,
+          onToggleRecording: handleToggleRecording,
         }}
       />
     </div>

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
-import type { BreakoutRoom, LiveStudent, ChatMessage } from '../types'
+import type { BreakoutRoom, LiveStudent, ChatMessage } from '@/types/live-session'
 import {
   Mic,
   MicOff,

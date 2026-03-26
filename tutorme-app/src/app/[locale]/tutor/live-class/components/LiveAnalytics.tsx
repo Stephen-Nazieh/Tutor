@@ -15,7 +15,7 @@ import {
   PieChart,
   AlertCircle,
 } from 'lucide-react'
-import type { EngagementMetrics, Alert } from '../types'
+import type { EngagementMetrics, Alert } from '@/types/live-session'
 
 interface LiveAnalyticsProps {
   metrics: EngagementMetrics

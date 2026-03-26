@@ -2,7 +2,7 @@
 
 ## UI Location
 **Primary UI:** `/tutor/dashboard` - "AI Briefing" button  
-**Secondary UI:** `/tutor/live-class/[sessionId]` - Pre-class briefing panel  
+**Secondary UI:** `/tutor/insights?sessionId=[sessionId]` - Pre-class briefing panel  
 **Access:** Tutors only
 
 ## Purpose

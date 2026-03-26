@@ -40,7 +40,7 @@ import type {
   ChatMessage,
   EngagementMetrics,
   Alert,
-} from '../types'
+} from '@/types/live-session'
 import {
   Users,
   LayoutGrid,

@@ -5,7 +5,7 @@
  *
  * UI LOCATIONS:
  * - /tutor/dashboard - "AI Briefing" button on class cards
- * - /tutor/live-class/[sessionId] - Pre-class briefing panel
+ * - /tutor/insights?sessionId=[sessionId] - Pre-class briefing panel
  * - Post-class in session summary
  *
  * This agent prepares tutors with AI-generated class briefings.
@@ -74,7 +74,7 @@ export interface PostClassReflection {
  *
  * UI FLOW:
  * 1. Tutor on /tutor/dashboard clicks "AI Briefing" for upcoming class
- * 2. OR on /tutor/live-class/[id] before starting
+ * 2. OR on /tutor/insights?sessionId=[id] before starting
  * 3. This function analyzes all students in session
  * 4. Returns structured briefing with alerts and strategies
  */

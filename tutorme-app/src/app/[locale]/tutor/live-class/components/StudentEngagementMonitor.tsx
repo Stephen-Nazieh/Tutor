@@ -15,7 +15,7 @@ import {
   AlertTriangle,
   CheckCircle2,
 } from 'lucide-react'
-import type { LiveStudent } from '../types'
+import type { LiveStudent } from '@/types/live-session'
 
 interface StudentEngagementMonitorProps {
   students: LiveStudent[]

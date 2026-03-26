@@ -1,7 +1,7 @@
 # 👁️ Live Monitor Agent
 
 ## UI Location
-**Primary UI:** `/tutor/live-class/[sessionId]` - Real-time monitoring panel  
+**Primary UI:** `/tutor/insights?sessionId=[sessionId]` - Real-time monitoring panel  
 **Secondary UI:** Engagement heatmap, alert notifications  
 **Access:** Tutors (real-time view), Students (monitored)
 

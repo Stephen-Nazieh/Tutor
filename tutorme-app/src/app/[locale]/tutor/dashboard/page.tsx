@@ -306,17 +306,7 @@ function TutorDashboardContent() {
           </div>
         )}
 
-        {/* Modern Grid Layout - Full Width */}
-        <div className="mb-8">
-          <UpcomingClassesCard
-            classes={classes}
-            formatDate={formatDate}
-            loading={loading}
-            onCreateClassClick={() => setShowCreateDialog(true)}
-            onRemoveClass={handleRemoveClass}
-          />
-        </div>
-
+        {/* Dashboard Stats */}
         <div className="mb-8 space-y-4">
           <Card className="border border-border bg-card/95 shadow-xl backdrop-blur-md">
             <CardContent className="pt-6">

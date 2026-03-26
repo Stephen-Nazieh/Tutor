@@ -37,9 +37,9 @@ export { generateWithFallback, chatWithFallback } from './orchestrator-llm'
  * | /tutor/courses/[id]/tasks | Auto grade button | grading.gradeQuizBatch() |
  * | /tutor/grading | Grade essay | grading.gradeEssay() |
  * | /tutor/dashboard | AI Briefing button | briefing.generateClassBriefing() |
- * | /tutor/live-class/[id] | Pre-class briefing | briefing.generateClassBriefing() |
- * | /tutor/live-class/[id] | Real-time monitoring | liveMonitor.analyzeEngagement() |
- * | /tutor/live-class/[id] | Confusion alert | liveMonitor.detectConfusion() |
+ * | /tutor/insights?sessionId=[id] | Pre-class briefing | briefing.generateClassBriefing() |
+ * | /tutor/insights?sessionId=[id] | Real-time monitoring | liveMonitor.analyzeEngagement() |
+ * | /tutor/insights?sessionId=[id] | Confusion alert | liveMonitor.detectConfusion() |
  *
  * Example Usage:
  *
@@ -90,7 +90,7 @@ export const AGENT_METADATA = {
   briefing: {
     name: 'Briefing Agent',
     description: 'Prepares tutors with pre-class insights',
-    uiLocations: ['/tutor/dashboard', '/tutor/live-class/[id]'],
+    uiLocations: ['/tutor/dashboard', '/tutor/insights?sessionId=[id]'],
     primaryFunction: 'Tutor preparation',
     dataAccess:
       'READ: LiveSession, ProgressData, Student, Curriculum | WRITE: LiveSession.briefingData',
@@ -98,7 +98,7 @@ export const AGENT_METADATA = {
   liveMonitor: {
     name: 'Live Monitor Agent',
     description: 'Real-time classroom monitoring (1:50 ratio)',
-    uiLocations: ['/tutor/live-class/[id]'],
+    uiLocations: ['/tutor/insights?sessionId=[id]'],
     primaryFunction: 'Real-time engagement tracking',
     dataAccess: 'READ/WRITE: LiveSession | READ: Student, ProgressData',
   },

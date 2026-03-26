@@ -4,7 +4,7 @@
  * ============================================================================
  *
  * UI LOCATION:
- * - /tutor/live-class/[sessionId] - Real-time monitoring panel
+ * - /tutor/insights?sessionId=[sessionId] - Real-time monitoring panel
  * - Alert notifications during live class
  *
  * EDIT THIS FILE to change how live monitoring works.

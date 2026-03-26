@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 import { Hand, Check, Clock, ArrowUp } from 'lucide-react'
-import type { HandRaise } from '../types'
+import type { HandRaise } from '@/types/live-session'
 
 interface HandRaiseQueueProps {
   handRaises: HandRaise[]

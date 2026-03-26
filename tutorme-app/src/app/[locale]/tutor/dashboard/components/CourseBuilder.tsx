@@ -116,6 +116,7 @@ import {
   Loader2,
   BarChart3,
   Signal,
+  Radio,
   SignalHigh,
   SignalLow,
   Settings,
@@ -403,6 +404,9 @@ interface CourseBuilderInsightsProps {
   students?: LiveStudent[]
   metrics?: EngagementMetrics | null
   classDuration?: number
+  isRecording?: boolean
+  recordingDuration?: number
+  onToggleRecording?: () => void
 }
 
 interface CourseBuilderProps {
@@ -9305,6 +9309,38 @@ FEEDBACK: [your explanation]`
                     {insightsProps && showInsightsPanel && (
                       <div className="min-h-0 w-full xl:w-[360px]">
                         <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cyan-200/70 bg-gradient-to-br from-white via-slate-50 to-cyan-50 p-4 shadow-[0_10px_40px_-20px_rgba(14,116,144,0.65)] ring-1 ring-cyan-200/60">
+                          {insightsProps.onToggleRecording && (
+                            <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-cyan-100 bg-white/50 p-2 shadow-sm">
+                              <div className="flex items-center gap-2 pl-1">
+                                <div
+                                  className={cn(
+                                    'h-2 w-2 rounded-full',
+                                    insightsProps.isRecording ? 'animate-pulse bg-red-500' : 'bg-gray-300'
+                                  )}
+                                />
+                                <span className="text-xs font-medium text-gray-600">
+                                  {insightsProps.isRecording ? (
+                                    <>
+                                      REC {Math.floor((insightsProps.recordingDuration ?? 0) / 60)}m{' '}
+                                      {String((insightsProps.recordingDuration ?? 0) % 60).padStart(2, '0')}s
+                                    </>
+                                  ) : (
+                                    'Not Recording'
+                                  )}
+                                </span>
+                              </div>
+                              <Button
+                                variant={insightsProps.isRecording ? 'destructive' : 'outline'}
+                                size="sm"
+                                className="h-8 gap-2 px-3 text-xs font-semibold shadow-sm"
+                                onClick={insightsProps.onToggleRecording}
+                              >
+                                <Radio className={cn('h-3.5 w-3.5', insightsProps.isRecording && 'animate-pulse')} />
+                                {insightsProps.isRecording ? 'Stop' : 'Record'}
+                              </Button>
+                            </div>
+                          )}
+
                           <Tabs
                             value={insightsTab}
                             onValueChange={value =>

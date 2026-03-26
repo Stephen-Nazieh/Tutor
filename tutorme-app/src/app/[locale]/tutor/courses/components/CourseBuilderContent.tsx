@@ -81,7 +81,7 @@ interface InsightsSessionOption {
   status: string
 }
 
-import type { LiveStudent, EngagementMetrics } from '@/app/[locale]/tutor/live-class/types'
+import type { LiveStudent, EngagementMetrics } from '@/types/live-session'
 
 interface CourseBuilderInsightsProps {
   courseId?: string | null
@@ -97,6 +97,9 @@ interface CourseBuilderInsightsProps {
   students?: LiveStudent[]
   metrics?: EngagementMetrics | null
   classDuration?: number
+  isRecording?: boolean
+  recordingDuration?: number
+  onToggleRecording?: () => void
 }
 
 export function CourseBuilderContent({

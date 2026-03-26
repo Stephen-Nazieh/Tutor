@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
-import type { BreakoutRoom, LiveStudent } from '../types'
+import type { BreakoutRoom, LiveStudent } from '@/types/live-session'
 import {
   Plus,
   Users,

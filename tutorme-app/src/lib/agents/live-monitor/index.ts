@@ -4,7 +4,7 @@
  * ============================================================================
  *
  * UI LOCATIONS:
- * - /tutor/live-class/[sessionId] - Real-time monitoring dashboard
+ * - /tutor/insights?sessionId=[sessionId] - Real-time monitoring dashboard
  * - Engagement heatmap visualization
  * - Alert notifications popup
  *

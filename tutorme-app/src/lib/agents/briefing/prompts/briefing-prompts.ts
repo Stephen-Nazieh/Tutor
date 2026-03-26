@@ -5,7 +5,7 @@
  *
  * UI LOCATION:
  * - /tutor/dashboard - "AI Briefing" button
- * - /tutor/live-class/[sessionId] - Pre-class briefing panel
+ * - /tutor/insights?sessionId=[sessionId] - Pre-class briefing panel
  *
  * EDIT THIS FILE to change how tutor briefings are generated.
  */

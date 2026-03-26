@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import type { LiveStudent, BreakoutRoom } from '../types'
+import type { LiveStudent, BreakoutRoom } from '@/types/live-session'
 import {
   Users,
   Hand,

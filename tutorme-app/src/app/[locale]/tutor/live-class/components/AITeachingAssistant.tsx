@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
-import type { LiveStudent, EngagementMetrics } from '../types'
+import type { LiveStudent, EngagementMetrics } from '@/types/live-session'
 import {
   Sparkles,
   Lightbulb,
