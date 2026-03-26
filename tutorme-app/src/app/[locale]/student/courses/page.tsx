@@ -165,11 +165,12 @@ export default function CurriculumPage() {
   const ongoing = myCourses.filter(
     c =>
       (!c.progress || !c.progress.isCompleted) &&
-      (!c.enrollment?.startDate || new Date(c.enrollment.startDate) <= now)
+      c.enrollment?.startDate &&
+      new Date(c.enrollment.startDate) <= now
   )
 
   const upcoming = myCourses.filter(
-    c => c.enrollment?.startDate && new Date(c.enrollment.startDate) > now
+    c => !c.enrollment?.startDate || new Date(c.enrollment.startDate) > now
   )
 
   const completed = myCourses.filter(c => c.progress?.isCompleted)

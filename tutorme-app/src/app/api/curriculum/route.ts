@@ -19,7 +19,7 @@ import {
 } from '@/lib/db/schema'
 import { eq, inArray, desc, sql, and } from 'drizzle-orm'
 
-const CURRICULUM_LIST_CACHE_TTL = 120 // 2 minutes
+const CURRICULUM_LIST_CACHE_TTL = 0 // Disable cache for real-time updates
 
 function hasOutline(courseMaterials: unknown): boolean {
   if (!courseMaterials || typeof courseMaterials !== 'object') return false
