@@ -9172,9 +9172,49 @@ FEEDBACK: [your explanation]`
                               className="mt-2 flex h-full w-full min-w-0 flex-1 flex-col self-stretch overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                             >
                               <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg bg-muted p-4">
-                                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
-                                  {testPciContent[tab.id] || `${tab.label} view content`}
-                                </p>
+                                {tab.id === 'student1' ? (
+                                  <Tabs defaultValue="my-board" className="flex h-full flex-col">
+                                    <TabsList className="grid w-full shrink-0 grid-cols-2 gap-1 rounded-xl border border-gray-300 bg-white p-1 lg:w-[350px]">
+                                      <TabsTrigger
+                                        value="my-board"
+                                        className="w-full rounded-lg border border-transparent data-[state=active]:border-gray-300 data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900"
+                                      >
+                                        My Board
+                                      </TabsTrigger>
+                                      <TabsTrigger
+                                        value="student-boards"
+                                        className="w-full rounded-lg border border-transparent data-[state=active]:border-gray-300 data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900"
+                                      >
+                                        Student Boards
+                                      </TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent
+                                      value="my-board"
+                                      className="mt-4 flex-1 outline-none"
+                                    >
+                                      <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                                        {testPciContent[tab.id] || `${tab.label} view content`}
+                                      </p>
+                                    </TabsContent>
+                                    <TabsContent
+                                      value="student-boards"
+                                      className="mt-4 flex-1 outline-none"
+                                    >
+                                      <div className="flex h-[200px] flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-center">
+                                        <p className="text-sm font-medium text-gray-500">
+                                          No student boards active
+                                        </p>
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                          Student live whiteboard snapshots will appear here
+                                        </p>
+                                      </div>
+                                    </TabsContent>
+                                  </Tabs>
+                                ) : (
+                                  <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                                    {testPciContent[tab.id] || `${tab.label} view content`}
+                                  </p>
+                                )}
                                 {/* Show AI scores if any */}
                                 {testPciScores[tab.id]?.length > 0 && (
                                   <div className="mt-3 border-t border-gray-400 pt-3">
