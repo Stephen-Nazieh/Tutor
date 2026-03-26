@@ -327,62 +327,6 @@ export const curriculumEnrollment = pgTable(
   })
 )
 
-export const studentCoursePreference = pgTable(
-  'StudentCoursePreference',
-  {
-    id: text('id').primaryKey().notNull(),
-    studentId: text('studentId').notNull(),
-    tutorId: text('tutorId').notNull(),
-    curriculumId: text('curriculumId').notNull(),
-    sessionDensity: integer('sessionDensity').notNull().default(1),
-    status: enums.preferenceStatusEnum('status').notNull().default('PENDING'),
-    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updatedAt', { withTimezone: true })
-      .notNull()
-      .$onUpdate(() => new Date()),
-  },
-  table => ({
-    StudentCoursePreference_studentId_idx: index('StudentCoursePreference_studentId_idx').on(
-      table.studentId
-    ),
-    StudentCoursePreference_tutorId_idx: index('StudentCoursePreference_tutorId_idx').on(
-      table.tutorId
-    ),
-    StudentCoursePreference_curriculumId_idx: index('StudentCoursePreference_curriculumId_idx').on(
-      table.curriculumId
-    ),
-    StudentCoursePreference_studentId_curriculumId_key: uniqueIndex(
-      'StudentCoursePreference_studentId_curriculumId_key'
-    ).on(table.studentId, table.curriculumId),
-    StudentCoursePreference_status_idx: index('StudentCoursePreference_status_idx').on(
-      table.status
-    ),
-  })
-)
-
-export const studentCoursePreferenceSlot = pgTable(
-  'StudentCoursePreferenceSlot',
-  {
-    id: text('id').primaryKey().notNull(),
-    preferenceId: text('preferenceId').notNull(),
-    dayOfWeek: text('dayOfWeek').notNull(),
-    startTime: text('startTime').notNull(),
-    endTime: text('endTime').notNull(),
-    slotType: enums.preferenceSlotTypeEnum('slotType').notNull(),
-    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
-  },
-  table => ({
-    StudentCoursePreferenceSlot_preferenceId_idx: index(
-      'StudentCoursePreferenceSlot_preferenceId_idx'
-    ).on(table.preferenceId),
-    StudentCoursePreferenceSlot_slotType_idx: index('StudentCoursePreferenceSlot_slotType_idx').on(
-      table.slotType
-    ),
-    StudentCoursePreferenceSlot_unique_key: uniqueIndex(
-      'StudentCoursePreferenceSlot_unique_key'
-    ).on(table.preferenceId, table.dayOfWeek, table.startTime, table.endTime, table.slotType),
-  })
-)
 
 export const courseBatch = pgTable(
   'CourseBatch',

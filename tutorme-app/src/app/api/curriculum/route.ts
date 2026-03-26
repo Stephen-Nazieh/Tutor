@@ -197,10 +197,10 @@ export const GET = withAuth(async (req, session) => {
         .select()
         .from(curriculumProgress)
         .where(
-          sql`${curriculumProgress.studentId} = ${session.user.id} AND ${curriculumProgress.curriculumId} IN ${inArray(
-            curriculumProgress.curriculumId,
-            curriculumIds
-          )}`
+          and(
+            eq(curriculumProgress.studentId, session.user.id),
+            inArray(curriculumProgress.curriculumId, curriculumIds)
+          )
         )
 
       const progressByCurriculumId = new Map<string, (typeof progressList)[number]>(
@@ -212,10 +212,10 @@ export const GET = withAuth(async (req, session) => {
         .select()
         .from(curriculumEnrollment)
         .where(
-          sql`${curriculumEnrollment.studentId} = ${session.user.id} AND ${curriculumEnrollment.curriculumId} IN ${inArray(
-            curriculumEnrollment.curriculumId,
-            curriculumIds
-          )}`
+          and(
+            eq(curriculumEnrollment.studentId, session.user.id),
+            inArray(curriculumEnrollment.curriculumId, curriculumIds)
+          )
         )
 
       const enrollmentByCurriculumId = new Map<string, (typeof enrollmentList)[number]>(
@@ -255,7 +255,9 @@ export const GET = withAuth(async (req, session) => {
             : undefined,
           enrollment: enrollment
             ? {
-                startDate: enrollment.startDate ? enrollment.startDate.toISOString() : null,
+                startDate: enrollment.startDate
+                  ? new Date(enrollment.startDate).toISOString()
+                  : null,
               }
             : undefined,
         }

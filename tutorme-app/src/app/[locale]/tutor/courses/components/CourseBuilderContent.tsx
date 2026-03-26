@@ -324,7 +324,7 @@ export function CourseBuilderContent({
 
   return (
     <div
-      className="flex min-h-screen w-full flex-col items-stretch bg-background text-foreground"
+      className="flex h-screen w-full flex-col items-stretch overflow-hidden bg-background text-foreground"
       style={themeStyle}
     >
       {/* Top Navigation Header - Course Builder centered at top */}

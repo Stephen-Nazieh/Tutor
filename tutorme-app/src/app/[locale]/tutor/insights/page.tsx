@@ -10,7 +10,7 @@ import { Loader2, Wrench } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSocket } from '@/hooks/use-socket'
 import type { LiveTask } from '@/lib/socket'
-import type { LiveStudent, EngagementMetrics } from '../live-class/types'
+import type { LiveStudent, EngagementMetrics } from '@/types/live-session'
 
 interface CourseSummary {
   id: string

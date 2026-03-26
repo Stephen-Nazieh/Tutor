@@ -72,18 +72,16 @@ export function PreferenceEnrollmentDialog({
   onOpenChange,
   curriculumId,
   curriculumName,
-  availabilitySlots,
+  availabilitySlots = [],
   onSubmitted,
 }: PreferenceEnrollmentDialogProps) {
-  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set())
-  const [sessionDensity, setSessionDensity] = useState(2)
+  const [startDate, setStartDate] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const isUnavailable = availabilitySlots.length === 0
 
   useEffect(() => {
     if (open) {
-      setSelectedKeys(new Set())
-      setSessionDensity(2)
+      setStartDate(new Date().toISOString().split('T')[0])
     }
   }, [open, curriculumId])
 
@@ -102,38 +100,17 @@ export function PreferenceEnrollmentDialog({
     return map
   }, [availabilitySlots])
 
-  const toggleSlot = (slot: ScheduleItem) => {
-    const key = `${slot.dayOfWeek}-${slot.startTime}-${slot.durationMinutes}`
-    setSelectedKeys(prev => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
-  }
-
-  const selectedSlots = useMemo(
-    () =>
-      availabilitySlots.filter(slot =>
-        selectedKeys.has(`${slot.dayOfWeek}-${slot.startTime}-${slot.durationMinutes}`)
-      ),
-    [availabilitySlots, selectedKeys]
-  )
-
   const handleSubmit = async () => {
-    if (isUnavailable) {
-      toast.error('Tutor availability has not been published yet.')
-      return
-    }
-    if (selectedSlots.length === 0) {
-      toast.error('Select at least one time slot.')
+    if (!startDate) {
+      toast.error('Select a start date.')
       return
     }
 
     setIsSubmitting(true)
     try {
       const csrf = await getCsrfToken()
-      const res = await fetch(`/api/curriculum/${curriculumId}/preferences`, {
+      // Call standard enrollment API
+      const res = await fetch(`/api/curriculum/${curriculumId}/enroll`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -141,25 +118,20 @@ export function PreferenceEnrollmentDialog({
         },
         credentials: 'include',
         body: JSON.stringify({
-          selectedSlots,
-          sessionDensity,
+          startDate: new Date(startDate).toISOString(),
         }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        toast.error(data?.error || 'Failed to save preferences.')
+        toast.error(data?.error || 'Failed to enroll.')
         return
       }
 
-      if (data.status === 'MATCHED') {
-        toast.success('You have been matched to a group for this course.')
-      } else {
-        toast.success('Preference submitted. We will notify you once a group is formed.')
-      }
+      toast.success('Successfully enrolled!')
       onOpenChange(false)
       onSubmitted?.()
     } catch {
-      toast.error('Failed to submit preferences.')
+      toast.error('Failed to enroll.')
     } finally {
       setIsSubmitting(false)
     }
@@ -167,69 +139,50 @@ export function PreferenceEnrollmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Sign up for {curriculumName}</DialogTitle>
           <DialogDescription>
-            Select the time slots that work for you and how many sessions you want per week.
+            Join this course by selecting your preferred start date.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
-          <div>
-            <h4 className="text-sm font-semibold text-gray-900">Weekly availability</h4>
-            <p className="text-xs text-gray-500">Select multiple time slots.</p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {DAY_ORDER.map(day => {
-              const slots = slotsByDay.get(day) ?? []
-              return (
-                <div key={day} className="rounded-lg border border-gray-200 p-3">
-                  <p className="text-sm font-medium text-gray-900">{day}</p>
-                  {slots.length === 0 ? (
-                    <p className="mt-2 text-xs text-gray-400">No slots</p>
-                  ) : (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {slots.map(slot => {
-                        const key = `${slot.dayOfWeek}-${slot.startTime}-${slot.durationMinutes}`
-                        const isSelected = selectedKeys.has(key)
-                        return (
-                          <button
-                            key={key}
-                            type="button"
-                            onClick={() => toggleSlot(slot)}
-                            className={cn(
-                              'rounded-full border px-3 py-1 text-xs transition',
-                              isSelected
-                                ? 'border-indigo-600 bg-indigo-600 text-white'
-                                : 'border-gray-200 text-gray-700 hover:border-indigo-300 hover:text-indigo-600'
-                            )}
-                            aria-pressed={isSelected}
-                          >
-                            {slotLabel(slot)}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+          <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
+            <h4 className="flex items-center gap-2 text-sm font-semibold text-blue-900">
+              Fixed Schedule
+            </h4>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {DAY_ORDER.filter(day => (slotsByDay.get(day)?.length ?? 0) > 0).map(day => {
+                const slots = slotsByDay.get(day) ?? []
+                return (
+                  <div key={day} className="flex flex-col gap-1">
+                    <p className="text-xs font-bold uppercase text-blue-800">{day}</p>
+                    {slots.map((slot, i) => (
+                      <p key={i} className="text-sm text-blue-700">
+                        {slotLabel(slot)}
+                      </p>
+                    ))}
+                  </div>
+                )
+              })}
+              {isUnavailable && (
+                <p className="col-span-2 text-sm text-gray-500 italic">No schedule published yet.</p>
+              )}
+            </div>
           </div>
 
           <div className="grid gap-2">
-            <label className="text-sm font-medium text-gray-900" htmlFor="sessionDensity">
-              Sessions per week
+            <label className="text-sm font-medium text-gray-900" htmlFor="startDate">
+              Select Start Date
             </label>
             <Input
-              id="sessionDensity"
-              type="number"
-              min={1}
-              max={7}
-              value={sessionDensity}
-              onChange={e => setSessionDensity(Number(e.target.value))}
-              className="w-32"
+              id="startDate"
+              type="date"
+              min={new Date().toISOString().split('T')[0]}
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+              className="max-w-xs"
             />
           </div>
 
@@ -237,8 +190,12 @@ export function PreferenceEnrollmentDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit} disabled={isSubmitting || isUnavailable}>
-              {isSubmitting ? 'Submitting...' : 'Submit preferences'}
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="bg-indigo-600 hover:bg-indigo-700"
+            >
+              {isSubmitting ? 'Enrolling...' : 'Confirm Enrollment'}
             </Button>
           </div>
         </div>

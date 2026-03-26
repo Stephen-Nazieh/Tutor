@@ -163,39 +163,11 @@ export default function InsightsLayout({ children }: { children: React.ReactNode
   }
 
   return (
-    <div className="flex h-screen flex-col">
-      {/* Header */}
-      <header className="flex items-center justify-between border-b bg-white px-4 py-3">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href={returnUrl}>
-              <ArrowLeft className="mr-1 h-4 w-4" />
-              Back
-            </Link>
-          </Button>
-          <h1 className="text-lg font-semibold">Insights & Course Builder</h1>
-          <span
-            className={cn(
-              'rounded-full px-2 py-0.5 text-xs',
-              isConnected ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-            )}
-          >
-            {isConnected ? 'Live' : 'Offline'}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button variant="default" size="sm" className="gap-2 bg-green-600 hover:bg-green-700">
-            <Rocket className="h-4 w-4" />
-            Deploy
-          </Button>
-        </div>
-      </header>
-
+    <div className="flex min-h-screen w-full flex-col">
       {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left - Course Builder */}
-        <div className="flex flex-1 overflow-hidden">{children}</div>
+      <div className="flex flex-1 w-full min-h-0">
+        {/* Course Builder */}
+        <div className="flex flex-1 w-full min-h-0">{children}</div>
       </div>
     </div>
   )

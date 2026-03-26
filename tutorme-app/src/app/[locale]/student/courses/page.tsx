@@ -89,8 +89,8 @@ export default function CurriculumPage() {
   const [curriculums, setCurriculums] = useState<Curriculum[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<
-    'all' | 'pending' | 'in-progress' | 'favorites' | 'completed'
-  >('all')
+    'mine' | 'pending' | 'completed' | 'favorites'
+  >('mine')
   const [selectedEnrollment, setSelectedEnrollment] = useState<Curriculum | null>(null)
   const [favoriteIds, setFavoriteIds] = useState<string[]>([])
 
@@ -140,7 +140,7 @@ export default function CurriculumPage() {
   const loadCurriculums = async () => {
     setIsLoading(true)
     try {
-      const res = await fetch(`/api/curriculum?filter=${activeTab}`)
+      const res = await fetch(`/api/curriculum?filter=all`)
       if (res.ok) {
         const data = await res.json()
         setCurriculums(data.curriculums)
@@ -152,27 +152,23 @@ export default function CurriculumPage() {
     }
   }
 
-  const filteredCurriculums = curriculums.filter(c => {
-    const now = new Date()
-    if (activeTab === 'favorites') return favoriteIds.includes(c.id)
-    if (activeTab === 'pending') {
-      return (
-        c.progress &&
-        !c.progress.isCompleted &&
-        c.enrollment?.startDate &&
-        new Date(c.enrollment.startDate) > now
-      )
-    }
-    if (activeTab === 'in-progress') {
-      return (
-        c.progress &&
-        !c.progress.isCompleted &&
-        (!c.enrollment?.startDate || new Date(c.enrollment.startDate) <= now)
-      )
-    }
-    if (activeTab === 'completed') return c.progress?.isCompleted
-    return true
-  })
+  const now = new Date()
+  const myCourses = curriculums.filter(c => c.enrollment || c.progress)
+  
+  const ongoing = myCourses.filter(c => 
+    (!c.progress || !c.progress.isCompleted) && 
+    (!c.enrollment?.startDate || new Date(c.enrollment.startDate) <= now)
+  )
+  
+  const upcoming = myCourses.filter(c => 
+    c.enrollment?.startDate && new Date(c.enrollment.startDate) > now
+  )
+  
+  const completed = myCourses.filter(c => c.progress?.isCompleted)
+  
+  const favorites = curriculums.filter(c => favoriteIds.includes(c.id))
+
+  const [detailCourse, setDetailCourse] = useState<Curriculum | null>(null)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -190,16 +186,16 @@ export default function CurriculumPage() {
           )}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Course catalog</h1>
+              <h1 className="text-2xl font-bold text-gray-900">My courses</h1>
               <p className="mt-1 text-gray-600">
-                Choose a course and start learning with AI tutoring
+                Track your progress and continue your learning journey
               </p>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-sm text-gray-500">Overall progress</p>
+                <p className="text-sm text-gray-500">Total enrolled</p>
                 <p className="text-2xl font-bold text-indigo-600">
-                  {curriculums.filter(c => c.progress).length} / {curriculums.length}
+                  {myCourses.length}
                 </p>
               </div>
               <div className="rounded-full bg-indigo-100 p-3">
@@ -210,218 +206,149 @@ export default function CurriculumPage() {
         </div>
       </header>
 
+      {/* Detail Modal */}
+      <Dialog open={!!detailCourse} onOpenChange={(open) => !open && setDetailCourse(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{detailCourse?.name}</DialogTitle>
+            <DialogDescription>{detailCourse?.description}</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <h4 className="mb-2 text-sm font-semibold">Weekly Schedule</h4>
+            {detailCourse?.availability?.slots && detailCourse.availability.slots.length > 0 ? (
+              <div className="space-y-2">
+                {detailCourse.availability.slots.map((slot, idx) => (
+                  <div key={idx} className="flex items-center justify-between rounded-lg border bg-gray-50 p-2 text-sm">
+                    <span className="font-medium">{slot.dayOfWeek}</span>
+                    <span>{slot.startTime} ({slot.durationMinutes} mins)</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">No fixed schedule for this course.</p>
+            )}
+          </div>
+          <CardFooter className="px-0 pb-0 pt-4">
+            <Button className="w-full" onClick={() => setDetailCourse(null)}>Close</Button>
+          </CardFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Tabs */}
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-6 flex flex-wrap gap-2">
-          <Button
-            variant={activeTab === 'all' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('all')}
+        <div className="mb-8 flex border-b border-gray-200 overflow-x-auto scrollbar-hide">
+          <button
+            className={cn(
+              'px-6 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap',
+              activeTab === 'mine' 
+                ? 'border-indigo-600 text-indigo-600' 
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            )}
+            onClick={() => setActiveTab('mine')}
           >
-            All courses
-          </Button>
-          <Button
-            variant={activeTab === 'pending' ? 'default' : 'outline'}
+            Ongoing ({ongoing.length})
+          </button>
+          <button
+            className={cn(
+              'px-6 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap',
+              activeTab === 'pending' 
+                ? 'border-indigo-600 text-indigo-600' 
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            )}
             onClick={() => setActiveTab('pending')}
           >
-            Pending
-          </Button>
-          <Button
-            variant={activeTab === 'in-progress' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('in-progress')}
-          >
-            In progress
-          </Button>
-          <Button
-            variant={activeTab === 'favorites' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('favorites')}
-          >
-            Favorites
-          </Button>
-          <Button
-            variant={activeTab === 'completed' ? 'default' : 'outline'}
+            Pending ({upcoming.length})
+          </button>
+          <button
+            className={cn(
+              'px-6 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap',
+              activeTab === 'completed' 
+                ? 'border-indigo-600 text-indigo-600' 
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            )}
             onClick={() => setActiveTab('completed')}
           >
-            Completed
-          </Button>
+            Completed ({completed.length})
+          </button>
+          <button
+            className={cn(
+              'px-6 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap',
+              activeTab === 'favorites' 
+                ? 'border-indigo-600 text-indigo-600' 
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            )}
+            onClick={() => setActiveTab('favorites')}
+          >
+            Favorites ({favorites.length})
+          </button>
         </div>
 
-        {/* Curriculum Grid */}
         {isLoading ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map(i => (
               <Card key={i} className="animate-pulse">
-                <CardHeader className="h-32 bg-gray-200" />
-                <CardContent className="space-y-3 pt-4">
-                  <div className="h-4 w-3/4 rounded bg-gray-200" />
-                  <div className="h-3 w-full rounded bg-gray-200" />
-                  <div className="h-3 w-1/2 rounded bg-gray-200" />
-                </CardContent>
+                <CardHeader className="h-48 bg-gray-200" />
               </Card>
             ))}
           </div>
-        ) : filteredCurriculums.length === 0 ? (
-          <div className="py-12 text-center">
-            <BookOpen className="mx-auto mb-4 h-16 w-16 text-gray-300" />
-            <h3 className="mb-2 text-lg font-medium text-gray-900">No courses</h3>
-            <p className="text-gray-600">
-              {activeTab === 'all'
-                ? 'No courses available yet.'
-                : activeTab === 'pending'
-                  ? "You don't have any upcoming courses."
-                  : activeTab === 'favorites'
-                    ? "You haven't favorited any courses yet."
-                    : activeTab === 'in-progress'
-                      ? "You haven't started any courses."
-                      : "You haven't completed any courses."}
-            </p>
-          </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredCurriculums.map(curriculum => {
-              const SubjectIcon = SUBJECT_ICONS[curriculum.subject] || SUBJECT_ICONS.default
-              const progress = curriculum.progress
-              const progressPercent = progress
-                ? Math.round((progress.lessonsCompleted / progress.totalLessons) * 100)
-                : 0
-
-              return (
-                <Card key={curriculum.id} className="transition-shadow hover:shadow-lg">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="rounded-lg bg-indigo-100 p-3">
-                        <SubjectIcon className="h-6 w-6 text-indigo-600" />
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <Badge
-                          variant="outline"
-                          className={
-                            DIFFICULTY_COLORS[curriculum.difficulty] || DIFFICULTY_COLORS.beginner
-                          }
-                        >
-                          {curriculum.difficulty === 'beginner' && 'Beginner'}
-                          {curriculum.difficulty === 'intermediate' && 'Intermediate'}
-                          {curriculum.difficulty === 'advanced' && 'Advanced'}
-                          {curriculum.difficulty === 'expert' && 'Expert'}
-                        </Badge>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => toggleFavorite(curriculum.id)}
-                          className="-mr-2 -mt-2 h-8 w-8 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
-                        >
-                          <Heart
-                            className={`h-4 w-4 ${favoriteIds.includes(curriculum.id) ? 'fill-current' : ''}`}
-                          />
-                        </Button>
-                      </div>
-                    </div>
-                    <CardTitle className="mt-4">{curriculum.name}</CardTitle>
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-600">
-                      {curriculum.gradeLevel && (
-                        <span className="font-medium text-gray-700">{curriculum.gradeLevel}</span>
-                      )}
-                      {curriculum._count.batches > 0 && (
-                        <span className="text-gray-500">
-                          {curriculum._count.batches} group
-                          {curriculum._count.batches !== 1 ? 's' : ''}
-                        </span>
-                      )}
-                    </div>
-                    <CardDescription className="mt-2 line-clamp-2">
-                      {curriculum.description || 'No description'}
-                    </CardDescription>
-                    <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span>
-                        {curriculum.availability?.summary
-                          ? curriculum.availability.summary
-                          : 'Schedule TBD'}
-                      </span>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <BookOpen className="h-4 w-4" />
-                        <span>{curriculum._count.modules} modules</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Target className="h-4 w-4" />
-                        <span>{curriculum._count.lessons} lessons</span>
-                      </div>
-                      {curriculum.hasOutline && curriculum.estimatedHours > 0 && (
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          <span>{curriculum.estimatedHours} hours</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {progress && (
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Progress</span>
-                          <span className="font-medium">{progressPercent}%</span>
-                        </div>
-                        <Progress value={progressPercent} className="h-2" />
-                        <p className="text-xs text-gray-500">
-                          Completed {progress.lessonsCompleted} / {progress.totalLessons} lessons
-                          {progress.averageScore && (
-                            <span className="ml-2">
-                              Avg score: {Math.round(progress.averageScore)}%
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-
-                  <CardFooter>
-                    {progress ? (
-                      <Link href={`/curriculum/${curriculum.id}`} className="w-full">
-                        <Button
-                          className="w-full"
-                          variant={progress.isCompleted ? 'outline' : 'default'}
-                        >
-                          {progress.isCompleted ? (
-                            <>
-                              <Trophy className="mr-2 h-4 w-4 text-yellow-500" />
-                              View results
-                            </>
-                          ) : progressPercent > 0 ? (
-                            <>
-                              <Play className="mr-2 h-4 w-4" />
-                              Continue
-                            </>
-                          ) : (
-                            <>
-                              <Play className="mr-2 h-4 w-4" />
-                              Start learning
-                            </>
-                          )}
-                        </Button>
-                      </Link>
-                    ) : isTutor ? (
-                      <Link href={`/tutor/courses/${curriculum.id}/builder`} className="w-full">
-                        <Button className="w-full" variant="outline">
-                          <ChevronRight className="mr-2 h-4 w-4" />
-                          Manage course
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Button
-                        className="w-full"
-                        variant="outline"
-                        onClick={() => setSelectedEnrollment(curriculum)}
-                      >
-                        Sign Up
-                      </Button>
-                    )}
-                  </CardFooter>
-                </Card>
-              )
-            })}
+          <div className="space-y-12">
+            {activeTab === 'mine' && (
+              <CourseSection 
+                title="Ongoing Courses" 
+                courses={ongoing} 
+                favoriteIds={favoriteIds} 
+                toggleFavorite={toggleFavorite} 
+                onDetails={setDetailCourse} 
+              />
+            )}
+            {activeTab === 'pending' && (
+              <CourseSection 
+                title="Pending Courses" 
+                courses={upcoming} 
+                favoriteIds={favoriteIds} 
+                toggleFavorite={toggleFavorite} 
+                onDetails={setDetailCourse} 
+              />
+            )}
+            {activeTab === 'completed' && (
+              <CourseSection 
+                title="Completed Courses" 
+                courses={completed} 
+                favoriteIds={favoriteIds} 
+                toggleFavorite={toggleFavorite} 
+                onDetails={setDetailCourse} 
+              />
+            )}
+            {activeTab === 'favorites' && (
+              <CourseSection 
+                title="Favorite Courses" 
+                courses={favorites} 
+                favoriteIds={favoriteIds} 
+                toggleFavorite={toggleFavorite} 
+                onDetails={setDetailCourse} 
+              />
+            )}
+            
+            {((activeTab === 'mine' && ongoing.length === 0) ||
+              (activeTab === 'pending' && upcoming.length === 0) ||
+              (activeTab === 'completed' && completed.length === 0) ||
+              (activeTab === 'favorites' && favorites.length === 0)) && (
+              <div className="py-20 text-center">
+                <BookOpen className="mx-auto mb-4 h-16 w-16 text-gray-300" />
+                <h3 className="mb-2 text-lg font-medium text-gray-900">
+                  No courses in this section
+                </h3>
+                <p className="mb-6 text-gray-600">
+                  {activeTab === 'favorites' 
+                    ? "You haven't added any favorites yet." 
+                    : "Enroll in courses from the catalog to start your journey."}
+                </p>
+                <Link href="/student/subjects">
+                  <Button variant="default">Browse Available Subjects</Button>
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -437,9 +364,156 @@ export default function CurriculumPage() {
           availabilitySlots={selectedEnrollment.availability?.slots ?? []}
           onSubmitted={() => {
             setSelectedEnrollment(null)
+            loadCurriculums()
           }}
         />
       )}
     </div>
+  )
+}
+
+function CourseSection({ 
+  title, 
+  courses, 
+  favoriteIds, 
+  toggleFavorite, 
+  onDetails 
+}: { 
+  title: string, 
+  courses: Curriculum[], 
+  favoriteIds: string[], 
+  toggleFavorite: (id: string) => void, 
+  onDetails: (c: Curriculum) => void 
+}) {
+  return (
+    <section>
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+        <Badge variant="outline">{courses.length} courses</Badge>
+      </div>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {courses.map(curriculum => (
+          <CourseCard 
+            key={curriculum.id} 
+            curriculum={curriculum} 
+            isFavorite={favoriteIds.includes(curriculum.id)}
+            onFavorite={() => toggleFavorite(curriculum.id)}
+            onDetails={() => onDetails(curriculum)}
+          />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function CourseCard({ 
+  curriculum, 
+  isFavorite, 
+  onFavorite, 
+  onDetails 
+}: { 
+  curriculum: Curriculum, 
+  isFavorite: boolean, 
+  onFavorite: () => void, 
+  onDetails: () => void 
+}) {
+  const SubjectIcon = SUBJECT_ICONS[curriculum.subject] || SUBJECT_ICONS.default
+  const progress = curriculum.progress
+  const progressPercent = progress
+    ? Math.round((progress.lessonsCompleted / progress.totalLessons) * 100)
+    : 0
+  const isPending = curriculum.enrollment?.startDate && new Date(curriculum.enrollment.startDate) > new Date()
+  const isOngoing = !isPending && (!progress || !progress.isCompleted)
+
+  return (
+    <Card className="flex h-full flex-col transition-shadow hover:shadow-lg cursor-pointer" onClick={onDetails}>
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <div className="rounded-lg bg-indigo-100 p-3">
+            <SubjectIcon className="h-6 w-6 text-indigo-600" />
+          </div>
+          <div className="flex items-start gap-2">
+            <Badge
+              variant="outline"
+              className={DIFFICULTY_COLORS[curriculum.difficulty] || DIFFICULTY_COLORS.beginner}
+            >
+              {curriculum.difficulty}
+            </Badge>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation()
+                onFavorite()
+              }}
+              className="-mr-2 -mt-2 h-8 w-8 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
+            >
+              <Heart className={cn("h-4 w-4", isFavorite && "fill-current")} />
+            </Button>
+          </div>
+        </div>
+        <CardTitle className="mt-4">{curriculum.name}</CardTitle>
+        <CardDescription className="mt-2 line-clamp-2">
+          {curriculum.description || 'No description available'}
+        </CardDescription>
+        <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+          <Clock className="h-3.5 w-3.5" />
+          <span>{curriculum.availability?.summary || 'Flexible Schedule'}</span>
+        </div>
+      </CardHeader>
+
+      <CardContent className="flex-1 space-y-4">
+        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+          <div className="flex items-center gap-1">
+            <BookOpen className="h-4 w-4" />
+            <span>{curriculum._count.modules} modules</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Target className="h-4 w-4" />
+            <span>{curriculum._count.lessons} lessons</span>
+          </div>
+        </div>
+
+        {progress && (
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Progress</span>
+              <span className="font-medium">{progressPercent}%</span>
+            </div>
+            <Progress value={progressPercent} className="h-2" />
+          </div>
+        )}
+        
+        {curriculum.enrollment?.startDate && (
+          <div className="rounded-md bg-blue-50 p-2 text-xs text-blue-700">
+            Commence{isPending ? 's' : 'd'} on: {new Date(curriculum.enrollment.startDate).toLocaleDateString()}
+          </div>
+        )}
+      </CardContent>
+
+      <CardFooter className="gap-2">
+        {(isOngoing || isPending) && (
+          <Link href={`/curriculum/${curriculum.id}`} className="flex-1" onClick={e => e.stopPropagation()}>
+            <Button className="w-full h-9" variant="default">
+              {progressPercent > 0 ? 'Continue' : 'Enter Classroom'}
+            </Button>
+          </Link>
+        )}
+        {progress?.isCompleted && (
+          <Link href={`/curriculum/${curriculum.id}`} className="flex-1" onClick={e => e.stopPropagation()}>
+            <Button className="w-full h-9" variant="outline">
+              <Trophy className="mr-2 h-4 w-4 text-yellow-500" />
+              View Results
+            </Button>
+          </Link>
+        )}
+        <Button variant="ghost" size="sm" className="h-9 px-3" onClick={e => {
+          e.stopPropagation()
+          onDetails()
+        }}>
+          Details
+        </Button>
+      </CardFooter>
+    </Card>
   )
 }

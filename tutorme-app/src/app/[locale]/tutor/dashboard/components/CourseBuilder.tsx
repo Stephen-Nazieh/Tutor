@@ -68,8 +68,8 @@ import { cn } from '@/lib/utils'
 import { extractTextFromFile } from '@/lib/extract-file-text'
 import { toast } from 'sonner'
 import type { LiveTask } from '@/lib/socket'
-import { AITeachingAssistant } from '../../live-class/components/AITeachingAssistant'
-import type { LiveStudent, EngagementMetrics } from '../../live-class/types'
+import { AITeachingAssistant } from '@/components/tutor/AITeachingAssistant'
+import type { LiveStudent, EngagementMetrics } from '@/types/live-session'
 
 import {
   Plus,
@@ -9376,8 +9376,8 @@ FEEDBACK: [your explanation]`
                                   metrics={insightsProps.metrics || null}
                                   classDuration={insightsProps.classDuration || 0}
                                   currentTopic={
-                                    insightsProps.sessions.find(
-                                      (s: InsightsSessionOption) => s.id === insightsProps.sessionId
+                                    ((insightsProps.sessions as any) || []).find(
+                                      (s: any) => s.id === insightsProps.sessionId
                                     )?.subject || 'Session Overview'
                                   }
                                 />
