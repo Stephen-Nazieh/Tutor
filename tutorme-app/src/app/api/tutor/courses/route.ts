@@ -7,44 +7,6 @@ import { eq } from 'drizzle-orm'
 import { CreateCurriculumSchema } from '@/lib/validation/schemas'
 import { ZodError } from 'zod'
 
-// Insert curriculum, automatically removing fields that don't exist in DB
-async function insertCurriculumSafely(
-  values: Record<string, unknown>
-): Promise<{ curriculum: typeof curriculumTable.$inferSelect; fieldsUsed: string[] }> {
-  let currentValues = { ...values }
-  const attemptedFields: string[] = []
-
-  while (true) {
-    try {
-      const [curriculum] = await drizzleDb
-        .insert(curriculumTable)
-        .values(currentValues as typeof curriculumTable.$inferInsert)
-        .returning()
-
-      console.log(`Curriculum inserted successfully using fields: ${Object.keys(currentValues).join(', ')}`)
-      return { curriculum, fieldsUsed: Object.keys(currentValues) }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error)
-
-      // Check if error is about a missing column
-      const columnMatch = errorMessage.match(/column "([^"]+)" of relation "Curriculum" does not exist/)
-      if (columnMatch) {
-        const missingColumn = columnMatch[1]
-        console.warn(`Column '${missingColumn}' does not exist, removing and retrying...`)
-
-        if (missingColumn in currentValues) {
-          attemptedFields.push(missingColumn)
-          const { [missingColumn]: _, ...rest } = currentValues
-          currentValues = rest
-          continue
-        }
-      }
-
-      // Re-throw if we can't handle it
-      throw error
-    }
-  }
-}
 
 export async function GET() {
   try {
@@ -103,8 +65,7 @@ export async function POST(req: NextRequest) {
     const userId = session.user.id
     const now = new Date()
 
-    // Build insert values with all possible fields
-    // The insertCurriculumSafely function will remove any that don't exist
+    // Build insert values
     const curriculumValues: Record<string, unknown> = {
       id: crypto.randomUUID(),
       name: data.title,
@@ -125,7 +86,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Insert curriculum first (outside transaction to handle column errors)
-    const { curriculum: newCurriculum, fieldsUsed } = await insertCurriculumSafely(curriculumValues)
+    const [newCurriculum] = await drizzleDb
+      .insert(curriculumTable)
+      .values(curriculumValues as typeof curriculumTable.$inferInsert)
+      .returning()
     console.log('Curriculum created:', newCurriculum.id)
 
     // Then create module and lesson in a transaction

@@ -85,6 +85,48 @@
       "when": 1773382709000,
       "tag": "0011_student_memory",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1773382710000,
+      "tag": "0012_preference_matching",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1773382711000,
+      "tag": "0013_course_free_flag",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1773382712000,
+      "tag": "0014_updated_at_defaults",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1773382713000,
+      "tag": "0015_course_columns_guard",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1773382714000,
+      "tag": "0016_fix_course_columns_prod",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1773382715000,
+      "tag": "0017_fix_curriculum_columns_permanent",
+      "breakpoints": true
     }
   ]
 }

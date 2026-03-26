@@ -15,40 +15,6 @@ import {
 } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
-// Insert curriculum, automatically removing fields that don't exist in DB
-async function insertCurriculumSafely(
-  values: Record<string, unknown>
-): Promise<typeof curriculum.$inferSelect> {
-  let currentValues = { ...values }
-
-  while (true) {
-    try {
-      const [result] = await drizzleDb
-        .insert(curriculum)
-        .values(currentValues as typeof curriculum.$inferInsert)
-        .returning()
-      return result
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error)
-
-      // Check if error is about a missing column
-      const columnMatch = errorMessage.match(/column "([^"]+)" of relation "Curriculum" does not exist/)
-      if (columnMatch) {
-        const missingColumn = columnMatch[1]
-        console.warn(`[enroll] Column '${missingColumn}' does not exist, removing and retrying...`)
-
-        if (missingColumn in currentValues) {
-          const { [missingColumn]: _, ...rest } = currentValues
-          currentValues = rest
-          continue
-        }
-      }
-
-      // Re-throw if we can't handle it
-      throw error
-    }
-  }
-}
 
 const subjectCurriculumMap: Record<string, { name: string; description: string }> = {
   english: {
@@ -148,7 +114,7 @@ export const POST = withCsrf(
         curriculumId = crypto.randomUUID()
         const now = new Date()
 
-        // Insert with automatic fallback for missing columns
+        // Insert with accurate schema defaults
         const curriculumValues: Record<string, unknown> = {
           id: curriculumId,
           name: subjectInfo.name,
@@ -163,7 +129,10 @@ export const POST = withCsrf(
           updatedAt: now,
         }
 
-        await insertCurriculumSafely(curriculumValues)
+        await drizzleDb
+          .insert(curriculum)
+          .values(curriculumValues as typeof curriculum.$inferInsert)
+          .returning()
         await createDefaultModules(curriculumId, subjectCode)
       }
 
