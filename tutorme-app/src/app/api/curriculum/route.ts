@@ -15,6 +15,7 @@ import {
   curriculumModule,
   curriculumLesson,
   courseBatch,
+  curriculumEnrollment,
 } from '@/lib/db/schema'
 import { eq, inArray, desc, sql } from 'drizzle-orm'
 
@@ -112,6 +113,9 @@ interface CurriculumResponse {
         isCompleted: boolean
       }
     | undefined
+  enrollment?: {
+    startDate: string | null
+  }
 }
 
 export const GET = withAuth(async (req, session) => {
@@ -203,9 +207,25 @@ export const GET = withAuth(async (req, session) => {
         progressList.map(p => [p.curriculumId, p])
       )
 
+      // 5.5 Fetch user enrollment
+      const enrollmentList = await drizzleDb
+        .select()
+        .from(curriculumEnrollment)
+        .where(
+          sql`${curriculumEnrollment.studentId} = ${session.user.id} AND ${curriculumEnrollment.curriculumId} IN ${inArray(
+            curriculumEnrollment.curriculumId,
+            curriculumIds
+          )}`
+        )
+
+      const enrollmentByCurriculumId = new Map<string, (typeof enrollmentList)[number]>(
+        enrollmentList.map(e => [e.curriculumId, e])
+      )
+
       // 6. Map everything together
       return curriculums.map((curr): CurriculumResponse => {
         const progress = progressByCurriculumId.get(curr.id)
+        const enrollment = enrollmentByCurriculumId.get(curr.id)
         const schedule = normalizeSchedule(curr.schedule)
         return {
           id: curr.id,
@@ -231,6 +251,11 @@ export const GET = withAuth(async (req, session) => {
                 totalLessons: progress.totalLessons,
                 averageScore: progress.averageScore,
                 isCompleted: progress.isCompleted,
+              }
+            : undefined,
+          enrollment: enrollment
+            ? {
+                startDate: enrollment.startDate,
               }
             : undefined,
         }

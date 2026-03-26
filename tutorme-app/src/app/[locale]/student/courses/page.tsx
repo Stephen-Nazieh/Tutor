@@ -36,6 +36,7 @@ import {
   FlaskConical,
   Globe,
   ArrowLeft,
+  Heart,
 } from 'lucide-react'
 
 interface Curriculum {
@@ -62,6 +63,9 @@ interface Curriculum {
     averageScore: number | null
     isCompleted: boolean
   }
+  enrollment?: {
+    startDate: string | null
+  }
 }
 
 const SUBJECT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -84,8 +88,48 @@ export default function CurriculumPage() {
   const isTutor = session?.user?.role === 'TUTOR'
   const [curriculums, setCurriculums] = useState<Curriculum[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'all' | 'in-progress' | 'completed'>('all')
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'in-progress' | 'favorites' | 'completed'>('all')
   const [selectedEnrollment, setSelectedEnrollment] = useState<Curriculum | null>(null)
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([])
+
+  const loadFavorites = () => {
+    try {
+      const saved = localStorage.getItem('tutorme-favorites')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        setFavoriteIds(parsed.courses || [])
+      }
+    } catch {
+      // Ignore
+    }
+  }
+
+  const toggleFavorite = (courseId: string) => {
+    try {
+      const saved = localStorage.getItem('tutorme-favorites')
+      let parsed = { courses: [] as string[] }
+      if (saved) {
+        parsed = JSON.parse(saved)
+      }
+      if (parsed.courses.includes(courseId)) {
+        parsed.courses = parsed.courses.filter(id => id !== courseId)
+      } else {
+        parsed.courses.push(courseId)
+      }
+      localStorage.setItem('tutorme-favorites', JSON.stringify(parsed))
+      setFavoriteIds(parsed.courses)
+      // Manually dispatch storage event to hit other tabs if needed, though state is updated locally!
+      window.dispatchEvent(new Event('storage'))
+    } catch {
+      // Ignore
+    }
+  }
+
+  useEffect(() => {
+    loadFavorites()
+    window.addEventListener('storage', loadFavorites)
+    return () => window.removeEventListener('storage', loadFavorites)
+  }, [])
 
   useEffect(() => {
     loadCurriculums()
@@ -107,7 +151,23 @@ export default function CurriculumPage() {
   }
 
   const filteredCurriculums = curriculums.filter(c => {
-    if (activeTab === 'in-progress') return c.progress && !c.progress.isCompleted
+    const now = new Date()
+    if (activeTab === 'favorites') return favoriteIds.includes(c.id)
+    if (activeTab === 'pending') {
+      return (
+        c.progress &&
+        !c.progress.isCompleted &&
+        c.enrollment?.startDate &&
+        new Date(c.enrollment.startDate) > now
+      )
+    }
+    if (activeTab === 'in-progress') {
+      return (
+        c.progress &&
+        !c.progress.isCompleted &&
+        (!c.enrollment?.startDate || new Date(c.enrollment.startDate) <= now)
+      )
+    }
     if (activeTab === 'completed') return c.progress?.isCompleted
     return true
   })
@@ -150,7 +210,7 @@ export default function CurriculumPage() {
 
       {/* Tabs */}
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-6 flex gap-2">
+        <div className="mb-6 flex flex-wrap gap-2">
           <Button
             variant={activeTab === 'all' ? 'default' : 'outline'}
             onClick={() => setActiveTab('all')}
@@ -158,10 +218,22 @@ export default function CurriculumPage() {
             All courses
           </Button>
           <Button
+            variant={activeTab === 'pending' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('pending')}
+          >
+            Pending
+          </Button>
+          <Button
             variant={activeTab === 'in-progress' ? 'default' : 'outline'}
             onClick={() => setActiveTab('in-progress')}
           >
             In progress
+          </Button>
+          <Button
+            variant={activeTab === 'favorites' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('favorites')}
+          >
+            Favorites
           </Button>
           <Button
             variant={activeTab === 'completed' ? 'default' : 'outline'}
@@ -192,9 +264,13 @@ export default function CurriculumPage() {
             <p className="text-gray-600">
               {activeTab === 'all'
                 ? 'No courses available yet.'
-                : activeTab === 'in-progress'
-                  ? "You haven't started any courses."
-                  : "You haven't completed any courses."}
+                : activeTab === 'pending'
+                  ? "You don't have any upcoming courses."
+                  : activeTab === 'favorites'
+                    ? "You haven't favorited any courses yet."
+                    : activeTab === 'in-progress'
+                      ? "You haven't started any courses."
+                      : "You haven't completed any courses."}
             </p>
           </div>
         ) : (
@@ -213,17 +289,29 @@ export default function CurriculumPage() {
                       <div className="rounded-lg bg-indigo-100 p-3">
                         <SubjectIcon className="h-6 w-6 text-indigo-600" />
                       </div>
-                      <Badge
-                        variant="outline"
-                        className={
-                          DIFFICULTY_COLORS[curriculum.difficulty] || DIFFICULTY_COLORS.beginner
-                        }
-                      >
-                        {curriculum.difficulty === 'beginner' && 'Beginner'}
-                        {curriculum.difficulty === 'intermediate' && 'Intermediate'}
-                        {curriculum.difficulty === 'advanced' && 'Advanced'}
-                        {curriculum.difficulty === 'expert' && 'Expert'}
-                      </Badge>
+                      <div className="flex items-start gap-2">
+                        <Badge
+                          variant="outline"
+                          className={
+                            DIFFICULTY_COLORS[curriculum.difficulty] || DIFFICULTY_COLORS.beginner
+                          }
+                        >
+                          {curriculum.difficulty === 'beginner' && 'Beginner'}
+                          {curriculum.difficulty === 'intermediate' && 'Intermediate'}
+                          {curriculum.difficulty === 'advanced' && 'Advanced'}
+                          {curriculum.difficulty === 'expert' && 'Expert'}
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => toggleFavorite(curriculum.id)}
+                          className="h-8 w-8 -mr-2 -mt-2 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
+                        >
+                          <Heart 
+                            className={`h-4 w-4 ${favoriteIds.includes(curriculum.id) ? 'fill-current' : ''}`} 
+                          />
+                        </Button>
+                      </div>
                     </div>
                     <CardTitle className="mt-4">{curriculum.name}</CardTitle>
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-600">
