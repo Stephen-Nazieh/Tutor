@@ -17,7 +17,7 @@ import {
   courseBatch,
   curriculumEnrollment,
 } from '@/lib/db/schema'
-import { eq, inArray, desc, sql } from 'drizzle-orm'
+import { eq, inArray, desc, sql, and } from 'drizzle-orm'
 
 const CURRICULUM_LIST_CACHE_TTL = 120 // 2 minutes
 

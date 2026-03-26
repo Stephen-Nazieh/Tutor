@@ -327,7 +327,6 @@ export const curriculumEnrollment = pgTable(
   })
 )
 
-
 export const courseBatch = pgTable(
   'CourseBatch',
   {

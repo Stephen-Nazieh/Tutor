@@ -9315,14 +9315,20 @@ FEEDBACK: [your explanation]`
                                 <div
                                   className={cn(
                                     'h-2 w-2 rounded-full',
-                                    insightsProps.isRecording ? 'animate-pulse bg-red-500' : 'bg-gray-300'
+                                    insightsProps.isRecording
+                                      ? 'animate-pulse bg-red-500'
+                                      : 'bg-gray-300'
                                   )}
                                 />
                                 <span className="text-xs font-medium text-gray-600">
                                   {insightsProps.isRecording ? (
                                     <>
                                       REC {Math.floor((insightsProps.recordingDuration ?? 0) / 60)}m{' '}
-                                      {String((insightsProps.recordingDuration ?? 0) % 60).padStart(2, '0')}s
+                                      {String((insightsProps.recordingDuration ?? 0) % 60).padStart(
+                                        2,
+                                        '0'
+                                      )}
+                                      s
                                     </>
                                   ) : (
                                     'Not Recording'
@@ -9335,7 +9341,12 @@ FEEDBACK: [your explanation]`
                                 className="h-8 gap-2 px-3 text-xs font-semibold shadow-sm"
                                 onClick={insightsProps.onToggleRecording}
                               >
-                                <Radio className={cn('h-3.5 w-3.5', insightsProps.isRecording && 'animate-pulse')} />
+                                <Radio
+                                  className={cn(
+                                    'h-3.5 w-3.5',
+                                    insightsProps.isRecording && 'animate-pulse'
+                                  )}
+                                />
                                 {insightsProps.isRecording ? 'Stop' : 'Record'}
                               </Button>
                             </div>

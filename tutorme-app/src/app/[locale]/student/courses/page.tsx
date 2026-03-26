@@ -37,7 +37,16 @@ import {
   Globe,
   ArrowLeft,
   Heart,
+  X,
 } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
 
 interface Curriculum {
   id: string
@@ -88,9 +97,7 @@ export default function CurriculumPage() {
   const isTutor = session?.user?.role === 'TUTOR'
   const [curriculums, setCurriculums] = useState<Curriculum[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<
-    'mine' | 'pending' | 'completed' | 'favorites'
-  >('mine')
+  const [activeTab, setActiveTab] = useState<'mine' | 'pending' | 'completed' | 'favorites'>('mine')
   const [selectedEnrollment, setSelectedEnrollment] = useState<Curriculum | null>(null)
   const [favoriteIds, setFavoriteIds] = useState<string[]>([])
 
@@ -154,18 +161,19 @@ export default function CurriculumPage() {
 
   const now = new Date()
   const myCourses = curriculums.filter(c => c.enrollment || c.progress)
-  
-  const ongoing = myCourses.filter(c => 
-    (!c.progress || !c.progress.isCompleted) && 
-    (!c.enrollment?.startDate || new Date(c.enrollment.startDate) <= now)
+
+  const ongoing = myCourses.filter(
+    c =>
+      (!c.progress || !c.progress.isCompleted) &&
+      (!c.enrollment?.startDate || new Date(c.enrollment.startDate) <= now)
   )
-  
-  const upcoming = myCourses.filter(c => 
-    c.enrollment?.startDate && new Date(c.enrollment.startDate) > now
+
+  const upcoming = myCourses.filter(
+    c => c.enrollment?.startDate && new Date(c.enrollment.startDate) > now
   )
-  
+
   const completed = myCourses.filter(c => c.progress?.isCompleted)
-  
+
   const favorites = curriculums.filter(c => favoriteIds.includes(c.id))
 
   const [detailCourse, setDetailCourse] = useState<Curriculum | null>(null)
@@ -194,9 +202,7 @@ export default function CurriculumPage() {
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-sm text-gray-500">Total enrolled</p>
-                <p className="text-2xl font-bold text-indigo-600">
-                  {myCourses.length}
-                </p>
+                <p className="text-2xl font-bold text-indigo-600">{myCourses.length}</p>
               </div>
               <div className="rounded-full bg-indigo-100 p-3">
                 <GraduationCap className="h-6 w-6 text-indigo-600" />
@@ -207,7 +213,7 @@ export default function CurriculumPage() {
       </header>
 
       {/* Detail Modal */}
-      <Dialog open={!!detailCourse} onOpenChange={(open) => !open && setDetailCourse(null)}>
+      <Dialog open={!!detailCourse} onOpenChange={open => !open && setDetailCourse(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{detailCourse?.name}</DialogTitle>
@@ -218,9 +224,14 @@ export default function CurriculumPage() {
             {detailCourse?.availability?.slots && detailCourse.availability.slots.length > 0 ? (
               <div className="space-y-2">
                 {detailCourse.availability.slots.map((slot, idx) => (
-                  <div key={idx} className="flex items-center justify-between rounded-lg border bg-gray-50 p-2 text-sm">
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between rounded-lg border bg-gray-50 p-2 text-sm"
+                  >
                     <span className="font-medium">{slot.dayOfWeek}</span>
-                    <span>{slot.startTime} ({slot.durationMinutes} mins)</span>
+                    <span>
+                      {slot.startTime} ({slot.durationMinutes} mins)
+                    </span>
                   </div>
                 ))}
               </div>
@@ -229,19 +240,21 @@ export default function CurriculumPage() {
             )}
           </div>
           <CardFooter className="px-0 pb-0 pt-4">
-            <Button className="w-full" onClick={() => setDetailCourse(null)}>Close</Button>
+            <Button className="w-full" onClick={() => setDetailCourse(null)}>
+              Close
+            </Button>
           </CardFooter>
         </DialogContent>
       </Dialog>
 
       {/* Tabs */}
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-8 flex border-b border-gray-200 overflow-x-auto scrollbar-hide">
+        <div className="scrollbar-hide mb-8 flex overflow-x-auto border-b border-gray-200">
           <button
             className={cn(
-              'px-6 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap',
-              activeTab === 'mine' 
-                ? 'border-indigo-600 text-indigo-600' 
+              'whitespace-nowrap border-b-2 px-6 py-3 text-sm font-medium transition-colors',
+              activeTab === 'mine'
+                ? 'border-indigo-600 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             )}
             onClick={() => setActiveTab('mine')}
@@ -250,9 +263,9 @@ export default function CurriculumPage() {
           </button>
           <button
             className={cn(
-              'px-6 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap',
-              activeTab === 'pending' 
-                ? 'border-indigo-600 text-indigo-600' 
+              'whitespace-nowrap border-b-2 px-6 py-3 text-sm font-medium transition-colors',
+              activeTab === 'pending'
+                ? 'border-indigo-600 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             )}
             onClick={() => setActiveTab('pending')}
@@ -261,9 +274,9 @@ export default function CurriculumPage() {
           </button>
           <button
             className={cn(
-              'px-6 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap',
-              activeTab === 'completed' 
-                ? 'border-indigo-600 text-indigo-600' 
+              'whitespace-nowrap border-b-2 px-6 py-3 text-sm font-medium transition-colors',
+              activeTab === 'completed'
+                ? 'border-indigo-600 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             )}
             onClick={() => setActiveTab('completed')}
@@ -272,9 +285,9 @@ export default function CurriculumPage() {
           </button>
           <button
             className={cn(
-              'px-6 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap',
-              activeTab === 'favorites' 
-                ? 'border-indigo-600 text-indigo-600' 
+              'whitespace-nowrap border-b-2 px-6 py-3 text-sm font-medium transition-colors',
+              activeTab === 'favorites'
+                ? 'border-indigo-600 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             )}
             onClick={() => setActiveTab('favorites')}
@@ -294,42 +307,42 @@ export default function CurriculumPage() {
         ) : (
           <div className="space-y-12">
             {activeTab === 'mine' && (
-              <CourseSection 
-                title="Ongoing Courses" 
-                courses={ongoing} 
-                favoriteIds={favoriteIds} 
-                toggleFavorite={toggleFavorite} 
-                onDetails={setDetailCourse} 
+              <CourseSection
+                title="Ongoing Courses"
+                courses={ongoing}
+                favoriteIds={favoriteIds}
+                toggleFavorite={toggleFavorite}
+                onDetails={setDetailCourse}
               />
             )}
             {activeTab === 'pending' && (
-              <CourseSection 
-                title="Pending Courses" 
-                courses={upcoming} 
-                favoriteIds={favoriteIds} 
-                toggleFavorite={toggleFavorite} 
-                onDetails={setDetailCourse} 
+              <CourseSection
+                title="Pending Courses"
+                courses={upcoming}
+                favoriteIds={favoriteIds}
+                toggleFavorite={toggleFavorite}
+                onDetails={setDetailCourse}
               />
             )}
             {activeTab === 'completed' && (
-              <CourseSection 
-                title="Completed Courses" 
-                courses={completed} 
-                favoriteIds={favoriteIds} 
-                toggleFavorite={toggleFavorite} 
-                onDetails={setDetailCourse} 
+              <CourseSection
+                title="Completed Courses"
+                courses={completed}
+                favoriteIds={favoriteIds}
+                toggleFavorite={toggleFavorite}
+                onDetails={setDetailCourse}
               />
             )}
             {activeTab === 'favorites' && (
-              <CourseSection 
-                title="Favorite Courses" 
-                courses={favorites} 
-                favoriteIds={favoriteIds} 
-                toggleFavorite={toggleFavorite} 
-                onDetails={setDetailCourse} 
+              <CourseSection
+                title="Favorite Courses"
+                courses={favorites}
+                favoriteIds={favoriteIds}
+                toggleFavorite={toggleFavorite}
+                onDetails={setDetailCourse}
               />
             )}
-            
+
             {((activeTab === 'mine' && ongoing.length === 0) ||
               (activeTab === 'pending' && upcoming.length === 0) ||
               (activeTab === 'completed' && completed.length === 0) ||
@@ -340,9 +353,9 @@ export default function CurriculumPage() {
                   No courses in this section
                 </h3>
                 <p className="mb-6 text-gray-600">
-                  {activeTab === 'favorites' 
-                    ? "You haven't added any favorites yet." 
-                    : "Enroll in courses from the catalog to start your journey."}
+                  {activeTab === 'favorites'
+                    ? "You haven't added any favorites yet."
+                    : 'Enroll in courses from the catalog to start your journey.'}
                 </p>
                 <Link href="/student/subjects">
                   <Button variant="default">Browse Available Subjects</Button>
@@ -372,18 +385,18 @@ export default function CurriculumPage() {
   )
 }
 
-function CourseSection({ 
-  title, 
-  courses, 
-  favoriteIds, 
-  toggleFavorite, 
-  onDetails 
-}: { 
-  title: string, 
-  courses: Curriculum[], 
-  favoriteIds: string[], 
-  toggleFavorite: (id: string) => void, 
-  onDetails: (c: Curriculum) => void 
+function CourseSection({
+  title,
+  courses,
+  favoriteIds,
+  toggleFavorite,
+  onDetails,
+}: {
+  title: string
+  courses: Curriculum[]
+  favoriteIds: string[]
+  toggleFavorite: (id: string) => void
+  onDetails: (c: Curriculum) => void
 }) {
   return (
     <section>
@@ -393,9 +406,9 @@ function CourseSection({
       </div>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {courses.map(curriculum => (
-          <CourseCard 
-            key={curriculum.id} 
-            curriculum={curriculum} 
+          <CourseCard
+            key={curriculum.id}
+            curriculum={curriculum}
             isFavorite={favoriteIds.includes(curriculum.id)}
             onFavorite={() => toggleFavorite(curriculum.id)}
             onDetails={() => onDetails(curriculum)}
@@ -406,27 +419,31 @@ function CourseSection({
   )
 }
 
-function CourseCard({ 
-  curriculum, 
-  isFavorite, 
-  onFavorite, 
-  onDetails 
-}: { 
-  curriculum: Curriculum, 
-  isFavorite: boolean, 
-  onFavorite: () => void, 
-  onDetails: () => void 
+function CourseCard({
+  curriculum,
+  isFavorite,
+  onFavorite,
+  onDetails,
+}: {
+  curriculum: Curriculum
+  isFavorite: boolean
+  onFavorite: () => void
+  onDetails: () => void
 }) {
   const SubjectIcon = SUBJECT_ICONS[curriculum.subject] || SUBJECT_ICONS.default
   const progress = curriculum.progress
   const progressPercent = progress
     ? Math.round((progress.lessonsCompleted / progress.totalLessons) * 100)
     : 0
-  const isPending = curriculum.enrollment?.startDate && new Date(curriculum.enrollment.startDate) > new Date()
+  const isPending =
+    curriculum.enrollment?.startDate && new Date(curriculum.enrollment.startDate) > new Date()
   const isOngoing = !isPending && (!progress || !progress.isCompleted)
 
   return (
-    <Card className="flex h-full flex-col transition-shadow hover:shadow-lg cursor-pointer" onClick={onDetails}>
+    <Card
+      className="flex h-full cursor-pointer flex-col transition-shadow hover:shadow-lg"
+      onClick={onDetails}
+    >
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="rounded-lg bg-indigo-100 p-3">
@@ -442,13 +459,13 @@ function CourseCard({
             <Button
               variant="ghost"
               size="icon"
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation()
                 onFavorite()
               }}
               className="-mr-2 -mt-2 h-8 w-8 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
             >
-              <Heart className={cn("h-4 w-4", isFavorite && "fill-current")} />
+              <Heart className={cn('h-4 w-4', isFavorite && 'fill-current')} />
             </Button>
           </div>
         </div>
@@ -483,34 +500,48 @@ function CourseCard({
             <Progress value={progressPercent} className="h-2" />
           </div>
         )}
-        
+
         {curriculum.enrollment?.startDate && (
           <div className="rounded-md bg-blue-50 p-2 text-xs text-blue-700">
-            Commence{isPending ? 's' : 'd'} on: {new Date(curriculum.enrollment.startDate).toLocaleDateString()}
+            Commence{isPending ? 's' : 'd'} on:{' '}
+            {new Date(curriculum.enrollment.startDate).toLocaleDateString()}
           </div>
         )}
       </CardContent>
 
       <CardFooter className="gap-2">
         {(isOngoing || isPending) && (
-          <Link href={`/curriculum/${curriculum.id}`} className="flex-1" onClick={e => e.stopPropagation()}>
-            <Button className="w-full h-9" variant="default">
+          <Link
+            href={`/curriculum/${curriculum.id}`}
+            className="flex-1"
+            onClick={e => e.stopPropagation()}
+          >
+            <Button className="h-9 w-full" variant="default">
               {progressPercent > 0 ? 'Continue' : 'Enter Classroom'}
             </Button>
           </Link>
         )}
         {progress?.isCompleted && (
-          <Link href={`/curriculum/${curriculum.id}`} className="flex-1" onClick={e => e.stopPropagation()}>
-            <Button className="w-full h-9" variant="outline">
+          <Link
+            href={`/curriculum/${curriculum.id}`}
+            className="flex-1"
+            onClick={e => e.stopPropagation()}
+          >
+            <Button className="h-9 w-full" variant="outline">
               <Trophy className="mr-2 h-4 w-4 text-yellow-500" />
               View Results
             </Button>
           </Link>
         )}
-        <Button variant="ghost" size="sm" className="h-9 px-3" onClick={e => {
-          e.stopPropagation()
-          onDetails()
-        }}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-9 px-3"
+          onClick={e => {
+            e.stopPropagation()
+            onDetails()
+          }}
+        >
           Details
         </Button>
       </CardFooter>

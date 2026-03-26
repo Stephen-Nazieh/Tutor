@@ -167,7 +167,9 @@ export function PreferenceEnrollmentDialog({
                 )
               })}
               {isUnavailable && (
-                <p className="col-span-2 text-sm text-gray-500 italic">No schedule published yet.</p>
+                <p className="col-span-2 text-sm italic text-gray-500">
+                  No schedule published yet.
+                </p>
               )}
             </div>
           </div>

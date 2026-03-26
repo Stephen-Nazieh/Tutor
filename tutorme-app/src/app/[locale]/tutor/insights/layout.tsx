@@ -165,9 +165,9 @@ export default function InsightsLayout({ children }: { children: React.ReactNode
   return (
     <div className="flex min-h-screen w-full flex-col">
       {/* Main Content */}
-      <div className="flex flex-1 w-full min-h-0">
+      <div className="flex min-h-0 w-full flex-1">
         {/* Course Builder */}
-        <div className="flex flex-1 w-full min-h-0">{children}</div>
+        <div className="flex min-h-0 w-full flex-1">{children}</div>
       </div>
     </div>
   )
