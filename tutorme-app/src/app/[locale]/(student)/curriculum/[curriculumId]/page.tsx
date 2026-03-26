@@ -181,7 +181,7 @@ export default function CurriculumDetailPage() {
   const loadCurriculum = async () => {
     setIsLoading(true)
     try {
-      const res = await fetch(`/api/curriculum/${curriculumId}`)
+      const res = await fetch(`/api/curriculum/${curriculumId}`, { credentials: 'include' })
       if (res.ok) {
         const data = await res.json()
         // Enrich with mock data for now

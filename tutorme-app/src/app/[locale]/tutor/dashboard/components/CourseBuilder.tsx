@@ -58,6 +58,12 @@ import { Switch } from '@/components/ui/switch'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { extractTextFromFile } from '@/lib/extract-file-text'
 import { toast } from 'sonner'
@@ -7829,7 +7835,7 @@ FEEDBACK: [your explanation]`
                 }}
               />
               <span className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700">
-                <Upload className="h-3 w-3" /> Import Asset
+                <Upload className="h-3 w-3" /> Upload Asset
               </span>
             </label>
           </div>
@@ -8304,30 +8310,7 @@ FEEDBACK: [your explanation]`
                                         </span>
                                       </span>
                                       <span className="text-blue-400">:</span>
-                                      <div className="group/tooltip-desc relative min-w-0 flex-1">
-                                        <Input
-                                          placeholder="Add description..."
-                                          value={module.description ?? ''}
-                                          onChange={e =>
-                                            setModules(prev =>
-                                              prev.map(m =>
-                                                m.id !== module.id
-                                                  ? m
-                                                  : { ...m, description: e.target.value }
-                                              )
-                                            )
-                                          }
-                                          className="h-6 w-full border-blue-200 bg-white/50 text-xs"
-                                          onClick={e => e.stopPropagation()}
-                                        />
-                                        {/* Custom Tooltip for Description */}
-                                        {module.description && (
-                                          <span className="absolute -top-8 left-0 z-50 hidden max-w-xs truncate whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white group-hover/tooltip-desc:block">
-                                            {module.description}
-                                            <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
-                                          </span>
-                                        )}
-                                      </div>
+                                      <div className="flex-1" />
                                       <Badge
                                         variant="secondary"
                                         className="h-4 shrink-0 text-[10px]"
@@ -8352,15 +8335,15 @@ FEEDBACK: [your explanation]`
                                       <div className="mt-1 space-y-1">
                                         {/* Tasks - droppable so homework can be moved here */}
                                         <TreeItem depth={2} isLast={false}>
-                                          <DroppableTaskZone
+                                        <DroppableTaskZone
                                             moduleId={module.id}
                                             lessonId={primaryLesson.id}
-                                            className="flex items-center gap-1.5 rounded border border-dashed border-orange-300 bg-orange-50/50 px-2 py-1"
+                                            className="flex items-center gap-1.5 rounded-lg border-b-4 border-orange-600 bg-gradient-to-r from-orange-400 to-orange-500 px-3 py-2 shadow-md transition-all active:translate-y-1 active:border-b-0"
                                           >
                                             <Button
                                               variant="ghost"
                                               size="icon"
-                                              className="h-5 w-5"
+                                              className="h-5 w-5 hover:bg-white/20"
                                               onClick={() => toggleSection(module.id, 'task')}
                                               aria-label={
                                                 isSectionCollapsed(module.id, 'task')
@@ -8369,18 +8352,18 @@ FEEDBACK: [your explanation]`
                                               }
                                             >
                                               {isSectionCollapsed(module.id, 'task') ? (
-                                                <ChevronRight className="h-3 w-3 text-orange-600" />
+                                                <ChevronRight className="h-4 w-4 text-white" />
                                               ) : (
-                                                <ChevronDown className="h-3 w-3 text-orange-600" />
+                                                <ChevronDown className="h-4 w-4 text-white" />
                                               )}
                                             </Button>
-                                            <span className="text-[10px] font-semibold text-orange-700">
+                                            <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
                                               Tasks
                                             </span>
                                             <Button
-                                              variant="ghost"
+                                              variant="secondary"
                                               size="sm"
-                                              className="ml-auto h-6 gap-1 px-2 text-[10px] text-orange-600 hover:bg-orange-100"
+                                              className="ml-auto h-6 gap-1 px-2 text-[10px] font-bold text-orange-600 shadow-sm hover:bg-orange-50"
                                               onClick={() => addTask(module.id, primaryLesson.id)}
                                             >
                                               <Plus className="h-3 w-3" />
@@ -8485,106 +8468,68 @@ FEEDBACK: [your explanation]`
                                                       <span className="shrink-0 text-[10px] font-semibold text-orange-700">
                                                         {idx + 1}. {task.title}:
                                                       </span>
-                                                      <div className="group/tooltip-desc relative min-w-0 flex-1">
-                                                        <Input
-                                                          placeholder="Description"
-                                                          value={task.shortDescription ?? ''}
-                                                          onChange={e => {
-                                                            e.stopPropagation()
-                                                            setModules(prev =>
-                                                              prev.map(m =>
-                                                                m.id !== module.id
-                                                                  ? m
-                                                                  : {
-                                                                      ...m,
-                                                                      lessons: m.lessons.map(les =>
-                                                                        les.id !== primaryLesson.id
-                                                                          ? les
-                                                                          : {
-                                                                              ...les,
-                                                                              tasks: les.tasks.map(
-                                                                                t =>
-                                                                                  t.id !== task.id
-                                                                                    ? t
-                                                                                    : {
-                                                                                        ...t,
-                                                                                        shortDescription:
-                                                                                          e.target
-                                                                                            .value,
-                                                                                      }
-                                                                              ),
-                                                                            }
-                                                                      ),
-                                                                    }
+                                                      <div className="flex-1" />
+                                                      <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                          <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                                            onClick={e => e.stopPropagation()}
+                                                          >
+                                                            <MoreVertical className="h-3 w-3 text-slate-500" />
+                                                          </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                          {!lessonBankMode && (
+                                                            <>
+                                                              <DropdownMenuItem
+                                                                onClick={e => {
+                                                                  e.stopPropagation()
+                                                                  moveToHomework(
+                                                                    module.id,
+                                                                    primaryLesson.id,
+                                                                    'task',
+                                                                    task
+                                                                  )
+                                                                }}
+                                                              >
+                                                                Move to homework
+                                                              </DropdownMenuItem>
+                                                              <DropdownMenuItem
+                                                                onClick={e => {
+                                                                  e.stopPropagation()
+                                                                  setEditingData(task)
+                                                                  setActiveModal({
+                                                                    type: 'task',
+                                                                    isOpen: true,
+                                                                    moduleId: module.id,
+                                                                    lessonId: primaryLesson.id,
+                                                                    itemId: task.id,
+                                                                  })
+                                                                }}
+                                                              >
+                                                                Edit
+                                                              </DropdownMenuItem>
+                                                            </>
+                                                          )}
+                                                          <DropdownMenuItem
+                                                            className="text-red-500"
+                                                            onClick={e => {
+                                                              e.stopPropagation()
+                                                              if (!confirm(`Delete "${task.title}"?`))
+                                                                return
+                                                              deleteTask(
+                                                                module.id,
+                                                                primaryLesson.id,
+                                                                task.id
                                                               )
-                                                            )
-                                                          }}
-                                                          onClick={e => e.stopPropagation()}
-                                                          className="h-6 w-full border-orange-200 text-[10px]"
-                                                        />
-                                                        {/* Tooltip for Description */}
-                                                        {task.shortDescription && (
-                                                          <span className="absolute -top-8 left-0 z-50 hidden max-w-xs truncate whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white group-hover/tooltip-desc:block">
-                                                            {task.shortDescription}
-                                                            <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
-                                                          </span>
-                                                        )}
-                                                      </div>
-                                                      {!lessonBankMode && (
-                                                        <Button
-                                                          variant="ghost"
-                                                          size="sm"
-                                                          className="h-5 shrink-0 gap-1 px-1 text-[10px] text-emerald-700 opacity-0 group-hover/item:opacity-100"
-                                                          onClick={(e: any) => {
-                                                            e.stopPropagation()
-                                                            moveToHomework(
-                                                              module.id,
-                                                              primaryLesson.id,
-                                                              'task',
-                                                              task
-                                                            )
-                                                          }}
-                                                        >
-                                                          Move to homework
-                                                        </Button>
-                                                      )}
-                                                      {!lessonBankMode && (
-                                                        <Button
-                                                          variant="ghost"
-                                                          size="sm"
-                                                          className="h-5 gap-1 px-1 text-[10px] opacity-0 group-hover/item:opacity-100"
-                                                          onClick={(e: any) => {
-                                                            e.stopPropagation()
-                                                            setEditingData(task)
-                                                            setActiveModal({
-                                                              type: 'task',
-                                                              isOpen: true,
-                                                              moduleId: module.id,
-                                                              lessonId: primaryLesson.id,
-                                                              itemId: task.id,
-                                                            })
-                                                          }}
-                                                        >
-                                                          Edit
-                                                        </Button>
-                                                      )}
-                                                      <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                                        onClick={(e: any) => {
-                                                          e.stopPropagation()
-                                                          if (!confirm(`Delete "${task.title}"?`))
-                                                            return
-                                                          deleteTask(
-                                                            module.id,
-                                                            primaryLesson.id,
-                                                            task.id
-                                                          )
-                                                        }}
-                                                      >
-                                                        <Trash2 className="h-3 w-3 text-red-500" />
-                                                      </Button>
+                                                            }}
+                                                          >
+                                                            Delete
+                                                          </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                      </DropdownMenu>
                                                     </div>
                                                   </SortableTreeItem>
                                                   {loadedTaskId === task.id &&
@@ -8747,12 +8692,12 @@ FEEDBACK: [your explanation]`
                                           <DroppableAssessmentZone
                                             moduleId={module.id}
                                             lessonId={primaryLesson.id}
-                                            className="flex items-center gap-1.5 rounded border border-dashed border-purple-300 bg-purple-50/50 px-2 py-1"
+                                            className="flex items-center gap-1.5 rounded-lg border-b-4 border-purple-600 bg-gradient-to-r from-purple-400 to-purple-500 px-3 py-2 shadow-md transition-all active:translate-y-1 active:border-b-0"
                                           >
                                             <Button
                                               variant="ghost"
                                               size="icon"
-                                              className="h-5 w-5"
+                                              className="h-5 w-5 hover:bg-white/20"
                                               onClick={() => toggleSection(module.id, 'assessment')}
                                               aria-label={
                                                 isSectionCollapsed(module.id, 'assessment')
@@ -8761,18 +8706,18 @@ FEEDBACK: [your explanation]`
                                               }
                                             >
                                               {isSectionCollapsed(module.id, 'assessment') ? (
-                                                <ChevronRight className="h-3 w-3 text-purple-600" />
+                                                <ChevronRight className="h-4 w-4 text-white" />
                                               ) : (
-                                                <ChevronDown className="h-3 w-3 text-purple-600" />
+                                                <ChevronDown className="h-4 w-4 text-white" />
                                               )}
                                             </Button>
-                                            <span className="text-[10px] font-semibold text-purple-700">
+                                            <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
                                               Assessments
                                             </span>
                                             <Button
-                                              variant="ghost"
+                                              variant="secondary"
                                               size="sm"
-                                              className="ml-auto h-6 gap-1 px-2 text-[10px] text-purple-600 hover:bg-purple-100"
+                                              className="ml-auto h-6 gap-1 px-2 text-[10px] font-bold text-purple-600 shadow-sm hover:bg-purple-50"
                                               onClick={() =>
                                                 addAssessment(module.id, primaryLesson.id)
                                               }
@@ -8876,107 +8821,69 @@ FEEDBACK: [your explanation]`
                                                     <span className="shrink-0 text-[10px] font-semibold text-purple-700">
                                                       {idx + 1}. {hw.title}:
                                                     </span>
-                                                    <div className="group/tooltip-desc relative min-w-0 flex-1">
-                                                      <Input
-                                                        placeholder="Description"
-                                                        value={hw.description ?? ''}
-                                                        onChange={e => {
-                                                          e.stopPropagation()
-                                                          setModules(prev =>
-                                                            prev.map(m =>
-                                                              m.id !== module.id
-                                                                ? m
-                                                                : {
-                                                                    ...m,
-                                                                    lessons: m.lessons.map(les =>
-                                                                      les.id !== primaryLesson.id
-                                                                        ? les
-                                                                        : {
-                                                                            ...les,
-                                                                            homework:
-                                                                              les.homework.map(h =>
-                                                                                h.id !== hw.id
-                                                                                  ? h
-                                                                                  : {
-                                                                                      ...h,
-                                                                                      description:
-                                                                                        e.target
-                                                                                          .value,
-                                                                                    }
-                                                                              ),
-                                                                          }
-                                                                    ),
-                                                                  }
-                                                            )
-                                                          )
-                                                        }}
-                                                        onClick={e => e.stopPropagation()}
-                                                        className="h-6 w-full border-purple-200 text-[10px]"
-                                                      />
-                                                      {/* Tooltip for Description */}
-                                                      {hw.description && (
-                                                        <span className="absolute -top-8 left-0 z-50 hidden max-w-xs truncate whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white group-hover/tooltip-desc:block">
-                                                          {hw.description}
-                                                          <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
-                                                        </span>
-                                                      )}
-                                                    </div>
+                                                    <div className="flex-1" />
 
-                                                    {!lessonBankMode && (
-                                                      <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-5 shrink-0 gap-1 px-1 text-[10px] text-emerald-700 opacity-0 group-hover/item:opacity-100"
-                                                        onClick={(e: any) => {
-                                                          e.stopPropagation()
-                                                          moveToHomework(
-                                                            module.id,
-                                                            primaryLesson.id,
-                                                            'assessment',
-                                                            hw
-                                                          )
-                                                        }}
-                                                      >
-                                                        Move to homework
-                                                      </Button>
-                                                    )}
-                                                    {!lessonBankMode && (
-                                                      <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-5 gap-1 px-1 text-[10px] opacity-0 group-hover/item:opacity-100"
-                                                        onClick={(e: any) => {
-                                                          e.stopPropagation()
-                                                          setEditingData(hw)
-                                                          setActiveModal({
-                                                            type: 'homework',
-                                                            isOpen: true,
-                                                            moduleId: module.id,
-                                                            lessonId: primaryLesson.id,
-                                                            itemId: hw.id,
-                                                          })
-                                                        }}
-                                                      >
-                                                        Edit
-                                                      </Button>
-                                                    )}
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="icon"
-                                                      className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                                      onClick={(e: any) => {
-                                                        e.stopPropagation()
-                                                        if (!confirm(`Delete "${hw.title}"?`))
-                                                          return
-                                                        deleteAssessment(
-                                                          module.id,
-                                                          primaryLesson.id,
-                                                          hw.id
-                                                        )
-                                                      }}
-                                                    >
-                                                      <Trash2 className="h-3 w-3 text-red-500" />
-                                                    </Button>
+                                                    <DropdownMenu>
+                                                      <DropdownMenuTrigger asChild>
+                                                        <Button
+                                                          variant="ghost"
+                                                          size="icon"
+                                                          className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                                          onClick={e => e.stopPropagation()}
+                                                        >
+                                                          <MoreVertical className="h-3 w-3 text-slate-500" />
+                                                        </Button>
+                                                      </DropdownMenuTrigger>
+                                                      <DropdownMenuContent align="end">
+                                                        {!lessonBankMode && (
+                                                          <>
+                                                            <DropdownMenuItem
+                                                              onClick={e => {
+                                                                e.stopPropagation()
+                                                                moveToHomework(
+                                                                  module.id,
+                                                                  primaryLesson.id,
+                                                                  'assessment',
+                                                                  hw
+                                                                )
+                                                              }}
+                                                            >
+                                                              Move to homework
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                              onClick={e => {
+                                                                e.stopPropagation()
+                                                                setEditingData(hw)
+                                                                setActiveModal({
+                                                                  type: 'homework',
+                                                                  isOpen: true,
+                                                                  moduleId: module.id,
+                                                                  lessonId: primaryLesson.id,
+                                                                  itemId: hw.id,
+                                                                })
+                                                              }}
+                                                            >
+                                                              Edit
+                                                            </DropdownMenuItem>
+                                                          </>
+                                                        )}
+                                                        <DropdownMenuItem
+                                                          className="text-red-500"
+                                                          onClick={e => {
+                                                            e.stopPropagation()
+                                                            if (!confirm(`Delete "${hw.title}"?`))
+                                                              return
+                                                            deleteAssessment(
+                                                              module.id,
+                                                              primaryLesson.id,
+                                                              hw.id
+                                                            )
+                                                          }}
+                                                        >
+                                                          Delete
+                                                        </DropdownMenuItem>
+                                                      </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                   </div>
                                                 </SortableTreeItem>
                                               ))}
@@ -8996,42 +8903,14 @@ FEEDBACK: [your explanation]`
                                                   <DroppableHomeworkZone
                                                     moduleId={module.id}
                                                     lessonId={primaryLesson.id}
-                                                    className="flex flex-col gap-1 rounded border border-dashed border-emerald-400 bg-emerald-50/50 px-2 py-1.5"
+                                                    className="flex items-center gap-1.5 rounded-lg border-b-4 border-emerald-600 bg-gradient-to-r from-emerald-400 to-emerald-500 px-3 py-2 shadow-md transition-all active:translate-y-1 active:border-b-0"
                                                   >
                                                     <div className="flex items-center gap-1.5">
-                                                      <FolderOpen className="h-3 w-3 text-emerald-600" />
-                                                      <span className="text-[10px] font-semibold text-emerald-700">
+                                                      <FolderOpen className="h-4 w-4 text-white" />
+                                                      <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
                                                         Homework {hwItems.length}:
                                                       </span>
                                                     </div>
-                                                    <Input
-                                                      placeholder="Description..."
-                                                      value={
-                                                        primaryLesson.homeworkSectionDescription ??
-                                                        ''
-                                                      }
-                                                      onChange={e =>
-                                                        setModules(prev =>
-                                                          prev.map(m =>
-                                                            m.id !== module.id
-                                                              ? m
-                                                              : {
-                                                                  ...m,
-                                                                  lessons: m.lessons.map(les =>
-                                                                    les.id !== primaryLesson.id
-                                                                      ? les
-                                                                      : {
-                                                                          ...les,
-                                                                          homeworkSectionDescription:
-                                                                            e.target.value,
-                                                                        }
-                                                                  ),
-                                                                }
-                                                          )
-                                                        )
-                                                      }
-                                                      className="h-7 border-emerald-200 bg-white text-xs"
-                                                    />
                                                   </DroppableHomeworkZone>
                                                 </TreeItem>
                                                 <SortableContext
