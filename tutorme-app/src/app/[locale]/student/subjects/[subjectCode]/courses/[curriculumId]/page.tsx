@@ -36,6 +36,7 @@ export default function CourseEnrollPage() {
   const [enrolling, setEnrolling] = useState(false)
   const [paying, setPaying] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [startDate, setStartDate] = useState<string | null>(null)
 
   const coursesUrl = `/student/subjects/${encodeURIComponent(subjectCode)}/courses`
   const isFree = curriculum != null && (curriculum.price == null || curriculum.price === 0)
@@ -73,14 +74,21 @@ export default function CourseEnrollPage() {
 
   const handleEnroll = async () => {
     if (!curriculum || !isFree) return
+    if (!startDate) {
+      toast.error('Please select a start date')
+      return
+    }
     setEnrolling(true)
     try {
       const csrf = await getCsrf()
+      const bodyPayload: any = { startDate }
+      if (batchId) bodyPayload.batchId = batchId
+
       const res = await fetch(`/api/curriculum/${encodeURIComponent(curriculumId)}/enroll`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(csrf && { 'X-CSRF-Token': csrf }) },
         credentials: 'include',
-        body: JSON.stringify(batchId ? { batchId } : {}),
+        body: JSON.stringify(bodyPayload),
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -88,7 +96,7 @@ export default function CourseEnrollPage() {
         return
       }
       toast.success('Enrolled successfully')
-      router.push('/student/dashboard')
+      router.push('/student/courses')
     } catch {
       toast.error('Enrollment failed')
     } finally {
@@ -98,6 +106,10 @@ export default function CourseEnrollPage() {
 
   const handlePayAndEnroll = async () => {
     if (!curriculum || isFree) return
+    if (!startDate) {
+      toast.error('Please select a start date')
+      return
+    }
     setPaying(true)
     try {
       const csrf = await getCsrf()
@@ -105,7 +117,7 @@ export default function CourseEnrollPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(csrf && { 'X-CSRF-Token': csrf }) },
         credentials: 'include',
-        body: JSON.stringify({ curriculumId }),
+        body: JSON.stringify({ curriculumId, metadata: { startDate } }),
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -222,37 +234,55 @@ export default function CourseEnrollPage() {
                   </Button>
                 </div>
               </div>
-            ) : isFree ? (
-              <Button className="w-full sm:w-auto" onClick={handleEnroll} disabled={enrolling}>
-                {enrolling ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Enrolling…
-                  </>
-                ) : (
-                  'Enroll'
-                )}
-              </Button>
             ) : (
-              <div className="space-y-2 rounded-lg border bg-muted/50 p-4">
-                <p className="flex items-center gap-2 text-sm font-medium">
-                  <CreditCard className="h-4 w-4" />
-                  Pay & Enroll
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  You will be redirected to our secure payment page. After payment, you will be
-                  enrolled automatically.
-                </p>
-                <Button className="w-full sm:w-auto" onClick={handlePayAndEnroll} disabled={paying}>
-                  {paying ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Redirecting…
-                    </>
-                  ) : (
-                    'Pay & Enroll'
-                  )}
-                </Button>
+              <div className="space-y-4 pt-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    When would you like to start?
+                  </label>
+                  <div className="relative">
+                    <input 
+                      type="date"
+                      value={startDate ?? ''}
+                      onChange={e => setStartDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  </div>
+                </div>
+                {isFree ? (
+                  <Button className="w-full sm:w-auto" onClick={handleEnroll} disabled={enrolling}>
+                    {enrolling ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Enrolling…
+                      </>
+                    ) : (
+                      'Enroll'
+                    )}
+                  </Button>
+                ) : (
+                  <div className="space-y-2 rounded-lg border bg-muted/50 p-4">
+                    <p className="flex items-center gap-2 text-sm font-medium">
+                      <CreditCard className="h-4 w-4" />
+                      Pay & Enroll
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      You will be redirected to our secure payment page. After payment, you will be
+                      enrolled automatically.
+                    </p>
+                    <Button className="w-full sm:w-auto" onClick={handlePayAndEnroll} disabled={paying}>
+                      {paying ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Redirecting…
+                        </>
+                      ) : (
+                        'Pay & Enroll'
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

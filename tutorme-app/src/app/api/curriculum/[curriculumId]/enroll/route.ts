@@ -34,6 +34,7 @@ export const POST = withCsrf(
       const rawBatchIdFromBody = typeof body?.batchId === 'string' ? body.batchId : null
       const rawBatchIdFromQuery = req.nextUrl.searchParams.get('batch')
       const requestedBatchId = rawBatchIdFromBody || rawBatchIdFromQuery
+      const startDate = body?.startDate ? new Date(body.startDate) : undefined
 
       const [curriculumRow] = await drizzleDb
         .select()
@@ -102,6 +103,7 @@ export const POST = withCsrf(
           .update(curriculumEnrollment)
           .set({
             enrollmentSource: 'signup',
+            ...(startDate ? { startDate } : {}),
             ...(validatedBatchId ? { batchId: validatedBatchId } : {}),
           })
           .where(
@@ -116,6 +118,7 @@ export const POST = withCsrf(
           studentId: session.user.id,
           curriculumId,
           batchId: validatedBatchId,
+          startDate,
           lessonsCompleted: 0,
           enrollmentSource: 'signup',
         })

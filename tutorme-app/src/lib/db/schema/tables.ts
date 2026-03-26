@@ -310,6 +310,7 @@ export const curriculumEnrollment = pgTable(
     curriculumId: text('curriculumId').notNull(),
     batchId: text('batchId'),
     enrolledAt: timestamp('enrolledAt', { withTimezone: true }).notNull().defaultNow(),
+    startDate: timestamp('startDate', { withTimezone: true }),
     completedAt: timestamp('completedAt', { withTimezone: true }),
     lastActivity: timestamp('lastActivity', { withTimezone: true }).notNull().defaultNow(),
     lessonsCompleted: integer('lessonsCompleted').notNull(),

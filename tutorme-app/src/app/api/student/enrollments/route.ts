@@ -20,7 +20,7 @@ import { sql } from 'drizzle-orm'
 
 export const POST = withAuth(async (req, session) => {
   const body = await req.json().catch(() => ({}))
-  const { curriculumId } = body
+  const { curriculumId, startDate } = body
 
   if (!curriculumId || typeof curriculumId !== 'string') {
     return NextResponse.json({ error: 'Curriculum ID is required' }, { status: 400 })
@@ -101,6 +101,7 @@ export const POST = withAuth(async (req, session) => {
     id: enrollmentId,
     studentId: session.user.id,
     curriculumId,
+    startDate: startDate ? new Date(startDate) : undefined,
     lessonsCompleted: 0,
     enrollmentSource: 'browse',
   })
@@ -144,6 +145,7 @@ export const GET = withAuth(async (req, session) => {
       curriculumDifficulty: curriculum.difficulty,
       curriculumEstimatedHours: curriculum.estimatedHours,
       curriculumIsPublished: curriculum.isPublished,
+      curriculumSchedule: curriculum.schedule,
     })
     .from(curriculumEnrollment)
     .innerJoin(curriculum, eq(curriculumEnrollment.curriculumId, curriculum.id))
@@ -171,6 +173,7 @@ export const GET = withAuth(async (req, session) => {
       difficulty: row.curriculumDifficulty,
       estimatedHours: row.curriculumEstimatedHours,
       isPublished: row.curriculumIsPublished,
+      schedule: row.curriculumSchedule,
       _count: {
         modules: moduleCountByCurriculum.get(row.curriculumId) ?? 0,
       },

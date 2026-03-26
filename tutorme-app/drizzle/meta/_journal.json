@@ -127,6 +127,13 @@
       "when": 1773382715000,
       "tag": "0017_fix_curriculum_columns_permanent",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1774500133795,
+      "tag": "0018_lush_carmella_unuscione",
+      "breakpoints": true
     }
   ]
 }

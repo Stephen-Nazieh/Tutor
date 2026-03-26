@@ -16,7 +16,8 @@ import {
 
 export async function enrollStudentInCurriculum(
   studentId: string,
-  curriculumId: string
+  curriculumId: string,
+  startDate?: string | Date
 ): Promise<{ enrolled: boolean; progress?: { id: string } }> {
   const [curriculumRow] = await drizzleDb
     .select()
@@ -76,6 +77,7 @@ export async function enrollStudentInCurriculum(
       id: crypto.randomUUID(),
       studentId,
       curriculumId,
+      startDate: startDate ? new Date(startDate) : undefined,
       lessonsCompleted: 0,
       enrollmentSource: 'signup',
     })

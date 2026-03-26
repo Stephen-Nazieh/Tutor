@@ -122,7 +122,11 @@ export async function POST(req: NextRequest) {
         typeof meta.studentId === 'string'
       ) {
         const { enrollStudentInCurriculum } = await import('@/lib/enrollment')
-        enrollStudentInCurriculum(meta.studentId as string, meta.curriculumId)
+        enrollStudentInCurriculum(
+          meta.studentId as string,
+          meta.curriculumId as string,
+          meta.startDate as string | undefined
+        )
           .then(async () => {
             const [enrollment] = await drizzleDb
               .select({

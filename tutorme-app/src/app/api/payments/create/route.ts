@@ -34,7 +34,7 @@ export const POST = withCsrf(
     if (rateLimitResponse) return rateLimitResponse
 
     const body = await req.json()
-    const { bookingId, curriculumId, studentId, gateway: requestedGateway } = body
+    const { bookingId, curriculumId, studentId, gateway: requestedGateway, metadata: customMetadata } = body
 
     let payerStudentId = session.user.id
     const userRole = (session.user.role || '').toUpperCase()
@@ -144,6 +144,7 @@ export const POST = withCsrf(
           studentId: payerStudentId,
           payerId: session.user.id,
           payerRole: session.user.role,
+          startDate: customMetadata?.startDate,
         },
         successUrl: `${baseUrl}/payment/success?type=course&curriculumId=${encodeURIComponent(curriculumId)}`,
         cancelUrl: `${baseUrl}/payment/cancel?type=course&curriculumId=${encodeURIComponent(curriculumId)}`,
@@ -166,6 +167,7 @@ export const POST = withCsrf(
           studentId: payerStudentId,
           payerId: session.user.id,
           payerRole: session.user.role,
+          startDate: customMetadata?.startDate,
         },
       })
 
