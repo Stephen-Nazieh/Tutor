@@ -121,31 +121,6 @@ interface Answer {
   feedback?: string
 }
 
-interface Report {
-  id: string
-  studentId: string
-  studentName: string
-  taskId: string
-  taskTitle: string
-  score: number
-  strengths: string[]
-  weaknesses: string[]
-  recommendations: string[]
-  generatedAt: Date
-}
-
-interface TeachingAssistantProps {
-  students: Student[]
-  onPushHint?: (
-    studentId: string,
-    hint: string,
-    type: 'socratic' | 'direct' | 'encouragement'
-  ) => void
-  onInviteBreakout?: (studentId: string) => void
-  roomId: string
-  chatMessages?: any[]
-}
-
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 
@@ -153,6 +128,7 @@ interface Report {
   id: string
   studentId: string
   studentName: string
+  taskId?: string
   taskTitle: string
   score: number
   strengths: string[]
@@ -176,7 +152,7 @@ interface TeachingAssistantProps {
   onPushHint?: (
     studentId: string,
     hint: string,
-    type?: 'socratic' | 'direct' | 'encouragement'
+    type: 'socratic' | 'direct' | 'encouragement'
   ) => void
   onInviteBreakout?: (studentId: string) => void
   roomId: string

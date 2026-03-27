@@ -15,9 +15,11 @@
  */
 
 import { useRef, useState, useEffect, useCallback } from 'react'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
 import { TeachingAssistant } from './teaching-assistant'
 import {
   Plus,
