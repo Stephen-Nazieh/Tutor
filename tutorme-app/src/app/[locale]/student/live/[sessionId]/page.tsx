@@ -225,7 +225,7 @@ export default function StudentLiveSessionPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="whiteboard" className="h-[calc(100vh-240px)] min-h-[620px]">
+        <TabsContent value="whiteboard" className="h-[calc(100vh-240px)] min-h-[620px]" forceMount>
           <MultiLayerWhiteboardInterface
             sessionId={session.id}
             roomId={session.roomId || session.id}

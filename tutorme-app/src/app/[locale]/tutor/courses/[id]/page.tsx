@@ -445,6 +445,8 @@ export default function TutorCoursePage() {
     return d
   })
 
+  const formatDateKey = (date: Date) => date.toLocaleDateString('en-CA')
+
   const loadCourse = useCallback(async () => {
     if (!id) return
     setLoading(true)
@@ -1403,23 +1405,28 @@ export default function TutorCoursePage() {
                         <div className="border-b border-r border-dashed p-1 text-center text-[10px] text-muted-foreground">
                           {displayTime}
                         </div>
-                        {DAYS.map(day => {
-                          const inRange = schedule.some(
-                            s =>
-                              s.dayOfWeek === day &&
-                              (() => {
-                                const [sh, sm] = s.startTime.split(':').map(Number)
-                                const startM = sh * 60 + sm
-                                const endM = startM + s.durationMinutes
-                                const [th, tm] = timeStr.split(':').map(Number)
-                                const slotM = th * 60 + tm
-                                return slotM >= startM && slotM < endM
-                              })()
-                          )
+                        {DAYS.map((day, dayIndex) => {
+                          const dateKey = formatDateKey(weekDates[dayIndex])
+                          const inRange = schedule.some(s => {
+                            if (s.dayOfWeek !== day) return false
+                            if (!scheduleRepeatWeekly) {
+                              if (s.date ? s.date !== dateKey : scheduleWeekOffset !== 0) return false
+                            }
+                            const [sh, sm] = s.startTime.split(':').map(Number)
+                            const startM = sh * 60 + sm
+                            const endM = startM + s.durationMinutes
+                            const [th, tm] = timeStr.split(':').map(Number)
+                            const slotM = th * 60 + tm
+                            return slotM >= startM && slotM < endM
+                          })
                           const toggleSlot = () => {
                             setSchedule(prev => {
                               const idx = prev.findIndex(s => {
                                 if (s.dayOfWeek !== day) return false
+                                if (!scheduleRepeatWeekly) {
+                                  if (s.date ? s.date !== dateKey : scheduleWeekOffset !== 0)
+                                    return false
+                                }
                                 const [sh, sm] = s.startTime.split(':').map(Number)
                                 const startM = sh * 60 + sm
                                 const endM = startM + s.durationMinutes
@@ -1434,7 +1441,12 @@ export default function TutorCoursePage() {
                               // Add a new 1-hour session starting at this time
                               return [
                                 ...prev,
-                                { dayOfWeek: day, startTime: timeStr, durationMinutes: 60 },
+                                {
+                                  dayOfWeek: day,
+                                  startTime: timeStr,
+                                  durationMinutes: 60,
+                                  ...(scheduleRepeatWeekly ? {} : { date: dateKey }),
+                                },
                               ]
                             })
                           }

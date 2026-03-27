@@ -17,6 +17,7 @@ import {
   Info,
 } from 'lucide-react'
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import { toast } from 'sonner'
 
 interface Notification {
@@ -31,6 +32,8 @@ interface Notification {
 }
 
 export default function TutorNotificationsPage() {
+  const params = useParams()
+  const locale = typeof params?.locale === 'string' ? params.locale : 'en'
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -165,6 +168,13 @@ export default function TutorNotificationsPage() {
     return date.toLocaleDateString()
   }
 
+  const withLocale = (actionUrl: string) => {
+    if (actionUrl.startsWith('http')) return actionUrl
+    if (actionUrl.startsWith(`/${locale}/`)) return actionUrl
+    if (actionUrl.startsWith('/')) return `/${locale}${actionUrl}`
+    return `/${locale}/${actionUrl}`
+  }
+
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
@@ -267,7 +277,7 @@ export default function TutorNotificationsPage() {
               return notification.actionUrl ? (
                 <Link
                   key={notification.id}
-                  href={notification.actionUrl}
+                  href={withLocale(notification.actionUrl)}
                   onClick={() => !notification.read && markAsRead(notification.id)}
                   className="block cursor-pointer"
                 >

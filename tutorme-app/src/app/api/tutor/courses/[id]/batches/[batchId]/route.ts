@@ -41,16 +41,26 @@ export const PATCH = withCsrf(
               'startTime' in s &&
               'durationMinutes' in s
           )
-          .map((s: { dayOfWeek: string; startTime: string; durationMinutes: number }) => ({
-            dayOfWeek: SCHEDULE_DAYS.includes(s.dayOfWeek) ? s.dayOfWeek : 'Monday',
-            startTime: /^\d{1,2}:\d{2}$/.test(s.startTime) ? s.startTime : '09:00',
-            durationMinutes:
-              typeof s.durationMinutes === 'number' &&
-              s.durationMinutes >= 5 &&
-              s.durationMinutes <= 480
-                ? s.durationMinutes
-                : 45,
-          }))
+          .map(
+            (s: {
+              dayOfWeek: string
+              startTime: string
+              durationMinutes: number
+              date?: string
+            }) => ({
+              dayOfWeek: SCHEDULE_DAYS.includes(s.dayOfWeek) ? s.dayOfWeek : 'Monday',
+              startTime: /^\d{1,2}:\d{2}$/.test(s.startTime) ? s.startTime : '09:00',
+              durationMinutes:
+                typeof s.durationMinutes === 'number' &&
+                s.durationMinutes >= 5 &&
+                s.durationMinutes <= 480
+                  ? s.durationMinutes
+                  : 45,
+              ...(typeof s.date === 'string' && !Number.isNaN(Date.parse(s.date))
+                ? { date: s.date }
+                : {}),
+            })
+          )
       }
       const updateData: { difficulty?: string; schedule?: object } = {}
       if (difficulty !== undefined) updateData.difficulty = difficulty

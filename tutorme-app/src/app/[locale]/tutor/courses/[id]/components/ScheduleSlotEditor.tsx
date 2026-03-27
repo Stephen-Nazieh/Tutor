@@ -53,7 +53,14 @@ export function ScheduleSlotEditor({ slot, index, onUpdate, onRemove }: Schedule
           min={5}
           max={480}
           value={slot.durationMinutes}
-          onChange={e => onUpdate(index, 'durationMinutes', parseInt(e.target.value, 10) || 60)}
+          onChange={e => {
+            const raw = e.target.value
+            if (raw === '') return
+            const parsed = parseInt(raw, 10)
+            if (Number.isNaN(parsed)) return
+            const clamped = Math.max(5, Math.min(480, parsed))
+            onUpdate(index, 'durationMinutes', clamped)
+          }}
         />
       </div>
       <Button

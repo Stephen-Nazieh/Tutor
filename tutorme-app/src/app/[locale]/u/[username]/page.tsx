@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -70,11 +71,14 @@ function StarRating({ rating, count }: { rating: number; count?: number }) {
 
 export default function PublicTutorPage() {
   const params = useParams()
+  const router = useRouter()
+  const { data: session } = useSession()
   const locale = typeof params?.locale === 'string' ? params.locale : 'en'
   const username = typeof params?.username === 'string' ? params.username : ''
 
   const [data, setData] = useState<PublicTutorResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [launchingCourseId, setLaunchingCourseId] = useState<string | null>(null)
   const [followState, setFollowState] = useState({
     isFollowing: false,
     followerCount: 0,
@@ -216,7 +220,59 @@ export default function PublicTutorPage() {
   }
 
   const { tutor, courses, source } = data
+  const isTutorOwner = session?.user?.role === 'TUTOR' && session?.user?.id === tutor.id
   const totalEnrollments = courses.reduce((sum, course) => sum + course.enrollmentCount, 0)
+
+  const handleEnterClassroom = async (course: PublicTutorResponse['courses'][number]) => {
+    if (!isTutorOwner) return
+    if (launchingCourseId) return
+
+    setLaunchingCourseId(course.id)
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch('/api/class/rooms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          curriculumId: course.id,
+          title: course.name,
+          subject: course.subject,
+          gradeLevel: course.gradeLevel || undefined,
+          description: course.description || undefined,
+          maxStudents: 50,
+          durationMinutes: 60,
+        }),
+      })
+
+      const result = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        if (res.status === 401) {
+          toast.info('Please log in as the course tutor to enter the classroom')
+        } else {
+          toast.error(result?.error || 'Unable to launch classroom')
+        }
+        return
+      }
+
+      const sessionId = result?.room?.id || result?.session?.roomId || result?.session?.id
+      if (!sessionId) {
+        toast.error('Classroom created but no session ID returned')
+        return
+      }
+      router.push(`/tutor/insights?sessionId=${sessionId}`)
+    } catch {
+      toast.error('Unable to launch classroom')
+    } finally {
+      setLaunchingCourseId(null)
+    }
+  }
 
   return (
     <div className="w-full space-y-6 p-4 sm:p-6">
@@ -380,12 +436,25 @@ export default function PublicTutorPage() {
                       <span className="font-bold text-slate-900">${course.price}</span>
                     )}
                   </div>
-                  <Button asChild size="sm" variant="default">
-                    <Link href={`/${locale}/curriculum/${course.id}`}>
-                      <FileText className="mr-1 h-3 w-3" />
-                      View Outline
-                    </Link>
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {isTutorOwner ? (
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={() => handleEnterClassroom(course)}
+                        disabled={launchingCourseId === course.id}
+                      >
+                        <FileText className="mr-1 h-3 w-3" />
+                        {launchingCourseId === course.id ? 'Launching…' : 'Enter Classroom'}
+                      </Button>
+                    ) : null}
+                    <Button asChild size="sm" variant="outline">
+                      <Link href={`/${locale}/curriculum/${course.id}`}>
+                        <FileText className="mr-1 h-3 w-3" />
+                        View Outline
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))

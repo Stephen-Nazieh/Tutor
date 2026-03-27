@@ -5745,6 +5745,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [testPciTabs, setTestPciTabs] = useState([
       { id: 'classroom', label: 'Classroom' },
       { id: 'student1', label: 'Whiteboard' },
+      { id: 'student2', label: 'Student 2' },
     ])
 
     const [editingTabId, setEditingTabId] = useState<string | null>(null)
@@ -6047,7 +6048,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                       instructions: taskBuilder.taskPci,
                       extensions: taskBuilder.extensions,
                       dmiItems: taskDmiItems,
-                      sourceDocument: undefined,
+                      sourceDocument: task.sourceDocument,
                     }
                   : task
               ),
@@ -6085,7 +6086,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                       description: assessmentBuilder.taskContent,
                       instructions: assessmentBuilder.taskPci,
                       dmiItems: assessmentDmiItems,
-                      sourceDocument: undefined,
+                      sourceDocument: hw.sourceDocument,
                     }
                   : hw
               ),
@@ -6319,8 +6320,16 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       const loading = isTask ? taskPciLoading : assessmentPciLoading
       if (!input.trim() || loading) return
 
-      if (isTask && !loadedTaskId) autoCreateTask()
-      if (!isTask && !loadedAssessmentId) autoCreateAssessment()
+      let taskId = loadedTaskId
+      let assessmentId = loadedAssessmentId
+      if (isTask && !taskId) {
+        const created = autoCreateTask()
+        taskId = created?.id ?? loadedTaskId
+      }
+      if (!isTask && !assessmentId) {
+        const created = autoCreateAssessment()
+        assessmentId = created?.id ?? loadedAssessmentId
+      }
 
       const userMessage = input.trim()
       if (isTask) {
@@ -6387,11 +6396,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
             : taskBuilder.taskPci
           : assessmentBuilder.taskPci
         const sessionId = isTask
-          ? loadedTaskId
-            ? `pci-task:${loadedTaskId}`
+          ? taskId
+            ? `pci-task:${taskId}`
             : undefined
-          : loadedAssessmentId
-            ? `pci-assessment:${loadedAssessmentId}`
+          : assessmentId
+            ? `pci-assessment:${assessmentId}`
             : undefined
         const extensionName =
           isTask && taskBuilder.activeExtensionId
@@ -6476,11 +6485,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           } else {
             setTaskPciMessages(updated)
           }
-          updateTaskPciFromMessages(updated)
         } else {
           const updated = nextMessages.concat(errorMessage)
           setAssessmentPciMessages(updated)
-          setAssessmentBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(updated) }))
         }
       } finally {
         if (isTask) setTaskPciLoading(false)
@@ -6526,10 +6533,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
       try {
         // Call AI to score the answer
+        const gradingContent =
+          testPciActiveTab === 'classroom'
+            ? testPciContent.classroom
+            : testPciContent[testPciActiveTab] || ''
         const prompt = `You are an AI grading assistant. Please evaluate the following student answer.
 
 Question/Task Content:
-${testPciContent.classroom || 'No content provided'}
+${gradingContent || 'No content provided'}
 
 PCI (Instructions/Criteria):
 ${pciContent || 'No PCI provided - use your best judgment'}
@@ -8435,7 +8446,8 @@ FEEDBACK: [your explanation]`
                                                                           assessmentBuilder.taskPci,
                                                                         dmiItems:
                                                                           assessmentDmiItems,
-                                                                        sourceDocument: undefined,
+                                                                        sourceDocument:
+                                                                          hw.sourceDocument,
                                                                       }
                                                                     : hw
                                                                 ),
@@ -8465,7 +8477,8 @@ FEEDBACK: [your explanation]`
                                                                         extensions:
                                                                           taskBuilder.extensions,
                                                                         dmiItems: taskDmiItems,
-                                                                        sourceDocument: undefined,
+                                                                        sourceDocument:
+                                                                          t.sourceDocument,
                                                                       }
                                                                     : t
                                                                 ),
@@ -8792,7 +8805,8 @@ FEEDBACK: [your explanation]`
                                                                         taskBuilder.taskPci,
                                                                       extensions:
                                                                         taskBuilder.extensions,
-                                                                      sourceDocument: undefined,
+                                                                      sourceDocument:
+                                                                        t.sourceDocument,
                                                                     }
                                                                   : t
                                                               ),
@@ -8820,7 +8834,8 @@ FEEDBACK: [your explanation]`
                                                                         assessmentBuilder.taskContent,
                                                                       instructions:
                                                                         assessmentBuilder.taskPci,
-                                                                      sourceDocument: undefined,
+                                                                      sourceDocument:
+                                                                        h.sourceDocument,
                                                                     }
                                                                   : h
                                                               ),
@@ -9187,6 +9202,7 @@ FEEDBACK: [your explanation]`
                               key={tab.id}
                               value={tab.id}
                               className="mt-2 flex h-full w-full min-w-0 flex-1 flex-col self-stretch overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                              forceMount
                             >
                               <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg bg-muted p-4">
                                 {tab.id === 'student1' ? (
@@ -9208,6 +9224,7 @@ FEEDBACK: [your explanation]`
                                     <TabsContent
                                       value="my-board"
                                       className="mt-4 flex-1 outline-none"
+                                      forceMount
                                     >
                                       <div className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden shadow-xl ring-1 ring-black/5">
                                         <EnhancedWhiteboard />
@@ -9216,6 +9233,7 @@ FEEDBACK: [your explanation]`
                                     <TabsContent
                                       value="student-boards"
                                       className="mt-4 flex-1 outline-none"
+                                      forceMount
                                     >
                                       <div className="flex flex-1 flex-col overflow-hidden">
                                         <div className="grid h-full grid-cols-1 gap-4 overflow-y-auto p-2 sm:grid-cols-2 lg:grid-cols-3">

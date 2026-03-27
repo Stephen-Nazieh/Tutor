@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -13,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import {
   Plus,
@@ -69,6 +71,17 @@ const defaultStats = {
   currency: 'SGD' as string,
 }
 
+type EnrolledCourse = {
+  id: string
+  name: string
+  subject: string
+  gradeLevel?: string | null
+  isPublished?: boolean | null
+  price?: number | null
+  currency?: string | null
+  enrollmentCount: number
+}
+
 // Inner component that uses searchParams
 function TutorDashboardContent() {
   const { data: session } = useSession()
@@ -87,6 +100,7 @@ function TutorDashboardContent() {
   const [stats, setStats] = useState(defaultStats)
   const [classes, setClasses] = useState<UpcomingClass[]>([])
   const [students, setStudents] = useState<StudentNeedingAttention[]>([])
+  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([])
   const [allStudents, setAllStudents] = useState<
     Array<{ id: string; name: string; email: string; courseCount: number; classCount: number }>
   >([])
@@ -114,11 +128,13 @@ function TutorDashboardContent() {
     if (!session?.user?.id) return
     setError(null)
     try {
-      const [statsRes, classesRes, studentsRes, allStudentsRes] = await Promise.allSettled([
+      const [statsRes, classesRes, studentsRes, allStudentsRes, enrolledRes] =
+        await Promise.allSettled([
         fetch('/api/tutor/stats', { credentials: 'include' }),
         fetch('/api/tutor/classes', { credentials: 'include' }),
         fetch('/api/tutor/students-needing-attention', { credentials: 'include' }),
         fetch('/api/tutor/students', { credentials: 'include' }),
+        fetch('/api/tutor/courses/enrolled', { credentials: 'include' }),
       ])
 
       const failures: string[] = []
@@ -155,6 +171,13 @@ function TutorDashboardContent() {
         setAllStudents(d.students ?? [])
       } else {
         failures.push('students')
+      }
+
+      if (enrolledRes.status === 'fulfilled' && enrolledRes.value.ok) {
+        const d = await enrolledRes.value.json()
+        setEnrolledCourses(d.courses ?? [])
+      } else {
+        failures.push('enrolled-courses')
       }
 
       if (failures.length >= 2) {
@@ -330,7 +353,64 @@ function TutorDashboardContent() {
         </div>
 
         <div className="mb-8">
-          <InteractiveCalendar initialView="week" dayClickMode="availability" loading={loading} />
+          <Tabs defaultValue="calendar" className="space-y-4">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="calendar">Calendar</TabsTrigger>
+              <TabsTrigger value="enrolled">Enrolled Courses</TabsTrigger>
+            </TabsList>
+            <TabsContent value="calendar">
+              <InteractiveCalendar initialView="week" dayClickMode="availability" loading={loading} />
+            </TabsContent>
+            <TabsContent value="enrolled">
+              <Card className="border border-border bg-card/95 shadow-xl backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle>Courses With Enrolled Students</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {enrolledCourses.length === 0 ? (
+                    <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                      No courses have enrolled students yet.
+                    </div>
+                  ) : (
+                    enrolledCourses.map(course => (
+                      <div
+                        key={course.id}
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-white p-4"
+                      >
+                        <div className="min-w-0 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate font-semibold text-slate-900">{course.name}</p>
+                            {course.isPublished ? (
+                              <Badge variant="secondary">Published</Badge>
+                            ) : (
+                              <Badge variant="outline">Draft</Badge>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                            <span>{course.subject}</span>
+                            {course.gradeLevel ? <span>• {course.gradeLevel}</span> : null}
+                            {course.price ? (
+                              <span>
+                                • {course.currency ?? 'USD'} {course.price}
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Badge>{course.enrollmentCount} students</Badge>
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/tutor/courses/${course.id}/enrollments`}>
+                              View Enrollments
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Create Class Dialog */}

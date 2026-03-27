@@ -195,6 +195,10 @@ const ScheduleItemSchema = z.object({
   dayOfWeek: z.string().min(1),
   startTime: z.string().regex(/^\d{1,2}:\d{2}$/, 'Use HH:MM format'),
   durationMinutes: z.number().int().min(5).max(480),
+  date: z
+    .string()
+    .refine(value => !Number.isNaN(Date.parse(value)), 'Invalid date')
+    .optional(),
 })
 
 export const CreateCurriculumSchema = z.object({

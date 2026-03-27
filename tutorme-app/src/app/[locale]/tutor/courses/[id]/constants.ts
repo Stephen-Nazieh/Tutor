@@ -6,6 +6,7 @@ export interface ScheduleItem {
   dayOfWeek: string
   startTime: string
   durationMinutes: number
+  date?: string
 }
 
 export const DAYS = [

@@ -790,7 +790,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
               />
             </TabsContent>
 
-            <TabsContent value="whiteboard" className="mt-4 flex-1 overflow-hidden">
+            <TabsContent value="whiteboard" className="mt-4 flex-1 overflow-hidden" forceMount>
               <MultiLayerWhiteboardInterface
                 sessionId={sessionId}
                 roomId={classRoomId || sessionId}
