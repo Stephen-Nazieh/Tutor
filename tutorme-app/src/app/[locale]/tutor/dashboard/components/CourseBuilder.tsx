@@ -8186,7 +8186,7 @@ FEEDBACK: [your explanation]`
                 style={{ width: leftPanelWidth }}
                 className="flex min-h-0 shrink-0 flex-col"
               >
-                <Card className="flex h-full min-h-0 flex-1 flex-col rounded-2xl border-2 border-border bg-card shadow-xl ring-1 ring-black/5">
+                <Card className="flex h-full min-h-0 flex-1 flex-col rounded-2xl border border-border bg-card shadow-xl ring-1 ring-black/5">
                   {!lessonBankMode && (
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-end">
@@ -9117,7 +9117,7 @@ FEEDBACK: [your explanation]`
               )}
 
               {/* Test PCI Section - Moved above Task/Assessment Builder */}
-              <Card className="flex w-full min-w-0 flex-1 overflow-hidden rounded-2xl border-2 border-border bg-card shadow-xl ring-1 ring-black/5">
+              <Card className="flex w-full min-w-0 flex-1 overflow-hidden rounded-2xl border border-border bg-card shadow-xl ring-1 ring-black/5">
                 <CardContent className="flex h-full min-h-0 w-full flex-col overflow-hidden p-0 pt-4">
                   <CardTitle className="mb-3 flex items-center justify-between gap-2 px-4 text-base font-semibold">
                     <div className="flex items-center gap-2">
@@ -9267,38 +9267,41 @@ FEEDBACK: [your explanation]`
                             </TabsContent>
                           ))}
                         </Tabs>
-                        {/* Persistent text input with Enter button inline */}
-                        <div className="mt-3 w-full shrink-0">
-                          <div className="flex gap-2">
-                            <Input
+                           {/* Enhanced text input styled as Kimi AI */}
+                        <div className="mt-4 rounded-2xl border border-border bg-background shadow-xl backdrop-blur-md">
+                          <div className="relative p-1">
+                            <AutoTextarea
+                              className="min-h-[100px] w-full border-0 bg-transparent py-4 pl-4 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                               placeholder={
                                 testPciActiveTab === 'classroom'
                                   ? 'Enter answer (goes to both students)...'
-                                  : 'Enter answer...'
+                                  : 'Ask your AI coach or share a reflection...'
                               }
-                              className="flex-1"
                               value={testPciInput}
                               onChange={(e: any) => setTestPciInput(e.target.value)}
                               onKeyDown={(e: any) => {
-                                if (e.key === 'Enter' && testPciInput.trim() && !testPciLoading) {
-                                  e.preventDefault()
-                                  handleTestPciSubmit()
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                  if (testPciInput.trim() && !testPciLoading) {
+                                    e.preventDefault()
+                                    handleTestPciSubmit()
+                                  }
                                 }
                               }}
                             />
                             <Button
-                              variant="outline"
-                              size="sm"
-                              disabled={testPciLoading || !testPciInput.trim()}
+                              size="icon"
+                              className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-slate-600 shadow-lg hover:bg-slate-700 disabled:opacity-30"
+                              disabled={!testPciInput.trim() || testPciLoading}
                               onClick={handleTestPciSubmit}
                             >
-                              {testPciLoading ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <CornerDownLeft className="mr-1 h-4 w-4" />
-                              )}
-                              Enter
+                              <Send className="h-4 w-4" />
                             </Button>
+                          </div>
+                          <div className="border-t border-border/50 bg-muted/20 px-4 py-2.5">
+                            <p className="text-[10px] text-muted-foreground">
+                              Tip: Start line with &quot;1.&quot;, &quot;-&quot;, or &quot;a.&quot;
+                              for auto-numbering. Use Tab/Shift+Tab to indent.
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -9528,14 +9531,14 @@ FEEDBACK: [your explanation]`
                                   </Label>
                                   <div className="relative">
                                     <AutoTextarea
-                                      className="min-h-[100px] w-full border-0 bg-transparent py-3 pr-12 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                      className="min-h-[100px] w-full border-0 bg-transparent py-4 pl-3 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                       placeholder="What should students answer?"
                                       value={pollPrompt}
                                       onChange={event => setPollPrompt(event.target.value)}
                                     />
                                     <Button
                                       size="icon"
-                                      className="absolute bottom-2 right-2 h-8 w-8 rounded-xl bg-cyan-600 shadow-lg hover:bg-cyan-700 disabled:opacity-30"
+                                      className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-cyan-600 shadow-lg hover:bg-cyan-700 disabled:opacity-30"
                                       disabled={
                                         !activeInsightsTaskId ||
                                         !activeInsightsTask ||
@@ -9581,6 +9584,10 @@ FEEDBACK: [your explanation]`
                                       Task: {activeInsightsTask?.title || 'None Selected'}
                                     </p>
                                   </div>
+                                  <p className="mt-2 text-[10px] text-muted-foreground">
+                                    Tip: Start line with &quot;1.&quot;, &quot;-&quot;, or
+                                    &quot;a.&quot; for auto-numbering. Use Tab/Shift+Tab to indent.
+                                  </p>
                                 </div>
                               </div>
                             </TabsContent>
@@ -9593,14 +9600,14 @@ FEEDBACK: [your explanation]`
                                   </Label>
                                   <div className="relative">
                                     <AutoTextarea
-                                      className="min-h-[120px] w-full border-0 bg-transparent py-3 pr-12 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                                      placeholder="Enter the question for students..."
+                                      className="min-h-[120px] w-full border-0 bg-transparent py-4 pl-3 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                      placeholder="Ask your AI coach or share a reflection..."
                                       value={questionPrompt}
                                       onChange={event => setQuestionPrompt(event.target.value)}
                                     />
                                     <Button
                                       size="icon"
-                                      className="absolute bottom-2 right-2 h-8 w-8 rounded-xl bg-cyan-600 shadow-lg hover:bg-cyan-700 disabled:opacity-30"
+                                      className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-cyan-600 shadow-lg hover:bg-cyan-700 disabled:opacity-30"
                                       disabled={
                                         !activeInsightsTaskId ||
                                         !activeInsightsTask ||
@@ -9637,6 +9644,10 @@ FEEDBACK: [your explanation]`
                                       AI Integrated
                                     </Badge>
                                   </div>
+                                  <p className="mt-2 text-muted-foreground">
+                                    Tip: Start line with &quot;1.&quot;, &quot;-&quot;, or
+                                    &quot;a.&quot; for auto-numbering. Use Tab/Shift+Tab to indent.
+                                  </p>
                                 </div>
                               </div>
                             </TabsContent>

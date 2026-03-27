@@ -668,9 +668,9 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
           <div className="flex items-center gap-4">
             <h1
               className="max-w-[200px] truncate font-semibold text-gray-900"
-              title={course?.name || 'Course Builder'}
+              title={course?.name || ''}
             >
-              {course?.name || 'Course Builder'}
+              {course?.name || ''}
             </h1>
             {course && <PublishStatusBadge isPublished={course.isPublished} />}
           </div>
