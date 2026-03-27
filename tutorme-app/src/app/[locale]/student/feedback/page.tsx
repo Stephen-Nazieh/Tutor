@@ -18,7 +18,7 @@ import { useSocket } from '@/hooks/use-socket'
 import { toast } from 'sonner'
 import { ListTodo, MessageSquare, Send, Bell, Loader2, Layout } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { MathWhiteboardContainer } from '@/components/whiteboard/MathWhiteboardContainer'
+import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
 import type { LiveTask, LiveTaskPoll, LiveTaskQuestion } from '@/lib/socket'
 
 interface SessionSummary {
@@ -293,23 +293,13 @@ export default function StudentFeedbackPage() {
 
               <TabsContent value="my-board" className="flex-1 outline-none">
                 <Card className="flex h-[600px] flex-col overflow-hidden">
-                  {selectedSessionId && (
-                    <MathWhiteboardContainer
-                      sessionId={`${selectedSessionId}-student-${session?.user?.id}`}
-                      className="flex-1"
-                    />
-                  )}
+                  <EnhancedWhiteboard />
                 </Card>
               </TabsContent>
 
               <TabsContent value="tutor-board" className="flex-1 outline-none">
                 <Card className="flex h-[600px] flex-col overflow-hidden">
-                  {selectedSessionId && (
-                    <MathWhiteboardContainer
-                      sessionId={`${selectedSessionId}-tutor`}
-                      className="flex-1"
-                    />
-                  )}
+                  <EnhancedWhiteboard readOnly />
                 </Card>
               </TabsContent>
             </Tabs>

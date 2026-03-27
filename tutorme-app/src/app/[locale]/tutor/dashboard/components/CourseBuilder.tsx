@@ -58,7 +58,7 @@ import { Switch } from '@/components/ui/switch'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { MathWhiteboardContainer } from '@/components/whiteboard/MathWhiteboardContainer'
+import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9210,18 +9210,7 @@ FEEDBACK: [your explanation]`
                                       className="mt-4 flex-1 outline-none"
                                     >
                                       <div className="flex h-[600px] flex-col overflow-hidden">
-                                        {insightsProps?.sessionId ? (
-                                          <MathWhiteboardContainer
-                                            sessionId={`${insightsProps.sessionId}-tutor`}
-                                            className="flex-1"
-                                          />
-                                        ) : (
-                                          <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-center">
-                                            <p className="text-sm font-medium text-gray-500">
-                                              No live session active
-                                            </p>
-                                          </div>
-                                        )}
+                                        <EnhancedWhiteboard />
                                       </div>
                                     </TabsContent>
                                     <TabsContent
@@ -9254,16 +9243,7 @@ FEEDBACK: [your explanation]`
                                                 </div>
                                                 <div className="flex-1 shrink-0 p-0">
                                                   <div className="h-[200px] w-full transform-gpu transition-all hover:scale-[1.02]">
-                                                    {insightsProps.sessionId ? (
-                                                      <MathWhiteboardContainer
-                                                        sessionId={`${insightsProps.sessionId}-student-${student.id}`}
-                                                        className="h-full w-full"
-                                                      />
-                                                    ) : (
-                                                      <div className="flex h-full w-full items-center justify-center bg-muted/50 text-[10px] text-muted-foreground">
-                                                        Session initializing...
-                                                      </div>
-                                                    )}
+                                                    <EnhancedWhiteboard readOnly />
                                                   </div>
                                                 </div>
                                               </Card>
