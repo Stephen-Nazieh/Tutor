@@ -138,9 +138,17 @@ export default function StudentTutorDirectoryPage() {
     const isFollowing = following.has(tutorId)
     const method = isFollowing ? 'DELETE' : 'POST'
     try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
       const res = await fetch('/api/follows', {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+        },
+        credentials: 'include',
         body: JSON.stringify({ tutorId }),
       })
       if (res.ok) {

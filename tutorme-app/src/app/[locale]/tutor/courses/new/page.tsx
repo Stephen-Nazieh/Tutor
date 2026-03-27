@@ -15,98 +15,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
-import { ArrowLeft, BookOpen, Loader2, Plus, X } from 'lucide-react'
-import { AGGREGATED_CATEGORIES } from '@/lib/tutoring/categories'
-
-const SUBJECTS = [
-  { value: 'math', label: 'Mathematics' },
-  { value: 'english', label: 'English' },
-  { value: 'physics', label: 'Physics' },
-  { value: 'chemistry', label: 'Chemistry' },
-  { value: 'biology', label: 'Biology' },
-  { value: 'history', label: 'History' },
-  { value: 'cs', label: 'Computer Science' },
-]
+import { ArrowLeft, BookOpen, Loader2 } from 'lucide-react'
 
 const DESCRIPTION_LIMIT = 500
 
 export default function CreateCoursePage() {
   const router = useRouter()
   const [creating, setCreating] = useState(false)
-  const [loadingProfile, setLoadingProfile] = useState(true)
-  const [subject, setSubject] = useState('')
   const [courseName, setCourseName] = useState('')
-  // Grade level removed as per requirements
   const [description, setDescription] = useState('')
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
-  const [categoryDraft, setCategoryDraft] = useState<string[]>([])
-
-  useEffect(() => {
-    let mounted = true
-    const loadProfile = async () => {
-      try {
-        const res = await fetch('/api/user/profile', { credentials: 'include' })
-        const data = await res.json().catch(() => ({}))
-        if (!mounted) return
-        const specialties = Array.isArray(data?.profile?.specialties)
-          ? data.profile.specialties
-          : []
-        setSelectedCategories(specialties)
-      } catch {
-        // ignore profile fetch errors; still allow manual category selection
-      } finally {
-        if (mounted) setLoadingProfile(false)
-      }
-    }
-    loadProfile()
-    return () => {
-      mounted = false
-    }
-  }, [])
-
   const descriptionCount = useMemo(() => description.length, [description])
-
-  const openCategoryDialog = () => {
-    setCategoryDraft(selectedCategories)
-    setCategoryDialogOpen(true)
-  }
-
-  const toggleDraftCategory = (category: string) => {
-    setCategoryDraft(prev =>
-      prev.includes(category) ? prev.filter(item => item !== category) : [...prev, category]
-    )
-  }
-
-  const applyCategories = () => {
-    setSelectedCategories(Array.from(new Set(categoryDraft)))
-    setCategoryDialogOpen(false)
-  }
-
-  const removeCategory = (category: string) => {
-    setSelectedCategories(prev => prev.filter(item => item !== category))
-  }
 
   const validateDetailsStep = () => {
     if (!courseName.trim()) {
       toast.error('Course name is required')
-      return false
-    }
-    if (!subject) {
-      toast.error('Please select a subject')
-      return false
-    }
-    if (selectedCategories.length === 0) {
-      toast.error('Select at least one category')
       return false
     }
     if (descriptionCount > DESCRIPTION_LIMIT) {
@@ -134,9 +57,6 @@ export default function CreateCoursePage() {
         body: JSON.stringify({
           title: courseName.trim(),
           description: description.trim() || undefined,
-          subject,
-          // gradeLevel removed as per requirements
-          categories: selectedCategories,
           isLiveOnline: false,
         }),
       })
@@ -178,100 +98,56 @@ export default function CreateCoursePage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <>
-              <div className="space-y-2">
-                <Label htmlFor="courseName">Course Name *</Label>
-                <Input
-                  id="courseName"
-                  value={courseName}
-                  onChange={e => setCourseName(e.target.value)}
-                  placeholder="e.g. AP Calculus Mastery"
-                  disabled={creating}
-                />
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label>Subject Categories *</Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={openCategoryDialog}
-                    disabled={creating || loadingProfile}
-                  >
-                    <Plus className="mr-1 h-4 w-4" />
-                    New
-                  </Button>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="courseName" className="text-sm font-semibold text-gray-700">Course Name *</Label>
+                  <Input
+                    id="courseName"
+                    value={courseName}
+                    onChange={e => setCourseName(e.target.value)}
+                    placeholder="e.g. AP Calculus Mastery"
+                    disabled={creating}
+                    className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                  />
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {selectedCategories.length === 0 && (
-                    <p className="text-sm text-gray-500">No categories selected yet.</p>
-                  )}
-                  {selectedCategories.map(category => (
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="description" className="text-sm font-semibold text-gray-700">Course Description</Label>
                     <span
-                      key={category}
-                      className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700"
+                      className={`text-[10px] font-medium uppercase tracking-wider ${descriptionCount > DESCRIPTION_LIMIT ? 'text-red-600' : 'text-gray-400'}`}
                     >
-                      {category}
-                      <button
-                        type="button"
-                        onClick={() => removeCategory(category)}
-                        className="text-blue-400 hover:text-blue-700"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+                      {descriptionCount}/{DESCRIPTION_LIMIT}
                     </span>
-                  ))}
+                  </div>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={e => setDescription(e.target.value.slice(0, DESCRIPTION_LIMIT))}
+                    placeholder="Describe the course focus, expected outcomes, and who it is for."
+                    rows={6}
+                    disabled={creating}
+                    className="resize-none border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                  />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="subject">Select Subject *</Label>
-                <Select value={subject} onValueChange={setSubject} disabled={creating}>
-                  <SelectTrigger id="subject">
-                    <SelectValue placeholder="Select a subject" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SUBJECTS.map(s => (
-                      <SelectItem key={s.value} value={s.value}>
-                        {s.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="description">Description (no AI generation)</Label>
-                  <span
-                    className={`text-xs ${descriptionCount > DESCRIPTION_LIMIT ? 'text-red-600' : 'text-gray-500'}`}
-                  >
-                    {descriptionCount}/{DESCRIPTION_LIMIT}
-                  </span>
-                </div>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={e => setDescription(e.target.value.slice(0, DESCRIPTION_LIMIT))}
-                  placeholder="Describe the course focus, expected outcomes, and who it is for."
-                  rows={5}
-                  disabled={creating}
-                />
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <Button variant="outline" className="flex-1" asChild disabled={creating}>
+              <div className="flex gap-4 pt-4">
+                <Button variant="outline" className="h-11 flex-1 border-gray-200 text-gray-600 hover:bg-gray-50" asChild disabled={creating}>
                   <Link href="/tutor/my-page">Cancel</Link>
                 </Button>
-                <Button className="flex-1" onClick={handleConfirm} disabled={creating}>
+                <Button 
+                  className="h-11 flex-1 bg-blue-600 font-semibold shadow-lg shadow-blue-200 hover:bg-blue-700" 
+                  onClick={handleConfirm} 
+                  disabled={creating || !courseName.trim()}
+                >
                   {creating ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Creating...
                     </>
                   ) : (
-                    'Create Course'
+                    'Create Course & Continue'
                   )}
                 </Button>
               </div>
@@ -280,32 +156,6 @@ export default function CreateCoursePage() {
         </Card>
       </div>
 
-      <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Select Categories</DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[60vh] space-y-3 overflow-y-auto">
-            {AGGREGATED_CATEGORIES.map(category => (
-              <label key={category} className="flex items-center gap-3 text-sm">
-                <Checkbox
-                  checked={categoryDraft.includes(category)}
-                  onCheckedChange={() => toggleDraftCategory(category)}
-                />
-                <span>{category}</span>
-              </label>
-            ))}
-          </div>
-          <DialogFooter className="gap-2 sm:gap-3">
-            <Button type="button" variant="outline" onClick={() => setCategoryDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="button" onClick={applyCategories}>
-              Ok
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

@@ -346,10 +346,6 @@ export function CourseBuilderContent({
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            <h1 className="pointer-events-none absolute left-0 right-0 flex flex-1 items-center justify-center gap-2 text-xl font-semibold text-foreground">
-              <BookOpen className="h-5 w-5" />
-              Course Builder
-            </h1>
             <div className="flex shrink-0 items-center gap-3">
               {/* Theme Selector */}
               <Select value={themeId} onValueChange={setThemeId}>
@@ -402,9 +398,9 @@ export function CourseBuilderContent({
       )}
 
       {/* Main Content */}
-      <div className="flex w-full flex-1 flex-col overflow-hidden px-0 py-0">
+      <div className="flex w-full flex-1 flex-col overflow-hidden px-6 py-6 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent">
         {savedVariants.length > 0 && (
-          <Card className="mb-4 w-full border-emerald-200 bg-emerald-50/40">
+          <Card className="mb-8 w-full border border-emerald-200/50 bg-emerald-50/30 shadow-xl backdrop-blur-md">
             <CardHeader className="pb-2 pt-4">
               <CardTitle className="text-sm text-foreground">Adaptive Variant Join Links</CardTitle>
               <CardDescription>

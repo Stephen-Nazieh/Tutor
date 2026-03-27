@@ -2656,7 +2656,7 @@ function AssessmentBuilderModal({
             </TabsList>
             <TabsContent
               value="edit"
-              className="mt-4 space-y-4 rounded-2xl bg-white/95 p-6 py-4 shadow-2xl backdrop-blur-md"
+              className="mt-4 space-y-4 rounded-2xl border border-border bg-card/95 p-6 py-4 shadow-xl backdrop-blur-md"
             >
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
@@ -3860,7 +3860,7 @@ function QuizBuilderModal({
             </TabsList>
             <TabsContent
               value="edit"
-              className="mt-4 space-y-4 rounded-2xl bg-white/95 p-6 py-4 shadow-2xl backdrop-blur-md"
+              className="mt-4 space-y-4 rounded-2xl border border-border bg-card/95 p-6 py-4 shadow-xl backdrop-blur-md"
             >
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
@@ -9520,88 +9520,123 @@ FEEDBACK: [your explanation]`
                               )}
                             </TabsContent>
 
-                            <TabsContent value="poll" className="space-y-3">
-                              <div className="rounded-lg border bg-white/90 p-4">
-                                <p className="text-sm font-medium text-gray-900">Poll question</p>
-                                <AutoTextarea
-                                  className="mt-2 min-h-[72px] shadow-sm focus-visible:ring-blue-600"
-                                  value={pollPrompt}
-                                  onChange={event => setPollPrompt(event.target.value)}
-                                />
-                                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                  <span>Scale:</span>
-                                  {[1, 2, 3, 4, 5].map(value => (
-                                    <span key={value} className="rounded-full border px-2 py-0.5">
-                                      {value}
-                                    </span>
-                                  ))}
-                                </div>
-                                <div className="mt-4 flex items-center justify-between gap-3">
-                                  <p className="text-xs text-muted-foreground">
-                                    Active task:{' '}
-                                    {activeInsightsTask?.title || 'Select a task first'}
-                                  </p>
-                                  <Button
-                                    size="sm"
-                                    disabled={
-                                      !activeInsightsTaskId ||
-                                      !activeInsightsTask ||
-                                      !insightsProps.sessionId
-                                    }
-                                    onClick={() => {
-                                      if (
+                            <TabsContent value="poll" className="space-y-4 pt-2">
+                              <div className="rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
+                                <div className="space-y-2 p-3">
+                                  <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
+                                    Poll question
+                                  </Label>
+                                  <div className="relative">
+                                    <AutoTextarea
+                                      className="min-h-[100px] w-full border-0 bg-transparent py-3 pr-12 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                      placeholder="What should students answer?"
+                                      value={pollPrompt}
+                                      onChange={event => setPollPrompt(event.target.value)}
+                                    />
+                                    <Button
+                                      size="icon"
+                                      className="absolute bottom-2 right-2 h-8 w-8 rounded-xl bg-cyan-600 shadow-lg hover:bg-cyan-700 disabled:opacity-30"
+                                      disabled={
                                         !activeInsightsTaskId ||
                                         !activeInsightsTask ||
-                                        !insightsProps.sessionId
-                                      )
-                                        return
-                                      insightsProps.onSendPoll({
-                                        taskId: activeInsightsTaskId,
-                                        question: pollPrompt,
-                                      })
-                                    }}
-                                  >
-                                    Send
-                                  </Button>
+                                        !insightsProps.sessionId ||
+                                        !pollPrompt.trim()
+                                      }
+                                      onClick={() => {
+                                        if (
+                                          !activeInsightsTaskId ||
+                                          !activeInsightsTask ||
+                                          !insightsProps.sessionId
+                                        )
+                                          return
+                                        insightsProps.onSendPoll({
+                                          taskId: activeInsightsTaskId,
+                                          question: pollPrompt,
+                                        })
+                                        setPollPrompt('')
+                                      }}
+                                    >
+                                      <Send className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                                <div className="border-t border-cyan-50/50 bg-cyan-50/20 px-4 py-3">
+                                  <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                                        Scale:
+                                      </span>
+                                      <div className="flex gap-1">
+                                        {[1, 2, 3, 4, 5].map(v => (
+                                          <span
+                                            key={v}
+                                            className="flex h-5 w-5 items-center justify-center rounded-md border border-cyan-100 bg-white text-[10px] font-medium text-cyan-600 shadow-sm"
+                                          >
+                                            {v}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                    <p className="max-w-[140px] truncate text-[10px] font-medium text-cyan-600">
+                                      Task: {activeInsightsTask?.title || 'None Selected'}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
                             </TabsContent>
 
-                            <TabsContent value="question" className="space-y-3">
-                              <div className="rounded-lg border bg-white/90 p-4">
-                                <p className="text-sm font-medium text-gray-900">Question prompt</p>
-                                <AutoTextarea
-                                  className="mt-2 min-h-[96px] shadow-sm focus-visible:ring-blue-600"
-                                  value={questionPrompt}
-                                  onChange={event => setQuestionPrompt(event.target.value)}
-                                />
-                                <div className="mt-4 flex items-center justify-between gap-3">
-                                  <p className="text-xs text-muted-foreground">
-                                    Active task:{' '}
-                                    {activeInsightsTask?.title || 'Select a task first'}
-                                  </p>
-                                  <Button
-                                    size="sm"
-                                    disabled={
-                                      !activeInsightsTaskId ||
-                                      !activeInsightsTask ||
-                                      !insightsProps.sessionId
-                                    }
-                                    onClick={() => {
-                                      if (
+                            <TabsContent value="question" className="space-y-4 pt-2">
+                              <div className="rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
+                                <div className="space-y-2 p-3">
+                                  <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
+                                    Question prompt
+                                  </Label>
+                                  <div className="relative">
+                                    <AutoTextarea
+                                      className="min-h-[120px] w-full border-0 bg-transparent py-3 pr-12 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                      placeholder="Enter the question for students..."
+                                      value={questionPrompt}
+                                      onChange={event => setQuestionPrompt(event.target.value)}
+                                    />
+                                    <Button
+                                      size="icon"
+                                      className="absolute bottom-2 right-2 h-8 w-8 rounded-xl bg-cyan-600 shadow-lg hover:bg-cyan-700 disabled:opacity-30"
+                                      disabled={
                                         !activeInsightsTaskId ||
                                         !activeInsightsTask ||
-                                        !insightsProps.sessionId
-                                      )
-                                        return
-                                      insightsProps.onSendQuestion({
-                                        taskId: activeInsightsTaskId,
-                                        prompt: questionPrompt,
-                                      })
-                                    }}
-                                  >
-                                    Send
-                                  </Button>
+                                        !insightsProps.sessionId ||
+                                        !questionPrompt.trim()
+                                      }
+                                      onClick={() => {
+                                        if (
+                                          !activeInsightsTaskId ||
+                                          !activeInsightsTask ||
+                                          !insightsProps.sessionId
+                                        )
+                                          return
+                                        insightsProps.onSendQuestion({
+                                          taskId: activeInsightsTaskId,
+                                          prompt: questionPrompt,
+                                        })
+                                        setQuestionPrompt('')
+                                      }}
+                                    >
+                                      <Send className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                                <div className="border-t border-cyan-50/50 bg-cyan-50/20 px-4 py-3 text-[10px]">
+                                  <div className="flex items-center justify-between">
+                                    <p className="font-medium text-cyan-600">
+                                      Topic: {activeInsightsTask?.title || 'General'}
+                                    </p>
+                                    <Badge
+                                      variant="outline"
+                                      className="border-cyan-200 bg-white/50 text-cyan-700"
+                                    >
+                                      AI Integrated
+                                    </Badge>
+                                  </div>
                                 </div>
                               </div>
                             </TabsContent>
@@ -9615,7 +9650,7 @@ FEEDBACK: [your explanation]`
 
               {/* COMBINED BUILDER: Task & Assessment Tabs */}
               {!insightsProps && (
-                <Card className="mt-6 flex-shrink-0 overflow-hidden rounded-2xl border-2 border-gray-400 shadow-xl ring-1 ring-black/5">
+                <Card className="mt-8 flex-shrink-0 overflow-hidden rounded-2xl border border-border bg-card/95 shadow-xl backdrop-blur-md">
                   <CardContent className="pt-4">
                     <Tabs
                       value={mainBuilderTab}
@@ -9623,17 +9658,17 @@ FEEDBACK: [your explanation]`
                       className="w-full"
                     >
                       {/* Main Builder Tabs */}
-                      <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+                      <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border border-border bg-muted/30 p-1">
                         <TabsTrigger
                           value="task"
-                          className="gap-2 rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                          className="gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
                         >
                           <ListTodo className="h-4 w-4 text-orange-500" />
                           Task Builder
                         </TabsTrigger>
                         <TabsTrigger
                           value="assessment"
-                          className="gap-2 rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                          className="gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
                         >
                           <FileQuestion className="h-4 w-4 text-purple-500" />
                           Assessment Builder

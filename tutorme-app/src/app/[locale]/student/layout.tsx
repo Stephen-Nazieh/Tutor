@@ -97,7 +97,6 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
             className="text-lg font-bold text-blue-600"
             aria-label="Student dashboard"
           >
-            Solocorn Student
           </Link>
         </div>
 

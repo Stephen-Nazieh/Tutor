@@ -145,7 +145,6 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       >
         <div className="flex min-w-[256px] items-center justify-between border-b p-4">
           <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600">
-            Solocorn Tutor
           </Link>
           <div className="flex items-center gap-1">
             <Button
