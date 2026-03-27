@@ -5742,11 +5742,18 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     }>({ isOpen: false, type: null, title: '' })
 
     // State for editable PCI tabs
-    const [testPciTabs, setTestPciTabs] = useState([
-      { id: 'classroom', label: 'Classroom' },
-      { id: 'student1', label: 'Whiteboard' },
-      { id: 'student2', label: 'Student 2' },
-    ])
+    const [testPciTabs, setTestPciTabs] = useState(() =>
+      insightsProps
+        ? [
+            { id: 'classroom', label: 'Classroom' },
+            { id: 'student1', label: 'Whiteboard' },
+          ]
+        : [
+            { id: 'classroom', label: 'Classroom' },
+            { id: 'student1', label: 'Whiteboard' },
+            { id: 'student2', label: 'Student 2' },
+          ]
+    )
 
     const [editingTabId, setEditingTabId] = useState<string | null>(null)
 
@@ -9202,7 +9209,6 @@ FEEDBACK: [your explanation]`
                               key={tab.id}
                               value={tab.id}
                               className="mt-2 flex h-full w-full min-w-0 flex-1 flex-col self-stretch overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
-                              forceMount
                             >
                               <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg bg-muted p-4">
                                 {tab.id === 'student1' ? (
@@ -9224,7 +9230,6 @@ FEEDBACK: [your explanation]`
                                     <TabsContent
                                       value="my-board"
                                       className="mt-4 flex-1 outline-none"
-                                      forceMount
                                     >
                                       <div className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden shadow-xl ring-1 ring-black/5">
                                         <EnhancedWhiteboard />
@@ -9233,7 +9238,6 @@ FEEDBACK: [your explanation]`
                                     <TabsContent
                                       value="student-boards"
                                       className="mt-4 flex-1 outline-none"
-                                      forceMount
                                     >
                                       <div className="flex flex-1 flex-col overflow-hidden">
                                         <div className="grid h-full grid-cols-1 gap-4 overflow-y-auto p-2 sm:grid-cols-2 lg:grid-cols-3">

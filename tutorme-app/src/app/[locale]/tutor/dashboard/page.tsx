@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -85,8 +85,12 @@ type EnrolledCourse = {
 // Inner component that uses searchParams
 function TutorDashboardContent() {
   const { data: session } = useSession()
+  const params = useParams()
+  const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const locale = typeof params?.locale === 'string' ? params.locale : 'en'
+  const hasLocalePrefix = pathname.startsWith(`/${locale}/`)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [scheduleDate, setScheduleDate] = useState<Date | null>(null)
   const [themeId, setThemeId] = useState('current')
@@ -106,6 +110,7 @@ function TutorDashboardContent() {
   >([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [launchingCourseId, setLaunchingCourseId] = useState<string | null>(null)
   const [oneAccountTipDismissed, setOneAccountTipDismissed] = useState(true)
   useEffect(() => {
     try {
@@ -266,6 +271,64 @@ function TutorDashboardContent() {
     }
   }, [])
 
+  const handleEnterCourseClassroom = useCallback(async (course: EnrolledCourse) => {
+    if (launchingCourseId) return
+    setLaunchingCourseId(course.id)
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch('/api/class/rooms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          curriculumId: course.id,
+          title: course.name,
+          subject: course.subject,
+          gradeLevel: course.gradeLevel || undefined,
+          maxStudents: 50,
+          durationMinutes: 60,
+        }),
+      })
+
+      const result = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(result?.error || 'Failed to launch classroom')
+        return
+      }
+
+      const sessionId = result?.room?.id || result?.session?.roomId || result?.session?.id
+      if (!sessionId) {
+        toast.error('Classroom created but no session ID returned')
+        return
+      }
+      router.push(`/tutor/insights?sessionId=${sessionId}`)
+    } catch {
+      toast.error('Failed to launch classroom')
+    } finally {
+      setLaunchingCourseId(null)
+    }
+  }, [launchingCourseId, router])
+
+  const withLocalePath = useCallback(
+    (path: string) => {
+      if (path.startsWith('http')) return path
+      if (hasLocalePrefix) {
+        if (path.startsWith(`/${locale}/`)) return path
+        if (path.startsWith('/')) return `/${locale}${path}`
+        return `/${locale}/${path}`
+      }
+      if (path.startsWith('/')) return path
+      return `/${path}`
+    },
+    [hasLocalePrefix, locale]
+  )
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -398,8 +461,16 @@ function TutorDashboardContent() {
                         </div>
                         <div className="flex items-center gap-3">
                           <Badge>{course.enrollmentCount} students</Badge>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleEnterCourseClassroom(course)}
+                            disabled={launchingCourseId === course.id}
+                          >
+                            {launchingCourseId === course.id ? 'Launching…' : 'Enter Classroom'}
+                          </Button>
                           <Button asChild variant="outline" size="sm">
-                            <Link href={`/tutor/courses/${course.id}/enrollments`}>
+                            <Link href={withLocalePath(`/tutor/courses/${course.id}/enrollments`)}>
                               View Enrollments
                             </Link>
                           </Button>

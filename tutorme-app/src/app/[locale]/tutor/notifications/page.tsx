@@ -17,7 +17,7 @@ import {
   Info,
 } from 'lucide-react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, usePathname } from 'next/navigation'
 import { toast } from 'sonner'
 
 interface Notification {
@@ -33,7 +33,9 @@ interface Notification {
 
 export default function TutorNotificationsPage() {
   const params = useParams()
+  const pathname = usePathname()
   const locale = typeof params?.locale === 'string' ? params.locale : 'en'
+  const hasLocalePrefix = pathname.startsWith(`/${locale}/`)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -170,9 +172,13 @@ export default function TutorNotificationsPage() {
 
   const withLocale = (actionUrl: string) => {
     if (actionUrl.startsWith('http')) return actionUrl
-    if (actionUrl.startsWith(`/${locale}/`)) return actionUrl
-    if (actionUrl.startsWith('/')) return `/${locale}${actionUrl}`
-    return `/${locale}/${actionUrl}`
+    if (hasLocalePrefix) {
+      if (actionUrl.startsWith(`/${locale}/`)) return actionUrl
+      if (actionUrl.startsWith('/')) return `/${locale}${actionUrl}`
+      return `/${locale}/${actionUrl}`
+    }
+    if (actionUrl.startsWith('/')) return actionUrl
+    return `/${actionUrl}`
   }
 
   if (loading) {
