@@ -219,92 +219,70 @@ export default function StudentFeedbackPage() {
       </div>
 
       <div className="flex-1 p-4 sm:p-6">
-        {error && (
-          <Card className="mb-4 border-amber-200 bg-amber-50">
-            <CardContent className="py-3 text-sm text-amber-700">
-              Realtime updates are offline: {error}
-            </CardContent>
-          </Card>
-        )}
-        {sessionsLoading && (
-          <div className="flex items-center justify-center py-12 text-gray-500">
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            Loading live classes...
-          </div>
-        )}
-        {!sessionsLoading && sessions.length === 0 && (
-          <Card>
-            <CardContent className="py-8 text-center text-sm text-gray-500">
-              No active live classes found right now.
-            </CardContent>
-          </Card>
-        )}
-        {selectedSessionId && (
-          <div className="flex h-full flex-col gap-6">
-            <Tabs defaultValue="task" className="flex flex-1 flex-col">
-              <TabsList className="mb-4 grid w-full grid-cols-3 gap-1 rounded-xl border border-gray-200 bg-white p-1 md:w-[450px]">
-                <TabsTrigger value="task">Current Task</TabsTrigger>
-                <TabsTrigger value="my-board">My Board</TabsTrigger>
-                <TabsTrigger value="tutor-board">Tutor Board</TabsTrigger>
-              </TabsList>
+        <div className="flex h-full flex-col gap-6">
+          <Tabs defaultValue="task" className="flex flex-1 flex-col">
+            <TabsList className="mb-4 grid w-full grid-cols-3 gap-1 rounded-xl border border-gray-200 bg-white p-1 md:w-[450px]">
+              <TabsTrigger value="task">Current Task</TabsTrigger>
+              <TabsTrigger value="my-board">My Board</TabsTrigger>
+              <TabsTrigger value="tutor-board">Tutor Board</TabsTrigger>
+            </TabsList>
 
-              <TabsContent value="task" className="flex-1 outline-none">
-                <Card className="min-h-[420px]">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between gap-3">
-                      <span>{activeTask?.title || 'Select a task to begin'}</span>
-                      <Button variant="ghost" size="icon">
-                        <Bell className="h-4 w-4" />
-                      </Button>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {activeTask ? (
-                      <div className="space-y-4">
-                        <div className="rounded-lg border bg-white p-4 text-sm text-gray-700">
-                          <p className="whitespace-pre-wrap">{activeTask.content}</p>
-                        </div>
-                        {activeTask.dmiItems && activeTask.dmiItems.length > 0 && (
+            <TabsContent value="task" className="flex-1 outline-none">
+              <Card className="min-h-[420px]">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between gap-3">
+                    <span>{activeTask?.title || 'Select a task to begin'}</span>
+                    <Button variant="ghost" size="icon">
+                      <Bell className="h-4 w-4" />
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {activeTask ? (
+                    <div className="space-y-4">
+                      <div className="rounded-lg border bg-white p-4 text-sm text-gray-700">
+                        <p className="whitespace-pre-wrap">{activeTask.content}</p>
+                      </div>
+                      {activeTask.dmiItems && activeTask.dmiItems.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold uppercase text-gray-500">
+                            Task Prompts
+                          </p>
                           <div className="space-y-2">
-                            <p className="text-xs font-semibold uppercase text-gray-500">
-                              Task Prompts
-                            </p>
-                            <div className="space-y-2">
-                              {activeTask.dmiItems.map(item => (
-                                <div key={item.id} className="rounded-lg border bg-white p-3">
-                                  <p className="text-xs font-semibold text-blue-600">
-                                    Q{item.questionNumber}
-                                  </p>
-                                  <p className="text-sm text-gray-700">{item.questionText}</p>
-                                </div>
-                              ))}
-                            </div>
+                            {activeTask.dmiItems.map(item => (
+                              <div key={item.id} className="rounded-lg border bg-white p-3">
+                                <p className="text-xs font-semibold text-blue-600">
+                                  Q{item.questionNumber}
+                                </p>
+                                <p className="text-sm text-gray-700">{item.questionText}</p>
+                              </div>
+                            ))}
                           </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="rounded-lg border border-dashed border-gray-200 p-8 text-center text-sm text-gray-500">
-                        Choose a task from the Tasks panel to view it here.
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-gray-200 p-8 text-center text-sm text-gray-500">
+                      Choose a task from the Tasks panel to view it here.
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-              <TabsContent value="my-board" className="flex-1 outline-none">
-                <Card className="flex h-[600px] flex-col overflow-hidden">
-                  <EnhancedWhiteboard />
-                </Card>
-              </TabsContent>
+            <TabsContent value="my-board" className="flex-1 outline-none">
+              <Card className="flex h-[600px] flex-col overflow-hidden">
+                <EnhancedWhiteboard />
+              </Card>
+            </TabsContent>
 
-              <TabsContent value="tutor-board" className="flex-1 outline-none">
-                <Card className="flex h-[600px] flex-col overflow-hidden">
-                  <EnhancedWhiteboard readOnly />
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-        )}
+            <TabsContent value="tutor-board" className="flex-1 outline-none">
+              <Card className="flex h-[600px] flex-col overflow-hidden">
+                <EnhancedWhiteboard readOnly />
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
 
       <div className="border-t bg-white p-4">
