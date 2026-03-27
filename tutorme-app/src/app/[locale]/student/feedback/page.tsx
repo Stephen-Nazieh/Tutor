@@ -16,7 +16,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { useSocket } from '@/hooks/use-socket'
 import { toast } from 'sonner'
-import { ListTodo, MessageSquare, Send, Bell, Loader2 } from 'lucide-react'
+import { ListTodo, MessageSquare, Send, Bell, Loader2, Layout } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { MathWhiteboardContainer } from '@/components/whiteboard/MathWhiteboardContainer'
 import type { LiveTask, LiveTaskPoll, LiveTaskQuestion } from '@/lib/socket'
 
 interface SessionSummary {
@@ -238,44 +240,80 @@ export default function StudentFeedbackPage() {
           </Card>
         )}
         {selectedSessionId && (
-          <Card className="min-h-[420px]">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between gap-3">
-                <span>{activeTask?.title || 'Select a task to begin'}</span>
-                <Button variant="ghost" size="icon">
-                  <Bell className="h-4 w-4" />
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {activeTask ? (
-                <div className="space-y-4">
-                  <div className="rounded-lg border bg-white p-4 text-sm text-gray-700">
-                    <p className="whitespace-pre-wrap">{activeTask.content}</p>
-                  </div>
-                  {activeTask.dmiItems && activeTask.dmiItems.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold uppercase text-gray-500">Task Prompts</p>
-                      <div className="space-y-2">
-                        {activeTask.dmiItems.map(item => (
-                          <div key={item.id} className="rounded-lg border bg-white p-3">
-                            <p className="text-xs font-semibold text-blue-600">
-                              Q{item.questionNumber}
+          <div className="flex h-full flex-col gap-6">
+            <Tabs defaultValue="task" className="flex flex-1 flex-col">
+              <TabsList className="mb-4 grid w-full grid-cols-3 gap-1 rounded-xl border border-gray-200 bg-white p-1 md:w-[450px]">
+                <TabsTrigger value="task">Current Task</TabsTrigger>
+                <TabsTrigger value="my-board">My Board</TabsTrigger>
+                <TabsTrigger value="tutor-board">Tutor Board</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="task" className="flex-1 outline-none">
+                <Card className="min-h-[420px]">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between gap-3">
+                      <span>{activeTask?.title || 'Select a task to begin'}</span>
+                      <Button variant="ghost" size="icon">
+                        <Bell className="h-4 w-4" />
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {activeTask ? (
+                      <div className="space-y-4">
+                        <div className="rounded-lg border bg-white p-4 text-sm text-gray-700">
+                          <p className="whitespace-pre-wrap">{activeTask.content}</p>
+                        </div>
+                        {activeTask.dmiItems && activeTask.dmiItems.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs font-semibold uppercase text-gray-500">
+                              Task Prompts
                             </p>
-                            <p className="text-sm text-gray-700">{item.questionText}</p>
+                            <div className="space-y-2">
+                              {activeTask.dmiItems.map(item => (
+                                <div key={item.id} className="rounded-lg border bg-white p-3">
+                                  <p className="text-xs font-semibold text-blue-600">
+                                    Q{item.questionNumber}
+                                  </p>
+                                  <p className="text-sm text-gray-700">{item.questionText}</p>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        ))}
+                        )}
                       </div>
-                    </div>
+                    ) : (
+                      <div className="rounded-lg border border-dashed border-gray-200 p-8 text-center text-sm text-gray-500">
+                        Choose a task from the Tasks panel to view it here.
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="my-board" className="flex-1 outline-none">
+                <Card className="flex h-[600px] flex-col overflow-hidden">
+                  {selectedSessionId && (
+                    <MathWhiteboardContainer
+                      sessionId={`${selectedSessionId}-student-${session?.user?.id}`}
+                      className="flex-1"
+                    />
                   )}
-                </div>
-              ) : (
-                <div className="rounded-lg border border-dashed border-gray-200 p-8 text-center text-sm text-gray-500">
-                  Choose a task from the Tasks panel to view it here.
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="tutor-board" className="flex-1 outline-none">
+                <Card className="flex h-[600px] flex-col overflow-hidden">
+                  {selectedSessionId && (
+                    <MathWhiteboardContainer
+                      sessionId={`${selectedSessionId}-tutor`}
+                      className="flex-1"
+                    />
+                  )}
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
         )}
       </div>
 

@@ -191,21 +191,8 @@ export default function StudentTutorDirectoryPage() {
         const data = await res.json()
         if (!active) return
 
-        // Enrich with mock ratings for now
-        const enrichedTutors = (Array.isArray(data?.tutors) ? data.tutors : []).map(
-          (tutor: TutorDirectoryItem) => ({
-            ...tutor,
-            averageRating: 4.5 + Math.random() * 0.5,
-            totalReviewCount: Math.floor(Math.random() * 100) + 10,
-            coursePreview: tutor.coursePreview.map(course => ({
-              ...course,
-              rating: 4.2 + Math.random() * 0.8,
-              reviewCount: Math.floor(Math.random() * 50) + 5,
-              price: course.price || Math.floor(Math.random() * 100) + 50,
-              currency: course.currency || 'USD',
-            })),
-          })
-        )
+        // No longer enriching with random mock data to ensure real data is shown
+        const enrichedTutors = (Array.isArray(data?.tutors) ? data.tutors : [])
 
         setTutors(enrichedTutors)
         setSubjects(Array.isArray(data?.availableSubjects) ? data.availableSubjects : [])
@@ -285,7 +272,7 @@ export default function StudentTutorDirectoryPage() {
               <Button asChild>
                 <Link href={`/${locale}/student/courses`}>
                   <Compass className="mr-2 h-4 w-4" />
-                  Go to Courses
+                  Go to My Courses
                 </Link>
               </Button>
             </div>
@@ -392,8 +379,9 @@ export default function StudentTutorDirectoryPage() {
             <Card
               key={tutor.id}
               className={cn(
-                'relative h-full cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md',
-                'border-border bg-card'
+                'relative h-full cursor-pointer transition-all duration-500',
+                'border-border bg-card shadow-lg hover:-translate-y-3 hover:shadow-2xl hover:scale-[1.02]',
+                'ring-1 ring-black/5'
               )}
               onClick={() => setActiveTutor(tutor)}
             >

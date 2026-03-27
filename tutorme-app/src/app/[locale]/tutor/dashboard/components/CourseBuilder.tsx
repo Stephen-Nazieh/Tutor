@@ -58,6 +58,7 @@ import { Switch } from '@/components/ui/switch'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { MathWhiteboardContainer } from '@/components/whiteboard/MathWhiteboardContainer'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9208,21 +9209,66 @@ FEEDBACK: [your explanation]`
                                       value="my-board"
                                       className="mt-4 flex-1 outline-none"
                                     >
-                                      <p className="whitespace-pre-wrap text-sm text-muted-foreground">
-                                        {testPciContent[tab.id] || `${tab.label} view content`}
-                                      </p>
+                                      <div className="flex h-[600px] flex-col overflow-hidden">
+                                        {insightsProps?.sessionId && (
+                                          <MathWhiteboardContainer
+                                            sessionId={`${insightsProps.sessionId}-tutor`}
+                                            className="flex-1"
+                                          />
+                                        )}
+                                      </div>
                                     </TabsContent>
                                     <TabsContent
                                       value="student-boards"
                                       className="mt-4 flex-1 outline-none"
                                     >
-                                      <div className="flex h-[200px] flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-center">
-                                        <p className="text-sm font-medium text-gray-500">
-                                          No student boards active
-                                        </p>
-                                        <p className="mt-1 text-xs text-muted-foreground">
-                                          Student live whiteboard snapshots will appear here
-                                        </p>
+                                      <div className="flex flex-1 flex-col overflow-hidden">
+                                        <div className="grid h-full grid-cols-1 gap-4 overflow-y-auto p-2 sm:grid-cols-2 lg:grid-cols-3">
+                                          {insightsProps?.students &&
+                                          insightsProps.students.length > 0 ? (
+                                            insightsProps.students.map(student => (
+                                              <Card
+                                                key={student.id}
+                                                className="flex flex-col overflow-hidden border-border bg-card shadow-sm"
+                                              >
+                                                <div className="flex items-center justify-between border-b bg-muted/30 px-3 py-2">
+                                                  <span className="text-xs font-semibold">
+                                                    {student.name}
+                                                  </span>
+                                                  <Badge
+                                                    variant={
+                                                      student.status === 'active'
+                                                        ? 'default'
+                                                        : 'secondary'
+                                                    }
+                                                    className="text-[10px]"
+                                                  >
+                                                    {student.status}
+                                                  </Badge>
+                                                </div>
+                                                <div className="flex-1 shrink-0 p-0">
+                                                  <div className="h-[200px] w-full transform-gpu transition-all hover:scale-[1.02]">
+                                                    {insightsProps.sessionId && (
+                                                      <MathWhiteboardContainer
+                                                        sessionId={`${insightsProps.sessionId}-student-${student.id}`}
+                                                        className="h-full w-full"
+                                                      />
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              </Card>
+                                            ))
+                                          ) : (
+                                            <div className="col-span-full flex h-[300px] flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-center">
+                                              <p className="text-sm font-medium text-gray-500">
+                                                No student boards active
+                                              </p>
+                                              <p className="mt-1 text-xs text-muted-foreground">
+                                                Student live whiteboard snapshots will appear here
+                                              </p>
+                                            </div>
+                                          )}
+                                        </div>
                                       </div>
                                     </TabsContent>
                                   </Tabs>

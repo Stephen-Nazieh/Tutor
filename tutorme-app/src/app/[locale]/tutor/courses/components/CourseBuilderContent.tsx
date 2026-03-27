@@ -399,7 +399,9 @@ export function CourseBuilderContent({
 
       {/* Main Content */}
       <div className="flex w-full flex-1 flex-col overflow-hidden px-6 py-6 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent">
-        <h1 className="mb-8 text-2xl font-bold tracking-tight text-foreground">Course Builder</h1>
+        <h1 className="mb-8 text-center text-2xl font-bold tracking-tight text-foreground">
+          Live Classroom
+        </h1>
         {savedVariants.length > 0 && (
           <Card className="mb-8 w-full border border-emerald-200/50 bg-emerald-50/30 shadow-xl backdrop-blur-md">
             <CardHeader className="pb-2 pt-4">

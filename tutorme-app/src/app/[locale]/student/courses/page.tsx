@@ -208,7 +208,7 @@ export default function CurriculumPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
           {isTutor && (
             <Link
               href="/tutor/dashboard"
@@ -274,7 +274,7 @@ export default function CurriculumPage() {
       </Dialog>
 
       {/* Tabs */}
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
         <div className="scrollbar-hide mb-8 flex overflow-x-auto border-b border-gray-200">
           <button
             className={cn(
