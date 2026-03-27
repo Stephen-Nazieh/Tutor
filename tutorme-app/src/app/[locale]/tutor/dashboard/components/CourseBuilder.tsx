@@ -9191,16 +9191,16 @@ FEEDBACK: [your explanation]`
                               <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg bg-muted p-4">
                                 {tab.id === 'student1' ? (
                                   <Tabs defaultValue="my-board" className="flex h-full flex-col">
-                                    <TabsList className="grid w-full shrink-0 grid-cols-2 gap-1 rounded-xl border border-gray-300 bg-white p-1 lg:w-[350px]">
+                                    <TabsList className="mx-auto mb-6 grid w-full shrink-0 grid-cols-2 gap-1 rounded-xl border border-gray-300 bg-white p-1 md:w-[450px]">
                                       <TabsTrigger
                                         value="my-board"
-                                        className="w-full rounded-lg border border-transparent data-[state=active]:border-gray-300 data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900"
+                                        className="rounded-lg border border-transparent data-[state=active]:border-gray-300 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
                                       >
                                         My Board
                                       </TabsTrigger>
                                       <TabsTrigger
                                         value="student-boards"
-                                        className="w-full rounded-lg border border-transparent data-[state=active]:border-gray-300 data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900"
+                                        className="rounded-lg border border-transparent data-[state=active]:border-gray-300 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
                                       >
                                         Student Boards
                                       </TabsTrigger>
@@ -9209,7 +9209,7 @@ FEEDBACK: [your explanation]`
                                       value="my-board"
                                       className="mt-4 flex-1 outline-none"
                                     >
-                                      <div className="flex h-[600px] flex-col overflow-hidden">
+                                      <div className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden shadow-xl ring-1 ring-black/5">
                                         <EnhancedWhiteboard />
                                       </div>
                                     </TabsContent>

@@ -221,10 +221,10 @@ export default function StudentFeedbackPage() {
       <div className="flex-1 p-4 sm:p-6">
         <div className="flex h-full flex-col gap-6">
           <Tabs defaultValue="task" className="flex flex-1 flex-col">
-            <TabsList className="mb-4 grid w-full grid-cols-3 gap-1 rounded-xl border border-gray-200 bg-white p-1 md:w-[450px]">
-              <TabsTrigger value="task">Current Task</TabsTrigger>
-              <TabsTrigger value="my-board">My Board</TabsTrigger>
-              <TabsTrigger value="tutor-board">Tutor Board</TabsTrigger>
+            <TabsList className="mx-auto mb-6 grid w-full grid-cols-3 gap-1 rounded-xl border border-gray-200 bg-white p-1 md:w-[600px]">
+              <TabsTrigger value="task" className="rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">Current Task</TabsTrigger>
+              <TabsTrigger value="my-board" className="rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">My Board</TabsTrigger>
+              <TabsTrigger value="tutor-board" className="rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">Tutor Board</TabsTrigger>
             </TabsList>
 
             <TabsContent value="task" className="flex-1 outline-none">
@@ -271,13 +271,13 @@ export default function StudentFeedbackPage() {
             </TabsContent>
 
             <TabsContent value="my-board" className="flex-1 outline-none">
-              <Card className="flex h-[600px] flex-col overflow-hidden">
+              <Card className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden shadow-xl ring-1 ring-black/5">
                 <EnhancedWhiteboard />
               </Card>
             </TabsContent>
 
             <TabsContent value="tutor-board" className="flex-1 outline-none">
-              <Card className="flex h-[600px] flex-col overflow-hidden">
+              <Card className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden shadow-xl ring-1 ring-black/5">
                 <EnhancedWhiteboard readOnly />
               </Card>
             </TabsContent>
