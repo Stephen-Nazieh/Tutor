@@ -1,4 +1,5 @@
-import 'server-only'
+// remove server-only to allow use in shared lib that might be imported by client
+// import 'server-only'
 
 import { and, eq, gt, isNull, or, sql } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
