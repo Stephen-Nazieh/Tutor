@@ -312,33 +312,21 @@ export function EnhancedWhiteboard({
 
   const currentPage = pages[currentPageIndex]
 
-  // Canvas will be sized dynamically to fit container
-  const [canvasSize, setCanvasSize] = useState({ width: 3000, height: 2000 })
+  // Canvas will be sized to fit container
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
 
-  // Initialize canvas and handle resize - INFINITE CANVAS
+  // Initialize canvas and handle resize
   useEffect(() => {
     const canvas = canvasRef.current
     const container = containerRef.current
     if (!canvas || !container) return
 
     const updateCanvasSize = () => {
-      // Set large canvas size for "infinite" canvas (10000x10000)
-      // User can pan/zoom to access any part
-      const CANVAS_WIDTH = 10000
-      const CANVAS_HEIGHT = 10000
-
-      setCanvasSize({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT })
-      canvas.width = CANVAS_WIDTH
-      canvas.height = CANVAS_HEIGHT
-
-      // Initialize pan to center of canvas
-      if (pan.x === 0 && pan.y === 0) {
-        const rect = container.getBoundingClientRect()
-        setPan({
-          x: CANVAS_WIDTH / 2 - rect.width / 2,
-          y: CANVAS_HEIGHT / 2 - rect.height / 2,
-        })
-      }
+      const nextWidth = Math.max(1, container.clientWidth)
+      const nextHeight = Math.max(1, container.clientHeight)
+      setCanvasSize({ width: nextWidth, height: nextHeight })
+      canvas.width = nextWidth
+      canvas.height = nextHeight
 
       redrawCanvas()
     }
@@ -383,12 +371,17 @@ export function EnhancedWhiteboard({
       ctx.fillRect(0, 0, canvasSize.width, canvasSize.height)
     }
 
-    // Draw background pattern
-    drawBackgroundPattern(ctx, currentPage.backgroundStyle, currentPage.backgroundColor)
-
     ctx.save()
     ctx.translate(pan.x, pan.y)
     ctx.scale(scale, scale)
+
+    const worldViewport = {
+      left: -pan.x / scale,
+      top: -pan.y / scale,
+      right: (canvas.width - pan.x) / scale,
+      bottom: (canvas.height - pan.y) / scale,
+    }
+    drawBackgroundPattern(ctx, currentPage.backgroundStyle, currentPage.backgroundColor, worldViewport)
 
     currentPage.strokes.forEach(stroke => {
       if (stroke.type === 'eraser') drawEraserStroke(ctx, stroke.points)
@@ -434,30 +427,40 @@ export function EnhancedWhiteboard({
     canvasSize,
   ])
 
-  const drawBackgroundPattern = (ctx: CanvasRenderingContext2D, style: string, bgColor: string) => {
+  const drawBackgroundPattern = (
+    ctx: CanvasRenderingContext2D,
+    style: string,
+    bgColor: string,
+    viewport: { left: number; top: number; right: number; bottom: number }
+  ) => {
     const patternColor = bgColor === '#ffffff' ? '#e5e7eb' : '#4b5563'
     ctx.strokeStyle = patternColor
     ctx.lineWidth = 1
+    const step = 40
+    const startX = Math.floor(viewport.left / step) * step
+    const endX = Math.ceil(viewport.right / step) * step
+    const startY = Math.floor(viewport.top / step) * step
+    const endY = Math.ceil(viewport.bottom / step) * step
 
     switch (style) {
       case 'grid':
-        for (let x = 0; x < canvasSize.width; x += 40) {
+        for (let x = startX; x <= endX; x += step) {
           ctx.beginPath()
-          ctx.moveTo(x, 0)
-          ctx.lineTo(x, canvasSize.height)
+          ctx.moveTo(x, startY)
+          ctx.lineTo(x, endY)
           ctx.stroke()
         }
-        for (let y = 0; y < canvasSize.height; y += 40) {
+        for (let y = startY; y <= endY; y += step) {
           ctx.beginPath()
-          ctx.moveTo(0, y)
-          ctx.lineTo(canvasSize.width, y)
+          ctx.moveTo(startX, y)
+          ctx.lineTo(endX, y)
           ctx.stroke()
         }
         break
       case 'dots':
         ctx.fillStyle = patternColor
-        for (let x = 20; x < canvasSize.width; x += 40) {
-          for (let y = 20; y < canvasSize.height; y += 40) {
+        for (let x = startX + step / 2; x <= endX; x += step) {
+          for (let y = startY + step / 2; y <= endY; y += step) {
             ctx.beginPath()
             ctx.arc(x, y, 2, 0, Math.PI * 2)
             ctx.fill()
@@ -465,10 +468,10 @@ export function EnhancedWhiteboard({
         }
         break
       case 'lines':
-        for (let y = 0; y < canvasSize.height; y += 40) {
+        for (let y = startY; y <= endY; y += step) {
           ctx.beginPath()
-          ctx.moveTo(0, y)
-          ctx.lineTo(canvasSize.width, y)
+          ctx.moveTo(startX, y)
+          ctx.lineTo(endX, y)
           ctx.stroke()
         }
         break
@@ -1348,7 +1351,7 @@ export function EnhancedWhiteboard({
         {/* Canvas Container */}
         <div
           ref={containerRef}
-          className="relative flex-1 overflow-hidden bg-gray-50/50"
+          className="relative z-10 flex-1 overflow-hidden bg-gray-50/50"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -1373,13 +1376,11 @@ export function EnhancedWhiteboard({
                           : 'default',
           }}
         >
-          {/* Canvas - Fixed size, transformed by scale/pan */}
+          {/* Canvas - Viewport sized, transforms handled in render */}
           <canvas
             ref={canvasRef}
             className="absolute left-0 top-0"
             style={{
-              transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
-              transformOrigin: '0 0',
               width: canvasSize.width,
               height: canvasSize.height,
             }}

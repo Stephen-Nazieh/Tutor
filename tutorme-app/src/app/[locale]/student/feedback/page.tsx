@@ -16,7 +16,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { useSocket } from '@/hooks/use-socket'
 import { toast } from 'sonner'
-import { ListTodo, MessageSquare, Send, Bell, Loader2, Layout } from 'lucide-react'
+import { ListTodo, MessageSquare, Send, Bell, Loader2, Layout, ArrowLeft } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
 import type { LiveTask, LiveTaskPoll, LiveTaskQuestion } from '@/lib/socket'
@@ -160,60 +160,67 @@ export default function StudentFeedbackPage() {
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       <div className="border-b bg-white">
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <div className="flex flex-wrap items-center gap-3">
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900">Live Classroom</h1>
-              <p className="text-xs text-gray-500">Feedback and tasks update in real time.</p>
-            </div>
-            <div className="min-w-[220px]">
-              <Select
-                value={selectedSessionId ?? undefined}
-                onValueChange={value => setSelectedSessionId(value)}
-                disabled={sessionsLoading || sessions.length === 0}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select live class" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sessions.map(sessionItem => (
-                    <SelectItem key={sessionItem.id} value={sessionItem.id}>
-                      {sessionItem.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {selectedSessionId && sessions.length > 0 && (
-              <Badge variant="secondary" className="text-xs">
-                {sessions.find(item => item.id === selectedSessionId)?.subject || 'Live Session'}
-              </Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowTasksPanel(true)}
-              className="gap-2"
-            >
-              <ListTodo className="h-4 w-4" />
-              Tasks
-              {unseenTaskIds.length > 0 && (
-                <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
-                  {unseenTaskIds.length}
-                </span>
+        <div className="flex items-center gap-4 px-4 py-3 sm:px-6">
+          <Button variant="ghost" size="sm" onClick={() => window.history.back()} className="gap-2 text-gray-600 hover:text-gray-900">
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <div className="h-6 w-px bg-gray-200" />
+          <div className="flex flex-1 flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <div>
+                <h1 className="text-lg font-semibold text-gray-900">Live Classroom</h1>
+                <p className="text-xs text-gray-500">Feedback and tasks update in real time.</p>
+              </div>
+              <div className="min-w-[220px]">
+                <Select
+                  value={selectedSessionId ?? undefined}
+                  onValueChange={value => setSelectedSessionId(value)}
+                  disabled={sessionsLoading || sessions.length === 0}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select live class" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sessions.map(sessionItem => (
+                      <SelectItem key={sessionItem.id} value={sessionItem.id}>
+                        {sessionItem.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {selectedSessionId && sessions.length > 0 && (
+                <Badge variant="secondary" className="text-xs">
+                  {sessions.find(item => item.id === selectedSessionId)?.subject || 'Live Session'}
+                </Badge>
               )}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFeedbackPanel(true)}
-              className="gap-2"
-            >
-              <MessageSquare className="h-4 w-4" />
-              Feedback
-            </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowTasksPanel(true)}
+                className="gap-2"
+              >
+                <ListTodo className="h-4 w-4" />
+                Tasks
+                {unseenTaskIds.length > 0 && (
+                  <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
+                    {unseenTaskIds.length}
+                  </span>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFeedbackPanel(true)}
+                className="gap-2"
+              >
+                <MessageSquare className="h-4 w-4" />
+                Feedback
+              </Button>
+            </div>
           </div>
         </div>
       </div>
