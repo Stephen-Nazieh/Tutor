@@ -192,7 +192,7 @@ export default function StudentTutorDirectoryPage() {
         if (!active) return
 
         // No longer enriching with random mock data to ensure real data is shown
-        const enrichedTutors = (Array.isArray(data?.tutors) ? data.tutors : [])
+        const enrichedTutors = Array.isArray(data?.tutors) ? data.tutors : []
 
         setTutors(enrichedTutors)
         setSubjects(Array.isArray(data?.availableSubjects) ? data.availableSubjects : [])
@@ -380,7 +380,7 @@ export default function StudentTutorDirectoryPage() {
               key={tutor.id}
               className={cn(
                 'relative h-full cursor-pointer transition-all duration-500',
-                'border-border bg-card shadow-lg hover:-translate-y-3 hover:shadow-2xl hover:scale-[1.02]',
+                'border-border bg-card shadow-lg hover:-translate-y-3 hover:scale-[1.02] hover:shadow-2xl',
                 'ring-1 ring-black/5'
               )}
               onClick={() => setActiveTutor(tutor)}

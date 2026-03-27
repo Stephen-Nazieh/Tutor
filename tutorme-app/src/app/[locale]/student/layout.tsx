@@ -96,8 +96,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
             href="/student/dashboard"
             className="text-lg font-bold text-blue-600"
             aria-label="Student dashboard"
-          >
-          </Link>
+          ></Link>
         </div>
 
         <nav className="flex-1 space-y-2 overflow-y-auto p-4">

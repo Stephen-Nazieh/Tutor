@@ -9237,7 +9237,7 @@ FEEDBACK: [your explanation]`
                                                   </span>
                                                   <Badge
                                                     variant={
-                                                      student.status === 'active'
+                                                      student.status === 'online'
                                                         ? 'default'
                                                         : 'secondary'
                                                     }
@@ -9313,7 +9313,7 @@ FEEDBACK: [your explanation]`
                             </TabsContent>
                           ))}
                         </Tabs>
-                           {/* Enhanced text input styled as Kimi AI */}
+                        {/* Enhanced text input styled as Kimi AI */}
                         <div className="mt-4 rounded-2xl border border-border bg-background shadow-xl backdrop-blur-md">
                           <div className="relative p-1">
                             <AutoTextarea
@@ -9718,14 +9718,14 @@ FEEDBACK: [your explanation]`
                       <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border border-border bg-muted/30 p-1">
                         <TabsTrigger
                           value="task"
-                          className="gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
+                          className="gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                         >
                           <ListTodo className="h-4 w-4 text-orange-500" />
                           Task Builder
                         </TabsTrigger>
                         <TabsTrigger
                           value="assessment"
-                          className="gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
+                          className="gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                         >
                           <FileQuestion className="h-4 w-4 text-purple-500" />
                           Assessment Builder

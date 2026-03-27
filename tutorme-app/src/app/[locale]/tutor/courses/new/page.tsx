@@ -100,7 +100,9 @@ export default function CreateCoursePage() {
             <>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="courseName" className="text-sm font-semibold text-gray-700">Course Name *</Label>
+                  <Label htmlFor="courseName" className="text-sm font-semibold text-gray-700">
+                    Course Name *
+                  </Label>
                   <Input
                     id="courseName"
                     value={courseName}
@@ -113,7 +115,9 @@ export default function CreateCoursePage() {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="description" className="text-sm font-semibold text-gray-700">Course Description</Label>
+                    <Label htmlFor="description" className="text-sm font-semibold text-gray-700">
+                      Course Description
+                    </Label>
                     <span
                       className={`text-[10px] font-medium uppercase tracking-wider ${descriptionCount > DESCRIPTION_LIMIT ? 'text-red-600' : 'text-gray-400'}`}
                     >
@@ -133,12 +137,17 @@ export default function CreateCoursePage() {
               </div>
 
               <div className="flex gap-4 pt-4">
-                <Button variant="outline" className="h-11 flex-1 border-gray-200 text-gray-600 hover:bg-gray-50" asChild disabled={creating}>
+                <Button
+                  variant="outline"
+                  className="h-11 flex-1 border-gray-200 text-gray-600 hover:bg-gray-50"
+                  asChild
+                  disabled={creating}
+                >
                   <Link href="/tutor/my-page">Cancel</Link>
                 </Button>
-                <Button 
-                  className="h-11 flex-1 bg-blue-600 font-semibold shadow-lg shadow-blue-200 hover:bg-blue-700" 
-                  onClick={handleConfirm} 
+                <Button
+                  className="h-11 flex-1 bg-blue-600 font-semibold shadow-lg shadow-blue-200 hover:bg-blue-700"
+                  onClick={handleConfirm}
                   disabled={creating || !courseName.trim()}
                 >
                   {creating ? (
@@ -155,7 +164,6 @@ export default function CreateCoursePage() {
           </CardContent>
         </Card>
       </div>
-
     </div>
   )
 }
