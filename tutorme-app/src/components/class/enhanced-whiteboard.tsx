@@ -1392,24 +1392,84 @@ export function EnhancedWhiteboard({
 
       {/* Main Content Area */}
       <div className="relative flex flex-1 overflow-hidden">
-        {/* Asset Sidebar */}
-        {showAssetSidebar && (
-          <div className="flex w-64 flex-col border-r border-slate-700 bg-slate-800">
-            <div className="flex items-center justify-between border-b border-slate-700 p-3">
-              <span className="text-sm font-medium">Assets</span>
+        {/* Floating Toolbar - Clean & Modern */}
+        {!readOnly && (
+          <div className="absolute left-6 top-1/2 z-30 flex -translate-y-1/2 flex-col gap-3 rounded-2xl border border-white/40 bg-white/70 p-2 shadow-2xl ring-1 ring-black/[0.05] backdrop-blur-xl">
+            <div className="flex flex-col gap-1.5">
+              {[
+                { id: 'select', icon: MousePointer2, label: 'Select' },
+                { id: 'hand', icon: Hand, label: 'Pan' },
+                { id: 'pen', icon: Edit3, label: 'Draw' },
+                { id: 'line', icon: Minus, label: 'Line' },
+                { id: 'rectangle', icon: Square, label: 'Box' },
+                { id: 'circle', icon: Circle, label: 'Circle' },
+                { id: 'triangle', icon: Triangle, label: 'Triangle' },
+                { id: 'text', icon: Type, label: 'Text' },
+                { id: 'eraser', icon: Trash2, label: 'Erase' },
+              ].map(item => (
+                <Button
+                  key={item.id}
+                  variant={tool === item.id ? 'default' : 'ghost'}
+                  size="sm"
+                  className={cn(
+                    'h-10 w-10 rounded-xl p-0 transition-all',
+                    tool === item.id
+                      ? 'scale-105 bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                      : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                  )}
+                  onClick={() => setTool(item.id as any)}
+                  title={item.label}
+                >
+                  <item.icon className="h-5 w-5" />
+                </Button>
+              ))}
+            </div>
+
+            <Separator className="bg-gray-200/50" />
+
+            <div className="flex flex-col items-center gap-2 pt-1">
+              {COLORS.slice(0, 5).map(c => (
+                <button
+                  key={c}
+                  onClick={() => setColor(c)}
+                  className={cn(
+                    'h-6 w-6 rounded-full border-2 shadow-sm transition-all',
+                    color === c
+                      ? 'scale-125 border-white ring-2 ring-blue-400'
+                      : 'border-transparent hover:scale-110'
+                  )}
+                  style={{ backgroundColor: c }}
+                />
+              ))}
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 w-6 p-0"
+                className="h-8 w-8 rounded-lg p-0 text-gray-400 hover:bg-gray-100"
+                onClick={() => setShowBackgroundPanel(!showBackgroundPanel)}
+              >
+                <Palette className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+        {/* Asset Sidebar */}
+        {showAssetSidebar && (
+          <div className="w-80 overflow-hidden border-l border-gray-100 bg-white/50 backdrop-blur-sm">
+            <div className="flex items-center justify-between border-b border-gray-100 bg-white px-4 py-3">
+              <h3 className="text-sm font-bold text-gray-900">Resource Library</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 hover:bg-gray-100"
                 onClick={() => setShowAssetSidebar(false)}
               >
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <div className="border-b border-slate-700 p-3">
-              <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded bg-blue-600 px-3 py-2 text-sm hover:bg-blue-500">
+            <div className="border-b border-gray-100 bg-gray-50/50 p-3">
+              <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-blue-500 hover:shadow-xl active:scale-95">
                 <Upload className="h-4 w-4" />
-                Upload Files
+                Upload Assets
                 <input
                   type="file"
                   multiple
@@ -1420,35 +1480,42 @@ export function EnhancedWhiteboard({
               </label>
             </div>
             <ScrollArea className="flex-1 p-3">
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 gap-2.5">
                 {assets.length === 0 && (
-                  <p className="py-4 text-center text-sm text-slate-500">
-                    No assets yet.
-                    <br />
-                    Upload images or documents.
-                  </p>
+                  <div className="py-12 text-center">
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-50 text-gray-300">
+                      <FolderOpen className="h-6 w-6" />
+                    </div>
+                    <p className="px-4 text-xs font-medium text-gray-400">
+                      Drop images or PDF documents here to use as whiteboard backgrounds.
+                    </p>
+                  </div>
                 )}
                 {assets.map(asset => (
                   <div
                     key={asset.id}
-                    className="group relative cursor-pointer rounded-lg bg-slate-700 p-2 hover:bg-slate-600"
+                    className="group relative cursor-pointer overflow-hidden rounded-xl border border-gray-100 bg-white p-2 shadow-sm transition-all hover:border-blue-400 hover:shadow-md"
                     onClick={() => setAssetAsBackground(asset)}
                   >
                     {asset.thumbnail ? (
                       <img
                         src={asset.thumbnail}
                         alt={asset.name}
-                        className="mb-2 h-24 w-full rounded object-cover"
+                        className="mb-2 h-32 w-full rounded-lg object-cover transition-transform group-hover:scale-105"
                       />
                     ) : (
-                      <div className="mb-2 flex h-24 w-full items-center justify-center rounded bg-slate-600">
-                        <FileText className="h-8 w-8 text-slate-400" />
+                      <div className="mb-2 flex h-32 w-full items-center justify-center rounded-lg bg-gray-50">
+                        <FileText className="h-10 w-10 text-gray-300" />
                       </div>
                     )}
-                    <p className="truncate text-xs text-slate-300">{asset.name}</p>
-                    <p className="text-xs text-slate-500">Click to set as background</p>
+                    <div className="px-1">
+                      <p className="truncate text-xs font-bold text-gray-700">{asset.name}</p>
+                      <p className="mt-0.5 text-[10px] font-medium text-blue-500 opacity-0 transition-opacity group-hover:opacity-100">
+                        Apply to background
+                      </p>
+                    </div>
                     <button
-                      className="absolute right-1 top-1 rounded bg-red-600 p-1 opacity-0 group-hover:opacity-100"
+                      className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white opacity-0 shadow-lg transition-all hover:bg-red-600 group-hover:opacity-100"
                       onClick={e => {
                         e.stopPropagation()
                         setAssets(prev => prev.filter(a => a.id !== asset.id))
@@ -1466,7 +1533,7 @@ export function EnhancedWhiteboard({
         {/* Canvas Container */}
         <div
           ref={containerRef}
-          className="relative flex-1 overflow-hidden bg-slate-700"
+          className="relative flex-1 overflow-hidden bg-gray-50/50"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}

@@ -146,6 +146,43 @@ interface TeachingAssistantProps {
   chatMessages?: any[]
 }
 
+import { cn } from '@/lib/utils'
+import { Separator } from '@/components/ui/separator'
+
+interface Report {
+  id: string
+  studentId: string
+  studentName: string
+  taskTitle: string
+  score: number
+  strengths: string[]
+  weaknesses: string[]
+  recommendations: string[]
+  generatedAt: Date
+}
+
+interface Submission {
+  id: string
+  studentId: string
+  studentName: string
+  submittedAt: Date
+  content: string
+  grade?: number
+  feedback?: string
+}
+
+interface TeachingAssistantProps {
+  students: Student[]
+  onPushHint?: (
+    studentId: string,
+    hint: string,
+    type?: 'socratic' | 'direct' | 'encouragement'
+  ) => void
+  onInviteBreakout?: (studentId: string) => void
+  roomId: string
+  chatMessages?: TranscriptEntry[]
+}
+
 export function TeachingAssistant({
   students,
   onPushHint,
@@ -217,7 +254,7 @@ export function TeachingAssistant({
     }, 4000)
 
     return () => clearInterval(interval)
-  }, [isRecording])
+  }, [isRecording, roomId])
 
   const generateSummary = async () => {
     setIsGenerating(true)
@@ -248,17 +285,21 @@ export function TeachingAssistant({
   const handleAssistantSend = async () => {
     if (!assistantInput.trim()) return
 
-    const userMsg = assistantInput
-    setAssistantMessages(prev => [...prev, { role: 'user', content: userMsg }])
+    const userMsg = { role: 'user' as const, content: assistantInput }
+    setAssistantMessages(prev => [...prev, userMsg])
+    const input = assistantInput
     setAssistantInput('')
 
-    // Simulate AI response
+    // Show AI thinking state
+    setIsGenerating(true)
+
+    // Actually, let's keep it simple for now and just echo a helpful response
     setTimeout(() => {
-      let response = 'I can help with that.'
-      if (userMsg.toLowerCase().includes('quiz')) {
+      let response = "I'm analyzing the class progress."
+      if (input.toLowerCase().includes('quiz')) {
         response =
           "I can generate a quiz based on the last 5 minutes of chat using the 'Tasks' tab."
-      } else if (userMsg.toLowerCase().includes('student')) {
+      } else if (input.toLowerCase().includes('student')) {
         const struggling = students.filter(s => s.status === 'struggling')
         if (struggling.length > 0) {
           response = `${struggling.length} students seem to be struggling. I recommend sending a hint to ${struggling[0].name}.`
@@ -268,6 +309,7 @@ export function TeachingAssistant({
       }
 
       setAssistantMessages(prev => [...prev, { role: 'assistant', content: response }])
+      setIsGenerating(false)
     }, 1000)
   }
 
