@@ -35,6 +35,7 @@ export default function TutorInsightsPage() {
   const [loading, setLoading] = useState(true)
   const [sessions, setSessions] = useState<InsightsSessionOption[]>([])
   const [sessionId, setSessionId] = useState<string | null>(null)
+  const [linkedCourseId, setLinkedCourseId] = useState<string | null>(null)
   const [liveTasks, setLiveTasks] = useState<LiveTask[]>([])
   const [students, setStudents] = useState<LiveStudent[]>([])
   const [metrics, setMetrics] = useState<EngagementMetrics | null>(null)
@@ -176,6 +177,36 @@ export default function TutorInsightsPage() {
 
     loadSessions()
   }, [])
+
+  useEffect(() => {
+    if (!sessionId) return
+    let cancelled = false
+    const loadLinkedCourse = async () => {
+      try {
+        const res = await fetch(`/api/tutor/classes/${sessionId}`, { credentials: 'include' })
+        if (!res.ok) return
+        const data = await res.json()
+        if (cancelled) return
+        setLinkedCourseId(data?.session?.linkedCourseId || null)
+      } catch {
+        // Ignore; keep existing selection
+      }
+    }
+    loadLinkedCourse()
+    return () => {
+      cancelled = true
+    }
+  }, [sessionId])
+
+  useEffect(() => {
+    if (!linkedCourseId) return
+    setCourseId(prev => {
+      if (prev && prev !== 'insights-draft' && prev !== linkedCourseId) return prev
+      return linkedCourseId
+    })
+    const match = courses.find(course => course.id === linkedCourseId)
+    if (match) setDetachedCourseName(match.name)
+  }, [courses, linkedCourseId])
 
   useEffect(() => {
     setLiveTasks([])
