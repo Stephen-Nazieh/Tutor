@@ -14,11 +14,10 @@ function getAllowedOrigins(): string[] {
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean)
-  const devOrigins = [
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://localhost:3003',
-  ]
+  const devOrigins =
+    process.env.NODE_ENV === 'production'
+      ? []
+      : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3003']
   const appOrigin = process.env.NEXT_PUBLIC_APP_URL ? [process.env.NEXT_PUBLIC_APP_URL] : []
   return Array.from(new Set([...envOrigins, ...appOrigin, ...devOrigins]))
 }

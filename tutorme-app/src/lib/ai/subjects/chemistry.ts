@@ -29,7 +29,7 @@ export const chemistryContext: SubjectContext = {
           question: 'How many grams of CO₂ are produced when 44g of C₂H₆ burns completely?',
           hint: 'Start with a balanced equation. What is the mole ratio between C₂H₆ and CO₂?',
           solution:
-            '2C₂H₆ + 7O₂ → 4CO₂ + 6H₂O. 44g C₂H₆ = 1.46 mol, produces 2.92 mol CO₂ = 128.5g',
+            'Balance the equation, convert 44g C₂H₆ to moles, apply the 1:2 mole ratio to CO₂, then convert moles of CO₂ back to grams.',
           difficulty: 'intermediate',
         },
       ],
@@ -51,7 +51,8 @@ export const chemistryContext: SubjectContext = {
           id: 'atom_1',
           question: 'Write the electron configuration for Fe³⁺',
           hint: 'First write neutral Fe, then remove electrons from the highest n level first.',
-          solution: 'Fe: [Ar] 4s² 3d⁶, Fe³⁺: [Ar] 3d⁵ (remove 4s electrons first)',
+          solution:
+            'Write neutral Fe first, then remove electrons from 4s before 3d to form Fe³⁺.',
           difficulty: 'intermediate',
         },
       ],
@@ -73,7 +74,8 @@ export const chemistryContext: SubjectContext = {
           id: 'equil_1',
           question: 'For N₂ + 3H₂ ⇌ 2NH₃ (ΔH < 0), what happens if temperature increases?',
           hint: 'Is this exothermic or endothermic? How does temperature affect an exothermic equilibrium?',
-          solution: 'Endothermic direction favored (left), so K decreases, less NH₃ forms',
+          solution:
+            'Identify the reaction as exothermic, then apply Le Chatelier: higher temperature favors reactants and lowers K.',
           difficulty: 'intermediate',
         },
       ],
