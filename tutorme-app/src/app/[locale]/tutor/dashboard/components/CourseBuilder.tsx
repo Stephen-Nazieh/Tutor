@@ -9138,13 +9138,14 @@ FEEDBACK: [your explanation]`
                 </div>
               )}
 
-              {/* Test PCI Section - Moved above Task/Assessment Builder */}
+              {/* Test PCI Section - Only shown in insights mode */}
+              {insightsProps && (
               <Card className="flex w-full min-w-0 flex-1 overflow-hidden rounded-2xl border border-border bg-card shadow-xl ring-1 ring-black/5">
                 <CardContent className="flex h-full min-h-0 w-full flex-col overflow-hidden p-0 pt-4">
                   <CardTitle className="mb-3 flex items-center justify-between gap-2 px-4 text-base font-semibold">
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                      AI Tutor
+                      {courseName || 'Course'}
                     </div>
                     {insightsProps && (
                       <Button
@@ -9698,6 +9699,7 @@ FEEDBACK: [your explanation]`
                   </div>
                 </CardContent>
               </Card>
+              )}
 
               {/* COMBINED BUILDER: Task & Assessment Tabs */}
               {!insightsProps && (
