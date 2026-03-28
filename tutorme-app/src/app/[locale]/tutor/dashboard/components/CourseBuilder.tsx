@@ -5749,8 +5749,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           ]
         : [
             { id: 'classroom', label: 'Classroom' },
-            { id: 'student1', label: 'Whiteboard' },
-            { id: 'student2', label: 'Student 2' },
+            { id: 'student1', label: 'Test Student 1' },
+            { id: 'student2', label: 'Test Student 2' },
           ]
     )
 
