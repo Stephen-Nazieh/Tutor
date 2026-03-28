@@ -9441,9 +9441,6 @@ FEEDBACK: [your explanation]`
                             <TabsContent value="analytics" className="mx-[-16px] flex-1 space-y-4">
                               <div className="h-[400px] min-h-0 w-full px-4">
                                 <AITeachingAssistant
-                                  students={insightsProps.students || []}
-                                  metrics={insightsProps.metrics || null}
-                                  classDuration={insightsProps.classDuration || 0}
                                   currentTopic={
                                     ((insightsProps.sessions as any) || []).find(
                                       (s: any) => s.id === insightsProps.sessionId

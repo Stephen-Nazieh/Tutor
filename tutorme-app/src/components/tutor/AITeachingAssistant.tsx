@@ -6,23 +6,17 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
-import type { LiveStudent, EngagementMetrics } from '@/types/live-session'
 import {
   Sparkles,
   Lightbulb,
   MessageCircle,
   ChevronRight,
   BookOpen,
-  BarChart3,
-  Clock,
   HelpCircle,
 } from 'lucide-react'
 
 interface AITeachingAssistantProps {
-  students: LiveStudent[]
-  metrics: EngagementMetrics | null
   currentTopic?: string
-  classDuration: number
 }
 
 interface SocraticPrompt {
@@ -63,12 +57,9 @@ const buildSocraticPrompts = (): SocraticPrompt[] => [
 ]
 
 export function AITeachingAssistant({
-  students,
-  metrics,
   currentTopic = 'Derivatives and Rates of Change',
-  classDuration,
 }: AITeachingAssistantProps) {
-  const [activeTab, setActiveTab] = useState<'socratic' | 'guide'>('socratic')
+  const [activeTab, setActiveTab] = useState<'question'>('question')
   const [selectedPrompt, setSelectedPrompt] = useState<SocraticPrompt | null>(null)
   const [showFollowUps, setShowFollowUps] = useState(false)
 
@@ -93,22 +84,13 @@ export function AITeachingAssistant({
         {/* Tabs */}
         <div className="mt-3 flex gap-1">
           <Button
-            variant={activeTab === 'socratic' ? 'default' : 'ghost'}
+            variant={activeTab === 'question' ? 'default' : 'ghost'}
             size="sm"
             className="flex-1 text-xs"
-            onClick={() => setActiveTab('socratic')}
+            onClick={() => setActiveTab('question')}
           >
             <HelpCircle className="mr-1 h-3 w-3" />
-            Socratic
-          </Button>
-          <Button
-            variant={activeTab === 'guide' ? 'default' : 'ghost'}
-            size="sm"
-            className="flex-1 text-xs"
-            onClick={() => setActiveTab('guide')}
-          >
-            <BookOpen className="mr-1 h-3 w-3" />
-            Guide
+            Question
           </Button>
         </div>
       </CardHeader>
@@ -116,7 +98,7 @@ export function AITeachingAssistant({
       <CardContent className="flex-1 p-0">
         <ScrollArea className="h-[calc(100%-20px)]">
           <div className="px-4 pb-4">
-            {activeTab === 'socratic' && (
+            {activeTab === 'question' && (
               <div className="space-y-3">
                 {selectedPrompt ? (
                   <div className="space-y-3">
@@ -188,93 +170,6 @@ export function AITeachingAssistant({
                     ))}
                   </>
                 )}
-              </div>
-            )}
-
-            {activeTab === 'guide' && (
-              <div className="space-y-4">
-                <div className="rounded-lg border bg-gradient-to-br from-green-50 to-blue-50 p-3">
-                  <h3 className="mb-2 flex items-center gap-2 text-sm font-medium">
-                    <BarChart3 className="h-4 w-4" />
-                    Lesson Progress
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-gray-600">Time elapsed</span>
-                      <span className="font-medium">
-                        {Math.floor(classDuration / 60)}h {classDuration % 60}m
-                      </span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-gray-200">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-green-500 to-blue-500"
-                        style={{ width: `${Math.min((classDuration / 90) * 100, 100)}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      {classDuration < 45
-                        ? 'Early phase - good for introducing concepts'
-                        : classDuration < 75
-                          ? 'Mid-lesson - consider practice activities'
-                          : 'Wrapping up - time for summary and review'}
-                    </p>
-                    {metrics && (
-                      <p className="text-xs text-gray-500">
-                        Current class engagement: {metrics.averageEngagement}%
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <h3 className="flex items-center gap-2 text-sm font-medium">
-                    <Clock className="h-4 w-4" />
-                    Recommended Next Steps
-                  </h3>
-
-                  <div className="space-y-2">
-                    {classDuration < 30 && (
-                      <div className="rounded-lg border border-gray-200 bg-white p-3">
-                        <p className="text-sm font-medium">Continue Concept Introduction</p>
-                        <p className="mt-1 text-xs text-gray-500">
-                          Use visual examples and ask for student predictions
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="rounded-lg border border-gray-200 bg-white p-3">
-                      <p className="text-sm font-medium">Check for Understanding</p>
-                      <p className="mt-1 text-xs text-gray-500">
-                        Quick poll: &quot;Rate your confidence 1-5&quot;
-                      </p>
-                    </div>
-
-                    <div className="rounded-lg border border-gray-200 bg-white p-3">
-                      <p className="text-sm font-medium">Practice Exercise</p>
-                      <p className="mt-1 text-xs text-gray-500">
-                        Give students 3 minutes to solve independently
-                      </p>
-                    </div>
-
-                    <div className="rounded-lg border border-gray-200 bg-white p-3">
-                      <p className="text-sm font-medium">Breakout Discussion</p>
-                      <p className="mt-1 text-xs text-gray-500">
-                        Group students to explain concepts to each other
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
-                  <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-yellow-800">
-                    <Lightbulb className="h-4 w-4" />
-                    Teaching Tip
-                  </h3>
-                  <p className="text-xs text-yellow-700">
-                    Students retain 90% of what they teach others. Consider having students explain
-                    concepts to the class.
-                  </p>
-                </div>
               </div>
             )}
           </div>
