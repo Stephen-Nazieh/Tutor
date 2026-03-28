@@ -200,13 +200,18 @@ export default function TutorInsightsPage() {
 
   useEffect(() => {
     if (!linkedCourseId) return
-    setCourseId(prev => {
-      if (prev && prev !== 'insights-draft' && prev !== linkedCourseId) return prev
-      return linkedCourseId
-    })
+    const sessionParam = searchParams.get('sessionId')
+    if (sessionParam) {
+      setCourseId(linkedCourseId)
+    } else {
+      setCourseId(prev => {
+        if (prev && prev !== 'insights-draft' && prev !== linkedCourseId) return prev
+        return linkedCourseId
+      })
+    }
     const match = courses.find(course => course.id === linkedCourseId)
     if (match) setDetachedCourseName(match.name)
-  }, [courses, linkedCourseId])
+  }, [courses, linkedCourseId, searchParams])
 
   useEffect(() => {
     setLiveTasks([])
