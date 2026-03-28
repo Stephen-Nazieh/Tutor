@@ -179,10 +179,11 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false)
   const [panelSeenCounts, setPanelSeenCounts] = useState({ messages: 0, handRaises: 0, alerts: 0 })
-  const [classTitle, setClassTitle] = useState('Live Class')
+  const [classTitle, setClassTitle] = useState('Live Session')
   const [classSubject, setClassSubject] = useState('General')
   const [classRoomId, setClassRoomId] = useState<string | null>(null)
   const [linkedCourseId, setLinkedCourseId] = useState<string | null>(null)
+  const [linkedCourseName, setLinkedCourseName] = useState<string | null>(null)
 
   const pendingHandRaises = handRaises.length
   const totalMessages = messages.length
@@ -218,6 +219,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
 
   // UI State
   const [showEngagementPanel, setShowEngagementPanel] = useState(false)
+  const [showTeachingAssistant, setShowTeachingAssistant] = useState(true)
   const [showEndClassDialog, setShowEndClassDialog] = useState(false)
   const [showRecordingNotice, setShowRecordingNotice] = useState(false)
   const [activeTab, setActiveTab] = useState('whiteboard')
@@ -327,7 +329,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
         const data = (await res.json()) as LiveClassBootstrapResponse
         if (cancelled) return
 
-        setClassTitle(data.session.title || 'Live Class')
+        setClassTitle(data.session.title || 'Live Session')
         setClassSubject(data.session.subject || 'General')
         setClassRoomId(data.session.roomId || null)
         setLinkedCourseId(data.session.linkedCourseId || null)
@@ -357,6 +359,32 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
       if (timeoutId) clearTimeout(timeoutId)
     }
   }, [session?.user?.id, sessionId, router])
+
+  useEffect(() => {
+    if (!linkedCourseId) {
+      setLinkedCourseName(null)
+      return
+    }
+    let cancelled = false
+    const loadCourseName = async () => {
+      try {
+        const res = await fetch(`/api/tutor/courses/${linkedCourseId}`, {
+          credentials: 'include',
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        if (!cancelled) {
+          setLinkedCourseName(data?.course?.name ?? null)
+        }
+      } catch {
+        if (!cancelled) setLinkedCourseName(null)
+      }
+    }
+    loadCourseName()
+    return () => {
+      cancelled = true
+    }
+  }, [linkedCourseId])
 
   // Convert LiveStudent to EngagementMetrics format
   const engagementMetrics: EngagementMetricType[] = useMemo(() => {
@@ -619,6 +647,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   const onlineCount = students.filter(s => s.status === 'online').length
   const pendingHands = handRaises.filter(h => h.status === 'pending').length
   const strugglingCount = students.filter(s => s.engagementScore < 50).length
+  const courseDisplayName = linkedCourseName || classTitle
 
   return (
     <div className="flex h-screen flex-col bg-gray-50">
@@ -629,8 +658,10 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-lg font-semibold">{classTitle}</h1>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <h1 className="text-lg font-semibold">Live Session</h1>
+            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+              <span className="font-medium text-gray-700">{courseDisplayName}</span>
+              <span>•</span>
               <span className="flex items-center gap-1">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
                 Live
@@ -894,13 +925,34 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
               </Card>
 
               {/* AI Teaching Assistant - Top Priority */}
-              <div className="h-[40%] min-h-0">
-                <AITeachingAssistant
-                  students={students}
-                  metrics={metrics}
-                  classDuration={metrics?.classDuration || 0}
-                  currentTopic={classSubject}
-                />
+              <div className="min-h-0">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    AI Teaching Assistant
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => setShowTeachingAssistant(prev => !prev)}
+                  >
+                    {showTeachingAssistant ? 'Hide' : 'Show'}
+                  </Button>
+                </div>
+                {showTeachingAssistant ? (
+                  <div className="h-[40%] min-h-0">
+                    <AITeachingAssistant
+                      students={students}
+                      metrics={metrics}
+                      classDuration={metrics?.classDuration || 0}
+                      currentTopic={classSubject}
+                    />
+                  </div>
+                ) : (
+                  <div className="rounded border border-dashed p-3 text-xs text-muted-foreground">
+                    Teaching assistant hidden.
+                  </div>
+                )}
               </div>
 
               {/* Hand Raise Queue */}
