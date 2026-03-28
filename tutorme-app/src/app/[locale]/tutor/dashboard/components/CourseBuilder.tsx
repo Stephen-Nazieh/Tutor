@@ -5740,6 +5740,20 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       title: string
     }>({ isOpen: false, type: null, title: '' })
 
+    // State for editable PCI tabs
+    const [testPciTabs, setTestPciTabs] = useState(() =>
+      insightsProps
+        ? [
+            { id: 'classroom', label: 'Classroom' },
+            { id: 'student1', label: 'Whiteboard' },
+          ]
+        : [
+            { id: 'classroom', label: 'Classroom' },
+            { id: 'student1', label: 'Whiteboard' },
+            { id: 'student2', label: 'Student 2' },
+          ]
+    )
+
     const [editingTabId, setEditingTabId] = useState<string | null>(null)
 
     // Builder state for Task and Assessment
@@ -5810,7 +5824,24 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       { id: string; name: string }[]
     >([])
 
-
+    // Test PCI state
+    const [testPciInput, setTestPciInput] = useState('')
+    const [testPciContent, setTestPciContent] = useState<Record<string, string>>({
+      classroom: '',
+      student1: '',
+      student2: '',
+    })
+    // AI scoring results for Test PCI
+    const [testPciScores, setTestPciScores] = useState<
+      Record<string, { score: number; feedback: string }[]>
+    >({
+      classroom: [],
+      student1: [],
+      student2: [],
+    })
+    const [testPciLoading, setTestPciLoading] = useState(false)
+    const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
+    const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
     const [taskDmiItems, setTaskDmiItems] = useState<DMIQuestion[]>([])
     const [assessmentDmiItems, setAssessmentDmiItems] = useState<DMIQuestion[]>([])
 
@@ -6470,6 +6501,121 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       }
     }
 
+    // Handle Test PCI answer submission with AI scoring
+    const handleTestPciSubmit = async () => {
+      if (!testPciInput.trim() || testPciLoading) return
+
+      const answer = testPciInput.trim()
+      setTestPciInput('')
+      setTestPciLoading(true)
+
+      // Get PCI content from active task/assessment
+      const pciContent =
+        testPciSource === 'task'
+          ? taskBuilder.activeExtensionId
+            ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci ||
+              taskBuilder.taskPci
+            : taskBuilder.taskPci
+          : assessmentBuilder.taskPci
+
+      // Determine which tabs to update
+      const tabsToUpdate: string[] = []
+      if (testPciActiveTab === 'classroom') {
+        // Classroom goes to both students
+        tabsToUpdate.push('classroom', 'student1', 'student2')
+      } else {
+        // Individual student tab
+        tabsToUpdate.push(testPciActiveTab)
+      }
+
+      // Update content for all affected tabs
+      setTestPciContent(prev => {
+        const newContent = { ...prev }
+        tabsToUpdate.forEach(tab => {
+          newContent[tab] = (newContent[tab] ? newContent[tab] + '\n' : '') + `Tutor: ${answer}`
+        })
+        return newContent
+      })
+
+      try {
+        // Call AI to score the answer
+        const gradingContent =
+          testPciActiveTab === 'classroom'
+            ? testPciContent.classroom
+            : testPciContent[testPciActiveTab] || ''
+        const prompt = `You are an AI grading assistant. Please evaluate the following student answer.
+
+Question/Task Content:
+${gradingContent || 'No content provided'}
+
+PCI (Instructions/Criteria):
+${pciContent || 'No PCI provided - use your best judgment'}
+
+Student Answer:
+${answer}
+
+Please provide:
+1. A score from 0-100
+2. Brief feedback explaining the score (why it's correct or what needs improvement)
+
+Respond in this exact format:
+SCORE: [number]
+FEEDBACK: [your explanation]`
+
+        const response = await fetch('/api/ai/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.3,
+          }),
+        })
+
+        if (!response.ok) throw new Error('Failed to get AI response')
+
+        const data = await response.json()
+        const aiResponse = data.content || ''
+
+        // Parse AI response
+        const scoreMatch = aiResponse.match(/SCORE:\s*(\d+)/i)
+        const feedbackMatch = aiResponse.match(/FEEDBACK:\s*([\s\S]+)/i)
+
+        const score = scoreMatch ? parseInt(scoreMatch[1]) : 50
+        const feedback = feedbackMatch ? feedbackMatch[1].trim() : 'No feedback provided'
+
+        // Update scores for all affected tabs
+        setTestPciScores(prev => {
+          const newScores = { ...prev }
+          tabsToUpdate.forEach(tab => {
+            newScores[tab] = [
+              ...(newScores[tab] || []),
+              { score, feedback: `Answer: ${answer}\n${feedback}` },
+            ]
+          })
+          return newScores
+        })
+
+        toast.success(`Answer scored: ${score}%`)
+      } catch (error) {
+        toast.error('Failed to score answer')
+        // Still add the answer without scoring
+        setTestPciScores(prev => {
+          const newScores = { ...prev }
+          tabsToUpdate.forEach(tab => {
+            newScores[tab] = [
+              ...(newScores[tab] || []),
+              {
+                score: 0,
+                feedback: `Answer: ${answer}\nError: Could not score - ${error instanceof Error ? error.message : 'Unknown error'}`,
+              },
+            ]
+          })
+          return newScores
+        })
+      } finally {
+        setTestPciLoading(false)
+      }
+    }
 
     // Generate DMI using Slide content
     const handleGenerateDMI = async (type: 'task' | 'assessment') => {
@@ -8992,6 +9138,566 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                 </div>
               )}
 
+              {/* Test PCI Section - Moved above Task/Assessment Builder */}
+              <Card className="flex w-full min-w-0 flex-1 overflow-hidden rounded-2xl border border-border bg-card shadow-xl ring-1 ring-black/5">
+                <CardContent className="flex h-full min-h-0 w-full flex-col overflow-hidden p-0 pt-4">
+                  <CardTitle className="mb-3 flex items-center justify-between gap-2 px-4 text-base font-semibold">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                      AI Tutor
+                    </div>
+                    {insightsProps && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-3 text-xs"
+                        onClick={() => setShowInsightsPanel(prev => !prev)}
+                      >
+                        Insights
+                      </Button>
+                    )}
+                  </CardTitle>
+                  <div
+                    className={cn(
+                      'flex min-h-0 w-full flex-1 flex-col items-stretch gap-0 overflow-hidden',
+                      insightsProps && showInsightsPanel && 'xl:flex-row'
+                    )}
+                  >
+                    {/* Main content with tabs */}
+                    <div className="flex h-full w-full min-w-0 flex-1 flex-col pb-0">
+                      <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden px-0">
+                        <Tabs
+                          value={testPciActiveTab}
+                          onValueChange={setTestPciActiveTab}
+                          className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-hidden"
+                        >
+                          <TabsList className="grid w-full shrink-0 grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+                            {testPciTabs.map(tab => (
+                              <div key={tab.id} className="relative w-full">
+                                {editingTabId === tab.id ? (
+                                  <Input
+                                    value={tab.label}
+                                    onChange={(e: any) => {
+                                      setTestPciTabs(prev =>
+                                        prev.map(t =>
+                                          t.id === tab.id ? { ...t, label: e.target.value } : t
+                                        )
+                                      )
+                                    }}
+                                    onBlur={() => setEditingTabId(null)}
+                                    onKeyDown={(e: any) => {
+                                      if (e.key === 'Enter') setEditingTabId(null)
+                                    }}
+                                    className="h-8 text-center text-xs font-medium"
+                                    autoFocus
+                                  />
+                                ) : (
+                                  <TabsTrigger
+                                    value={tab.id}
+                                    className="w-full rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                    onDoubleClick={() => setEditingTabId(tab.id)}
+                                  >
+                                    {tab.label}
+                                  </TabsTrigger>
+                                )}
+                              </div>
+                            ))}
+                          </TabsList>
+                          {testPciTabs.map(tab => (
+                            <TabsContent
+                              key={tab.id}
+                              value={tab.id}
+                              className="mt-2 flex h-full w-full min-w-0 flex-1 flex-col self-stretch overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                            >
+                              <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg bg-muted p-4">
+                                {tab.id === 'student1' ? (
+                                  <Tabs defaultValue="my-board" className="flex h-full flex-col">
+                                    <TabsList className="mx-auto mb-6 grid w-full shrink-0 grid-cols-2 gap-1 rounded-xl border border-gray-300 bg-white p-1 md:w-[450px]">
+                                      <TabsTrigger
+                                        value="my-board"
+                                        className="rounded-lg border border-transparent data-[state=active]:border-gray-300 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+                                      >
+                                        My Board
+                                      </TabsTrigger>
+                                      <TabsTrigger
+                                        value="student-boards"
+                                        className="rounded-lg border border-transparent data-[state=active]:border-gray-300 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+                                      >
+                                        Student Boards
+                                      </TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent
+                                      value="my-board"
+                                      className="mt-4 flex-1 outline-none"
+                                    >
+                                      <div className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden shadow-xl ring-1 ring-black/5">
+                                        <EnhancedWhiteboard />
+                                      </div>
+                                    </TabsContent>
+                                    <TabsContent
+                                      value="student-boards"
+                                      className="mt-4 flex-1 outline-none"
+                                    >
+                                      <div className="flex flex-1 flex-col overflow-hidden">
+                                        <div className="grid h-full grid-cols-1 gap-4 overflow-y-auto p-2 sm:grid-cols-2 lg:grid-cols-3">
+                                          {insightsProps?.students &&
+                                          insightsProps.students.length > 0 ? (
+                                            insightsProps.students.map(student => (
+                                              <Card
+                                                key={student.id}
+                                                className="flex flex-col overflow-hidden border-border bg-card shadow-sm"
+                                              >
+                                                <div className="flex items-center justify-between border-b bg-muted/30 px-3 py-2">
+                                                  <span className="text-xs font-semibold">
+                                                    {student.name}
+                                                  </span>
+                                                  <Badge
+                                                    variant={
+                                                      student.status === 'online'
+                                                        ? 'default'
+                                                        : 'secondary'
+                                                    }
+                                                    className="text-[10px]"
+                                                  >
+                                                    {student.status}
+                                                  </Badge>
+                                                </div>
+                                                <div className="flex-1 shrink-0 p-0">
+                                                  <div className="h-[200px] w-full transform-gpu transition-all hover:scale-[1.02]">
+                                                    <EnhancedWhiteboard readOnly />
+                                                  </div>
+                                                </div>
+                                              </Card>
+                                            ))
+                                          ) : (
+                                            <div className="col-span-full flex h-[300px] flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-center">
+                                              <p className="text-sm font-medium text-gray-500">
+                                                No student boards active
+                                              </p>
+                                              <p className="mt-1 text-xs text-muted-foreground">
+                                                Student live whiteboard snapshots will appear here
+                                              </p>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </TabsContent>
+                                  </Tabs>
+                                ) : (
+                                  <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                                    {testPciContent[tab.id] || `${tab.label} view content`}
+                                  </p>
+                                )}
+                                {/* Show AI scores if any */}
+                                {testPciScores[tab.id]?.length > 0 && (
+                                  <div className="mt-3 border-t border-gray-400 pt-3">
+                                    <p className="mb-2 text-xs font-medium text-gray-600">
+                                      AI Feedback:
+                                    </p>
+                                    {testPciScores[tab.id].map((score, idx) => (
+                                      <div
+                                        key={idx}
+                                        className="mb-2 rounded border border-gray-400 bg-white p-2"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <Badge
+                                            variant={
+                                              score.score >= 80
+                                                ? 'default'
+                                                : score.score >= 50
+                                                  ? 'secondary'
+                                                  : 'destructive'
+                                            }
+                                            className="text-[10px]"
+                                          >
+                                            {score.score}%
+                                          </Badge>
+                                        </div>
+                                        <p className="mt-1 text-xs text-gray-600">
+                                          {score.feedback}
+                                        </p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </TabsContent>
+                          ))}
+                        </Tabs>
+                        {/* Enhanced text input styled as Kimi AI */}
+                        <div className="mt-4 rounded-2xl border border-border bg-background shadow-xl backdrop-blur-md">
+                          <div className="relative p-1">
+                            <AutoTextarea
+                              className="min-h-[100px] w-full border-0 bg-transparent py-4 pl-4 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                              placeholder={
+                                testPciActiveTab === 'classroom'
+                                  ? 'Enter answer (goes to both students)...'
+                                  : 'Ask your AI coach or share a reflection...'
+                              }
+                              value={testPciInput}
+                              onChange={(e: any) => setTestPciInput(e.target.value)}
+                              onKeyDown={(e: any) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                  if (testPciInput.trim() && !testPciLoading) {
+                                    e.preventDefault()
+                                    handleTestPciSubmit()
+                                  }
+                                }
+                              }}
+                            />
+                            <Button
+                              size="icon"
+                              className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-slate-600 shadow-lg hover:bg-slate-700 disabled:opacity-30"
+                              disabled={!testPciInput.trim() || testPciLoading}
+                              onClick={handleTestPciSubmit}
+                            >
+                              <Send className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="border-t border-border/50 bg-muted/20 px-4 py-2.5">
+                            <p className="text-[10px] text-muted-foreground">
+                              Tip: Start line with &quot;1.&quot;, &quot;-&quot;, or &quot;a.&quot;
+                              for auto-numbering. Use Tab/Shift+Tab to indent.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {insightsProps && showInsightsPanel && (
+                      <div className="min-h-0 w-full xl:w-[360px]">
+                        <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cyan-200/70 bg-gradient-to-br from-white via-slate-50 to-cyan-50 p-4 shadow-[0_10px_40px_-20px_rgba(14,116,144,0.65)] ring-1 ring-cyan-200/60">
+                          {insightsProps.onToggleRecording && (
+                            <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-cyan-100 bg-white/50 p-2 shadow-sm">
+                              <div className="flex items-center gap-2 pl-1">
+                                <div
+                                  className={cn(
+                                    'h-2 w-2 rounded-full',
+                                    insightsProps.isRecording
+                                      ? 'animate-pulse bg-red-500'
+                                      : 'bg-gray-300'
+                                  )}
+                                />
+                                <span className="text-xs font-medium text-gray-600">
+                                  {insightsProps.isRecording ? (
+                                    <>
+                                      REC {Math.floor((insightsProps.recordingDuration ?? 0) / 60)}m{' '}
+                                      {String((insightsProps.recordingDuration ?? 0) % 60).padStart(
+                                        2,
+                                        '0'
+                                      )}
+                                      s
+                                    </>
+                                  ) : (
+                                    'Not Recording'
+                                  )}
+                                </span>
+                              </div>
+                              <Button
+                                variant={insightsProps.isRecording ? 'destructive' : 'outline'}
+                                size="sm"
+                                className="h-8 gap-2 px-3 text-xs font-semibold shadow-sm"
+                                onClick={insightsProps.onToggleRecording}
+                              >
+                                <Radio
+                                  className={cn(
+                                    'h-3.5 w-3.5',
+                                    insightsProps.isRecording && 'animate-pulse'
+                                  )}
+                                />
+                                {insightsProps.isRecording ? 'Stop' : 'Record'}
+                              </Button>
+                            </div>
+                          )}
+
+                          <Tabs
+                            value={insightsTab}
+                            onValueChange={value =>
+                              setInsightsTab(value as 'analytics' | 'poll' | 'question')
+                            }
+                            className="flex h-full min-h-0 flex-col"
+                          >
+                            <TabsList className="mb-4 grid w-full grid-cols-3 gap-1 rounded-xl border border-cyan-200/70 bg-white/80 p-1 shadow-sm">
+                              <TabsTrigger
+                                value="analytics"
+                                className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
+                              >
+                                Class Analytics
+                              </TabsTrigger>
+                              <TabsTrigger
+                                value="poll"
+                                className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
+                              >
+                                Poll
+                              </TabsTrigger>
+                              <TabsTrigger
+                                value="question"
+                                className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
+                              >
+                                Question
+                              </TabsTrigger>
+                            </TabsList>
+
+                            <TabsContent value="analytics" className="mx-[-16px] flex-1 space-y-4">
+                              {insightsProps.liveTasks.length > 0 && (
+                                <div className="space-y-4">
+                                  <div className="flex flex-wrap items-center gap-3">
+                                    <Badge variant="secondary" className="text-xs">
+                                      Tasks deployed: {insightsProps.liveTasks.length}
+                                    </Badge>
+                                    <Badge variant="secondary" className="text-xs">
+                                      Active task:{' '}
+                                      {activeInsightsTask?.title || 'Select a task in the builder'}
+                                    </Badge>
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <div className="rounded-lg border bg-white/90 p-3">
+                                      <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                        Task Completion
+                                      </p>
+                                      <p className="mt-1 text-lg font-semibold text-gray-900">--</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        Waiting for submissions
+                                      </p>
+                                    </div>
+                                    <div className="rounded-lg border bg-white/90 p-3">
+                                      <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                        Assessment Scores
+                                      </p>
+                                      <p className="mt-1 text-lg font-semibold text-gray-900">--</p>
+                                      <p className="text-xs text-muted-foreground">No scores yet</p>
+                                    </div>
+                                    <div className="rounded-lg border bg-white/90 p-3">
+                                      <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                        Questions Asked
+                                      </p>
+                                      <p className="mt-1 text-lg font-semibold text-gray-900">
+                                        {insightsProps.liveTasks.reduce(
+                                          (sum, task) =>
+                                            sum +
+                                            task.questions.reduce(
+                                              (questionSum, question) =>
+                                                questionSum + question.responses.length,
+                                              0
+                                            ),
+                                          0
+                                        )}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        Live student responses
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {insightsProps.liveTasks.map(task => {
+                                    const pollResponses = task.polls.reduce(
+                                      (sum, poll) => sum + poll.responses.length,
+                                      0
+                                    )
+                                    const questionResponses = task.questions.reduce(
+                                      (sum, q) => sum + q.responses.length,
+                                      0
+                                    )
+                                    return (
+                                      <div
+                                        key={task.id}
+                                        className="rounded-lg border bg-white/90 p-4"
+                                      >
+                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                          <div>
+                                            <p className="text-sm font-semibold text-gray-900">
+                                              {task.title}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                              Polls: {task.polls.length} • Questions:{' '}
+                                              {task.questions.length}
+                                            </p>
+                                          </div>
+                                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                            <span>Poll responses: {pollResponses}</span>
+                                            <span>Question answers: {questionResponses}</span>
+                                          </div>
+                                        </div>
+                                        {task.polls.map(poll => {
+                                          const counts = poll.options.map(option => ({
+                                            option,
+                                            count: poll.responses.filter(r => r.value === option)
+                                              .length,
+                                          }))
+                                          return (
+                                            <div
+                                              key={poll.id}
+                                              className="mt-3 rounded-md border bg-slate-50/80 p-3"
+                                            >
+                                              <p className="text-xs font-medium text-gray-700">
+                                                {poll.question}
+                                              </p>
+                                              <div className="mt-2 flex flex-wrap gap-2">
+                                                {counts.map(entry => (
+                                                  <span
+                                                    key={`${poll.id}-${entry.option}`}
+                                                    className="rounded-full bg-white px-2 py-1 text-[11px] text-gray-600"
+                                                  >
+                                                    {entry.option}: {entry.count}
+                                                  </span>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          )
+                                        })}
+                                        {task.questions.map(question => (
+                                          <div
+                                            key={question.id}
+                                            className="mt-3 rounded-md border bg-slate-50/80 p-3"
+                                          >
+                                            <p className="text-xs font-medium text-gray-700">
+                                              {question.prompt}
+                                            </p>
+                                            <p className="mt-1 text-xs text-muted-foreground">
+                                              Answers: {question.responses.length}
+                                            </p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              )}
+                            </TabsContent>
+
+                            <TabsContent value="poll" className="space-y-4 pt-2">
+                              <div className="rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
+                                <div className="space-y-2 p-3">
+                                  <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
+                                    Poll question
+                                  </Label>
+                                  <div className="relative">
+                                    <AutoTextarea
+                                      className="min-h-[100px] w-full border-0 bg-transparent py-4 pl-3 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                      placeholder="What should students answer?"
+                                      value={pollPrompt}
+                                      onChange={event => setPollPrompt(event.target.value)}
+                                    />
+                                    <Button
+                                      size="icon"
+                                      className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-cyan-600 shadow-lg hover:bg-cyan-700 disabled:opacity-30"
+                                      disabled={
+                                        !activeInsightsTaskId ||
+                                        !activeInsightsTask ||
+                                        !insightsProps.sessionId ||
+                                        !pollPrompt.trim()
+                                      }
+                                      onClick={() => {
+                                        if (
+                                          !activeInsightsTaskId ||
+                                          !activeInsightsTask ||
+                                          !insightsProps.sessionId
+                                        )
+                                          return
+                                        insightsProps.onSendPoll({
+                                          taskId: activeInsightsTaskId,
+                                          question: pollPrompt,
+                                        })
+                                        setPollPrompt('')
+                                      }}
+                                    >
+                                      <Send className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                                <div className="border-t border-cyan-50/50 bg-cyan-50/20 px-4 py-3">
+                                  <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                                        Scale:
+                                      </span>
+                                      <div className="flex gap-1">
+                                        {[1, 2, 3, 4, 5].map(v => (
+                                          <span
+                                            key={v}
+                                            className="flex h-5 w-5 items-center justify-center rounded-md border border-cyan-100 bg-white text-[10px] font-medium text-cyan-600 shadow-sm"
+                                          >
+                                            {v}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                    <p className="max-w-[140px] truncate text-[10px] font-medium text-cyan-600">
+                                      Task: {activeInsightsTask?.title || 'None Selected'}
+                                    </p>
+                                  </div>
+                                  <p className="mt-2 text-[10px] text-muted-foreground">
+                                    Tip: Start line with &quot;1.&quot;, &quot;-&quot;, or
+                                    &quot;a.&quot; for auto-numbering. Use Tab/Shift+Tab to indent.
+                                  </p>
+                                </div>
+                              </div>
+                            </TabsContent>
+
+                            <TabsContent value="question" className="space-y-4 pt-2">
+                              <div className="rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
+                                <div className="space-y-2 p-3">
+                                  <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
+                                    Question prompt
+                                  </Label>
+                                  <div className="relative">
+                                    <AutoTextarea
+                                      className="min-h-[120px] w-full border-0 bg-transparent py-4 pl-3 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                      placeholder="Ask your AI coach or share a reflection..."
+                                      value={questionPrompt}
+                                      onChange={event => setQuestionPrompt(event.target.value)}
+                                    />
+                                    <Button
+                                      size="icon"
+                                      className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-cyan-600 shadow-lg hover:bg-cyan-700 disabled:opacity-30"
+                                      disabled={
+                                        !activeInsightsTaskId ||
+                                        !activeInsightsTask ||
+                                        !insightsProps.sessionId ||
+                                        !questionPrompt.trim()
+                                      }
+                                      onClick={() => {
+                                        if (
+                                          !activeInsightsTaskId ||
+                                          !activeInsightsTask ||
+                                          !insightsProps.sessionId
+                                        )
+                                          return
+                                        insightsProps.onSendQuestion({
+                                          taskId: activeInsightsTaskId,
+                                          prompt: questionPrompt,
+                                        })
+                                        setQuestionPrompt('')
+                                      }}
+                                    >
+                                      <Send className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                                <div className="border-t border-cyan-50/50 bg-cyan-50/20 px-4 py-3 text-[10px]">
+                                  <div className="flex items-center justify-between">
+                                    <p className="font-medium text-cyan-600">
+                                      Topic: {activeInsightsTask?.title || 'General'}
+                                    </p>
+                                    <Badge
+                                      variant="outline"
+                                      className="border-cyan-200 bg-white/50 text-cyan-700"
+                                    >
+                                      AI Integrated
+                                    </Badge>
+                                  </div>
+                                  <p className="mt-2 text-muted-foreground">
+                                    Tip: Start line with &quot;1.&quot;, &quot;-&quot;, or
+                                    &quot;a.&quot; for auto-numbering. Use Tab/Shift+Tab to indent.
+                                  </p>
+                                </div>
+                              </div>
+                            </TabsContent>
+                          </Tabs>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* COMBINED BUILDER: Task & Assessment Tabs */}
               {!insightsProps && (
@@ -9264,8 +9970,34 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                 </div>
                               </TabsContent>
                             </Tabs>
-                            {/* Buttons row with Save */}
-                            <div className="mt-3 flex gap-2" />
+                            {/* Buttons row with Test and Save */}
+                            <div className="mt-3 flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  // Prefill Test PCI with content from Task Builder
+                                  const content = taskBuilder.activeExtensionId
+                                    ? taskBuilder.extensions.find(
+                                        e => e.id === taskBuilder.activeExtensionId
+                                      )?.content || taskBuilder.taskContent
+                                    : taskBuilder.taskContent
+
+                                  setTestPciScores({})
+                                  setTestPciInput('')
+
+                                  setTestPciContent({
+                                    classroom: content,
+                                    student1: content,
+                                    student2: content,
+                                  })
+                                  setTestPciSource('task')
+                                  toast.success('Test PCI prefilled with task content')
+                                }}
+                              >
+                                Test
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </TabsContent>
@@ -9425,8 +10157,30 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                 </div>
                               </TabsContent>
                             </Tabs>
-                            {/* Buttons row with Save */}
-                            <div className="mt-3 flex gap-2" />
+                            {/* Buttons row with Test and Save */}
+                            <div className="mt-3 flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  // Prefill Test PCI with content from Assessment Builder
+                                  const content = assessmentBuilder.taskContent
+
+                                  setTestPciScores({})
+                                  setTestPciInput('')
+
+                                  setTestPciContent({
+                                    classroom: content,
+                                    student1: content,
+                                    student2: content,
+                                  })
+                                  setTestPciSource('assessment')
+                                  toast.success('Test PCI prefilled with assessment content')
+                                }}
+                              >
+                                Test
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </TabsContent>

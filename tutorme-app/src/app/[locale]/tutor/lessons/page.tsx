@@ -50,8 +50,8 @@ export default function LessonBankPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="relative sticky top-0 z-10 border-b bg-white">
+    <div className="flex h-screen flex-col bg-gray-50">
+      <div className="relative z-10 flex-shrink-0 border-b bg-white">
         <div className="flex w-full items-center justify-between px-4 py-4 sm:px-6">
           <Button variant="ghost" size="sm" asChild>
             <Link href="/tutor/dashboard">
@@ -69,7 +69,7 @@ export default function LessonBankPage() {
           </Button>
         </div>
       </div>
-      <div className="w-full px-4 py-6 sm:px-6">
+      <div className="flex flex-1 overflow-hidden px-4 py-6 sm:px-6">
         <CourseBuilder
           ref={builderRef}
           courseId="lesson-bank"
