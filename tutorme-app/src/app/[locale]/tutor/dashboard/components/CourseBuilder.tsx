@@ -69,7 +69,6 @@ import { cn } from '@/lib/utils'
 import { extractTextFromFile } from '@/lib/extract-file-text'
 import { toast } from 'sonner'
 import type { LiveTask } from '@/lib/socket'
-import { AITeachingAssistant } from '@/components/tutor/AITeachingAssistant'
 import type { LiveStudent, EngagementMetrics } from '@/types/live-session'
 
 import {
@@ -9439,20 +9438,6 @@ FEEDBACK: [your explanation]`
                             </TabsList>
 
                             <TabsContent value="analytics" className="mx-[-16px] flex-1 space-y-4">
-                              <div className="h-[400px] min-h-0 w-full px-4">
-                                <AITeachingAssistant
-                                  currentTopic={
-                                    ((insightsProps.sessions as any) || []).find(
-                                      (s: any) => s.id === insightsProps.sessionId
-                                    )?.subject || 'Session Overview'
-                                  }
-                                />
-                              </div>
-
-                              <div className="px-4">
-                                <Separator className="bg-cyan-100/50" />
-                              </div>
-
                               {insightsProps.liveTasks.length > 0 && (
                                 <div className="space-y-4">
                                   <div className="flex flex-wrap items-center gap-3">
