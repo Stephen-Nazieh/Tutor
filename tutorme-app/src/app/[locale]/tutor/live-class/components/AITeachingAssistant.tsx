@@ -6,7 +6,15 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import type { LiveStudent, EngagementMetrics } from '@/types/live-session'
-import { Sparkles, Clock, MessageCircle, BookOpen, BarChart3, HelpCircle } from 'lucide-react'
+import {
+  Sparkles,
+  Clock,
+  MessageCircle,
+  BookOpen,
+  BarChart3,
+  HelpCircle,
+  Lightbulb,
+} from 'lucide-react'
 
 interface AITeachingAssistantProps {
   students: LiveStudent[]
