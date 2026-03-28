@@ -362,13 +362,17 @@ export default function TutorInsightsPage() {
     )
   }
 
+  const dataMode = sessionId ? 'default' : 'detached'
+
   return (
     <div className="flex min-h-screen w-full flex-col items-stretch bg-gray-50">
       <CourseBuilderContent
         courseId={courseId}
-        dataMode="detached"
-        detachedStorageKey={`insights-course-builder:${courseId}`}
-        detachedCourseName={detachedCourseName}
+        dataMode={dataMode}
+        detachedStorageKey={
+          dataMode === 'detached' ? `insights-course-builder:${courseId}` : undefined
+        }
+        detachedCourseName={dataMode === 'detached' ? detachedCourseName : undefined}
         insightsProps={{
           courseId,
           courses: courses.map(course => ({ id: course.id, name: course.name })),

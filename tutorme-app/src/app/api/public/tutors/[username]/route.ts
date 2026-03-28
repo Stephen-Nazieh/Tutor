@@ -72,7 +72,6 @@ export async function GET(req: NextRequest) {
             difficulty: course.difficulty,
             estimatedHours: course.estimatedHours,
             enrollmentCount: course.enrollmentCount,
-            moduleCount: course.moduleCount,
             lessonCount: course.lessonCount,
             updatedAt: course.updatedAt,
           })),
@@ -91,7 +90,6 @@ export async function GET(req: NextRequest) {
     .limit(100)
 
   const curriculumIds = publishedCurricula.map((c) => c.id)
-  const moduleCounts = new Map<string, number>()
   const enrollmentCounts = new Map<string, number>()
   const lessonCountsByModule = new Map<string, number>()
   let modules: { curriculumId: string; id: string }[] = []
@@ -101,9 +99,6 @@ export async function GET(req: NextRequest) {
       .select({ curriculumId: curriculumModule.curriculumId, id: curriculumModule.id })
       .from(curriculumModule)
       .where(inArray(curriculumModule.curriculumId, curriculumIds))
-    for (const m of modules) {
-      moduleCounts.set(m.curriculumId, (moduleCounts.get(m.curriculumId) ?? 0) + 1)
-    }
     const enrollments = await drizzleDb
       .select({ curriculumId: curriculumEnrollment.curriculumId })
       .from(curriculumEnrollment)
@@ -132,7 +127,6 @@ export async function GET(req: NextRequest) {
       difficulty: course.difficulty,
       estimatedHours: course.estimatedHours,
       enrollmentCount: enrollmentCounts.get(course.id) ?? 0,
-      moduleCount: moduleCounts.get(course.id) ?? 0,
       lessonCount,
       updatedAt: course.updatedAt,
     }

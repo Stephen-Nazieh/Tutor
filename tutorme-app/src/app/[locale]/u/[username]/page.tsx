@@ -42,7 +42,6 @@ interface PublicTutorResponse {
     difficulty?: string | null
     estimatedHours?: number | null
     enrollmentCount: number
-    moduleCount: number
     lessonCount: number
     price?: number | null
     currency?: string | null
@@ -421,9 +420,8 @@ export default function PublicTutorPage() {
                   ) : null}
                   <Badge variant="outline">
                     <BookOpen className="mr-1 h-3 w-3" />
-                    {course.moduleCount} modules
+                    {course.lessonCount} lessons
                   </Badge>
-                  <Badge variant="outline">{course.lessonCount} lessons</Badge>
                   <Badge variant="outline">
                     <Users className="mr-1 h-3 w-3" />
                     {course.enrollmentCount} enrolled
