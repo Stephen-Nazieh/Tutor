@@ -70,13 +70,67 @@ import { extractTextFromFile } from '@/lib/extract-file-text'
 import { toast } from 'sonner'
 import type { LiveTask } from '@/lib/socket'
 import type { LiveStudent, EngagementMetrics } from '@/types/live-session'
+import type {
+  Video,
+  Image,
+  Document,
+  ImportedLearningResource,
+  VisibleDocumentPayload,
+  DMIQuestion,
+  Task,
+  Assessment,
+  QuizQuestion,
+  Quiz,
+  Content,
+  DifficultyLevel,
+  DifficultyMode,
+  DifficultyVariant,
+  WithDifficultyVariants,
+  Worksheet,
+  Lesson,
+  ModuleQuiz,
+  Module,
+  InsightsSessionOption,
+  CourseBuilderInsightsProps,
+  CourseBuilderProps,
+  CourseBuilderRef,
+} from './builder-types'
+
+export type {
+  Video,
+  Image,
+  Document,
+  ImportedLearningResource,
+  VisibleDocumentPayload,
+  DMIQuestion,
+  Task,
+  Assessment,
+  QuizQuestion,
+  Quiz,
+  Content,
+  DifficultyLevel,
+  DifficultyMode,
+  DifficultyVariant,
+  WithDifficultyVariants,
+  Worksheet,
+  Lesson,
+  ModuleQuiz,
+  Module,
+  InsightsSessionOption,
+  CourseBuilderInsightsProps,
+  CourseBuilderProps,
+  CourseBuilderRef,
+} from './builder-types'
+
+import { DMIPanel } from './DMIPanel'
+import { QuestionBankModal } from './QuestionBankModal'
 
 import {
   Plus,
   Trash2,
   Copy,
   FileText,
-  Video,
+  Video as VideoIcon,
   Image as ImageIcon,
   FileQuestion,
   ChevronRight,
@@ -125,312 +179,6 @@ import {
   CornerDownLeft,
 } from 'lucide-react'
 import { ChevronLeft as ChevronLeftIcon } from 'lucide-react'
-
-// ============================================
-// ENHANCED TYPES - Hierarchical Structure
-// ============================================
-
-export interface Video {
-  id: string
-  title: string
-  url: string
-  duration: number
-  thumbnail?: string
-}
-
-export interface Image {
-  id: string
-  title: string
-  url: string
-  alt?: string
-}
-
-export interface Document {
-  id: string
-  title: string
-  url: string
-  type: 'pdf' | 'doc' | 'ppt' | 'other'
-}
-
-export interface ImportedLearningResource {
-  fileName: string
-  mimeType: string
-  fileUrl: string
-  extractedText: string
-  uploadedAt: string
-}
-
-export interface VisibleDocumentPayload {
-  title: string
-  description?: string
-  itemType: 'task' | 'homework' | 'worksheet' | 'moduleQuiz'
-  sourceDocument?: ImportedLearningResource
-  questions?: QuizQuestion[]
-}
-
-export interface Task extends WithDifficultyVariants {
-  id: string
-  title: string
-  shortDescription?: string
-  description: string
-  instructions: string
-  extensions?: Array<{
-    id: string
-    name: string
-    description?: string
-    content: string
-    pci: string
-  }>
-  dmiItems?: DMIQuestion[]
-  estimatedMinutes: number
-  points: number
-  submissionType: 'text' | 'file' | 'link' | 'none' | 'questions'
-  isAiGraded: boolean
-  rubric?: string
-  /** @protected Instructor-only answer key */
-  answerKey?: string
-  /** @protected Whether answer key is encrypted/protected */
-  answerKeyProtected?: boolean
-  /** Questions for question-based tasks */
-  questions?: QuizQuestion[]
-  /** Whether questions are randomized */
-  randomizeQuestions?: boolean
-  /** When false, not visible to students (draft) */
-  isPublished?: boolean
-  sourceDocument?: ImportedLearningResource
-}
-
-export interface Assessment extends WithDifficultyVariants {
-  id: string
-  title: string
-  description: string
-  instructions: string
-  dmiItems?: DMIQuestion[]
-  category?: 'assessment' | 'homework'
-  difficulty?: string
-  dueDate?: string
-  estimatedMinutes: number
-  points: number
-  submissionType: 'text' | 'file' | 'link' | 'multiple' | 'questions'
-  isAiGraded?: boolean
-  allowLateSubmission: boolean
-  latePenalty?: number
-  /** @protected Instructor-only answer key */
-  answerKey?: string
-  /** @protected Whether answer key is encrypted/protected */
-  answerKeyProtected?: boolean
-  /** Questions for question-based homework */
-  questions?: QuizQuestion[]
-  /** Whether questions are randomized */
-  randomizeQuestions?: boolean
-  /** Time limit for completion (optional) */
-  timeLimit?: number
-  enforceTimeLimit?: boolean
-  enforceDueDate?: boolean
-  attemptsAllowed?: number
-  maxAttempts?: number
-  passingScore?: number
-  showCorrectAnswers?: boolean
-  answersNeverVisible?: boolean
-  /** When false, not visible to students (draft) */
-  isPublished?: boolean
-  sourceDocument?: ImportedLearningResource
-}
-
-export interface QuizQuestion {
-  id: string
-  type: 'mcq' | 'truefalse' | 'shortanswer' | 'essay' | 'multiselect' | 'matching' | 'fillblank'
-  question: string
-  options?: string[]
-  correctAnswer?: string | string[]
-  points: number
-  explanation?: string
-  matchingPairs?: Array<{ left: string; right: string }>
-  extendEnabled?: boolean
-}
-
-export interface Quiz extends WithDifficultyVariants {
-  id: string
-  title: string
-  description: string
-  timeLimit?: number
-  attemptsAllowed: number
-  questions: QuizQuestion[]
-  passingScore?: number
-  showCorrectAnswers: boolean
-  randomizeQuestions: boolean
-  /** @protected When true, correct answers are never shown to students */
-  answersNeverVisible?: boolean
-  /** When false, not visible to students (draft) */
-  isPublished?: boolean
-  sourceDocument?: ImportedLearningResource
-  /** Allow late submissions */
-  allowLateSubmission?: boolean
-  /** Late penalty percentage */
-  latePenalty?: number
-  /** @protected Instructor-only answer key */
-  answerKey?: string
-  /** @protected Whether answer key is encrypted/protected */
-  answerKeyProtected?: boolean
-}
-
-export interface Content {
-  id: string
-  title: string
-  type: 'text' | 'video' | 'audio' | 'interactive' | 'embed'
-  body?: string
-  url?: string
-  duration?: number
-  order: number
-  sourceDocument?: ImportedLearningResource
-}
-
-// ============================================
-// DIFFICULTY & ADAPTIVE CONTENT TYPES
-// ============================================
-
-export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced'
-
-export type DifficultyMode = 'fixed' | 'adaptive' | 'all'
-
-/** Partial variant for a specific difficulty level */
-export interface DifficultyVariant {
-  title?: string
-  description?: string
-  duration?: number
-  instructions?: string
-  points?: number
-  /** Whether this variant is enabled */
-  enabled?: boolean
-}
-
-/** Mixin for content that supports difficulty variants */
-export interface WithDifficultyVariants {
-  /** How this content handles difficulty levels */
-  difficultyMode: DifficultyMode
-  /** Fixed difficulty level (when mode is 'fixed') */
-  fixedDifficulty?: DifficultyLevel
-  /** Difficulty-specific overrides (when mode is 'adaptive') */
-  variants?: {
-    beginner?: DifficultyVariant
-    intermediate?: DifficultyVariant
-    advanced?: DifficultyVariant
-  }
-}
-
-export interface Worksheet extends WithDifficultyVariants {
-  id: string
-  title: string
-  description: string
-  instructions: string
-  estimatedMinutes: number
-  points: number
-  questions: QuizQuestion[]
-  randomizeQuestions: boolean
-  timeLimit?: number
-  passingScore?: number
-  allowMultipleAttempts: boolean
-  maxAttempts?: number
-  showCorrectAnswers: boolean
-  /** @protected Instructor-only answer key */
-  answerKey?: string
-  /** @protected Whether answer key is encrypted/protected */
-  answerKeyProtected?: boolean
-  /** When false, not visible to students (draft) */
-  isPublished?: boolean
-  sourceDocument?: ImportedLearningResource
-}
-
-export interface Lesson extends WithDifficultyVariants {
-  id: string
-  title: string
-  description?: string
-  /** Optional section descriptions for course builder UI */
-  taskSectionDescription?: string
-  assessmentSectionDescription?: string
-  homeworkSectionDescription?: string
-  duration: number
-  order: number
-  isPublished: boolean
-  prerequisites?: string[]
-  media: {
-    videos: Video[]
-    images: Image[]
-  }
-  docs: Document[]
-  content: Content[]
-  tasks: Task[]
-  homework: Assessment[]
-  worksheets: Worksheet[]
-  /** @deprecated legacy lesson quiz items are migrated into `homework` (Assessment) */
-  quizzes?: Quiz[]
-}
-
-export interface ModuleQuiz extends Quiz, WithDifficultyVariants {
-  coverage: 'all_lessons' | 'selected_lessons'
-  coveredLessonIds?: string[]
-}
-
-export interface Module extends WithDifficultyVariants {
-  id: string
-  title: string
-  description?: string
-  order: number
-  isPublished: boolean
-  lessons: Lesson[]
-  moduleQuizzes: ModuleQuiz[]
-}
-
-// ============================================
-// PROPS
-// ============================================
-
-interface InsightsSessionOption {
-  id: string
-  title: string
-  subject: string
-  scheduledAt: string
-  status: string
-}
-
-interface CourseBuilderInsightsProps {
-  sessionId: string | null
-  sessions: InsightsSessionOption[]
-  onSessionChange: (sessionId: string) => void
-  liveTasks: LiveTask[]
-  onDeployTask: (task: LiveTask) => void
-  onSendPoll: (payload: { taskId: string; question: string }) => void
-  onSendQuestion: (payload: { taskId: string; prompt: string }) => void
-  students?: LiveStudent[]
-  metrics?: EngagementMetrics | null
-  classDuration?: number
-  isRecording?: boolean
-  recordingDuration?: number
-  onToggleRecording?: () => void
-}
-
-interface CourseBuilderProps {
-  courseId: string | null
-  courseName?: string
-  panelMode?: 'default' | 'live-class'
-  initialModules?: Module[]
-  lessonBankMode?: boolean
-  onMakeVisibleToStudents?: (payload: VisibleDocumentPayload) => void
-  onSave?: (
-    modules: Module[],
-    options?: {
-      developmentMode: 'single' | 'multi'
-      previewDifficulty: 'all' | 'beginner' | 'intermediate' | 'advanced'
-      courseName?: string
-      courseDescription?: string
-    }
-  ) => void
-  insightsProps?: CourseBuilderInsightsProps
-}
-
-export interface CourseBuilderRef {
-  save: () => void
-}
 
 // ============================================
 // DEFAULT TEMPLATES
@@ -772,7 +520,7 @@ const AI_SUGGESTIONS = [
     type: 'video',
     title: 'Replace with video',
     description: 'Convert this text section to a 5-min video',
-    icon: Video,
+    icon: VideoIcon,
   },
   {
     id: 4,
@@ -803,7 +551,7 @@ const CONTENT_TEMPLATES = [
     name: 'Video Lesson',
     category: 'lesson',
     description: 'Video-based lesson with discussion questions',
-    icon: Video,
+    icon: VideoIcon,
   },
   {
     id: 'quiz-mcq',
@@ -1992,414 +1740,6 @@ Format your response clearly and concisely.`
                 <Send className="h-4 w-4" />
               )}
             </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-// Question Bank Modal
-// --- DMI Panel Component ---
-
-interface DMIPanelProps {
-  items: DMIQuestion[]
-  onItemsChange: (items: DMIQuestion[]) => void
-  onDeploy?: () => void
-}
-
-interface DMIQuestion {
-  id: string
-  questionNumber: number
-  questionText: string
-  answer: string
-}
-
-function DMIPanel({ items, onItemsChange, onDeploy }: DMIPanelProps) {
-  const [previewOpen, setPreviewOpen] = useState(false)
-  const handleDeploy = () => {
-    if (onDeploy) {
-      onDeploy()
-    } else {
-      toast.success('DMI deployed')
-    }
-  }
-
-  if (items.length === 0) {
-    return (
-      <div className="min-h-[150px] rounded-lg bg-slate-50 p-3">
-        <h4 className="mb-2 text-sm font-medium">Digital Marking Interface</h4>
-        <p className="text-xs text-muted-foreground">
-          Click "Generate DMI" to create a student answer form from the Slide tab.
-        </p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex min-h-[150px] flex-col rounded-lg bg-slate-50 p-3">
-      <div className="mb-3 flex items-center justify-between">
-        <h4 className="text-sm font-medium">Digital Marking Interface</h4>
-      </div>
-
-      <div className="max-h-[300px] space-y-2 overflow-y-auto">
-        {items.map((item, idx) => (
-          <div key={item.id} className="rounded border bg-white p-2">
-            <div className="flex items-start gap-2">
-              <span className="mt-0.5 text-xs font-medium text-blue-600">
-                Q{item.questionNumber}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="mb-2 text-xs text-slate-700">{item.questionText}</p>
-                <textarea
-                  value={item.answer}
-                  onChange={(e: any) => {
-                    const next = items.map((q, qIdx) =>
-                      qIdx === idx ? { ...q, answer: e.target.value } : q
-                    )
-                    onItemsChange(next)
-                  }}
-                  className="min-h-[60px] w-full resize-y rounded border p-2 text-xs"
-                  placeholder="Student answer..."
-                />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-3 flex items-center gap-2">
-        <Button size="sm" variant="outline" onClick={() => setPreviewOpen(true)}>
-          Preview
-        </Button>
-      </div>
-
-      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>DMI Preview</DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[60vh] space-y-3 overflow-y-auto">
-            {items.map(item => (
-              <div key={item.id} className="rounded border bg-white p-3">
-                <p className="mb-2 text-sm font-medium">
-                  Q{item.questionNumber}. {item.questionText}
-                </p>
-                <textarea
-                  className="min-h-[80px] w-full resize-y rounded border p-2 text-sm"
-                  placeholder="Student answer..."
-                />
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 flex justify-end">
-            <Button onClick={handleDeploy}>Deploy</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  )
-}
-
-// --- Question Bank Modal ---
-
-interface QuestionBankModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onImport: (items: { questionText: string; pciText: string }[]) => void
-}
-
-interface Question {
-  id: string
-  type: 'multiple_choice' | 'short_answer' | 'essay'
-  question: string
-  options?: string[]
-  correctAnswer?: string
-  difficulty: 'easy' | 'medium' | 'hard'
-  subject: string
-}
-
-const SAMPLE_QUESTIONS: Question[] = [
-  {
-    id: 'q1',
-    type: 'multiple_choice',
-    question: 'What is the capital of France?',
-    options: ['London', 'Berlin', 'Paris', 'Madrid'],
-    correctAnswer: 'Paris',
-    difficulty: 'easy',
-    subject: 'Geography',
-  },
-  {
-    id: 'q2',
-    type: 'short_answer',
-    question: 'Explain the process of photosynthesis in your own words.',
-    difficulty: 'medium',
-    subject: 'Biology',
-  },
-  {
-    id: 'q3',
-    type: 'multiple_choice',
-    question: 'Which of the following is NOT a prime number?',
-    options: ['2', '3', '4', '5'],
-    correctAnswer: '4',
-    difficulty: 'easy',
-    subject: 'Mathematics',
-  },
-  {
-    id: 'q4',
-    type: 'essay',
-    question: 'Discuss the causes and effects of climate change on global ecosystems.',
-    difficulty: 'hard',
-    subject: 'Environmental Science',
-  },
-  {
-    id: 'q5',
-    type: 'multiple_choice',
-    question: 'In which year did World War II end?',
-    options: ['1943', '1944', '1945', '1946'],
-    correctAnswer: '1945',
-    difficulty: 'medium',
-    subject: 'History',
-  },
-]
-
-function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps) {
-  const [questions, setQuestions] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
-  const [selectedQuestions, setSelectedQuestions] = useState<Set<string>>(new Set())
-  const [previewQuestion, setPreviewQuestion] = useState<any | null>(null)
-  const [filterSubject, setFilterSubject] = useState<string>('all')
-  const [filterDifficulty, setFilterDifficulty] = useState<string>('all')
-  const [searchQuery, setSearchQuery] = useState('')
-
-  useEffect(() => {
-    if (!isOpen) return
-    let active = true
-    const load = async () => {
-      setLoading(true)
-      try {
-        const res = await fetch('/api/tutor/question-bank?limit=200', { credentials: 'include' })
-        if (!res.ok) return
-        const data = await res.json()
-        const next = Array.isArray(data.questions) ? data.questions : []
-        if (active) setQuestions(next)
-      } catch {
-      } finally {
-        if (active) setLoading(false)
-      }
-    }
-    load()
-    return () => {
-      active = false
-    }
-  }, [isOpen])
-
-  const subjects = Array.from(new Set(questions.map(q => q.subject).filter(Boolean)))
-
-  const filteredQuestions = questions.filter(q => {
-    const matchesSubject = filterSubject === 'all' || q.subject === filterSubject
-    const matchesDifficulty = filterDifficulty === 'all' || q.difficulty === filterDifficulty
-    const matchesSearch =
-      searchQuery === '' ||
-      (q.question && q.question.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (q.subject && q.subject.toLowerCase().includes(searchQuery.toLowerCase()))
-    return matchesSubject && matchesDifficulty && matchesSearch
-  })
-
-  const toggleQuestion = (id: string) => {
-    const newSelected = new Set(selectedQuestions)
-    if (newSelected.has(id)) {
-      newSelected.delete(id)
-    } else {
-      newSelected.add(id)
-    }
-    setSelectedQuestions(newSelected)
-
-    // Set preview to the last selected question
-    const question = questions.find(q => q.id === id)
-    if (question && newSelected.has(id)) {
-      setPreviewQuestion(question)
-    } else if (newSelected.size === 0) {
-      setPreviewQuestion(null)
-    }
-  }
-
-  const handleImport = () => {
-    const selectedQList = questions.filter(q => selectedQuestions.has(q.id))
-    const items = selectedQList.map((q, idx) => {
-      let qText = `${idx + 1}. ${q.question}`
-      if (q.options && Array.isArray(q.options) && q.options.length > 0) {
-        qText += '\n    - ' + q.options.join('\n    - ')
-      }
-      let answerStr = q.correctAnswer
-      if (Array.isArray(q.correctAnswer)) {
-        answerStr = q.correctAnswer.join(', ')
-      }
-      let pciText = `${idx + 1}. ${answerStr || '[Answer goes here]'}`
-      return { questionText: qText, pciText }
-    })
-
-    onImport(items)
-    setSelectedQuestions(new Set())
-    setPreviewQuestion(null)
-    onClose()
-  }
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="flex h-[90vh] max-w-4xl flex-col rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-blue-500" />
-            Assessment Bank
-          </DialogTitle>
-        </DialogHeader>
-
-        {/* Filters */}
-        <div className="mb-4 flex gap-3">
-          <Input
-            placeholder="Search questions..."
-            value={searchQuery}
-            onChange={(e: any) => setSearchQuery(e.target.value)}
-            className="flex-1"
-          />
-          <select
-            value={filterSubject}
-            onChange={(e: any) => setFilterSubject(e.target.value)}
-            className="rounded-md border px-3 py-2 text-sm"
-          >
-            <option value="all">All Subjects</option>
-            {subjects.map(s => (
-              <option key={s as string} value={s as string}>
-                {s as string}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filterDifficulty}
-            onChange={(e: any) => setFilterDifficulty(e.target.value)}
-            className="rounded-md border px-3 py-2 text-sm"
-          >
-            <option value="all">All Difficulties</option>
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-          </select>
-        </div>
-
-        {/* Two-column layout */}
-        <div className="flex flex-1 gap-4 overflow-hidden">
-          {/* Left: Question List */}
-          <div className="flex-1 overflow-y-auto rounded-lg border">
-            {loading ? (
-              <div className="p-8 text-center text-muted-foreground">Loading bank...</div>
-            ) : filteredQuestions.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">No matched items</div>
-            ) : (
-              filteredQuestions.map(question => (
-                <div
-                  key={question.id}
-                  onClick={() => toggleQuestion(question.id)}
-                  className={`cursor-pointer border-b p-3 transition-colors ${
-                    selectedQuestions.has(question.id)
-                      ? 'border-blue-400 bg-blue-50'
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded border ${
-                        selectedQuestions.has(question.id)
-                          ? 'border-blue-500 bg-blue-500'
-                          : 'border-gray-500'
-                      }`}
-                    >
-                      {selectedQuestions.has(question.id) && (
-                        <CheckCircle className="h-3 w-3 text-white" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className="line-clamp-2 text-sm font-medium">{question.question}</p>
-                      <div className="mt-1 flex gap-2">
-                        <Badge variant="secondary" className="text-[10px]">
-                          {question.type?.toUpperCase() || 'UNKNOWN'}
-                        </Badge>
-                        <Badge variant="outline" className="text-[10px]">
-                          {question.difficulty || 'medium'}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Right: Preview Area */}
-          <div className="flex w-[400px] flex-col rounded-lg border bg-gray-50">
-            {previewQuestion ? (
-              <div className="flex-1 overflow-y-auto p-4">
-                <div className="mb-4 flex items-center gap-2">
-                  <Badge>{previewQuestion.subject || 'No Subject'}</Badge>
-                  <Badge variant="outline">{previewQuestion.difficulty || 'medium'}</Badge>
-                  <Badge variant="secondary">{previewQuestion.points || 1} pts</Badge>
-                </div>
-                <h3 className="mb-4 text-lg font-medium">{previewQuestion.question}</h3>
-
-                {previewQuestion.options &&
-                  Array.isArray(previewQuestion.options) &&
-                  previewQuestion.options.length > 0 && (
-                    <div className="mb-6 space-y-2">
-                      <p className="text-sm font-medium text-gray-500">Options:</p>
-                      {previewQuestion.options.map((opt: string, i: number) => (
-                        <div
-                          key={i}
-                          className="flex items-center gap-2 rounded-md border bg-white p-2 text-sm"
-                        >
-                          <span className="w-6 font-medium text-gray-400">
-                            {String.fromCharCode(65 + i)}.
-                          </span>
-                          {opt}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                <div>
-                  <p className="mb-2 text-sm font-medium text-gray-500">Correct Answer:</p>
-                  <div className="rounded-md border border-green-400 bg-green-50 p-3 text-sm text-green-700">
-                    {Array.isArray(previewQuestion.correctAnswer)
-                      ? previewQuestion.correctAnswer.join(', ')
-                      : previewQuestion.correctAnswer || 'Not specified'}
-                  </div>
-                </div>
-
-                {previewQuestion.explanation && (
-                  <div className="mt-4">
-                    <p className="mb-2 text-sm font-medium text-gray-500">Explanation:</p>
-                    <p className="rounded-md border bg-white p-3 text-sm text-gray-700">
-                      {previewQuestion.explanation}
-                    </p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-1 flex-col items-center justify-center p-8 text-center text-gray-400">
-                <BookOpen className="mb-4 h-12 w-12 opacity-20" />
-                <p>Select a question from the list to preview its details</p>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between border-t bg-white p-4">
-              <span className="text-sm font-medium">{selectedQuestions.size} selected</span>
-              <Button
-                onClick={handleImport}
-                disabled={selectedQuestions.size === 0}
-                className="gap-2"
-              >
-                Import Selected
-              </Button>
-            </div>
           </div>
         </div>
       </DialogContent>
@@ -9700,9 +9040,8 @@ FEEDBACK: [your explanation]`
               </Card>
 
               {/* COMBINED BUILDER: Task & Assessment Tabs */}
-              {!insightsProps && (
-                <Card className="mt-8 flex-shrink-0 overflow-hidden rounded-2xl border border-border bg-card/95 shadow-xl backdrop-blur-md">
-                  <CardContent className="pt-4">
+              <Card className="mt-8 flex-shrink-0 overflow-hidden rounded-2xl border border-border bg-card/95 shadow-xl backdrop-blur-md">
+                <CardContent className="pt-4">
                     <Tabs
                       value={mainBuilderTab}
                       onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
@@ -10345,7 +9684,6 @@ FEEDBACK: [your explanation]`
                     </Tabs>
                   </CardContent>
                 </Card>
-              )}
             </div>
           </div>
 

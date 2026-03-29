@@ -126,7 +126,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
         </div>
       </div>
 
-      <div className="flex w-full flex-1 flex-col overflow-hidden px-6 pt-2 pb-6 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2">
+      <div className="flex w-full flex-1 flex-col overflow-hidden px-6 pb-6 pt-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2">
         <h1 className="mb-4 text-center text-2xl font-bold tracking-tight text-foreground">
           Course Builder
         </h1>
