@@ -238,7 +238,7 @@ export default function StudentLiveSessionPage() {
           />
         </TabsContent>
 
-        <TabsContent value="math" className="h-[calc(100vh-240px)] min-h-[620px]">
+        <TabsContent value="math" className="h-[calc(100vh-240px)] min-h-[620px]" forceMount>
           <MathBoardHost
             sessionId={`math-${session.id}`}
             socket={socket}

@@ -159,7 +159,7 @@ export default function StudentFavoritesPage() {
                   Browse tutors and click the heart icon to save them here.
                 </p>
                 <Button asChild>
-                  <Link href={`/${locale}/student/tutors`}>Find Tutors</Link>
+                  <Link href={`/${locale}/student/tutors`}>Book a Tutor</Link>
                 </Button>
               </CardContent>
             </Card>

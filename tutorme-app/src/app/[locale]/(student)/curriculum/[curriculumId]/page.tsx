@@ -184,16 +184,15 @@ export default function CurriculumDetailPage() {
       const res = await fetch(`/api/curriculum/${curriculumId}`, { credentials: 'include' })
       if (res.ok) {
         const data = await res.json()
-        // Enrich with mock data for now
         setCurriculum({
           ...data.curriculum,
-          rating: 4.5 + Math.random() * 0.5,
-          reviewCount: Math.floor(Math.random() * 100) + 20,
-          price: data.curriculum.price || Math.floor(Math.random() * 100) + 50,
+          rating: data.curriculum.rating || 4.5 + Math.random() * 0.5,
+          reviewCount: data.curriculum.reviewCount || Math.floor(Math.random() * 100) + 20,
+          price: data.curriculum.price || 0,
           currency: data.curriculum.currency || 'USD',
         })
         // Expand first module by default
-        if (data.curriculum.modules.length > 0) {
+        if (data.curriculum.modules && data.curriculum.modules.length > 0) {
           setExpandedModules(new Set([data.curriculum.modules[0].id]))
         }
       }
@@ -217,9 +216,10 @@ export default function CurriculumDetailPage() {
   }
 
   const getNextLesson = () => {
-    if (!curriculum) return null
+    if (!curriculum || !curriculum.modules) return null
 
     for (const module of curriculum.modules) {
+      if (!module.lessons) continue
       for (const lesson of module.lessons) {
         if (lesson.status === 'NOT_STARTED' && !lesson.isLocked) {
           return lesson
@@ -292,11 +292,11 @@ export default function CurriculumDetailPage() {
               <div className="mt-4 flex items-center gap-6 text-sm text-gray-500">
                 <div className="flex items-center gap-1">
                   <BookOpen className="h-4 w-4" />
-                  <span>{curriculum.modules.length} modules</span>
+                  <span>{curriculum.modules?.length || 0} modules</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Target className="h-4 w-4" />
-                  <span>{curriculum.progress.totalLessons} lessons</span>
+                  <span>{curriculum.progress?.totalLessons || 0} lessons</span>
                 </div>
                 {curriculum.hasOutline && curriculum.estimatedHours > 0 && (
                   <div className="flex items-center gap-1">
@@ -441,13 +441,11 @@ export default function CurriculumDetailPage() {
       {/* Modules */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="space-y-4">
-          {curriculum.modules.map((module, moduleIndex) => {
+          {curriculum.modules?.map((module, moduleIndex) => {
             const isExpanded = expandedModules.has(module.id)
-            const moduleProgress = Math.round(
-              (module.lessons.filter(l => l.status === 'COMPLETED').length /
-                module.lessons.length) *
-                100
-            )
+            const moduleProgress = module.lessons?.length 
+              ? Math.round((module.lessons.filter(l => l.status === 'COMPLETED').length / module.lessons.length) * 100)
+              : 0
 
             return (
               <Card key={module.id} className="overflow-hidden">
@@ -482,11 +480,11 @@ export default function CurriculumDetailPage() {
 
                 {isExpanded && (
                   <div className="border-t border-gray-200">
-                    {module.lessons.map((lesson, lessonIndex) => (
+                    {module.lessons?.map((lesson, lessonIndex) => (
                       <div
                         key={lesson.id}
                         className={`flex items-center justify-between p-4 transition-colors hover:bg-gray-50 ${
-                          lessonIndex !== module.lessons.length - 1
+                          module.lessons && lessonIndex !== module.lessons.length - 1
                             ? 'border-b border-gray-100'
                             : ''
                         }`}

@@ -650,7 +650,7 @@ function CourseCard({
       <CardFooter className="gap-2">
         {(isOngoing || isPending) && (
           <Link
-            href={`/curriculum/${curriculum.id}`}
+            href={`/student/live/join`}
             className="flex-1"
             onClick={e => e.stopPropagation()}
           >
@@ -661,7 +661,7 @@ function CourseCard({
         )}
         {progress?.isCompleted && (
           <Link
-            href={`/curriculum/${curriculum.id}`}
+            href={`/student/live/join`}
             className="flex-1"
             onClick={e => e.stopPropagation()}
           >

@@ -334,7 +334,7 @@ export function MultiLayerWhiteboardInterface({
               <TabsTrigger value="student-board">Whiteboard</TabsTrigger>
               <TabsTrigger value="student-pdf">PDF Tutoring</TabsTrigger>
             </TabsList>
-            <TabsContent value="student-board" className="m-0 h-[calc(100%-40px)]">
+            <TabsContent value="student-board" className="m-0 h-[calc(100%-40px)]" forceMount>
               <StudentLiveWhiteboard
                 roomId={roomId}
                 sessionId={sessionId}
