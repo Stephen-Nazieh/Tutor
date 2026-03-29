@@ -5,9 +5,17 @@
 
 import createMiddleware from 'next-intl/middleware'
 import { withAuth } from 'next-auth/middleware'
-import { getToken } from 'next-auth/jwt'
+import type { JWT } from 'next-auth/jwt'
 import { NextResponse } from 'next/server'
 import { routing } from '@/i18n/routing'
+import { API_RATE_LIMIT_MAX, RATE_LIMIT_SKIP } from '@/lib/middleware-edge/constants'
+import { addSecurityHeaders } from '@/lib/middleware-edge/security-headers'
+import { stripLocalePrefix } from '@/lib/middleware-edge/locale-path'
+import { isPublicNormalizedPath } from '@/lib/middleware-edge/public-paths'
+import {
+  fetchJwtWithCookieFallbacks,
+  hasAnySessionCookie,
+} from '@/lib/middleware-edge/token-fallback'
 import {
   checkRateLimit,
   checkRateLimitPreset,
@@ -16,123 +24,20 @@ import {
 
 const intlMiddleware = createMiddleware(routing)
 
-const API_RATE_LIMIT_MAX = 100 // per minute per IP
-const RATE_LIMIT_SKIP = ['/api/auth', '/api/health', '/api/payments/webhooks']
-const REALM_COOKIE_TUTOR = 'tutor_session'
-const REALM_COOKIE_STUDENT = 'student_session'
-
-/**
- * Build a strict Content-Security-Policy.
- * Next.js requires 'unsafe-inline' and 'unsafe-eval' for script in dev/prod with current setup;
- * use nonces in future for stricter script-src.
- * @see docs/CSP_HARDENING.md for hardening steps and nonce/hash migration plan.
- */
-function getCspHeader(): string {
-  const directives = [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https:",
-    "font-src 'self' data:",
-    "connect-src 'self' https: wss:",
-    "frame-src 'self'",
-    "frame-ancestors 'self'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    "object-src 'none'",
-  ]
-  if (process.env.NODE_ENV === 'production') {
-    directives.push('upgrade-insecure-requests')
-  }
-  return directives.join('; ')
-}
-
-// Allowed origins for CORS - uses env var in production, localhost in dev
-function getAllowedOrigins(): string[] {
-  const productionOrigin = process.env.NEXT_PUBLIC_APP_URL
-  const devOrigins = ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3003']
-
-  if (productionOrigin) {
-    return [productionOrigin, ...devOrigins]
-  }
-
-  return devOrigins
-}
-
-function addSecurityHeaders(res: NextResponse, req?: Request): NextResponse {
-  res.headers.set('X-Content-Type-Options', 'nosniff')
-  res.headers.set('X-Frame-Options', 'SAMEORIGIN')
-  res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  res.headers.set('Content-Security-Policy', getCspHeader())
-
-  // Add CORS headers for API requests from landing page
-  if (req) {
-    const origin = req.headers.get('origin')
-    if (origin && getAllowedOrigins().includes(origin)) {
-      res.headers.set('Access-Control-Allow-Origin', origin)
-      res.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-      res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-      res.headers.set('Access-Control-Allow-Credentials', 'true')
-    }
-  }
-
-  return res
-}
-
-function stripLocalePrefix(pathname: string): string {
-  const segments = pathname.split('/').filter(Boolean)
-  const locale = segments[0]
-  if (locale && routing.locales.includes(locale as (typeof routing.locales)[number])) {
-    if (segments.length === 1) return '/'
-    return `/${segments.slice(1).join('/')}`
-  }
-  return pathname
+function asJwt(value: JWT | string | null | undefined): JWT | null {
+  if (value == null || typeof value === 'string') return null
+  return value
 }
 
 export default withAuth(
   async function middleware(req) {
     const path = req.nextUrl.pathname
     const normalizedPath = path.startsWith('/api') ? path : stripLocalePrefix(path)
-    let token = req.nextauth.token
 
-    // Fallback: Manually check for both generic NextAuth cookies in case withAuth fails due to proxy secure mismatches
-    if (!token) {
-      token = await getToken({
-        req,
-        secret: process.env.NEXTAUTH_SECRET,
-        cookieName: '__Secure-next-auth.session-token',
-      })
-    }
-    if (!token) {
-      token = await getToken({
-        req,
-        secret: process.env.NEXTAUTH_SECRET,
-        cookieName: 'next-auth.session-token',
-      })
-    }
-    if (!token) {
-      token = await getToken({
-        req,
-        secret: process.env.NEXTAUTH_SECRET,
-        cookieName: '__Host-next-auth.session-token',
-      })
-    }
+    let token =
+      asJwt(req.nextauth.token) ??
+      asJwt(await fetchJwtWithCookieFallbacks(req as never, normalizedPath))
 
-    if (!token) {
-      const realmCookieName =
-        normalizedPath.startsWith('/tutor') || normalizedPath.startsWith('/api/tutor')
-          ? REALM_COOKIE_TUTOR
-          : normalizedPath.startsWith('/student') || normalizedPath.startsWith('/api/student')
-            ? REALM_COOKIE_STUDENT
-            : null
-      if (realmCookieName) {
-        token = await getToken({
-          req,
-          secret: process.env.NEXTAUTH_SECRET,
-          cookieName: realmCookieName,
-        })
-      }
-    }
     const method = req.method ?? 'GET'
     const handleMatch = normalizedPath.match(/^\/@([a-zA-Z0-9_]{3,15})$/)
 
@@ -141,27 +46,7 @@ export default withAuth(
       return NextResponse.redirect(new URL(`/${routing.defaultLocale}/u/${username}`, req.url))
     }
 
-    // Redirect to login if path is protected and no token is found
-    const isPublicPath =
-      normalizedPath === '/' ||
-      [
-        '/api/auth',
-        '/api/health',
-        '/api/csrf',
-        '/api/public',
-        '/api/landing',
-        '/onboarding',
-        '/u/',
-        '/admin',
-        '/api/admin/',
-        '/api/admin/auth',
-        '/login',
-        '/forgot-password',
-        '/register',
-      ].some(p => (p.endsWith('/') ? normalizedPath.startsWith(p) : normalizedPath === p))
-
-    if (!isPublicPath && !token) {
-      // withAuth authorized callback usually handles this, but as a secondary safety check
+    if (!isPublicNormalizedPath(normalizedPath) && !token) {
       const url = new URL('/login', req.url)
       if (normalizedPath !== '/login') {
         url.searchParams.set('callbackUrl', req.url)
@@ -169,7 +54,6 @@ export default withAuth(
       }
     }
 
-    // Stricter rate limit for login (POST to signin; NextAuth uses signin/credentials)
     const isSignin =
       (path === '/api/auth/signin' || path === '/api/auth/signin/credentials') && method === 'POST'
     if (isSignin) {
@@ -195,7 +79,6 @@ export default withAuth(
       }
     }
 
-    // Rate limit API (except auth, health, webhooks)
     if (path.startsWith('/api') && !RATE_LIMIT_SKIP.some(p => path.startsWith(p))) {
       try {
         const key = getClientIdentifier(req as unknown as Request)
@@ -213,21 +96,18 @@ export default withAuth(
       }
     }
 
-    // Handle CORS preflight requests from landing page
     if (req.method === 'OPTIONS') {
       const res = new NextResponse(null, { status: 204 })
       addSecurityHeaders(res, req as unknown as Request)
       return res
     }
 
-    // Allow access to onboarding pages
     if (normalizedPath.startsWith('/onboarding')) {
       const res = NextResponse.next()
       addSecurityHeaders(res, req as unknown as Request)
       return res
     }
 
-    // Protect student routes
     if (
       normalizedPath.startsWith('/student') &&
       token?.role !== 'STUDENT' &&
@@ -236,25 +116,20 @@ export default withAuth(
       return NextResponse.redirect(new URL('/login', req.url))
     }
 
-    // Protect tutor routes
     if (normalizedPath.startsWith('/tutor') || normalizedPath.startsWith('/api/tutor')) {
       const role = token?.role?.toString().toUpperCase()
       if (role !== 'TUTOR' && role !== 'ADMIN') {
-        // If they are logged in but have the wrong role, send them to their dashboard
         if (role === 'STUDENT') return NextResponse.redirect(new URL('/student/dashboard', req.url))
         if (role === 'PARENT') return NextResponse.redirect(new URL('/parent/dashboard', req.url))
-        // Otherwise, send to login but only if not already on a path that should be accessible
         if (normalizedPath !== '/login' && !normalizedPath.endsWith('/agreement')) {
           return NextResponse.redirect(new URL('/login', req.url))
         }
       }
     }
 
-    // Protect parent routes - only PARENT and ADMIN roles allowed
     if (normalizedPath.startsWith('/parent')) {
       const allowedRoles = ['PARENT', 'ADMIN']
       if (!token?.role || !allowedRoles.includes(token.role)) {
-        // Redirect to role-appropriate dashboard or login
         const redirectUrl =
           token?.role === 'STUDENT'
             ? new URL('/student', req.url)
@@ -265,7 +140,6 @@ export default withAuth(
       }
     }
 
-    // Enforce TOS acceptance
     if (
       token &&
       !token.tosAccepted &&
@@ -281,7 +155,6 @@ export default withAuth(
       return NextResponse.redirect(new URL(agreementPath, req.url))
     }
 
-    // Never run i18n middleware for API routes.
     if (path.startsWith('/api')) {
       const res = NextResponse.next()
       addSecurityHeaders(res, req as unknown as Request)
@@ -297,73 +170,14 @@ export default withAuth(
       async authorized({ req, token }) {
         const pathname = req.nextUrl.pathname
         const normalizedPath = pathname.startsWith('/api') ? pathname : stripLocalePrefix(pathname)
-        const publicExactPaths = ['/']
-        const publicPrefixPaths = [
-          '/api/auth',
-          '/api/health',
-          '/api/csrf',
-          '/api/public',
-          '/api/landing',
-          '/onboarding',
-          '/u/',
-          '/admin',
-          '/api/admin/',
-          '/api/admin/auth',
-          '/login',
-          '/forgot-password',
-          '/register',
-        ]
-        const isPublicExact = publicExactPaths.includes(normalizedPath)
-        const isPublicPrefix = publicPrefixPaths.some(p => {
-          if (p.endsWith('/')) return normalizedPath.startsWith(p)
-          return normalizedPath === p || normalizedPath.startsWith(`${p}/`)
-        })
-        const isPublicPath = isPublicExact || isPublicPrefix
-        if (isPublicPath) return true
+
+        if (isPublicNormalizedPath(normalizedPath)) return true
         if (token) return true
 
-        // Manual fallback for securely parsing the token regardless of withAuth's strict internal configuration mismatches
-        const secureToken = await getToken({
-          req,
-          secret: process.env.NEXTAUTH_SECRET,
-          cookieName: '__Secure-next-auth.session-token',
-        })
-        if (secureToken) return true
-        const nonSecureToken = await getToken({
-          req,
-          secret: process.env.NEXTAUTH_SECRET,
-          cookieName: 'next-auth.session-token',
-        })
-        if (nonSecureToken) return true
+        const resolved = await fetchJwtWithCookieFallbacks(req as never, normalizedPath)
+        if (resolved) return true
 
-        const realmCookieName =
-          normalizedPath.startsWith('/tutor') || normalizedPath.startsWith('/api/tutor')
-            ? REALM_COOKIE_TUTOR
-            : normalizedPath.startsWith('/student') || normalizedPath.startsWith('/api/student')
-              ? REALM_COOKIE_STUDENT
-              : null
-
-        if (realmCookieName) {
-          const realmToken = await getToken({
-            req,
-            secret: process.env.NEXTAUTH_SECRET,
-            cookieName: realmCookieName,
-          })
-          if (realmToken) return true
-        }
-
-        // Final thorough check for any standard NextAuth cookie variations
-        const possibleCookies = [
-          '__Secure-next-auth.session-token',
-          'next-auth.session-token',
-          '__Host-next-auth.session-token',
-        ]
-        for (const name of possibleCookies) {
-          const t = await getToken({ req, secret: process.env.NEXTAUTH_SECRET, cookieName: name })
-          if (t) return true
-        }
-
-        return false
+        return hasAnySessionCookie(req as never)
       },
     },
   }
@@ -371,13 +185,9 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    // Match all pathnames except api, _next, _vercel, static files (for next-intl)
     '/((?!api|_next|_vercel|.*\\..*).*)',
-    // Explicit locale-prefixed paths
     '/(en|zh-CN|es|fr|de|ja|ko|pt|ru|ar)/:path*',
-    // Root
     '/',
-    // Auth and API (for rate limiting)
     '/api/auth/signin',
     '/api/auth/signin/credentials',
     '/api/((?!auth|health).*)',

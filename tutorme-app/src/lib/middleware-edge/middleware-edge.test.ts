@@ -1,0 +1,32 @@
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('@/i18n/routing', () => ({
+  routing: {
+    locales: ['en', 'zh-CN'],
+    defaultLocale: 'en',
+  },
+}))
+
+import { getCspHeader } from './csp'
+import { stripLocalePrefix } from './locale-path'
+import { isPublicNormalizedPath } from './public-paths'
+
+describe('middleware-edge helpers', () => {
+  it('stripLocalePrefix removes locale segment', () => {
+    expect(stripLocalePrefix('/en/student/dashboard')).toBe('/student/dashboard')
+    expect(stripLocalePrefix('/zh-CN')).toBe('/')
+    expect(stripLocalePrefix('/api/health')).toBe('/api/health')
+  })
+
+  it('isPublicNormalizedPath matches login and exact onboarding root', () => {
+    expect(isPublicNormalizedPath('/login')).toBe(true)
+    expect(isPublicNormalizedPath('/onboarding')).toBe(true)
+    expect(isPublicNormalizedPath('/student/dashboard')).toBe(false)
+  })
+
+  it('getCspHeader includes default-src and object-src none', () => {
+    const csp = getCspHeader()
+    expect(csp).toContain("default-src 'self'")
+    expect(csp).toContain("object-src 'none'")
+  })
+})
