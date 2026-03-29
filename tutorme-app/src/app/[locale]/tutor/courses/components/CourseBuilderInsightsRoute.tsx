@@ -38,6 +38,41 @@ export function CourseBuilderInsightsRoute({
   })
 
   const [isBuilderVisible, setIsBuilderVisible] = useState(false)
+  const [endingSession, setEndingSession] = useState(false)
+
+  const handleEndSession = async () => {
+    if (!insightsProps.sessionId || endingSession) return
+    if (!window.confirm('End this session? This will finalize the recording and analytics.')) {
+      return
+    }
+    setEndingSession(true)
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch(`/api/tutor/classes/${insightsProps.sessionId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.error || 'Failed to end session')
+      }
+
+      toast.success('Session ended. Recording saved.')
+      model.router.push('/tutor/classes')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to end session')
+    } finally {
+      setEndingSession(false)
+    }
+  }
 
   return (
     <div
@@ -68,6 +103,16 @@ export function CourseBuilderInsightsRoute({
             <h1 className="text-lg font-bold tracking-tight text-foreground">Live Session</h1>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+            {insightsProps.sessionId && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleEndSession}
+                disabled={endingSession}
+              >
+                {endingSession ? 'Ending…' : 'End Session'}
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"

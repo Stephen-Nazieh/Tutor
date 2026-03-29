@@ -42,6 +42,7 @@ export default function TutorInsightsPage() {
   const [classDuration, setClassDuration] = useState(0)
   const [isRecording, setIsRecording] = useState(false)
   const [recordingDurationSeconds, setRecordingDurationSeconds] = useState(0)
+  const courseIdFromQuery = searchParams.get('courseId')
 
   useEffect(() => {
     if (!isRecording) {
@@ -133,6 +134,7 @@ export default function TutorInsightsPage() {
 
         // Check if we have a sessionId that will give us a courseId
         const hasSessionInUrl = !!searchParams.get('sessionId')
+        const hasCourseInUrl = !!courseIdFromQuery
 
         if (courseList.length > 0) {
           const sorted = [...courseList].sort(
@@ -140,7 +142,7 @@ export default function TutorInsightsPage() {
           )
 
           // Only set a default course if we don't have a specific session
-          if (!hasSessionInUrl) {
+          if (!hasSessionInUrl && !hasCourseInUrl) {
             setCourseId(prev => prev ?? sorted[0].id)
             setDetachedCourseName(sorted[0].name)
           }
@@ -160,7 +162,14 @@ export default function TutorInsightsPage() {
     }
 
     loadCourses()
-  }, [searchParams])
+  }, [courseIdFromQuery, searchParams])
+
+  useEffect(() => {
+    if (!courseIdFromQuery) return
+    setCourseId(courseIdFromQuery)
+    const match = courses.find(course => course.id === courseIdFromQuery)
+    if (match) setDetachedCourseName(match.name)
+  }, [courseIdFromQuery, courses])
 
   useEffect(() => {
     const loadSessions = async () => {

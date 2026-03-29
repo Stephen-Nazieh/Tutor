@@ -19,12 +19,15 @@ export const GET = withAuth(
   async (req, session) => {
     const tutorId = session.user.id
     const now = new Date()
+    const includeEnded = req.nextUrl.searchParams.get('includeEnded') === '1'
 
     const sessions = await drizzleDb.query.liveSession.findMany({
-      where: or(
-        and(eq(liveSessionTable.tutorId, tutorId), gte(liveSessionTable.scheduledAt, now)),
-        and(eq(liveSessionTable.tutorId, tutorId), eq(liveSessionTable.status, 'ACTIVE'))
-      ),
+      where: includeEnded
+        ? eq(liveSessionTable.tutorId, tutorId)
+        : or(
+            and(eq(liveSessionTable.tutorId, tutorId), gte(liveSessionTable.scheduledAt, now)),
+            and(eq(liveSessionTable.tutorId, tutorId), eq(liveSessionTable.status, 'ACTIVE'))
+          ),
       with: {
         participants: {
           columns: { id: true },
@@ -39,10 +42,12 @@ export const GET = withAuth(
       title: s.title,
       subject: s.subject,
       scheduledAt: s.scheduledAt?.toISOString() ?? new Date().toISOString(),
+      startedAt: s.startedAt?.toISOString() ?? null,
+      endedAt: s.endedAt?.toISOString() ?? null,
       duration: DEFAULT_DURATION_MINUTES,
       maxStudents: s.maxStudents,
       enrolledStudents: s.participants.length,
-      status: s.status === 'ACTIVE' ? 'active' : 'upcoming',
+      status: s.status,
     }))
 
     return NextResponse.json({ classes })

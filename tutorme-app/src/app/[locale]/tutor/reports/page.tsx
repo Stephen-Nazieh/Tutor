@@ -95,6 +95,16 @@ interface Student {
   cluster: string
 }
 
+interface SessionOverviewItem {
+  id: string
+  title: string
+  subject: string
+  status: string
+  scheduledAt: string
+  startedAt?: string | null
+  endedAt?: string | null
+}
+
 // Mock Courses Data
 const MOCK_COURSES = [
   {
@@ -206,6 +216,8 @@ export default function TutorReports() {
   const [globalAttentionStudents, setGlobalAttentionStudents] = useState<any[]>([])
   const [globalAllStudents, setGlobalAllStudents] = useState<any[]>([])
   const [loadingGlobals, setLoadingGlobals] = useState(true)
+  const [sessionsOverview, setSessionsOverview] = useState<SessionOverviewItem[]>([])
+  const [sessionsLoading, setSessionsLoading] = useState(true)
 
   // Mock data for initial load
   const mockStudents: Student[] = [
@@ -289,6 +301,23 @@ export default function TutorReports() {
       setLoadingGlobals(false)
       setIsLoading(false)
     }, 1000)
+  }, [])
+
+  useEffect(() => {
+    const loadSessionsOverview = async () => {
+      setSessionsLoading(true)
+      try {
+        const res = await fetch('/api/tutor/classes?includeEnded=1', { credentials: 'include' })
+        if (!res.ok) throw new Error('Failed to load sessions')
+        const data = await res.json()
+        setSessionsOverview((data.classes || []) as SessionOverviewItem[])
+      } catch {
+        setSessionsOverview([])
+      } finally {
+        setSessionsLoading(false)
+      }
+    }
+    loadSessionsOverview()
   }, [])
 
   // Fetch report data when selected class changes
@@ -697,44 +726,92 @@ function CoursesAndClassesTab() {
   return (
     <TabsContent value="overview" className="space-y-6">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Left Side - Course List */}
-        <Card className="border-2 border-gray-400 shadow-sm">
-          <CardHeader>
-            <CardTitle>Courses & Classes ({courses.length})</CardTitle>
-            <CardDescription>
-              All published courses and completed classes, sorted by publication date.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="max-h-[500px] space-y-2 overflow-y-auto">
-            {courses.map(course => (
-              <div
-                key={course.id}
-                className={cn(
-                  'cursor-pointer rounded border p-3 transition-colors',
-                  selectedCourseId === course.id ? 'border-blue-300 bg-blue-50' : 'hover:bg-gray-50'
-                )}
-                onClick={() => {
-                  setSelectedCourseId(course.id === selectedCourseId ? null : course.id)
-                  setChatHistory([]) // Clear chat when switching courses
-                }}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="font-medium">{course.name}</div>
-                  <Badge variant={course.type === 'class' ? 'default' : 'secondary'}>
-                    {course.type === 'class' ? 'Class' : 'Course'}
-                  </Badge>
+        {/* Left Side - Course List + Sessions */}
+        <div className="space-y-6">
+          <Card className="border-2 border-gray-400 shadow-sm">
+            <CardHeader>
+              <CardTitle>Courses & Classes ({courses.length})</CardTitle>
+              <CardDescription>
+                All published courses and completed classes, sorted by publication date.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="max-h-[500px] space-y-2 overflow-y-auto">
+              {courses.map(course => (
+                <div
+                  key={course.id}
+                  className={cn(
+                    'cursor-pointer rounded border p-3 transition-colors',
+                    selectedCourseId === course.id
+                      ? 'border-blue-300 bg-blue-50'
+                      : 'hover:bg-gray-50'
+                  )}
+                  onClick={() => {
+                    setSelectedCourseId(course.id === selectedCourseId ? null : course.id)
+                    setChatHistory([]) // Clear chat when switching courses
+                  }}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="font-medium">{course.name}</div>
+                    <Badge variant={course.type === 'class' ? 'default' : 'secondary'}>
+                      {course.type === 'class' ? 'Class' : 'Course'}
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {course.description || course.subject}
+                  </div>
+                  <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                    <Calendar className="h-3 w-3" />
+                    Published: {formatDate(course.publishedAt)}
+                  </div>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  {course.description || course.subject}
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-gray-300 shadow-sm">
+            <CardHeader>
+              <CardTitle>Sessions</CardTitle>
+              <CardDescription>All sessions with current status.</CardDescription>
+            </CardHeader>
+            <CardContent className="max-h-[420px] space-y-3 overflow-y-auto">
+              {sessionsLoading ? (
+                <div className="flex items-center justify-center py-10 text-sm text-muted-foreground">
+                  Loading sessions...
                 </div>
-                <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
-                  <Calendar className="h-3 w-3" />
-                  Published: {formatDate(course.publishedAt)}
+              ) : sessionsOverview.length === 0 ? (
+                <div className="py-10 text-center text-sm text-muted-foreground">
+                  No sessions found.
                 </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+              ) : (
+                sessionsOverview.map(sessionItem => {
+                  const isOngoing = sessionItem.status === 'ACTIVE'
+                  return (
+                    <div
+                      key={sessionItem.id}
+                      className="rounded-lg border border-gray-200 bg-white p-3"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {sessionItem.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{sessionItem.subject}</p>
+                        </div>
+                        <Badge variant={isOngoing ? 'default' : 'secondary'}>
+                          {isOngoing ? 'Ongoing' : 'Ended'}
+                        </Badge>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                        <span>Scheduled: {formatDate(sessionItem.scheduledAt)}</span>
+                        {sessionItem.endedAt && <span>Ended: {formatDate(sessionItem.endedAt)}</span>}
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Right Side - Analytics & AI Chat */}
         <div className="space-y-6">
