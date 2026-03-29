@@ -1,4 +1,4 @@
-import { generateWithFallback } from '@/lib/agents'
+import { generateWithFallback } from './orchestrator-llm'
 
 export interface CourseDescriptionRequest {
   subject: string

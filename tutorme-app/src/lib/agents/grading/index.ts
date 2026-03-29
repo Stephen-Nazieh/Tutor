@@ -11,7 +11,7 @@
  * This agent automatically grades student submissions.
  */
 
-import { generateWithFallback } from '@/lib/agents'
+import { generateWithFallback } from '../orchestrator-llm'
 import { Question, StudentAnswer, Student, ProgressData, Quiz, getStudent } from '../shared-data'
 import {
   buildShortAnswerGradingPrompt,

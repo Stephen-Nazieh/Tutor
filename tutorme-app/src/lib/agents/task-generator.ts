@@ -9,7 +9,7 @@ import crypto from 'crypto'
 import { desc, eq } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { generatedTask, studentPerformance, taskSubmission } from '@/lib/db/schema'
-import { generateWithFallback } from '@/lib/agents'
+import { generateWithFallback } from './orchestrator-llm'
 import { safeJsonParse } from '@/lib/ai/json'
 
 export type DistributionMode = 'uniform' | 'personalized' | 'clustered' | 'peer_group'

@@ -11,7 +11,7 @@
  * This agent prepares tutors with AI-generated class briefings.
  */
 
-import { generateWithFallback } from '@/lib/agents'
+import { generateWithFallback } from '../orchestrator-llm'
 import {
   LiveSession,
   Student,

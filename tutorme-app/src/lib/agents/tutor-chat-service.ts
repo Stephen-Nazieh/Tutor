@@ -8,7 +8,7 @@ import {
   mission,
 } from '@/lib/db/schema'
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
-import { generateWithFallback } from '@/lib/agents'
+import { generateWithFallback } from './orchestrator-llm'
 import { buildCompletePrompt, type PromptConfig } from '@/lib/ai/teaching-prompts/prompt-builder'
 import { getGamificationSummary } from '@/lib/gamification/service'
 import { updateQuestProgress } from '@/lib/gamification/daily-quests'

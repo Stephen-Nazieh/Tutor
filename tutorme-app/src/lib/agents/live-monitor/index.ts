@@ -12,7 +12,7 @@
  * and detecting when students need help.
  */
 
-import { generateWithFallback } from '@/lib/agents'
+import { generateWithFallback } from '../orchestrator-llm'
 import {
   LiveSession,
   Student,

@@ -1,6 +1,8 @@
 /**
  * ============================================================================
  * AGENTS MODULE - Main Entry Point
+ * Use `import { ... } from '@/lib/agents'` from app code.
+ * Inside this package, import LLM helpers from `./orchestrator-llm` to avoid circular loads.
  * ============================================================================
  */
 
@@ -13,6 +15,8 @@ export * from './live-monitor'
 
 // Export shared data types
 export * from './shared-data'
+
+export { AGENT_METADATA } from './agent-metadata'
 
 // Export LLM orchestrator
 export { generateWithFallback, chatWithFallback } from './orchestrator-llm'

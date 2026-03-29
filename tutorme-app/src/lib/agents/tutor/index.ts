@@ -11,7 +11,7 @@
  * This agent handles all student tutoring interactions using Socratic method.
  */
 
-import { generateWithFallback, chatWithFallback } from '@/lib/agents'
+import { generateWithFallback, chatWithFallback } from '../orchestrator-llm'
 import {
   Student,
   Conversation,

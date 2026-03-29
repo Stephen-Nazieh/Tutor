@@ -1,4 +1,4 @@
-import { generateWithFallback } from '@/lib/agents'
+import { generateWithFallback } from './orchestrator-llm'
 import { safeJsonParseWithSchema } from '@/lib/ai/json'
 import { z } from 'zod'
 
