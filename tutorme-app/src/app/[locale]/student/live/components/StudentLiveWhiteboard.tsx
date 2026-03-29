@@ -1029,21 +1029,34 @@ export function StudentLiveWhiteboard({
     }
   }, [assignmentOverlay])
 
-  // Canvas setup
+  // Canvas setup with ResizeObserver to handle tab switching/visibility
   useEffect(() => {
     const canvas = canvasRef.current
     const container = containerRef.current
     if (!canvas || !container) return
 
-    const resizeCanvas = () => {
+    const resizeCanvas = (entries: ResizeObserverEntry[]) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        if (width > 0 && height > 0) {
+          canvas.width = width
+          canvas.height = height
+          redrawCanvas()
+        }
+      }
+    }
+
+    const observer = new ResizeObserver(resizeCanvas)
+    observer.observe(container)
+
+    // Initial sizing
+    if (container.clientWidth > 0 && container.clientHeight > 0) {
       canvas.width = container.clientWidth
       canvas.height = container.clientHeight
       redrawCanvas()
     }
 
-    resizeCanvas()
-    window.addEventListener('resize', resizeCanvas)
-    return () => window.removeEventListener('resize', resizeCanvas)
+    return () => observer.disconnect()
   }, [redrawCanvas])
 
   // Redraw canvas when strokes change

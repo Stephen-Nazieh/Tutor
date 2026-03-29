@@ -1364,23 +1364,35 @@ export function TutorWhiteboardManager({
     viewport.scale,
   ])
 
-  // Canvas setup
+  // Canvas setup with ResizeObserver to handle tab switching/visibility
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
+    const parent = canvas.parentElement
+    if (!parent) return
 
-    const resizeCanvas = () => {
-      const parent = canvas.parentElement
-      if (parent) {
-        canvas.width = parent.clientWidth
-        canvas.height = parent.clientHeight
+    const resizeCanvas = (entries: ResizeObserverEntry[]) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        if (width > 0 && height > 0) {
+          canvas.width = width
+          canvas.height = height
+          redrawCanvas()
+        }
       }
+    }
+
+    const observer = new ResizeObserver(resizeCanvas)
+    observer.observe(parent)
+
+    // Initial sizing
+    if (parent.clientWidth > 0 && parent.clientHeight > 0) {
+      canvas.width = parent.clientWidth
+      canvas.height = parent.clientHeight
       redrawCanvas()
     }
 
-    resizeCanvas()
-    window.addEventListener('resize', resizeCanvas)
-    return () => window.removeEventListener('resize', resizeCanvas)
+    return () => observer.disconnect()
   }, [redrawCanvas])
 
   // Redraw canvas when strokes change

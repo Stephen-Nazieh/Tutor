@@ -46,7 +46,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full">
-              <Link href="/curriculum">Open Course Catalogue</Link>
+              <Link href="/tutor/courses">Open Course Catalogue</Link>
             </Button>
           </CardContent>
         </Card>

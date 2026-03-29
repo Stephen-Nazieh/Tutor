@@ -171,60 +171,6 @@ export default function WhiteboardEditorPage() {
     }
   }
 
-  // Canvas setup
-  useEffect(() => {
-    const canvas = canvasRef.current
-    const container = containerRef.current
-    if (!canvas || !container || !currentPage) return
-
-    const resizeCanvas = () => {
-      canvas.width = container.clientWidth
-      canvas.height = container.clientHeight
-      redrawCanvas()
-    }
-
-    resizeCanvas()
-    window.addEventListener('resize', resizeCanvas)
-    return () => window.removeEventListener('resize', resizeCanvas)
-  }, [currentPage])
-
-  // Redraw canvas
-  const redrawCanvas = useCallback(() => {
-    const canvas = canvasRef.current
-    const ctx = canvas?.getContext('2d')
-    if (!canvas || !ctx || !currentPage) return
-
-    // Clear and set background
-    ctx.fillStyle = currentPage.backgroundColor || '#ffffff'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-    // Draw grid/dots/lines if needed
-    drawBackground(ctx, canvas.width, canvas.height, currentPage.backgroundStyle)
-
-    ctx.save()
-    ctx.translate(pan.x, pan.y)
-    ctx.scale(scale, scale)
-
-    // Draw strokes
-    currentPage.strokes?.forEach(stroke => {
-      drawStroke(ctx, stroke)
-    })
-
-    // Draw current stroke
-    if (currentStroke.length > 0) {
-      drawStroke(ctx, {
-        id: 'temp',
-        points: currentStroke,
-        color: tool === 'eraser' ? '#ffffff' : color,
-        width: tool === 'eraser' ? 20 : brushSize,
-        type: tool === 'eraser' ? 'eraser' : 'pen',
-        userId: '',
-      })
-    }
-
-    ctx.restore()
-  }, [currentPage, scale, pan, currentStroke, color, brushSize, tool])
-
   const drawBackground = (
     ctx: CanvasRenderingContext2D,
     width: number,
@@ -284,13 +230,83 @@ export default function WhiteboardEditorPage() {
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
     ctx.beginPath()
-    ctx.moveTo(stroke.points[0].x, stroke.points[0].y)
-    stroke.points.forEach((point, i) => {
-      if (i > 0) ctx.lineTo(point.x, point.y)
-    })
+    const p0 = stroke.points[0]
+    ctx.moveTo(p0.x, p0.y)
+
+    for (let i = 1; i < stroke.points.length; i++) {
+      const p = stroke.points[i]
+      ctx.lineTo(p.x, p.y)
+    }
     ctx.stroke()
     ctx.globalCompositeOperation = 'source-over'
   }
+
+  // Redraw canvas
+  const redrawCanvas = useCallback(() => {
+    const canvas = canvasRef.current
+    const ctx = canvas?.getContext('2d')
+    if (!canvas || !ctx || !currentPage) return
+
+    // Clear and set background
+    ctx.fillStyle = currentPage.backgroundColor || '#ffffff'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    // Draw grid/dots/lines if needed
+    drawBackground(ctx, canvas.width, canvas.height, currentPage.backgroundStyle)
+
+    ctx.save()
+    ctx.translate(pan.x, pan.y)
+    ctx.scale(scale, scale)
+
+    // Draw strokes
+    currentPage.strokes?.forEach(stroke => {
+      drawStroke(ctx, stroke)
+    })
+
+    // Draw current stroke
+    if (currentStroke.length > 0) {
+      drawStroke(ctx, {
+        id: 'temp',
+        points: currentStroke,
+        color: tool === 'eraser' ? '#ffffff' : color,
+        width: tool === 'eraser' ? 20 : brushSize,
+        type: tool === 'eraser' ? 'eraser' : 'pen',
+        userId: '',
+      })
+    }
+
+    ctx.restore()
+  }, [currentPage, scale, pan, currentStroke, color, brushSize, tool])
+
+  // Canvas setup with ResizeObserver to handle tab switching/visibility
+  useEffect(() => {
+    const canvas = canvasRef.current
+    const container = containerRef.current
+    if (!canvas || !container || !currentPage) return
+
+    const resizeCanvas = (entries: ResizeObserverEntry[]) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        if (width > 0 && height > 0) {
+          canvas.width = width
+          canvas.height = height
+          redrawCanvas()
+        }
+      }
+    }
+
+    const observer = new ResizeObserver(resizeCanvas)
+    observer.observe(container)
+
+    // Initial sizing
+    if (container.clientWidth > 0 && container.clientHeight > 0) {
+      canvas.width = container.clientWidth
+      canvas.height = container.clientHeight
+      redrawCanvas()
+    }
+
+    return () => observer.disconnect()
+  }, [redrawCanvas, currentPage])
 
   const screenToCanvas = (screenX: number, screenY: number): Point => {
     const canvas = canvasRef.current
