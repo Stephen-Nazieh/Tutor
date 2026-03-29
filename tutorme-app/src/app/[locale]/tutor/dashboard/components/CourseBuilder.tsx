@@ -457,6 +457,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     )
     const [insightsBoardPageIndex, setInsightsBoardPageIndex] = useState(0)
     const lastInsightsSessionIdRef = useRef<string | null>(null)
+    const insightsBoardSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const [testPciLoading, setTestPciLoading] = useState(false)
     const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
     const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
@@ -614,6 +615,49 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         setInsightsBoardPageIndex(0)
       }
     }, [insightsProps, insightsProps?.sessionId])
+
+    useEffect(() => {
+      if (!insightsProps?.sessionId || typeof window === 'undefined') return
+      try {
+        const stored = window.localStorage.getItem(
+          `insights-whiteboards:${insightsProps.sessionId}`
+        )
+        if (!stored) return
+        const parsed = JSON.parse(stored) as {
+          pages?: WhiteboardPage[]
+          pageIndex?: number
+        }
+        if (parsed.pages) setInsightsBoardPages(parsed.pages)
+        if (typeof parsed.pageIndex === 'number') setInsightsBoardPageIndex(parsed.pageIndex)
+      } catch {
+        // Ignore malformed cache.
+      }
+    }, [insightsProps?.sessionId])
+
+    useEffect(() => {
+      if (!insightsProps?.sessionId || typeof window === 'undefined') return
+      if (insightsBoardSaveTimeoutRef.current) {
+        clearTimeout(insightsBoardSaveTimeoutRef.current)
+      }
+      insightsBoardSaveTimeoutRef.current = setTimeout(() => {
+        try {
+          window.localStorage.setItem(
+            `insights-whiteboards:${insightsProps.sessionId}`,
+            JSON.stringify({
+              pages: insightsBoardPages,
+              pageIndex: insightsBoardPageIndex,
+            })
+          )
+        } catch {
+          // Ignore write errors (storage quota, etc).
+        }
+      }, 250)
+      return () => {
+        if (insightsBoardSaveTimeoutRef.current) {
+          clearTimeout(insightsBoardSaveTimeoutRef.current)
+        }
+      }
+    }, [insightsProps?.sessionId, insightsBoardPages, insightsBoardPageIndex])
 
     // Save tutor assets to API when they change (debounced)
     const saveAssetsTimeoutRef = useRef<NodeJS.Timeout | null>(null)

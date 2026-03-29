@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, Suspense } from 'react'
+import { useEffect, useMemo, useRef, useState, Suspense } from 'react'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -88,6 +88,7 @@ function StudentFeedbackContent() {
     createDefaultWhiteboardPages
   )
   const [tutorBoardPageIndex, setTutorBoardPageIndex] = useState(0)
+  const saveBoardsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const loadSessions = async () => {
@@ -138,6 +139,51 @@ function StudentFeedbackContent() {
     setTutorBoardPages(createDefaultWhiteboardPages())
     setTutorBoardPageIndex(0)
   }, [selectedSessionId])
+
+  useEffect(() => {
+    if (!selectedSessionId || typeof window === 'undefined') return
+    try {
+      const stored = window.localStorage.getItem(`feedback-whiteboards:${selectedSessionId}`)
+      if (!stored) return
+      const parsed = JSON.parse(stored) as {
+        my?: { pages?: WhiteboardPage[]; pageIndex?: number }
+        tutor?: { pages?: WhiteboardPage[]; pageIndex?: number }
+      }
+      if (parsed.my?.pages) setMyBoardPages(parsed.my.pages)
+      if (typeof parsed.my?.pageIndex === 'number') setMyBoardPageIndex(parsed.my.pageIndex)
+      if (parsed.tutor?.pages) setTutorBoardPages(parsed.tutor.pages)
+      if (typeof parsed.tutor?.pageIndex === 'number') setTutorBoardPageIndex(parsed.tutor.pageIndex)
+    } catch {
+      // Ignore malformed cache.
+    }
+  }, [selectedSessionId])
+
+  useEffect(() => {
+    if (!selectedSessionId || typeof window === 'undefined') return
+    if (saveBoardsTimeoutRef.current) clearTimeout(saveBoardsTimeoutRef.current)
+    saveBoardsTimeoutRef.current = setTimeout(() => {
+      try {
+        window.localStorage.setItem(
+          `feedback-whiteboards:${selectedSessionId}`,
+          JSON.stringify({
+            my: { pages: myBoardPages, pageIndex: myBoardPageIndex },
+            tutor: { pages: tutorBoardPages, pageIndex: tutorBoardPageIndex },
+          })
+        )
+      } catch {
+        // Ignore write errors (storage quota, etc).
+      }
+    }, 250)
+    return () => {
+      if (saveBoardsTimeoutRef.current) clearTimeout(saveBoardsTimeoutRef.current)
+    }
+  }, [
+    selectedSessionId,
+    myBoardPages,
+    myBoardPageIndex,
+    tutorBoardPages,
+    tutorBoardPageIndex,
+  ])
 
   useEffect(() => {
     if (!socket) return
