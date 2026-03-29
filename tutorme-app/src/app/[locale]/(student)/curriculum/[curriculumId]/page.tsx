@@ -186,8 +186,8 @@ export default function CurriculumDetailPage() {
         const data = await res.json()
         setCurriculum({
           ...data.curriculum,
-          rating: data.curriculum.rating || 4.5 + Math.random() * 0.5,
-          reviewCount: data.curriculum.reviewCount || Math.floor(Math.random() * 100) + 20,
+          rating: data.curriculum.rating || null,
+          reviewCount: data.curriculum.reviewCount || 0,
           price: data.curriculum.price || 0,
           currency: data.curriculum.currency || 'USD',
         })

@@ -2473,7 +2473,7 @@ FEEDBACK: [your explanation]`
                         textContent = `[Imported ${f.name}]`
                       }
                       return {
-                        id: `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                        id: `asset-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
                         name: f.name,
                         content: textContent,
                       }

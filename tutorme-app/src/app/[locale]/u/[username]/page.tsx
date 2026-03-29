@@ -58,12 +58,15 @@ function getInitials(name: string): string {
     .toUpperCase()
 }
 
-function StarRating({ rating, count }: { rating: number; count?: number }) {
+function StarRating({ rating, count }: { rating: number | null; count?: number }) {
+  if (rating === null) return null
   return (
     <div className="flex items-center gap-1">
       <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
       <span className="font-medium">{rating.toFixed(1)}</span>
-      {count !== undefined && <span className="text-sm text-muted-foreground">({count})</span>}
+      {count !== undefined && count > 0 && (
+        <span className="text-sm text-muted-foreground">({count})</span>
+      )}
     </div>
   )
 }
@@ -105,14 +108,14 @@ export default function PublicTutorPage() {
 
       const tutorData = await res.json()
 
-      // Enrich with mock ratings for now
+      // Use real database data
       setData({
         ...tutorData,
         courses: tutorData.courses.map((course: any) => ({
           ...course,
-          rating: 4.2 + Math.random() * 0.8,
-          reviewCount: Math.floor(Math.random() * 50) + 5,
-          price: course.price || Math.floor(Math.random() * 100) + 50,
+          rating: course.rating || null,
+          reviewCount: course.reviewCount || 0,
+          price: course.price || 0,
         })),
       })
     } catch {
@@ -186,9 +189,10 @@ export default function PublicTutorPage() {
   }
 
   // Calculate aggregated tutor rating from courses
-  const tutorRating = data?.courses?.length
-    ? data.courses.reduce((sum, c: any) => sum + (c.rating || 0), 0) / data.courses.length
-    : 0
+  const ratedCourses = data?.courses?.filter((c: any) => c.rating !== null) || []
+  const tutorRating = ratedCourses.length
+    ? ratedCourses.reduce((sum, c: any) => sum + (c.rating || 0), 0) / ratedCourses.length
+    : null
   const totalReviews = data?.courses?.reduce((sum, c: any) => sum + (c.reviewCount || 0), 0) || 0
 
   if (loading) {
@@ -288,11 +292,10 @@ export default function PublicTutorPage() {
                 <p className="text-sm font-medium text-slate-600">@{tutor.username}</p>
                 {source === 'mock' ? <Badge variant="outline">Demo Data</Badge> : null}
                 {tutor.bio ? <p className="max-w-2xl text-sm text-slate-700">{tutor.bio}</p> : null}
-                {tutorRating > 0 && (
-                  <div className="flex items-center gap-1 pt-1">
-                    <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
+                {tutorRating !== null && tutorRating > 0 && (
+                  <div className="flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                     <span className="text-lg font-medium">{tutorRating.toFixed(1)}</span>
-                    <span className="text-muted-foreground">({totalReviews} reviews)</span>
                   </div>
                 )}
               </div>
@@ -376,7 +379,7 @@ export default function PublicTutorPage() {
           <div className="rounded-lg border bg-white p-3">
             <p className="text-xs uppercase tracking-wide text-slate-500">Rating</p>
             <p className="mt-1 text-xl font-semibold text-slate-900">
-              {tutorRating > 0 ? tutorRating.toFixed(1) : 'N/A'}
+              {tutorRating !== null && tutorRating > 0 ? tutorRating.toFixed(1) : 'N/A'}
             </p>
           </div>
         </CardContent>
