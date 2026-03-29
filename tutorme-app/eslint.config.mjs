@@ -1,6 +1,6 @@
-import nextVitals from 'eslint-config-next/core-web-vitals';
-import nextTs from 'eslint-config-next/typescript';
-import prettier from 'eslint-config-prettier/flat';
+import nextVitals from 'eslint-config-next/core-web-vitals'
+import nextTs from 'eslint-config-next/typescript'
+import prettier from 'eslint-config-prettier/flat'
 
 const config = [
   {
@@ -37,7 +37,14 @@ const config = [
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-require-imports': 'off',
-      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
       '@typescript-eslint/no-empty-object-type': 'off',
       'import/no-anonymous-default-export': 'off',
       '@next/next/no-img-element': 'off',
@@ -46,7 +53,7 @@ const config = [
       'react/no-unescaped-entities': 'off',
       'react/jsx-no-undef': 'off',
       'react/no-children-prop': 'off',
-      'react-hooks/exhaustive-deps': 'off',
+      'react-hooks/exhaustive-deps': 'warn',
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/purity': 'off',
       'react-hooks/refs': 'off',
@@ -82,8 +89,6 @@ const config = [
       '@typescript-eslint/no-this-alias': 'off',
     },
   },
-];
+]
 
-export default [
-  ...config,
-];
+export default [...config]

@@ -28,8 +28,7 @@ Solocorn (also known as CogniClass) is an AI-human hybrid tutoring platform that
 | **Components** | shadcn/ui + Radix UI | latest | Headless UI components |
 | **Backend** | Next.js API Routes + Node.js | 16.1.6 | Server-side logic |
 | **Real-time** | Socket.io | 4.8.3 | WebSocket connections |
-| **ORM (Primary)** | Drizzle ORM | 0.38.0 | Type-safe SQL queries |
-| **ORM (Legacy)** | Prisma | 5.22.0 | Database client |
+| **ORM** | Drizzle ORM | 0.38.x | Type-safe SQL queries |
 | **Database** | PostgreSQL | 16 | Primary data store |
 | **Connection Pool** | PgBouncer | latest | Connection pooling |
 | **Cache** | Redis | 7 | Sessions, caching, real-time state |
@@ -134,12 +133,7 @@ Solocornkimi/
 │   │   └── routing.ts            # Locale routing re-export
 │   └── types/                    # TypeScript type definitions
 │
-├── prisma/
-│   ├── schema.prisma             # Prisma schema (legacy, migrating to Drizzle)
-│   ├── migrations/               # Prisma migrations
-│   └── seed.ts                   # Database seed script
-│
-├── drizzle/                      # Drizzle migrations and schema
+├── drizzle/                      # Drizzle migrations (source of truth for SQL schema)
 │
 ├── e2e/                          # Playwright E2E tests
 │   ├── ai-tutor.spec.ts
@@ -399,12 +393,9 @@ ALIPAY_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
 
 ## Database Architecture
 
-### Dual ORM Strategy
+### ORM and schema
 
-The project uses **Drizzle ORM** as the primary ORM (new code) while maintaining **Prisma** for legacy operations during migration:
-
-- **Drizzle**: New code, type-safe SQL, better performance
-- **Prisma**: Legacy migrations, being phased out
+The **tutorme-app** uses **Drizzle ORM** only for database access and schema (`src/lib/db/schema/`, `drizzle/` migrations). There is no Prisma client dependency in the application package.
 
 ### Key Models
 
@@ -671,7 +662,7 @@ Configured in both `next.config.mjs` and `middleware.ts`:
 
 ### Database Security
 
-- Drizzle/Prisma prevents SQL injection
+- Drizzle ORM (parameterized queries) prevents SQL injection
 - Connection strings in environment only
 - Row-level security via application logic
 - Security event logging
@@ -683,7 +674,7 @@ Configured in both `next.config.mjs` and `middleware.ts`:
 ### Local-First AI Strategy
 
 1. **Kimi K2.5** is always the first choice
-3. All AI calls go through `orchestrator.ts` which handles this chain
+3. All AI calls go through `@/lib/agents` (`orchestrator-llm.ts`) which handles this chain
 4. Set `MOCK_AI=true` for testing without AI providers
 
 ### Socratic Method Requirement
@@ -861,7 +852,6 @@ cat ts_errors.log
 
 - **shadcn/ui**: https://ui.shadcn.com/docs
 - **Drizzle ORM**: https://orm.drizzle.team/docs
-- **Prisma**: https://www.prisma.io/docs
 - **Next.js**: https://nextjs.org/docs
 - **NextAuth.js**: https://next-auth.js.org
 - **Socket.io**: https://socket.io/docs/

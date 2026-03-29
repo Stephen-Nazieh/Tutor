@@ -7,15 +7,39 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
+/** Same-origin uploads + OAuth avatar hosts. Extend via NEXT_IMAGE_ALLOWED_HOSTNAMES (comma-separated hostnames). */
+function imageRemotePatterns() {
+  const defaults = [
+    'lh3.googleusercontent.com',
+    'avatars.githubusercontent.com',
+    'platform-lookaside.fbsbx.com',
+    'media.licdn.com',
+    'cdn.discordapp.com',
+    'secure.gravatar.com',
+    'image.mux.com',
+    '*.public.blob.vercel-storage.com',
+  ]
+  const fromEnv = (process.env.NEXT_IMAGE_ALLOWED_HOSTNAMES ?? '')
+    .split(',')
+    .map(h => h.trim())
+    .filter(Boolean)
+  const hostnames = [...new Set([...defaults, ...fromEnv])]
+  return [
+    ...hostnames.map(hostname => ({
+      protocol: 'https',
+      hostname,
+      pathname: '/**',
+    })),
+    { protocol: 'http', hostname: 'localhost', pathname: '/**' },
+  ]
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
   // 7.1 Frontend performance: bundle size and code splitting
   images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: '**', pathname: '/**' },
-      { protocol: 'http', hostname: 'localhost', pathname: '/**' },
-    ],
+    remotePatterns: imageRemotePatterns(),
   },
   experimental: {
     optimizePackageImports: ['lucide-react', 'recharts', 'framer-motion'],
@@ -31,8 +55,8 @@ const nextConfig = {
       ...config.resolve.alias,
       'fflate/lib/node.cjs': false,
       'fflate/lib/node.js': false,
-    };
-    
+    }
+
     // Handle jspdf node-specific imports
     if (!isServer) {
       config.resolve.fallback = {
@@ -40,10 +64,10 @@ const nextConfig = {
         fs: false,
         path: false,
         crypto: false,
-      };
+      }
     }
-    
-    return config;
+
+    return config
   },
   // Security headers (CSP, X-Frame-Options, etc.) are set by middleware.ts
   // to avoid duplication and ensure consistent policy.
@@ -53,18 +77,18 @@ const nextConfig = {
         source: '/sw.js',
         headers: [
           { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
-          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }
-        ]
-      }
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+        ],
+      },
     ]
-  }
-};
+  },
+}
 
-const nextIntlConfig = withNextIntl(nextConfig);
+const nextIntlConfig = withNextIntl(nextConfig)
 
 // Only wrap with Sentry if org and project are configured
-const sentryOrg = process.env.SENTRY_ORG;
-const sentryProject = process.env.SENTRY_PROJECT;
+const sentryOrg = process.env.SENTRY_ORG
+const sentryProject = process.env.SENTRY_PROJECT
 
 export default sentryOrg && sentryProject
   ? withSentryConfig(nextIntlConfig, {
@@ -72,4 +96,4 @@ export default sentryOrg && sentryProject
       project: sentryProject,
       silent: !process.env.CI,
     })
-  : nextIntlConfig;
+  : nextIntlConfig
