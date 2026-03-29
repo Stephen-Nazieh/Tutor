@@ -263,6 +263,29 @@ interface PreviewCardProps {
   onSaveAll?: () => void
 }
 
+type WhiteboardPage = {
+  id: string
+  name: string
+  strokes: unknown[]
+  texts: unknown[]
+  shapes: unknown[]
+  backgroundColor: string
+  backgroundStyle: 'solid' | 'grid' | 'dots' | 'lines'
+  backgroundImage?: string
+}
+
+const createDefaultWhiteboardPages = (): WhiteboardPage[] => [
+  {
+    id: 'page-1',
+    name: 'Page 1',
+    strokes: [],
+    texts: [],
+    shapes: [],
+    backgroundColor: '#ffffff',
+    backgroundStyle: 'solid',
+  },
+]
+
 // ============================================
 // MAIN COURSE BUILDER COMPONENT
 // ============================================
@@ -429,6 +452,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       student1: [],
       student2: [],
     })
+    const [insightsBoardPages, setInsightsBoardPages] = useState<WhiteboardPage[]>(
+      createDefaultWhiteboardPages
+    )
+    const [insightsBoardPageIndex, setInsightsBoardPageIndex] = useState(0)
+    const lastInsightsSessionIdRef = useRef<string | null>(null)
     const [testPciLoading, setTestPciLoading] = useState(false)
     const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
     const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
@@ -576,6 +604,16 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       }
       loadAssets()
     }, [])
+
+    useEffect(() => {
+      if (!insightsProps) return
+      const nextSessionId = insightsProps.sessionId
+      if (lastInsightsSessionIdRef.current !== nextSessionId) {
+        lastInsightsSessionIdRef.current = nextSessionId
+        setInsightsBoardPages(createDefaultWhiteboardPages())
+        setInsightsBoardPageIndex(0)
+      }
+    }, [insightsProps, insightsProps?.sessionId])
 
     // Save tutor assets to API when they change (debounced)
     const saveAssetsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -3847,7 +3885,12 @@ FEEDBACK: [your explanation]`
                                       className="mt-4 flex-1 outline-none"
                                     >
                                       <div className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden shadow-xl ring-1 ring-black/5">
-                                        <EnhancedWhiteboard />
+                                        <EnhancedWhiteboard
+                                          pages={insightsBoardPages}
+                                          currentPageIndex={insightsBoardPageIndex}
+                                          onPagesChange={setInsightsBoardPages}
+                                          onPageIndexChange={setInsightsBoardPageIndex}
+                                        />
                                       </div>
                                     </TabsContent>
                                     <TabsContent

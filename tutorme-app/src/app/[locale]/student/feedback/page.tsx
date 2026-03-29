@@ -22,6 +22,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
 import type { LiveTask, LiveTaskPoll, LiveTaskQuestion } from '@/lib/socket'
 
+type WhiteboardPage = {
+  id: string
+  name: string
+  strokes: unknown[]
+  texts: unknown[]
+  shapes: unknown[]
+  backgroundColor: string
+  backgroundStyle: 'solid' | 'grid' | 'dots' | 'lines'
+  backgroundImage?: string
+}
+
+const createDefaultWhiteboardPages = (): WhiteboardPage[] => [
+  {
+    id: 'page-1',
+    name: 'Page 1',
+    strokes: [],
+    texts: [],
+    shapes: [],
+    backgroundColor: '#ffffff',
+    backgroundStyle: 'solid',
+  },
+]
+
 interface SessionSummary {
   id: string
   title: string
@@ -57,6 +80,14 @@ function StudentFeedbackContent() {
   const [unseenTaskIds, setUnseenTaskIds] = useState<string[]>([])
   const [questionDrafts, setQuestionDrafts] = useState<Record<string, string>>({})
   const [chatInput, setChatInput] = useState('')
+  const [myBoardPages, setMyBoardPages] = useState<WhiteboardPage[]>(
+    createDefaultWhiteboardPages
+  )
+  const [myBoardPageIndex, setMyBoardPageIndex] = useState(0)
+  const [tutorBoardPages, setTutorBoardPages] = useState<WhiteboardPage[]>(
+    createDefaultWhiteboardPages
+  )
+  const [tutorBoardPageIndex, setTutorBoardPageIndex] = useState(0)
 
   useEffect(() => {
     const loadSessions = async () => {
@@ -102,6 +133,10 @@ function StudentFeedbackContent() {
     setActiveTaskId(null)
     setUnseenTaskIds([])
     setQuestionDrafts({})
+    setMyBoardPages(createDefaultWhiteboardPages())
+    setMyBoardPageIndex(0)
+    setTutorBoardPages(createDefaultWhiteboardPages())
+    setTutorBoardPageIndex(0)
   }, [selectedSessionId])
 
   useEffect(() => {
@@ -315,13 +350,24 @@ function StudentFeedbackContent() {
 
             <TabsContent value="my-board" className="flex-1 outline-none">
               <Card className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden shadow-xl ring-1 ring-black/5">
-                <EnhancedWhiteboard />
+                <EnhancedWhiteboard
+                  pages={myBoardPages}
+                  currentPageIndex={myBoardPageIndex}
+                  onPagesChange={setMyBoardPages}
+                  onPageIndexChange={setMyBoardPageIndex}
+                />
               </Card>
             </TabsContent>
 
             <TabsContent value="tutor-board" className="flex-1 outline-none">
               <Card className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden shadow-xl ring-1 ring-black/5">
-                <EnhancedWhiteboard readOnly />
+                <EnhancedWhiteboard
+                  readOnly
+                  pages={tutorBoardPages}
+                  currentPageIndex={tutorBoardPageIndex}
+                  onPagesChange={setTutorBoardPages}
+                  onPageIndexChange={setTutorBoardPageIndex}
+                />
               </Card>
             </TabsContent>
           </Tabs>
