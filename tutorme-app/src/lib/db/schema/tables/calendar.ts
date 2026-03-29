@@ -1,0 +1,145 @@
+/**
+ * Drizzle table definitions (domain slice).
+ * Aggregated via ./index.ts — keep enums in ../enums.ts.
+ */
+import {
+  pgTable,
+  text,
+  integer,
+  boolean,
+  timestamp,
+  jsonb,
+  doublePrecision,
+  uniqueIndex,
+  index,
+  uuid,
+} from 'drizzle-orm/pg-core'
+import * as enums from '../enums'
+
+export const calendarConnection = pgTable(
+  'CalendarConnection',
+  {
+    id: text('id').primaryKey().notNull(),
+    userId: text('userId').notNull(),
+    provider: text('provider').notNull(),
+    providerAccountId: text('providerAccountId'),
+    accessToken: text('accessToken'),
+    refreshToken: text('refreshToken'),
+    expiresAt: timestamp('expiresAt', { withTimezone: true }),
+    syncEnabled: boolean('syncEnabled').notNull(),
+    syncDirection: text('syncDirection').notNull(),
+    lastSyncedAt: timestamp('lastSyncedAt', { withTimezone: true }),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt', { withTimezone: true })
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  table => ({
+    CalendarConnection_userId_idx: index('CalendarConnection_userId_idx').on(table.userId),
+    CalendarConnection_provider_idx: index('CalendarConnection_provider_idx').on(table.provider),
+    CalendarConnection_userId_provider_key: uniqueIndex(
+      'CalendarConnection_userId_provider_key'
+    ).on(table.userId, table.provider),
+  })
+)
+
+export const calendarEvent = pgTable(
+  'CalendarEvent',
+  {
+    id: text('id').primaryKey().notNull(),
+    tutorId: text('tutorId').notNull(),
+    title: text('title').notNull(),
+    description: text('description'),
+    type: enums.eventTypeEnum('type').notNull(),
+    status: enums.eventStatusEnum('status').notNull(),
+    startTime: timestamp('startTime', { withTimezone: true }).notNull(),
+    endTime: timestamp('endTime', { withTimezone: true }).notNull(),
+    timezone: text('timezone').notNull(),
+    isAllDay: boolean('isAllDay').notNull(),
+    recurrenceRule: text('recurrenceRule'),
+    recurringEventId: text('recurringEventId'),
+    isRecurring: boolean('isRecurring').notNull(),
+    location: text('location'),
+    meetingUrl: text('meetingUrl'),
+    isVirtual: boolean('isVirtual').notNull(),
+    curriculumId: text('curriculumId'),
+    batchId: text('batchId'),
+    studentId: text('studentId'),
+    attendees: jsonb('attendees'),
+    maxAttendees: integer('maxAttendees').notNull(),
+    reminders: jsonb('reminders'),
+    color: text('color'),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt', { withTimezone: true })
+      .notNull()
+      .$onUpdate(() => new Date()),
+    createdBy: text('createdBy').notNull(),
+    externalId: text('externalId'),
+    deletedAt: timestamp('deletedAt', { withTimezone: true }),
+    isCancelled: boolean('isCancelled').notNull(),
+  },
+  table => ({
+    CalendarEvent_tutorId_idx: index('CalendarEvent_tutorId_idx').on(table.tutorId),
+    CalendarEvent_startTime_idx: index('CalendarEvent_startTime_idx').on(table.startTime),
+    CalendarEvent_endTime_idx: index('CalendarEvent_endTime_idx').on(table.endTime),
+    CalendarEvent_status_idx: index('CalendarEvent_status_idx').on(table.status),
+    CalendarEvent_type_idx: index('CalendarEvent_type_idx').on(table.type),
+    CalendarEvent_recurringEventId_idx: index('CalendarEvent_recurringEventId_idx').on(
+      table.recurringEventId
+    ),
+    CalendarEvent_tutorId_startTime_endTime_idx: index(
+      'CalendarEvent_tutorId_startTime_endTime_idx'
+    ).on(table.tutorId, table.startTime, table.endTime),
+    CalendarEvent_curriculumId_idx: index('CalendarEvent_curriculumId_idx').on(table.curriculumId),
+    CalendarEvent_batchId_idx: index('CalendarEvent_batchId_idx').on(table.batchId),
+  })
+)
+
+export const calendarAvailability = pgTable(
+  'CalendarAvailability',
+  {
+    id: text('id').primaryKey().notNull(),
+    tutorId: text('tutorId').notNull(),
+    dayOfWeek: integer('dayOfWeek').notNull(),
+    startTime: text('startTime').notNull(),
+    endTime: text('endTime').notNull(),
+    timezone: text('timezone').notNull(),
+    isAvailable: boolean('isAvailable').notNull(),
+    validFrom: timestamp('validFrom', { withTimezone: true }),
+    validUntil: timestamp('validUntil', { withTimezone: true }),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt', { withTimezone: true })
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  table => ({
+    CalendarAvailability_tutorId_idx: index('CalendarAvailability_tutorId_idx').on(table.tutorId),
+    CalendarAvailability_dayOfWeek_idx: index('CalendarAvailability_dayOfWeek_idx').on(
+      table.dayOfWeek
+    ),
+    CalendarAvailability_tutorId_dayOfWeek_startTime_endTime_key: uniqueIndex(
+      'CalendarAvailability_tutorId_dayOfWeek_startTime_endTime_key'
+    ).on(table.tutorId, table.dayOfWeek, table.startTime, table.endTime),
+  })
+)
+
+export const calendarException = pgTable(
+  'CalendarException',
+  {
+    id: text('id').primaryKey().notNull(),
+    tutorId: text('tutorId').notNull(),
+    date: timestamp('date', { withTimezone: true }).notNull(),
+    isAvailable: boolean('isAvailable').notNull(),
+    startTime: text('startTime'),
+    endTime: text('endTime'),
+    reason: text('reason'),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  },
+  table => ({
+    CalendarException_tutorId_idx: index('CalendarException_tutorId_idx').on(table.tutorId),
+    CalendarException_date_idx: index('CalendarException_date_idx').on(table.date),
+    CalendarException_tutorId_date_startTime_key: uniqueIndex(
+      'CalendarException_tutorId_date_startTime_key'
+    ).on(table.tutorId, table.date, table.startTime),
+  })
+)

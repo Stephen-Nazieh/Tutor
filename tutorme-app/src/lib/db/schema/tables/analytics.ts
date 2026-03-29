@@ -1,0 +1,236 @@
+/**
+ * Drizzle table definitions (domain slice).
+ * Aggregated via ./index.ts — keep enums in ../enums.ts.
+ */
+import {
+  pgTable,
+  text,
+  integer,
+  boolean,
+  timestamp,
+  jsonb,
+  doublePrecision,
+  uniqueIndex,
+  index,
+  uuid,
+} from 'drizzle-orm/pg-core'
+import * as enums from '../enums'
+
+export const performanceMetric = pgTable(
+  'PerformanceMetric',
+  {
+    id: text('id').primaryKey().notNull(),
+    name: text('name').notNull(),
+    metricValue: doublePrecision('metric_value').notNull(),
+    unit: text('unit').notNull(),
+    tags: jsonb('tags'),
+    userId: text('userId'),
+    sessionId: text('sessionId'),
+    timestamp: timestamp('timestamp', { withTimezone: true }).notNull().defaultNow(),
+  },
+  table => ({
+    PerformanceMetric_name_idx: index('PerformanceMetric_name_idx').on(table.name),
+    PerformanceMetric_timestamp_idx: index('PerformanceMetric_timestamp_idx').on(table.timestamp),
+    PerformanceMetric_userId_idx: index('PerformanceMetric_userId_idx').on(table.userId),
+  })
+)
+
+export const performanceAlert = pgTable(
+  'PerformanceAlert',
+  {
+    id: text('id').primaryKey().notNull(),
+    type: text('type').notNull(),
+    severity: text('severity').notNull(),
+    message: text('message').notNull(),
+    metric: text('metric'),
+    threshold: doublePrecision('threshold'),
+    currentValue: doublePrecision('currentValue'),
+    timestamp: timestamp('timestamp', { withTimezone: true }).notNull().defaultNow(),
+    resolved: boolean('resolved').notNull(),
+    resolvedAt: timestamp('resolvedAt', { withTimezone: true }),
+  },
+  table => ({
+    PerformanceAlert_type_idx: index('PerformanceAlert_type_idx').on(table.type),
+    PerformanceAlert_severity_idx: index('PerformanceAlert_severity_idx').on(table.severity),
+    PerformanceAlert_resolved_idx: index('PerformanceAlert_resolved_idx').on(table.resolved),
+    PerformanceAlert_timestamp_idx: index('PerformanceAlert_timestamp_idx').on(table.timestamp),
+  })
+)
+
+// Session engagement & insights (optional feature tables)
+
+export const engagementSnapshot = pgTable(
+  'EngagementSnapshot',
+  {
+    id: text('id').primaryKey().notNull(),
+    sessionId: text('sessionId').notNull(),
+    studentId: text('studentId').notNull(),
+    engagementScore: doublePrecision('engagementScore').notNull(),
+    attentionLevel: text('attentionLevel').notNull(),
+    comprehensionEstimate: doublePrecision('comprehensionEstimate'),
+    participationCount: integer('participationCount').notNull(),
+    chatMessages: integer('chatMessages').notNull(),
+    whiteboardInteractions: integer('whiteboardInteractions').notNull(),
+    struggleIndicators: integer('struggleIndicators').notNull(),
+    timestamp: timestamp('timestamp', { withTimezone: true }).notNull().defaultNow(),
+  },
+  table => ({
+    EngagementSnapshot_sessionId_idx: index('EngagementSnapshot_sessionId_idx').on(table.sessionId),
+    EngagementSnapshot_studentId_idx: index('EngagementSnapshot_studentId_idx').on(table.studentId),
+  })
+)
+
+export const sessionEngagementSummary = pgTable('SessionEngagementSummary', {
+  sessionId: text('sessionId').primaryKey().notNull(),
+  averageEngagement: doublePrecision('averageEngagement'),
+  peakEngagement: doublePrecision('peakEngagement'),
+  lowEngagement: doublePrecision('lowEngagement'),
+  participationRate: doublePrecision('participationRate'),
+  totalChatMessages: integer('totalChatMessages'),
+  totalHandRaises: integer('totalHandRaises'),
+  timeOnTaskPercentage: doublePrecision('timeOnTaskPercentage'),
+})
+
+export const postSessionReport = pgTable(
+  'PostSessionReport',
+  {
+    id: text('id').primaryKey().notNull(),
+    sessionId: text('sessionId').notNull(),
+    tutorId: text('tutorId').notNull(),
+    status: text('status').notNull(),
+    keyConcepts: jsonb('keyConcepts').notNull(),
+    mainTopics: jsonb('mainTopics').notNull(),
+    studentQuestions: jsonb('studentQuestions').notNull(),
+    challengingConcepts: jsonb('challengingConcepts').notNull(),
+    overallAssessment: text('overallAssessment').notNull(),
+    averageEngagement: doublePrecision('averageEngagement').notNull(),
+    peakEngagement: doublePrecision('peakEngagement').notNull(),
+    lowEngagement: doublePrecision('lowEngagement').notNull(),
+    participationRate: doublePrecision('participationRate').notNull(),
+    chatActivity: integer('chatActivity').notNull(),
+    handRaises: integer('handRaises').notNull(),
+    timeOnTask: doublePrecision('timeOnTask').notNull(),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  },
+  table => ({
+    PostSessionReport_sessionId_idx: index('PostSessionReport_sessionId_idx').on(table.sessionId),
+  })
+)
+
+export const studentSessionInsight = pgTable(
+  'StudentSessionInsight',
+  {
+    id: text('id').primaryKey().notNull(),
+    sessionId: text('sessionId').notNull(),
+    studentId: text('studentId').notNull(),
+    engagement: doublePrecision('engagement').notNull(),
+    participation: integer('participation').notNull(),
+    questionsAsked: integer('questionsAsked').notNull(),
+    timeAwayMinutes: integer('timeAwayMinutes').notNull(),
+    flaggedForFollowUp: boolean('flaggedForFollowUp').notNull(),
+    followUpReason: text('followUpReason'),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  },
+  table => ({
+    StudentSessionInsight_sessionId_idx: index('StudentSessionInsight_sessionId_idx').on(
+      table.sessionId
+    ),
+  })
+)
+
+export const sessionBookmark = pgTable(
+  'SessionBookmark',
+  {
+    id: text('id').primaryKey().notNull(),
+    sessionId: text('sessionId').notNull(),
+    timestampSeconds: integer('timestampSeconds').notNull(),
+    label: text('label'),
+    note: text('note'),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  },
+  table => ({
+    SessionBookmark_sessionId_idx: index('SessionBookmark_sessionId_idx').on(table.sessionId),
+  })
+)
+
+export const resource = pgTable(
+  'Resource',
+  {
+    id: text('id').primaryKey().notNull(),
+    tutorId: text('tutorId').notNull(),
+    name: text('name').notNull(),
+    description: text('description'),
+    type: text('type').notNull(),
+    size: integer('size').notNull(),
+    mimeType: text('mimeType'),
+    url: text('url').notNull(),
+    key: text('key').notNull(),
+    tags: text('tags').array().notNull(),
+    isPublic: boolean('isPublic').notNull(),
+    downloadCount: integer('downloadCount').notNull(),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt', { withTimezone: true })
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  table => ({
+    Resource_tutorId_idx: index('Resource_tutorId_idx').on(table.tutorId),
+    Resource_type_idx: index('Resource_type_idx').on(table.type),
+    Resource_tags_idx: index('Resource_tags_idx').on(table.tags),
+    Resource_isPublic_idx: index('Resource_isPublic_idx').on(table.isPublic),
+  })
+)
+
+export const resourceShare = pgTable(
+  'ResourceShare',
+  {
+    id: text('id').primaryKey().notNull(),
+    resourceId: text('resourceId').notNull(),
+    sharedByTutorId: text('sharedByTutorId').notNull(),
+    recipientId: text('recipientId'),
+    curriculumId: text('curriculumId'),
+    sharedWithAll: boolean('sharedWithAll').notNull(),
+    message: text('message'),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  },
+  table => ({
+    ResourceShare_resourceId_idx: index('ResourceShare_resourceId_idx').on(table.resourceId),
+    ResourceShare_recipientId_idx: index('ResourceShare_recipientId_idx').on(table.recipientId),
+    ResourceShare_sharedByTutorId_idx: index('ResourceShare_sharedByTutorId_idx').on(
+      table.sharedByTutorId
+    ),
+    ResourceShare_resourceId_recipientId_key: uniqueIndex(
+      'ResourceShare_resourceId_recipientId_key'
+    ).on(table.resourceId, table.recipientId),
+    ResourceShare_resourceId_sharedWithAll_key: uniqueIndex(
+      'ResourceShare_resourceId_sharedWithAll_key'
+    ).on(table.resourceId, table.sharedWithAll),
+  })
+)
+
+export const libraryTask = pgTable(
+  'LibraryTask',
+  {
+    id: text('id').primaryKey().notNull(),
+    userId: text('userId').notNull(),
+    question: text('question').notNull(),
+    type: text('type').notNull(),
+    options: jsonb('options'),
+    correctAnswer: text('correctAnswer'),
+    explanation: text('explanation'),
+    difficulty: text('difficulty').notNull(),
+    subject: text('subject').notNull(),
+    topics: jsonb('topics').notNull(),
+    isFavorite: boolean('isFavorite').notNull(),
+    usageCount: integer('usageCount').notNull(),
+    lastUsedAt: timestamp('lastUsedAt', { withTimezone: true }),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt', { withTimezone: true })
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  table => ({
+    LibraryTask_userId_idx: index('LibraryTask_userId_idx').on(table.userId),
+    LibraryTask_isFavorite_idx: index('LibraryTask_isFavorite_idx').on(table.isFavorite),
+  })
+)
