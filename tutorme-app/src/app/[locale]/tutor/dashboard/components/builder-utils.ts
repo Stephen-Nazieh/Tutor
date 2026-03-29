@@ -1,6 +1,152 @@
-import { type QuizQuestion, type Task, type Assessment, type Module } from './builder-types'
+import {
+  Plus,
+  Trash2,
+  Copy,
+  FileText,
+  Video as VideoIcon,
+  ImageIcon,
+  FileQuestion,
+  ChevronRight,
+  ChevronDown,
+  Save,
+  Wand2,
+  BookOpen,
+  Layers,
+  Upload,
+  CheckCircle,
+  Clock,
+  GraduationCap,
+  ListTodo,
+  FolderOpen,
+  Home,
+  BrainCircuit,
+  GripVertical,
+  MoreVertical,
+  X,
+  Lightbulb,
+  LayoutTemplate,
+  Sparkles,
+  History,
+  RotateCcw,
+  Check,
+  Zap,
+  PenTool,
+  Users,
+  MonitorPlay,
+  Gamepad2,
+  Code,
+  Send,
+  Play,
+  Lock,
+  Unlock,
+  Shield,
+  Loader2,
+  BarChart3,
+  Signal,
+  Radio,
+  SignalHigh,
+  SignalLow,
+  Settings,
+  Layers2,
+  GripHorizontal,
+  CornerDownLeft,
+} from 'lucide-react'
+import {
+  type QuizQuestion,
+  type Task,
+  type Assessment,
+  type Module,
+  type Lesson,
+  type Worksheet,
+  type Quiz,
+  type ModuleQuiz,
+  type Content,
+} from './builder-types'
 
-export const generateId = () => `id-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`
+export const generateId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+
+export const AI_SUGGESTIONS = [
+  {
+    id: 1,
+    type: 'content',
+    title: 'Add prerequisites section',
+    description: 'Students often struggle without reviewing basics first',
+    icon: Lightbulb,
+  },
+  {
+    id: 2,
+    type: 'quiz',
+    title: 'Add checkpoint quiz',
+    description: 'Insert a 5-question quiz after this module',
+    icon: FileQuestion,
+  },
+  {
+    id: 3,
+    type: 'video',
+    title: 'Replace with video',
+    description: 'Convert this text section to a 5-min video',
+    icon: VideoIcon,
+  },
+  {
+    id: 4,
+    type: 'activity',
+    title: 'Add group activity',
+    description: 'Collaborative exercise for peer learning',
+    icon: Users,
+  },
+  {
+    id: 5,
+    type: 'assessment',
+    title: 'Add practice problems',
+    description: '3 similar problems with varying difficulty',
+    icon: PenTool,
+  },
+]
+
+export const CONTENT_TEMPLATES = [
+  {
+    id: 'lesson-standard',
+    name: 'Standard Lesson',
+    category: 'lesson',
+    description: 'Title, content, and summary format',
+    icon: BookOpen,
+  },
+  {
+    id: 'lesson-video',
+    name: 'Video Lesson',
+    category: 'lesson',
+    description: 'Video-based lesson with discussion questions',
+    icon: VideoIcon,
+  },
+  {
+    id: 'quiz-mcq',
+    name: 'Multiple Choice Quiz',
+    category: 'quiz',
+    description: 'Standard multiple choice assessment',
+    icon: FileQuestion,
+  },
+  {
+    id: 'activity-interactive',
+    name: 'Interactive Activity',
+    category: 'activity',
+    description: 'Drag-drop or interactive exercise',
+    icon: Gamepad2,
+  },
+  {
+    id: 'assessment-project',
+    name: 'Project Assignment',
+    category: 'assessment',
+    description: 'Long-form project with rubric',
+    icon: PenTool,
+  },
+  {
+    id: 'lesson-flipped',
+    name: 'Flipped Classroom',
+    category: 'lesson',
+    description: 'Pre-work video + in-class activity',
+    icon: MonitorPlay,
+  },
+]
 
 export function toBuilderQuestionType(type: string): QuizQuestion['type'] {
   if (type === 'multiple_choice') return 'mcq'
@@ -46,32 +192,498 @@ export function mapQuestionBankToBuilderQuestion(item: {
   }
 }
 
-export const DEFAULT_TASK = (order: number): Task => ({
-  id: `task-${Date.now()}`,
-  title: 'New Task',
+export const DEFAULT_CONTENT = (order: number): Content => ({
+  id: `content-${generateId()}`,
+  title: `Content ${order + 1}`,
+  type: 'text',
+  body: '',
+  order,
+})
+
+export const DEFAULT_LESSON = (order: number): Lesson => ({
+  id: `lesson-${generateId()}`,
+  title: `Lesson ${order + 1}`,
+  description: '',
+  duration: 45,
+  order,
+  isPublished: false,
+  prerequisites: [],
+  media: { videos: [], images: [] },
+  docs: [],
+  content: [],
+  tasks: [],
+  homework: [],
+  worksheets: [],
+  quizzes: [],
+  difficultyMode: 'all',
+  variants: {},
+})
+
+export const DEFAULT_WORKSHEET = (order: number): Worksheet => ({
+  id: `worksheet-${generateId()}`,
+  title: `Worksheet ${order + 1}`,
   description: '',
   instructions: '',
+  estimatedMinutes: 20,
+  points: 15,
+  questions: [],
+  randomizeQuestions: false,
+  timeLimit: undefined,
+  passingScore: 70,
+  allowMultipleAttempts: true,
+  maxAttempts: 3,
+  showCorrectAnswers: true,
+  answerKey: '',
+  answerKeyProtected: true,
+  difficultyMode: 'all',
+  variants: {},
+  isPublished: false,
+})
+
+export const DEFAULT_TASK = (order: number): Task => ({
+  id: `task-${generateId()}`,
+  title: `Task ${order + 1}`,
+  shortDescription: '',
+  description: '',
+  instructions: '',
+  extensions: [],
   estimatedMinutes: 15,
   points: 10,
   submissionType: 'text',
-  isAiGraded: true,
-  difficultyMode: 'fixed',
-  fixedDifficulty: 'beginner',
+  isAiGraded: false,
+  answerKey: '',
+  answerKeyProtected: true,
+  questions: [],
+  randomizeQuestions: false,
+  difficultyMode: 'all',
+  variants: {},
+  isPublished: false,
 })
 
 export const DEFAULT_HOMEWORK = (
   order: number,
-  category: 'assessment' | 'homework' = 'homework'
+  category: 'assessment' | 'homework' = 'assessment'
 ): Assessment => ({
-  id: `homework-${Date.now()}`,
-  title: `New ${category === 'homework' ? 'Homework' : 'Assessment'}`,
+  id: `homework-${generateId()}`,
+  title: category === 'homework' ? `Homework ${order + 1}` : `Assessment ${order + 1}`,
   description: '',
   instructions: '',
   category,
   estimatedMinutes: 30,
-  points: 100,
-  submissionType: 'text',
+  points: 20,
+  submissionType: 'file',
+  isAiGraded: false,
   allowLateSubmission: true,
-  difficultyMode: 'fixed',
-  fixedDifficulty: 'beginner',
+  questions: [],
+  randomizeQuestions: false,
+  timeLimit: undefined,
+  attemptsAllowed: 1,
+  passingScore: 70,
+  showCorrectAnswers: true,
+  answersNeverVisible: false,
+  latePenalty: 10,
+  answerKey: '',
+  answerKeyProtected: true,
+  difficultyMode: 'all',
+  variants: {},
+  isPublished: false,
 })
+
+export const DEFAULT_QUIZ = (order: number): Quiz => ({
+  id: `quiz-${generateId()}`,
+  title: `Quiz ${order + 1}`,
+  description: '',
+  attemptsAllowed: 1,
+  questions: [],
+  passingScore: 70,
+  showCorrectAnswers: true,
+  randomizeQuestions: false,
+  answersNeverVisible: false,
+  difficultyMode: 'all',
+  variants: {},
+  isPublished: false,
+  allowLateSubmission: true,
+  latePenalty: 0,
+  answerKey: '',
+  answerKeyProtected: true,
+})
+
+export const DEFAULT_MODULE_QUIZ = (order: number): ModuleQuiz => ({
+  ...DEFAULT_QUIZ(order),
+  coverage: 'all_lessons',
+})
+
+export const DEFAULT_MODULE = (order: number): Module => ({
+  id: `module-${generateId()}`,
+  title: `Lesson ${order + 1}`,
+  description: '',
+  order,
+  isPublished: false,
+  lessons: [DEFAULT_LESSON(0)],
+  moduleQuizzes: [],
+  difficultyMode: 'all',
+  variants: {},
+})
+
+export function convertQuizToAssessment(quiz: Quiz): Assessment {
+  return {
+    id: `homework-${generateId()}`,
+    title: quiz.title?.replace(/quiz/gi, 'Assessment') || 'Assessment',
+    description: quiz.description || '',
+    instructions: quiz.description || '',
+    category: 'assessment',
+    estimatedMinutes: quiz.timeLimit ?? 30,
+    points: quiz.questions?.reduce((sum, q) => sum + (q.points || 1), 0) || 20,
+    submissionType: 'questions',
+    allowLateSubmission: true,
+    latePenalty: 0,
+    questions: quiz.questions || [],
+    randomizeQuestions: quiz.randomizeQuestions || false,
+    timeLimit: quiz.timeLimit,
+    attemptsAllowed: quiz.attemptsAllowed || 1,
+    passingScore: quiz.passingScore,
+    showCorrectAnswers: quiz.showCorrectAnswers ?? true,
+    answersNeverVisible: quiz.answersNeverVisible ?? false,
+    answerKey: '',
+    answerKeyProtected: true,
+    difficultyMode: quiz.difficultyMode ?? 'all',
+    variants: quiz.variants ?? {},
+    isPublished: quiz.isPublished ?? false,
+    sourceDocument: quiz.sourceDocument,
+  }
+}
+
+/**
+ * Generate a PDF question paper from questions using jsPDF
+ */
+export function generateQuestionPaperPDF(
+  title: string,
+  description: string,
+  questions: QuizQuestion[]
+): { blob: Blob; url: string; fileName: string } {
+  // Dynamic import jsPDF to avoid SSR issues
+  const jsPDF = require('jspdf')
+  const doc = new jsPDF()
+
+  const pageWidth = doc.internal.pageSize.getWidth()
+  const margin = 15
+  const contentWidth = pageWidth - margin * 2
+  let y = 20
+
+  // Title
+  doc.setFontSize(18)
+  doc.setFont('helvetica', 'bold')
+  doc.text(title.toUpperCase(), pageWidth / 2, y, { align: 'center' })
+  y += 12
+
+  // Line under title
+  doc.setDrawColor(0)
+  doc.line(margin, y, pageWidth - margin, y)
+  y += 10
+
+  // Instructions
+  if (description) {
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    doc.text('INSTRUCTIONS:', margin, y)
+    y += 6
+
+    doc.setFont('helvetica', 'normal')
+    const descLines = doc.splitTextToSize(description, contentWidth)
+    doc.text(descLines, margin, y)
+    y += descLines.length * 5 + 8
+  }
+
+  // Summary box
+  doc.setFillColor(240, 240, 240)
+  doc.rect(margin, y - 5, contentWidth, 15, 'F')
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'bold')
+  const totalPoints = questions.reduce((sum, q) => sum + (q.points || 1), 0)
+  doc.text(
+    `Total Questions: ${questions.length}    |    Total Points: ${totalPoints}`,
+    margin + 5,
+    y + 5
+  )
+  y += 20
+
+  // Questions
+  questions.forEach((q, idx) => {
+    // Check for page break
+    if (y > 260) {
+      doc.addPage()
+      y = 20
+    }
+
+    // Question header
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`Question ${idx + 1}`, margin, y)
+
+    // Points badge
+    doc.setFillColor(230, 230, 230)
+    doc.rect(pageWidth - margin - 30, y - 5, 30, 8, 'F')
+    doc.setFontSize(9)
+    doc.text(`${q.points || 1} pt${q.points !== 1 ? 's' : ''}`, pageWidth - margin - 15, y, {
+      align: 'center',
+    })
+    y += 8
+
+    // Question text
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    const questionLines = doc.splitTextToSize(q.question, contentWidth)
+    doc.text(questionLines, margin, y)
+    y += questionLines.length * 5 + 6
+
+    // Options for MCQ/Multi-select
+    if (q.options && q.options.length > 0) {
+      q.options.forEach((opt, optIdx) => {
+        if (y > 270) {
+          doc.addPage()
+          y = 20
+        }
+        const letter = String.fromCharCode(65 + optIdx)
+        doc.setFontSize(10)
+        doc.text(`    ${letter}. ${opt}`, margin, y)
+        y += 6
+      })
+      y += 4
+    }
+
+    // True/False
+    if (q.type === 'truefalse') {
+      doc.text('    [  ] True', margin + 5, y)
+      y += 6
+      doc.text('    [  ] False', margin + 5, y)
+      y += 10
+    }
+
+    // Fill in blank
+    if (q.type === 'fillblank') {
+      doc.setDrawColor(180)
+      doc.line(margin + 5, y, margin + 100, y)
+      y += 10
+    }
+
+    // Short answer
+    if (q.type === 'shortanswer') {
+      doc.setDrawColor(180)
+      doc.line(margin + 5, y, pageWidth - margin, y)
+      y += 12
+    }
+
+    // Essay
+    if (q.type === 'essay') {
+      doc.setDrawColor(180)
+      for (let i = 0; i < 4; i++) {
+        doc.line(margin + 5, y + i * 8, pageWidth - margin, y + i * 8)
+      }
+      y += 40
+    }
+
+    y += 8
+  })
+
+  // Footer
+  const totalPages = doc.internal.getNumberOfPages()
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i)
+    doc.setFontSize(8)
+    doc.setTextColor(128)
+    doc.text(`Page ${i} of ${totalPages}  |  ${title}`, pageWidth / 2, 285, { align: 'center' })
+  }
+
+  const pdfBlob = doc.output('blob')
+  const pdfUrl = URL.createObjectURL(pdfBlob)
+  const fileName = `${title.replace(/[^a-z0-9]/gi, '_')}_Question_Paper.pdf`
+
+  return { blob: pdfBlob, url: pdfUrl, fileName }
+}
+
+export function resolveSelectedItem(
+  selectedItem: { type: string; id: string } | null,
+  modules: Module[]
+): {
+  item: Task | Assessment | Worksheet | ModuleQuiz | Lesson | Module
+  moduleId: string
+  lessonId?: string
+} | null {
+  if (!selectedItem) return null
+  for (const mod of modules) {
+    if (selectedItem.type === 'module' && mod.id === selectedItem.id) {
+      return { item: mod, moduleId: mod.id }
+    }
+    if (selectedItem.type === 'moduleQuiz') {
+      const quiz = mod.moduleQuizzes?.find(q => q.id === selectedItem.id)
+      if (quiz) return { item: quiz, moduleId: mod.id }
+    }
+    for (const lesson of mod.lessons) {
+      if (selectedItem.type === 'lesson' && lesson.id === selectedItem.id) {
+        return { item: lesson, moduleId: mod.id, lessonId: lesson.id }
+      }
+      if (selectedItem.type === 'task') {
+        const task = lesson.tasks?.find(t => t.id === selectedItem.id)
+        if (task) return { item: task, moduleId: mod.id, lessonId: lesson.id }
+      }
+      if (selectedItem.type === 'homework') {
+        const hw = lesson.homework?.find(h => h.id === selectedItem.id)
+        if (hw) return { item: hw, moduleId: mod.id, lessonId: lesson.id }
+      }
+      if (selectedItem.type === 'worksheet') {
+        const worksheet = lesson.worksheets?.find(w => w.id === selectedItem.id)
+        if (worksheet) return { item: worksheet, moduleId: mod.id, lessonId: lesson.id }
+      }
+    }
+  }
+  return null
+}
+
+export function normalizeModulesForAssessments(rawModules: Module[]): Module[] {
+  return rawModules.map(module => ({
+    ...module,
+    lessons: (module.lessons && module.lessons.length > 0
+      ? module.lessons
+      : [DEFAULT_LESSON(0)]
+    ).map(lesson => {
+      const existingAssessments = lesson.homework || []
+      const migratedAssessments = (lesson.quizzes || []).map(convertQuizToAssessment)
+      return {
+        ...lesson,
+        homework: [...existingAssessments, ...migratedAssessments],
+        quizzes: [],
+      }
+    }),
+  }))
+}
+
+export function normalizeGeneratedQuestionType(rawType: unknown): QuizQuestion['type'] {
+  const type = typeof rawType === 'string' ? rawType.trim().toLowerCase() : ''
+  if (type === 'mcq' || type === 'multiple_choice') return 'mcq'
+  if (type === 'multiselect' || type === 'multi_select') return 'multiselect'
+  if (type === 'truefalse' || type === 'true_false') return 'truefalse'
+  if (type === 'matching') return 'matching'
+  if (type === 'fillblank' || type === 'fill_in_blank') return 'fillblank'
+  if (type === 'shortanswer' || type === 'short_answer') return 'shortanswer'
+  return 'essay'
+}
+
+export function mapGeneratedModulesToBuilder(rawModules: unknown[]): Module[] {
+  if (!Array.isArray(rawModules)) return []
+
+  return rawModules.map((rawModule, moduleIdx) => {
+    const moduleObj = (rawModule ?? {}) as Record<string, any>
+    const rawLessons = Array.isArray(moduleObj.lessons) ? moduleObj.lessons : []
+    const rawExam = moduleObj.exam && typeof moduleObj.exam === 'object' ? moduleObj.exam : null
+
+    return {
+      ...DEFAULT_MODULE(moduleIdx),
+      title: String(moduleObj.title || `Lesson ${moduleIdx + 1}`),
+      description: String(moduleObj.description || ''),
+      lessons: rawLessons.map((rawLesson: Record<string, any>, lessonIdx: number) => {
+        const tasks = Array.isArray(rawLesson.tasks) ? rawLesson.tasks : []
+        const assessments = Array.isArray(rawLesson.assessments) ? rawLesson.assessments : []
+        const worksheets = Array.isArray(rawLesson.worksheets) ? rawLesson.worksheets : []
+
+        const mapQuestions = (rawQuestions: unknown[]): QuizQuestion[] =>
+          (Array.isArray(rawQuestions) ? rawQuestions : []).map(
+            (rawQuestion: unknown, questionIdx: number) => {
+              const questionObj = (rawQuestion ?? {}) as Record<string, any>
+              const qType = normalizeGeneratedQuestionType(questionObj.type)
+              return {
+                id: `q-${generateId()}`,
+                type: qType,
+                question: String(questionObj.question || `Question ${questionIdx + 1}`),
+                options:
+                  qType === 'mcq' || qType === 'multiselect'
+                    ? Array.isArray(questionObj.options) && questionObj.options.length > 0
+                      ? questionObj.options.map((opt: unknown) => String(opt))
+                      : ['', '', '', '']
+                    : qType === 'truefalse'
+                      ? ['True', 'False']
+                      : undefined,
+                correctAnswer: questionObj.correctAnswer as string | string[] | undefined,
+                points: Math.max(1, Number(questionObj.points) || 1),
+                explanation:
+                  typeof questionObj.explanation === 'string' ? questionObj.explanation : '',
+              }
+            }
+          )
+
+        return {
+          ...DEFAULT_LESSON(lessonIdx),
+          title: String(rawLesson.title || `Lesson ${lessonIdx + 1}`),
+          description: String(rawLesson.description || ''),
+          duration: Math.max(15, Number(rawLesson.duration) || 45),
+          tasks: tasks.map((task: Record<string, any>, taskIdx: number) => ({
+            ...DEFAULT_TASK(taskIdx),
+            title: String(task.title || `Task ${taskIdx + 1}`),
+            description: String(task.description || ''),
+            instructions: String(task.instructions || ''),
+            estimatedMinutes: Math.max(5, Number(task.estimatedMinutes) || 15),
+            points: Math.max(1, Number(task.points) || 10),
+            submissionType:
+              Array.isArray(task.questions) && task.questions.length > 0 ? 'questions' : 'text',
+            questions: mapQuestions(Array.isArray(task.questions) ? task.questions : []),
+          })),
+          homework: assessments.map((assessment: Record<string, any>, assessmentIdx: number) => ({
+            ...DEFAULT_HOMEWORK(assessmentIdx),
+            title: String(assessment.title || `Assessment ${assessmentIdx + 1}`),
+            description: String(assessment.description || ''),
+            instructions: String(assessment.instructions || ''),
+            estimatedMinutes: Math.max(10, Number(assessment.estimatedMinutes) || 30),
+            points: Math.max(1, Number(assessment.points) || 20),
+            submissionType:
+              Array.isArray(assessment.questions) && assessment.questions.length > 0
+                ? 'questions'
+                : 'text',
+            questions: mapQuestions(
+              Array.isArray(assessment.questions) ? assessment.questions : []
+            ),
+          })),
+          worksheets: worksheets.map((worksheet: Record<string, any>, worksheetIdx: number) => ({
+            ...DEFAULT_WORKSHEET(worksheetIdx),
+            title: String(worksheet.title || `Worksheet ${worksheetIdx + 1}`),
+            description: String(worksheet.description || ''),
+            instructions: String(worksheet.instructions || ''),
+            estimatedMinutes: Math.max(10, Number(worksheet.estimatedMinutes) || 20),
+            points: Math.max(1, Number(worksheet.points) || 15),
+            questions: mapQuestions(Array.isArray(worksheet.questions) ? worksheet.questions : []),
+          })),
+        }
+      }),
+      moduleQuizzes: rawExam
+        ? [
+            {
+              ...DEFAULT_MODULE_QUIZ(0),
+              title: String(rawExam.title || `Lesson ${moduleIdx + 1} Exam`),
+              description: String(rawExam.description || ''),
+              questions: (Array.isArray(rawExam.questions) ? rawExam.questions : []).map(
+                (rawQuestion: unknown, questionIdx: number) => {
+                  const questionObj = (rawQuestion ?? {}) as Record<string, any>
+                  const qType = normalizeGeneratedQuestionType(questionObj.type)
+                  return {
+                    id: `q-${generateId()}`,
+                    type: qType,
+                    question: String(questionObj.question || `Question ${questionIdx + 1}`),
+                    options:
+                      qType === 'mcq' || qType === 'multiselect'
+                        ? Array.isArray(questionObj.options) && questionObj.options.length > 0
+                          ? questionObj.options.map((opt: unknown) => String(opt))
+                          : ['', '', '', '']
+                        : qType === 'truefalse'
+                          ? ['True', 'False']
+                          : undefined,
+                    correctAnswer: questionObj.correctAnswer as string | string[] | undefined,
+                    points: Math.max(1, Number(questionObj.points) || 1),
+                    explanation:
+                      typeof questionObj.explanation === 'string' ? questionObj.explanation : '',
+                  }
+                }
+              ),
+            },
+          ]
+        : [],
+    }
+  })
+}

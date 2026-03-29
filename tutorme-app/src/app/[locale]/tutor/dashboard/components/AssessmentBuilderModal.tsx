@@ -1,0 +1,762 @@
+'use client'
+
+import { useState } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { AutoTextarea } from '@/components/ui/auto-textarea'
+import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { ListTodo, Home, FileQuestion, Plus, X, Shield, Unlock, Lock, BookOpen } from 'lucide-react'
+import { toast } from 'sonner'
+import type { Task, Assessment, QuizQuestion, Module } from './builder-types'
+import { DEFAULT_TASK, DEFAULT_HOMEWORK } from './builder-utils'
+import {
+  ResourceImportPanel,
+  MatchingPairsEditor,
+  QuestionsPreview,
+  QuestionBankQuickImport,
+  ManualQuestionComposer,
+  formatMatchingExplanation,
+} from './builder-components'
+import { LessonSelectorDialog } from './LessonSelectorDialog'
+
+interface BuilderModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onSave: (data: any) => void
+  initialData?: any
+}
+
+interface BuilderModalWithModulesProps {
+  isOpen: boolean
+  onClose: () => void
+  onSave: (data: any, moduleId?: string, lessonId?: string) => void
+  initialData?: any
+  modules: Module[]
+}
+
+export function AssessmentBuilderModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialData,
+  builderType = 'assessment',
+}: BuilderModalProps & { builderType?: 'task' | 'assessment' | 'homework' }) {
+  const [data, setData] = useState<Task | Assessment>(
+    initialData ||
+      (builderType === 'task'
+        ? DEFAULT_TASK(0)
+        : DEFAULT_HOMEWORK(0, builderType === 'homework' ? 'homework' : 'assessment'))
+  )
+  const [showAnswerKey, setShowAnswerKey] = useState(false)
+  const [showQuestionBankModal, setShowQuestionBankModal] = useState(false)
+  const isTask = builderType === 'task'
+  const isHomework = builderType === 'homework'
+  const titleLabel = isTask ? 'Task' : isHomework ? 'Homework' : 'Assessment'
+  const assessmentData = data as Assessment
+
+  const addQuestion = (type: QuizQuestion['type']) => {
+    const matchingPairs =
+      type === 'matching'
+        ? [
+            { left: '', right: '' },
+            { left: '', right: '' },
+          ]
+        : undefined
+    const newQuestion: QuizQuestion = {
+      id: `q-${Date.now()}`,
+      type,
+      question: '',
+      points: 1,
+      options:
+        type === 'mcq' || type === 'multiselect'
+          ? ['', '', '', '']
+          : type === 'truefalse'
+            ? ['True', 'False']
+            : undefined,
+      matchingPairs,
+      correctAnswer: matchingPairs ? matchingPairs.map(pair => pair.right) : undefined,
+    }
+    setData({ ...data, questions: [...(data.questions || []), newQuestion] })
+  }
+
+  const updateQuestion = (index: number, updates: Partial<QuizQuestion>) => {
+    const newQuestions = [...(data.questions || [])]
+    newQuestions[index] = { ...newQuestions[index], ...updates }
+    setData({ ...data, questions: newQuestions })
+  }
+
+  const removeQuestion = (index: number) => {
+    setData({ ...data, questions: (data.questions || []).filter((_, i) => i !== index) })
+  }
+
+  return (
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {isTask ? (
+                <ListTodo className="h-5 w-5 text-orange-500" />
+              ) : isHomework ? (
+                <Home className="h-5 w-5 text-purple-500" />
+              ) : (
+                <FileQuestion className="h-5 w-5 text-purple-500" />
+              )}
+              {titleLabel} Builder
+            </DialogTitle>
+          </DialogHeader>
+          <Tabs defaultValue="edit" className="w-full">
+            <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+              <TabsTrigger
+                value="edit"
+                className="rounded-lg border border-gray-400 bg-white transition-all duration-200 data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+              >
+                Edit
+              </TabsTrigger>
+              <TabsTrigger
+                value="preview"
+                className="rounded-lg border border-gray-400 bg-white transition-all duration-200 data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+              >
+                Preview (student view)
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent
+              value="edit"
+              className="mt-4 space-y-4 rounded-2xl border border-border bg-card/95 p-6 py-4 shadow-xl backdrop-blur-md"
+            >
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>{titleLabel} Title *</Label>
+                  <Input
+                    value={data.title}
+                    onChange={(e: any) => setData({ ...data, title: e.target.value })}
+                    placeholder={`e.g., ${titleLabel} 1`}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Instructions</Label>
+                  <AutoTextarea
+                    value={data.description}
+                    onChange={(e: any) => setData({ ...data, description: e.target.value })}
+                    placeholder="What should students know before starting this assessment?"
+                    rows={2}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{isTask ? 'Instructions *' : 'Question *'}</Label>
+                  <AutoTextarea
+                    value={data.instructions}
+                    onChange={(e: any) => setData({ ...data, instructions: e.target.value })}
+                    placeholder={
+                      isTask ? 'Enter the task instructions here' : 'Enter the question here'
+                    }
+                    rows={4}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4 rounded-xl bg-white/30 p-4 shadow-sm backdrop-blur-sm">
+                  <div className="space-y-2">
+                    <Label>Submission</Label>
+                    {isTask ? (
+                      <Select
+                        value={data.submissionType as Task['submissionType']}
+                        onValueChange={v =>
+                          setData({
+                            ...(data as Task),
+                            submissionType: v as Task['submissionType'],
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">Text</SelectItem>
+                          <SelectItem value="file">File</SelectItem>
+                          <SelectItem value="link">Link</SelectItem>
+                          <SelectItem value="questions">Questions</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Select
+                        value={data.submissionType as Assessment['submissionType']}
+                        onValueChange={v =>
+                          setData({
+                            ...(data as Assessment),
+                            submissionType: v as Assessment['submissionType'],
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">Text</SelectItem>
+                          <SelectItem value="file">File</SelectItem>
+                          <SelectItem value="link">Link</SelectItem>
+                          <SelectItem value="multiple">Multiple</SelectItem>
+                          <SelectItem value="questions">Questions</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                </div>
+
+                {/* Questions Section - Only when submissionType is 'questions' */}
+                {data.submissionType === 'questions' && (
+                  <div className="space-y-4 rounded-lg border bg-purple-50/30 p-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="flex items-center gap-2 font-medium">
+                        <FileQuestion className="h-4 w-4 text-purple-500" />
+                        Questions ({data.questions?.length || 0})
+                      </h3>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => addQuestion('mcq')}>
+                          <Plus className="mr-1 h-4 w-4" /> MCQ
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addQuestion('truefalse')}
+                        >
+                          <Plus className="mr-1 h-4 w-4" /> T/F
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addQuestion('shortanswer')}
+                        >
+                          <Plus className="mr-1 h-4 w-4" /> Short
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => addQuestion('essay')}>
+                          <Plus className="mr-1 h-4 w-4" /> Essay
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addQuestion('multiselect')}
+                        >
+                          <Plus className="mr-1 h-4 w-4" /> Multi-select
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => addQuestion('matching')}>
+                          <Plus className="mr-1 h-4 w-4" /> Matching
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addQuestion('fillblank')}
+                        >
+                          <Plus className="mr-1 h-4 w-4" /> Fill Blank
+                        </Button>
+                      </div>
+                    </div>
+                    <QuestionBankQuickImport
+                      onImport={incomingQuestions =>
+                        setData({
+                          ...data,
+                          questions: [...(data.questions || []), ...incomingQuestions],
+                        })
+                      }
+                    />
+                    <ManualQuestionComposer
+                      onImport={incomingQuestions =>
+                        setData({
+                          ...data,
+                          questions: [...(data.questions || []), ...incomingQuestions],
+                        })
+                      }
+                    />
+                    <div className="space-y-3">
+                      {(data.questions || []).map((q, idx) => (
+                        <div key={q.id} className="space-y-3 rounded-lg border bg-white p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Badge variant="secondary">
+                                Q{idx + 1} - {q.type.toUpperCase()}
+                              </Badge>
+                              <label className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <input
+                                  type="checkbox"
+                                  checked={q.extendEnabled ?? false}
+                                  onChange={(e: any) =>
+                                    updateQuestion(idx, { extendEnabled: e.target.checked })
+                                  }
+                                />
+                                Extend
+                              </label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                className="h-8 w-20"
+                                value={q.points}
+                                onChange={(e: any) =>
+                                  updateQuestion(idx, { points: parseInt(e.target.value) || 1 })
+                                }
+                              />
+                              <span className="text-sm text-muted-foreground">pts</span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => removeQuestion(idx)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          <AutoTextarea
+                            value={q.question}
+                            onChange={(e: any) => updateQuestion(idx, { question: e.target.value })}
+                            placeholder="Enter question"
+                            rows={2}
+                          />
+                          {q.type === 'mcq' && q.options && (
+                            <div className="space-y-2 pl-4">
+                              {q.options.map((opt, optIdx) => (
+                                <div key={optIdx} className="flex items-center gap-2">
+                                  <input
+                                    type="radio"
+                                    name={`correct-${q.id}`}
+                                    checked={q.correctAnswer === opt}
+                                    onChange={() => updateQuestion(idx, { correctAnswer: opt })}
+                                  />
+                                  <Input
+                                    value={opt}
+                                    onChange={(e: any) => {
+                                      const newOptions = [...q.options!]
+                                      newOptions[optIdx] = e.target.value
+                                      updateQuestion(idx, { options: newOptions })
+                                    }}
+                                    placeholder={`Option ${optIdx + 1}`}
+                                    className="flex-1"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {q.type === 'multiselect' && q.options && (
+                            <div className="space-y-2 pl-4">
+                              {q.options.map((opt, optIdx) => {
+                                const selectedAnswers = Array.isArray(q.correctAnswer)
+                                  ? q.correctAnswer
+                                  : []
+                                const checked = selectedAnswers.includes(opt)
+                                return (
+                                  <div key={optIdx} className="flex items-center gap-2">
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={(e: any) => {
+                                        const next = new Set(selectedAnswers)
+                                        if (e.target.checked) next.add(opt)
+                                        else next.delete(opt)
+                                        updateQuestion(idx, { correctAnswer: Array.from(next) })
+                                      }}
+                                    />
+                                    <Input
+                                      value={opt}
+                                      onChange={(e: any) => {
+                                        const newOptions = [...q.options!]
+                                        newOptions[optIdx] = e.target.value
+                                        updateQuestion(idx, { options: newOptions })
+                                      }}
+                                      placeholder={`Option ${optIdx + 1}`}
+                                      className="flex-1"
+                                    />
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                          {q.type === 'truefalse' && (
+                            <div className="flex gap-4 pl-4">
+                              <label className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  name={`correct-${q.id}`}
+                                  checked={q.correctAnswer === 'True'}
+                                  onChange={() => updateQuestion(idx, { correctAnswer: 'True' })}
+                                />
+                                <span>True</span>
+                              </label>
+                              <label className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  name={`correct-${q.id}`}
+                                  checked={q.correctAnswer === 'False'}
+                                  onChange={() => updateQuestion(idx, { correctAnswer: 'False' })}
+                                />
+                                <span>False</span>
+                              </label>
+                            </div>
+                          )}
+                          {q.type === 'matching' && (
+                            <MatchingPairsEditor
+                              pairs={
+                                q.matchingPairs ?? [
+                                  { left: '', right: '' },
+                                  { left: '', right: '' },
+                                ]
+                              }
+                              onChange={nextPairs =>
+                                updateQuestion(idx, {
+                                  matchingPairs: nextPairs,
+                                  correctAnswer: nextPairs.map(pair => pair.right),
+                                  explanation: formatMatchingExplanation(nextPairs),
+                                })
+                              }
+                            />
+                          )}
+                          <Textarea
+                            value={q.explanation || ''}
+                            onChange={(e: any) =>
+                              updateQuestion(idx, { explanation: e.target.value })
+                            }
+                            placeholder="Explanation (shown after answering)"
+                            rows={2}
+                            className="text-sm"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {!isTask && (
+                  <div className="space-y-3 rounded-lg border p-4">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={
+                          'allowLateSubmission' in data
+                            ? (data as Assessment).allowLateSubmission
+                            : false
+                        }
+                        onCheckedChange={checked =>
+                          setData({ ...(data as Assessment), allowLateSubmission: checked })
+                        }
+                      />
+                      <Label>Allow late submission</Label>
+                    </div>
+                    {'allowLateSubmission' in data && (data as Assessment).allowLateSubmission && (
+                      <div className="space-y-2">
+                        <Label>Late Penalty (%)</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={(data as Assessment).latePenalty}
+                          onChange={(e: any) =>
+                            setData({
+                              ...(data as Assessment),
+                              latePenalty: parseInt(e.target.value) || 0,
+                            })
+                          }
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Percentage deducted for late submissions
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Answer Key Section - Protected */}
+                <div className="mt-4 border-t pt-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-amber-500" />
+                      <Label className="font-medium text-amber-700">
+                        Instructor Answer Key (Protected)
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 gap-1 text-xs"
+                        onClick={() => setShowAnswerKey(!showAnswerKey)}
+                      >
+                        {showAnswerKey ? (
+                          <Unlock className="h-3 w-3" />
+                        ) : (
+                          <Lock className="h-3 w-3" />
+                        )}
+                        {showAnswerKey ? 'Hide' : 'Show'}
+                      </Button>
+                    </div>
+                  </div>
+                  {showAnswerKey ? (
+                    <div className="space-y-3">
+                      <Textarea
+                        value={data.answerKey || ''}
+                        onChange={(e: any) => setData({ ...data, answerKey: e.target.value })}
+                        placeholder="Enter the expected answer/solution here. This is ONLY visible to instructors."
+                        rows={4}
+                        className="border-amber-400 bg-amber-50/30"
+                      />
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={data.answerKeyProtected !== false}
+                          onCheckedChange={checked =>
+                            setData({ ...data, answerKeyProtected: checked })
+                          }
+                        />
+                        <Label className="text-xs text-muted-foreground">
+                          <Lock className="mr-1 inline h-3 w-3" />
+                          Protect answer key (never visible to students)
+                        </Label>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded border border-dashed border-gray-400 bg-gray-50 p-3 text-center">
+                      <Lock className="mx-auto mb-1 h-4 w-4 text-gray-400" />
+                      <span className="text-xs text-muted-foreground">
+                        Answer key is hidden. Click "Show" to view/edit.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent
+              value="preview"
+              className="mt-4 space-y-4 rounded-2xl bg-white/95 p-6 py-4 shadow-2xl backdrop-blur-md"
+            >
+              <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+                <h3 className="font-semibold">{data.title}</h3>
+                {data.description && (
+                  <p className="text-sm text-muted-foreground">{data.description}</p>
+                )}
+                {data.instructions && (
+                  <div className="text-sm">
+                    <span className="font-medium text-muted-foreground">Instructions: </span>
+                    {data.instructions}
+                  </div>
+                )}
+                {!isTask && (
+                  <div className="space-y-3">
+                    <ResourceImportPanel data={data} setData={setData} targetField="instructions" />
+                  </div>
+                )}
+                {!isTask && data.sourceDocument && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Imported material (editable)
+                    </p>
+                    <Textarea
+                      value={data.sourceDocument.extractedText}
+                      onChange={(e: any) =>
+                        setData({
+                          ...data,
+                          sourceDocument: {
+                            ...data.sourceDocument!,
+                            extractedText: e.target.value,
+                          },
+                        })
+                      }
+                      rows={6}
+                    />
+                  </div>
+                )}
+                {!isTask && (
+                  <div className="space-y-3 rounded-lg border bg-white p-3">
+                    <h4 className="text-sm font-medium">Settings</h4>
+                    <div className="flex flex-wrap gap-4">
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={assessmentData.showCorrectAnswers ?? true}
+                          onCheckedChange={checked =>
+                            setData({ ...assessmentData, showCorrectAnswers: checked })
+                          }
+                          disabled={assessmentData.answersNeverVisible}
+                        />
+                        <Label className="text-sm">Show correct answers</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={assessmentData.answersNeverVisible ?? false}
+                          onCheckedChange={checked =>
+                            setData({
+                              ...assessmentData,
+                              answersNeverVisible: checked,
+                              showCorrectAnswers: checked
+                                ? false
+                                : assessmentData.showCorrectAnswers,
+                            })
+                          }
+                        />
+                        <Label className="text-sm">Never show answers</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={assessmentData.randomizeQuestions}
+                          onCheckedChange={checked =>
+                            setData({ ...assessmentData, randomizeQuestions: checked })
+                          }
+                        />
+                        <Label className="text-sm">Randomize question order</Label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <h4 className="mt-4 text-sm font-medium">Questions</h4>
+                <QuestionsPreview questions={data.questions ?? []} />
+              </div>
+            </TabsContent>
+          </Tabs>
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button onClick={() => onSave({ ...data })}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
+
+export function TaskBuilderModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialData,
+  modules,
+}: BuilderModalWithModulesProps) {
+  const [showLessonSelector, setShowLessonSelector] = useState(false)
+  const [pendingData, setPendingData] = useState<any>(null)
+
+  const handleSaveRequest = (data: any) => {
+    setPendingData(data)
+    setShowLessonSelector(true)
+  }
+
+  const handleConfirmLesson = (moduleId: string, lessonId: string) => {
+    if (pendingData) {
+      onSave(pendingData, moduleId, lessonId)
+    }
+    setPendingData(null)
+  }
+
+  return (
+    <>
+      <AssessmentBuilderModal
+        isOpen={isOpen}
+        onClose={onClose}
+        onSave={handleSaveRequest}
+        initialData={initialData}
+        builderType="task"
+      />
+      <LessonSelectorDialog
+        isOpen={showLessonSelector}
+        onClose={() => setShowLessonSelector(false)}
+        onConfirm={handleConfirmLesson}
+        modules={modules}
+        itemType="task"
+      />
+    </>
+  )
+}
+
+export function HomeworkBuilderModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialData,
+  modules,
+}: BuilderModalWithModulesProps) {
+  const [showLessonSelector, setShowLessonSelector] = useState(false)
+  const [pendingData, setPendingData] = useState<any>(null)
+
+  const handleSaveRequest = (data: any) => {
+    setPendingData(data)
+    setShowLessonSelector(true)
+  }
+
+  const handleConfirmLesson = (moduleId: string, lessonId: string) => {
+    if (pendingData) {
+      onSave(pendingData, moduleId, lessonId)
+    }
+    setPendingData(null)
+  }
+
+  return (
+    <>
+      <AssessmentBuilderModal
+        isOpen={isOpen}
+        onClose={onClose}
+        onSave={handleSaveRequest}
+        initialData={initialData}
+        builderType="homework"
+      />
+      <LessonSelectorDialog
+        isOpen={showLessonSelector}
+        onClose={() => setShowLessonSelector(false)}
+        onConfirm={handleConfirmLesson}
+        modules={modules}
+        itemType="homework"
+      />
+    </>
+  )
+}
+
+export function AssessmentBuilderModalWithSelector({
+  isOpen,
+  onClose,
+  onSave,
+  initialData,
+  modules,
+}: BuilderModalWithModulesProps) {
+  const [showLessonSelector, setShowLessonSelector] = useState(false)
+  const [pendingData, setPendingData] = useState<any>(null)
+
+  const handleSaveRequest = (data: any) => {
+    setPendingData(data)
+    setShowLessonSelector(true)
+  }
+
+  const handleConfirmLesson = (moduleId: string, lessonId: string) => {
+    if (pendingData) {
+      onSave(pendingData, moduleId, lessonId)
+    }
+    setPendingData(null)
+  }
+
+  return (
+    <>
+      <AssessmentBuilderModal
+        isOpen={isOpen}
+        onClose={onClose}
+        onSave={handleSaveRequest}
+        initialData={initialData}
+        builderType="assessment"
+      />
+      <LessonSelectorDialog
+        isOpen={showLessonSelector}
+        onClose={() => setShowLessonSelector(false)}
+        onConfirm={handleConfirmLesson}
+        modules={modules}
+        itemType="assessment"
+      />
+    </>
+  )
+}

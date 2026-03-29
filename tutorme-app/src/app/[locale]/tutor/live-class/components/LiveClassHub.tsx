@@ -179,7 +179,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false)
   const [panelSeenCounts, setPanelSeenCounts] = useState({ messages: 0, handRaises: 0, alerts: 0 })
-  const [classTitle, setClassTitle] = useState('Live Session')
+  const [classTitle, setClassTitle] = useState('Course Builder')
   const [classSubject, setClassSubject] = useState('General')
   const [classRoomId, setClassRoomId] = useState<string | null>(null)
   const [linkedCourseId, setLinkedCourseId] = useState<string | null>(null)
@@ -329,7 +329,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
         const data = (await res.json()) as LiveClassBootstrapResponse
         if (cancelled) return
 
-        setClassTitle(data.session.title || 'Live Session')
+        setClassTitle(data.session.title || 'Course Builder')
         setClassSubject(data.session.subject || 'General')
         setClassRoomId(data.session.roomId || null)
         setLinkedCourseId(data.session.linkedCourseId || null)
@@ -629,7 +629,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
       <div className="flex h-screen items-center justify-center bg-gray-50">
         <div className="max-w-md px-4 text-center">
           <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-          <p className="font-medium text-gray-600">Loading live session...</p>
+          <p className="font-medium text-gray-600">Loading course builder...</p>
           <p className="mt-2 text-sm text-gray-400">This may take a few seconds. Please wait.</p>
           <Button
             variant="outline"
@@ -658,7 +658,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-lg font-semibold">Live Session</h1>
+            <h1 className="text-lg font-semibold">Course Builder</h1>
             <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
               <span className="font-medium text-gray-700">{courseDisplayName}</span>
               <span>•</span>
@@ -1016,7 +1016,8 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
           <DialogHeader>
             <DialogTitle>End Class?</DialogTitle>
             <DialogDescription>
-              Are you sure you want to end this live session? All students will be disconnected.
+              Are you sure you want to end this course builder session? All students will be
+              disconnected.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">

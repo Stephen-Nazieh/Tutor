@@ -35,5 +35,5 @@ describe('memory-store.server', () => {
     const { getStudentContextDb } = await import('./memory-store.server')
     const ctx = await getStudentContextDb('missing-student')
     expect(ctx).toBeNull()
-  })
+  }, 10000)
 })

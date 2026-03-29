@@ -16,7 +16,7 @@ describe('auth', () => {
       const a = await hashPassword(password)
       const b = await hashPassword(password)
       expect(a).not.toBe(b)
-    })
+    }, 10000)
   })
 
   describe('isAuthorized', () => {

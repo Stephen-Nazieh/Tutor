@@ -1,0 +1,79 @@
+'use client'
+
+import { useState } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { AutoTextarea } from '@/components/ui/auto-textarea'
+import { Switch } from '@/components/ui/switch'
+import { Layers } from 'lucide-react'
+
+interface ModuleBuilderModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onSave: (data: any) => void
+  initialData?: any
+}
+
+export function ModuleBuilderModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialData,
+}: ModuleBuilderModalProps) {
+  const [data, setData] = useState(
+    initialData || { title: '', description: '', isPublished: false }
+  )
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Layers className="h-5 w-5 text-blue-500" />
+            Lesson Builder
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>Lesson Title *</Label>
+            <Input
+              value={data.title}
+              onChange={(e: any) => setData({ ...data, title: e.target.value })}
+              placeholder="Enter module title"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Description</Label>
+            <AutoTextarea
+              value={data.description}
+              onChange={(e: any) => setData({ ...data, description: e.target.value })}
+              placeholder="What will students learn in this module?"
+              rows={3}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={data.isPublished}
+              onCheckedChange={checked => setData({ ...data, isPublished: checked })}
+            />
+            <Label>Published (visible to students)</Label>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={() => onSave(data)}>Save Lesson</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
