@@ -28,7 +28,9 @@ export default function TutorCourseEnrollmentsPage() {
   const courseId = typeof params?.id === 'string' ? params.id : ''
   const locale = typeof params?.locale === 'string' ? params.locale : 'en'
   const hasLocalePrefix = pathname.startsWith(`/${locale}/`)
-  const coursePath = hasLocalePrefix ? `/${locale}/tutor/courses/${courseId}` : `/tutor/courses/${courseId}`
+  const coursePath = hasLocalePrefix
+    ? `/${locale}/tutor/courses/${courseId}`
+    : `/tutor/courses/${courseId}`
 
   const [loading, setLoading] = useState(true)
   const [enrollments, setEnrollments] = useState<EnrollmentItem[]>([])
@@ -97,9 +99,7 @@ export default function TutorCourseEnrollmentsPage() {
                     {enrollment.studentEmail || 'No email on file'}
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    <span>
-                      Enrolled {new Date(enrollment.enrolledAt).toLocaleDateString()}
-                    </span>
+                    <span>Enrolled {new Date(enrollment.enrolledAt).toLocaleDateString()}</span>
                     {enrollment.batchName ? <span>• {enrollment.batchName}</span> : null}
                     {enrollment.completedAt ? <span>• Completed</span> : null}
                   </div>

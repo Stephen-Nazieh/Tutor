@@ -161,7 +161,12 @@ export default function StudentFeedbackPage() {
     <div className="flex min-h-screen flex-col bg-gray-50">
       <div className="border-b bg-white">
         <div className="flex items-center gap-4 px-4 py-3 sm:px-6">
-          <Button variant="ghost" size="sm" onClick={() => window.history.back()} className="gap-2 text-gray-600 hover:text-gray-900">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.history.back()}
+            className="gap-2 text-gray-600 hover:text-gray-900"
+          >
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
@@ -229,9 +234,24 @@ export default function StudentFeedbackPage() {
         <div className="flex h-full flex-col gap-6">
           <Tabs defaultValue="task" className="flex flex-1 flex-col">
             <TabsList className="mx-auto mb-6 grid w-full grid-cols-3 gap-1 rounded-xl border border-gray-200 bg-white p-1 md:w-[600px]">
-              <TabsTrigger value="task" className="rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">Current Task</TabsTrigger>
-              <TabsTrigger value="my-board" className="rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">My Board</TabsTrigger>
-              <TabsTrigger value="tutor-board" className="rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">Tutor Board</TabsTrigger>
+              <TabsTrigger
+                value="task"
+                className="rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+              >
+                Current Task
+              </TabsTrigger>
+              <TabsTrigger
+                value="my-board"
+                className="rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+              >
+                My Board
+              </TabsTrigger>
+              <TabsTrigger
+                value="tutor-board"
+                className="rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+              >
+                Tutor Board
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="task" className="flex-1 outline-none">

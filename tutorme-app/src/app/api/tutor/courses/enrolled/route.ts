@@ -16,9 +16,7 @@ export const GET = withAuth(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const enrollmentCount = sql<number>`count(${curriculumEnrollment.id})`.as(
-      'enrollmentCount'
-    )
+    const enrollmentCount = sql<number>`count(${curriculumEnrollment.id})`.as('enrollmentCount')
 
     const courses = await drizzleDb
       .select({

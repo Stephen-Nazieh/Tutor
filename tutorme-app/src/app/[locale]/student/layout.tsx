@@ -192,7 +192,11 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         <div className="fixed left-0 right-0 top-0 z-50 border-b bg-white lg:hidden">
           <div className="flex h-16 items-center justify-between px-4">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
                 {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
               <Link
@@ -300,7 +304,10 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
       {/* Main Content */}
       <main
-        className={cn('min-h-screen flex-1', isFeedbackRoute || isLiveClassRoute ? 'pt-0' : 'pt-16 lg:pt-0')}
+        className={cn(
+          'min-h-screen flex-1',
+          isFeedbackRoute || isLiveClassRoute ? 'pt-0' : 'pt-16 lg:pt-0'
+        )}
       >
         {children}
       </main>

@@ -381,7 +381,12 @@ export function EnhancedWhiteboard({
       right: (canvas.width - pan.x) / scale,
       bottom: (canvas.height - pan.y) / scale,
     }
-    drawBackgroundPattern(ctx, currentPage.backgroundStyle, currentPage.backgroundColor, worldViewport)
+    drawBackgroundPattern(
+      ctx,
+      currentPage.backgroundStyle,
+      currentPage.backgroundColor,
+      worldViewport
+    )
 
     currentPage.strokes.forEach(stroke => {
       if (stroke.type === 'eraser') drawEraserStroke(ctx, stroke.points)

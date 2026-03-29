@@ -10,6 +10,13 @@ vi.mock('@/lib/db', () => ({
     $queryRaw: vi.fn().mockResolvedValue([{ version: 'PostgreSQL 16' }]),
   },
 }))
+
+vi.mock('@/lib/db/drizzle', () => ({
+  drizzleDb: {
+    execute: vi.fn().mockResolvedValue({ rows: [{ version: 'PostgreSQL 16' }] }),
+  },
+}))
+
 vi.mock('@/lib/db/monitor', () => ({
   getHealthCheck: vi.fn().mockResolvedValue({
     status: 'healthy',
@@ -25,6 +32,8 @@ vi.mock('@/lib/db/monitor', () => ({
 describe('GET /api/health', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // Avoid real Redis connections in detailed mode (ioredis would otherwise hang in CI/dev)
+    delete process.env.REDIS_URL
   })
 
   it('returns 200 and status when healthy', async () => {

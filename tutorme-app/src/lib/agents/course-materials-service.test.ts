@@ -4,7 +4,7 @@ const mocks = vi.hoisted(() => ({
   generateWithFallback: vi.fn(),
 }))
 
-vi.mock('@/lib/agents', () => ({
+vi.mock('@/lib/agents/orchestrator-llm', () => ({
   generateWithFallback: mocks.generateWithFallback,
 }))
 

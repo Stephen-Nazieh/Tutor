@@ -51,8 +51,7 @@ export const chemistryContext: SubjectContext = {
           id: 'atom_1',
           question: 'Write the electron configuration for Fe³⁺',
           hint: 'First write neutral Fe, then remove electrons from the highest n level first.',
-          solution:
-            'Write neutral Fe first, then remove electrons from 4s before 3d to form Fe³⁺.',
+          solution: 'Write neutral Fe first, then remove electrons from 4s before 3d to form Fe³⁺.',
           difficulty: 'intermediate',
         },
       ],

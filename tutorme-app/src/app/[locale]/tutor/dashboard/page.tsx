@@ -135,12 +135,12 @@ function TutorDashboardContent() {
     try {
       const [statsRes, classesRes, studentsRes, allStudentsRes, enrolledRes] =
         await Promise.allSettled([
-        fetch('/api/tutor/stats', { credentials: 'include' }),
-        fetch('/api/tutor/classes', { credentials: 'include' }),
-        fetch('/api/tutor/students-needing-attention', { credentials: 'include' }),
-        fetch('/api/tutor/students', { credentials: 'include' }),
-        fetch('/api/tutor/courses/enrolled', { credentials: 'include' }),
-      ])
+          fetch('/api/tutor/stats', { credentials: 'include' }),
+          fetch('/api/tutor/classes', { credentials: 'include' }),
+          fetch('/api/tutor/students-needing-attention', { credentials: 'include' }),
+          fetch('/api/tutor/students', { credentials: 'include' }),
+          fetch('/api/tutor/courses/enrolled', { credentials: 'include' }),
+        ])
 
       const failures: string[] = []
 
@@ -271,49 +271,52 @@ function TutorDashboardContent() {
     }
   }, [])
 
-  const handleEnterCourseClassroom = useCallback(async (course: EnrolledCourse) => {
-    if (launchingCourseId) return
-    setLaunchingCourseId(course.id)
-    try {
-      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
-      const csrfData = await csrfRes.json().catch(() => ({}))
-      const csrfToken = csrfData?.token ?? null
+  const handleEnterCourseClassroom = useCallback(
+    async (course: EnrolledCourse) => {
+      if (launchingCourseId) return
+      setLaunchingCourseId(course.id)
+      try {
+        const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+        const csrfData = await csrfRes.json().catch(() => ({}))
+        const csrfToken = csrfData?.token ?? null
 
-      const res = await fetch('/api/class/rooms', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          curriculumId: course.id,
-          title: course.name,
-          subject: course.subject,
-          gradeLevel: course.gradeLevel || undefined,
-          maxStudents: 50,
-          durationMinutes: 60,
-        }),
-      })
+        const res = await fetch('/api/class/rooms', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            curriculumId: course.id,
+            title: course.name,
+            subject: course.subject,
+            gradeLevel: course.gradeLevel || undefined,
+            maxStudents: 50,
+            durationMinutes: 60,
+          }),
+        })
 
-      const result = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        toast.error(result?.error || 'Failed to launch classroom')
-        return
+        const result = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          toast.error(result?.error || 'Failed to launch classroom')
+          return
+        }
+
+        const sessionId = result?.room?.id || result?.session?.roomId || result?.session?.id
+        if (!sessionId) {
+          toast.error('Classroom created but no session ID returned')
+          return
+        }
+        router.push(`/tutor/insights?sessionId=${sessionId}`)
+      } catch {
+        toast.error('Failed to launch classroom')
+      } finally {
+        setLaunchingCourseId(null)
       }
-
-      const sessionId = result?.room?.id || result?.session?.roomId || result?.session?.id
-      if (!sessionId) {
-        toast.error('Classroom created but no session ID returned')
-        return
-      }
-      router.push(`/tutor/insights?sessionId=${sessionId}`)
-    } catch {
-      toast.error('Failed to launch classroom')
-    } finally {
-      setLaunchingCourseId(null)
-    }
-  }, [launchingCourseId, router])
+    },
+    [launchingCourseId, router]
+  )
 
   const withLocalePath = useCallback(
     (path: string) => {
@@ -422,7 +425,11 @@ function TutorDashboardContent() {
               <TabsTrigger value="enrolled">Enrolled Courses</TabsTrigger>
             </TabsList>
             <TabsContent value="calendar">
-              <InteractiveCalendar initialView="week" dayClickMode="availability" loading={loading} />
+              <InteractiveCalendar
+                initialView="week"
+                dayClickMode="availability"
+                loading={loading}
+              />
             </TabsContent>
             <TabsContent value="enrolled">
               <Card className="border border-border bg-card/95 shadow-xl backdrop-blur-md">

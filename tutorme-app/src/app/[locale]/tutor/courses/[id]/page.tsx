@@ -1410,7 +1410,8 @@ export default function TutorCoursePage() {
                           const inRange = schedule.some(s => {
                             if (s.dayOfWeek !== day) return false
                             if (!scheduleRepeatWeekly) {
-                              if (s.date ? s.date !== dateKey : scheduleWeekOffset !== 0) return false
+                              if (s.date ? s.date !== dateKey : scheduleWeekOffset !== 0)
+                                return false
                             }
                             const [sh, sm] = s.startTime.split(':').map(Number)
                             const startM = sh * 60 + sm

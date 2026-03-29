@@ -78,7 +78,6 @@ export function AITeachingAssistant({
               <p className="text-xs text-gray-500">Real-time insights & guidance</p>
             </div>
           </div>
-
         </div>
 
         {/* Tabs */}
