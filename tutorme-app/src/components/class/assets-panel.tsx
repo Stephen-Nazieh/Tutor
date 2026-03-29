@@ -55,7 +55,7 @@ import {
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { MemoryService } from '@/lib/ai/memory-service'
+import { MemoryService } from '@/lib/ai/memory-service.client'
 
 type AssetType = 'subject' | 'lesson' | 'task' | 'assessment' | 'note'
 

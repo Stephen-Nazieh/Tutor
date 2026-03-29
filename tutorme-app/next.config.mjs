@@ -44,9 +44,6 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', 'recharts', 'framer-motion'],
   },
-  turbopack: {
-    root: __dirname,
-  },
   serverExternalPackages: ['pg', 'pg-native', 'jspdf', 'jspdf-autotable'],
   webpack: (config, { isServer }) => {
     // Fix for jspdf/fflate Node.js worker issue

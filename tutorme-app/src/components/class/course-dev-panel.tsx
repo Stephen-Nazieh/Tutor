@@ -66,7 +66,7 @@ import {
 } from 'lucide-react'
 import { AssetsPanel } from './assets-panel'
 import { toast } from 'sonner'
-import { MemoryService } from '@/lib/ai/memory-service'
+import { MemoryService } from '@/lib/ai/memory-service.client'
 
 interface CourseDevPanelProps {
   roomId: string

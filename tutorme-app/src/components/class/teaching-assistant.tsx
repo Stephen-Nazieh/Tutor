@@ -14,7 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { MemoryService } from '@/lib/ai/memory-service'
+import { MemoryService } from '@/lib/ai/memory-service.client'
 
 import {
   Dialog,

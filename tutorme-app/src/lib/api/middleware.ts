@@ -87,13 +87,15 @@ export function handleApiError(
   return NextResponse.json({ error: isDev ? message : defaultMessage, errorId }, { status: 500 })
 }
 
-// Handler type (context is optional route params, e.g. { params: { id: string } })
+type RouteContext = {
+  params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+}
+
+// Handler type (context is route params, e.g. { params: { id: string } })
 type Handler = (
   req: NextRequest,
   session: Session,
-  context?: {
-    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
-  }
+  context: RouteContext
 ) => Promise<Response> | Response
 
 // Middleware options
@@ -126,9 +128,7 @@ function normalizeRole(role: unknown): string {
 export function withAuth(handler: Handler, options?: WithAuthOptions) {
   return async (
     req: NextRequest,
-    context?: {
-      params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
-    }
+    context: RouteContext
   ) => {
     let activeSession: Session | null = null
     try {

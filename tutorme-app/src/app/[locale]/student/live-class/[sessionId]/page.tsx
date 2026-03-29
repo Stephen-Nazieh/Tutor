@@ -1,15 +1,15 @@
 import { redirect } from 'next/navigation'
 
 interface StudentLiveClassRedirectProps {
-  params?: {
+  params: Promise<{
     sessionId?: string
-  }
+  }>
 }
 
-export default function StudentLiveClassRedirect({
+export default async function StudentLiveClassRedirect({
   params,
 }: StudentLiveClassRedirectProps) {
-  const sessionId = params?.sessionId
+  const { sessionId } = await params
   if (!sessionId) redirect('/student/dashboard')
   redirect(`/student/feedback?sessionId=${sessionId}`)
 }
