@@ -4573,25 +4573,6 @@ FEEDBACK: [your explanation]`
                             >
                               Test
                             </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                // Generate DMI from Slide content
-                                const content = taskBuilder.activeExtensionId
-                                  ? taskBuilder.extensions.find(
-                                      e => e.id === taskBuilder.activeExtensionId
-                                    )?.content || taskBuilder.taskContent
-                                  : taskBuilder.taskContent
-                                if (!content.trim()) {
-                                  toast.error('Please add content to the Slide tab first')
-                                  return
-                                }
-                                handleGenerateDMI('task')
-                              }}
-                            >
-                              Generate DMI
-                            </Button>
                           </div>
                         </div>
                         {/* Right panels container */}
@@ -4668,33 +4649,7 @@ FEEDBACK: [your explanation]`
                           </ResizablePanel>
 
                           {/* DMI Panel */}
-                          <ResizablePanel
-                            defaultWidth={200}
-                            minWidth={150}
-                            maxWidth={300}
-                            actionButton={
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full"
-                                onClick={() => {
-                                  // Generate DMI from Slide content
-                                  const content = taskBuilder.activeExtensionId
-                                    ? taskBuilder.extensions.find(
-                                        e => e.id === taskBuilder.activeExtensionId
-                                      )?.content || taskBuilder.taskContent
-                                    : taskBuilder.taskContent
-                                  if (!content.trim()) {
-                                    toast.error('Please add content to the Slide tab first')
-                                    return
-                                  }
-                                  handleGenerateDMI('task')
-                                }}
-                              >
-                                Generate DMI
-                              </Button>
-                            }
-                          >
+                          <ResizablePanel defaultWidth={200} minWidth={150} maxWidth={300}>
                             <DMIPanel
                               items={taskDmiItems}
                               onItemsChange={setTaskDmiItems}

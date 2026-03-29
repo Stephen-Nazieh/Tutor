@@ -7,7 +7,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
 import { toast } from 'sonner'
 import type { CourseBuilderInsightsProps } from './course-builder-types'
@@ -41,10 +41,31 @@ export function CourseBuilderInsightsRoute({
       data-tutor-route="insights-builder"
       style={model.themeStyle}
     >
-      <div className="flex w-full flex-1 flex-col overflow-hidden px-6 pb-6 pt-0 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2">
-        <h1 className="mb-2 text-center text-2xl font-bold tracking-tight text-foreground">
-          Course Builder
-        </h1>
+      <div className="sticky top-0 z-10 w-full border-b border-border bg-card">
+        <div className="flex w-full items-center justify-between gap-4 px-4 py-1 sm:px-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="shrink-0"
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.history.length > 1) {
+                model.router.back()
+              } else {
+                model.router.push('/tutor/dashboard')
+              }
+            }}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
+          <div className="flex shrink-0 items-center gap-3">
+            <h1 className="text-lg font-bold tracking-tight text-foreground">Live Session</h1>
+          </div>
+          <div className="w-[100px]" /> {/* Spacer to center title if possible */}
+        </div>
+      </div>
+
+      <div className="flex w-full flex-1 flex-col overflow-hidden px-6 pb-6 pt-4 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2">
         {model.savedVariants.length > 0 && (
           <Card className="mb-8 w-full border border-emerald-200/50 bg-emerald-50/30 shadow-xl backdrop-blur-md">
             <CardHeader className="pb-2 pt-4">
