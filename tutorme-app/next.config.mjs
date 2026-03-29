@@ -69,7 +69,7 @@ const nextConfig = {
 
     return config
   },
-  // Security headers (CSP, X-Frame-Options, etc.) are set by middleware.ts
+  // Security headers (CSP, X-Frame-Options, etc.) are set by proxy.ts
   // to avoid duplication and ensure consistent policy.
   async headers() {
     return [

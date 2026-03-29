@@ -17,6 +17,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Switch } from '@/components/ui/switch'
 import {
   Loader2,
   Upload,
@@ -52,7 +54,11 @@ import {
   Shield,
   Layers,
   X,
+  PenTool,
 } from 'lucide-react'
+import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
+import { extractTextFromFile } from '@/lib/extract-file-text'
 import type {
   ImportedLearningResource,
   QuizQuestion,
@@ -364,6 +370,7 @@ export function PreviewCard({
       id: normalizedItem.id,
       title: normalizedItem.title,
       type: type as any,
+      itemType: type as any,
       content: normalizedItem.description || normalizedItem.instructions || '',
       questions: normalizedItem.questions,
     }

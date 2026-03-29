@@ -36,11 +36,21 @@ export interface ImportedLearningResource {
 }
 
 export interface VisibleDocumentPayload {
+  id: string
   title: string
   description?: string
-  itemType: 'task' | 'homework' | 'worksheet' | 'moduleQuiz'
+  content?: string
+  itemType: 'task' | 'homework' | 'worksheet' | 'moduleQuiz' | 'lesson' | 'module'
+  type?: 'task' | 'homework' | 'worksheet' | 'moduleQuiz' | 'lesson' | 'module'
   sourceDocument?: ImportedLearningResource
   questions?: QuizQuestion[]
+}
+
+export interface BuilderModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onSave: (data: any) => void
+  initialData?: any
 }
 
 export interface DMIQuestion {

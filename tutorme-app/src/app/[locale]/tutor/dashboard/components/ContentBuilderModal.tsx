@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { BookOpen } from 'lucide-react'
-import { type Content, type BuilderModalProps } from './builder-types'
+import type { Content, BuilderModalProps } from './builder-types'
 import { ResourceImportPanel } from './builder-components'
 import { DEFAULT_CONTENT } from './builder-utils'
 

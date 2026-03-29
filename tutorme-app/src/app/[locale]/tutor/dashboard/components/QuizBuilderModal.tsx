@@ -25,12 +25,7 @@ import {
 } from '@/components/ui/select'
 import { FileQuestion, Plus, X, BookOpen, Shield, CheckCircle } from 'lucide-react'
 import { toast } from 'sonner'
-import {
-  type Quiz,
-  type ModuleQuiz,
-  type QuizQuestion,
-  type BuilderModalProps,
-} from './builder-types'
+import type { Quiz, ModuleQuiz, QuizQuestion, BuilderModalProps } from './builder-types'
 import { ResourceImportPanel, MatchingPairsEditor, QuestionsPreview } from './builder-components'
 import {
   DEFAULT_QUIZ,

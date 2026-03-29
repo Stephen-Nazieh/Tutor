@@ -24,7 +24,7 @@ vi.mock('@/i18n/routing', () => ({
   },
 }))
 
-import middleware from './middleware'
+import middleware from './proxy'
 
 function buildReq(pathname: string, token: Record<string, unknown> | null = null): any {
   const url = `http://localhost${pathname}`
