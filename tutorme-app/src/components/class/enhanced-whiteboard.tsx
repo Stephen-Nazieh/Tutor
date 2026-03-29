@@ -1195,6 +1195,7 @@ export function EnhancedWhiteboard({
 
   // Keyboard shortcuts
   useEffect(() => {
+    if (readOnly) return
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         undoLast()
@@ -1209,7 +1210,7 @@ export function EnhancedWhiteboard({
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedObject, textOverlays, currentPage])
+  }, [readOnly, selectedObject, textOverlays, currentPage])
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-lg bg-slate-900">

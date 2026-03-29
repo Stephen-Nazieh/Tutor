@@ -37,7 +37,7 @@ export default function TutorTrainingPage() {
 
       if (res.ok) {
         const data = await res.json()
-        router.push(`/tutor/insights?sessionId=${data.room.id}`)
+        router.push(`/tutor/live-class/${data.room.id}`)
         return
       }
       toast.error('Failed to start training session')

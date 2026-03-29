@@ -121,7 +121,7 @@ const deriveHandRaisesFromStudents = (students: LiveStudent[]): HandRaise[] => {
 export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   const router = useRouter()
   const { data: session } = useSession()
-  const [renderNow] = useState(() => Date.now())
+  const [renderNow, setRenderNow] = useState(() => Date.now())
   // When a student joins via socket, add/update local state so the tutor UI updates without a full reload
   const handleStudentJoined = useCallback(
     (state: {
@@ -179,7 +179,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false)
   const [panelSeenCounts, setPanelSeenCounts] = useState({ messages: 0, handRaises: 0, alerts: 0 })
-  const [classTitle, setClassTitle] = useState('Course Builder')
+  const [classTitle, setClassTitle] = useState('Live Class')
   const [classSubject, setClassSubject] = useState('General')
   const [classRoomId, setClassRoomId] = useState<string | null>(null)
   const [linkedCourseId, setLinkedCourseId] = useState<string | null>(null)
@@ -241,6 +241,11 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
     return () => clearInterval(interval)
   }, [isRecording])
 
+  useEffect(() => {
+    const interval = setInterval(() => setRenderNow(Date.now()), 30000)
+    return () => clearInterval(interval)
+  }, [])
+
   // Load and start class session — only once per (sessionId, userId) to avoid refresh when session reference flickers or student joins
   useEffect(() => {
     if (!session?.user?.id) return
@@ -296,11 +301,12 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
         ).catch(() => null) // Non-fatal: class may already be started
 
         // Wait for CSRF and start to complete
-        const [csrfData] = await Promise.all([csrfPromise, startPromise])
+        const [csrfData, startResult] = await Promise.all([csrfPromise, startPromise])
         const csrfToken = csrfData?.token ?? null
 
         // If start failed due to CSRF, retry with token
-        if (csrfToken && startPromise === null) {
+        const startFailed = !startResult || (startResult instanceof Response && !startResult.ok)
+        if (csrfToken && startFailed) {
           await fetchWithTimeout(
             `/api/tutor/classes/${sessionId}`,
             {
@@ -329,7 +335,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
         const data = (await res.json()) as LiveClassBootstrapResponse
         if (cancelled) return
 
-        setClassTitle(data.session.title || 'Course Builder')
+        setClassTitle(data.session.title || 'Live Class')
         setClassSubject(data.session.subject || 'General')
         setClassRoomId(data.session.roomId || null)
         setLinkedCourseId(data.session.linkedCourseId || null)
@@ -629,7 +635,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
       <div className="flex h-screen items-center justify-center bg-gray-50">
         <div className="max-w-md px-4 text-center">
           <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-          <p className="font-medium text-gray-600">Loading course builder...</p>
+          <p className="font-medium text-gray-600">Loading live class...</p>
           <p className="mt-2 text-sm text-gray-400">This may take a few seconds. Please wait.</p>
           <Button
             variant="outline"
@@ -658,7 +664,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-lg font-semibold">Course Builder</h1>
+            <h1 className="text-lg font-semibold">Live Class</h1>
             <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
               <span className="font-medium text-gray-700">{courseDisplayName}</span>
               <span>•</span>
@@ -1016,7 +1022,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
           <DialogHeader>
             <DialogTitle>End Class?</DialogTitle>
             <DialogDescription>
-              Are you sure you want to end this course builder session? All students will be
+              Are you sure you want to end this live class session? All students will be
               disconnected.
             </DialogDescription>
           </DialogHeader>

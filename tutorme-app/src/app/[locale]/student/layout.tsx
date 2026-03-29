@@ -43,11 +43,13 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [comingSoon, setComingSoon] = useState<null | 'ai-tutor' | 'worlds'>(null)
-  const isLiveClassRoute = pathname.includes('/student/live/')
+  const isLiveClassRoute =
+    pathname.includes('/student/live/') || pathname.includes('/student/live-class/')
   const isTutorDirectoryRoute = pathname.startsWith('/student/tutors')
   const isFeedbackRoute = pathname.includes('/student/feedback')
   const liveSessionId = isLiveClassRoute
-    ? pathname.split('/student/live/')[1]?.split('/')[0] || ''
+    ? (pathname.split('/student/live/')[1] || pathname.split('/student/live-class/')[1])
+        ?.split('/')[0] || ''
     : ''
   const liveClassNavItems: NavItem[] = [
     {

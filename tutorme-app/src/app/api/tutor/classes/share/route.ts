@@ -36,7 +36,7 @@ export const POST = withAuth(
         return NextResponse.json({ error: 'Class not found or unauthorized' }, { status: 404 })
       }
 
-      const joinLink = `${req.nextUrl.origin}/student/live-class/${classId}`
+      const joinLink = `${req.nextUrl.origin}/student/live/${classId}`
       const targetStudentIds = new Set<string>(studentIds)
 
       // 2. Resolve groupIds to studentIds

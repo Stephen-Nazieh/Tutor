@@ -63,7 +63,7 @@ type FilterStatus = 'all' | 'live' | 'upcoming' | 'scheduled' | 'completed'
 function copyJoinLink(classId: string) {
   const url =
     typeof window !== 'undefined'
-      ? `${window.location.origin}/tutor/insights?sessionId=${classId}`
+      ? `${window.location.origin}/student/live/${classId}`
       : ''
   if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(url).then(() => toast.success('Join link copied to clipboard'))
@@ -238,7 +238,7 @@ export default function TutorClassesPage() {
       if (res.ok) {
         const data = await res.json()
         toast.success('Instant class created!')
-        router.push(`/tutor/insights?sessionId=${data.room.id}`)
+        router.push(`/tutor/live-class/${data.room.id}`)
       } else {
         toast.error('Failed to create instant class')
       }
@@ -407,7 +407,7 @@ export default function TutorClassesPage() {
           >
             <Copy className="h-4 w-4" />
           </Button>
-          <Link href={`/tutor/insights?sessionId=${cls.id}`}>
+          <Link href={`/tutor/live-class/${cls.id}`}>
             <Button size="sm" className={cn(isLive && 'bg-red-600 hover:bg-red-700')}>
               {isLive ? (
                 <>
@@ -693,7 +693,7 @@ export default function TutorClassesPage() {
                           {dayEvents.slice(0, 2).map(event => (
                             <Link
                               key={event.id}
-                              href={`/tutor/insights?sessionId=${event.id}`}
+                              href={`/tutor/live-class/${event.id}`}
                               className="block truncate rounded bg-blue-100 p-1 text-xs hover:bg-blue-200"
                             >
                               {event.title}
@@ -732,7 +732,7 @@ export default function TutorClassesPage() {
                           {new Date(event.scheduledAt).toLocaleDateString()} • {event.subject}
                         </p>
                       </div>
-                      <Link href={`/tutor/insights?sessionId=${event.id}`}>
+                      <Link href={`/tutor/live-class/${event.id}`}>
                         <Button size="sm">
                           <Play className="mr-1 h-3 w-3" /> Go Live
                         </Button>

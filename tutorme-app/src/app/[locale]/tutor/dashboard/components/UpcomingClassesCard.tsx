@@ -53,7 +53,7 @@ interface UpcomingClassesCardProps {
 
 function copyJoinLink(classId: string) {
   const url =
-    typeof window !== 'undefined' ? `${window.location.origin}/student/live-class/${classId}` : ''
+    typeof window !== 'undefined' ? `${window.location.origin}/student/live/${classId}` : ''
   if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(url).then(() => toast.success('Join link copied to clipboard'))
   }
@@ -483,7 +483,7 @@ export function UpcomingClassesCard({
                 </div>
 
                 <div className="flex flex-col gap-2 pt-2">
-                  <Link href={`/tutor/insights?sessionId=${selectedClass.id}`}>
+                  <Link href={`/tutor/live-class/${selectedClass.id}`}>
                     <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700">
                       <Video className="mr-2 h-4 w-4" />
                       Enter Live Room
