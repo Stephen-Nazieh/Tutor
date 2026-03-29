@@ -165,21 +165,29 @@ export default function TutorInsightsPage() {
   useEffect(() => {
     const loadSessions = async () => {
       try {
+        const querySessionId = searchParams.get('sessionId')
+        // Set sessionId from query immediately if present
+        if (querySessionId) {
+          setSessionId(querySessionId)
+        }
+
         const res = await fetch('/api/tutor/classes', { credentials: 'include' })
         if (!res.ok) throw new Error('Failed to load sessions')
         const data = await res.json()
         const classSessions = (data.classes || []) as InsightsSessionOption[]
         setSessions(classSessions)
 
-        const querySessionId = searchParams.get('sessionId')
         const activeSession = classSessions.find(item => item.status === 'active')
 
         if (querySessionId && classSessions.some(s => s.id === querySessionId)) {
+          // Already set, but confirming it exists in the list
           setSessionId(querySessionId)
-        } else if (activeSession) {
-          setSessionId(prev => prev ?? activeSession.id)
-        } else if (classSessions.length > 0) {
-          setSessionId(prev => prev ?? classSessions[0].id)
+        } else if (!querySessionId) {
+          if (activeSession) {
+            setSessionId(prev => prev ?? activeSession.id)
+          } else if (classSessions.length > 0) {
+            setSessionId(prev => prev ?? classSessions[0].id)
+          }
         }
       } catch (error) {
         toast.error('Failed to load live classes')
@@ -187,7 +195,7 @@ export default function TutorInsightsPage() {
     }
 
     loadSessions()
-  }, [])
+  }, [searchParams])
 
   useEffect(() => {
     if (!sessionId) return
