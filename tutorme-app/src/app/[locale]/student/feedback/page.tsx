@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, Suspense } from 'react'
+import { useEffect, useMemo, useRef, useState, Suspense, type ComponentProps } from 'react'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -22,18 +22,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
 import type { LiveTask, LiveTaskPoll, LiveTaskQuestion } from '@/lib/socket'
 
-type WhiteboardPage = {
-  id: string
-  name: string
-  strokes: unknown[]
-  texts: unknown[]
-  shapes: unknown[]
-  backgroundColor: string
-  backgroundStyle: 'solid' | 'grid' | 'dots' | 'lines'
-  backgroundImage?: string
-}
+type WhiteboardPages = NonNullable<ComponentProps<typeof EnhancedWhiteboard>['pages']>
+type WhiteboardPage = WhiteboardPages[number]
 
-const createDefaultWhiteboardPages = (): WhiteboardPage[] => [
+const createDefaultWhiteboardPages = (): WhiteboardPages => [
   {
     id: 'page-1',
     name: 'Page 1',

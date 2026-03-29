@@ -8,6 +8,7 @@ import {
   useRef,
   forwardRef,
   useImperativeHandle,
+  type ComponentProps,
 } from 'react'
 import {
   DndContext,
@@ -263,18 +264,10 @@ interface PreviewCardProps {
   onSaveAll?: () => void
 }
 
-type WhiteboardPage = {
-  id: string
-  name: string
-  strokes: unknown[]
-  texts: unknown[]
-  shapes: unknown[]
-  backgroundColor: string
-  backgroundStyle: 'solid' | 'grid' | 'dots' | 'lines'
-  backgroundImage?: string
-}
+type WhiteboardPages = NonNullable<ComponentProps<typeof EnhancedWhiteboard>['pages']>
+type WhiteboardPage = WhiteboardPages[number]
 
-const createDefaultWhiteboardPages = (): WhiteboardPage[] => [
+const createDefaultWhiteboardPages = (): WhiteboardPages => [
   {
     id: 'page-1',
     name: 'Page 1',
