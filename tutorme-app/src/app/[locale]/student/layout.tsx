@@ -33,7 +33,7 @@ const navItems: NavItem[] = [
   { href: '/student/tutors', label: 'Book a Tutor', icon: Compass },
   { href: '/student/courses', label: 'My Courses', icon: GraduationCap },
   { href: '/student/work', label: 'My Work', icon: Briefcase },
-  { href: '/student/feedback', label: 'Feedback', icon: MessageCircle },
+  { href: '/student/feedback', label: 'Live Classroom', icon: Video },
   { href: '/student/ai-tutor', label: 'AI Tutor', icon: Sparkles },
   { href: '/student/messages', label: 'Messages', icon: MessageSquare },
   { href: '/student/help', label: 'Help', icon: HelpCircle },
@@ -57,7 +57,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     },
     { href: '/student/assignments', label: 'Visible Tasks', icon: ClipboardList },
     { href: '/student/pdf-tutoring', label: 'PDF Tutoring', icon: FileText },
-    { href: '/student/live/join', label: 'Leave Class', icon: ArrowLeft },
+    { href: '/student/dashboard', label: 'Leave Class', icon: ArrowLeft },
   ]
 
   if (isTutorDirectoryRoute) {

@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, Suspense } from 'react'
 import { useSession } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -30,10 +31,25 @@ interface SessionSummary {
 }
 
 export default function StudentFeedbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    }>
+      <StudentFeedbackContent />
+    </Suspense>
+  )
+}
+
+function StudentFeedbackContent() {
   const { data: session } = useSession()
+  const searchParams = useSearchParams()
+  const sessionIdFromQuery = searchParams.get('sessionId')
+  
   const [sessions, setSessions] = useState<SessionSummary[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null)
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(sessionIdFromQuery)
   const [tasks, setTasks] = useState<LiveTask[]>([])
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
   const [showTasksPanel, setShowTasksPanel] = useState(false)
@@ -52,7 +68,7 @@ export default function StudentFeedbackPage() {
         const nextSessions = (data.sessions || []) as SessionSummary[]
         setSessions(nextSessions)
         if (nextSessions.length > 0) {
-          setSelectedSessionId(prev => prev ?? nextSessions[0].id)
+          setSelectedSessionId(prev => prev ?? sessionIdFromQuery ?? nextSessions[0].id)
         }
       } catch (error) {
         toast.error('Unable to load live classes')

@@ -155,8 +155,8 @@ export default function StudentLiveSessionPage() {
             <CardDescription>{error || 'Unexpected error'}</CardDescription>
           </CardHeader>
           <CardContent className="flex gap-2">
-            <Button variant="outline" onClick={() => router.push('/student/live/join')}>
-              Back to Join
+            <Button variant="outline" onClick={() => router.push('/student/feedback')}>
+              Back
             </Button>
             <Button onClick={fetchJoinData}>Retry</Button>
           </CardContent>
@@ -182,7 +182,7 @@ export default function StudentLiveSessionPage() {
       </Dialog>
 
       <div className="flex items-center justify-between gap-3">
-        <Button variant="ghost" onClick={() => router.push('/student/live/join')}>
+        <Button variant="ghost" onClick={() => router.push('/student/feedback')}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
