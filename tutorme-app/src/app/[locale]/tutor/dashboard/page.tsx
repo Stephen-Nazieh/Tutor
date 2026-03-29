@@ -308,7 +308,7 @@ function TutorDashboardContent() {
           toast.error('Classroom created but no session ID returned')
           return
         }
-        router.push(`/tutor/live-class/${sessionId}`)
+        router.push(`/tutor/insights?sessionId=${sessionId}`)
       } catch {
         toast.error('Failed to launch classroom')
       } finally {

@@ -59,7 +59,7 @@ const quickActions = [
   {
     id: 'start-live',
     label: 'Start Live Class',
-    href: '/tutor/live-class',
+    href: '/tutor/insights',
     icon: Video,
     highlight: true,
   },

@@ -1,5 +1,4 @@
-import { LiveClassHub } from '../components'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
 interface LiveClassPageProps {
   params?: {
@@ -10,5 +9,5 @@ interface LiveClassPageProps {
 export default function LiveClassPage({ params }: LiveClassPageProps) {
   const sessionId = params?.sessionId
   if (!sessionId) return notFound()
-  return <LiveClassHub sessionId={sessionId} />
+  redirect(`/tutor/insights?sessionId=${sessionId}`)
 }

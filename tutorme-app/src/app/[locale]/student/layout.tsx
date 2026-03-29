@@ -43,18 +43,14 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [comingSoon, setComingSoon] = useState<null | 'ai-tutor' | 'worlds'>(null)
-  const isLiveClassRoute =
-    pathname.includes('/student/live/') || pathname.includes('/student/live-class/')
+  const isLiveClassRoute = pathname.includes('/student/feedback')
   const isTutorDirectoryRoute = pathname.startsWith('/student/tutors')
   const isFeedbackRoute = pathname.includes('/student/feedback')
-  const liveSessionId = isLiveClassRoute
-    ? (pathname.split('/student/live/')[1] || pathname.split('/student/live-class/')[1])
-        ?.split('/')[0] || ''
-    : ''
+  const liveSessionId = ''
   const liveClassNavItems: NavItem[] = [
     {
-      href: liveSessionId ? `/student/live/${liveSessionId}` : '/student/live',
-      label: 'Live Whiteboard',
+      href: '/student/feedback',
+      label: 'Live Classroom',
       icon: Video,
     },
     { href: '/student/assignments', label: 'Visible Tasks', icon: ClipboardList },

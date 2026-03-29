@@ -11,5 +11,5 @@ export default function StudentLiveClassRedirect({
 }: StudentLiveClassRedirectProps) {
   const sessionId = params?.sessionId
   if (!sessionId) redirect('/student/dashboard')
-  redirect(`/student/live/${sessionId}`)
+  redirect(`/student/feedback?sessionId=${sessionId}`)
 }
