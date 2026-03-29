@@ -785,6 +785,8 @@ function CoursesAndClassesTab() {
               ) : (
                 sessionsOverview.map(sessionItem => {
                   const isOngoing = sessionItem.status === 'ACTIVE'
+                  const isEnded = Boolean(sessionItem.endedAt) || sessionItem.status === 'COMPLETED'
+                  const statusLabel = isOngoing ? 'Ongoing' : isEnded ? 'Ended' : 'Scheduled'
                   return (
                     <div
                       key={sessionItem.id}
@@ -797,8 +799,12 @@ function CoursesAndClassesTab() {
                           </p>
                           <p className="text-xs text-muted-foreground">{sessionItem.subject}</p>
                         </div>
-                        <Badge variant={isOngoing ? 'default' : 'secondary'}>
-                          {isOngoing ? 'Ongoing' : 'Ended'}
+                        <Badge
+                          variant={
+                            isOngoing ? 'default' : isEnded ? 'secondary' : 'outline'
+                          }
+                        >
+                          {statusLabel}
                         </Badge>
                       </div>
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
