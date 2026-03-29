@@ -1742,6 +1742,22 @@ export function StudentLiveWhiteboard({
                 <SheetTitle>Visible Tasks</SheetTitle>
               </SheetHeader>
               <div className="mt-4 space-y-3">
+                <div className="flex flex-col gap-2 border-b pb-4">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Sharing Controls</p>
+                  <Button 
+                    size="sm" 
+                    variant={visibility === 'public' ? 'destructive' : 'default'}
+                    onClick={() => changeVisibility(visibility === 'public' ? 'private' : 'public')}
+                    className="w-full"
+                  >
+                    {visibility === 'public' ? 'Stop Sharing Board' : 'Share My Whiteboard with Tutor'}
+                  </Button>
+                  <p className="text-[10px] text-muted-foreground">
+                    {visibility === 'public' 
+                      ? 'Your whiteboard is currently visible to the tutor in real-time.' 
+                      : 'Share your whiteboard so the tutor can see your work and provide feedback.'}
+                  </p>
+                </div>
                 {visibleTaskShares.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No visible tasks yet.</p>
                 ) : (

@@ -129,7 +129,11 @@ export function PreferenceEnrollmentDialog({
 
       toast.success('Successfully enrolled!')
       onOpenChange(false)
-      onSubmitted?.()
+      if (onSubmitted) {
+        onSubmitted()
+      } else {
+        window.location.href = '/student/courses?tab=mine'
+      }
     } catch {
       toast.error('Failed to enroll.')
     } finally {

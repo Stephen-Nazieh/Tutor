@@ -96,7 +96,7 @@ export default function CourseEnrollPage() {
         return
       }
       toast.success('Enrolled successfully')
-      router.push('/student/courses')
+      router.push('/student/courses?tab=mine')
     } catch {
       toast.error('Enrollment failed')
     } finally {

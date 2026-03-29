@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
+import { useSearchParams } from 'next/navigation'
 import {
   Card,
   CardContent,
@@ -94,12 +95,13 @@ const DIFFICULTY_COLORS: Record<string, string> = {
 
 export default function CurriculumPage() {
   const { data: session } = useSession()
+  const searchParams = useSearchParams()
   const isTutor = session?.user?.role === 'TUTOR'
   const [curriculums, setCurriculums] = useState<Curriculum[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<
     'mine' | 'pending' | 'completed' | 'favorites' | 'following'
-  >('mine')
+  >((searchParams.get('tab') as any) || 'mine')
   const [selectedEnrollment, setSelectedEnrollment] = useState<Curriculum | null>(null)
   const [favoriteIds, setFavoriteIds] = useState<string[]>([])
 

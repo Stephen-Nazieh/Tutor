@@ -186,9 +186,13 @@ export default function StudentLiveSessionPage() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary">{session.subject}</Badge>
-          <Badge>{session.status}</Badge>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-muted-foreground">Course:</span>
+          <span className="text-sm font-bold text-foreground">{session.title}</span>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">{session.subject}</Badge>
+            <Badge>{session.status}</Badge>
+          </div>
         </div>
       </div>
 
