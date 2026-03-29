@@ -9997,78 +9997,142 @@ FEEDBACK: [your explanation]`
                               >
                                 Test
                               </Button>
-                            </div>
-                          </div>
-                          {/* Right panel: Extensions - resizable */}
-                          <ResizablePanel
-                            defaultWidth={192}
-                            minWidth={150}
-                            maxWidth={300}
-                            actionButton={
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="w-full"
                                 onClick={() => {
-                                  if (!loadedTaskId) {
-                                    toast.error('Please select a task first')
+                                  // Generate DMI from Slide content
+                                  const content = taskBuilder.activeExtensionId
+                                    ? taskBuilder.extensions.find(
+                                        e => e.id === taskBuilder.activeExtensionId
+                                      )?.content || taskBuilder.taskContent
+                                    : taskBuilder.taskContent
+                                  if (!content.trim()) {
+                                    toast.error('Please add content to the Slide tab first')
                                     return
                                   }
-                                  const extNumber = taskBuilder.extensions.length + 1
-                                  const newExtension = {
-                                    id: `ext-${Date.now()}`,
-                                    name: `Extension ${extNumber}`,
-                                    content: '',
-                                    pci: '',
-                                  }
-                                  setTaskBuilder(prev => ({
-                                    ...prev,
-                                    extensions: [...prev.extensions, newExtension],
-                                    activeExtensionId: newExtension.id,
-                                  }))
+                                  handleGenerateDMI('task')
                                 }}
                               >
-                                Add Extension
+                                Generate DMI
                               </Button>
-                            }
-                          >
-                            <h4 className="mb-2 text-sm font-medium">
-                              {taskBuilder.title || 'Task'} Extensions
-                            </h4>
-                            <div className="min-h-[100px] space-y-2 rounded-lg bg-slate-50 p-3">
-                              {taskBuilder.extensions.length === 0 ? (
-                                <p className="text-xs text-muted-foreground">No extensions added</p>
-                              ) : (
-                                taskBuilder.extensions.map(ext => (
-                                  <Button
-                                    key={ext.id}
-                                    variant={
-                                      taskBuilder.activeExtensionId === ext.id ? 'default' : 'ghost'
-                                    }
-                                    size="sm"
-                                    className="w-full justify-start text-xs"
-                                    onClick={() => {
-                                      if (taskBuilder.activeExtensionId === ext.id) {
-                                        // Deactivate
-                                        setTaskBuilder(prev => ({
-                                          ...prev,
-                                          activeExtensionId: null,
-                                        }))
-                                      } else {
-                                        // Activate extension
-                                        setTaskBuilder(prev => ({
-                                          ...prev,
-                                          activeExtensionId: ext.id,
-                                        }))
-                                      }
-                                    }}
-                                  >
-                                    {ext.name}
-                                  </Button>
-                                ))
-                              )}
                             </div>
-                          </ResizablePanel>
+                          </div>
+                          {/* Right panels container */}
+                          <div className="flex w-[200px] flex-col gap-4">
+                            {/* Extensions panel */}
+                            <ResizablePanel
+                              defaultWidth={200}
+                              minWidth={150}
+                              maxWidth={300}
+                              actionButton={
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full"
+                                  onClick={() => {
+                                    if (!loadedTaskId) {
+                                      toast.error('Please select a task first')
+                                      return
+                                    }
+                                    const extNumber = taskBuilder.extensions.length + 1
+                                    const newExtension = {
+                                      id: `ext-${Date.now()}`,
+                                      name: `Extension ${extNumber}`,
+                                      content: '',
+                                      pci: '',
+                                    }
+                                    setTaskBuilder(prev => ({
+                                      ...prev,
+                                      extensions: [...prev.extensions, newExtension],
+                                      activeExtensionId: newExtension.id,
+                                    }))
+                                  }}
+                                >
+                                  Add Extension
+                                </Button>
+                              }
+                            >
+                              <h4 className="mb-2 text-sm font-medium">
+                                {taskBuilder.title || 'Task'} Extensions
+                              </h4>
+                              <div className="min-h-[100px] space-y-2 rounded-lg bg-slate-50 p-3">
+                                {taskBuilder.extensions.length === 0 ? (
+                                  <p className="text-xs text-muted-foreground">
+                                    No extensions added
+                                  </p>
+                                ) : (
+                                  taskBuilder.extensions.map(ext => (
+                                    <Button
+                                      key={ext.id}
+                                      variant={
+                                        taskBuilder.activeExtensionId === ext.id
+                                          ? 'default'
+                                          : 'ghost'
+                                      }
+                                      size="sm"
+                                      className="w-full justify-start text-xs"
+                                      onClick={() => {
+                                        if (taskBuilder.activeExtensionId === ext.id) {
+                                          // Deactivate
+                                          setTaskBuilder(prev => ({
+                                            ...prev,
+                                            activeExtensionId: null,
+                                          }))
+                                        } else {
+                                          // Activate extension
+                                          setTaskBuilder(prev => ({
+                                            ...prev,
+                                            activeExtensionId: ext.id,
+                                          }))
+                                        }
+                                      }}
+                                    >
+                                      {ext.name}
+                                    </Button>
+                                  ))
+                                )}
+                              </div>
+                            </ResizablePanel>
+
+                            {/* DMI Panel */}
+                            <DMIPanel
+                              items={taskDmiItems}
+                              onItemsChange={setTaskDmiItems}
+                              onDeploy={() => {
+                                if (!loadedTaskId) {
+                                  toast.error('Select a task to deploy')
+                                  return
+                                }
+                                if (!insightsProps?.sessionId) {
+                                  toast.error('Select a live session for insights')
+                                  return
+                                }
+
+                                const task: LiveTask = {
+                                  id: loadedTaskId,
+                                  title: taskBuilder.title || 'Task',
+                                  content: taskBuilder.activeExtensionId
+                                    ? taskBuilder.extensions.find(
+                                        e => e.id === taskBuilder.activeExtensionId
+                                      )?.content || taskBuilder.taskContent
+                                    : taskBuilder.taskContent,
+                                  source: 'task',
+                                  dmiItems: taskDmiItems.map(item => ({
+                                    id: item.id,
+                                    questionNumber: item.questionNumber,
+                                    questionText: item.questionText,
+                                  })),
+                                  deployedAt: Date.now(),
+                                  polls: [],
+                                  questions: [],
+                                }
+
+                                insightsProps.onDeployTask(task)
+                                toast.success('DMI deployed to live class')
+                              }}
+                            />
+                          </div>
                         </div>
                       </TabsContent>
 
@@ -10266,6 +10330,15 @@ FEEDBACK: [your explanation]`
                                 Test
                               </Button>
                             </div>
+                          </div>
+                          {/* Right panels container */}
+                          <div className="flex w-[200px] flex-col gap-4">
+                            {/* DMI Panel */}
+                            <DMIPanel
+                              items={assessmentDmiItems}
+                              onItemsChange={setAssessmentDmiItems}
+                              onDeploy={handleDeployAssessmentDmi}
+                            />
                           </div>
                         </div>
                       </TabsContent>

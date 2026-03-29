@@ -169,11 +169,6 @@ export const AutoTextarea = React.forwardRef<HTMLTextAreaElement, AutoTextareaPr
           onKeyDown={handleKeyDown}
           {...props}
         />
-        {(!value || String(value).length < 5) && (
-          <div className="pointer-events-none absolute bottom-2 left-3 select-none text-[10px] text-muted-foreground/60">
-            Tip: Start line with "1.", "-", or "a." for auto-numbering. Use Tab/Shift+Tab to indent.
-          </div>
-        )}
       </div>
     )
   }
