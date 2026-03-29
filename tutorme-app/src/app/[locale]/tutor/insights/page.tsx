@@ -120,36 +120,47 @@ export default function TutorInsightsPage() {
       try {
         const res = await fetch('/api/tutor/courses', { credentials: 'include' })
         if (!res.ok) {
-          // Silent fallback if API fails
-          setCourseId('insights-draft')
-          setDetachedCourseName('Insights Builder')
+          // Only set draft if we don't have a session that will give us the courseId
+          if (!searchParams.get('sessionId')) {
+            setCourseId('insights-draft')
+            setDetachedCourseName('Insights Builder')
+          }
           return
         }
         const data = await res.json()
         const courseList = (data.courses || []) as CourseSummary[]
         setCourses(courseList)
+
+        // Check if we have a sessionId that will give us a courseId
+        const hasSessionInUrl = !!searchParams.get('sessionId')
+
         if (courseList.length > 0) {
           const sorted = [...courseList].sort(
             (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
           )
-          setCourseId(prev => prev ?? sorted[0].id)
-          setDetachedCourseName(sorted[0].name)
-        } else {
-          // No courses found, use default
+
+          // Only set a default course if we don't have a specific session
+          if (!hasSessionInUrl) {
+            setCourseId(prev => prev ?? sorted[0].id)
+            setDetachedCourseName(sorted[0].name)
+          }
+        } else if (!hasSessionInUrl) {
+          // No courses found and no session, use default
           setCourseId('insights-draft')
           setDetachedCourseName('Insights Builder')
         }
       } catch (error) {
-        // Network or other error fallback
-        setCourseId('insights-draft')
-        setDetachedCourseName('Insights Builder')
+        if (!searchParams.get('sessionId')) {
+          setCourseId('insights-draft')
+          setDetachedCourseName('Insights Builder')
+        }
       } finally {
         setLoading(false)
       }
     }
 
     loadCourses()
-  }, [])
+  }, [searchParams])
 
   useEffect(() => {
     const loadSessions = async () => {

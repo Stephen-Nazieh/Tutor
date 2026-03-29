@@ -700,6 +700,32 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       loadedAssessmentId,
     ])
 
+    // Sync active builder content to classroom tab when in insights mode
+    useEffect(() => {
+      if (!insightsProps) return
+
+      if (mainBuilderTab === 'task' && loadedTaskId) {
+        const activeTaskExtension = taskBuilder.activeExtensionId
+          ? taskBuilder.extensions.find(ext => ext.id === taskBuilder.activeExtensionId)
+          : null
+        const contentToDisplay = activeTaskExtension
+          ? activeTaskExtension.content
+          : taskBuilder.taskContent
+        setTestPciContent(prev => ({ ...prev, classroom: contentToDisplay || '' }))
+      } else if (mainBuilderTab === 'assessment' && loadedAssessmentId) {
+        setTestPciContent(prev => ({ ...prev, classroom: assessmentBuilder.taskContent || '' }))
+      }
+    }, [
+      mainBuilderTab,
+      loadedTaskId,
+      taskBuilder.activeExtensionId,
+      taskBuilder.taskContent,
+      taskBuilder.extensions,
+      loadedAssessmentId,
+      assessmentBuilder.taskContent,
+      insightsProps,
+    ])
+
     // Dev mode state for saving (declared early for ref access)
     const [devMode, setDevMode] = useState<'single' | 'multi'>('single')
     const [previewDifficulty, setPreviewDifficulty] = useState<

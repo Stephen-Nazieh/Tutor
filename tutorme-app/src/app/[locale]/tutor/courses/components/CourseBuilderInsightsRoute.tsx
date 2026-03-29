@@ -37,7 +37,7 @@ export function CourseBuilderInsightsRoute({
     detachedCourseName,
   })
 
-  const [isBuilderVisible, setIsBuilderVisible] = useState(true)
+  const [isBuilderVisible, setIsBuilderVisible] = useState(false)
 
   return (
     <div
