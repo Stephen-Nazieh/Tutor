@@ -91,77 +91,66 @@ export function CourseBuilderInsightsRoute({
       </div>
 
       <div className="flex w-full flex-1 flex-col overflow-hidden px-6 pb-6 pt-4 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2">
-        {isBuilderVisible && (
-          <>
-            {model.savedVariants.length > 0 && (
-              <Card className="mb-8 w-full border border-emerald-200/50 bg-emerald-50/30 shadow-xl backdrop-blur-md">
-                <CardHeader className="pb-2 pt-4">
-                  <CardTitle className="text-sm text-foreground">
-                    Adaptive Variant Join Links
-                  </CardTitle>
-                  <CardDescription>
-                    Share the correct link with students for each difficulty level.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2 pb-4">
-                  {model.savedVariants.map(variant => (
-                    <div key={variant.batchId} className="rounded-md border bg-card p-2.5">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="min-w-0">
-                          <p className="text-xs font-medium capitalize">{variant.difficulty}</p>
-                          <p className="truncate text-[11px] text-muted-foreground">
-                            {variant.batchName}
-                          </p>
-                        </div>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          className="h-7 px-2 text-xs"
-                          onClick={async () => {
-                            try {
-                              await navigator.clipboard.writeText(variant.joinLink)
-                              toast.success(`${variant.difficulty} join link copied`)
-                            } catch {
-                              toast.error('Failed to copy link')
-                            }
-                          }}
-                        >
-                          Copy Link
-                        </Button>
-                      </div>
-                      <p className="mt-1 break-all text-[11px] text-muted-foreground">
-                        {variant.joinLink}
+        {model.savedVariants.length > 0 && (
+          <Card className="mb-8 w-full border border-emerald-200/50 bg-emerald-50/30 shadow-xl backdrop-blur-md">
+            <CardHeader className="pb-2 pt-4">
+              <CardTitle className="text-sm text-foreground">
+                Adaptive Variant Join Links
+              </CardTitle>
+              <CardDescription>
+                Share the correct link with students for each difficulty level.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 pb-4">
+              {model.savedVariants.map(variant => (
+                <div key={variant.batchId} className="rounded-md border bg-card p-2.5">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium capitalize">{variant.difficulty}</p>
+                      <p className="truncate text-[11px] text-muted-foreground">
+                        {variant.batchName}
                       </p>
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-
-            {model.loading ? (
-              <div className="flex flex-1 items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-              </div>
-            ) : (
-              <CourseBuilder
-                ref={model.courseBuilderRef}
-                courseId={courseId ?? ''}
-                courseName={model.course?.name}
-                initialModules={model.loadedModules ?? undefined}
-                onSave={model.handleSave}
-                insightsProps={insightsProps}
-              />
-            )}
-          </>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2 text-xs"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(variant.joinLink)
+                          toast.success(`${variant.difficulty} join link copied`)
+                        } catch {
+                          toast.error('Failed to copy link')
+                        }
+                      }}
+                    >
+                      Copy Link
+                    </Button>
+                  </div>
+                  <p className="mt-1 break-all text-[11px] text-muted-foreground">
+                    {variant.joinLink}
+                  </p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
         )}
-        {!isBuilderVisible && (
-          <div className="flex flex-1 flex-col items-center justify-center space-y-4 rounded-xl border border-dashed border-slate-300 bg-slate-50/50">
-            <p className="text-slate-500">The Course Builder is currently hidden.</p>
-            <Button variant="outline" onClick={() => setIsBuilderVisible(true)}>
-              Show Builder
-            </Button>
+
+        {model.loading ? (
+          <div className="flex flex-1 items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
           </div>
+        ) : (
+          <CourseBuilder
+            ref={model.courseBuilderRef}
+            courseId={courseId ?? ''}
+            courseName={model.course?.name}
+            initialModules={model.loadedModules ?? undefined}
+            onSave={model.handleSave}
+            insightsProps={insightsProps}
+            isCollapsed={!isBuilderVisible}
+          />
         )}
       </div>
     </div>

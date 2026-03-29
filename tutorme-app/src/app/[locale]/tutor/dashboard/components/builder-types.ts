@@ -318,6 +318,7 @@ export interface CourseBuilderProps {
     }
   ) => void
   insightsProps?: CourseBuilderInsightsProps
+  isCollapsed?: boolean
 }
 
 export interface CourseBuilderRef {

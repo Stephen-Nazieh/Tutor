@@ -278,6 +278,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       onSave,
       onMakeVisibleToStudents,
       insightsProps,
+      isCollapsed = false,
     },
     ref
   ) {
@@ -4281,7 +4282,8 @@ FEEDBACK: [your explanation]`
               </Card>
 
               {/* COMBINED BUILDER: Task & Assessment Tabs */}
-              <Card className="mt-8 flex-shrink-0 overflow-hidden rounded-2xl border border-border bg-card/95 shadow-xl backdrop-blur-md">
+              {!isCollapsed && (
+                <Card className="mt-8 flex-shrink-0 overflow-hidden rounded-2xl border border-border bg-card/95 shadow-xl backdrop-blur-md">
                 <CardContent className="pt-4">
                   <Tabs
                     value={mainBuilderTab}
@@ -4647,46 +4649,6 @@ FEEDBACK: [your explanation]`
                               )}
                             </div>
                           </ResizablePanel>
-
-                          {/* DMI Panel */}
-                          <ResizablePanel defaultWidth={200} minWidth={150} maxWidth={300}>
-                            <DMIPanel
-                              items={taskDmiItems}
-                              onItemsChange={setTaskDmiItems}
-                              onDeploy={() => {
-                                if (!loadedTaskId) {
-                                  toast.error('Select a task to deploy')
-                                  return
-                                }
-                                if (!insightsProps?.sessionId) {
-                                  toast.error('Select a course session for insights')
-                                  return
-                                }
-
-                                const task: LiveTask = {
-                                  id: loadedTaskId,
-                                  title: taskBuilder.title || 'Task',
-                                  content: taskBuilder.activeExtensionId
-                                    ? taskBuilder.extensions.find(
-                                        e => e.id === taskBuilder.activeExtensionId
-                                      )?.content || taskBuilder.taskContent
-                                    : taskBuilder.taskContent,
-                                  source: 'task',
-                                  dmiItems: taskDmiItems.map(item => ({
-                                    id: item.id,
-                                    questionNumber: item.questionNumber,
-                                    questionText: item.questionText,
-                                  })),
-                                  deployedAt: Date.now(),
-                                  polls: [],
-                                  questions: [],
-                                }
-
-                                insightsProps.onDeployTask(task)
-                                toast.success('DMI deployed to live class')
-                              }}
-                            />
-                          </ResizablePanel>
                         </div>
                       </div>
                     </TabsContent>
@@ -4883,6 +4845,7 @@ FEEDBACK: [your explanation]`
                   </Tabs>
                 </CardContent>
               </Card>
+            )}
             </div>
           </div>
 
