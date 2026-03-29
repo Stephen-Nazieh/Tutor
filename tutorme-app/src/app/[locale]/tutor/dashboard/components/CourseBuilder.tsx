@@ -4576,7 +4576,7 @@ FEEDBACK: [your explanation]`
                           </div>
                         </div>
                         {/* Right panels container */}
-                        <div className="flex w-[200px] flex-col gap-4">
+                        <div className="flex flex-col gap-4">
                           {/* Extensions panel */}
                           <ResizablePanel
                             defaultWidth={200}
@@ -4846,7 +4846,7 @@ FEEDBACK: [your explanation]`
                           </Tabs>
                         </div>
                         {/* Right panels container */}
-                        <div className="flex w-[200px] flex-col gap-4">
+                        <div className="flex flex-col gap-4">
                           {/* DMI Panel */}
                           <ResizablePanel
                             defaultWidth={200}

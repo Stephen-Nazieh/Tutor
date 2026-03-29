@@ -866,11 +866,14 @@ export function ResizablePanel({
         {children}
         {/* Left resize handle */}
         <div
-          className="absolute bottom-0 left-0 top-0 z-10 flex w-2 cursor-col-resize items-center justify-center transition-colors hover:bg-blue-200/50"
+          className={cn(
+            'group absolute bottom-0 left-0 top-0 z-10 flex w-1 cursor-col-resize items-center justify-center transition-all hover:w-2 hover:bg-blue-400/30',
+            isResizing && resizeDirection === 'left' && 'w-2 bg-blue-500/40'
+          )}
           onMouseDown={handleResizeStart('left')}
           title="Drag left to shrink, right to expand"
         >
-          <GripHorizontal className="h-3 w-3 rotate-90 text-gray-400" />
+          <div className="h-8 w-1 rounded-full bg-slate-300 group-hover:bg-slate-400" />
         </div>
       </div>
       {/* Action button directly under the panel */}
