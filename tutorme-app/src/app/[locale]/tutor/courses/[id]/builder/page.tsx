@@ -6,11 +6,11 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { CourseBuilderContent } from '../../components/CourseBuilderContent'
+import { CourseBuilderCourseRoute } from '../../components/CourseBuilderCourseRoute'
 
 export default function CourseBuilderPage() {
   const params = useParams()
   const courseId = (params?.id as string) ?? null
 
-  return <CourseBuilderContent courseId={courseId} />
+  return <CourseBuilderCourseRoute courseId={courseId} />
 }

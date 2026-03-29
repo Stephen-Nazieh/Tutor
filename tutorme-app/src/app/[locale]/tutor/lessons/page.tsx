@@ -50,7 +50,7 @@ export default function LessonBankPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-gray-50">
+    <div className="flex h-screen flex-col bg-gray-50" data-tutor-route="lesson-bank">
       <div className="relative z-10 flex-shrink-0 border-b bg-white">
         <div className="flex w-full items-center justify-between px-4 py-4 sm:px-6">
           <Button variant="ghost" size="sm" asChild>

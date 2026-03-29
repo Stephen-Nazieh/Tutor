@@ -9171,9 +9171,9 @@ FEEDBACK: [your explanation]`
                           onValueChange={setTestPciActiveTab}
                           className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-hidden"
                         >
-                          <TabsList className="grid w-full shrink-0 grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+                          <TabsList className="flex h-auto min-h-10 w-full shrink-0 flex-nowrap gap-1 rounded-xl border bg-muted p-1">
                             {testPciTabs.map(tab => (
-                              <div key={tab.id} className="relative w-full">
+                              <div key={tab.id} className="relative min-w-0 flex-1 basis-0">
                                 {editingTabId === tab.id ? (
                                   <Input
                                     value={tab.label}
@@ -9188,13 +9188,13 @@ FEEDBACK: [your explanation]`
                                     onKeyDown={(e: any) => {
                                       if (e.key === 'Enter') setEditingTabId(null)
                                     }}
-                                    className="h-8 text-center text-xs font-medium"
+                                    className="h-8 min-w-0 text-center text-xs font-medium"
                                     autoFocus
                                   />
                                 ) : (
                                   <TabsTrigger
                                     value={tab.id}
-                                    className="w-full rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                    className="w-full min-w-0 truncate rounded-lg border border-gray-400 bg-white px-2 text-xs font-medium data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 sm:text-sm"
                                     onDoubleClick={() => setEditingTabId(tab.id)}
                                   >
                                     {tab.label}
@@ -10019,12 +10019,12 @@ FEEDBACK: [your explanation]`
                                     id: `ext-${Date.now()}`,
                                     name: `Extension ${extNumber}`,
                                     content: '',
-                                    pci: ''
+                                    pci: '',
                                   }
                                   setTaskBuilder(prev => ({
                                     ...prev,
                                     extensions: [...prev.extensions, newExtension],
-                                    activeExtensionId: newExtension.id
+                                    activeExtensionId: newExtension.id,
                                   }))
                                 }}
                               >
@@ -10032,15 +10032,19 @@ FEEDBACK: [your explanation]`
                               </Button>
                             }
                           >
-                            <h4 className="text-sm font-medium mb-2">{taskBuilder.title || 'Task'} Extensions</h4>
-                            <div className="p-3 bg-slate-50 rounded-lg min-h-[100px] space-y-2">
+                            <h4 className="mb-2 text-sm font-medium">
+                              {taskBuilder.title || 'Task'} Extensions
+                            </h4>
+                            <div className="min-h-[100px] space-y-2 rounded-lg bg-slate-50 p-3">
                               {taskBuilder.extensions.length === 0 ? (
                                 <p className="text-xs text-muted-foreground">No extensions added</p>
                               ) : (
-                                taskBuilder.extensions.map((ext) => (
+                                taskBuilder.extensions.map(ext => (
                                   <Button
                                     key={ext.id}
-                                    variant={taskBuilder.activeExtensionId === ext.id ? "default" : "ghost"}
+                                    variant={
+                                      taskBuilder.activeExtensionId === ext.id ? 'default' : 'ghost'
+                                    }
                                     size="sm"
                                     className="w-full justify-start text-xs"
                                     onClick={() => {
@@ -10048,13 +10052,13 @@ FEEDBACK: [your explanation]`
                                         // Deactivate
                                         setTaskBuilder(prev => ({
                                           ...prev,
-                                          activeExtensionId: null
+                                          activeExtensionId: null,
                                         }))
                                       } else {
                                         // Activate extension
                                         setTaskBuilder(prev => ({
                                           ...prev,
-                                          activeExtensionId: ext.id
+                                          activeExtensionId: ext.id,
                                         }))
                                       }
                                     }}

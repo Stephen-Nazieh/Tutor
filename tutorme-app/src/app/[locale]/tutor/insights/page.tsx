@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
-import { CourseBuilderContent } from '../courses/components/CourseBuilderContent'
+import { CourseBuilderInsightsRoute } from '../courses/components/CourseBuilderInsightsRoute'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Loader2, Wrench } from 'lucide-react'
@@ -366,7 +366,7 @@ export default function TutorInsightsPage() {
 
   return (
     <div className="flex min-h-screen w-full flex-col items-stretch bg-gray-50">
-      <CourseBuilderContent
+      <CourseBuilderInsightsRoute
         courseId={courseId}
         dataMode={dataMode}
         detachedStorageKey={
