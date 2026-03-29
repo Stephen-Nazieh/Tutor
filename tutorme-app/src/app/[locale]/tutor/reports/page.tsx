@@ -216,8 +216,6 @@ export default function TutorReports() {
   const [globalAttentionStudents, setGlobalAttentionStudents] = useState<any[]>([])
   const [globalAllStudents, setGlobalAllStudents] = useState<any[]>([])
   const [loadingGlobals, setLoadingGlobals] = useState(true)
-  const [sessionsOverview, setSessionsOverview] = useState<SessionOverviewItem[]>([])
-  const [sessionsLoading, setSessionsLoading] = useState(true)
 
   // Mock data for initial load
   const mockStudents: Student[] = [
@@ -303,22 +301,6 @@ export default function TutorReports() {
     }, 1000)
   }, [])
 
-  useEffect(() => {
-    const loadSessionsOverview = async () => {
-      setSessionsLoading(true)
-      try {
-        const res = await fetch('/api/tutor/classes?includeEnded=1', { credentials: 'include' })
-        if (!res.ok) throw new Error('Failed to load sessions')
-        const data = await res.json()
-        setSessionsOverview((data.classes || []) as SessionOverviewItem[])
-      } catch {
-        setSessionsOverview([])
-      } finally {
-        setSessionsLoading(false)
-      }
-    }
-    loadSessionsOverview()
-  }, [])
 
   // Fetch report data when selected class changes
   useEffect(() => {
@@ -683,8 +665,27 @@ function CoursesAndClassesTab() {
     []
   )
   const [isAiTyping, setIsAiTyping] = useState(false)
+  const [sessionsOverview, setSessionsOverview] = useState<SessionOverviewItem[]>([])
+  const [sessionsLoading, setSessionsLoading] = useState(true)
 
   const selectedCourse = courses.find(c => c.id === selectedCourseId)
+
+  useEffect(() => {
+    const loadSessionsOverview = async () => {
+      setSessionsLoading(true)
+      try {
+        const res = await fetch('/api/tutor/classes?includeEnded=1', { credentials: 'include' })
+        if (!res.ok) throw new Error('Failed to load sessions')
+        const data = await res.json()
+        setSessionsOverview((data.classes || []) as SessionOverviewItem[])
+      } catch {
+        setSessionsOverview([])
+      } finally {
+        setSessionsLoading(false)
+      }
+    }
+    loadSessionsOverview()
+  }, [])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -783,7 +784,7 @@ function CoursesAndClassesTab() {
                   No sessions found.
                 </div>
               ) : (
-                sessionsOverview.map(sessionItem => {
+                sessionsOverview.map((sessionItem: SessionOverviewItem) => {
                   const isOngoing = sessionItem.status === 'ACTIVE'
                   const isEnded = Boolean(sessionItem.endedAt) || sessionItem.status === 'COMPLETED'
                   const statusLabel = isOngoing ? 'Ongoing' : isEnded ? 'Ended' : 'Scheduled'

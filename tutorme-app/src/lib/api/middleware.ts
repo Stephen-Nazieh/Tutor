@@ -88,7 +88,7 @@ export function handleApiError(
 }
 
 type RouteContext = {
-  params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  params: Promise<Record<string, string | string[]>>
 }
 
 // Handler type (context is route params, e.g. { params: { id: string } })
@@ -126,10 +126,7 @@ function normalizeRole(role: unknown): string {
  * }, { role: 'TUTOR' })
  */
 export function withAuth(handler: Handler, options?: WithAuthOptions) {
-  return async (
-    req: NextRequest,
-    context: RouteContext
-  ) => {
+  return async (req: NextRequest, context: RouteContext) => {
     let activeSession: Session | null = null
     try {
       const session = await getServerSession(authOptions, req)
