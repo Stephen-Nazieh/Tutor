@@ -60,6 +60,10 @@ export default function TutorMyPage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [cropDialogOpen, setCropDialogOpen] = useState(false)
+  const [cropSourceUrl, setCropSourceUrl] = useState<string | null>(null)
+  const [croppedPreviewUrl, setCroppedPreviewUrl] = useState<string | null>(null)
+  const [cropping, setCropping] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
   const [creatingCourse, setCreatingCourse] = useState(false)
   const [courseName, setCourseName] = useState('')
@@ -153,6 +157,57 @@ export default function TutorMyPage() {
     return () => URL.revokeObjectURL(previewUrl)
   }, [avatarFile])
 
+  useEffect(() => {
+    if (!cropSourceUrl) {
+      setCroppedPreviewUrl(null)
+      return
+    }
+
+    let active = true
+    let objectUrlToRevoke: string | null = null
+
+    const generatePreview = async () => {
+      const img = new Image()
+      img.src = cropSourceUrl
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve()
+        img.onerror = () => reject(new Error('Failed to load image'))
+      })
+
+      if (!active) return
+
+      const side = Math.min(img.naturalWidth, img.naturalHeight)
+      const sx = (img.naturalWidth - side) / 2
+      const sy = (img.naturalHeight - side) / 2
+
+      const canvas = document.createElement('canvas')
+      canvas.width = 300
+      canvas.height = 300
+      const ctx = canvas.getContext('2d')
+      if (!ctx) throw new Error('Canvas not supported')
+
+      ctx.drawImage(img, sx, sy, side, side, 0, 0, 300, 300)
+
+      const blob = await new Promise<Blob | null>(resolve =>
+        canvas.toBlob(resolve, 'image/webp', 0.85)
+      )
+      if (!blob || !active) return
+
+      objectUrlToRevoke = URL.createObjectURL(blob)
+      setCroppedPreviewUrl(objectUrlToRevoke)
+    }
+
+    void generatePreview().catch(() => {
+      if (!active) return
+      setCroppedPreviewUrl(null)
+    })
+
+    return () => {
+      active = false
+      if (objectUrlToRevoke) URL.revokeObjectURL(objectUrlToRevoke)
+    }
+  }, [cropSourceUrl])
+
   const handleCopyHandle = () => {
     if (!normalizedUsername) return
     navigator.clipboard.writeText(`@${normalizedUsername}`)
@@ -223,6 +278,56 @@ export default function TutorMyPage() {
     }
   }
 
+  const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024
+  const ACCEPTED_AVATAR_MIME = ['image/jpeg', 'image/png', 'image/webp']
+
+  const isAcceptedAvatarFile = (file: File) => {
+    const byMime = ACCEPTED_AVATAR_MIME.includes(file.type)
+    if (byMime) return true
+    const name = file.name.toLowerCase()
+    return (
+      name.endsWith('.jpg') ||
+      name.endsWith('.jpeg') ||
+      name.endsWith('.png') ||
+      name.endsWith('.webp')
+    )
+  }
+
+  const handleAvatarSelect = async (file: File) => {
+    if (!isAcceptedAvatarFile(file)) {
+      toast.error('Accepted formats: JPG, PNG, WEBP only')
+      return
+    }
+    if (file.size > MAX_AVATAR_SIZE_BYTES) {
+      toast.error('Maximum size is 5 MB')
+      return
+    }
+
+    if (cropSourceUrl) URL.revokeObjectURL(cropSourceUrl)
+    setCroppedPreviewUrl(null)
+    setCropDialogOpen(false)
+    const objectUrl = URL.createObjectURL(file)
+    try {
+      const img = new Image()
+      img.src = objectUrl
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve()
+        img.onerror = () => reject(new Error('Failed to load image'))
+      })
+
+      if (img.naturalWidth < 300 || img.naturalHeight < 300) {
+        toast.error('Minimum dimensions: 300 × 300 px')
+        return
+      }
+
+      setCropSourceUrl(objectUrl)
+      setCropDialogOpen(true)
+    } catch {
+      toast.error('Invalid image file')
+      URL.revokeObjectURL(objectUrl)
+    }
+  }
+
   const uploadAvatarFile = async (file: File) => {
     setAvatarFile(file)
     setUploadingAvatar(true)
@@ -263,6 +368,55 @@ export default function TutorMyPage() {
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
+    }
+  }
+
+  const closeCropDialog = () => {
+    setCropDialogOpen(false)
+    setCropping(false)
+    setCropSourceUrl(prev => {
+      if (prev) URL.revokeObjectURL(prev)
+      return null
+    })
+    setCroppedPreviewUrl(null)
+  }
+
+  const confirmCropAndUpload = async () => {
+    if (!cropSourceUrl) return
+
+    setCropping(true)
+    try {
+      const img = new Image()
+      img.src = cropSourceUrl
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve()
+        img.onerror = () => reject(new Error('Failed to load image'))
+      })
+
+      const side = Math.min(img.naturalWidth, img.naturalHeight)
+      const sx = (img.naturalWidth - side) / 2
+      const sy = (img.naturalHeight - side) / 2
+
+      const canvas = document.createElement('canvas')
+      canvas.width = 256
+      canvas.height = 256
+      const ctx = canvas.getContext('2d')
+      if (!ctx) throw new Error('Canvas not supported')
+
+      ctx.drawImage(img, sx, sy, side, side, 0, 0, 256, 256)
+
+      const blob = await new Promise<Blob | null>(resolve =>
+        canvas.toBlob(resolve, 'image/webp', 0.85)
+      )
+      if (!blob) throw new Error('Failed to crop image')
+
+      const croppedFile = new File([blob], 'avatar.webp', { type: 'image/webp' })
+      await uploadAvatarFile(croppedFile)
+      closeCropDialog()
+    } catch {
+      toast.error('Failed to crop/upload photo')
+    } finally {
+      setCropping(false)
     }
   }
 
@@ -371,10 +525,10 @@ export default function TutorMyPage() {
                 <Input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
                   onChange={e => {
                     const file = e.target.files?.[0]
-                    if (file) void uploadAvatarFile(file)
+                    if (file) void handleAvatarSelect(file)
                   }}
                   className="hidden"
                 />
@@ -385,37 +539,18 @@ export default function TutorMyPage() {
                 </div>
                 <div className="text-xs text-[#64748B]">Solocorn Tutor</div>
               </div>
-            </div>
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-2 text-sm text-[#1F2933]">
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              <div className="flex w-full flex-col items-center gap-3">
+                <div className="flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                   <CheckCircle className="h-3.5 w-3.5" />
                   Verified
-                </span>
-                {publicUrl ? (
-                  <Link href={publicPath} className="inline-flex" target="_blank" rel="noreferrer">
-                    <Button size="sm" className="bg-[#1D4ED8] text-white hover:bg-[#1B45C2]">
-                      Preview Public Page
-                    </Button>
-                  </Link>
-                ) : (
-                  <Button size="sm" disabled className="bg-[#CBD5F5] text-white">
-                    Preview Public Page
-                  </Button>
-                )}
-              </div>
-              <div className="grid gap-3 text-sm text-[#1F2933] md:grid-cols-2">
-                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+                </div>
+                <div className="w-full rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
                   <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
                     Tutor since
                   </div>
                   <div className="mt-1 text-sm font-medium text-[#0F172A]">{tutorSince || '—'}</div>
                 </div>
-                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Country</div>
-                  <div className="mt-1 text-sm font-medium text-[#0F172A]">{country || '—'}</div>
-                </div>
-                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+                <div className="w-full rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
                   <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
                     Active Courses
                   </div>
@@ -423,71 +558,175 @@ export default function TutorMyPage() {
                     {activeCourses ?? '—'}
                   </div>
                 </div>
-                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
-                    Categories
-                  </div>
-                  <div className="mt-1 text-sm font-medium text-[#0F172A]">
-                    {profileCategories.length ? profileCategories.join(', ') : '—'}
-                  </div>
-                </div>
-                <div className="rounded-2xl border border-[#E2E8F0] bg-white p-4 md:col-span-2">
-                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Bio</div>
-                  <div className="mt-2 text-sm text-[#0F172A]">
-                    {bio || 'Bio should appear here'}
-                  </div>
+                <div className="w-full rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Country</div>
+                  <div className="mt-1 text-sm font-medium text-[#0F172A]">{country || '—'}</div>
                 </div>
               </div>
-              <div>
-                <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Public URL</div>
+            </div>
+            <div className="space-y-4">
+              {/* Preview + Save */}
+              <div className="flex flex-wrap items-center gap-2 text-sm text-[#1F2933]">
                 {publicUrl ? (
-                  <div className="mt-2 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-                    <div className="break-all text-sm font-medium text-[#1F2933]">{publicUrl}</div>
-                  </div>
+                  <Link href={publicPath} className="inline-flex" target="_blank" rel="noreferrer">
+                    <Button size="sm" className="bg-[#1D4ED8] text-white hover:bg-[#1B45C2]">
+                      Preview My Public Page
+                    </Button>
+                  </Link>
                 ) : (
-                  <div className="mt-2 rounded-2xl border border-dashed border-[#CBD5F5] p-4 text-sm text-[#64748B]">
-                    Add a username below to generate your public link.
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-wrap items-center gap-2 rounded-full border border-[#F17623]/40 bg-white px-3 py-1 text-xs text-[#1F2933]">
-                <span className="font-semibold text-[#F17623]">
-                  {normalizedUsername ? `@${normalizedUsername}` : '@username'}
-                </span>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 px-2 text-[#F17623]"
-                  onClick={handleCopyHandle}
-                  disabled={!normalizedUsername}
-                >
-                  <Copy className="mr-1 h-3.5 w-3.5" />
-                  Copy
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 px-2 text-[#1D4ED8]"
-                  onClick={handleCopyProfile}
-                  disabled={!publicUrl}
-                >
-                  Copy Link
-                </Button>
-                {canShare && publicUrl ? (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 px-2 text-[#1D4ED8]"
-                    onClick={handleShareProfile}
-                  >
-                    <Share2 className="mr-1 h-3.5 w-3.5" />
-                    Share
+                  <Button size="sm" disabled className="bg-[#CBD5F5] text-white">
+                    Preview My Public Page
                   </Button>
-                ) : null}
+                )}
+                <Button
+                  size="sm"
+                  className="bg-[#4FD1C5] text-[#1F2933] hover:bg-[#3CC6B9]"
+                  onClick={() => void save()}
+                  disabled={loading || saving}
+                >
+                  {saving ? 'Saving...' : 'Save Public Page'}
+                </Button>
+              </div>
+
+              {/* Bio (left) + Public URL (right) */}
+              <div className="grid gap-4 lg:grid-cols-[1fr,1fr]">
+                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Bio</div>
+                  <Textarea
+                    value={bio}
+                    readOnly
+                    rows={5}
+                    className="mt-2 min-h-[120px] border-[#E2E8F0] bg-white focus-visible:ring-[#4FD1C5]"
+                  />
+                </div>
+
+                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
+                    Public URL
+                  </div>
+                  {publicUrl ? (
+                    <>
+                      <div className="mt-2 break-all text-sm font-medium text-[#1F2933]">
+                        {publicUrl}
+                      </div>
+                      <div className="mt-1 text-sm font-semibold text-[#F17623]">
+                        {normalizedUsername ? `@${normalizedUsername}` : '@username'}
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 text-[#1D4ED8]"
+                          onClick={handleCopyProfile}
+                          disabled={!publicUrl}
+                        >
+                          <Copy className="mr-1 h-3.5 w-3.5" />
+                          Copy link
+                        </Button>
+                        {canShare ? (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2 text-[#1D4ED8]"
+                            onClick={handleShareProfile}
+                          >
+                            <Share2 className="mr-1 h-3.5 w-3.5" />
+                            Share
+                          </Button>
+                        ) : null}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="mt-2 rounded-2xl border border-dashed border-[#CBD5F5] p-4 text-sm text-[#64748B]">
+                      Add a username below to generate your public link.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Social Media Accounts */}
+              <div className="rounded-2xl border border-[#E2E8F0] bg-white p-4">
+                <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
+                  Social Media Accounts
+                </div>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <div className="text-sm text-[#1F2933]">
+                    <span className="font-semibold text-[#64748B]">TikTok:</span>{' '}
+                    {socialAccounts.tiktok ? `@${socialAccounts.tiktok}` : '—'}
+                  </div>
+                  <div className="text-sm text-[#1F2933]">
+                    <span className="font-semibold text-[#64748B]">YouTube:</span>{' '}
+                    {socialAccounts.youtube ? `@${socialAccounts.youtube}` : '—'}
+                  </div>
+                  <div className="text-sm text-[#1F2933]">
+                    <span className="font-semibold text-[#64748B]">Instagram:</span>{' '}
+                    {socialAccounts.instagram ? `@${socialAccounts.instagram}` : '—'}
+                  </div>
+                  <div className="text-sm text-[#1F2933]">
+                    <span className="font-semibold text-[#64748B]">Facebook:</span>{' '}
+                    {socialAccounts.facebook ? `@${socialAccounts.facebook}` : '—'}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </section>
+
+        {/* Avatar crop/upload dialog (client-side validation + centered square crop) */}
+        <Dialog
+          open={cropDialogOpen}
+          onOpenChange={open => {
+            if (!open) closeCropDialog()
+            setCropDialogOpen(open)
+          }}
+        >
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Crop Profile Photo</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {cropSourceUrl ? (
+                <div className="relative overflow-hidden rounded-xl border border-[#E2E8F0] bg-white">
+                  <img
+                    src={cropSourceUrl}
+                    alt="Avatar preview"
+                    className="h-64 w-full object-cover"
+                  />
+                  <div className="pointer-events-none absolute inset-0 m-auto h-44 w-44 border-2 border-[#4FD1C5] opacity-90" />
+                </div>
+              ) : null}
+              {croppedPreviewUrl ? (
+                <div className="flex items-center gap-4">
+                  <div className="text-sm font-medium text-[#1F2933]">Preview (256x256)</div>
+                  <img
+                    src={croppedPreviewUrl}
+                    alt="Cropped avatar preview"
+                    className="h-20 w-20 rounded-lg border border-[#E2E8F0] object-cover"
+                  />
+                </div>
+              ) : null}
+              <p className="text-xs text-[#64748B]">
+                We will crop a centered 1:1 square and upload it as WebP. Server-side processing
+                will also generate 64x64 and 128x128 versions.
+              </p>
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                onClick={closeCropDialog}
+                disabled={cropping || uploadingAvatar}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => void confirmCropAndUpload()}
+                disabled={cropping || uploadingAvatar || !cropSourceUrl}
+              >
+                {cropping ? 'Cropping...' : 'Crop & Upload'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Card className="border border-[#E2E8F0] shadow-sm">
           <CardHeader
@@ -505,116 +744,99 @@ export default function TutorMyPage() {
           </CardHeader>
           {profileSettingsOpen && (
             <CardContent className="space-y-5">
-              <div className="grid gap-4 lg:grid-cols-[1fr,2fr]">
-                <div className="space-y-2">
-                  <Label className="text-[#1F2933]">Username</Label>
-                  <Input
-                    value={username}
-                    placeholder="e.g. jane_math"
-                    disabled
-                    className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
-                  />
-                  <p className="text-xs text-[#64748B]">
-                    Displayed as @{username.replace(/^@+/, '') || 'username'}
-                  </p>
-                </div>
+              <div className="grid gap-4 lg:grid-cols-2">
                 <div className="space-y-2">
                   <Label className="text-[#1F2933]">Edit Bio</Label>
                   <Textarea
                     value={bio}
                     onChange={e => setBio(e.target.value)}
-                    rows={3}
+                    rows={4}
                     disabled={loading || saving}
                     placeholder="Short bio for your public page..."
                     className="min-h-[100px] border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
                   />
                 </div>
-              </div>
-              <div className="space-y-3">
-                <Label className="text-[#1F2933]">Edit Social Media Accounts</Label>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div className="space-y-1">
-                    <Label className="text-xs text-[#64748B]">YouTube</Label>
-                    <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
-                      <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
-                      <Input
-                        placeholder="username"
-                        value={socialAccounts.youtube.replace(/^@+/, '')}
-                        onChange={e =>
-                          setSocialAccounts(prev => ({
-                            ...prev,
-                            youtube: e.target.value.replace(/^@+/, ''),
-                          }))
-                        }
-                        disabled={loading || saving}
-                        className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                      />
+
+                <div className="space-y-3">
+                  <Label className="text-[#1F2933]">Edit Social Media</Label>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-[#64748B]">TikTok</Label>
+                      <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
+                        <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                        <Input
+                          placeholder="username"
+                          value={socialAccounts.tiktok.replace(/^@+/, '')}
+                          onChange={e =>
+                            setSocialAccounts(prev => ({
+                              ...prev,
+                              tiktok: e.target.value.replace(/^@+/, ''),
+                            }))
+                          }
+                          disabled={loading || saving}
+                          className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-[#64748B]">Instagram</Label>
-                    <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
-                      <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
-                      <Input
-                        placeholder="username"
-                        value={socialAccounts.instagram.replace(/^@+/, '')}
-                        onChange={e =>
-                          setSocialAccounts(prev => ({
-                            ...prev,
-                            instagram: e.target.value.replace(/^@+/, ''),
-                          }))
-                        }
-                        disabled={loading || saving}
-                        className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                      />
+
+                    <div className="space-y-1">
+                      <Label className="text-xs text-[#64748B]">YouTube</Label>
+                      <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
+                        <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                        <Input
+                          placeholder="username"
+                          value={socialAccounts.youtube.replace(/^@+/, '')}
+                          onChange={e =>
+                            setSocialAccounts(prev => ({
+                              ...prev,
+                              youtube: e.target.value.replace(/^@+/, ''),
+                            }))
+                          }
+                          disabled={loading || saving}
+                          className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-[#64748B]">TikTok</Label>
-                    <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
-                      <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
-                      <Input
-                        placeholder="username"
-                        value={socialAccounts.tiktok.replace(/^@+/, '')}
-                        onChange={e =>
-                          setSocialAccounts(prev => ({
-                            ...prev,
-                            tiktok: e.target.value.replace(/^@+/, ''),
-                          }))
-                        }
-                        disabled={loading || saving}
-                        className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                      />
+
+                    <div className="space-y-1">
+                      <Label className="text-xs text-[#64748B]">Instagram</Label>
+                      <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
+                        <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                        <Input
+                          placeholder="username"
+                          value={socialAccounts.instagram.replace(/^@+/, '')}
+                          onChange={e =>
+                            setSocialAccounts(prev => ({
+                              ...prev,
+                              instagram: e.target.value.replace(/^@+/, ''),
+                            }))
+                          }
+                          disabled={loading || saving}
+                          className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-[#64748B]">Facebook</Label>
-                    <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
-                      <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
-                      <Input
-                        placeholder="username"
-                        value={socialAccounts.facebook.replace(/^@+/, '')}
-                        onChange={e =>
-                          setSocialAccounts(prev => ({
-                            ...prev,
-                            facebook: e.target.value.replace(/^@+/, ''),
-                          }))
-                        }
-                        disabled={loading || saving}
-                        className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                      />
+
+                    <div className="space-y-1">
+                      <Label className="text-xs text-[#64748B]">Facebook</Label>
+                      <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
+                        <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                        <Input
+                          placeholder="username"
+                          value={socialAccounts.facebook.replace(/^@+/, '')}
+                          onChange={e =>
+                            setSocialAccounts(prev => ({
+                              ...prev,
+                              facebook: e.target.value.replace(/^@+/, ''),
+                            }))
+                          }
+                          disabled={loading || saving}
+                          className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  onClick={save}
-                  disabled={loading || saving}
-                  className="bg-[#4FD1C5] text-[#1F2933] hover:bg-[#3CC6B9]"
-                >
-                  {saving ? 'Saving...' : 'Save Public Page'}
-                </Button>
               </div>
             </CardContent>
           )}

@@ -317,7 +317,7 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
           <div className="flex-1" />
           <div className="flex items-center gap-2 text-base font-medium text-green-600">
             <Clock className="h-5 w-5" />
-            <span>Next class in 2h 15m</span>
+            <span>Next session in 2h 15m</span>
           </div>
         </div>
       </div>

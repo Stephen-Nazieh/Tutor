@@ -443,8 +443,12 @@ export default function CurriculumDetailPage() {
         <div className="space-y-4">
           {curriculum.modules?.map((module, moduleIndex) => {
             const isExpanded = expandedModules.has(module.id)
-            const moduleProgress = module.lessons?.length 
-              ? Math.round((module.lessons.filter(l => l.status === 'COMPLETED').length / module.lessons.length) * 100)
+            const moduleProgress = module.lessons?.length
+              ? Math.round(
+                  (module.lessons.filter(l => l.status === 'COMPLETED').length /
+                    module.lessons.length) *
+                    100
+                )
               : 0
 
             return (

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Globe, EyeOff, Loader2, AlertTriangle } from 'lucide-react'
+import { Globe, EyeOff, Loader2, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -52,6 +52,12 @@ export function PublishButton({
   const [isLoading, setIsLoading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const { canPublish, missingRequirements } = usePublishValidation(course)
+  const [resultDialogOpen, setResultDialogOpen] = useState(false)
+  const [publishResult, setPublishResult] = useState<{
+    kind: 'success' | 'error'
+    title: string
+    description: string
+  } | null>(null)
 
   const handlePublishToggle = async () => {
     // If trying to publish and can't, show dialog with requirements
@@ -102,59 +108,69 @@ export function PublishButton({
 
       onPublishChange?.(newStatus)
       setIsDialogOpen(false)
+      setPublishResult({
+        kind: 'success',
+        title: newStatus ? 'Course published' : 'Course unpublished',
+        description: newStatus
+          ? 'Your course is now visible to students.'
+          : 'Your course is now hidden from students.',
+      })
+      setResultDialogOpen(true)
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'An error occurred')
+      const message = error instanceof Error ? error.message : 'An error occurred'
+      toast.error(message)
+      setPublishResult({
+        kind: 'error',
+        title: 'Could not update course status',
+        description: message,
+      })
+      setIsDialogOpen(false)
+      setResultDialogOpen(true)
     } finally {
       setIsLoading(false)
     }
   }
 
-  // If published, show unpublish button
-  if (course.isPublished) {
-    return (
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button
-            variant="outline"
-            size={size}
-            className={cn('gap-2', className)}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <EyeOff className="h-4 w-4" />
-            )}
-            {showLabel && 'Unpublish'}
+  const actionButton = course.isPublished ? (
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          size={size}
+          className={cn('gap-2', className)}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <EyeOff className="h-4 w-4" />
+          )}
+          {showLabel && 'Unpublish'}
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-amber-500" />
+            Unpublish Course?
+          </DialogTitle>
+          <DialogDescription>
+            This will hide your course from students. Existing enrollments will remain active, but
+            new students won&apos;t be able to find or enroll in this course.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            Cancel
           </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
-              Unpublish Course?
-            </DialogTitle>
-            <DialogDescription>
-              This will hide your course from students. Existing enrollments will remain active, but
-              new students won&apos;t be able to find or enroll in this course.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={togglePublish} disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Unpublish
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    )
-  }
-
-  // If not published, show publish button
-  return (
+          <Button variant="destructive" onClick={togglePublish} disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Unpublish
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  ) : (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
         <Button
@@ -208,6 +224,30 @@ export function PublishButton({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+
+  return (
+    <>
+      {actionButton}
+      <Dialog open={resultDialogOpen} onOpenChange={setResultDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {publishResult?.kind === 'success' ? (
+                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+              ) : (
+                <XCircle className="h-5 w-5 text-red-600" />
+              )}
+              {publishResult?.title ?? 'Updated'}
+            </DialogTitle>
+            <DialogDescription>{publishResult?.description ?? ''}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setResultDialogOpen(false)}>OK</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 
