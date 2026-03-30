@@ -8,6 +8,7 @@ import {
   curriculumModule,
   curriculumLesson,
   curriculumEnrollment,
+  tutorApplication,
 } from '@/lib/db/schema'
 import { findMockTutorByUsername, shouldUseMockPublicTutors } from '@/lib/public/mock-tutors'
 import { normalizeHandle } from '@/lib/mentions/handles'
@@ -36,9 +37,14 @@ export async function GET(req: NextRequest) {
       specialties: profile.specialties,
       credentials: profile.credentials,
       hourlyRate: profile.hourlyRate,
+      tutorSince: tutorApplication.createdAt,
+      country: tutorApplication.countryOfResidence,
+      socialLinks: tutorApplication.socialLinks,
+      profileCreatedAt: profile.createdAt,
     })
     .from(user)
     .innerJoin(profile, eq(profile.userId, user.id))
+    .leftJoin(tutorApplication, eq(tutorApplication.userId, user.id))
     .where(
       and(
         eq(user.role, 'TUTOR'),
@@ -55,13 +61,17 @@ export async function GET(req: NextRequest) {
           tutor: {
             id: mockTutor.id,
             name: mockTutor.name,
-        username: mockTutor.username,
-        handle: mockTutor.username,
+            username: mockTutor.username,
+            handle: mockTutor.username,
             bio: mockTutor.bio,
             avatarUrl: mockTutor.avatarUrl,
             specialties: mockTutor.specialties,
             credentials: mockTutor.credentials,
             hourlyRate: mockTutor.hourlyRate,
+            tutorSince: null,
+            country: null,
+            activeCourses: mockTutor.courses.length,
+            socialLinks: null,
           },
           courses: mockTutor.courses.map((course: any) => ({
             id: course.id,
@@ -143,6 +153,10 @@ export async function GET(req: NextRequest) {
       specialties: tutorRow.specialties ?? [],
       credentials: tutorRow.credentials ?? '',
       hourlyRate: tutorRow.hourlyRate ?? null,
+      tutorSince: tutorRow.tutorSince ?? tutorRow.profileCreatedAt ?? null,
+      country: tutorRow.country ?? null,
+      activeCourses: courses.length,
+      socialLinks: tutorRow.socialLinks ?? null,
     },
     courses,
     source: 'db',
