@@ -843,7 +843,7 @@ export function EnhancedWhiteboard({
         width: 300,
         height: 200,
       }
-      setTextOverlays(prev => [...prev, newOverlay])
+      setTextOverlays(prev => [...prev.filter(o => o.text.trim()), newOverlay])
       return
     }
 
@@ -1241,7 +1241,13 @@ export function EnhancedWhiteboard({
                       ? 'scale-105 bg-blue-600 text-white shadow-lg shadow-blue-500/30'
                       : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                   )}
-                  onClick={() => setTool(item.id as any)}
+                  onClick={() => {
+                    const next = item.id as typeof tool
+                    setTool(next)
+                    if (next !== 'text') {
+                      setTextOverlays(o => o.filter(x => x.text.trim()))
+                    }
+                  }}
                   title={item.label}
                 >
                   <item.icon className="h-5 w-5" />
@@ -1408,6 +1414,8 @@ export function EnhancedWhiteboard({
               {selectedObject?.id === text.id && (
                 <div className="pointer-events-auto absolute inset-0 border-2 border-dashed border-blue-500">
                   <button
+                    type="button"
+                    onMouseDown={e => e.stopPropagation()}
                     onClick={e => {
                       e.stopPropagation()
                       editTextElement(text.id)
@@ -1426,6 +1434,8 @@ export function EnhancedWhiteboard({
           {textOverlays.map(overlay => (
             <div
               key={overlay.id}
+              role="presentation"
+              onMouseDown={e => e.stopPropagation()}
               className="absolute z-20"
               style={{
                 left: overlay.x * scale + pan.x,
@@ -1610,6 +1620,8 @@ export function EnhancedWhiteboard({
           {/* Video Overlay - Draggable */}
           {videoOverlay && videoComponent && showVideo && !isVideoFullscreen && (
             <div
+              role="presentation"
+              onMouseDown={e => e.stopPropagation()}
               className="absolute z-10 overflow-hidden rounded-lg border border-slate-600 bg-black shadow-lg"
               style={{
                 width: '320px',
@@ -1648,18 +1660,19 @@ export function EnhancedWhiteboard({
 
           {/* Show Video Button */}
           {!showVideo && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="absolute right-4 top-4 z-10"
-              onClick={() => setShowVideo(true)}
-            >
-              Show Video
-            </Button>
+            <div className="absolute right-4 top-4 z-10" onMouseDown={e => e.stopPropagation()}>
+              <Button variant="outline" size="sm" onClick={() => setShowVideo(true)}>
+                Show Video
+              </Button>
+            </div>
           )}
 
           {/* Page Info */}
-          <div className="absolute bottom-4 left-4 rounded bg-slate-800/80 px-3 py-1 text-sm text-slate-300">
+          <div
+            role="presentation"
+            onMouseDown={e => e.stopPropagation()}
+            className="absolute bottom-4 left-4 rounded bg-slate-800/80 px-3 py-1 text-sm text-slate-300"
+          >
             Page {currentPageIndex + 1} of {pages.length} • {Math.round(scale * 100)}%
             {selectedObject && <span className="ml-2 text-blue-400">• Object selected</span>}
           </div>
