@@ -45,8 +45,8 @@ interface QuestionResult {
 
 export async function POST(
   request: NextRequest,
-  context?: {
-    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  context: {
+    params: Promise<Record<string, string | string[]>>
   }
 ) {
   try {
@@ -56,7 +56,7 @@ export async function POST(
     }
 
     const studentId = session.user.id
-    const taskId = await getParamAsync(context?.params, 'taskId')
+    const taskId = await getParamAsync(context.params, 'taskId')
     const body = await request.json()
     const {
       answers,

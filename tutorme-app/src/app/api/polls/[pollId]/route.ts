@@ -15,8 +15,8 @@ import { z } from 'zod'
 // GET /api/polls/[pollId] - Get a specific poll
 export async function GET(
   request: NextRequest,
-  context?: {
-    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  context: {
+    params: Promise<Record<string, string | string[]>>
   }
 ) {
   try {
@@ -25,7 +25,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const pollId = await getParamAsync(context?.params, 'pollId')
+    const pollId = await getParamAsync(context.params, 'pollId')
     if (!pollId) {
       return NextResponse.json({ error: 'Poll ID required' }, { status: 400 })
     }
@@ -79,8 +79,8 @@ const UpdatePollSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  context?: {
-    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  context: {
+    params: Promise<Record<string, string | string[]>>
   }
 ) {
   try {
@@ -89,7 +89,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const pollId = await getParamAsync(context?.params, 'pollId')
+    const pollId = await getParamAsync(context.params, 'pollId')
     if (!pollId) {
       return NextResponse.json({ error: 'Poll ID required' }, { status: 400 })
     }
@@ -168,8 +168,8 @@ export async function PATCH(
 // DELETE /api/polls/[pollId] - Delete a poll
 export async function DELETE(
   request: NextRequest,
-  context?: {
-    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  context: {
+    params: Promise<Record<string, string | string[]>>
   }
 ) {
   try {
@@ -178,7 +178,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const pollId = await getParamAsync(context?.params, 'pollId')
+    const pollId = await getParamAsync(context.params, 'pollId')
     if (!pollId) {
       return NextResponse.json({ error: 'Poll ID required' }, { status: 400 })
     }

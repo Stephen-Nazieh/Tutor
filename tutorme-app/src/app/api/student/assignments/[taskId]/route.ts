@@ -14,8 +14,8 @@ import { eq, and } from 'drizzle-orm'
 
 export async function GET(
   _request: NextRequest,
-  context?: {
-    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  context: {
+    params: Promise<Record<string, string | string[]>>
   }
 ) {
   try {
@@ -24,7 +24,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const taskId = await getParamAsync(context?.params, 'taskId')
+    const taskId = await getParamAsync(context.params, 'taskId')
     if (!taskId) {
       return NextResponse.json({ error: 'Task ID required' }, { status: 400 })
     }

@@ -19,8 +19,8 @@ import {
 
 export async function GET(
   req: NextRequest,
-  context?: {
-    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  context: {
+    params: Promise<Record<string, string | string[]>>
   }
 ) {
   const session = await getServerSession(authOptions, req)
@@ -33,7 +33,7 @@ export async function GET(
     return NextResponse.json({ error: 'Only parents can view shared courses' }, { status: 403 })
   }
 
-  const shareId = await getParamAsync(context?.params, 'id')
+  const shareId = await getParamAsync(context.params, 'id')
   if (!shareId) {
     return NextResponse.json({ error: 'Share ID required' }, { status: 400 })
   }

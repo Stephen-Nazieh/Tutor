@@ -21,11 +21,11 @@ import {
 
 export async function GET(
   req: NextRequest,
-  context?: {
-    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  context: {
+    params: Promise<Record<string, string | string[]>>
   }
 ) {
-  const curriculumId = await getParamAsync(context?.params, 'curriculumId')
+  const curriculumId = await getParamAsync(context.params, 'curriculumId')
 
   if (!curriculumId) {
     return NextResponse.json({ error: 'Curriculum ID required' }, { status: 400 })

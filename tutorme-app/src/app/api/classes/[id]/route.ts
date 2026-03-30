@@ -8,8 +8,8 @@ import { eq } from 'drizzle-orm'
 
 export async function GET(
   req: NextRequest,
-  context?: {
-    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  context: {
+    params: Promise<Record<string, string | string[]>>
   }
 ) {
   try {
@@ -19,7 +19,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const id = await getParamAsync(context?.params, 'id')
+    const id = await getParamAsync(context.params, 'id')
     if (!id) {
       return NextResponse.json({ error: 'Class ID required' }, { status: 400 })
     }

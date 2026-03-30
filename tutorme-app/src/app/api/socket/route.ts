@@ -20,6 +20,3 @@ export async function GET() {
     path: '/api/socket',
   })
 }
-
-// Export for use in custom server
-export { io }

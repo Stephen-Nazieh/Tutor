@@ -24,8 +24,8 @@ const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 
 export async function POST(
   request: NextRequest,
-  context?: {
-    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  context: {
+    params: Promise<Record<string, string | string[]>>
   }
 ) {
   const session = await getServerSession(authOptions, request)
@@ -34,7 +34,7 @@ export async function POST(
   }
 
   const studentId = session.user.id
-  const taskId = await getParamAsync(context?.params, 'taskId')
+  const taskId = await getParamAsync(context.params, 'taskId')
   if (!taskId) {
     return NextResponse.json({ error: 'Task ID required' }, { status: 400 })
   }

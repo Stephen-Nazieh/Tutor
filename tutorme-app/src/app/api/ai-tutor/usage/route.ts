@@ -18,7 +18,7 @@ export const GET = withAuth(
   { role: 'STUDENT' }
 )
 
-export async function checkUsage(userId: string) {
+async function checkUsage(userId: string) {
   const [subscription] = await drizzleDb
     .select()
     .from(aITutorSubscription)

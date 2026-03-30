@@ -29,8 +29,8 @@ async function hashString(input: string): Promise<string> {
 // POST /api/polls/[pollId]/vote - Submit a vote
 export async function POST(
   request: NextRequest,
-  context?: {
-    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  context: {
+    params: Promise<Record<string, string | string[]>>
   }
 ) {
   try {
@@ -39,7 +39,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const pollId = await getParamAsync(context?.params, 'pollId')
+    const pollId = await getParamAsync(context.params, 'pollId')
     if (!pollId) {
       return NextResponse.json({ error: 'Poll ID required' }, { status: 400 })
     }
