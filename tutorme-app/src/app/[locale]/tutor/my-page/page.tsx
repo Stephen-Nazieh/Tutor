@@ -83,6 +83,9 @@ export default function TutorMyPage() {
   })
   const [expertiseInput, setExpertiseInput] = useState('')
   const [credentialsText, setCredentialsText] = useState('')
+  const [expertiseAddOpen, setExpertiseAddOpen] = useState(false)
+  const [expertiseAddSelected, setExpertiseAddSelected] = useState<string>('')
+  const [expertiseAddCustom, setExpertiseAddCustom] = useState<string>('')
   const [profileSettingsOpen, setProfileSettingsOpen] = useState(true)
 
   const aggregatedCategories = useMemo<string[]>(
@@ -291,6 +294,26 @@ export default function TutorMyPage() {
     } finally {
       setSaving(false)
     }
+  }
+
+  const handleAddExpertise = () => {
+    const candidate = (expertiseAddCustom || expertiseAddSelected).trim()
+    if (!candidate) {
+      toast.error('Select a category or type custom expertise')
+      return
+    }
+
+    const normalized = candidate.replace(/\s+/g, ' ')
+    const existing = expertiseInput
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean)
+
+    const next = Array.from(new Set([...existing, normalized])).slice(0, 40)
+    setExpertiseInput(next.join(', '))
+    setExpertiseAddOpen(false)
+    setExpertiseAddSelected('')
+    setExpertiseAddCustom('')
   }
 
   const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024
@@ -885,7 +908,19 @@ export default function TutorMyPage() {
                   </div>
 
                   <div className="space-y-2 border-t border-[#E2E8F0] pt-4">
-                    <Label className="text-[#1F2933]">Expertise</Label>
+                    <div className="flex items-center justify-between gap-3">
+                      <Label className="text-[#1F2933]">Expertise</Label>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setExpertiseAddOpen(true)}
+                        disabled={loading || saving}
+                        className="h-8 border-[#E2E8F0] bg-white px-3"
+                      >
+                        +Add
+                      </Button>
+                    </div>
                     <Input
                       value={expertiseInput}
                       onChange={e => setExpertiseInput(e.target.value)}
@@ -910,6 +945,73 @@ export default function TutorMyPage() {
           )}
         </Card>
       </div>
+
+      <Dialog
+        open={expertiseAddOpen}
+        onOpenChange={open => {
+          setExpertiseAddOpen(open)
+          if (!open) {
+            setExpertiseAddSelected('')
+            setExpertiseAddCustom('')
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Expertise</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-[#1F2933]">From available categories</Label>
+              <Select
+                value={expertiseAddSelected}
+                onValueChange={value => setExpertiseAddSelected(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {aggregatedCategories.map(category => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[#1F2933]">Custom (optional)</Label>
+              <Input
+                value={expertiseAddCustom}
+                onChange={e => setExpertiseAddCustom(e.target.value)}
+                placeholder="Type if not in the list"
+                disabled={loading || saving}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setExpertiseAddOpen(false)}
+              disabled={loading || saving}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleAddExpertise}
+              disabled={loading || saving}
+              className="bg-[#1D4ED8] text-white hover:bg-[#1B45C2]"
+            >
+              Add
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={createOpen}

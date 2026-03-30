@@ -11,7 +11,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea'
 import { DEFAULT_LOCALE } from '@/lib/i18n/config'
 import {
-  Compass,
   FileText,
   Star,
   UserCheck,
@@ -144,12 +143,13 @@ export default function PublicTutorPage() {
   const [data, setData] = useState<PublicTutorResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [launchingCourseId, setLaunchingCourseId] = useState<string | null>(null)
+  const [studentJoiningCourseId, setStudentJoiningCourseId] = useState<string | null>(null)
   const [followState, setFollowState] = useState({
     isFollowing: false,
     followerCount: 0,
     loading: true,
   })
-  const [catalogLayout, setCatalogLayout] = useState<'grid' | 'list' | 'compact'>('grid')
+  const [catalogLayout, setCatalogLayout] = useState<'grid' | 'list' | 'compact'>('compact')
 
   useEffect(() => {
     loadTutorData()
@@ -252,13 +252,6 @@ export default function PublicTutorPage() {
     }
   }
 
-  // Calculate aggregated tutor rating from courses
-  const ratedCourses = data?.courses?.filter((c: any) => c.rating !== null) || []
-  const tutorRating = ratedCourses.length
-    ? ratedCourses.reduce((sum, c: any) => sum + (c.rating || 0), 0) / ratedCourses.length
-    : null
-  const totalReviews = data?.courses?.reduce((sum, c: any) => sum + (c.reviewCount || 0), 0) || 0
-
   if (loading) {
     return (
       <div className="w-full p-4 sm:p-6">
@@ -288,7 +281,6 @@ export default function PublicTutorPage() {
 
   const { tutor, courses, source } = data
   const isTutorOwner = session?.user?.role === 'TUTOR' && session?.user?.id === tutor.id
-  const totalEnrollments = courses.reduce((sum, course) => sum + course.enrollmentCount, 0)
 
   const handleEnterClassroom = async (course: PublicTutorResponse['courses'][number]) => {
     if (!isTutorOwner) return
@@ -341,197 +333,263 @@ export default function PublicTutorPage() {
     }
   }
 
+  const handleStudentEnterClassroom = async (course: PublicTutorResponse['courses'][number]) => {
+    if (isTutorOwner) return
+    if (!session?.user || session.user.role !== 'STUDENT') {
+      toast.info('Please log in as a student to join classrooms')
+      return
+    }
+    if (studentJoiningCourseId) return
+
+    setStudentJoiningCourseId(course.id)
+    try {
+      // 1) Ensure enrollment
+      const checkRes = await fetch(
+        `/api/student/enrollments/check?curriculumId=${encodeURIComponent(course.id)}`,
+        { credentials: 'include' }
+      )
+
+      if (checkRes.status === 401) {
+        toast.info('Please log in to enroll')
+        return
+      }
+
+      if (!checkRes.ok) throw new Error('Failed to check enrollment status')
+
+      const checkData = (await checkRes.json().catch(() => ({}))) as {
+        isEnrolled?: boolean
+      }
+
+      if (!checkData?.isEnrolled) {
+        toast.info('Enrolling to unlock classroom access…')
+
+        const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+        const csrfData = await csrfRes.json().catch(() => ({}))
+        const csrfToken = csrfData?.token ?? null
+
+        const enrollRes = await fetch(`/api/curriculum/${encodeURIComponent(course.id)}/enroll`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            startDate: new Date().toISOString(),
+          }),
+        })
+
+        const enrollData = await enrollRes.json().catch(() => ({}))
+        if (!enrollRes.ok) {
+          toast.error(enrollData?.error || 'Failed to enroll')
+          return
+        }
+
+        toast.success(enrollData?.message || 'Enrolled successfully')
+      }
+
+      // 2) Join latest active session for this curriculum
+      const roomsRes = await fetch('/api/class/rooms', { credentials: 'include' })
+      const roomsData = await roomsRes.json().catch(() => ({}))
+      const sessions = (roomsData?.sessions ?? []) as Array<{
+        id?: string
+        curriculumId?: string
+        scheduledAt?: string
+      }>
+
+      const matching = sessions
+        .filter(s => s.curriculumId === course.id && typeof s.id === 'string')
+        .sort(
+          (a, b) => new Date(b.scheduledAt ?? 0).getTime() - new Date(a.scheduledAt ?? 0).getTime()
+        )
+
+      if (matching.length === 0) {
+        toast.info('Enrolled! A live session will appear when it starts.')
+        router.push(`/${locale}/student/courses?tab=mine`)
+        return
+      }
+
+      router.push(`/student/feedback?sessionId=${encodeURIComponent(matching[0].id as string)}`)
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Unable to join classroom')
+    } finally {
+      setStudentJoiningCourseId(null)
+    }
+  }
+
   return (
     <div className="w-full space-y-6 p-4 sm:p-6">
-      <Card className="overflow-hidden border-0 shadow-sm">
-        <div className="bg-gradient-to-br from-sky-50 via-cyan-50 to-emerald-50 p-6 sm:p-8">
-          <div className="grid gap-6 lg:grid-cols-[280px,1fr,1fr] lg:items-start">
-            {/* Left: avatar + name + verification + profile stats */}
-            <div className="space-y-4">
-              <div className="flex items-start gap-4">
-                <Avatar className="h-20 w-20 border shadow-sm">
-                  <AvatarImage src={tutor.avatarUrl || undefined} alt={`${tutor.name} avatar`} />
-                  <AvatarFallback>{getInitials(tutor.name)}</AvatarFallback>
-                </Avatar>
-                <div className="space-y-1.5">
-                  <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{tutor.name}</h1>
-                  <p className="text-sm font-medium text-slate-600">@{tutor.username}</p>
-                  {source === 'mock' ? <Badge variant="outline">Demo Data</Badge> : null}
-                  <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                    <CheckCircle className="h-3.5 w-3.5" />
-                    Verified
-                  </div>
+      <section className="relative overflow-hidden rounded-[32px] border border-[#E2E8F0] bg-white/95 p-8 shadow-lg">
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-[#1D4ED8]/10 via-[#4FD1C5]/10 to-[#F17623]/10" />
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-stretch">
+          <div className="flex w-full flex-shrink-0 flex-col items-center gap-3 text-center lg:w-[260px]">
+            <div className="relative">
+              <Avatar className="h-28 w-28 border-2 border-white shadow-lg">
+                <AvatarImage src={tutor.avatarUrl || undefined} alt="Tutor avatar" />
+                <AvatarFallback className="text-lg font-semibold">
+                  {tutor.name ? tutor.name.slice(0, 2).toUpperCase() : 'TU'}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+
+            <div>
+              <div className="text-lg font-semibold text-[#0F172A]">{tutor.name || '@'}</div>
+              <div className="text-xs text-[#64748B]">Solocorn Tutor</div>
+            </div>
+
+            <div className="flex w-full flex-col items-center gap-3">
+              <div className="flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                <CheckCircle className="h-3.5 w-3.5" />
+                Verified
+              </div>
+
+              <div className="w-full rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+                <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
+                  Tutor since
+                </div>
+                <div className="mt-1 text-sm font-medium text-[#0F172A]">
+                  {tutor.tutorSince ? new Date(tutor.tutorSince).toLocaleDateString() : '—'}
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-white/70 bg-white/70 p-3">
-                  <div className="text-xs uppercase tracking-[0.15em] text-slate-500">
-                    Tutor since
-                  </div>
-                  <div className="mt-1 text-sm font-medium text-slate-900">
-                    {tutor.tutorSince ? new Date(tutor.tutorSince).toLocaleDateString() : '—'}
-                  </div>
+              <div className="w-full rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+                <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
+                  Active Courses
                 </div>
-                <div className="rounded-2xl border border-white/70 bg-white/70 p-3">
-                  <div className="text-xs uppercase tracking-[0.15em] text-slate-500">
-                    Active courses
-                  </div>
-                  <div className="mt-1 text-sm font-medium text-slate-900">
-                    {typeof tutor.activeCourses === 'number' ? tutor.activeCourses : courses.length}
-                  </div>
-                </div>
-                <div className="rounded-2xl border border-white/70 bg-white/70 p-3">
-                  <div className="text-xs uppercase tracking-[0.15em] text-slate-500">Country</div>
-                  <div className="mt-1 text-sm font-medium text-slate-900">
-                    {tutor.country || '—'}
-                  </div>
+                <div className="mt-1 text-sm font-medium text-[#0F172A]">
+                  {typeof tutor.activeCourses === 'number' ? tutor.activeCourses : courses.length}
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-white/70 bg-white/70 p-4 text-left">
-                <div className="text-xs uppercase tracking-[0.15em] text-slate-500">Expertise</div>
+              <div className="w-full rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+                <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Country</div>
+                <div className="mt-1 text-sm font-medium text-[#0F172A]">
+                  {tutor.country || '—'}
+                </div>
+              </div>
+
+              <div className="w-full rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-left">
+                <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Expertise</div>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {tutor.specialties.length > 0 ? (
-                    tutor.specialties.map((specialty, i) => (
-                      <Badge key={`${specialty}-${i}`} variant="secondary" className="font-normal">
-                        {specialty}
-                      </Badge>
+                    tutor.specialties.map((s, i) => (
+                      <span
+                        key={`${s}-${i}`}
+                        className="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-[#0F172A] shadow-sm ring-1 ring-[#E2E8F0]"
+                      >
+                        {s}
+                      </span>
                     ))
                   ) : (
-                    <span className="text-sm text-slate-600">General tutoring</span>
+                    <span className="text-sm text-[#64748B]">General tutoring</span>
                   )}
                 </div>
-                {tutor.credentials ? (
-                  <div className="mt-3 border-t border-white/60 pt-3">
-                    <div className="text-xs uppercase tracking-[0.15em] text-slate-500">
-                      Credentials
-                    </div>
-                    <p className="mt-1 text-sm leading-snug text-slate-800">{tutor.credentials}</p>
-                  </div>
-                ) : null}
               </div>
             </div>
+          </div>
 
-            {/* Middle: Bio */}
-            <div className="rounded-2xl border border-white/70 bg-white/70 p-4">
-              <div className="text-xs uppercase tracking-[0.15em] text-slate-500">Bio</div>
-              <Textarea
-                value={tutor.bio || ''}
-                readOnly
-                rows={6}
-                className="mt-2 min-h-[140px] resize-none border-[#E2E8F0] bg-white focus-visible:ring-[#4FD1C5]"
-              />
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-[#1F2933]">
+              <Button
+                size="sm"
+                className={
+                  followState.isFollowing
+                    ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                    : 'bg-[#1D4ED8] text-white hover:bg-[#1B45C2]'
+                }
+                onClick={() => void toggleFollow()}
+                disabled={followState.loading}
+              >
+                {followState.isFollowing ? 'Following' : 'Follow'}
+              </Button>
             </div>
 
-            {/* Right: Public URL/handles + Social Media + follow actions */}
-            <div className="space-y-4">
-              <div className="rounded-2xl border border-white/70 bg-white/70 p-4">
-                <div className="text-xs uppercase tracking-[0.15em] text-slate-500">Public URL</div>
-                {publicUrl ? (
-                  <>
-                    <div className="mt-2 break-all text-sm font-medium text-slate-900">
-                      {publicUrl}
-                    </div>
-                    <div className="mt-1 text-sm font-semibold text-[#F17623]">
-                      @{tutor.username}
-                    </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 px-2 text-[#1D4ED8]"
-                        onClick={() => void handleCopyPublicUrl()}
-                      >
-                        <Copy className="mr-1 h-3.5 w-3.5" />
-                        Copy link
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 px-2 text-[#1D4ED8]"
-                        onClick={() => void handleSharePublicUrl()}
-                        disabled={!canShare}
-                      >
-                        <Share2 className="mr-1 h-3.5 w-3.5" />
-                        Share
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="mt-2 rounded-2xl border border-dashed border-[#CBD5F5] p-4 text-sm text-[#64748B]">
-                    Add a username below to generate your public link.
-                  </div>
-                )}
+            <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-2 lg:items-stretch">
+              <div className="flex min-h-[220px] flex-col rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 lg:min-h-0">
+                <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Bio</div>
+                <Textarea
+                  value={tutor.bio || ''}
+                  readOnly
+                  className="mt-2 min-h-0 flex-1 resize-none border-[#E2E8F0] bg-white focus-visible:ring-[#4FD1C5]"
+                />
               </div>
 
-              <div className="rounded-2xl border border-white/70 bg-white/70 p-4">
-                <div className="text-xs uppercase tracking-[0.15em] text-slate-500">
-                  Social Media Accounts
-                </div>
-                <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                  <div className="text-sm text-slate-900">
-                    <span className="font-semibold text-slate-700">TikTok:</span>{' '}
-                    {tutor.socialLinks?.tiktok ? `@${stripAt(tutor.socialLinks.tiktok)}` : '—'}
+              <div className="flex min-h-0 flex-col gap-4">
+                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
+                    Public URL
                   </div>
-                  <div className="text-sm text-slate-900">
-                    <span className="font-semibold text-slate-700">YouTube:</span>{' '}
-                    {tutor.socialLinks?.youtube ? `@${stripAt(tutor.socialLinks.youtube)}` : '—'}
-                  </div>
-                  <div className="text-sm text-slate-900">
-                    <span className="font-semibold text-slate-700">Instagram:</span>{' '}
-                    {tutor.socialLinks?.instagram
-                      ? `@${stripAt(tutor.socialLinks.instagram)}`
-                      : '—'}
-                  </div>
-                  <div className="text-sm text-slate-900">
-                    <span className="font-semibold text-slate-700">Facebook:</span>{' '}
-                    {tutor.socialLinks?.facebook ? `@${stripAt(tutor.socialLinks.facebook)}` : '—'}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={followState.isFollowing ? 'default' : 'outline'}
-                  onClick={toggleFollow}
-                  className={followState.isFollowing ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
-                  disabled={followState.loading}
-                >
-                  {followState.isFollowing ? (
-                    <UserCheck className="mr-2 h-4 w-4" />
+                  {publicUrl ? (
+                    <>
+                      <div className="mt-2 break-all text-sm font-medium text-[#1F2933]">
+                        {publicUrl}
+                      </div>
+                      <div className="mt-1 text-sm font-semibold text-[#F17623]">
+                        @{tutor.username}
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 text-[#1D4ED8]"
+                          onClick={() => void handleCopyPublicUrl()}
+                          disabled={!publicUrl}
+                        >
+                          <Copy className="mr-1 h-3.5 w-3.5" />
+                          Copy link
+                        </Button>
+                        {canShare ? (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2 text-[#1D4ED8]"
+                            onClick={() => void handleSharePublicUrl()}
+                          >
+                            <Share2 className="mr-1 h-3.5 w-3.5" />
+                            Share
+                          </Button>
+                        ) : null}
+                      </div>
+                    </>
                   ) : (
-                    <UserPlus className="mr-2 h-4 w-4" />
+                    <div className="mt-2 rounded-2xl border border-dashed border-[#CBD5F5] p-4 text-sm text-[#64748B]">
+                      Add a username below to generate your public link.
+                    </div>
                   )}
-                  {followState.isFollowing ? 'Following' : 'Follow'}
-                </Button>
-                <Button asChild>
-                  <Link href={`/${locale}/tutors`}>
-                    <Compass className="mr-2 h-4 w-4" />
-                    Discover Tutors
-                  </Link>
-                </Button>
+                </div>
+
+                <div className="rounded-2xl border border-[#E2E8F0] bg-white p-4">
+                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
+                    Social Media Accounts
+                  </div>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <div className="text-sm text-[#1F2933]">
+                      <span className="font-semibold text-[#64748B]">TikTok:</span>{' '}
+                      {tutor.socialLinks?.tiktok ? `@${stripAt(tutor.socialLinks.tiktok)}` : '—'}
+                    </div>
+                    <div className="text-sm text-[#1F2933]">
+                      <span className="font-semibold text-[#64748B]">YouTube:</span>{' '}
+                      {tutor.socialLinks?.youtube ? `@${stripAt(tutor.socialLinks.youtube)}` : '—'}
+                    </div>
+                    <div className="text-sm text-[#1F2933]">
+                      <span className="font-semibold text-[#64748B]">Instagram:</span>{' '}
+                      {tutor.socialLinks?.instagram
+                        ? `@${stripAt(tutor.socialLinks.instagram)}`
+                        : '—'}
+                    </div>
+                    <div className="text-sm text-[#1F2933]">
+                      <span className="font-semibold text-[#64748B]">Facebook:</span>{' '}
+                      {tutor.socialLinks?.facebook
+                        ? `@${stripAt(tutor.socialLinks.facebook)}`
+                        : '—'}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        <CardContent className="grid gap-3 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3">
-          <div className="rounded-lg border bg-white p-3">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Published Courses</p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">{courses.length}</p>
-          </div>
-          <div className="rounded-lg border bg-white p-3">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Total Students</p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">{totalEnrollments}</p>
-          </div>
-          <div className="rounded-lg border bg-white p-3">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Rating</p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">
-              {tutorRating !== null && tutorRating > 0 ? tutorRating.toFixed(1) : 'N/A'}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      </section>
 
       <Card>
         <CardHeader className="space-y-4">
@@ -712,7 +770,18 @@ export default function PublicTutorPage() {
                               <FileText className="mr-1 h-3 w-3" />
                               {launchingCourseId === course.id ? 'Launching…' : 'Classroom'}
                             </Button>
-                          ) : null}
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="default"
+                              className={cn(isCompact && 'h-7 text-xs')}
+                              onClick={() => void handleStudentEnterClassroom(course)}
+                              disabled={studentJoiningCourseId === course.id}
+                            >
+                              <FileText className="mr-1 h-3 w-3" />
+                              {studentJoiningCourseId === course.id ? 'Enrolling…' : 'Classroom'}
+                            </Button>
+                          )}
                           <Button
                             asChild
                             size="sm"
