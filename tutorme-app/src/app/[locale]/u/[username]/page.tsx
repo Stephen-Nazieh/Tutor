@@ -467,24 +467,6 @@ export default function PublicTutorPage() {
                   {tutor.country || '—'}
                 </div>
               </div>
-
-              <div className="w-full rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-left">
-                <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Expertise</div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {tutor.specialties.length > 0 ? (
-                    tutor.specialties.map((s, i) => (
-                      <span
-                        key={`${s}-${i}`}
-                        className="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-[#0F172A] shadow-sm ring-1 ring-[#E2E8F0]"
-                      >
-                        {s}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-sm text-[#64748B]">General tutoring</span>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
 
@@ -583,6 +565,26 @@ export default function PublicTutorPage() {
                         ? `@${stripAt(tutor.socialLinks.facebook)}`
                         : '—'}
                     </div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
+                    Categories
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {tutor.specialties.length > 0 ? (
+                      tutor.specialties.map((s, i) => (
+                        <span
+                          key={`${s}-${i}`}
+                          className="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-[#0F172A] shadow-sm ring-1 ring-[#E2E8F0]"
+                        >
+                          {s}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-[#64748B]">General tutoring</span>
+                    )}
                   </div>
                 </div>
               </div>

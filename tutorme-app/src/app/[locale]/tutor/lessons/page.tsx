@@ -65,7 +65,7 @@ export default function LessonBankPage() {
           </h1>
           <Button className="gap-2" onClick={() => builderRef.current?.save()} disabled={saving}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            Save Library
+            Save
           </Button>
         </div>
       </div>

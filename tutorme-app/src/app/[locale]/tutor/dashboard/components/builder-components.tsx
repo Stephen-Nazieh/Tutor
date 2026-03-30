@@ -726,8 +726,12 @@ export interface TreeItemProps {
 }
 
 export function TreeItem({ children, depth, isLast }: TreeItemProps) {
+  const indent = depth * 20
   return (
-    <div className="relative" style={{ marginLeft: depth * 20 }}>
+    <div
+      className="relative w-full min-w-0"
+      style={{ marginLeft: indent, width: `calc(100% - ${indent}px)` }}
+    >
       {children}
     </div>
   )

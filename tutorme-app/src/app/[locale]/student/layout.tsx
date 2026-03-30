@@ -3,15 +3,13 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+
 import { UserNav } from '@/components/user-nav'
 import {
   LayoutDashboard,
   GraduationCap,
-  Sparkles,
   ClipboardList,
   MessageSquare,
-  MessageCircle,
   HelpCircle,
   Menu,
   X,
@@ -20,7 +18,7 @@ import {
   ArrowLeft,
   FileText,
   Compass,
-  Briefcase,
+  UserCircle,
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -29,20 +27,18 @@ type NavItem = { href: string; label: string; icon: React.ComponentType<{ classN
 
 const navItems: NavItem[] = [
   { href: '/student/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/student/dashboard-details', label: 'Advance Analytics', icon: ClipboardList },
   { href: '/student/tutors', label: 'Book a Tutor', icon: Compass },
-  { href: '/student/courses', label: 'My Courses', icon: GraduationCap },
-  { href: '/student/work', label: 'My Work', icon: Briefcase },
+  { href: '/student/courses', label: 'Courses', icon: GraduationCap },
   { href: '/student/feedback', label: 'Live Classroom', icon: Video },
-  { href: '/student/ai-tutor', label: 'AI Tutor', icon: Sparkles },
   { href: '/student/messages', label: 'Messages', icon: MessageSquare },
-  { href: '/student/help', label: 'Help', icon: HelpCircle },
+  { href: '/student/help', label: 'Support', icon: HelpCircle },
+  { href: '/student/account', label: 'Account', icon: UserCircle },
 ]
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [comingSoon, setComingSoon] = useState<null | 'ai-tutor' | 'worlds'>(null)
+
   const isLiveClassRoute = pathname.includes('/student/feedback')
   const isTutorDirectoryRoute = pathname.startsWith('/student/tutors')
   const isFeedbackRoute = pathname.includes('/student/feedback')
@@ -131,34 +127,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
               navItems.map(item => {
                 const Icon = item.icon
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-                const isComingSoon = item.href === '/student/ai-tutor'
-                const isDisabled = item.href === '/student/dashboard-details'
-                return isDisabled ? (
-                  <button
-                    key={item.href}
-                    type="button"
-                    disabled
-                    className="flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-left text-gray-400"
-                  >
-                    <Icon className="h-5 w-5 flex-shrink-0" />
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </button>
-                ) : isComingSoon ? (
-                  <button
-                    key={item.href}
-                    type="button"
-                    onClick={() => setComingSoon('ai-tutor')}
-                    className={cn(
-                      'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors',
-                      isActive
-                        ? 'bg-blue-50 font-medium text-blue-700'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    )}
-                  >
-                    <Icon className="h-5 w-5 flex-shrink-0" />
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </button>
-                ) : (
+                return (
                   <Link
                     key={item.href}
                     href={item.href}
@@ -248,37 +217,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
               navItems.map(item => {
                 const Icon = item.icon
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-                const isComingSoon = item.href === '/student/ai-tutor'
-                const isDisabled = item.href === '/student/dashboard-details'
-                return isDisabled ? (
-                  <button
-                    key={item.href}
-                    type="button"
-                    disabled
-                    className="flex w-full cursor-not-allowed items-center gap-3 rounded-lg px-3 py-3 text-left text-gray-400"
-                  >
-                    <Icon className="h-5 w-5" />
-                    <span className="font-medium">{item.label}</span>
-                  </button>
-                ) : isComingSoon ? (
-                  <button
-                    key={item.href}
-                    type="button"
-                    onClick={() => {
-                      setComingSoon('ai-tutor')
-                      setMobileMenuOpen(false)
-                    }}
-                    className={cn(
-                      'flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors',
-                      isActive
-                        ? 'bg-blue-50 font-medium text-blue-700'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    )}
-                  >
-                    <Icon className="h-5 w-5" />
-                    <span className="font-medium">{item.label}</span>
-                  </button>
-                ) : (
+                return (
                   <Link
                     key={item.href}
                     href={item.href}
@@ -309,35 +248,6 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       >
         {children}
       </main>
-
-      <Dialog open={comingSoon !== null} onOpenChange={open => !open && setComingSoon(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {comingSoon === 'ai-tutor' ? 'AI Tutor — Coming Soon' : 'Worlds — Coming Soon'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 text-sm text-gray-600">
-            {comingSoon === 'ai-tutor' ? (
-              <>
-                <p>
-                  AI Tutor will provide Socratic-style guidance, personalized practice prompts, and
-                  instant feedback while keeping you on track.
-                </p>
-                <p>You&apos;ll get step-by-step hints, adaptive practice, and session summaries.</p>
-              </>
-            ) : (
-              <>
-                <p>
-                  Worlds will unlock themed learning paths, progress milestones, and rewards as you
-                  complete lessons and challenges.
-                </p>
-                <p>Each world is tailored to your goals and will surface curated practice.</p>
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

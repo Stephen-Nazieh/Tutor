@@ -1766,7 +1766,7 @@ export default function TutorRegistrationPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState(1)
-  const [profilePhoto, setProfilePhoto] = useState<File | null>(null)
+
   const [usernameStatus, setUsernameStatus] = useState<{
     status: 'idle' | 'checking' | 'available' | 'taken'
     message?: string
@@ -2205,10 +2205,6 @@ export default function TutorRegistrationPage() {
 
       const formPayload = new FormData()
       formPayload.set('payload', JSON.stringify(payload))
-      if (profilePhoto) {
-        formPayload.set('avatar', profilePhoto)
-      }
-
       const response = await fetch('/api/auth/register/tutor', {
         method: 'POST',
         body: formPayload,
@@ -2966,15 +2962,6 @@ export default function TutorRegistrationPage() {
                   <p className="text-xs text-gray-500">
                     Only letters, numbers, and underscores allowed
                   </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Your Photo</Label>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={e => setProfilePhoto(e.target.files?.[0] ?? null)}
-                  />
                 </div>
 
                 <div className="space-y-2">
