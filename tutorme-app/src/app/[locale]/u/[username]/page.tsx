@@ -467,7 +467,6 @@ export default function PublicTutorPage() {
                   {tutor.country || '—'}
                 </div>
               </div>
-
             </div>
           </div>
 

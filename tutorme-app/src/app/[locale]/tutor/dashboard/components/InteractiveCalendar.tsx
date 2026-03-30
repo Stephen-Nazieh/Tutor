@@ -814,7 +814,6 @@ export function InteractiveCalendar({
                     />
                     Sync
                   </Button>
-
                 </>
               )}
               {notifications.length > 0 && (
@@ -1298,7 +1297,6 @@ export function InteractiveCalendar({
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-
           </>
         )}
 

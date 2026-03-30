@@ -8,18 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { InteractiveCalendar } from '@/app/[locale]/tutor/dashboard/components/InteractiveCalendar'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import {
-  CalendarDays,
-  Clock,
-  BookOpen,
-  MapPin,
-  Video,
-  Users,
-  Play,
-  ChevronRight,
-  Loader2,
-} from 'lucide-react'
+import { CalendarDays, Clock, BookOpen, MapPin, Video, Users, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface CalendarEvent {
@@ -93,7 +82,7 @@ export function DashboardCalendar({
   onBookClass,
 }: DashboardCalendarProps) {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState('calendar')
+  const [activeTab, setActiveTab] = useState('classes')
   const [month, setMonth] = useState<Date>(() => new Date())
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents ?? [])
   const [loading, setLoading] = useState(!initialEvents?.length)
@@ -183,33 +172,20 @@ export function DashboardCalendar({
     }))
   }, [events])
 
-  // Continue Learning filtered data
-  const inProgressContent = contents.filter(c => c.progress > 0 && c.progress < 100)
-
   return (
     <Card className="w-full">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <CardHeader className="pb-3">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="calendar" className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4" />
-              <span className="hidden sm:inline">My Calendar</span>
-              <span className="sm:hidden">Calendar</span>
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="classes" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
-              <span className="hidden sm:inline">My Classes</span>
+              <span className="hidden sm:inline">Classes</span>
               <span className="sm:hidden">Classes</span>
             </TabsTrigger>
-            <TabsTrigger value="learning" className="flex items-center gap-2">
-              <Play className="h-4 w-4" />
-              <span className="hidden sm:inline">Continue</span>
-              <span className="sm:hidden">Learn</span>
-            </TabsTrigger>
-            <TabsTrigger value="upcoming" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              <span className="hidden sm:inline">Upcoming</span>
-              <span className="sm:hidden">Soon</span>
+            <TabsTrigger value="calendar" className="flex items-center gap-2">
+              <CalendarDays className="h-4 w-4" />
+              <span className="hidden sm:inline">Calendar</span>
+              <span className="sm:hidden">Calendar</span>
             </TabsTrigger>
           </TabsList>
         </CardHeader>
@@ -284,109 +260,9 @@ export function DashboardCalendar({
             )}
           </TabsContent>
 
-          {/* Continue Learning Tab */}
-          <TabsContent value="learning" className="mt-0">
-            {inProgressContent.length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground">
-                <BookOpen className="mx-auto mb-3 h-12 w-12 text-muted-foreground/60" />
-                <p className="font-medium text-foreground">No courses in progress</p>
-                <p className="mt-1 text-sm">Browse subjects and start learning.</p>
-                <Link href="/student/courses?tab=browse">
-                  <Button className="mt-4">Browse subjects</Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {inProgressContent.slice(0, 5).map(content => (
-                  <Link key={content.id} href={`/student/learn/${content.id}`}>
-                    <div className="flex items-center gap-4 rounded-lg border border-border p-4 transition-colors hover:bg-muted/60">
-                      <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-primary/15">
-                        <BookOpen className="h-6 w-6 text-primary" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="truncate font-medium">{content.topic}</h3>
-                        <p className="text-sm text-muted-foreground">{content.subject}</p>
-                        <div className="mt-2 flex items-center gap-2">
-                          <Progress value={content.progress} className="h-2 flex-1" />
-                          <span className="w-10 text-right text-xs text-muted-foreground">
-                            {content.progress}%
-                          </span>
-                        </div>
-                      </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground/80" />
-                    </div>
-                  </Link>
-                ))}
-                {inProgressContent.length > 5 && (
-                  <div className="text-center">
-                    <Link href="/student/courses?tab=browse">
-                      <Button variant="outline" size="sm">
-                        View all {inProgressContent.length} courses
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Upcoming Classes Tab */}
-          <TabsContent value="upcoming" className="mt-0">
-            {upcomingClasses.length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground">
-                <Clock className="mx-auto mb-3 h-12 w-12 text-muted-foreground/60" />
-                <p className="font-medium text-foreground">No upcoming classes</p>
-                <p className="mt-1 text-sm">View available classes to book.</p>
-                <Link href="/student/courses">
-                  <Button className="mt-4">View classes</Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="max-h-[400px] space-y-3 overflow-y-auto">
-                {upcomingClasses.map(cls => (
-                  <div
-                    key={cls.id}
-                    className="flex items-center justify-between rounded-lg border border-border p-4 transition-colors hover:bg-muted/60"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium">{cls.title}</h4>
-                        {cls.isBooked && (
-                          <Badge className="bg-accent/50 text-foreground">Booked</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {cls.subject} • {formatDate(cls.scheduledAt)}
-                      </p>
-                      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground/80">
-                        <Users className="h-3 w-3" />
-                        {cls.students}/{cls.maxStudents} students
-                        {cls.price != null && cls.price > 0 && (
-                          <span className="font-medium text-primary">
-                            SGD {cls.price.toFixed(2)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    {!cls.isBooked && onBookClass && (
-                      <Button
-                        size="sm"
-                        disabled={bookingClassId === cls.id || cls.students >= cls.maxStudents}
-                        onClick={() => onBookClass(cls.id)}
-                      >
-                        {bookingClassId === cls.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : cls.students >= cls.maxStudents ? (
-                          'Full'
-                        ) : (
-                          'Book'
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+          {/* Calendar Tab */}
+          <TabsContent value="calendar" className="mt-0 space-y-4">
+            <InteractiveCalendar events={interactiveEvents} loading={loading} mode="student" />
           </TabsContent>
         </CardContent>
       </Tabs>

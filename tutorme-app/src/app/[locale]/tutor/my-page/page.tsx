@@ -933,7 +933,7 @@ export default function TutorMyPage() {
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-          <DialogTitle>Add Category</DialogTitle>
+            <DialogTitle>Add Category</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
