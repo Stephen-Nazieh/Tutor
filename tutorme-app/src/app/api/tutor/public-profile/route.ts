@@ -119,6 +119,15 @@ export const PATCH = withAuth(
     const categories = Array.isArray(body?.categories)
       ? body.categories.filter((c: unknown) => typeof c === 'string')
       : undefined
+    const specialties = Array.isArray(body?.specialties)
+      ? body.specialties
+          .filter((c: unknown) => typeof c === 'string')
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+          .slice(0, 40)
+      : undefined
+    const credentials =
+      typeof body?.credentials === 'string' ? body.credentials.trim().slice(0, 5000) : undefined
     let normalized = normalizeUsername(requestedUsername)
 
     const [prof] = await drizzleDb
@@ -179,11 +188,33 @@ export const PATCH = withAuth(
         .where(eq(tutorApplication.userId, tutorId))
     }
 
+    if (specialties !== undefined || credentials !== undefined) {
+      await drizzleDb
+        .update(profile)
+        .set({
+          ...(specialties !== undefined ? { specialties } : {}),
+          ...(credentials !== undefined ? { credentials } : {}),
+        })
+        .where(eq(profile.userId, tutorId))
+    }
+
     return NextResponse.json({
       success: true,
       profile: updated
-        ? { username: updated.username, bio: updated.bio, categories }
-        : { username: prof?.username ?? normalized, bio: bio ?? null, categories },
+        ? {
+            username: updated.username,
+            bio: updated.bio,
+            categories,
+            ...(specialties !== undefined ? { specialties } : {}),
+            ...(credentials !== undefined ? { credentials } : {}),
+          }
+        : {
+            username: prof?.username ?? normalized,
+            bio: bio ?? null,
+            categories,
+            ...(specialties !== undefined ? { specialties } : {}),
+            ...(credentials !== undefined ? { credentials } : {}),
+          },
     })
   },
   { role: 'TUTOR' }

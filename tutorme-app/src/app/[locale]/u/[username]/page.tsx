@@ -11,10 +11,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea'
 import { DEFAULT_LOCALE } from '@/lib/i18n/config'
 import {
-  BookOpen,
-  Users,
-  Clock3,
-  GraduationCap,
   Compass,
   FileText,
   Star,
@@ -23,8 +19,13 @@ import {
   CheckCircle,
   Copy,
   Share2,
+  LayoutGrid,
+  List,
+  PanelsTopLeft,
+  CalendarDays,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 interface PublicTutorResponse {
   tutor: {
@@ -58,6 +59,10 @@ interface PublicTutorResponse {
     lessonCount: number
     price?: number | null
     currency?: string | null
+    scheduleSummary?: string | null
+    liveSessionsTotal?: number
+    liveSessionsCompleted?: number
+    enrollmentStatus?: 'ongoing' | 'ended'
   }>
   source?: 'db' | 'mock'
 }
@@ -144,6 +149,7 @@ export default function PublicTutorPage() {
     followerCount: 0,
     loading: true,
   })
+  const [catalogLayout, setCatalogLayout] = useState<'grid' | 'list' | 'compact'>('grid')
 
   useEffect(() => {
     loadTutorData()
@@ -382,6 +388,29 @@ export default function PublicTutorPage() {
                   </div>
                 </div>
               </div>
+
+              <div className="rounded-2xl border border-white/70 bg-white/70 p-4 text-left">
+                <div className="text-xs uppercase tracking-[0.15em] text-slate-500">Expertise</div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {tutor.specialties.length > 0 ? (
+                    tutor.specialties.map((specialty, i) => (
+                      <Badge key={`${specialty}-${i}`} variant="secondary" className="font-normal">
+                        {specialty}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className="text-sm text-slate-600">General tutoring</span>
+                  )}
+                </div>
+                {tutor.credentials ? (
+                  <div className="mt-3 border-t border-white/60 pt-3">
+                    <div className="text-xs uppercase tracking-[0.15em] text-slate-500">
+                      Credentials
+                    </div>
+                    <p className="mt-1 text-sm leading-snug text-slate-800">{tutor.credentials}</p>
+                  </div>
+                ) : null}
+              </div>
             </div>
 
             {/* Middle: Bio */}
@@ -485,33 +514,6 @@ export default function PublicTutorPage() {
               </div>
             </div>
           </div>
-          <div className="mt-6 rounded-2xl border border-white/70 bg-white/70 p-4">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900">Expertise & Credentials</h3>
-                <p className="text-xs text-slate-600">
-                  Specialties, exams, and verified qualifications
-                </p>
-              </div>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {tutor.specialties.length > 0 ? (
-                tutor.specialties.map(specialty => (
-                  <Badge key={specialty} variant="secondary">
-                    {specialty}
-                  </Badge>
-                ))
-              ) : (
-                <Badge variant="outline">General Tutoring</Badge>
-              )}
-            </div>
-            {tutor.credentials ? (
-              <div className="mt-3 rounded-lg border bg-muted/30 p-3 text-sm text-slate-700">
-                <p className="mb-1.5 font-medium text-slate-900">Credentials</p>
-                <p>{tutor.credentials}</p>
-              </div>
-            ) : null}
-          </div>
         </div>
         <CardContent className="grid gap-3 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3">
           <div className="rounded-lg border bg-white p-3">
@@ -532,79 +534,203 @@ export default function PublicTutorPage() {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Course Catalog</CardTitle>
-          <CardDescription>Published courses by @{tutor.username}</CardDescription>
+        <CardHeader className="space-y-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <CardTitle>Course Catalog</CardTitle>
+              <CardDescription>Published courses by @{tutor.username}</CardDescription>
+            </div>
+            <div
+              className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1 shadow-sm"
+              role="group"
+              aria-label="Course layout"
+            >
+              <Button
+                type="button"
+                variant={catalogLayout === 'grid' ? 'default' : 'ghost'}
+                size="sm"
+                className="h-9 gap-1 px-3"
+                onClick={() => setCatalogLayout('grid')}
+              >
+                <LayoutGrid className="h-4 w-4" />
+                <span className="hidden sm:inline">Grid</span>
+              </Button>
+              <Button
+                type="button"
+                variant={catalogLayout === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                className="h-9 gap-1 px-3"
+                onClick={() => setCatalogLayout('list')}
+              >
+                <List className="h-4 w-4" />
+                <span className="hidden sm:inline">List</span>
+              </Button>
+              <Button
+                type="button"
+                variant={catalogLayout === 'compact' ? 'default' : 'ghost'}
+                size="sm"
+                className="h-9 gap-1 px-3"
+                onClick={() => setCatalogLayout('compact')}
+              >
+                <PanelsTopLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Compact</span>
+              </Button>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent>
           {courses.length === 0 ? (
             <p className="text-sm text-muted-foreground">No published courses yet.</p>
           ) : (
-            courses.map((course: any) => (
-              <div key={course.id} className="rounded-lg border bg-card p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <h3 className="text-lg font-semibold text-slate-900">{course.name}</h3>
-                    <p className="text-sm text-slate-600">
-                      {course.description || 'No description provided.'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">{course.subject}</Badge>
-                  </div>
-                </div>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  {course.gradeLevel ? (
-                    <Badge variant="outline">
-                      <GraduationCap className="mr-1 h-3 w-3" />
-                      {course.gradeLevel}
-                    </Badge>
-                  ) : null}
-                  {course.difficulty ? <Badge variant="outline">{course.difficulty}</Badge> : null}
-                  {course.estimatedHours ? (
-                    <Badge variant="outline">
-                      <Clock3 className="mr-1 h-3 w-3" />
-                      {course.estimatedHours}h
-                    </Badge>
-                  ) : null}
-                  <Badge variant="outline">
-                    <BookOpen className="mr-1 h-3 w-3" />
-                    {course.lessonCount} lessons
-                  </Badge>
-                  <Badge variant="outline">
-                    <Users className="mr-1 h-3 w-3" />
-                    {course.enrollmentCount} enrolled
-                  </Badge>
-                </div>
-                <div className="mt-3 flex items-center justify-between border-t pt-3">
-                  <div className="flex items-center gap-4">
-                    <StarRating rating={course.rating || 0} count={course.reviewCount} />
-                    {course.price && (
-                      <span className="font-bold text-slate-900">${course.price}</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {isTutorOwner ? (
-                      <Button
-                        size="sm"
-                        variant="default"
-                        onClick={() => handleEnterClassroom(course)}
-                        disabled={launchingCourseId === course.id}
+            <div
+              className={cn(
+                catalogLayout === 'grid' &&
+                  'grid gap-4 sm:grid-cols-2 xl:grid-cols-3 [&>*]:aspect-square',
+                catalogLayout === 'compact' &&
+                  'grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 [&>*]:aspect-square',
+                catalogLayout === 'list' && 'flex flex-col gap-4'
+              )}
+            >
+              {courses.map(
+                (
+                  course: PublicTutorResponse['courses'][number] & {
+                    rating?: number | null
+                    reviewCount?: number
+                  }
+                ) => {
+                  const scheduleText = course.scheduleSummary?.trim() || 'Schedule to be announced'
+                  const enrollmentStatus = course.enrollmentStatus ?? 'ongoing'
+                  const liveTotal = course.liveSessionsTotal ?? 0
+                  const liveDone = course.liveSessionsCompleted ?? 0
+                  const liveLine =
+                    liveTotal > 0
+                      ? `${liveDone} of ${liveTotal} live sessions completed`
+                      : liveDone > 0
+                        ? `${liveDone} live session(s) completed`
+                        : 'No live sessions on record yet'
+                  const desc =
+                    course.description?.trim() || 'No description provided for this course yet.'
+                  const isList = catalogLayout === 'list'
+                  const isCompact = catalogLayout === 'compact'
+
+                  return (
+                    <div
+                      key={course.id}
+                      className={cn(
+                        'flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-card text-left shadow-sm',
+                        isList &&
+                          'aspect-auto min-h-0 flex-row items-stretch sm:min-h-[148px] [&>*]:first:shrink-0',
+                        isCompact && 'text-xs'
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          'flex flex-1 flex-col p-4',
+                          isList && 'min-w-0 pr-3',
+                          isCompact && 'p-3'
+                        )}
                       >
-                        <FileText className="mr-1 h-3 w-3" />
-                        {launchingCourseId === course.id ? 'Launching…' : 'Enter Classroom'}
-                      </Button>
-                    ) : null}
-                    <Button asChild size="sm" variant="outline">
-                      <Link href={`/${locale}/curriculum/${course.id}`}>
-                        <FileText className="mr-1 h-3 w-3" />
-                        View Outline
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))
+                        <div className="flex items-start justify-between gap-2">
+                          <h3
+                            className={cn(
+                              'line-clamp-2 font-semibold text-slate-900',
+                              isCompact ? 'text-sm' : 'text-base'
+                            )}
+                          >
+                            {course.name}
+                          </h3>
+                          <Badge variant="secondary" className="shrink-0 text-[10px] sm:text-xs">
+                            {course.subject}
+                          </Badge>
+                        </div>
+                        <p className="mt-0.5 text-xs font-medium text-slate-500">
+                          @{tutor.username}
+                        </p>
+                        <p
+                          className={cn(
+                            'mt-2 line-clamp-3 text-slate-600',
+                            isCompact ? 'line-clamp-2 text-[11px]' : 'text-sm'
+                          )}
+                        >
+                          {desc}
+                        </p>
+                        <dl
+                          className={cn(
+                            'mt-auto space-y-1.5 pt-3 text-slate-600',
+                            isCompact ? 'text-[11px]' : 'text-xs sm:text-sm'
+                          )}
+                        >
+                          <div className="flex gap-1">
+                            <dt className="font-medium text-slate-500">Sessions</dt>
+                            <dd className="text-slate-800">{course.lessonCount} in curriculum</dd>
+                          </div>
+                          <div className="flex items-start gap-1">
+                            <dt className="flex shrink-0 items-center gap-0.5 font-medium text-slate-500">
+                              <CalendarDays className="h-3.5 w-3.5" />
+                              Schedule
+                            </dt>
+                            <dd className="min-w-0 text-slate-800">{scheduleText}</dd>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge
+                              variant={enrollmentStatus === 'ended' ? 'outline' : 'default'}
+                              className={cn(
+                                'text-[10px] font-semibold sm:text-xs',
+                                enrollmentStatus === 'ongoing' &&
+                                  'bg-emerald-600 hover:bg-emerald-600'
+                              )}
+                            >
+                              {enrollmentStatus === 'ended'
+                                ? 'Enrollment ended'
+                                : 'Enrollment ongoing'}
+                            </Badge>
+                            <span className="text-slate-500">{liveLine}</span>
+                          </div>
+                        </dl>
+                      </div>
+                      <div
+                        className={cn(
+                          'flex flex-wrap items-center gap-2 border-t border-slate-100 bg-slate-50/80 px-4 py-3',
+                          isList &&
+                            'w-full min-w-[200px] max-w-full flex-col border-l border-t-0 sm:w-52',
+                          isCompact && 'px-3 py-2'
+                        )}
+                      >
+                        <StarRating rating={course.rating ?? null} count={course.reviewCount} />
+                        {course.price ? (
+                          <span className="text-sm font-bold text-slate-900">${course.price}</span>
+                        ) : null}
+                        <div className={cn('flex w-full flex-wrap gap-2', isList && 'justify-end')}>
+                          {isTutorOwner ? (
+                            <Button
+                              size="sm"
+                              variant="default"
+                              className={cn(isCompact && 'h-7 text-xs')}
+                              onClick={() => handleEnterClassroom(course)}
+                              disabled={launchingCourseId === course.id}
+                            >
+                              <FileText className="mr-1 h-3 w-3" />
+                              {launchingCourseId === course.id ? 'Launching…' : 'Classroom'}
+                            </Button>
+                          ) : null}
+                          <Button
+                            asChild
+                            size="sm"
+                            variant="outline"
+                            className={cn(isCompact && 'h-7 text-xs')}
+                          >
+                            <Link href={`/${locale}/curriculum/${course.id}`}>
+                              <FileText className="mr-1 h-3 w-3" />
+                              Outline
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                }
+              )}
+            </div>
           )}
         </CardContent>
       </Card>

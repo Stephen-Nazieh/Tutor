@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { and, desc, eq, inArray, or } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNotNull, or } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   user,
@@ -9,9 +9,29 @@ import {
   curriculumLesson,
   curriculumEnrollment,
   tutorApplication,
+  liveSession,
 } from '@/lib/db/schema'
 import { findMockTutorByUsername, shouldUseMockPublicTutors } from '@/lib/public/mock-tutors'
 import { normalizeHandle } from '@/lib/mentions/handles'
+
+function formatScheduleSummary(schedule: unknown): string | null {
+  if (!schedule || !Array.isArray(schedule) || schedule.length === 0) return null
+  const parts = schedule.slice(0, 3).map((item: unknown) => {
+    const row = item as { dayOfWeek?: string; startTime?: string }
+    const day = typeof row?.dayOfWeek === 'string' ? row.dayOfWeek : ''
+    const t = typeof row?.startTime === 'string' ? row.startTime : ''
+    return [day, t].filter(Boolean).join(' ')
+  })
+  const head = parts.filter(Boolean).join(' · ')
+  const more = schedule.length > 3 ? ` · +${schedule.length - 3} more` : ''
+  return head ? `${head}${more}` : null
+}
+
+function enrollmentFromLiveStats(total: number, completed: number): 'ongoing' | 'ended' {
+  if (total === 0) return 'ongoing'
+  if (completed >= total) return 'ended'
+  return 'ongoing'
+}
 
 function getUsername(req: NextRequest): string {
   const parts = req.nextUrl.pathname.split('/')
@@ -84,6 +104,10 @@ export async function GET(req: NextRequest) {
             enrollmentCount: course.enrollmentCount,
             lessonCount: course.lessonCount,
             updatedAt: course.updatedAt,
+            scheduleSummary: 'Mon/Wed/Fri · 19:00',
+            liveSessionsTotal: Math.max(1, Math.floor(course.lessonCount / 4)),
+            liveSessionsCompleted: 1,
+            enrollmentStatus: 'ongoing' as const,
           })),
           source: 'mock',
         })
@@ -103,6 +127,26 @@ export async function GET(req: NextRequest) {
   const enrollmentCounts = new Map<string, number>()
   const lessonCountsByModule = new Map<string, number>()
   let modules: { curriculumId: string; id: string }[] = []
+
+  const sessionStats = new Map<string, { total: number; completed: number }>()
+  if (curriculumIds.length > 0) {
+    const sessionRows = await drizzleDb
+      .select({
+        curriculumId: liveSession.curriculumId,
+        endedAt: liveSession.endedAt,
+      })
+      .from(liveSession)
+      .where(
+        and(isNotNull(liveSession.curriculumId), inArray(liveSession.curriculumId, curriculumIds))
+      )
+    for (const row of sessionRows) {
+      const id = row.curriculumId as string
+      const cur = sessionStats.get(id) ?? { total: 0, completed: 0 }
+      cur.total += 1
+      if (row.endedAt != null) cur.completed += 1
+      sessionStats.set(id, cur)
+    }
+  }
 
   if (curriculumIds.length > 0) {
     modules = await drizzleDb
@@ -128,6 +172,8 @@ export async function GET(req: NextRequest) {
   const courses = publishedCurricula.map((course) => {
     const modIds = modules.filter((m) => m.curriculumId === course.id).map((m) => m.id)
     const lessonCount = modIds.reduce((s, mid) => s + (lessonCountsByModule.get(mid) ?? 0), 0)
+    const live = sessionStats.get(course.id) ?? { total: 0, completed: 0 }
+    const scheduleSummary = formatScheduleSummary(course.schedule)
     return {
       id: course.id,
       name: course.name,
@@ -139,6 +185,10 @@ export async function GET(req: NextRequest) {
       enrollmentCount: enrollmentCounts.get(course.id) ?? 0,
       lessonCount,
       updatedAt: course.updatedAt,
+      scheduleSummary,
+      liveSessionsTotal: live.total,
+      liveSessionsCompleted: live.completed,
+      enrollmentStatus: enrollmentFromLiveStats(live.total, live.completed),
     }
   })
 

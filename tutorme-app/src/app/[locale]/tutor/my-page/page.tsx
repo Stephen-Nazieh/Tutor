@@ -81,6 +81,8 @@ export default function TutorMyPage() {
     tiktok: '',
     facebook: '',
   })
+  const [expertiseInput, setExpertiseInput] = useState('')
+  const [credentialsText, setCredentialsText] = useState('')
   const [profileSettingsOpen, setProfileSettingsOpen] = useState(true)
 
   const aggregatedCategories = useMemo<string[]>(
@@ -120,6 +122,11 @@ export default function TutorMyPage() {
           tiktok: typeof links.tiktok === 'string' ? stripAt(links.tiktok) : '',
           facebook: typeof links.facebook === 'string' ? stripAt(links.facebook) : '',
         })
+        const specs = Array.isArray(data?.profile?.specialties) ? data.profile.specialties : []
+        setExpertiseInput(specs.filter((s: unknown) => typeof s === 'string').join(', '))
+        setCredentialsText(
+          typeof data?.profile?.credentials === 'string' ? data.profile.credentials : ''
+        )
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Failed to load data')
       } finally {
@@ -208,12 +215,6 @@ export default function TutorMyPage() {
     }
   }, [cropSourceUrl])
 
-  const handleCopyHandle = () => {
-    if (!normalizedUsername) return
-    navigator.clipboard.writeText(`@${normalizedUsername}`)
-    toast.success('Handle copied')
-  }
-
   const handleCopyProfile = () => {
     if (!publicUrl) return
     navigator.clipboard.writeText(publicUrl)
@@ -258,6 +259,12 @@ export default function TutorMyPage() {
             youtube: socialAccounts.youtube.trim().replace(/^@+/, ''),
             facebook: socialAccounts.facebook.trim().replace(/^@+/, ''),
           },
+          specialties: expertiseInput
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean)
+            .slice(0, 40),
+          credentials: credentialsText.trim(),
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -269,6 +276,14 @@ export default function TutorMyPage() {
       setBio(data?.profile?.bio || bio)
       if (Array.isArray(data?.profile?.categories)) {
         setProfileCategories(data.profile.categories)
+      }
+      if (Array.isArray(data?.profile?.specialties)) {
+        setExpertiseInput(
+          data.profile.specialties.filter((s: unknown) => typeof s === 'string').join(', ')
+        )
+      }
+      if (typeof data?.profile?.credentials === 'string') {
+        setCredentialsText(data.profile.credentials)
       }
       toast.success('Public page settings updated')
     } catch {
@@ -504,8 +519,8 @@ export default function TutorMyPage() {
       <div className="mx-auto w-full space-y-8 px-6 py-8">
         <section className="relative overflow-hidden rounded-[32px] border border-[#E2E8F0] bg-white/95 p-8 shadow-lg">
           <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-[#1D4ED8]/10 via-[#4FD1C5]/10 to-[#F17623]/10" />
-          <div className="relative grid gap-6 lg:grid-cols-[260px,1fr]">
-            <div className="flex flex-col items-center gap-3 text-center">
+          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-stretch">
+            <div className="flex w-full flex-shrink-0 flex-col items-center gap-3 text-center lg:w-[260px]">
               <div className="relative">
                 <Avatar className="h-28 w-28 border-2 border-white shadow-lg">
                   <AvatarImage src={avatarPreview ?? avatarUrl ?? undefined} alt="Tutor avatar" />
@@ -562,9 +577,41 @@ export default function TutorMyPage() {
                   <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Country</div>
                   <div className="mt-1 text-sm font-medium text-[#0F172A]">{country || '—'}</div>
                 </div>
+                <div className="w-full rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-left">
+                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
+                    Expertise
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {expertiseInput
+                      .split(',')
+                      .map(s => s.trim())
+                      .filter(Boolean)
+                      .map((s, i) => (
+                        <span
+                          key={`${s}-${i}`}
+                          className="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-[#0F172A] shadow-sm ring-1 ring-[#E2E8F0]"
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    {!expertiseInput.trim() ? (
+                      <span className="text-sm text-[#64748B]">
+                        Add expertise in profile settings
+                      </span>
+                    ) : null}
+                  </div>
+                  {credentialsText.trim() ? (
+                    <>
+                      <div className="mt-3 text-xs uppercase tracking-[0.15em] text-[#64748B]">
+                        Credentials
+                      </div>
+                      <p className="mt-1 text-sm leading-snug text-[#1F2933]">{credentialsText}</p>
+                    </>
+                  ) : null}
+                </div>
               </div>
             </div>
-            <div className="space-y-4">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
               {/* Preview + Save */}
               <div className="flex flex-wrap items-center gap-2 text-sm text-[#1F2933]">
                 {publicUrl ? (
@@ -588,83 +635,82 @@ export default function TutorMyPage() {
                 </Button>
               </div>
 
-              {/* Bio (left) + Public URL (right) */}
-              <div className="grid gap-4 lg:grid-cols-[1fr,1fr]">
-                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+              <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-2 lg:items-stretch">
+                <div className="flex min-h-[220px] flex-col rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 lg:min-h-0">
                   <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Bio</div>
                   <Textarea
                     value={bio}
                     readOnly
-                    rows={5}
-                    className="mt-2 min-h-[120px] border-[#E2E8F0] bg-white focus-visible:ring-[#4FD1C5]"
+                    className="mt-2 min-h-0 flex-1 resize-none border-[#E2E8F0] bg-white focus-visible:ring-[#4FD1C5]"
                   />
                 </div>
 
-                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
-                    Public URL
-                  </div>
-                  {publicUrl ? (
-                    <>
-                      <div className="mt-2 break-all text-sm font-medium text-[#1F2933]">
-                        {publicUrl}
-                      </div>
-                      <div className="mt-1 text-sm font-semibold text-[#F17623]">
-                        {normalizedUsername ? `@${normalizedUsername}` : '@username'}
-                      </div>
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 px-2 text-[#1D4ED8]"
-                          onClick={handleCopyProfile}
-                          disabled={!publicUrl}
-                        >
-                          <Copy className="mr-1 h-3.5 w-3.5" />
-                          Copy link
-                        </Button>
-                        {canShare ? (
+                <div className="flex min-h-0 flex-col gap-4">
+                  <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+                    <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
+                      Public URL
+                    </div>
+                    {publicUrl ? (
+                      <>
+                        <div className="mt-2 break-all text-sm font-medium text-[#1F2933]">
+                          {publicUrl}
+                        </div>
+                        <div className="mt-1 text-sm font-semibold text-[#F17623]">
+                          {normalizedUsername ? `@${normalizedUsername}` : '@username'}
+                        </div>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
                           <Button
                             size="sm"
                             variant="ghost"
                             className="h-7 px-2 text-[#1D4ED8]"
-                            onClick={handleShareProfile}
+                            onClick={handleCopyProfile}
+                            disabled={!publicUrl}
                           >
-                            <Share2 className="mr-1 h-3.5 w-3.5" />
-                            Share
+                            <Copy className="mr-1 h-3.5 w-3.5" />
+                            Copy link
                           </Button>
-                        ) : null}
+                          {canShare ? (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 px-2 text-[#1D4ED8]"
+                              onClick={handleShareProfile}
+                            >
+                              <Share2 className="mr-1 h-3.5 w-3.5" />
+                              Share
+                            </Button>
+                          ) : null}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="mt-2 rounded-2xl border border-dashed border-[#CBD5F5] p-4 text-sm text-[#64748B]">
+                        Add a username in profile settings to generate your public link.
                       </div>
-                    </>
-                  ) : (
-                    <div className="mt-2 rounded-2xl border border-dashed border-[#CBD5F5] p-4 text-sm text-[#64748B]">
-                      Add a username below to generate your public link.
-                    </div>
-                  )}
-                </div>
-              </div>
+                    )}
+                  </div>
 
-              {/* Social Media Accounts */}
-              <div className="rounded-2xl border border-[#E2E8F0] bg-white p-4">
-                <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
-                  Social Media Accounts
-                </div>
-                <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                  <div className="text-sm text-[#1F2933]">
-                    <span className="font-semibold text-[#64748B]">TikTok:</span>{' '}
-                    {socialAccounts.tiktok ? `@${socialAccounts.tiktok}` : '—'}
-                  </div>
-                  <div className="text-sm text-[#1F2933]">
-                    <span className="font-semibold text-[#64748B]">YouTube:</span>{' '}
-                    {socialAccounts.youtube ? `@${socialAccounts.youtube}` : '—'}
-                  </div>
-                  <div className="text-sm text-[#1F2933]">
-                    <span className="font-semibold text-[#64748B]">Instagram:</span>{' '}
-                    {socialAccounts.instagram ? `@${socialAccounts.instagram}` : '—'}
-                  </div>
-                  <div className="text-sm text-[#1F2933]">
-                    <span className="font-semibold text-[#64748B]">Facebook:</span>{' '}
-                    {socialAccounts.facebook ? `@${socialAccounts.facebook}` : '—'}
+                  <div className="rounded-2xl border border-[#E2E8F0] bg-white p-4">
+                    <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
+                      Social Media Accounts
+                    </div>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      <div className="text-sm text-[#1F2933]">
+                        <span className="font-semibold text-[#64748B]">TikTok:</span>{' '}
+                        {socialAccounts.tiktok ? `@${socialAccounts.tiktok}` : '—'}
+                      </div>
+                      <div className="text-sm text-[#1F2933]">
+                        <span className="font-semibold text-[#64748B]">YouTube:</span>{' '}
+                        {socialAccounts.youtube ? `@${socialAccounts.youtube}` : '—'}
+                      </div>
+                      <div className="text-sm text-[#1F2933]">
+                        <span className="font-semibold text-[#64748B]">Instagram:</span>{' '}
+                        {socialAccounts.instagram ? `@${socialAccounts.instagram}` : '—'}
+                      </div>
+                      <div className="text-sm text-[#1F2933]">
+                        <span className="font-semibold text-[#64748B]">Facebook:</span>{' '}
+                        {socialAccounts.facebook ? `@${socialAccounts.facebook}` : '—'}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -744,97 +790,119 @@ export default function TutorMyPage() {
           </CardHeader>
           {profileSettingsOpen && (
             <CardContent className="space-y-5">
-              <div className="grid gap-4 lg:grid-cols-2">
-                <div className="space-y-2">
+              <div className="grid gap-4 lg:grid-cols-2 lg:items-stretch">
+                <div className="flex min-h-[280px] flex-col gap-2 lg:min-h-0">
                   <Label className="text-[#1F2933]">Edit Bio</Label>
                   <Textarea
                     value={bio}
                     onChange={e => setBio(e.target.value)}
-                    rows={4}
                     disabled={loading || saving}
                     placeholder="Short bio for your public page..."
-                    className="min-h-[100px] border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                    className="min-h-0 flex-1 resize-none border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
                   />
                 </div>
 
-                <div className="space-y-3">
-                  <Label className="text-[#1F2933]">Edit Social Media</Label>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <div className="space-y-1">
-                      <Label className="text-xs text-[#64748B]">TikTok</Label>
-                      <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
-                        <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
-                        <Input
-                          placeholder="username"
-                          value={socialAccounts.tiktok.replace(/^@+/, '')}
-                          onChange={e =>
-                            setSocialAccounts(prev => ({
-                              ...prev,
-                              tiktok: e.target.value.replace(/^@+/, ''),
-                            }))
-                          }
-                          disabled={loading || saving}
-                          className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        />
+                <div className="flex min-h-[280px] flex-col gap-4 lg:min-h-0">
+                  <div className="space-y-3">
+                    <Label className="text-[#1F2933]">Edit Social Media</Label>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-[#64748B]">TikTok</Label>
+                        <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
+                          <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                          <Input
+                            placeholder="username"
+                            value={socialAccounts.tiktok.replace(/^@+/, '')}
+                            onChange={e =>
+                              setSocialAccounts(prev => ({
+                                ...prev,
+                                tiktok: e.target.value.replace(/^@+/, ''),
+                              }))
+                            }
+                            disabled={loading || saving}
+                            className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-1">
-                      <Label className="text-xs text-[#64748B]">YouTube</Label>
-                      <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
-                        <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
-                        <Input
-                          placeholder="username"
-                          value={socialAccounts.youtube.replace(/^@+/, '')}
-                          onChange={e =>
-                            setSocialAccounts(prev => ({
-                              ...prev,
-                              youtube: e.target.value.replace(/^@+/, ''),
-                            }))
-                          }
-                          disabled={loading || saving}
-                          className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        />
+                      <div className="space-y-1">
+                        <Label className="text-xs text-[#64748B]">YouTube</Label>
+                        <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
+                          <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                          <Input
+                            placeholder="username"
+                            value={socialAccounts.youtube.replace(/^@+/, '')}
+                            onChange={e =>
+                              setSocialAccounts(prev => ({
+                                ...prev,
+                                youtube: e.target.value.replace(/^@+/, ''),
+                              }))
+                            }
+                            disabled={loading || saving}
+                            className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-1">
-                      <Label className="text-xs text-[#64748B]">Instagram</Label>
-                      <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
-                        <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
-                        <Input
-                          placeholder="username"
-                          value={socialAccounts.instagram.replace(/^@+/, '')}
-                          onChange={e =>
-                            setSocialAccounts(prev => ({
-                              ...prev,
-                              instagram: e.target.value.replace(/^@+/, ''),
-                            }))
-                          }
-                          disabled={loading || saving}
-                          className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        />
+                      <div className="space-y-1">
+                        <Label className="text-xs text-[#64748B]">Instagram</Label>
+                        <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
+                          <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                          <Input
+                            placeholder="username"
+                            value={socialAccounts.instagram.replace(/^@+/, '')}
+                            onChange={e =>
+                              setSocialAccounts(prev => ({
+                                ...prev,
+                                instagram: e.target.value.replace(/^@+/, ''),
+                              }))
+                            }
+                            disabled={loading || saving}
+                            className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-1">
-                      <Label className="text-xs text-[#64748B]">Facebook</Label>
-                      <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
-                        <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
-                        <Input
-                          placeholder="username"
-                          value={socialAccounts.facebook.replace(/^@+/, '')}
-                          onChange={e =>
-                            setSocialAccounts(prev => ({
-                              ...prev,
-                              facebook: e.target.value.replace(/^@+/, ''),
-                            }))
-                          }
-                          disabled={loading || saving}
-                          className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        />
+                      <div className="space-y-1">
+                        <Label className="text-xs text-[#64748B]">Facebook</Label>
+                        <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
+                          <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                          <Input
+                            placeholder="username"
+                            value={socialAccounts.facebook.replace(/^@+/, '')}
+                            onChange={e =>
+                              setSocialAccounts(prev => ({
+                                ...prev,
+                                facebook: e.target.value.replace(/^@+/, ''),
+                              }))
+                            }
+                            disabled={loading || saving}
+                            className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                          />
+                        </div>
                       </div>
                     </div>
+                  </div>
+
+                  <div className="space-y-2 border-t border-[#E2E8F0] pt-4">
+                    <Label className="text-[#1F2933]">Expertise</Label>
+                    <Input
+                      value={expertiseInput}
+                      onChange={e => setExpertiseInput(e.target.value)}
+                      disabled={loading || saving}
+                      placeholder="Comma-separated, e.g. Algebra, SAT Math, Physics"
+                      className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                    />
+                  </div>
+                  <div className="flex min-h-0 flex-1 flex-col space-y-2">
+                    <Label className="text-[#1F2933]">Credentials</Label>
+                    <Textarea
+                      value={credentialsText}
+                      onChange={e => setCredentialsText(e.target.value)}
+                      disabled={loading || saving}
+                      placeholder="Degrees, certifications, teaching experience..."
+                      className="min-h-[120px] flex-1 resize-none border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                    />
                   </div>
                 </div>
               </div>
