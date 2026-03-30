@@ -64,11 +64,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   GripVertical,
-  CalendarPlus,
   RefreshCw,
   ExternalLink,
-  Copy,
-  Layers,
 } from 'lucide-react'
 
 // Date manipulation
@@ -380,7 +377,6 @@ export function InteractiveCalendar({
   const [availabilityLoading, setAvailabilityLoading] = useState(false)
 
   // New feature states
-  const [showBatchModal, setShowBatchModal] = useState(false)
   const [showCalendarIntegrations, setShowCalendarIntegrations] = useState(false)
   const [activeDragEvent, setActiveDragEvent] = useState<CalendarEvent | null>(null)
   const [calendarConnections, setCalendarConnections] = useState<CalendarConnection[]>([
@@ -800,7 +796,6 @@ export function InteractiveCalendar({
                       ))}
                     </SelectContent>
                   </Select>
-                  <span className="text-xs text-muted-foreground">Times shown in {timezone}</span>
                 </div>
               )}
               {!isStudent && (
@@ -820,11 +815,6 @@ export function InteractiveCalendar({
                     Sync
                   </Button>
 
-                  {/* Batch Create */}
-                  <Button variant="outline" size="sm" onClick={() => setShowBatchModal(true)}>
-                    <Layers className="mr-2 h-4 w-4" />
-                    Batch
-                  </Button>
                 </>
               )}
               {notifications.length > 0 && (
@@ -1309,15 +1299,6 @@ export function InteractiveCalendar({
               </DialogContent>
             </Dialog>
 
-            {/* Batch Class Creation Modal */}
-            <BatchClassModal
-              open={showBatchModal}
-              onClose={() => setShowBatchModal(false)}
-              onCreate={newEvents => {
-                setEvents(prev => [...prev, ...newEvents])
-                toast.success(`Created ${newEvents.length} classes!`)
-              }}
-            />
           </>
         )}
 
@@ -1691,208 +1672,5 @@ function AvailabilityView({ availability, onToggle, onSave }: any) {
         </Button>
       </div>
     </div>
-  )
-}
-
-// Batch Class Creation Modal Component
-interface BatchClassModalProps {
-  open: boolean
-  onClose: () => void
-  onCreate: (events: CalendarEvent[]) => void
-}
-
-function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
-  const [title, setTitle] = useState('')
-  const [subject, setSubject] = useState('Mathematics')
-  const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'))
-  const [startTime, setStartTime] = useState('14:00')
-  const [duration, setDuration] = useState(60)
-  const [recurringPattern, setRecurringPattern] = useState<'daily' | 'weekly' | 'biweekly'>(
-    'weekly'
-  )
-  const [occurrences, setOccurrences] = useState(4)
-  const [maxStudents, setMaxStudents] = useState(20)
-  const [isOnline, setIsOnline] = useState(true)
-
-  const handleCreate = () => {
-    const newEvents: CalendarEvent[] = []
-    const baseDate = new Date(startDate)
-    const [hours, minutes] = startTime.split(':').map(Number)
-
-    for (let i = 0; i < occurrences; i++) {
-      const eventDate = new Date(baseDate)
-
-      if (recurringPattern === 'daily') {
-        eventDate.setDate(baseDate.getDate() + i)
-      } else if (recurringPattern === 'weekly') {
-        eventDate.setDate(baseDate.getDate() + i * 7)
-      } else if (recurringPattern === 'biweekly') {
-        eventDate.setDate(baseDate.getDate() + i * 14)
-      }
-
-      eventDate.setHours(hours, minutes, 0, 0)
-
-      const subjectColor = SUBJECTS.find(s => s.name === subject)?.color || 'bg-blue-500'
-
-      newEvents.push({
-        id: `batch-${Date.now()}-${i}`,
-        title: title || `${subject} Class`,
-        date: eventDate,
-        duration,
-        type: 'class',
-        status: 'scheduled',
-        subject,
-        maxStudents,
-        studentCount: 0,
-        isOnline,
-        color: subjectColor,
-        isRecurring: occurrences > 1,
-        recurringPattern: occurrences > 1 ? recurringPattern : undefined,
-      })
-    }
-
-    onCreate(newEvents)
-    onClose()
-
-    // Reset form
-    setTitle('')
-    setOccurrences(4)
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CalendarPlus className="h-5 w-5" />
-            Batch Create Classes
-          </DialogTitle>
-          <DialogDescription>Create multiple recurring classes at once</DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Class Title</Label>
-              <Input
-                value={title}
-                onChange={(e: any) => setTitle(e.target.value)}
-                placeholder="e.g., Advanced Math"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Subject</Label>
-              <Select value={subject} onValueChange={setSubject}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SUBJECTS.filter(s => s.name !== 'Office Hours').map(s => (
-                    <SelectItem key={s.name} value={s.name}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Start Date</Label>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e: any) => setStartDate(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Start Time</Label>
-              <Input
-                type="time"
-                value={startTime}
-                onChange={(e: any) => setStartTime(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Duration (min)</Label>
-              <Input
-                type="number"
-                value={duration}
-                onChange={(e: any) => setDuration(Number(e.target.value))}
-                min={15}
-                step={15}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Max Students</Label>
-              <Input
-                type="number"
-                value={maxStudents}
-                onChange={(e: any) => setMaxStudents(Number(e.target.value))}
-                min={1}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Occurrences</Label>
-              <Input
-                type="number"
-                value={occurrences}
-                onChange={(e: any) => setOccurrences(Number(e.target.value))}
-                min={1}
-                max={52}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Recurring Pattern</Label>
-            <div className="flex gap-2">
-              {(['weekly', 'biweekly', 'daily'] as const).map(pattern => (
-                <Button
-                  key={pattern}
-                  type="button"
-                  variant={recurringPattern === pattern ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setRecurringPattern(pattern)}
-                  className="flex-1 capitalize"
-                >
-                  {pattern === 'biweekly' ? 'Bi-weekly' : pattern}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
-            <div className="flex items-center gap-2">
-              <Video className="h-4 w-4 text-gray-500" />
-              <span className="text-sm">Online Class</span>
-            </div>
-            <Switch checked={isOnline} onCheckedChange={setIsOnline} />
-          </div>
-
-          <div className="rounded-lg bg-blue-50 p-3 text-sm">
-            <p className="font-medium text-blue-900">Preview</p>
-            <p className="text-blue-700">
-              Will create <strong>{occurrences}</strong> {recurringPattern} classes starting{' '}
-              <strong>{format(new Date(startDate), 'MMM d, yyyy')}</strong>
-            </p>
-          </div>
-        </div>
-
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleCreate} className="gap-2">
-            <Copy className="h-4 w-4" />
-            Create {occurrences} Classes
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   )
 }

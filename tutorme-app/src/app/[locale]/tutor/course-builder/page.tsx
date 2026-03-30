@@ -1,46 +1,24 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { ArrowLeft, BookOpen, Loader2 } from 'lucide-react'
 
-const DESCRIPTION_LIMIT = 500
+const DEFAULT_SUBJECT = 'general'
+const DEFAULT_COURSE_NAME = 'Untitled Course'
 
 export default function CourseBuilderPage() {
   const router = useRouter()
-  const [creating, setCreating] = useState(false)
-  const [subject, setSubject] = useState('general')
-  const [courseName, setCourseName] = useState('')
-  const [description, setDescription] = useState('')
+  const [creating, setCreating] = useState(true)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  useEffect(() => {
-    // Component is mounted
-  }, [])
-
-  const descriptionCount = useMemo(() => description.length, [description])
-
-  const validateDetailsStep = () => {
-    if (!courseName.trim()) {
-      toast.error('Course name is required')
-      return false
-    }
-    if (descriptionCount > DESCRIPTION_LIMIT) {
-      toast.error('Description exceeds 500 characters')
-      return false
-    }
-    return true
-  }
-
-  const handleConfirm = async () => {
-    if (!validateDetailsStep()) return
+  const createCourse = useCallback(async () => {
     setCreating(true)
+    setErrorMessage(null)
     try {
       const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
       const csrfData = await csrfRes.json().catch(() => ({}))
@@ -54,9 +32,9 @@ export default function CourseBuilderPage() {
         },
         credentials: 'include',
         body: JSON.stringify({
-          title: courseName.trim(),
-          description: description.trim() || undefined,
-          subject,
+          title: DEFAULT_COURSE_NAME,
+          description: undefined,
+          subject: DEFAULT_SUBJECT,
           categories: [],
           schedule: [],
           isLiveOnline: false,
@@ -67,16 +45,24 @@ export default function CourseBuilderPage() {
       if (res.ok && data.course?.id) {
         toast.success('Course created! Opening builder...')
         router.push(`/tutor/courses/${data.course.id}/builder`)
-      } else {
-        const message = data.error || 'Failed to create course. Please try again.'
-        toast.error(message)
+        return
       }
+
+      const message = data.error || 'Failed to create course. Please try again.'
+      setErrorMessage(message)
+      toast.error(message)
     } catch {
-      toast.error('An error occurred. Please check your connection and try again.')
+      const message = 'An error occurred. Please check your connection and try again.'
+      setErrorMessage(message)
+      toast.error(message)
     } finally {
       setCreating(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    void createCourse()
+  }, [createCourse])
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-8">
@@ -92,62 +78,26 @@ export default function CourseBuilderPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-blue-500" />
-              Create New Course
+              Opening Course Builder
             </CardTitle>
             <CardDescription>
-              Set your course details and continue to the Course Builder to design your curriculum.
+              Creating a new course and taking you directly to the builder.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="course-name">Course Name *</Label>
-                <Input
-                  id="course-name"
-                  placeholder="e.g., Algebra 101, Introduction to Python"
-                  value={courseName}
-                  onChange={e => setCourseName(e.target.value)}
-                  className="mt-1 shadow-sm focus-visible:ring-blue-600"
-                  disabled={creating}
-                />
+            {creating ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Creating your course...
               </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="description">Description (Max {DESCRIPTION_LIMIT} chars)</Label>
-                  <span
-                    className={`text-xs ${descriptionCount > DESCRIPTION_LIMIT ? 'text-red-600' : 'text-gray-500'}`}
-                  >
-                    {descriptionCount}/{DESCRIPTION_LIMIT}
-                  </span>
-                </div>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={e => setDescription(e.target.value.slice(0, DESCRIPTION_LIMIT))}
-                  placeholder="Describe the course focus, expected outcomes, and who it is for."
-                  rows={5}
-                  disabled={creating}
-                  className="mt-1 shadow-sm focus-visible:ring-blue-600"
-                />
+            ) : errorMessage ? (
+              <div className="space-y-3">
+                <p className="text-sm text-red-600">{errorMessage}</p>
+                <Button onClick={() => void createCourse()}>Try Again</Button>
               </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button variant="outline" className="flex-1" asChild disabled={creating}>
-                  <Link href="/tutor/dashboard">Cancel</Link>
-                </Button>
-                <Button className="flex-1" onClick={handleConfirm} disabled={creating}>
-                  {creating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    'Create Course'
-                  )}
-                </Button>
-              </div>
-            </>
+            ) : (
+              <div className="text-sm text-muted-foreground">Redirecting...</div>
+            )}
           </CardContent>
         </Card>
       </div>

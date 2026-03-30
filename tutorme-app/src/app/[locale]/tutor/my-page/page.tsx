@@ -82,7 +82,6 @@ export default function TutorMyPage() {
     facebook: '',
   })
   const [expertiseInput, setExpertiseInput] = useState('')
-  const [credentialsText, setCredentialsText] = useState('')
   const [expertiseAddOpen, setExpertiseAddOpen] = useState(false)
   const [expertiseAddSelected, setExpertiseAddSelected] = useState<string>('')
   const [expertiseAddCustom, setExpertiseAddCustom] = useState<string>('')
@@ -127,9 +126,6 @@ export default function TutorMyPage() {
         })
         const specs = Array.isArray(data?.profile?.specialties) ? data.profile.specialties : []
         setExpertiseInput(specs.filter((s: unknown) => typeof s === 'string').join(', '))
-        setCredentialsText(
-          typeof data?.profile?.credentials === 'string' ? data.profile.credentials : ''
-        )
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Failed to load data')
       } finally {
@@ -267,7 +263,6 @@ export default function TutorMyPage() {
             .map(s => s.trim())
             .filter(Boolean)
             .slice(0, 40),
-          credentials: credentialsText.trim(),
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -285,9 +280,6 @@ export default function TutorMyPage() {
           data.profile.specialties.filter((s: unknown) => typeof s === 'string').join(', ')
         )
       }
-      if (typeof data?.profile?.credentials === 'string') {
-        setCredentialsText(data.profile.credentials)
-      }
       toast.success('Public page settings updated')
     } catch {
       toast.error('Failed to save profile')
@@ -299,7 +291,7 @@ export default function TutorMyPage() {
   const handleAddExpertise = () => {
     const candidate = (expertiseAddCustom || expertiseAddSelected).trim()
     if (!candidate) {
-      toast.error('Select a category or type custom expertise')
+      toast.error('Select a category or type a custom category')
       return
     }
 
@@ -600,38 +592,6 @@ export default function TutorMyPage() {
                   <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Country</div>
                   <div className="mt-1 text-sm font-medium text-[#0F172A]">{country || '—'}</div>
                 </div>
-                <div className="w-full rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-left">
-                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
-                    Expertise
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {expertiseInput
-                      .split(',')
-                      .map(s => s.trim())
-                      .filter(Boolean)
-                      .map((s, i) => (
-                        <span
-                          key={`${s}-${i}`}
-                          className="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-[#0F172A] shadow-sm ring-1 ring-[#E2E8F0]"
-                        >
-                          {s}
-                        </span>
-                      ))}
-                    {!expertiseInput.trim() ? (
-                      <span className="text-sm text-[#64748B]">
-                        Add expertise in profile settings
-                      </span>
-                    ) : null}
-                  </div>
-                  {credentialsText.trim() ? (
-                    <>
-                      <div className="mt-3 text-xs uppercase tracking-[0.15em] text-[#64748B]">
-                        Credentials
-                      </div>
-                      <p className="mt-1 text-sm leading-snug text-[#1F2933]">{credentialsText}</p>
-                    </>
-                  ) : null}
-                </div>
               </div>
             </div>
             <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
@@ -733,6 +693,31 @@ export default function TutorMyPage() {
                         <span className="font-semibold text-[#64748B]">Facebook:</span>{' '}
                         {socialAccounts.facebook ? `@${socialAccounts.facebook}` : '—'}
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+                    <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">
+                      Categories
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {expertiseInput
+                        .split(',')
+                        .map(s => s.trim())
+                        .filter(Boolean)
+                        .map((s, i) => (
+                          <span
+                            key={`${s}-${i}`}
+                            className="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-[#0F172A] shadow-sm ring-1 ring-[#E2E8F0]"
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      {!expertiseInput.trim() ? (
+                        <span className="text-sm text-[#64748B]">
+                          Add categories in profile settings
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -909,7 +894,7 @@ export default function TutorMyPage() {
 
                   <div className="space-y-2 border-t border-[#E2E8F0] pt-4">
                     <div className="flex items-center justify-between gap-3">
-                      <Label className="text-[#1F2933]">Expertise</Label>
+                      <Label className="text-[#1F2933]">Categories</Label>
                       <Button
                         type="button"
                         size="sm"
@@ -927,16 +912,6 @@ export default function TutorMyPage() {
                       disabled={loading || saving}
                       placeholder="Comma-separated, e.g. Algebra, SAT Math, Physics"
                       className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
-                    />
-                  </div>
-                  <div className="flex min-h-0 flex-1 flex-col space-y-2">
-                    <Label className="text-[#1F2933]">Credentials</Label>
-                    <Textarea
-                      value={credentialsText}
-                      onChange={e => setCredentialsText(e.target.value)}
-                      disabled={loading || saving}
-                      placeholder="Degrees, certifications, teaching experience..."
-                      className="min-h-[120px] flex-1 resize-none border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
                     />
                   </div>
                 </div>
@@ -958,7 +933,7 @@ export default function TutorMyPage() {
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Expertise</DialogTitle>
+          <DialogTitle>Add Category</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">

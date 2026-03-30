@@ -328,7 +328,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [loadAsModalOpen, setLoadAsModalOpen] = useState(false)
     const [assetToLoad, setAssetToLoad] = useState<{ name: string; content?: string } | null>(null)
     const [leftPanelHidden, setLeftPanelHidden] = useState(false)
-    const [leftPanelWidth, setLeftPanelWidth] = useState(280)
+    const [leftPanelWidth, setLeftPanelWidth] = useState(340)
     const [leftPanelResizing, setLeftPanelResizing] = useState(false)
     const leftPanelRef = useRef<HTMLDivElement>(null)
     const [assetsOpen, setAssetsOpen] = useState(true)
@@ -2862,12 +2862,12 @@ FEEDBACK: [your explanation]`
     }
 
     const leftResizeStartX = useRef(0)
-    const leftResizeStartW = useRef(280)
+    const leftResizeStartW = useRef(340)
     useEffect(() => {
       if (!leftPanelResizing) return
       const onMove = (e: MouseEvent) => {
         const delta = e.clientX - leftResizeStartX.current
-        const newW = Math.max(200, Math.min(500, leftResizeStartW.current + delta))
+        const newW = Math.max(260, Math.min(560, leftResizeStartW.current + delta))
         setLeftPanelWidth(newW)
       }
       const onUp = () => setLeftPanelResizing(false)
@@ -2912,8 +2912,8 @@ FEEDBACK: [your explanation]`
                       </div>
                     </CardHeader>
                   )}
-                  <CardContent className="flex flex-1 flex-col pt-0">
-                    <ScrollArea className="flex-1">
+                  <CardContent className="flex flex-1 min-h-0 flex-col overflow-hidden pt-0">
+                    <ScrollArea className="flex-1 min-h-0">
                       <DndContext
                         sensors={sensors}
                         collisionDetection={closestCenter}
@@ -3012,7 +3012,7 @@ FEEDBACK: [your explanation]`
                                   <div className="group">
                                     <div
                                       className={cn(
-                                        'flex cursor-pointer flex-wrap items-center gap-1.5 rounded px-2 py-1.5 transition-colors',
+                                        'flex w-full cursor-pointer flex-wrap items-center gap-1.5 rounded px-2 py-1.5 transition-colors',
                                         'border border-blue-400 bg-blue-50 hover:bg-blue-100'
                                       )}
                                       onClick={() => toggleModule(module.id)}
@@ -3024,7 +3024,7 @@ FEEDBACK: [your explanation]`
                                       )}
                                       <Layers className="h-3 w-3 text-blue-600" />
                                       <span
-                                        className="group/tooltip relative max-w-[120px] truncate text-sm font-medium"
+                                        className="group/tooltip relative max-w-[180px] truncate text-sm font-medium"
                                         title={module.title}
                                       >
                                         {module.title}
@@ -3063,7 +3063,7 @@ FEEDBACK: [your explanation]`
                                           <DroppableTaskZone
                                             moduleId={module.id}
                                             lessonId={primaryLesson.id}
-                                            className="flex items-center gap-1.5 rounded-lg border-b-4 border-orange-600 bg-gradient-to-r from-orange-400 to-orange-500 px-3 py-2 shadow-md transition-all active:translate-y-1 active:border-b-0"
+                                            className="flex w-full items-center gap-1.5 rounded-lg border-b-4 border-orange-600 bg-gradient-to-r from-orange-400 to-orange-500 px-3 py-1.5 shadow-md transition-all active:translate-y-1 active:border-b-0"
                                           >
                                             <Button
                                               variant="ghost"
@@ -3421,7 +3421,7 @@ FEEDBACK: [your explanation]`
                                           <DroppableAssessmentZone
                                             moduleId={module.id}
                                             lessonId={primaryLesson.id}
-                                            className="flex items-center gap-1.5 rounded-lg border-b-4 border-purple-600 bg-gradient-to-r from-purple-400 to-purple-500 px-3 py-2 shadow-md transition-all active:translate-y-1 active:border-b-0"
+                                            className="flex w-full items-center gap-1.5 rounded-lg border-b-4 border-purple-600 bg-gradient-to-r from-purple-400 to-purple-500 px-3 py-1.5 shadow-md transition-all active:translate-y-1 active:border-b-0"
                                           >
                                             <Button
                                               variant="ghost"
@@ -3862,7 +3862,7 @@ FEEDBACK: [your explanation]`
                           onValueChange={setTestPciActiveTab}
                           className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-hidden"
                         >
-                          <TabsList className="flex h-auto min-h-10 w-full shrink-0 flex-nowrap gap-1 rounded-xl border bg-muted p-1">
+                          <TabsList className="flex min-h-[3.2rem] w-full shrink-0 flex-nowrap items-stretch gap-1 rounded-xl border bg-muted p-1">
                             {testPciTabs.map(tab => (
                               <div key={tab.id} className="relative min-w-0 flex-1 basis-0">
                                 {editingTabId === tab.id ? (
@@ -3879,13 +3879,13 @@ FEEDBACK: [your explanation]`
                                     onKeyDown={(e: any) => {
                                       if (e.key === 'Enter') setEditingTabId(null)
                                     }}
-                                    className="h-8 min-w-0 text-center text-xs font-medium"
+                                    className="h-[3.2rem] min-w-0 text-center text-xs font-medium"
                                     autoFocus
                                   />
                                 ) : (
                                   <TabsTrigger
                                     value={tab.id}
-                                    className="w-full min-w-0 truncate rounded-lg border border-gray-400 bg-white px-2 text-xs font-medium data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 sm:text-sm"
+                                    className="h-[3.2rem] w-full min-w-0 truncate rounded-lg border border-gray-400 bg-white px-2 text-xs font-medium data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 sm:text-sm"
                                     onDoubleClick={() => setEditingTabId(tab.id)}
                                   >
                                     {tab.label}
