@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import path from 'path'
-import { mkdir, writeFile } from 'fs/promises'
+import { mkdir } from 'fs/promises'
 import bcrypt from 'bcryptjs'
 import { nanoid } from 'nanoid'
 import { eq } from 'drizzle-orm'
@@ -30,7 +30,7 @@ import {
 } from '@/lib/mentions/handles'
 import type { NextRequest } from 'next/server'
 
-const MAX_AVATAR_SIZE_BYTES = 8 * 1024 * 1024
+const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024
 
 function normalizeHandleSeed(seed: string): string {
   const cleaned = seed
@@ -59,18 +59,100 @@ async function generateUniqueHandle(
 
 export async function saveAvatar(userId: string, avatarFile: File): Promise<string> {
   if (avatarFile.size > MAX_AVATAR_SIZE_BYTES) {
-    throw new ValidationError('Profile photo is too large (max 8MB)')
+    throw new ValidationError('Profile photo is too large (max 5MB)')
   }
-  const safeName = avatarFile.name.replace(/[^a-zA-Z0-9._-]/g, '_') || 'avatar'
+
+  const acceptedMimes = new Set(['image/jpeg', 'image/png', 'image/webp'])
+  if (avatarFile.type && !acceptedMimes.has(avatarFile.type)) {
+    throw new ValidationError('Accepted formats: JPG, PNG, WEBP only')
+  }
+
+  const bytes = Buffer.from(await avatarFile.arrayBuffer())
+  const sharpMod = await import('sharp')
+  const sharp = sharpMod.default ?? sharpMod
+
+  const input = sharp(bytes, { failOnError: false }).rotate()
+  const meta = await input.metadata()
+  const width = meta.width ?? null
+  const height = meta.height ?? null
+  const format = meta.format ?? null
+
+  if (!width || !height) {
+    throw new ValidationError('Invalid image')
+  }
+
+  if (width < 300 || height < 300) {
+    throw new ValidationError('Minimum dimensions: 300 × 300 px')
+  }
+
+  if (format && !['jpeg', 'png', 'webp'].includes(format)) {
+    throw new ValidationError('Accepted formats: JPG, PNG, WEBP only')
+  }
+
+  // Basic moderation heuristics: reject mostly-transparent and near-blank images.
+  const analysis = await input
+    .clone()
+    .resize(64, 64, { fit: 'cover', position: 'centre' })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true })
+
+  const pixelCount = analysis.info.width * analysis.info.height
+  let sumAlpha = 0
+  let minLum = 255
+  let maxLum = 0
+  for (let i = 0; i < analysis.data.length; i += 4) {
+    const r = analysis.data[i]
+    const g = analysis.data[i + 1]
+    const b = analysis.data[i + 2]
+    const a = analysis.data[i + 3]
+    sumAlpha += a
+    const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    minLum = Math.min(minLum, lum)
+    maxLum = Math.max(maxLum, lum)
+  }
+
+  const avgAlpha = sumAlpha / (pixelCount * 255)
+  const lumRange = maxLum - minLum
+  if (avgAlpha < 0.08) {
+    throw new ValidationError('Profile photo failed moderation checks')
+  }
+  if (lumRange < 6 && avgAlpha > 0.2) {
+    throw new ValidationError('Profile photo failed moderation checks')
+  }
+
   const timestamp = Date.now()
   const relativeDir = path.join('uploads', 'avatars', userId)
   const absoluteDir = path.join(process.cwd(), 'public', relativeDir)
   await mkdir(absoluteDir, { recursive: true })
-  const storedName = `${timestamp}-${safeName}`
-  const absolutePath = path.join(absoluteDir, storedName)
-  const bytes = Buffer.from(await avatarFile.arrayBuffer())
-  await writeFile(absolutePath, bytes)
-  return `/${relativeDir}/${storedName}`
+
+  const baseName = `${timestamp}-avatar`
+  const out256 = path.join(absoluteDir, `${baseName}-256.webp`)
+  const out128 = path.join(absoluteDir, `${baseName}-128.webp`)
+  const out64 = path.join(absoluteDir, `${baseName}-64.webp`)
+
+  const outputCommon = {
+    fit: 'cover' as const,
+    position: 'centre' as const,
+  }
+
+  await Promise.all([
+    input
+      .clone()
+      .resize(256, 256, outputCommon)
+      .webp({ quality: 82 })
+      .withMetadata({})
+      .toFile(out256),
+    input
+      .clone()
+      .resize(128, 128, outputCommon)
+      .webp({ quality: 80 })
+      .withMetadata({})
+      .toFile(out128),
+    input.clone().resize(64, 64, outputCommon).webp({ quality: 78 }).withMetadata({}).toFile(out64),
+  ])
+
+  return `/${relativeDir}/${baseName}-256.webp`
 }
 
 export interface RegistrationResult {
