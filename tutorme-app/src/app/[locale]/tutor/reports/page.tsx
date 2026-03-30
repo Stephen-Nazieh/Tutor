@@ -301,7 +301,6 @@ export default function TutorReports() {
     }, 1000)
   }, [])
 
-
   // Fetch report data when selected class changes
   useEffect(() => {
     if (!selectedClassId) {
@@ -795,22 +794,18 @@ function CoursesAndClassesTab() {
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">
-                            {sessionItem.title}
-                          </p>
+                          <p className="text-sm font-semibold text-gray-900">{sessionItem.title}</p>
                           <p className="text-xs text-muted-foreground">{sessionItem.subject}</p>
                         </div>
-                        <Badge
-                          variant={
-                            isOngoing ? 'default' : isEnded ? 'secondary' : 'outline'
-                          }
-                        >
+                        <Badge variant={isOngoing ? 'default' : isEnded ? 'secondary' : 'outline'}>
                           {statusLabel}
                         </Badge>
                       </div>
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
                         <span>Scheduled: {formatDate(sessionItem.scheduledAt)}</span>
-                        {sessionItem.endedAt && <span>Ended: {formatDate(sessionItem.endedAt)}</span>}
+                        {sessionItem.endedAt && (
+                          <span>Ended: {formatDate(sessionItem.endedAt)}</span>
+                        )}
                       </div>
                     </div>
                   )

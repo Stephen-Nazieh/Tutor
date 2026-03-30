@@ -139,9 +139,7 @@ export function CourseBuilderInsightsRoute({
         {model.savedVariants.length > 0 && (
           <Card className="mb-8 w-full border border-emerald-200/50 bg-emerald-50/30 shadow-xl backdrop-blur-md">
             <CardHeader className="pb-2 pt-4">
-              <CardTitle className="text-sm text-foreground">
-                Adaptive Variant Join Links
-              </CardTitle>
+              <CardTitle className="text-sm text-foreground">Adaptive Variant Join Links</CardTitle>
               <CardDescription>
                 Share the correct link with students for each difficulty level.
               </CardDescription>

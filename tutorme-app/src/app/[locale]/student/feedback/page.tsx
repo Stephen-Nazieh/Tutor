@@ -47,11 +47,13 @@ interface SessionSummary {
 
 export default function StudentFeedbackPage() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      }
+    >
       <StudentFeedbackContent />
     </Suspense>
   )
@@ -61,7 +63,7 @@ function StudentFeedbackContent() {
   const { data: session } = useSession()
   const searchParams = useSearchParams()
   const sessionIdFromQuery = searchParams.get('sessionId')
-  
+
   const [sessions, setSessions] = useState<SessionSummary[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(sessionIdFromQuery)
@@ -72,9 +74,7 @@ function StudentFeedbackContent() {
   const [unseenTaskIds, setUnseenTaskIds] = useState<string[]>([])
   const [questionDrafts, setQuestionDrafts] = useState<Record<string, string>>({})
   const [chatInput, setChatInput] = useState('')
-  const [myBoardPages, setMyBoardPages] = useState<WhiteboardPage[]>(
-    createDefaultWhiteboardPages
-  )
+  const [myBoardPages, setMyBoardPages] = useState<WhiteboardPage[]>(createDefaultWhiteboardPages)
   const [myBoardPageIndex, setMyBoardPageIndex] = useState(0)
   const [tutorBoardPages, setTutorBoardPages] = useState<WhiteboardPage[]>(
     createDefaultWhiteboardPages
@@ -144,7 +144,8 @@ function StudentFeedbackContent() {
       if (parsed.my?.pages) setMyBoardPages(parsed.my.pages)
       if (typeof parsed.my?.pageIndex === 'number') setMyBoardPageIndex(parsed.my.pageIndex)
       if (parsed.tutor?.pages) setTutorBoardPages(parsed.tutor.pages)
-      if (typeof parsed.tutor?.pageIndex === 'number') setTutorBoardPageIndex(parsed.tutor.pageIndex)
+      if (typeof parsed.tutor?.pageIndex === 'number')
+        setTutorBoardPageIndex(parsed.tutor.pageIndex)
     } catch {
       // Ignore malformed cache.
     }
@@ -169,13 +170,7 @@ function StudentFeedbackContent() {
     return () => {
       if (saveBoardsTimeoutRef.current) clearTimeout(saveBoardsTimeoutRef.current)
     }
-  }, [
-    selectedSessionId,
-    myBoardPages,
-    myBoardPageIndex,
-    tutorBoardPages,
-    tutorBoardPageIndex,
-  ])
+  }, [selectedSessionId, myBoardPages, myBoardPageIndex, tutorBoardPages, tutorBoardPageIndex])
 
   useEffect(() => {
     if (!socket) return

@@ -649,22 +649,14 @@ function CourseCard({
 
       <CardFooter className="gap-2">
         {(isOngoing || isPending) && (
-          <Link
-            href={`/student/feedback`}
-            className="flex-1"
-            onClick={e => e.stopPropagation()}
-          >
+          <Link href={`/student/feedback`} className="flex-1" onClick={e => e.stopPropagation()}>
             <Button className="h-9 w-full" variant="default">
               {progressPercent > 0 ? 'Continue' : 'Enter Classroom'}
             </Button>
           </Link>
         )}
         {progress?.isCompleted && (
-          <Link
-            href={`/student/feedback`}
-            className="flex-1"
-            onClick={e => e.stopPropagation()}
-          >
+          <Link href={`/student/feedback`} className="flex-1" onClick={e => e.stopPropagation()}>
             <Button className="h-9 w-full" variant="outline">
               <Trophy className="mr-2 h-4 w-4 text-yellow-500" />
               View Results
