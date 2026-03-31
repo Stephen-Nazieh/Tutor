@@ -319,7 +319,6 @@ export default function StudentAccount() {
             <Card>
               <CardHeader>
                 <CardTitle>Profile & Identity</CardTitle>
-                <CardDescription>Manage your personal information and preferences</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Avatar */}
@@ -341,15 +340,24 @@ export default function StudentAccount() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <Label htmlFor="avatarUrl">Profile Photo</Label>
+                    <Label htmlFor="avatarUpload">Profile Photo</Label>
                     <Input
-                      id="avatarUrl"
-                      placeholder="https://example.com/avatar.jpg"
-                      value={formData.avatarUrl}
-                      onChange={e => setFormData({ ...formData, avatarUrl: e.target.value })}
+                      id="avatarUpload"
+                      type="file"
+                      accept="image/*"
+                      onChange={e => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          const reader = new FileReader()
+                          reader.onloadend = () => {
+                            setFormData({ ...formData, avatarUrl: reader.result as string })
+                          }
+                          reader.readAsDataURL(file)
+                        }
+                      }}
                       className="mt-1"
                     />
-                    <p className="mt-1 text-xs text-gray-500">Paste a direct link to an image</p>
+                    <p className="mt-1 text-xs text-gray-500">Upload a profile photo</p>
                   </div>
                 </div>
 

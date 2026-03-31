@@ -973,27 +973,6 @@ export default function TutorCoursePage() {
           <BackButton href={`/tutor/courses/${id}/builder`} />
         </div>
 
-        {/* Quick setup checklist - show when schedule is missing */}
-        {schedule.length === 0 && (
-          <Card className="border-2 border-gray-400 shadow-sm">
-            <CardHeader className="py-3">
-              <CardTitle className="text-sm font-medium">Quick setup</CardTitle>
-              <CardDescription className="text-xs">
-                Complete this to finish setting up your course.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="py-2">
-              <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">
-                <li>
-                  <a href="#course-schedule" className="text-primary underline">
-                    Add schedule (or populate from content/outline above)
-                  </a>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Course Details */}
         <Card className="border-2 border-gray-400 shadow-sm">
           <CardHeader>

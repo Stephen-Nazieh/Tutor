@@ -237,6 +237,20 @@ export default function TutorSettings() {
                   >
                     Payment history
                   </Button>
+                  <Button
+                    variant="outline"
+                    className="border-[#1D4ED8] text-[#1D4ED8] hover:bg-[#1D4ED8]/10"
+                    onClick={() => toast.message('Credit card management')}
+                  >
+                    Credit card
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-[#4FD1C5] text-[#1F2933] hover:bg-[#4FD1C5]/10"
+                    onClick={() => toast.message('Billing details')}
+                  >
+                    Billing
+                  </Button>
                 </div>
               </div>
 
