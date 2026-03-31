@@ -39,6 +39,7 @@ import {
   Legend,
 } from 'recharts'
 import { ClientOnly } from '@/components/common/ClientOnly'
+import { BackButton } from '@/components/navigation'
 
 // ---- Types ----
 
@@ -198,11 +199,7 @@ export default function TaskAnalyticsPage() {
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href={`/tutor/courses/${courseId}/builder`}>
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
+            <BackButton href={`/tutor/courses/${courseId}/tasks`} />
             <div>
               <h1 className="flex items-center gap-2 text-2xl font-bold">
                 <BarChart3 className="h-6 w-6 text-blue-500" />

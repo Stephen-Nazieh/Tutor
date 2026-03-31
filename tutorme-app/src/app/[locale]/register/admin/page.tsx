@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { BackButton } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,7 +18,6 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
 import {
-  ArrowLeft,
   Shield,
   Building2,
   Lock,
@@ -238,13 +238,7 @@ export default function AdminRegistrationPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-orange-950/20 to-slate-900 px-4 py-8">
       <div className="mx-auto max-w-2xl">
-        <Link
-          href="/register"
-          className="mb-6 inline-flex items-center text-sm text-slate-400 transition-colors hover:text-white"
-        >
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Back to Registration
-        </Link>
+        <BackButton href="/register" className="mb-6" />
 
         <div className="mb-8">
           <div className="mb-2 flex items-center gap-3">

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { BackButton } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,7 +18,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import {
-  ArrowLeft,
   GraduationCap,
   ShieldCheck,
   Globe,
@@ -2237,13 +2236,7 @@ export default function TutorRegistrationPage() {
   return (
     <div className="min-h-screen bg-white px-4 py-8">
       <div className="mx-auto max-w-4xl">
-        <Link
-          href="/register"
-          className="mb-4 inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
-        >
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Back to Registration
-        </Link>
+        <BackButton href="/register" className="mb-4" />
 
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#F17623]/10">

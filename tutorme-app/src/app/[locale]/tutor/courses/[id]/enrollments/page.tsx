@@ -5,7 +5,8 @@ import { useParams, usePathname, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, ArrowLeft, Users } from 'lucide-react'
+import { Loader2, Users } from 'lucide-react'
+import { BackButton } from '@/components/navigation'
 import { toast } from 'sonner'
 
 interface EnrollmentItem {
@@ -68,10 +69,7 @@ export default function TutorCourseEnrollmentsPage() {
             Track students currently enrolled in this course.
           </p>
         </div>
-        <Button variant="outline" onClick={() => router.push(coursePath)}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Course
-        </Button>
+        <BackButton href={coursePath} />
       </div>
 
       <Card>

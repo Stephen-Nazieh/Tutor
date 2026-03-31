@@ -27,6 +27,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { BackButton } from '@/components/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface Curriculum {
@@ -188,9 +189,7 @@ export default function BrowseTutorsPage() {
       <header className="border-b bg-white">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon" onClick={() => router.push('/student/ai-tutor')}>
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
+            <BackButton href="/student/ai-tutor" />
             <div>
               <h1 className="mb-2 text-3xl font-bold">Find an AI Tutor</h1>
               <p className="text-gray-600">

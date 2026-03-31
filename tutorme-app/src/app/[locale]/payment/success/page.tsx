@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CheckCircle } from 'lucide-react'
+import { BackButton } from '@/components/navigation'
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams()
@@ -14,8 +15,10 @@ function PaymentSuccessContent() {
 
   return (
     <div className="safe-top safe-bottom flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
+      <div className="w-full max-w-md">
+        <BackButton fallbackHref="/student/courses" className="mb-4" />
+        <Card>
+          <CardHeader>
           <div className="flex items-center gap-3">
             <div className="rounded-full bg-green-100 p-2">
               <CheckCircle className="h-10 w-10 text-green-600" />
@@ -56,7 +59,8 @@ function PaymentSuccessContent() {
             )}
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   )
 }

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Calendar } from '@/components/ui/calendar'
 import { toast } from 'sonner'
 import { Calendar as CalendarIcon, Clock, Video, AlertCircle, Check } from 'lucide-react'
+import { BackButton } from '@/components/navigation'
 
 export default function ScheduleSessionPage() {
   const router = useRouter()
@@ -100,16 +101,14 @@ export default function ScheduleSessionPage() {
       {/* Header */}
       <header className="border-b bg-white">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <BackButton href="/student/ai-tutor" />
             <div>
               <h1 className="text-2xl font-bold">Schedule Live Session</h1>
               <p className="text-gray-600">
                 Book a real-time tutoring session with your English AI Tutor
               </p>
             </div>
-            <Button variant="outline" onClick={() => router.push('/student/ai-tutor')}>
-              ← Back
-            </Button>
           </div>
         </div>
       </header>

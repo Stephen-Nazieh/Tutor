@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { BackButton } from '@/components/navigation'
 import { Button } from '@/components/ui/button'
 import { parentRegistrationSchema } from '@/lib/validation/user-registration'
 import { Input } from '@/components/ui/input'
@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
-import { ArrowLeft, UserPlus, Users, CreditCard, Bell, Eye, EyeOff } from 'lucide-react'
+import { UserPlus, Users, CreditCard, Bell, Eye, EyeOff } from 'lucide-react'
 
 interface StudentForm {
   name: string
@@ -377,13 +377,7 @@ export default function ParentRegistrationPage() {
       <div className="mx-auto max-w-3xl">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/register"
-            className="mb-4 inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            Back to Registration
-          </Link>
+          <BackButton href="/register" className="mb-4" />
           <h1 className="text-3xl font-bold text-[#1F2933]">Parent Registration</h1>
           <p className="mt-2 text-gray-600">
             Create an account to manage your children&apos;s learning journey

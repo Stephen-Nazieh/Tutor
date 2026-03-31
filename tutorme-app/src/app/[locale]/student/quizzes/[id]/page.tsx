@@ -20,8 +20,10 @@ import {
   RotateCcw,
   Loader2,
   Play,
+  ArrowLeft,
 } from 'lucide-react'
 import { QuizQuestion, QuestionResult } from '@/types/quiz'
+import { BackButton } from '@/components/navigation'
 
 export default function QuizTakingPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -271,6 +273,7 @@ export default function QuizTakingPage({ params }: { params: Promise<{ id: strin
                 className="flex-1"
                 onClick={() => router.push('/student/quizzes')}
               >
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Quizzes
               </Button>
               {quiz.canAttempt && (

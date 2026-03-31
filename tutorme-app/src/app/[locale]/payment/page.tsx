@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select'
 import { Loader2, CreditCard, ArrowLeft, Lock } from 'lucide-react'
 import { toast } from 'sonner'
+import { BackButton } from '@/components/navigation'
 
 type GatewayOption = 'HITPAY' | 'AIRWALLEX' | 'WECHAT_PAY' | 'ALIPAY'
 
@@ -143,12 +144,7 @@ export default function PaymentPage() {
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-12">
       <div className="mx-auto max-w-md">
-        <Button variant="ghost" className="mb-4" asChild>
-          <Link href={`/curriculum/${curriculumId}`}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Course
-          </Link>
-        </Button>
+        <BackButton fallbackHref="/student/dashboard" className="mb-4" />
 
         <Card>
           <CardHeader>

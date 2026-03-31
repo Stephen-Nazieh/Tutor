@@ -45,6 +45,7 @@ import {
   Dumbbell,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { BackButton } from '@/components/navigation'
 import { AIWhiteboard, extractWhiteboardItems } from '@/components/ai-tutor/ai-whiteboard'
 import { TopicSidebar } from '@/components/ai-tutor/topic-sidebar'
 import { TutorPreferences } from '@/components/ai-tutor/tutor-preferences'
@@ -1086,12 +1087,7 @@ export default function SubjectChatPage() {
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href={`/student/subjects/${subjectCode}`}>
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="mr-1 h-4 w-4" />
-                  Back
-                </Button>
-              </Link>
+              <BackButton href={`/student/subjects/${subjectCode}`} />
               <div className={`rounded-lg p-2 ${config.color} bg-white`}>{config.icon}</div>
               <div>
                 <h1 className="text-xl font-bold">{config.name} AI Tutor</h1>

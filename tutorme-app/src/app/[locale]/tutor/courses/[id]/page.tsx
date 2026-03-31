@@ -47,6 +47,7 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { BackButton } from '@/components/navigation'
 import type { ScheduleItem } from './constants'
 import { DAYS, TIME_SLOT_OPTIONS } from './constants'
 
@@ -969,12 +970,7 @@ export default function TutorCoursePage() {
       <div className="w-full space-y-6 p-4 sm:p-6">
         {/* Back to Course Builder */}
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" asChild className="gap-2">
-            <Link href={`/tutor/courses/${id}/builder`}>
-              <ArrowLeft className="h-4 w-4" />
-              Back to Course Builder
-            </Link>
-          </Button>
+          <BackButton href={`/tutor/courses/${id}/builder`} />
         </div>
 
         {/* Quick setup checklist - show when schedule is missing */}
