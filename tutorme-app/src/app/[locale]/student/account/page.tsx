@@ -33,6 +33,8 @@ import {
   Download,
   Check,
   AlertTriangle,
+  Pencil,
+  X,
 } from 'lucide-react'
 import Image from 'next/image'
 
@@ -323,16 +325,36 @@ export default function StudentAccount() {
               <CardContent className="space-y-6">
                 {/* Avatar */}
                 <div className="flex items-center gap-4">
-                  <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-full border-2 border-white bg-gray-200 shadow-sm">
+                  <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-full border-2 border-white bg-gray-200 shadow-sm">
                     {formData.avatarUrl ? (
-                      <Image
-                        src={formData.avatarUrl}
-                        alt="Avatar"
-                        width={80}
-                        height={80}
-                        unoptimized
-                        className="h-full w-full object-cover"
-                      />
+                      <>
+                        <Image
+                          src={formData.avatarUrl}
+                          alt="Avatar"
+                          width={80}
+                          height={80}
+                          unoptimized
+                          className="h-full w-full object-cover"
+                        />
+                        {/* Edit/Delete overlay */}
+                        <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/50 opacity-0 transition-opacity hover:opacity-100">
+                          <label
+                            htmlFor="avatarUpload"
+                            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/90 text-gray-700 transition-colors hover:bg-white"
+                            title="Change photo"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, avatarUrl: '' })}
+                            className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500/90 text-white transition-colors hover:bg-red-600"
+                            title="Delete photo"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </>
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-gray-100 text-2xl font-bold text-gray-400">
                         {formData.name.charAt(0).toUpperCase()}
@@ -357,7 +379,11 @@ export default function StudentAccount() {
                       }}
                       className="mt-1"
                     />
-                    <p className="mt-1 text-xs text-gray-500">Upload a profile photo</p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {formData.avatarUrl
+                        ? 'Click the image to edit or delete your photo'
+                        : 'Upload a profile photo'}
+                    </p>
                   </div>
                 </div>
 
