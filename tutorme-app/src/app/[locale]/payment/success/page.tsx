@@ -16,7 +16,7 @@ function PaymentSuccessContent() {
   return (
     <div className="safe-top safe-bottom flex min-h-screen items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md">
-        <BackButton fallbackHref="/student/courses" className="mb-4" />
+        <BackButton fallbackHref={isCourse ? '/student/courses' : '/student/classes'} className="mb-4" />
         <Card>
           <CardHeader>
           <div className="flex items-center gap-3">
