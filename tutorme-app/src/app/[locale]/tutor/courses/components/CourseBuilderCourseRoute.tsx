@@ -67,8 +67,9 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
             size="sm"
             className="shrink-0"
             onClick={() => {
-              if (typeof window !== 'undefined' && window.history.length > 1) {
-                model.router.back()
+              // Navigate to course page if we have a courseId, otherwise to dashboard
+              if (courseId) {
+                model.router.push(`/tutor/courses/${courseId}`)
               } else {
                 model.router.push('/tutor/dashboard')
               }

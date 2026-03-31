@@ -2896,23 +2896,63 @@ FEEDBACK: [your explanation]`
                 className="flex min-h-0 shrink-0 flex-col"
               >
                 <Card className="flex h-full min-h-0 flex-1 flex-col rounded-2xl border border-border bg-card shadow-xl ring-1 ring-black/5">
-                  {!lessonBankMode && (
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 gap-2 text-xs"
-                          onClick={() => setLeftPanelHidden(true)}
-                          title="Hide course panel"
-                        >
-                          <LayoutTemplate className="h-4 w-4" />
-                          Hide Panel
+                  <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden pt-3">
+                    {/* Header with Hide, Import, and +Lesson buttons */}
+                    <div className="mb-3 flex items-center justify-between">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => setLeftPanelHidden(true)}
+                        title="Hide panel"
+                        aria-label="Hide panel"
+                      >
+                        <ChevronLeftIcon className="h-4 w-4" />
+                      </Button>
+                      <div className="flex items-center gap-1">
+                        {!lessonBankMode && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              // Open lesson bank import
+                              const bankModules = loadLessonBankModules()
+                              if (bankModules.length === 0) {
+                                toast.error(
+                                  'No lesson bank content found. Build lessons in the Lesson Bank first.'
+                                )
+                                return
+                              }
+                              setLessonBankModules(bankModules)
+                              const firstLesson = bankModules[0]?.lessons?.[0]
+                              if (firstLesson) {
+                                setLessonBankLessonKey(`${bankModules[0].id}:${firstLesson.id}`)
+                              } else {
+                                setLessonBankLessonKey('')
+                              }
+
+                              // If no lessons exist, skip the lesson selector and open import modal directly
+                              // The import modal will handle auto-creating a lesson for task/assessment/homework imports
+                              if (modules.length === 0) {
+                                setImportTarget(null) // No specific target, will auto-create
+                                setLessonBankImportOpen(true)
+                              } else {
+                                setImportLessonSelectorOpen(true)
+                              }
+                            }}
+                            className="h-7 gap-1 px-2 text-xs"
+                          >
+                            <FolderOpen className="h-3 w-3" />
+                            Import
+                          </Button>
+                        )}
+                        <Button size="sm" onClick={addModule} className="h-7 gap-1 px-2 text-xs">
+                          <Plus className="h-3 w-3" />
+                          Lesson
                         </Button>
                       </div>
-                    </CardHeader>
-                  )}
-                  <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden pt-0">
+                    </div>
+
                     <ScrollArea className="min-h-0 flex-1">
                       <DndContext
                         sensors={sensors}
@@ -2921,74 +2961,6 @@ FEEDBACK: [your explanation]`
                         onDragEnd={handleDragEnd}
                       >
                         <div className="space-y-1">
-                          {/* Course Root */}
-                          <div className="mb-2 flex items-center justify-between border-b py-2 text-sm font-semibold">
-                            <div className="flex items-center gap-2">
-                              {!lessonBankMode && (
-                                <GraduationCap className="h-4 w-4 text-blue-600" />
-                              )}
-                              {!lessonBankMode && !insightsProps && (
-                                <span className="truncate">{courseName || 'Course'}</span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              {!lessonBankMode && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => {
-                                    // Open lesson bank import
-                                    const bankModules = loadLessonBankModules()
-                                    if (bankModules.length === 0) {
-                                      toast.error(
-                                        'No lesson bank content found. Build lessons in the Lesson Bank first.'
-                                      )
-                                      return
-                                    }
-                                    setLessonBankModules(bankModules)
-                                    const firstLesson = bankModules[0]?.lessons?.[0]
-                                    if (firstLesson) {
-                                      setLessonBankLessonKey(
-                                        `${bankModules[0].id}:${firstLesson.id}`
-                                      )
-                                    } else {
-                                      setLessonBankLessonKey('')
-                                    }
-
-                                    // If no lessons exist, skip the lesson selector and open import modal directly
-                                    // The import modal will handle auto-creating a lesson for task/assessment/homework imports
-                                    if (modules.length === 0) {
-                                      setImportTarget(null) // No specific target, will auto-create
-                                      setLessonBankImportOpen(true)
-                                    } else {
-                                      setImportLessonSelectorOpen(true)
-                                    }
-                                  }}
-                                  className="h-6 gap-1 text-xs"
-                                >
-                                  <FolderOpen className="h-3 w-3" />
-                                  Import
-                                </Button>
-                              )}
-                              <Button size="sm" onClick={addModule} className="h-6 gap-1 text-xs">
-                                <Plus className="h-3 w-3" />
-                                Lesson
-                              </Button>
-                              {lessonBankMode && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6"
-                                  onClick={() => setLeftPanelHidden(true)}
-                                  title="Hide panel"
-                                  aria-label="Hide panel"
-                                >
-                                  <ChevronLeftIcon className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-
                           {/* Lessons (formerly modules) - with drag sorting */}
                           <SortableContext
                             items={modules.map(m => m.id)}
