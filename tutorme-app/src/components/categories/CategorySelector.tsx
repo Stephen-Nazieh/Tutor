@@ -9,6 +9,13 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   REGIONS,
   GLOBAL_EXAM_CATEGORIES,
   OTHER_COUNTRY,
@@ -34,7 +41,8 @@ export function CategorySelector({
   className,
   maxHeight = '400px',
 }: CategorySelectorProps) {
-  const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
+  const [examType, setExamType] = useState<'global' | 'national'>('global')
+  const [selectedRegion, setSelectedRegion] = useState<string>('')
 
   // Get available countries based on region selection
   const availableCountries = useMemo(() => {
@@ -47,6 +55,27 @@ export function CategorySelector({
   const { global: globalCategories, national: nationalCategories } = useMemo(() => {
     return getCategoriesForCountry(selectedCountry)
   }, [selectedCountry])
+
+  // Handle region change
+  const handleRegionChange = (regionId: string) => {
+    setSelectedRegion(regionId)
+    onCountryChange(null)
+  }
+
+  // Handle country change
+  const handleCountryChange = (countryCode: string) => {
+    onCountryChange(countryCode)
+  }
+
+  // Handle exam type change
+  const handleExamTypeChange = (type: 'global' | 'national') => {
+    setExamType(type)
+    if (type === 'global') {
+      // Clear country selection when switching to global
+      onCountryChange(null)
+      setSelectedRegion('')
+    }
+  }
 
   // Toggle category selection
   const toggleCategory = (category: string) => {
@@ -77,55 +106,84 @@ export function CategorySelector({
     <div
       className={cn('w-full overflow-hidden rounded-lg border border-gray-200 bg-white', className)}
     >
-      {/* Header with Region and Country Selection */}
+      {/* Header with Exam Type Selection */}
       <div className="space-y-4 border-b border-gray-200 bg-gray-50 p-4">
-        {/* Region Selection */}
+        {/* Exam Type Selection - First Step */}
         <div className="space-y-2">
-          <Label className="flex items-center gap-2 text-sm font-medium">
-            <Globe className="h-4 w-4 text-[#4FD1C5]" />
-            Select Region
-          </Label>
-          <div className="flex flex-wrap gap-2">
-            {REGIONS.map(region => (
-              <Button
-                key={region.id}
-                variant={selectedRegion === region.id ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  setSelectedRegion(region.id)
-                  onCountryChange(null)
-                }}
-                className={cn(selectedRegion === region.id && 'bg-[#1D4ED8] hover:bg-[#1e40af]')}
-              >
-                {region.name}
-              </Button>
-            ))}
+          <Label className="text-sm font-medium text-gray-700">Exam Type</Label>
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant={examType === 'global' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleExamTypeChange('global')}
+              className={cn('flex-1', examType === 'global' && 'bg-[#1D4ED8] hover:bg-[#1e40af]')}
+            >
+              <Globe className="mr-2 h-4 w-4" />
+              Global Exams
+            </Button>
+            <Button
+              type="button"
+              variant={examType === 'national' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleExamTypeChange('national')}
+              className={cn('flex-1', examType === 'national' && 'bg-[#F17623] hover:bg-[#e06613]')}
+            >
+              <MapPin className="mr-2 h-4 w-4" />
+              National Exams
+            </Button>
           </div>
         </div>
 
-        {/* Country Selection */}
-        {selectedRegion && (
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2 text-sm font-medium">
-              <MapPin className="h-4 w-4 text-[#F17623]" />
-              Select Country
-            </Label>
-            <div className="flex flex-wrap gap-2">
-              {availableCountries.map(country => (
-                <Button
-                  key={country.code}
-                  variant={selectedCountry === country.code ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() =>
-                    onCountryChange(country.code === selectedCountry ? null : country.code)
-                  }
-                  className={cn(
-                    selectedCountry === country.code && 'bg-[#F17623] hover:bg-[#e06613]'
-                  )}
-                >
-                  {country.name}
-                </Button>
-              ))}
+        {/* National Exam Selection - Region and Country Dropdowns */}
+        {examType === 'national' && (
+          <div className="space-y-3 border-t border-gray-200 pt-3">
+            <Label className="text-sm font-medium text-gray-700">Location Selection</Label>
+
+            {/* Region Dropdown */}
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-2 text-xs text-gray-500">
+                <Globe className="h-3.5 w-3.5 text-[#4FD1C5]" />
+                Region
+              </Label>
+              <Select value={selectedRegion} onValueChange={handleRegionChange}>
+                <SelectTrigger className="bg-white">
+                  <SelectValue placeholder="Select a region" />
+                </SelectTrigger>
+                <SelectContent>
+                  {REGIONS.map(region => (
+                    <SelectItem key={region.id} value={region.id}>
+                      {region.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Country Dropdown */}
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-2 text-xs text-gray-500">
+                <MapPin className="h-3.5 w-3.5 text-[#F17623]" />
+                Country
+              </Label>
+              <Select
+                value={selectedCountry || ''}
+                onValueChange={handleCountryChange}
+                disabled={!selectedRegion}
+              >
+                <SelectTrigger className="bg-white">
+                  <SelectValue
+                    placeholder={selectedRegion ? 'Select a country' : 'Select region first'}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableCountries.map(country => (
+                    <SelectItem key={country.code} value={country.code}>
+                      {country.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         )}
@@ -142,30 +200,17 @@ export function CategorySelector({
         )}
       </div>
 
-      {/* Categories Tabs */}
-      <Tabs defaultValue="global" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 rounded-none border-b">
-          <TabsTrigger value="global" className="flex items-center gap-2">
-            <Globe className="h-4 w-4" />
-            Global Exams
-          </TabsTrigger>
-          <TabsTrigger
-            value="national"
-            className="flex items-center gap-2"
-            disabled={!selectedCountry || selectedCountry === 'OTHER'}
-          >
-            <GraduationCap className="h-4 w-4" />
-            National
-            {selectedCountry && selectedCountry !== 'OTHER' && (
-              <Badge variant="secondary" className="ml-1 text-xs">
-                {getCategoriesForCountry(selectedCountry).national.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Global Exams Tab */}
-        <TabsContent value="global" className="m-0">
+      {/* Categories Display */}
+      {examType === 'global' ? (
+        /* Global Exams Display */
+        <div className="m-0">
+          <div className="flex items-center gap-2 border-b bg-gray-50/50 px-4 py-3">
+            <Globe className="h-4 w-4 text-[#1D4ED8]" />
+            <span className="font-medium text-gray-700">Global Exams</span>
+            <Badge variant="secondary" className="ml-auto text-xs">
+              {globalCategories.reduce((acc, cat) => acc + cat.exams.length, 0)} exams
+            </Badge>
+          </div>
           <ScrollArea className="h-[400px]" style={{ maxHeight }}>
             <div className="space-y-6 p-4">
               {globalCategories.map(category => (
@@ -180,17 +225,34 @@ export function CategorySelector({
               ))}
             </div>
           </ScrollArea>
-        </TabsContent>
-
-        {/* National Exams Tab */}
-        <TabsContent value="national" className="m-0">
+        </div>
+      ) : (
+        /* National Exams Display */
+        <div className="m-0">
+          <div className="flex items-center gap-2 border-b bg-gray-50/50 px-4 py-3">
+            <GraduationCap className="h-4 w-4 text-[#F17623]" />
+            <span className="font-medium text-gray-700">National Exams</span>
+            {selectedCountry && selectedCountry !== 'OTHER' && (
+              <Badge variant="secondary" className="ml-auto text-xs">
+                {nationalCategories.reduce((acc, cat) => acc + cat.exams.length, 0)} exams
+              </Badge>
+            )}
+          </div>
           <ScrollArea className="h-[400px]" style={{ maxHeight }}>
             <div className="space-y-6 p-4">
-              {nationalCategories.length === 0 ? (
+              {!selectedCountry || selectedCountry === 'OTHER' ? (
+                <div className="py-8 text-center text-gray-500">
+                  <MapPin className="mx-auto mb-3 h-12 w-12 text-gray-300" />
+                  <p>
+                    {selectedCountry === 'OTHER'
+                      ? 'Please select a specific country to view national exams.'
+                      : 'Please select a region and country to view national exams.'}
+                  </p>
+                </div>
+              ) : nationalCategories.length === 0 ? (
                 <div className="py-8 text-center text-gray-500">
                   <GraduationCap className="mx-auto mb-3 h-12 w-12 text-gray-300" />
                   <p>No national exams available for the selected country.</p>
-                  <p className="mt-1 text-sm">Select Global Exams instead.</p>
                 </div>
               ) : (
                 nationalCategories.map(category => (
@@ -206,8 +268,8 @@ export function CategorySelector({
               )}
             </div>
           </ScrollArea>
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   )
 }
@@ -245,6 +307,7 @@ function ExamCategorySection({
         </div>
         <div className="flex items-center gap-1">
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             onClick={onSelectAll}
@@ -253,6 +316,7 @@ function ExamCategorySection({
             All
           </Button>
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             onClick={onClearAll}
