@@ -3059,11 +3059,11 @@ FEEDBACK: [your explanation]`
                                     {expandedModules.has(module.id) && (
                                       <div className="mt-1 space-y-1">
                                         {/* Tasks - droppable so homework can be moved here */}
-                                        <TreeItem depth={2} isLast={false}>
+                                        <TreeItem depth={1} isLast={false}>
                                           <DroppableTaskZone
                                             moduleId={module.id}
                                             lessonId={primaryLesson.id}
-                                            className="flex w-full items-center gap-1.5 rounded-lg border-b-4 border-orange-600 bg-gradient-to-r from-orange-400 to-orange-500 px-3 py-1.5 shadow-md transition-all active:translate-y-1 active:border-b-0"
+                                            className="flex w-full items-center gap-1.5 rounded-lg border-b-4 border-blue-600 bg-gradient-to-r from-blue-400 to-blue-500 px-3 py-1 shadow-md transition-all active:translate-y-1 active:border-b-0"
                                           >
                                             <Button
                                               variant="ghost"
@@ -3088,7 +3088,7 @@ FEEDBACK: [your explanation]`
                                             <Button
                                               variant="secondary"
                                               size="sm"
-                                              className="ml-auto h-6 gap-1 px-2 text-[10px] font-bold text-orange-600 shadow-sm hover:bg-orange-50"
+                                              className="ml-auto h-6 gap-1 px-2 text-[10px] font-bold text-blue-600 shadow-sm hover:bg-blue-50"
                                               onClick={() => addTask(module.id, primaryLesson.id)}
                                             >
                                               <Plus className="h-3 w-3" />
@@ -3417,11 +3417,11 @@ FEEDBACK: [your explanation]`
                                         )}
 
                                         {/* Assessments - droppable so homework can be moved here */}
-                                        <TreeItem depth={2} isLast={false}>
+                                        <TreeItem depth={1} isLast={false}>
                                           <DroppableAssessmentZone
                                             moduleId={module.id}
                                             lessonId={primaryLesson.id}
-                                            className="flex w-full items-center gap-1.5 rounded-lg border-b-4 border-purple-600 bg-gradient-to-r from-purple-400 to-purple-500 px-3 py-1.5 shadow-md transition-all active:translate-y-1 active:border-b-0"
+                                            className="flex w-full items-center gap-1.5 rounded-lg border-b-4 border-indigo-600 bg-gradient-to-r from-indigo-400 to-indigo-500 px-3 py-1 shadow-md transition-all active:translate-y-1 active:border-b-0"
                                           >
                                             <Button
                                               variant="ghost"
@@ -3446,7 +3446,7 @@ FEEDBACK: [your explanation]`
                                             <Button
                                               variant="secondary"
                                               size="sm"
-                                              className="ml-auto h-6 gap-1 px-2 text-[10px] font-bold text-purple-600 shadow-sm hover:bg-purple-50"
+                                              className="ml-auto h-6 gap-1 px-2 text-[10px] font-bold text-indigo-600 shadow-sm hover:bg-indigo-50"
                                               onClick={() =>
                                                 addAssessment(module.id, primaryLesson.id)
                                               }
