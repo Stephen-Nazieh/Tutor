@@ -52,9 +52,20 @@ export function BackButton({
 
   if (href) {
     return (
-      <Link href={href} className="inline-flex">
-        {buttonContent}
-      </Link>
+      <Button
+        variant={variant}
+        size={size}
+        asChild
+        className={cn(
+          'h-9 w-9 rounded-full p-0 transition-colors hover:bg-gray-100',
+          className
+        )}
+        aria-label="Go back"
+      >
+        <Link href={href} className="inline-flex">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+      </Button>
     )
   }
 
