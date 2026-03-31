@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
 import { ArrowLeft, CheckCircle, ChevronDown, ChevronUp, Copy, Pencil, Share2 } from 'lucide-react'
 import { DEFAULT_LOCALE } from '@/lib/i18n/config'
+import { LANDING_CATEGORIES } from '@/lib/data/landing-categories'
 
 const SUBJECTS = [
   { value: 'math', label: 'Mathematics' },
@@ -37,15 +38,8 @@ const SUBJECTS = [
   { value: 'cs', label: 'Computer Science' },
 ]
 
-const DEFAULT_CATEGORIES = [
-  'Exam prep',
-  'Homework help',
-  'Foundations',
-  'Advanced',
-  'Projects',
-  'Study skills',
-  'Test strategies',
-] as const
+// Use unique category names from landing categories
+const DEFAULT_CATEGORIES = Array.from(new Set(LANDING_CATEGORIES.map(c => c.category))) as string[]
 
 export default function TutorMyPage() {
   const params = useParams<{ locale?: string }>()

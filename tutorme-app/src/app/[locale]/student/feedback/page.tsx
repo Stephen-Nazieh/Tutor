@@ -256,34 +256,8 @@ function StudentFeedbackContent() {
           </Button>
           <div className="h-6 w-px bg-gray-200" />
           <div className="flex flex-1 flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <div>
-                <h1 className="text-lg font-semibold text-gray-900">Live Classroom</h1>
-                <p className="text-xs text-gray-500">Feedback and tasks update in real time.</p>
-              </div>
-              <div className="min-w-[220px]">
-                <Select
-                  value={selectedSessionId ?? undefined}
-                  onValueChange={value => setSelectedSessionId(value)}
-                  disabled={sessionsLoading || sessions.length === 0}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select live class" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sessions.map(sessionItem => (
-                      <SelectItem key={sessionItem.id} value={sessionItem.id}>
-                        {sessionItem.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {selectedSessionId && sessions.length > 0 && (
-                <Badge variant="secondary" className="text-xs">
-                  {sessions.find(item => item.id === selectedSessionId)?.subject || 'Live Session'}
-                </Badge>
-              )}
+            <div className="flex flex-1 items-center justify-center">
+              <h1 className="text-lg font-semibold text-gray-900">Live Classroom</h1>
             </div>
             <div className="flex items-center gap-2">
               <Button
