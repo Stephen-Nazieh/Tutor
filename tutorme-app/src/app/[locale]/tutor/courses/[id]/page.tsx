@@ -48,6 +48,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { BackButton } from '@/components/navigation'
+import { CategorySelector } from '@/components/categories'
 import type { ScheduleItem } from './constants'
 import { DAYS, TIME_SLOT_OPTIONS } from './constants'
 
@@ -414,6 +415,7 @@ export default function TutorCoursePage() {
     categories?: string[]
   } | null>(null)
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null)
   const [scheduleSummary, setScheduleSummary] = useState<ScheduleItem[]>([])
   const [scheduleWeekOffset, setScheduleWeekOffset] = useState(0)
   const [scheduleRepeatWeekly, setScheduleRepeatWeekly] = useState(false)
@@ -973,27 +975,6 @@ export default function TutorCoursePage() {
           <BackButton href={`/tutor/courses/${id}/builder`} />
         </div>
 
-        {/* Quick setup checklist - show when schedule is missing */}
-        {schedule.length === 0 && (
-          <Card className="border-2 border-gray-400 shadow-sm">
-            <CardHeader className="py-3">
-              <CardTitle className="text-sm font-medium">Quick setup</CardTitle>
-              <CardDescription className="text-xs">
-                Complete this to finish setting up your course.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="py-2">
-              <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">
-                <li>
-                  <a href="#course-schedule" className="text-primary underline">
-                    Add schedule (or populate from content/outline above)
-                  </a>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Course Details */}
         <Card className="border-2 border-gray-400 shadow-sm">
           <CardHeader>
@@ -1047,114 +1028,12 @@ export default function TutorCoursePage() {
 
             <div className="space-y-2">
               <Label>Categories</Label>
-              <Card className="border-2 border-gray-400 shadow-sm">
-                <CardContent className="pt-4">
-                  <div className="mb-4 flex flex-wrap gap-2">
-                    {selectedCategories.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No categories selected</p>
-                    ) : (
-                      selectedCategories.map(cat => (
-                        <Badge
-                          key={cat}
-                          variant="secondary"
-                          className="cursor-pointer bg-[#4FD1C5]/20 pr-1 text-[#1F2933] hover:bg-[#4FD1C5]/30"
-                        >
-                          {cat}
-                          <button
-                            onClick={() => toggleCategory(cat)}
-                            className="ml-1 rounded-full p-0.5 hover:bg-red-100"
-                            type="button"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
-                      ))
-                    )}
-                  </div>
-                  <Select
-                    onValueChange={value => {
-                      if (!selectedCategories.includes(value)) {
-                        setSelectedCategories([...selectedCategories, value])
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Add a category..." />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-80">
-                      <ScrollArea className="h-80">
-                        <div className="p-2">
-                          <p className="mb-2 text-xs font-semibold text-muted-foreground">
-                            Global Exams
-                          </p>
-                          {GLOBAL_EXAMS_CATEGORIES.map(cat => (
-                            <div key={cat.id} className="mb-2">
-                              <p className="ml-2 text-xs text-muted-foreground">{cat.label}</p>
-                              {cat.exams.map(exam => (
-                                <SelectItem key={exam} value={exam}>
-                                  {exam}
-                                </SelectItem>
-                              ))}
-                            </div>
-                          ))}
-                          <p className="mb-2 mt-4 text-xs font-semibold text-muted-foreground">
-                            AP
-                          </p>
-                          {AP_CATEGORIES.map(cat => (
-                            <div key={cat.id} className="mb-2">
-                              <p className="ml-2 text-xs text-muted-foreground">{cat.label}</p>
-                              {cat.exams.map(exam => (
-                                <SelectItem key={exam} value={exam}>
-                                  {exam}
-                                </SelectItem>
-                              ))}
-                            </div>
-                          ))}
-                          <p className="mb-2 mt-4 text-xs font-semibold text-muted-foreground">
-                            A Level
-                          </p>
-                          {A_LEVEL_CATEGORIES.map(cat => (
-                            <div key={cat.id} className="mb-2">
-                              <p className="ml-2 text-xs text-muted-foreground">{cat.label}</p>
-                              {cat.exams.map(exam => (
-                                <SelectItem key={exam} value={exam}>
-                                  {exam}
-                                </SelectItem>
-                              ))}
-                            </div>
-                          ))}
-                          <p className="mb-2 mt-4 text-xs font-semibold text-muted-foreground">
-                            IB
-                          </p>
-                          {IB_CATEGORIES.map(cat => (
-                            <div key={cat.id} className="mb-2">
-                              <p className="ml-2 text-xs text-muted-foreground">{cat.label}</p>
-                              {cat.exams.map(exam => (
-                                <SelectItem key={exam} value={exam}>
-                                  {exam}
-                                </SelectItem>
-                              ))}
-                            </div>
-                          ))}
-                          <p className="mb-2 mt-4 text-xs font-semibold text-muted-foreground">
-                            IGCSE
-                          </p>
-                          {IGCSE_CATEGORIES.map(cat => (
-                            <div key={cat.id} className="mb-2">
-                              <p className="ml-2 text-xs text-muted-foreground">{cat.label}</p>
-                              {cat.exams.map(exam => (
-                                <SelectItem key={exam} value={exam}>
-                                  {exam}
-                                </SelectItem>
-                              ))}
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </SelectContent>
-                  </Select>
-                </CardContent>
-              </Card>
+              <CategorySelector
+                selectedCountry={selectedCountry}
+                selectedCategories={selectedCategories}
+                onCountryChange={setSelectedCountry}
+                onCategoriesChange={setSelectedCategories}
+              />
             </div>
 
             {/* Pricing Section - Combined with Course Details */}
