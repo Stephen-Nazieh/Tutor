@@ -179,8 +179,8 @@ export function DashboardCalendar({
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="classes" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
-              <span className="hidden sm:inline">Classes</span>
-              <span className="sm:hidden">Classes</span>
+              <span className="hidden sm:inline">Sessions</span>
+              <span className="sm:hidden">Sessions</span>
             </TabsTrigger>
             <TabsTrigger value="calendar" className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4" />
