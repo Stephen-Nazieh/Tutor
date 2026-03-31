@@ -24,6 +24,8 @@ interface ScheduleSlot {
   durationMinutes?: number
 }
 
+import { BackButton } from '@/components/navigation'
+
 interface CurriculumDetails {
   id: string
   name: string
@@ -106,10 +108,17 @@ export default function CourseDetailsPage() {
       .join(' · ')
   }
 
+  const backUrl = `/student/subjects/${encodeURIComponent(subjectCode)}/courses`
+
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      <div className="min-h-screen bg-gray-50">
+        <div className="mx-auto max-w-3xl p-4 sm:p-6">
+          <BackButton href={backUrl} className="mb-4" />
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+          </div>
+        </div>
       </div>
     )
   }

@@ -16,7 +16,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { ArrowLeft, BookOpen, Loader2 } from 'lucide-react'
+import { BookOpen, Loader2 } from 'lucide-react'
+import { BackButton } from '@/components/navigation'
 
 const DESCRIPTION_LIMIT = 500
 
@@ -79,12 +80,7 @@ export default function CreateCoursePage() {
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-8">
       <div className="mx-auto max-w-3xl">
-        <Button variant="ghost" className="mb-4" asChild>
-          <Link href="/tutor/my-page">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to My Page
-          </Link>
-        </Button>
+        <BackButton href="/tutor/my-page" className="mb-4" />
 
         <Card>
           <CardHeader>

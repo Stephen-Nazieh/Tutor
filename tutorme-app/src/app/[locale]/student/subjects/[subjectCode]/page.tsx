@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { UserNav } from '@/components/user-nav'
+import { StudentBackButton } from '@/components/navigation'
 import {
   BookOpen,
   ArrowLeft,
@@ -277,12 +278,7 @@ export default function SubjectDetailPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/student/dashboard">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="mr-1 h-4 w-4" />
-                  Back
-                </Button>
-              </Link>
+              <StudentBackButton />
               <div className="flex items-center gap-3">
                 <div className={`rounded-lg p-2 text-white ${colors.bg}`}>{getSubjectIcon()}</div>
                 <div>

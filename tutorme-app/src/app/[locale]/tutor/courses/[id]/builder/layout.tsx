@@ -54,6 +54,7 @@ import { useTutorCourses } from '@/hooks/use-course-assignments'
 import { AssignCourseModal } from '../../components/AssignCourseModal'
 import type { CourseGroupAssignment } from '@/types/course-assignment'
 import { PublishStatusBadge } from '@/components/tutor/PublishButton'
+import { BackButton } from '@/components/navigation'
 
 interface BuilderNavItem {
   id: string
@@ -666,6 +667,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
       <header className="sticky top-0 z-50 border-b bg-white">
         <div className="flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-4">
+            <BackButton href={`/tutor/courses/${courseId}`} />
             <h1
               className="max-w-[200px] truncate font-semibold text-gray-900"
               title={course?.name || ''}

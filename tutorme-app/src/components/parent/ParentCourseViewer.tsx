@@ -9,7 +9,8 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { BookOpen, Clock, User, ChevronRight, ArrowLeft, GraduationCap } from 'lucide-react'
+import { BookOpen, Clock, User, ChevronRight, GraduationCap } from 'lucide-react'
+import { BackButton } from '@/components/navigation'
 
 export interface CourseShareData {
   shareId: string
@@ -73,12 +74,7 @@ export function ParentCourseViewer({ course }: ParentCourseViewerProps) {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <Link href="/parent/dashboard">
-            <Button variant="ghost" size="sm" className="-ml-2 mb-4">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
-            </Button>
-          </Link>
+          <BackButton href="/parent/dashboard" className="mb-4" />
           <h1 className="text-2xl font-bold text-gray-900">{course.name}</h1>
           <p className="mt-1 text-gray-500">{course.description ?? 'No description'}</p>
         </div>

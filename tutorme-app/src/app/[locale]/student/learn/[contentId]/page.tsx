@@ -9,8 +9,9 @@ import { NotesSidebar } from '@/components/video-player/notes-sidebar'
 import { InlineQuizOverlay, type QuizQuestion } from '@/components/video-player/inline-quiz-overlay'
 import { AIChat } from '@/components/ai-chat'
 import { UserNav } from '@/components/user-nav'
-import { ChevronLeft, AlertCircle, Bookmark } from 'lucide-react'
+import { ArrowLeft, AlertCircle, Bookmark } from 'lucide-react'
 import Link from 'next/link'
+import { BackButton } from '@/components/navigation'
 
 interface QuizCheckpoint {
   id: string
@@ -197,11 +198,7 @@ export default function LearnPage() {
       <header className="safe-top sticky top-0 z-40 border-b bg-white">
         <div className="container mx-auto flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/student/dashboard">
-              <Button variant="ghost" size="icon">
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-            </Link>
+            <BackButton href="/student/dashboard" />
             <div>
               <h1 className="text-xl font-bold">{content.topic}</h1>
               <p className="text-sm text-gray-600">{content.subject}</p>

@@ -13,9 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowLeft, BookOpen, Loader2, FileText, GraduationCap, Users } from 'lucide-react'
+import { BookOpen, Loader2, FileText, GraduationCap, Users } from 'lucide-react'
 import { TutorList } from './components/TutorList'
 import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
+import { BackButton } from '@/components/navigation'
 
 interface CurriculumListItem {
   id: string
@@ -95,13 +96,7 @@ export default function SubjectCoursesPage() {
     <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
       <div className="mx-auto max-w-3xl p-4 sm:p-6">
         <div className="mb-6 flex items-center justify-between">
-          <Link
-            href={signupUrl}
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to signup
-          </Link>
+          <BackButton href={signupUrl} />
           {/* Theme Selector */}
           <Select value={themeId} onValueChange={setThemeId}>
             <SelectTrigger className="h-8 w-[160px] border-border bg-card text-xs text-foreground">

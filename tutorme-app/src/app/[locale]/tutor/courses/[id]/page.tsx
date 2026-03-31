@@ -47,6 +47,7 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { BackButton } from '@/components/navigation'
 import type { ScheduleItem } from './constants'
 import { DAYS, TIME_SLOT_OPTIONS } from './constants'
 
@@ -969,12 +970,7 @@ export default function TutorCoursePage() {
       <div className="w-full space-y-6 p-4 sm:p-6">
         {/* Back to Course Builder */}
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" asChild className="gap-2">
-            <Link href={`/tutor/courses/${id}/builder`}>
-              <ArrowLeft className="h-4 w-4" />
-              Back to Course Builder
-            </Link>
-          </Button>
+          <BackButton href={`/tutor/courses/${id}/builder`} />
         </div>
 
         {/* Quick setup checklist - show when schedule is missing */}
@@ -1160,68 +1156,66 @@ export default function TutorCoursePage() {
                 </CardContent>
               </Card>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Pricing */}
-        <Card className="border-2 border-gray-400 shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
-              Cost per 1 hour session
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between rounded-lg border bg-muted/30 p-3">
-              <div>
-                <Label htmlFor="isFree" className="text-sm font-medium">
-                  Free course
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Students can enroll without payment.
-                </p>
+            {/* Pricing Section - Combined with Course Details */}
+            <div className="border-t pt-6">
+              <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+                <DollarSign className="h-5 w-5" />
+                Pricing
+              </h3>
+              <div className="space-y-6">
+                <div className="flex items-center justify-between rounded-lg border bg-muted/30 p-3">
+                  <div>
+                    <Label htmlFor="isFree" className="text-sm font-medium">
+                      Free course
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Students can enroll without payment.
+                    </p>
+                  </div>
+                  <Switch
+                    id="isFree"
+                    checked={isFree}
+                    onCheckedChange={checked => {
+                      setIsFree(checked)
+                      if (checked) setPrice('')
+                    }}
+                  />
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Cost per 1 hour session</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={price}
+                      onChange={e => setPrice(e.target.value)}
+                      placeholder="$"
+                      disabled={isFree}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="currency">Currency</Label>
+                    <Input id="currency" value="USD" disabled className="bg-muted" />
+                  </div>
+                </div>
+                {!isFree && price && Number(price) > 0 && (
+                  <div className="rounded-lg border bg-muted/30 p-3">
+                    <p className="text-sm">
+                      <span className="font-medium">Cost per session:</span> USD{' '}
+                      {Number(price).toFixed(2)}
+                    </p>
+                  </div>
+                )}
+                {isFree && (
+                  <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+                    This course will be listed as free.
+                  </div>
+                )}
               </div>
-              <Switch
-                id="isFree"
-                checked={isFree}
-                onCheckedChange={checked => {
-                  setIsFree(checked)
-                  if (checked) setPrice('')
-                }}
-              />
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="price">Cost per 1 hour session</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={price}
-                  onChange={e => setPrice(e.target.value)}
-                  placeholder="$"
-                  disabled={isFree}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="currency">Currency</Label>
-                <Input id="currency" value="USD" disabled className="bg-muted" />
-              </div>
-            </div>
-            {!isFree && price && Number(price) > 0 && (
-              <div className="rounded-lg border bg-muted/30 p-3">
-                <p className="text-sm">
-                  <span className="font-medium">Cost per session:</span> USD{' '}
-                  {Number(price).toFixed(2)}
-                </p>
-              </div>
-            )}
-            {isFree && (
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-                This course will be listed as free.
-              </div>
-            )}
           </CardContent>
         </Card>
 

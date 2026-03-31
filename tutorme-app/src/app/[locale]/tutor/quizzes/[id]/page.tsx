@@ -39,6 +39,7 @@ import {
 } from 'lucide-react'
 import { Quiz, QuizQuestion, QuizType, QuestionType } from '@/types/quiz'
 import { QuestionEditor } from '@/components/course-builder/QuestionEditor'
+import { BackButton } from '@/components/navigation'
 
 const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
   { value: 'multiple_choice', label: 'Multiple Choice' },
@@ -209,9 +210,7 @@ export default function QuizBuilderPage({ params }: { params: Promise<{ id: stri
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => router.push('/tutor/quizzes')}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
+              <BackButton href="/tutor/quizzes" />
               <div>
                 <h1 className="text-xl font-semibold">{formData.title || 'Untitled Quiz'}</h1>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -16,8 +16,9 @@ import {
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
-import { ArrowLeft, BookOpen, Eye, EyeOff } from 'lucide-react'
+import { BookOpen, Eye, EyeOff } from 'lucide-react'
 import { REGIONS } from '@/lib/tutoring/categories-new'
+import { BackButton } from '@/components/navigation'
 
 export default function StudentRegistrationPage() {
   const router = useRouter()
@@ -149,13 +150,7 @@ export default function StudentRegistrationPage() {
   return (
     <div className="min-h-screen bg-white px-4 py-8">
       <div className="mx-auto max-w-lg">
-        <Link
-          href="/register"
-          className="mb-4 inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
-        >
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Back to Registration
-        </Link>
+        <BackButton href="/register" className="mb-4" />
 
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#4FD1C5]/20">

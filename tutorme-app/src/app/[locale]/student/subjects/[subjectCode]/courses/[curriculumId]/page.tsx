@@ -5,8 +5,9 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Loader2, BookOpen, CreditCard } from 'lucide-react'
+import { Loader2, BookOpen, CreditCard } from 'lucide-react'
 import { toast } from 'sonner'
+import { BackButton } from '@/components/navigation'
 
 interface CurriculumDetail {
   id: string
@@ -145,8 +146,13 @@ export default function CourseEnrollPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      <div className="min-h-screen bg-gray-50">
+        <div className="mx-auto max-w-xl p-4 sm:p-6">
+          <BackButton href={coursesUrl} className="mb-4" />
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+          </div>
+        </div>
       </div>
     )
   }
@@ -155,13 +161,7 @@ export default function CourseEnrollPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="mx-auto max-w-xl p-4 sm:p-6">
-          <Link
-            href={coursesUrl}
-            className="mb-6 inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to courses
-          </Link>
+          <BackButton href={coursesUrl} className="mb-4" />
           <Card className="border-destructive/50">
             <CardContent className="pt-6">
               <p className="text-sm text-destructive">{error ?? 'Course not found'}</p>
@@ -178,13 +178,7 @@ export default function CourseEnrollPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto max-w-xl p-4 sm:p-6">
-        <Link
-          href={coursesUrl}
-          className="mb-6 inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to courses
-        </Link>
+        <BackButton href={coursesUrl} className="mb-4" />
 
         <Card>
           <CardHeader>
