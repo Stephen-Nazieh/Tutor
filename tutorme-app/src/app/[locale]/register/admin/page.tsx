@@ -17,16 +17,7 @@ import {
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
-import {
-  Shield,
-  Building2,
-  Lock,
-  User,
-  ChevronRight,
-  ChevronLeft,
-  Eye,
-  EyeOff,
-} from 'lucide-react'
+import { Shield, Building2, Lock, User, ChevronRight, ChevronLeft, Eye, EyeOff } from 'lucide-react'
 import {
   adminRegistrationSchema,
   type AdminPermissionGroup,

@@ -40,10 +40,7 @@ export function BackButton({
       variant={variant}
       size={size}
       onClick={!href ? handleClick : undefined}
-      className={cn(
-        'h-9 w-9 rounded-full p-0 transition-colors hover:bg-gray-100',
-        className
-      )}
+      className={cn('h-9 w-9 rounded-full p-0 transition-colors hover:bg-gray-100', className)}
       aria-label="Go back"
     >
       <ArrowLeft className="h-5 w-5" />
