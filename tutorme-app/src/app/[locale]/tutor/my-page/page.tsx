@@ -630,7 +630,9 @@ export default function TutorMyPage() {
     <div className="min-h-screen bg-gradient-to-br from-[#F8FAFC] via-white to-[#EEF2FF] text-[#1F2933]">
       <div className="border-b border-[#E2E8F0] bg-white/90 backdrop-blur">
         <div className="mx-auto flex w-full items-center justify-between px-6 py-4">
-          <BackButton href="/tutor/dashboard" />
+          <BackButton
+            href={locale === DEFAULT_LOCALE ? '/tutor/dashboard' : `/${locale}/tutor/dashboard`}
+          />
         </div>
       </div>
 
