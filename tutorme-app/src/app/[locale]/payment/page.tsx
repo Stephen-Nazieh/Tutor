@@ -144,7 +144,7 @@ export default function PaymentPage() {
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-12">
       <div className="mx-auto max-w-md">
-        <BackButton fallbackHref="/student/dashboard" className="mb-4" />
+        <BackButton fallbackHref="../student/dashboard" className="mb-4" />
 
         <Card>
           <CardHeader>
