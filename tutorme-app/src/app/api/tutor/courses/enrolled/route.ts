@@ -4,10 +4,10 @@
  */
 
 import { NextResponse } from 'next/server'
-import { desc, eq, sql } from 'drizzle-orm'
+import { desc, eq, sql, count } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum, curriculumEnrollment } from '@/lib/db/schema'
+import { curriculum, curriculumEnrollment, liveSession } from '@/lib/db/schema'
 
 export const GET = withAuth(
   async (_req, session) => {
@@ -43,7 +43,32 @@ export const GET = withAuth(
       )
       .orderBy(desc(enrollmentCount))
 
-    return NextResponse.json({ courses })
+    // Get session counts for each course
+    const courseIds = courses.map(c => c.id)
+    let sessionCounts: { curriculumId: string; count: number }[] = []
+
+    if (courseIds.length > 0) {
+      const sessions = await drizzleDb
+        .select({
+          curriculumId: liveSession.curriculumId,
+          count: count(liveSession.id),
+        })
+        .from(liveSession)
+        .where(eq(liveSession.tutorId, tutorId))
+        .groupBy(liveSession.curriculumId)
+
+      sessionCounts = sessions.map(s => ({
+        curriculumId: s.curriculumId ?? '',
+        count: s.count,
+      }))
+    }
+
+    const coursesWithSessionCount = courses.map(course => ({
+      ...course,
+      sessionCount: sessionCounts.find(s => s.curriculumId === course.id)?.count ?? 0,
+    }))
+
+    return NextResponse.json({ courses: coursesWithSessionCount })
   },
   { role: 'TUTOR' }
 )

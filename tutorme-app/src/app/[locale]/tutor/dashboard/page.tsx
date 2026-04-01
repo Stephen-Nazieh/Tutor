@@ -96,6 +96,7 @@ type EnrolledCourse = {
   price?: number | null
   currency?: string | null
   enrollmentCount: number
+  sessionCount?: number
 }
 
 type CourseSession = {
@@ -578,18 +579,21 @@ function TutorDashboardContent() {
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Badge>{course.enrollmentCount} students</Badge>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Badge variant="secondary">{course.sessionCount ?? 0} sessions</Badge>
+                            <Badge variant="secondary">{course.enrollmentCount} enrolled</Badge>
+                          </div>
                           <Button
                             variant="default"
                             size="sm"
                             onClick={() => handleEnterCourseClassroom(course)}
                             disabled={launchingCourseId === course.id}
                           >
-                            {launchingCourseId === course.id ? 'Launching…' : 'Enter Classroom'}
+                            {launchingCourseId === course.id ? 'Launching…' : 'Open Session'}
                           </Button>
                           <Button asChild variant="outline" size="sm">
-                            <Link href={withLocalePath(`/tutor/courses/${course.id}/enrollments`)}>
-                              View Enrollments
+                            <Link href={withLocalePath(`/tutor/courses/${course.id}/builder`)}>
+                              Edit Course
                             </Link>
                           </Button>
                           <Button
@@ -599,7 +603,7 @@ function TutorDashboardContent() {
                             className="text-orange-600 hover:bg-orange-50 hover:text-orange-700"
                           >
                             <Ban className="mr-1 h-4 w-4" />
-                            Cancel
+                            Cancel session
                           </Button>
                         </div>
                       </div>
