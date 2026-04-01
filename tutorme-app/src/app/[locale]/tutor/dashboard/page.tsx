@@ -419,19 +419,23 @@ function TutorDashboardContent() {
         </div>
 
         <div className="mb-8">
-          <Tabs defaultValue="calendar" className="space-y-4">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
+          <Tabs defaultValue="sessions" className="space-y-4">
+            <TabsList className="grid w-full max-w-md grid-cols-3">
+              <TabsTrigger value="sessions">Sessions</TabsTrigger>
               <TabsTrigger value="calendar">Calendar</TabsTrigger>
-              <TabsTrigger value="enrolled">Enrolled Courses</TabsTrigger>
+              <TabsTrigger value="availability">My Availability</TabsTrigger>
             </TabsList>
             <TabsContent value="calendar">
+              <InteractiveCalendar initialView="day" dayClickMode="create" loading={loading} />
+            </TabsContent>
+            <TabsContent value="availability">
               <InteractiveCalendar
-                initialView="week"
+                initialView="availability"
                 dayClickMode="availability"
                 loading={loading}
               />
             </TabsContent>
-            <TabsContent value="enrolled">
+            <TabsContent value="sessions">
               <Card className="border border-border bg-card/95 shadow-xl backdrop-blur-md">
                 <CardHeader>
                   <CardTitle>Courses With Enrolled Students</CardTitle>

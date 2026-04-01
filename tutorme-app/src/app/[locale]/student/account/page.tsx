@@ -379,11 +379,7 @@ export default function StudentAccount() {
                       }}
                       className="mt-1"
                     />
-                    <p className="mt-1 text-xs text-gray-500">
-                      {formData.avatarUrl
-                        ? 'Click the image to edit or delete your photo'
-                        : 'Upload a profile photo'}
-                    </p>
+                    <p className="mt-1 text-xs text-gray-500">Upload a profile photo</p>
                   </div>
                 </div>
 
@@ -394,12 +390,30 @@ export default function StudentAccount() {
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
                     <Input id="name" value={formData.name} disabled className="bg-gray-50" />
-                    <p className="text-xs text-gray-500">Contact support to change your name</p>
+                    <p className="text-xs text-gray-500">
+                      Contact{' '}
+                      <a
+                        href="mailto:support@solocorn.co"
+                        className="text-blue-600 hover:underline"
+                      >
+                        support@solocorn.co
+                      </a>{' '}
+                      to change your name
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email Address</Label>
                     <Input id="email" value={formData.email} disabled className="bg-gray-50" />
-                    <p className="text-xs text-gray-500">Contact support to change your email</p>
+                    <p className="text-xs text-gray-500">
+                      Contact{' '}
+                      <a
+                        href="mailto:support@solocorn.co"
+                        className="text-blue-600 hover:underline"
+                      >
+                        support@solocorn.co
+                      </a>{' '}
+                      to change your email
+                    </p>
                   </div>
                 </div>
 

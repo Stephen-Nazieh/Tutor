@@ -843,11 +843,11 @@ export function InteractiveCalendar({
                 </SelectContent>
               </Select>
 
-              {/* View Toggle */}
+              {/* View Toggle - Reordered as Day, Week, Month */}
               <div className="flex rounded-lg border border-gray-200 bg-gray-100 p-1">
-                {(isStudent
-                  ? (['month', 'week', 'day'] as CalendarView[])
-                  : (['month', 'week', 'day', 'availability'] as CalendarView[])
+                {(view === 'availability'
+                  ? (['day', 'week', 'month'] as CalendarView[])
+                  : (['day', 'week', 'month'] as CalendarView[])
                 ).map(v => (
                   <button
                     key={v}
@@ -857,7 +857,7 @@ export function InteractiveCalendar({
                       view === v ? 'bg-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
                     )}
                   >
-                    {v === 'availability' ? 'My Availability' : v}
+                    {v}
                   </button>
                 ))}
               </div>

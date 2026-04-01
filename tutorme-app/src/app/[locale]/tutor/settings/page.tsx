@@ -415,12 +415,30 @@ export default function TutorSettings() {
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
                     <Input id="name" value={formData.name} disabled className="bg-gray-50" />
-                    <p className="text-xs text-gray-500">Contact support to change your name</p>
+                    <p className="text-xs text-gray-500">
+                      Contact{' '}
+                      <a
+                        href="mailto:support@solocorn.co"
+                        className="text-blue-600 hover:underline"
+                      >
+                        support@solocorn.co
+                      </a>{' '}
+                      to change your name
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email Address</Label>
                     <Input id="email" value={formData.email} disabled className="bg-gray-50" />
-                    <p className="text-xs text-gray-500">Contact support to change your email</p>
+                    <p className="text-xs text-gray-500">
+                      Contact{' '}
+                      <a
+                        href="mailto:support@solocorn.co"
+                        className="text-blue-600 hover:underline"
+                      >
+                        support@solocorn.co
+                      </a>{' '}
+                      to change your email
+                    </p>
                   </div>
                 </div>
 
@@ -594,7 +612,7 @@ export default function TutorSettings() {
                       </div>
                       <div>
                         <p className="font-medium">
-                          {method.brand} •••• {method.last4}
+                          {method.brand} •••• {method.last4}{' '}
                           {method.isDefault && (
                             <span className="ml-2 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
                               Default
@@ -606,25 +624,14 @@ export default function TutorSettings() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      {!method.isDefault && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setDefaultPaymentMethod(method.id)}
-                        >
-                          Set Default
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700"
-                        onClick={() => removePaymentMethod(method.id)}
-                      >
-                        Remove
-                      </Button>
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700"
+                      onClick={() => removePaymentMethod(method.id)}
+                    >
+                      Remove
+                    </Button>
                   </div>
                 ))}
 

@@ -86,13 +86,6 @@ const SUBJECT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   default: BookOpen,
 }
 
-const DIFFICULTY_COLORS: Record<string, string> = {
-  beginner: 'bg-green-100 text-green-800 border-green-200',
-  intermediate: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  advanced: 'bg-red-100 text-red-800 border-red-200',
-  expert: 'bg-purple-100 text-purple-800 border-purple-200',
-}
-
 export default function CurriculumPage() {
   const { data: session } = useSession()
   const searchParams = useSearchParams()
@@ -588,12 +581,6 @@ function CourseCard({
             <SubjectIcon className="h-6 w-6 text-indigo-600" />
           </div>
           <div className="flex items-start gap-2">
-            <Badge
-              variant="outline"
-              className={DIFFICULTY_COLORS[curriculum.difficulty] || DIFFICULTY_COLORS.beginner}
-            >
-              {curriculum.difficulty}
-            </Badge>
             <Button
               variant="ghost"
               size="icon"

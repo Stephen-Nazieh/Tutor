@@ -498,52 +498,6 @@ export default function TutorReports() {
           </DropdownMenu>
         </div>
 
-        {/* Class Selector */}
-        <Card className="mb-6 border-2 border-gray-400 shadow-sm">
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-gray-500" />
-                <span className="font-medium">Select Class/Course:</span>
-              </div>
-              <Select value={selectedClassId} onValueChange={setSelectedClassId}>
-                <SelectTrigger className="w-full sm:w-[400px]">
-                  <SelectValue placeholder="Choose a class or course..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableClasses.length === 0 ? (
-                    <SelectItem value="no-classes" disabled>
-                      No classes available
-                    </SelectItem>
-                  ) : (
-                    availableClasses.map(cls => (
-                      <SelectItem key={cls.id} value={cls.id}>
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant={cls.type === 'class' ? 'default' : 'secondary'}
-                            className="text-xs"
-                          >
-                            {cls.type === 'class' ? 'Class' : 'Course'}
-                          </Badge>
-                          <span>{cls.title}</span>
-                          <span className="text-sm text-gray-500">({cls.subject})</span>
-                        </div>
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-              {selectedClassId && (
-                <Badge variant="outline" className="text-sm">
-                  {availableClasses.find(c => c.id === selectedClassId)?.type === 'class'
-                    ? 'Live Session'
-                    : 'Online Course'}
-                </Badge>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6 h-auto flex-wrap">
             <TabsTrigger value="overview" className="gap-2">
