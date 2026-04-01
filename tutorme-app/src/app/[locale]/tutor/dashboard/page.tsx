@@ -143,10 +143,12 @@ function TutorDashboardContent() {
   const [error, setError] = useState<string | null>(null)
   const [launchingCourseId, setLaunchingCourseId] = useState<string | null>(null)
   const [oneAccountTipDismissed, setOneAccountTipDismissed] = useState(true)
-  
+
   // Cancel Course Modal State
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
-  const [selectedCourseForCancel, setSelectedCourseForCancel] = useState<EnrolledCourse | null>(null)
+  const [selectedCourseForCancel, setSelectedCourseForCancel] = useState<EnrolledCourse | null>(
+    null
+  )
   const [courseSessions, setCourseSessions] = useState<CourseSession[]>([])
   const [loadingSessions, setLoadingSessions] = useState(false)
   const [cancellingSessionId, setCancellingSessionId] = useState<string | null>(null)
@@ -357,36 +359,39 @@ function TutorDashboardContent() {
     [launchingCourseId, router]
   )
 
-  const handleOpenCancelModal = useCallback(async (course: EnrolledCourse) => {
-    if (loadingSessions) return
-    setSelectedCourseForCancel(course)
-    setCancelModalOpen(true)
-    setCourseSessions([])
-    setLoadingSessions(true)
-  
-    try {
-      const res = await fetch(`/api/tutor/courses/${course.id}/sessions`, {
-        credentials: 'include',
-      })
-    
-      if (res.ok) {
-        const data = await res.json()
-        setCourseSessions(data.sessions || [])
-      } else {
+  const handleOpenCancelModal = useCallback(
+    async (course: EnrolledCourse) => {
+      if (loadingSessions) return
+      setSelectedCourseForCancel(course)
+      setCancelModalOpen(true)
+      setCourseSessions([])
+      setLoadingSessions(true)
+
+      try {
+        const res = await fetch(`/api/tutor/courses/${course.id}/sessions`, {
+          credentials: 'include',
+        })
+
+        if (res.ok) {
+          const data = await res.json()
+          setCourseSessions(data.sessions || [])
+        } else {
+          toast.error('Failed to load course sessions')
+          setCourseSessions([])
+        }
+      } catch {
         toast.error('Failed to load course sessions')
         setCourseSessions([])
+      } finally {
+        setLoadingSessions(false)
       }
-    } catch {
-      toast.error('Failed to load course sessions')
-      setCourseSessions([])
-    } finally {
-      setLoadingSessions(false)
-    }
-  }, [loadingSessions])
+    },
+    [loadingSessions]
+  )
 
   const handleCancelSession = useCallback(async (sessionId: string, reason?: string) => {
     setCancellingSessionId(sessionId)
-    
+
     try {
       const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
       const csrfData = await csrfRes.json().catch(() => ({}))
@@ -653,7 +658,7 @@ function TutorDashboardContent() {
                       const isActive = session.status === 'ACTIVE'
                       const isEnded = session.status === 'ENDED'
                       const canCancel = isScheduled || isActive
-                      
+
                       return (
                         <div
                           key={session.id}
@@ -663,13 +668,7 @@ function TutorDashboardContent() {
                             <div className="flex items-center gap-2">
                               <p className="truncate font-medium">{session.title}</p>
                               <Badge
-                                variant={
-                                  isEnded
-                                    ? 'secondary'
-                                    : isActive
-                                      ? 'default'
-                                      : 'outline'
-                                }
+                                variant={isEnded ? 'secondary' : isActive ? 'default' : 'outline'}
                                 className={
                                   isActive ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''
                                 }
