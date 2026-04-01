@@ -27,10 +27,7 @@ export const PATCH = withAuth(
 
     // Verify the session belongs to this tutor
     const existingSession = await drizzleDb.query.liveSession.findFirst({
-      where: and(
-        eq(liveSessionTable.id, sessionId),
-        eq(liveSessionTable.tutorId, tutorId)
-      ),
+      where: and(eq(liveSessionTable.id, sessionId), eq(liveSessionTable.tutorId, tutorId)),
     })
 
     if (!existingSession) {
@@ -50,10 +47,7 @@ export const PATCH = withAuth(
         endedAt: new Date(),
         description: (existingSession.description || '') + cancellationNote,
       })
-      .where(and(
-        eq(liveSessionTable.id, sessionId),
-        eq(liveSessionTable.tutorId, tutorId)
-      ))
+      .where(and(eq(liveSessionTable.id, sessionId), eq(liveSessionTable.tutorId, tutorId)))
       .returning()
 
     return NextResponse.json({

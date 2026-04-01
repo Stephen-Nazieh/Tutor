@@ -58,10 +58,7 @@ import { BackButton } from '@/components/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { ScheduleItem } from './constants'
 import { DAYS, TIME_SLOT_OPTIONS } from './constants'
-import {
-  REGIONS,
-  type CountryData,
-} from '@/lib/data/tutor-categories'
+import { REGIONS, type CountryData } from '@/lib/data/tutor-categories'
 
 // Exam category types (local for this component)
 interface ExamCategory {
@@ -915,9 +912,7 @@ export default function TutorCoursePage() {
     if (selectedRegions.includes(regionId)) {
       const region = REGIONS.find(r => r.id === regionId)
       if (region) {
-        setSelectedCountries(prev =>
-          prev.filter(c => !region.countries.some(rc => rc.code === c))
-        )
+        setSelectedCountries(prev => prev.filter(c => !region.countries.some(rc => rc.code === c)))
       }
     }
   }
@@ -925,9 +920,7 @@ export default function TutorCoursePage() {
   // Toggle country selection
   const toggleCountry = (countryCode: string) => {
     setSelectedCountries(prev =>
-      prev.includes(countryCode)
-        ? prev.filter(c => c !== countryCode)
-        : [...prev, countryCode]
+      prev.includes(countryCode) ? prev.filter(c => c !== countryCode) : [...prev, countryCode]
     )
   }
 
@@ -1171,8 +1164,7 @@ export default function TutorCoursePage() {
                           AP
                         </TabsTrigger>
                         <TabsTrigger value="alevel" className="px-1 text-xs">
-                          <GraduationCap className="mr-1 h-3 w-3" />
-                          A Level
+                          <GraduationCap className="mr-1 h-3 w-3" />A Level
                         </TabsTrigger>
                         <TabsTrigger value="ib" className="px-1 text-xs">
                           <BookOpen className="mr-1 h-3 w-3" />

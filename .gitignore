@@ -4,3 +4,8 @@ services/adk/node_modules/
 .env.*.local
 node_modules/
 .next/
+
+# Office documents
+*.docx
+*.doc
+~$*
