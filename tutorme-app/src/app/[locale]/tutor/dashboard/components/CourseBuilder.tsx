@@ -3835,7 +3835,7 @@ FEEDBACK: [your explanation]`
                       <CardTitle className="mb-3 flex items-center justify-between gap-2 px-4 text-base font-semibold">
                         <div className="flex items-center gap-2">
                           <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                          {courseName || 'Course'}
+                          {lessonBankMode ? '' : courseName || 'Course'}
                         </div>
                         {insightsProps && (
                           <Button
@@ -4411,6 +4411,13 @@ FEEDBACK: [your explanation]`
                   {!isCollapsed && (
                     <Card className="flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card/95 shadow-xl backdrop-blur-md">
                       <CardContent className="pt-4">
+                        {/* Course Name Header */}
+                        <div className="mb-4 flex items-center gap-2 border-b border-border pb-3">
+                          <span className="h-2 w-2 rounded-full bg-orange-500"></span>
+                          <span className="text-base font-semibold">
+                            {lessonBankMode ? '' : courseName || 'Course'}
+                          </span>
+                        </div>
                         <Tabs
                           value={mainBuilderTab}
                           onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
@@ -4487,11 +4494,6 @@ FEEDBACK: [your explanation]`
                                     disabled={!loadedTaskId}
                                   />
                                 </div>
-                                {loadedTaskId && (
-                                  <p className="mt-1 text-xs text-muted-foreground">
-                                    Editing: {taskHeaderTitle}: {taskHeaderDescription}
-                                  </p>
-                                )}
                               </div>
                             </div>
                             <div className="flex gap-4">
@@ -4799,11 +4801,7 @@ FEEDBACK: [your explanation]`
                             <div className="flex items-center gap-3">
                               <div className="flex-1">
                                 <Input
-                                  placeholder={
-                                    loadedAssessmentId
-                                      ? 'Assessment Title'
-                                      : 'Select an assessment from the left sidebar to edit'
-                                  }
+                                  placeholder={loadedAssessmentId ? 'Assessment Title' : ''}
                                   className="font-semibold"
                                   value={assessmentBuilder.title}
                                   onChange={(e: any) =>
@@ -4814,11 +4812,6 @@ FEEDBACK: [your explanation]`
                                   }
                                   disabled={!loadedAssessmentId}
                                 />
-                                {loadedAssessmentId && (
-                                  <p className="mt-1 text-xs text-muted-foreground">
-                                    Editing: {assessmentBuilder.title || 'Untitled Assessment'}
-                                  </p>
-                                )}
                               </div>
                             </div>
                             <div className="flex gap-4">
