@@ -278,7 +278,10 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push(`/tutor/courses/${course.id}/builder`)}
+                    onClick={() => {
+                      const prefix = window.location.pathname.replace(/\/tutor\/my-page\/?$/, '')
+                      router.push(`${prefix}/tutor/courses/${course.id}/builder`)
+                    }}
                     className="text-[#1D4ED8] hover:bg-[#EFF6FF]"
                   >
                     <Edit3 className="mr-1 h-4 w-4" />
