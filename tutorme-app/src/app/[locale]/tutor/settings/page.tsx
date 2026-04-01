@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -47,6 +47,7 @@ import {
 import { REGIONS } from '@/lib/tutoring/categories-new'
 import Image from 'next/image'
 import { BackButton } from '@/components/navigation'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -86,6 +87,8 @@ export default function TutorSettings() {
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
 
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [formData, setFormData] = useState({
     name: session?.user?.name || '',
     email: session?.user?.email || '',
@@ -93,6 +96,23 @@ export default function TutorSettings() {
     language: 'en',
     timezone: 'Asia/Shanghai',
   })
+
+  // Load profile on mount
+  useEffect(() => {
+    fetch('/api/tutor/public-profile', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        if (data?.profile) {
+          setFormData(prev => ({
+            ...prev,
+            avatarUrl: data.profile.avatarUrl || '',
+          }))
+        }
+      })
+      .catch(() => {
+        // Silent fail - will use empty avatar
+      })
+  }, [])
 
   const [notifications, setNotifications] = useState({
     emailMarketing: true,
@@ -177,6 +197,100 @@ export default function TutorSettings() {
     return ['UTC', 'Asia/Shanghai', 'America/New_York', 'Europe/London']
   }, [])
 
+  const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024
+  const ACCEPTED_AVATAR_MIME = ['image/jpeg', 'image/png', 'image/webp']
+
+  const isAcceptedAvatarFile = (file: File) => {
+    const byMime = ACCEPTED_AVATAR_MIME.includes(file.type)
+    if (byMime) return true
+    const name = file.name.toLowerCase()
+    return (
+      name.endsWith('.jpg') ||
+      name.endsWith('.jpeg') ||
+      name.endsWith('.png') ||
+      name.endsWith('.webp')
+    )
+  }
+
+  const handleAvatarSelect = async (file: File) => {
+    if (!isAcceptedAvatarFile(file)) {
+      toast.error('Accepted formats: JPG, PNG, WEBP only')
+      return
+    }
+    if (file.size > MAX_AVATAR_SIZE_BYTES) {
+      toast.error('Maximum size is 5 MB')
+      return
+    }
+
+    setUploadingAvatar(true)
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const formDataObj = new FormData()
+      formDataObj.set('avatar', file)
+
+      const res = await fetch('/api/tutor/public-profile/avatar', {
+        method: 'POST',
+        headers: {
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+        body: formDataObj,
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data?.error || 'Failed to upload photo')
+        return
+      }
+      const newUrl = data?.avatarUrl ?? data?.url ?? null
+      const fullUrl =
+        typeof newUrl === 'string' && newUrl.startsWith('/') && typeof window !== 'undefined'
+          ? `${window.location.origin}${newUrl}`
+          : newUrl
+      setFormData(prev => ({ ...prev, avatarUrl: fullUrl || '' }))
+      toast.success('Profile photo updated')
+    } catch {
+      toast.error('Failed to upload photo')
+    } finally {
+      setUploadingAvatar(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleDeleteAvatar = async () => {
+    if (!confirm('Are you sure you want to delete your profile photo?')) return
+    setUploadingAvatar(true)
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch('/api/tutor/public-profile/avatar', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data?.error || 'Failed to delete photo')
+        return
+      }
+      setFormData(prev => ({ ...prev, avatarUrl: '' }))
+      toast.success('Profile photo deleted')
+    } catch {
+      toast.error('Failed to delete photo')
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
   const handleSaveProfile = async () => {
     setSaving(true)
     try {
@@ -184,7 +298,6 @@ export default function TutorSettings() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          avatarUrl: formData.avatarUrl,
           preferredLanguage: formData.language,
           timezone: formData.timezone,
         }),
@@ -346,65 +459,50 @@ export default function TutorSettings() {
               <CardContent className="space-y-6">
                 {/* Avatar */}
                 <div className="flex items-center gap-4">
-                  <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-full border-2 border-white bg-gray-200 shadow-sm">
-                    {formData.avatarUrl ? (
-                      <>
-                        <Image
-                          src={formData.avatarUrl}
-                          alt="Avatar"
-                          width={80}
-                          height={80}
-                          unoptimized
-                          className="h-full w-full object-cover"
-                        />
-                        {/* Edit/Delete overlay */}
-                        <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/50 opacity-0 transition-opacity hover:opacity-100">
-                          <label
-                            htmlFor="avatarUpload"
-                            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/90 text-gray-700 transition-colors hover:bg-white"
-                            title="Change photo"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => setFormData({ ...formData, avatarUrl: '' })}
-                            className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500/90 text-white transition-colors hover:bg-red-600"
-                            title="Delete photo"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-gray-100 text-2xl font-bold text-gray-400">
+                  <div className="relative">
+                    <Avatar className="h-20 w-20 border-2 border-white shadow-sm">
+                      <AvatarImage src={formData.avatarUrl || undefined} alt="Tutor avatar" />
+                      <AvatarFallback className="text-lg font-semibold">
                         {formData.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
+                      </AvatarFallback>
+                    </Avatar>
+                    {/* Edit/Delete overlay buttons */}
+                    <div className="absolute -bottom-2 -right-2 flex gap-1">
+                      <Button
+                        size="icon"
+                        className="h-8 w-8 rounded-full bg-white text-gray-700 shadow hover:bg-gray-100"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingAvatar}
+                        aria-label="Edit profile photo"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      {formData.avatarUrl && (
+                        <Button
+                          size="icon"
+                          className="h-8 w-8 rounded-full bg-red-500 text-white shadow hover:bg-red-600"
+                          onClick={() => void handleDeleteAvatar()}
+                          disabled={uploadingAvatar}
+                          aria-label="Delete profile photo"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    <Input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={e => {
+                        const file = e.target.files?.[0]
+                        if (file) void handleAvatarSelect(file)
+                      }}
+                      className="hidden"
+                    />
                   </div>
                   <div className="flex-1">
                     <Label htmlFor="avatarUpload">Profile Photo</Label>
-                    <Input
-                      id="avatarUpload"
-                      type="file"
-                      accept="image/*"
-                      onChange={e => {
-                        const file = e.target.files?.[0]
-                        if (file) {
-                          const reader = new FileReader()
-                          reader.onloadend = () => {
-                            setFormData({ ...formData, avatarUrl: reader.result as string })
-                          }
-                          reader.readAsDataURL(file)
-                        }
-                      }}
-                      className="mt-1"
-                    />
-                    <p className="mt-1 text-xs text-gray-500">
-                      {formData.avatarUrl
-                        ? 'Click the image to edit or delete your photo'
-                        : 'Upload a profile photo'}
-                    </p>
+                    <p className="mt-1 text-xs text-gray-500">Upload a profile photo</p>
                   </div>
                 </div>
 
@@ -679,13 +777,6 @@ export default function TutorSettings() {
                 <div className="flex flex-wrap gap-3">
                   <Button
                     variant="outline"
-                    className="border-[#1D4ED8] text-[#1D4ED8] hover:bg-[#1D4ED8]/10"
-                    onClick={() => toast.message('Upgrade flow pending')}
-                  >
-                    Upgrade plan
-                  </Button>
-                  <Button
-                    variant="outline"
                     className="border-[#F59E0B] text-[#92400E] hover:bg-[#FDE68A]"
                     onClick={() => {
                       if (confirm('Are you sure you want to cancel your subscription?')) {
@@ -702,9 +793,6 @@ export default function TutorSettings() {
                     onClick={() => toast.message('Payment history loading')}
                   >
                     Payment history
-                  </Button>
-                  <Button variant="outline" onClick={() => toast.message('Credit card management')}>
-                    Credit card
                   </Button>
                   <Button variant="outline" onClick={() => toast.message('Billing details')}>
                     Billing
