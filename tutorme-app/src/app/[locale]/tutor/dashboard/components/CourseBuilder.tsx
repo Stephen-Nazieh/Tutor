@@ -3239,7 +3239,7 @@ FEEDBACK: [your explanation]`
                                                   </SortableTreeItem>
                                                   {loadedTaskId === task.id &&
                                                     taskBuilder.extensions.length > 0 && (
-                                                      <div className="ml-8 mt-1 space-y-1 border-l border-orange-400 pl-3">
+                                                      <div className="mt-1 space-y-1 border-l border-orange-400 pl-2">
                                                         <div
                                                           className="flex cursor-pointer items-center gap-2 rounded border bg-white px-2 py-1 text-[10px]"
                                                           onClick={() => toggleExtensions(task.id)}
@@ -3816,7 +3816,7 @@ FEEDBACK: [your explanation]`
                     className="gap-2 rounded-lg bg-transparent data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                   >
                     <BrainCircuit className="h-4 w-4 text-blue-500" />
-                    {insightsProps ? 'Live' : 'Test PCI'}
+                    {insightsProps ? 'Live' : 'Test'}
                   </TabsTrigger>
                   <TabsTrigger
                     value="builder"

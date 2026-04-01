@@ -528,7 +528,7 @@ function TutorDashboardContent() {
         <div className="mb-8">
           <Tabs defaultValue="courses" className="space-y-4">
             <TabsList className="grid w-full max-w-md grid-cols-3">
-              <TabsTrigger value="courses">Courses</TabsTrigger>
+              <TabsTrigger value="courses">Active Courses</TabsTrigger>
               <TabsTrigger value="calendar">Calendar</TabsTrigger>
               <TabsTrigger value="availability">My Availability</TabsTrigger>
             </TabsList>
