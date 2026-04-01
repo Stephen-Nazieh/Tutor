@@ -92,6 +92,7 @@ export const GET = withAuth(async (req, session) => {
   const subject = searchParams.get('subject')
   const tutorId = searchParams.get('tutorId')
   const gradeLevel = searchParams.get('gradeLevel')
+  const curriculumId = searchParams.get('curriculumId')
 
   // Build filter
   const filtersOfRequest: SQL[] = [
@@ -102,6 +103,7 @@ export const GET = withAuth(async (req, session) => {
   if (subject) filtersOfRequest.push(eq(liveSession.subject, subject))
   if (tutorId) filtersOfRequest.push(eq(liveSession.tutorId, tutorId))
   if (gradeLevel) filtersOfRequest.push(eq(liveSession.gradeLevel, gradeLevel))
+  if (curriculumId) filtersOfRequest.push(eq(liveSession.curriculumId, curriculumId))
 
   // For students, also include classes that match their grade level or have no grade specified
   if (session?.user?.role === 'STUDENT' && !gradeLevel) {

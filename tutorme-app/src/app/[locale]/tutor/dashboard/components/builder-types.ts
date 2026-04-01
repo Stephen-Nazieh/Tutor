@@ -307,6 +307,7 @@ export interface CourseBuilderProps {
   panelMode?: 'default' | 'live-class'
   initialModules?: Module[]
   lessonBankMode?: boolean
+  hideCourseNameInTabs?: boolean
   onMakeVisibleToStudents?: (payload: VisibleDocumentPayload) => void
   onSave?: (
     modules: Module[],

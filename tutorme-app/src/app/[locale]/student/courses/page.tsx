@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
@@ -48,6 +48,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 interface Curriculum {
   id: string
@@ -198,6 +200,37 @@ export default function CurriculumPage() {
   )
 
   const [detailCourse, setDetailCourse] = useState<Curriculum | null>(null)
+  const [enteringClass, setEnteringClass] = useState<string | null>(null)
+  const router = useRouter()
+
+  const handleEnterClass = useCallback(
+    async (curriculumId: string) => {
+      setEnteringClass(curriculumId)
+      try {
+        // Fetch active sessions for this curriculum
+        const res = await fetch(`/api/class/rooms?curriculumId=${curriculumId}`, {
+          credentials: 'include',
+        })
+        if (res.ok) {
+          const data = await res.json()
+          const sessions = data.sessions || []
+          if (sessions.length > 0) {
+            // Navigate to the first active session
+            router.push(`/student/feedback?sessionId=${sessions[0].id}`)
+          } else {
+            toast.error('No active classroom found for this course')
+          }
+        } else {
+          toast.error('Failed to check for active classrooms')
+        }
+      } catch {
+        toast.error('Failed to enter classroom')
+      } finally {
+        setEnteringClass(null)
+      }
+    },
+    [router]
+  )
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -345,6 +378,8 @@ export default function CurriculumPage() {
                 favoriteIds={favoriteIds}
                 toggleFavorite={toggleFavorite}
                 onDetails={setDetailCourse}
+                enteringClass={enteringClass}
+                onEnterClass={handleEnterClass}
               />
             )}
             {activeTab === 'pending' && (
@@ -354,6 +389,8 @@ export default function CurriculumPage() {
                 favoriteIds={favoriteIds}
                 toggleFavorite={toggleFavorite}
                 onDetails={setDetailCourse}
+                enteringClass={enteringClass}
+                onEnterClass={handleEnterClass}
               />
             )}
             {activeTab === 'completed' && (
@@ -363,6 +400,8 @@ export default function CurriculumPage() {
                 favoriteIds={favoriteIds}
                 toggleFavorite={toggleFavorite}
                 onDetails={setDetailCourse}
+                enteringClass={enteringClass}
+                onEnterClass={handleEnterClass}
               />
             )}
             {activeTab === 'favorites' && (
@@ -372,6 +411,8 @@ export default function CurriculumPage() {
                 favoriteIds={favoriteIds}
                 toggleFavorite={toggleFavorite}
                 onDetails={setDetailCourse}
+                enteringClass={enteringClass}
+                onEnterClass={handleEnterClass}
               />
             )}
             {activeTab === 'following' && (
@@ -522,12 +563,16 @@ function CourseSection({
   favoriteIds,
   toggleFavorite,
   onDetails,
+  enteringClass,
+  onEnterClass,
 }: {
   title: string
   courses: Curriculum[]
   favoriteIds: string[]
   toggleFavorite: (id: string) => void
   onDetails: (c: Curriculum) => void
+  enteringClass: string | null
+  onEnterClass: (curriculumId: string) => void
 }) {
   return (
     <section>
@@ -543,6 +588,8 @@ function CourseSection({
             isFavorite={favoriteIds.includes(curriculum.id)}
             onFavorite={() => toggleFavorite(curriculum.id)}
             onDetails={() => onDetails(curriculum)}
+            enteringClass={enteringClass}
+            onEnterClass={onEnterClass}
           />
         ))}
       </div>
@@ -555,11 +602,15 @@ function CourseCard({
   isFavorite,
   onFavorite,
   onDetails,
+  enteringClass,
+  onEnterClass,
 }: {
   curriculum: Curriculum
   isFavorite: boolean
   onFavorite: () => void
   onDetails: () => void
+  enteringClass: string | null
+  onEnterClass: (curriculumId: string) => void
 }) {
   const SubjectIcon = SUBJECT_ICONS[curriculum.subject] || SUBJECT_ICONS.default
   const progress = curriculum.progress
@@ -636,11 +687,21 @@ function CourseCard({
 
       <CardFooter className="gap-2">
         {(isOngoing || isPending) && (
-          <Link href={`/student/feedback`} className="flex-1" onClick={e => e.stopPropagation()}>
-            <Button className="h-9 w-full" variant="default">
-              {progressPercent > 0 ? 'Continue' : 'Enter Classroom'}
-            </Button>
-          </Link>
+          <Button
+            className="h-9 w-full flex-1"
+            variant="default"
+            disabled={enteringClass === curriculum.id}
+            onClick={e => {
+              e.stopPropagation()
+              onEnterClass(curriculum.id)
+            }}
+          >
+            {enteringClass === curriculum.id
+              ? 'Joining...'
+              : progressPercent > 0
+                ? 'Continue'
+                : 'Enter Classroom'}
+          </Button>
         )}
         {progress?.isCompleted && (
           <Link href={`/student/feedback`} className="flex-1" onClick={e => e.stopPropagation()}>

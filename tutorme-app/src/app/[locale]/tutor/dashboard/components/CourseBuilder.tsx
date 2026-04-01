@@ -291,6 +291,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       panelMode = 'default',
       initialModules,
       lessonBankMode = false,
+      hideCourseNameInTabs = false,
       onSave,
       onMakeVisibleToStudents,
       insightsProps,
@@ -3834,8 +3835,12 @@ FEEDBACK: [your explanation]`
                     <CardContent className="flex h-full min-h-0 w-full flex-col overflow-hidden p-0 pt-4">
                       <CardTitle className="mb-3 flex items-center justify-between gap-2 px-4 text-base font-semibold">
                         <div className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                          {lessonBankMode ? '' : courseName || 'Course'}
+                          {!lessonBankMode && !hideCourseNameInTabs && (
+                            <>
+                              <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                              {courseName || 'Course'}
+                            </>
+                          )}
                         </div>
                         {insightsProps && (
                           <Button
@@ -4411,13 +4416,15 @@ FEEDBACK: [your explanation]`
                   {!isCollapsed && (
                     <Card className="flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card/95 shadow-xl backdrop-blur-md">
                       <CardContent className="pt-4">
-                        {/* Course Name Header */}
-                        <div className="mb-4 flex items-center gap-2 border-b border-border pb-3">
-                          <span className="h-2 w-2 rounded-full bg-orange-500"></span>
-                          <span className="text-base font-semibold">
-                            {lessonBankMode ? '' : courseName || 'Course'}
-                          </span>
-                        </div>
+                        {/* Course Name Header - Hidden when hideCourseNameInTabs is true */}
+                        {!lessonBankMode && !hideCourseNameInTabs && (
+                          <div className="mb-4 flex items-center gap-2 border-b border-border pb-3">
+                            <span className="h-2 w-2 rounded-full bg-orange-500"></span>
+                            <span className="text-base font-semibold">
+                              {courseName || 'Course'}
+                            </span>
+                          </div>
+                        )}
                         <Tabs
                           value={mainBuilderTab}
                           onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
