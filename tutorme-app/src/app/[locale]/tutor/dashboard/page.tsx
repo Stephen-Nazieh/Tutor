@@ -358,15 +358,17 @@ function TutorDashboardContent() {
   )
 
   const handleOpenCancelModal = useCallback(async (course: EnrolledCourse) => {
+    if (loadingSessions) return
     setSelectedCourseForCancel(course)
     setCancelModalOpen(true)
+    setCourseSessions([])
     setLoadingSessions(true)
-    
+  
     try {
       const res = await fetch(`/api/tutor/courses/${course.id}/sessions`, {
         credentials: 'include',
       })
-      
+    
       if (res.ok) {
         const data = await res.json()
         setCourseSessions(data.sessions || [])
@@ -380,7 +382,7 @@ function TutorDashboardContent() {
     } finally {
       setLoadingSessions(false)
     }
-  }, [])
+  }, [loadingSessions])
 
   const handleCancelSession = useCallback(async (sessionId: string, reason?: string) => {
     setCancellingSessionId(sessionId)
