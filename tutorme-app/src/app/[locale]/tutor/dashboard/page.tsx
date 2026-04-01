@@ -426,11 +426,7 @@ function TutorDashboardContent() {
               <TabsTrigger value="availability">My Availability</TabsTrigger>
             </TabsList>
             <TabsContent value="calendar">
-              <InteractiveCalendar
-                initialView="day"
-                dayClickMode="create"
-                loading={loading}
-              />
+              <InteractiveCalendar initialView="day" dayClickMode="create" loading={loading} />
             </TabsContent>
             <TabsContent value="availability">
               <InteractiveCalendar
