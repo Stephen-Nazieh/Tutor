@@ -8,7 +8,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useState } from 'react'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
 import { toast } from 'sonner'
@@ -82,22 +82,11 @@ export function CourseBuilderInsightsRoute({
     >
       <div className="sticky top-0 z-10 w-full border-b border-border bg-card">
         <div className="flex w-full items-center justify-between gap-4 px-4 py-1 sm:px-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="shrink-0"
-            onClick={() => {
-              // Priority: Dashboard if we're not sure where we came from
-              // or if we came from course-builder but want dashboard.
-              // However, user said "return to any previous page", but complained about course-builder.
-              // We'll try to go back, but if the previous page is course-builder and we suspect
-              // the user wants dashboard, we might need a different approach.
-              // For now, let's stick to dashboard if history is unreliable for this specific flow.
-              model.router.push('/tutor/dashboard')
-            }}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
+          <Button variant="ghost" size="sm" className="shrink-0" asChild>
+            <Link href="/tutor/dashboard">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Link>
           </Button>
           <div className="flex shrink-0 items-center gap-3">
             <h1 className="text-lg font-bold tracking-tight text-foreground">Live Session</h1>
