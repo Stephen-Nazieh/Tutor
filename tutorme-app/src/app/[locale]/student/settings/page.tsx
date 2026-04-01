@@ -260,7 +260,14 @@ export default function StudentSettings() {
                         <Label htmlFor="name">Full Name</Label>
                         <Input id="name" value={formData.name} disabled className="bg-gray-50" />
                         <p className="text-xs text-gray-500">
-                          Contact support to change your name.
+                          Contact{' '}
+                          <a
+                            href="mailto:support@solocorn.co"
+                            className="text-blue-600 hover:underline"
+                          >
+                            support@solocorn.co
+                          </a>{' '}
+                          to change your name.
                         </p>
                       </div>
                       <div className="space-y-2">

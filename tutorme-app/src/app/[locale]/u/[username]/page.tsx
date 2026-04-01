@@ -471,9 +471,9 @@ export default function PublicTutorPage() {
           </div>
 
           <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
-            <div className="flex flex-wrap items-center gap-2 text-sm text-[#1F2933]">
+            <div className="flex flex-wrap items-center justify-end gap-2 text-sm text-[#1F2933]">
               <Button
-                size="sm"
+                size="lg"
                 className={
                   followState.isFollowing
                     ? 'bg-emerald-600 text-white hover:bg-emerald-700'

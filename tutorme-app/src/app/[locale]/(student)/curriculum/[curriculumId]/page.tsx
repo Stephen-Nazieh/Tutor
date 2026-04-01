@@ -88,13 +88,6 @@ interface CurriculumDetail {
   modules: Module[]
 }
 
-const DIFFICULTY_COLORS: Record<string, string> = {
-  beginner: 'bg-green-100 text-green-800',
-  intermediate: 'bg-yellow-100 text-yellow-800',
-  advanced: 'bg-red-100 text-red-800',
-  expert: 'bg-purple-100 text-purple-800',
-}
-
 const SECTION_NAMES: Record<string, string> = {
   introduction: 'Introduction',
   concept: 'Concept',
@@ -280,12 +273,6 @@ export default function CurriculumDetailPage() {
             <div>
               <div className="mb-2 flex items-center gap-3">
                 <h1 className="text-3xl font-bold text-gray-900">{curriculum.name}</h1>
-                <Badge className={DIFFICULTY_COLORS[curriculum.difficulty]}>
-                  {curriculum.difficulty === 'beginner' && 'Beginner'}
-                  {curriculum.difficulty === 'intermediate' && 'Intermediate'}
-                  {curriculum.difficulty === 'advanced' && 'Advanced'}
-                  {curriculum.difficulty === 'expert' && 'Expert'}
-                </Badge>
               </div>
               <p className="max-w-2xl text-gray-600">{curriculum.description}</p>
 

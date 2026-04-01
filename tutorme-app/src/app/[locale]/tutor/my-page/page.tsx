@@ -40,6 +40,7 @@ import {
   School,
   Flag,
   Search,
+  X,
 } from 'lucide-react'
 import { DEFAULT_LOCALE } from '@/lib/i18n/config'
 import {
@@ -560,6 +561,36 @@ export default function TutorMyPage() {
     }
   }
 
+  const handleDeleteAvatar = async () => {
+    if (!confirm('Are you sure you want to delete your profile photo?')) return
+    setUploadingAvatar(true)
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch('/api/tutor/public-profile/avatar', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data?.error || 'Failed to delete photo')
+        return
+      }
+      setAvatarUrl(null)
+      toast.success('Profile photo deleted')
+    } catch {
+      toast.error('Failed to delete photo')
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
   const resetCourseForm = () => {
     setCourseName('')
     setCourseSubject('')
@@ -648,15 +679,29 @@ export default function TutorMyPage() {
                     {normalizedUsername ? normalizedUsername.slice(0, 2).toUpperCase() : 'TU'}
                   </AvatarFallback>
                 </Avatar>
-                <Button
-                  size="icon"
-                  className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full bg-white text-[#1F2933] shadow hover:bg-[#F8FAFC]"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadingAvatar}
-                  aria-label="Edit profile photo"
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
+                {/* Edit/Delete overlay buttons */}
+                <div className="absolute -bottom-2 -right-2 flex gap-1">
+                  <Button
+                    size="icon"
+                    className="h-8 w-8 rounded-full bg-white text-[#1F2933] shadow hover:bg-[#F8FAFC]"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                    aria-label="Edit profile photo"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  {avatarUrl && (
+                    <Button
+                      size="icon"
+                      className="h-8 w-8 rounded-full bg-red-500 text-white shadow hover:bg-red-600"
+                      onClick={() => void handleDeleteAvatar()}
+                      disabled={uploadingAvatar}
+                      aria-label="Delete profile photo"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
                 <Input
                   ref={fileInputRef}
                   type="file"
