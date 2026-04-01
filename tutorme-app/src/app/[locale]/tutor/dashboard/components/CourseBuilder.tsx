@@ -4413,445 +4413,144 @@ FEEDBACK: [your explanation]`
                   className="h-full w-full flex-1 data-[state=inactive]:hidden"
                 >
                   {/* COMBINED BUILDER: Task & Assessment Tabs */}
-                  {!isCollapsed && (
-                    <Card className="flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card/95 shadow-xl backdrop-blur-md">
-                      <CardContent className="pt-4">
-                        {/* Course Name Header - Hidden when hideCourseNameInTabs is true */}
-                        {!lessonBankMode && !hideCourseNameInTabs && (
-                          <div className="mb-4 flex items-center gap-2 border-b border-border pb-3">
-                            <span className="h-2 w-2 rounded-full bg-orange-500"></span>
-                            <span className="text-base font-semibold">
-                              {courseName || 'Course'}
-                            </span>
-                          </div>
-                        )}
-                        <Tabs
-                          value={mainBuilderTab}
-                          onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
-                          className="w-full"
-                        >
-                          {/* Main Builder Tabs */}
-                          <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border border-border bg-muted/30 p-1">
-                            <TabsTrigger
-                              value="task"
-                              className="gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-                            >
-                              <ListTodo className="h-4 w-4 text-orange-500" />
-                              Task Builder
-                            </TabsTrigger>
-                            <TabsTrigger
-                              value="assessment"
-                              className="gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-                            >
-                              <FileQuestion className="h-4 w-4 text-purple-500" />
-                              Assessment Builder
-                            </TabsTrigger>
-                          </TabsList>
+                  <Card className="flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card/95 shadow-xl backdrop-blur-md">
+                    <CardContent className="pt-4">
+                      {/* Course Name Header - Hidden when hideCourseNameInTabs is true */}
+                      {!lessonBankMode && !hideCourseNameInTabs && (
+                        <div className="mb-4 flex items-center gap-2 border-b border-border pb-3">
+                          <span className="h-2 w-2 rounded-full bg-orange-500"></span>
+                          <span className="text-base font-semibold">{courseName || 'Course'}</span>
+                        </div>
+                      )}
+                      <Tabs
+                        value={mainBuilderTab}
+                        onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
+                        className="w-full"
+                      >
+                        {/* Main Builder Tabs */}
+                        <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border border-border bg-muted/30 p-1">
+                          <TabsTrigger
+                            value="task"
+                            className="gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                          >
+                            <ListTodo className="h-4 w-4 text-orange-500" />
+                            Task Builder
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="assessment"
+                            className="gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                          >
+                            <FileQuestion className="h-4 w-4 text-purple-500" />
+                            Assessment Builder
+                          </TabsTrigger>
+                        </TabsList>
 
-                          {/* Task Builder Tab */}
-                          <TabsContent value="task" className="space-y-4">
-                            <div className="flex items-center gap-3">
-                              <div className="flex-1">
-                                <div className="grid grid-cols-2 gap-3">
-                                  <Input
-                                    placeholder={
-                                      loadedTaskId
-                                        ? 'Task Title'
-                                        : 'Select a task from the left sidebar to edit'
-                                    }
-                                    className="font-semibold"
-                                    value={
-                                      taskBuilder.activeExtensionId
-                                        ? taskHeaderTitle
-                                        : taskBuilder.title
-                                    }
-                                    onChange={(e: any) =>
-                                      setTaskBuilder(prev => ({ ...prev, title: e.target.value }))
-                                    }
-                                    disabled={!loadedTaskId || !!taskBuilder.activeExtensionId}
-                                  />
-                                  <Input
-                                    placeholder={
-                                      loadedTaskId
-                                        ? taskBuilder.activeExtensionId
-                                          ? 'Extension Description'
-                                          : 'Description'
-                                        : 'Select a task to edit description'
-                                    }
-                                    value={
-                                      taskBuilder.activeExtensionId
-                                        ? activeTaskExtension?.description || ''
-                                        : taskBuilder.details
-                                    }
-                                    onChange={(e: any) => {
-                                      const value = e.target.value
-                                      if (taskBuilder.activeExtensionId) {
-                                        setTaskBuilder(prev => ({
-                                          ...prev,
-                                          extensions: prev.extensions.map(ext =>
-                                            ext.id === prev.activeExtensionId
-                                              ? { ...ext, description: value }
-                                              : ext
-                                          ),
-                                        }))
-                                      } else {
-                                        setTaskBuilder(prev => ({ ...prev, details: value }))
-                                      }
-                                    }}
-                                    disabled={!loadedTaskId}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex gap-4">
-                              {/* Main content with tabs */}
-                              <div className="flex-1">
-                                <Tabs
-                                  value={taskBuilderActiveTab}
-                                  onValueChange={v => {
-                                    setTaskBuilderActiveTab(v as 'content' | 'pci')
-                                  }}
-                                  className="w-full"
-                                >
-                                  <TabsList className="grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
-                                    <TabsTrigger
-                                      value="content"
-                                      className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
-                                    >
-                                      Slide
-                                    </TabsTrigger>
-                                    <TabsTrigger
-                                      value="pci"
-                                      className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
-                                    >
-                                      PCI
-                                    </TabsTrigger>
-                                  </TabsList>
-                                  <TabsContent value="content" className="mt-2 space-y-2">
-                                    <AutoTextarea
-                                      placeholder={
-                                        taskBuilder.activeExtensionId
-                                          ? 'Extension content...'
-                                          : 'Enter task content or drop files here...'
-                                      }
-                                      className="min-h-[300px] w-full"
-                                      onDrop={(e: any) =>
-                                        handleDragFiles(e, text => {
-                                          setTaskBuilder(prev => {
-                                            if (prev.activeExtensionId) {
-                                              const ext = prev.extensions.find(
-                                                x => x.id === prev.activeExtensionId
-                                              )
-                                              const combined = ext
-                                                ? ext.content + (ext.content ? '\n\n' : '') + text
-                                                : text
-                                              return {
-                                                ...prev,
-                                                extensions: prev.extensions.map(x =>
-                                                  x.id === prev.activeExtensionId
-                                                    ? { ...x, content: combined }
-                                                    : x
-                                                ),
-                                              }
-                                            } else {
-                                              const combined =
-                                                prev.taskContent +
-                                                (prev.taskContent ? '\n\n' : '') +
-                                                text
-                                              return {
-                                                ...prev,
-                                                taskContent: combined,
-                                              }
-                                            }
-                                          })
-                                        })
-                                      }
-                                      // Show task content if no extension active, otherwise show active extension's content
-                                      value={
-                                        taskBuilder.activeExtensionId
-                                          ? taskBuilder.extensions.find(
-                                              e => e.id === taskBuilder.activeExtensionId
-                                            )?.content || ''
-                                          : taskBuilder.taskContent
-                                      }
-                                      onChange={(e: any) => {
-                                        const newContent = e.target.value
-                                        // Auto-create task if none loaded
-                                        if (!loadedTaskId && !taskBuilder.activeExtensionId) {
-                                          autoCreateTask()
-                                        }
-                                        if (taskBuilder.activeExtensionId) {
-                                          // Update extension content
-                                          setTaskBuilder(prev => {
-                                            return {
-                                              ...prev,
-                                              extensions: prev.extensions.map(ext =>
-                                                ext.id === prev.activeExtensionId
-                                                  ? { ...ext, content: newContent }
-                                                  : ext
-                                              ),
-                                            }
-                                          })
-                                        } else {
-                                          // Update task content
-                                          setTaskBuilder(prev => ({
-                                            ...prev,
-                                            taskContent: newContent,
-                                          }))
-                                        }
-                                      }}
-                                    />
-                                    {/* Uploaded Files List - only show for task (not extensions) */}
-                                    {/* Upload button - only for task (not extensions) */}
-                                    {/* Assets Folder added to Slide Tab removed from here */}
-                                  </TabsContent>
-                                  <TabsContent value="pci" className="mt-2">
-                                    <div className="rounded-lg border bg-white">
-                                      <div className="max-h-[300px] min-h-[300px] space-y-3 overflow-y-auto p-3">
-                                        {activeTaskPciMessages.length === 0 && (
-                                          <p className="text-xs text-muted-foreground">
-                                            Start a PCI chat to build instructions with the
-                                            assistant.
-                                          </p>
-                                        )}
-                                        {activeTaskPciMessages.map((msg, idx) => (
-                                          <div
-                                            key={idx}
-                                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                          >
-                                            <div
-                                              className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-                                                msg.role === 'user'
-                                                  ? 'bg-blue-50 text-gray-900'
-                                                  : 'bg-gray-100 text-gray-800'
-                                              }`}
-                                            >
-                                              <div className="whitespace-pre-wrap">
-                                                {msg.content}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        ))}
-                                        {taskPciLoading && (
-                                          <div className="flex justify-start">
-                                            <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
-                                              <Loader2 className="h-4 w-4 animate-spin" />
-                                              <span className="text-xs text-gray-600">
-                                                Thinking...
-                                              </span>
-                                            </div>
-                                          </div>
-                                        )}
-                                      </div>
-                                      <div className="border-t p-2">
-                                        {taskPciErrorHint && (
-                                          <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
-                                            PCI assistant error: {taskPciErrorHint}
-                                          </div>
-                                        )}
-                                        <div className="relative flex items-end gap-2">
-                                          <AutoTextarea
-                                            placeholder="Ask the PCI assistant..."
-                                            className="min-h-[44px] w-full pr-11"
-                                            value={activeTaskPciInput}
-                                            onChange={(e: any) => {
-                                              const value = e.target.value
-                                              if (taskBuilder.activeExtensionId) {
-                                                setTaskExtensionPciInputs(prev => ({
-                                                  ...prev,
-                                                  [taskBuilder.activeExtensionId as string]: value,
-                                                }))
-                                              } else {
-                                                setTaskPciInput(value)
-                                              }
-                                            }}
-                                            onKeyDown={(e: any) => {
-                                              if (e.key === 'Enter' && !e.shiftKey) {
-                                                e.preventDefault()
-                                                handlePciSend('task')
-                                              }
-                                            }}
-                                          />
-                                          <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="icon"
-                                            className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
-                                            disabled={taskPciLoading || !activeTaskPciInput.trim()}
-                                            onClick={() => handlePciSend('task')}
-                                            aria-label="Send"
-                                          >
-                                            {taskPciLoading ? (
-                                              <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                              <Send className="h-4 w-4" />
-                                            )}
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </TabsContent>
-                                </Tabs>
-                                {/* Buttons row with Test and Save */}
-                                <div className="mt-3 flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      // Prefill Test PCI with content from Task Builder
-                                      const content = taskBuilder.activeExtensionId
-                                        ? taskBuilder.extensions.find(
-                                            e => e.id === taskBuilder.activeExtensionId
-                                          )?.content || taskBuilder.taskContent
-                                        : taskBuilder.taskContent
-
-                                      setTestPciScores({})
-                                      setTestPciInput('')
-
-                                      setTestPciContent({
-                                        classroom: content,
-                                        student1: content,
-                                        student2: content,
-                                      })
-                                      setTestPciSource('task')
-                                      // Switch to Test PCI tab
-                                      setMainTab('test-pci')
-                                      toast.success('Test PCI prefilled with task content')
-                                    }}
-                                  >
-                                    Test
-                                  </Button>
-                                </div>
-                              </div>
-                              {/* Right panels container */}
-                              <div className="flex flex-col gap-4">
-                                {/* Extensions panel */}
-                                <ResizablePanel
-                                  defaultWidth={200}
-                                  minWidth={150}
-                                  maxWidth={300}
-                                  actionButton={
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="w-full"
-                                      onClick={() => {
-                                        if (!loadedTaskId) {
-                                          toast.error('Please select a task first')
-                                          return
-                                        }
-                                        const extNumber = taskBuilder.extensions.length + 1
-                                        const newExtension = {
-                                          id: `ext-${Date.now()}`,
-                                          name: `Extension ${extNumber}`,
-                                          content: '',
-                                          pci: '',
-                                        }
-                                        setTaskBuilder(prev => ({
-                                          ...prev,
-                                          extensions: [...prev.extensions, newExtension],
-                                          activeExtensionId: newExtension.id,
-                                        }))
-                                      }}
-                                    >
-                                      Add Extension
-                                    </Button>
-                                  }
-                                >
-                                  <h4 className="mb-2 text-sm font-medium">
-                                    {taskBuilder.title || 'Task'} Extensions
-                                  </h4>
-                                  <div className="min-h-[100px] space-y-2 rounded-lg bg-slate-50 p-3">
-                                    {taskBuilder.extensions.length === 0 ? (
-                                      <p className="text-xs text-muted-foreground">
-                                        No extensions added
-                                      </p>
-                                    ) : (
-                                      taskBuilder.extensions.map(ext => (
-                                        <Button
-                                          key={ext.id}
-                                          variant={
-                                            taskBuilder.activeExtensionId === ext.id
-                                              ? 'default'
-                                              : 'ghost'
-                                          }
-                                          size="sm"
-                                          className="w-full justify-start text-xs"
-                                          onClick={() => {
-                                            if (taskBuilder.activeExtensionId === ext.id) {
-                                              // Deactivate
-                                              setTaskBuilder(prev => ({
-                                                ...prev,
-                                                activeExtensionId: null,
-                                              }))
-                                            } else {
-                                              // Activate extension
-                                              setTaskBuilder(prev => ({
-                                                ...prev,
-                                                activeExtensionId: ext.id,
-                                              }))
-                                            }
-                                          }}
-                                        >
-                                          {ext.name}
-                                        </Button>
-                                      ))
-                                    )}
-                                  </div>
-                                </ResizablePanel>
-                              </div>
-                            </div>
-                          </TabsContent>
-
-                          {/* Assessment Builder Tab */}
-                          <TabsContent value="assessment" className="space-y-4">
-                            <div className="flex items-center gap-3">
-                              <div className="flex-1">
+                        {/* Task Builder Tab */}
+                        <TabsContent value="task" className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1">
+                              <div className="grid grid-cols-2 gap-3">
                                 <Input
-                                  placeholder={loadedAssessmentId ? 'Assessment Title' : ''}
-                                  className="font-semibold"
-                                  value={assessmentBuilder.title}
-                                  onChange={(e: any) =>
-                                    setAssessmentBuilder(prev => ({
-                                      ...prev,
-                                      title: e.target.value,
-                                    }))
+                                  placeholder={
+                                    loadedTaskId
+                                      ? 'Task Title'
+                                      : 'Select a task from the left sidebar to edit'
                                   }
-                                  disabled={!loadedAssessmentId}
+                                  className="font-semibold"
+                                  value={
+                                    taskBuilder.activeExtensionId
+                                      ? taskHeaderTitle
+                                      : taskBuilder.title
+                                  }
+                                  onChange={(e: any) =>
+                                    setTaskBuilder(prev => ({ ...prev, title: e.target.value }))
+                                  }
+                                  disabled={!loadedTaskId || !!taskBuilder.activeExtensionId}
+                                />
+                                <Input
+                                  placeholder={
+                                    loadedTaskId
+                                      ? taskBuilder.activeExtensionId
+                                        ? 'Extension Description'
+                                        : 'Description'
+                                      : 'Select a task to edit description'
+                                  }
+                                  value={
+                                    taskBuilder.activeExtensionId
+                                      ? activeTaskExtension?.description || ''
+                                      : taskBuilder.details
+                                  }
+                                  onChange={(e: any) => {
+                                    const value = e.target.value
+                                    if (taskBuilder.activeExtensionId) {
+                                      setTaskBuilder(prev => ({
+                                        ...prev,
+                                        extensions: prev.extensions.map(ext =>
+                                          ext.id === prev.activeExtensionId
+                                            ? { ...ext, description: value }
+                                            : ext
+                                        ),
+                                      }))
+                                    } else {
+                                      setTaskBuilder(prev => ({ ...prev, details: value }))
+                                    }
+                                  }}
+                                  disabled={!loadedTaskId}
                                 />
                               </div>
                             </div>
-                            <div className="flex gap-4">
-                              {/* Main content with tabs */}
-                              <div className="flex-1">
-                                <Tabs
-                                  value={assessmentBuilderActiveTab}
-                                  onValueChange={v => {
-                                    setAssessmentBuilderActiveTab(v as 'content' | 'pci')
-                                  }}
-                                  className="w-full"
-                                >
-                                  <TabsList className="grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
-                                    <TabsTrigger
-                                      value="content"
-                                      className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
-                                    >
-                                      Slide
-                                    </TabsTrigger>
-                                    <TabsTrigger
-                                      value="pci"
-                                      className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
-                                    >
-                                      PCI
-                                    </TabsTrigger>
-                                  </TabsList>
-                                  <TabsContent value="content" className="mt-2 space-y-2">
-                                    <AutoTextarea
-                                      placeholder="Enter assessment content or drop files here..."
-                                      className="min-h-[300px] w-full"
-                                      onDrop={(e: any) =>
-                                        handleDragFiles(e, text => {
-                                          setAssessmentBuilder(prev => {
+                          </div>
+                          <div className="flex gap-4">
+                            {/* Main content with tabs */}
+                            <div className="flex-1">
+                              <Tabs
+                                value={taskBuilderActiveTab}
+                                onValueChange={v => {
+                                  setTaskBuilderActiveTab(v as 'content' | 'pci')
+                                }}
+                                className="w-full"
+                              >
+                                <TabsList className="grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+                                  <TabsTrigger
+                                    value="content"
+                                    className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                  >
+                                    Slide
+                                  </TabsTrigger>
+                                  <TabsTrigger
+                                    value="pci"
+                                    className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                  >
+                                    PCI
+                                  </TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="content" className="mt-2 space-y-2">
+                                  <AutoTextarea
+                                    placeholder={
+                                      taskBuilder.activeExtensionId
+                                        ? 'Extension content...'
+                                        : 'Enter task content or drop files here...'
+                                    }
+                                    className="min-h-[300px] w-full"
+                                    onDrop={(e: any) =>
+                                      handleDragFiles(e, text => {
+                                        setTaskBuilder(prev => {
+                                          if (prev.activeExtensionId) {
+                                            const ext = prev.extensions.find(
+                                              x => x.id === prev.activeExtensionId
+                                            )
+                                            const combined = ext
+                                              ? ext.content + (ext.content ? '\n\n' : '') + text
+                                              : text
+                                            return {
+                                              ...prev,
+                                              extensions: prev.extensions.map(x =>
+                                                x.id === prev.activeExtensionId
+                                                  ? { ...x, content: combined }
+                                                  : x
+                                              ),
+                                            }
+                                          } else {
                                             const combined =
                                               prev.taskContent +
                                               (prev.taskContent ? '\n\n' : '') +
@@ -4860,173 +4559,464 @@ FEEDBACK: [your explanation]`
                                               ...prev,
                                               taskContent: combined,
                                             }
-                                          })
+                                          }
                                         })
+                                      })
+                                    }
+                                    // Show task content if no extension active, otherwise show active extension's content
+                                    value={
+                                      taskBuilder.activeExtensionId
+                                        ? taskBuilder.extensions.find(
+                                            e => e.id === taskBuilder.activeExtensionId
+                                          )?.content || ''
+                                        : taskBuilder.taskContent
+                                    }
+                                    onChange={(e: any) => {
+                                      const newContent = e.target.value
+                                      // Auto-create task if none loaded
+                                      if (!loadedTaskId && !taskBuilder.activeExtensionId) {
+                                        autoCreateTask()
                                       }
-                                      value={assessmentBuilder.taskContent}
-                                      onChange={(e: any) => {
-                                        const newContent = e.target.value
-                                        // Auto-create assessment if none loaded
-                                        if (!loadedAssessmentId) {
-                                          autoCreateAssessment()
-                                        }
-                                        setAssessmentBuilder(prev => ({
+                                      if (taskBuilder.activeExtensionId) {
+                                        // Update extension content
+                                        setTaskBuilder(prev => {
+                                          return {
+                                            ...prev,
+                                            extensions: prev.extensions.map(ext =>
+                                              ext.id === prev.activeExtensionId
+                                                ? { ...ext, content: newContent }
+                                                : ext
+                                            ),
+                                          }
+                                        })
+                                      } else {
+                                        // Update task content
+                                        setTaskBuilder(prev => ({
                                           ...prev,
                                           taskContent: newContent,
                                         }))
-                                      }}
-                                    />
-                                    {/* Uploaded Files List - only for assessment (not extensions) */}
-                                    {/* Upload button - only for assessment (not extensions) */}
-                                    {/* Assets Folder added to Slide Tab removed from here */}
-                                  </TabsContent>
-                                  <TabsContent value="pci" className="mt-2">
-                                    <div className="rounded-lg border bg-white">
-                                      <div className="max-h-[300px] min-h-[300px] space-y-3 overflow-y-auto p-3">
-                                        {assessmentPciMessages.length === 0 && (
-                                          <p className="text-xs text-muted-foreground">
-                                            Start a PCI chat to build instructions with the
-                                            assistant.
-                                          </p>
-                                        )}
-                                        {assessmentPciMessages.map((msg, idx) => (
+                                      }
+                                    }}
+                                  />
+                                  {/* Uploaded Files List - only show for task (not extensions) */}
+                                  {/* Upload button - only for task (not extensions) */}
+                                  {/* Assets Folder added to Slide Tab removed from here */}
+                                </TabsContent>
+                                <TabsContent value="pci" className="mt-2">
+                                  <div className="rounded-lg border bg-white">
+                                    <div className="max-h-[300px] min-h-[300px] space-y-3 overflow-y-auto p-3">
+                                      {activeTaskPciMessages.length === 0 && (
+                                        <p className="text-xs text-muted-foreground">
+                                          Start a PCI chat to build instructions with the assistant.
+                                        </p>
+                                      )}
+                                      {activeTaskPciMessages.map((msg, idx) => (
+                                        <div
+                                          key={idx}
+                                          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                        >
                                           <div
-                                            key={idx}
-                                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                            className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                                              msg.role === 'user'
+                                                ? 'bg-blue-50 text-gray-900'
+                                                : 'bg-gray-100 text-gray-800'
+                                            }`}
                                           >
-                                            <div
-                                              className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-                                                msg.role === 'user'
-                                                  ? 'bg-blue-50 text-gray-900'
-                                                  : 'bg-gray-100 text-gray-800'
-                                              }`}
-                                            >
-                                              <div className="whitespace-pre-wrap">
-                                                {msg.content}
-                                              </div>
-                                            </div>
+                                            <div className="whitespace-pre-wrap">{msg.content}</div>
                                           </div>
-                                        ))}
-                                        {assessmentPciLoading && (
-                                          <div className="flex justify-start">
-                                            <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
-                                              <Loader2 className="h-4 w-4 animate-spin" />
-                                              <span className="text-xs text-gray-600">
-                                                Thinking...
-                                              </span>
-                                            </div>
-                                          </div>
-                                        )}
-                                      </div>
-                                      <div className="border-t p-2">
-                                        {assessmentPciErrorHint && (
-                                          <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
-                                            PCI assistant error: {assessmentPciErrorHint}
-                                          </div>
-                                        )}
-                                        <div className="relative flex items-end gap-2">
-                                          <AutoTextarea
-                                            placeholder="Ask the PCI assistant..."
-                                            className="min-h-[44px] w-full pr-11"
-                                            value={assessmentPciInput}
-                                            onChange={(e: any) =>
-                                              setAssessmentPciInput(e.target.value)
-                                            }
-                                            onKeyDown={(e: any) => {
-                                              if (e.key === 'Enter' && !e.shiftKey) {
-                                                e.preventDefault()
-                                                handlePciSend('assessment')
-                                              }
-                                            }}
-                                          />
-                                          <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="icon"
-                                            className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
-                                            disabled={
-                                              assessmentPciLoading || !assessmentPciInput.trim()
-                                            }
-                                            onClick={() => handlePciSend('assessment')}
-                                            aria-label="Send"
-                                          >
-                                            {assessmentPciLoading ? (
-                                              <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                              <Send className="h-4 w-4" />
-                                            )}
-                                          </Button>
                                         </div>
+                                      ))}
+                                      {taskPciLoading && (
+                                        <div className="flex justify-start">
+                                          <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            <span className="text-xs text-gray-600">
+                                              Thinking...
+                                            </span>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="border-t p-2">
+                                      {taskPciErrorHint && (
+                                        <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
+                                          PCI assistant error: {taskPciErrorHint}
+                                        </div>
+                                      )}
+                                      <div className="relative flex items-end gap-2">
+                                        <AutoTextarea
+                                          placeholder="Ask the PCI assistant..."
+                                          className="min-h-[44px] w-full pr-11"
+                                          value={activeTaskPciInput}
+                                          onChange={(e: any) => {
+                                            const value = e.target.value
+                                            if (taskBuilder.activeExtensionId) {
+                                              setTaskExtensionPciInputs(prev => ({
+                                                ...prev,
+                                                [taskBuilder.activeExtensionId as string]: value,
+                                              }))
+                                            } else {
+                                              setTaskPciInput(value)
+                                            }
+                                          }}
+                                          onKeyDown={(e: any) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                              e.preventDefault()
+                                              handlePciSend('task')
+                                            }
+                                          }}
+                                        />
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="icon"
+                                          className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
+                                          disabled={taskPciLoading || !activeTaskPciInput.trim()}
+                                          onClick={() => handlePciSend('task')}
+                                          aria-label="Send"
+                                        >
+                                          {taskPciLoading ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                          ) : (
+                                            <Send className="h-4 w-4" />
+                                          )}
+                                        </Button>
                                       </div>
                                     </div>
-                                  </TabsContent>
-                                </Tabs>
-                                {/* Buttons row with Test and Generate DMI */}
-                                <div className="mt-3 flex gap-2">
+                                  </div>
+                                </TabsContent>
+                              </Tabs>
+                              {/* Buttons row with Test and Save */}
+                              <div className="mt-3 flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    // Prefill Test PCI with content from Task Builder
+                                    const content = taskBuilder.activeExtensionId
+                                      ? taskBuilder.extensions.find(
+                                          e => e.id === taskBuilder.activeExtensionId
+                                        )?.content || taskBuilder.taskContent
+                                      : taskBuilder.taskContent
+
+                                    setTestPciScores({})
+                                    setTestPciInput('')
+
+                                    setTestPciContent({
+                                      classroom: content,
+                                      student1: content,
+                                      student2: content,
+                                    })
+                                    setTestPciSource('task')
+                                    // Switch to Test PCI tab
+                                    setMainTab('test-pci')
+                                    toast.success('Test PCI prefilled with task content')
+                                  }}
+                                >
+                                  Test
+                                </Button>
+                              </div>
+                            </div>
+                            {/* Right panels container */}
+                            <div className="flex flex-col gap-4">
+                              {/* Extensions panel */}
+                              <ResizablePanel
+                                defaultWidth={200}
+                                minWidth={150}
+                                maxWidth={300}
+                                actionButton={
                                   <Button
                                     variant="outline"
                                     size="sm"
+                                    className="w-full"
                                     onClick={() => {
-                                      // Prefill Test PCI with content from Assessment Builder
-                                      const content = assessmentBuilder.taskContent
-
-                                      setTestPciScores({})
-                                      setTestPciInput('')
-
-                                      setTestPciContent({
-                                        classroom: content,
-                                        student1: content,
-                                        student2: content,
-                                      })
-                                      setTestPciSource('assessment')
-                                      // Switch to Test PCI tab
-                                      setMainTab('test-pci')
-                                      toast.success('Test PCI prefilled with assessment content')
+                                      if (!loadedTaskId) {
+                                        toast.error('Please select a task first')
+                                        return
+                                      }
+                                      const extNumber = taskBuilder.extensions.length + 1
+                                      const newExtension = {
+                                        id: `ext-${Date.now()}`,
+                                        name: `Extension ${extNumber}`,
+                                        content: '',
+                                        pci: '',
+                                      }
+                                      setTaskBuilder(prev => ({
+                                        ...prev,
+                                        extensions: [...prev.extensions, newExtension],
+                                        activeExtensionId: newExtension.id,
+                                      }))
                                     }}
                                   >
-                                    Test
+                                    Add Extension
                                   </Button>
-                                </div>
-                              </div>
-                              {/* Right panels container */}
-                              <div className="flex flex-col gap-4">
-                                {/* DMI Panel */}
-                                <ResizablePanel
-                                  defaultWidth={200}
-                                  minWidth={150}
-                                  maxWidth={300}
-                                  actionButton={
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="w-full"
-                                      onClick={() => {
-                                        // Generate DMI from Slide content
-                                        const content = assessmentBuilder.taskContent
-                                        if (!content.trim()) {
-                                          toast.error('Please add content to the Slide tab first')
-                                          return
+                                }
+                              >
+                                <h4 className="mb-2 text-sm font-medium">
+                                  {taskBuilder.title || 'Task'} Extensions
+                                </h4>
+                                <div className="min-h-[100px] space-y-2 rounded-lg bg-slate-50 p-3">
+                                  {taskBuilder.extensions.length === 0 ? (
+                                    <p className="text-xs text-muted-foreground">
+                                      No extensions added
+                                    </p>
+                                  ) : (
+                                    taskBuilder.extensions.map(ext => (
+                                      <Button
+                                        key={ext.id}
+                                        variant={
+                                          taskBuilder.activeExtensionId === ext.id
+                                            ? 'default'
+                                            : 'ghost'
                                         }
-                                        handleGenerateDMI('assessment')
-                                      }}
-                                    >
-                                      Generate DMI
-                                    </Button>
-                                  }
-                                >
-                                  <DMIPanel
-                                    items={assessmentDmiItems}
-                                    onItemsChange={setAssessmentDmiItems}
-                                    onDeploy={handleDeployAssessmentDmi}
+                                        size="sm"
+                                        className="w-full justify-start text-xs"
+                                        onClick={() => {
+                                          if (taskBuilder.activeExtensionId === ext.id) {
+                                            // Deactivate
+                                            setTaskBuilder(prev => ({
+                                              ...prev,
+                                              activeExtensionId: null,
+                                            }))
+                                          } else {
+                                            // Activate extension
+                                            setTaskBuilder(prev => ({
+                                              ...prev,
+                                              activeExtensionId: ext.id,
+                                            }))
+                                          }
+                                        }}
+                                      >
+                                        {ext.name}
+                                      </Button>
+                                    ))
+                                  )}
+                                </div>
+                              </ResizablePanel>
+                            </div>
+                          </div>
+                        </TabsContent>
+
+                        {/* Assessment Builder Tab */}
+                        <TabsContent value="assessment" className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1">
+                              <Input
+                                placeholder={loadedAssessmentId ? 'Assessment Title' : ''}
+                                className="font-semibold"
+                                value={assessmentBuilder.title}
+                                onChange={(e: any) =>
+                                  setAssessmentBuilder(prev => ({
+                                    ...prev,
+                                    title: e.target.value,
+                                  }))
+                                }
+                                disabled={!loadedAssessmentId}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex gap-4">
+                            {/* Main content with tabs */}
+                            <div className="flex-1">
+                              <Tabs
+                                value={assessmentBuilderActiveTab}
+                                onValueChange={v => {
+                                  setAssessmentBuilderActiveTab(v as 'content' | 'pci')
+                                }}
+                                className="w-full"
+                              >
+                                <TabsList className="grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+                                  <TabsTrigger
+                                    value="content"
+                                    className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                  >
+                                    Slide
+                                  </TabsTrigger>
+                                  <TabsTrigger
+                                    value="pci"
+                                    className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                  >
+                                    PCI
+                                  </TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="content" className="mt-2 space-y-2">
+                                  <AutoTextarea
+                                    placeholder="Enter assessment content or drop files here..."
+                                    className="min-h-[300px] w-full"
+                                    onDrop={(e: any) =>
+                                      handleDragFiles(e, text => {
+                                        setAssessmentBuilder(prev => {
+                                          const combined =
+                                            prev.taskContent +
+                                            (prev.taskContent ? '\n\n' : '') +
+                                            text
+                                          return {
+                                            ...prev,
+                                            taskContent: combined,
+                                          }
+                                        })
+                                      })
+                                    }
+                                    value={assessmentBuilder.taskContent}
+                                    onChange={(e: any) => {
+                                      const newContent = e.target.value
+                                      // Auto-create assessment if none loaded
+                                      if (!loadedAssessmentId) {
+                                        autoCreateAssessment()
+                                      }
+                                      setAssessmentBuilder(prev => ({
+                                        ...prev,
+                                        taskContent: newContent,
+                                      }))
+                                    }}
                                   />
-                                </ResizablePanel>
+                                  {/* Uploaded Files List - only for assessment (not extensions) */}
+                                  {/* Upload button - only for assessment (not extensions) */}
+                                  {/* Assets Folder added to Slide Tab removed from here */}
+                                </TabsContent>
+                                <TabsContent value="pci" className="mt-2">
+                                  <div className="rounded-lg border bg-white">
+                                    <div className="max-h-[300px] min-h-[300px] space-y-3 overflow-y-auto p-3">
+                                      {assessmentPciMessages.length === 0 && (
+                                        <p className="text-xs text-muted-foreground">
+                                          Start a PCI chat to build instructions with the assistant.
+                                        </p>
+                                      )}
+                                      {assessmentPciMessages.map((msg, idx) => (
+                                        <div
+                                          key={idx}
+                                          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                        >
+                                          <div
+                                            className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                                              msg.role === 'user'
+                                                ? 'bg-blue-50 text-gray-900'
+                                                : 'bg-gray-100 text-gray-800'
+                                            }`}
+                                          >
+                                            <div className="whitespace-pre-wrap">{msg.content}</div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                      {assessmentPciLoading && (
+                                        <div className="flex justify-start">
+                                          <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            <span className="text-xs text-gray-600">
+                                              Thinking...
+                                            </span>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="border-t p-2">
+                                      {assessmentPciErrorHint && (
+                                        <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
+                                          PCI assistant error: {assessmentPciErrorHint}
+                                        </div>
+                                      )}
+                                      <div className="relative flex items-end gap-2">
+                                        <AutoTextarea
+                                          placeholder="Ask the PCI assistant..."
+                                          className="min-h-[44px] w-full pr-11"
+                                          value={assessmentPciInput}
+                                          onChange={(e: any) =>
+                                            setAssessmentPciInput(e.target.value)
+                                          }
+                                          onKeyDown={(e: any) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                              e.preventDefault()
+                                              handlePciSend('assessment')
+                                            }
+                                          }}
+                                        />
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="icon"
+                                          className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
+                                          disabled={
+                                            assessmentPciLoading || !assessmentPciInput.trim()
+                                          }
+                                          onClick={() => handlePciSend('assessment')}
+                                          aria-label="Send"
+                                        >
+                                          {assessmentPciLoading ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                          ) : (
+                                            <Send className="h-4 w-4" />
+                                          )}
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </TabsContent>
+                              </Tabs>
+                              {/* Buttons row with Test and Generate DMI */}
+                              <div className="mt-3 flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    // Prefill Test PCI with content from Assessment Builder
+                                    const content = assessmentBuilder.taskContent
+
+                                    setTestPciScores({})
+                                    setTestPciInput('')
+
+                                    setTestPciContent({
+                                      classroom: content,
+                                      student1: content,
+                                      student2: content,
+                                    })
+                                    setTestPciSource('assessment')
+                                    // Switch to Test PCI tab
+                                    setMainTab('test-pci')
+                                    toast.success('Test PCI prefilled with assessment content')
+                                  }}
+                                >
+                                  Test
+                                </Button>
                               </div>
                             </div>
-                          </TabsContent>
-                        </Tabs>
-                      </CardContent>
-                    </Card>
-                  )}
+                            {/* Right panels container */}
+                            <div className="flex flex-col gap-4">
+                              {/* DMI Panel */}
+                              <ResizablePanel
+                                defaultWidth={200}
+                                minWidth={150}
+                                maxWidth={300}
+                                actionButton={
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full"
+                                    onClick={() => {
+                                      // Generate DMI from Slide content
+                                      const content = assessmentBuilder.taskContent
+                                      if (!content.trim()) {
+                                        toast.error('Please add content to the Slide tab first')
+                                        return
+                                      }
+                                      handleGenerateDMI('assessment')
+                                    }}
+                                  >
+                                    Generate DMI
+                                  </Button>
+                                }
+                              >
+                                <DMIPanel
+                                  items={assessmentDmiItems}
+                                  onItemsChange={setAssessmentDmiItems}
+                                  onDeploy={handleDeployAssessmentDmi}
+                                />
+                              </ResizablePanel>
+                            </div>
+                          </div>
+                        </TabsContent>
+                      </Tabs>
+                    </CardContent>
+                  </Card>
                 </TabsContent>
               </Tabs>
             </div>
