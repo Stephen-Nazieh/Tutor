@@ -26,6 +26,7 @@ import {
   Video,
   Info,
   X,
+  Trash2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -308,7 +309,8 @@ function TutorDashboardContent() {
           toast.error('Classroom created but no session ID returned')
           return
         }
-        router.push(`/tutor/insights?sessionId=${sessionId}`)
+        // Navigate directly to live classroom
+        router.push(`/tutor/live-class/${sessionId}`)
       } catch {
         toast.error('Failed to launch classroom')
       } finally {
@@ -317,6 +319,36 @@ function TutorDashboardContent() {
     },
     [launchingCourseId, router]
   )
+
+  const handleDeleteCourse = useCallback(async (courseId: string) => {
+    if (!confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch(`/api/tutor/courses/${courseId}`, {
+        method: 'DELETE',
+        headers: {
+          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+        },
+        credentials: 'include',
+      })
+
+      if (res.ok) {
+        setEnrolledCourses(prev => prev.filter(c => c.id !== courseId))
+        toast.success('Course deleted successfully')
+      } else {
+        const data = await res.json().catch(() => ({}))
+        toast.error(data.error || 'Failed to delete course')
+      }
+    } catch {
+      toast.error('Failed to delete course')
+    }
+  }, [])
 
   const withLocalePath = useCallback(
     (path: string) => {
@@ -484,6 +516,14 @@ function TutorDashboardContent() {
                             <Link href={withLocalePath(`/tutor/courses/${course.id}/enrollments`)}>
                               View Enrollments
                             </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteCourse(course.id)}
+                            className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>

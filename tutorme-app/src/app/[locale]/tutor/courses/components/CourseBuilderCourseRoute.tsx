@@ -6,8 +6,9 @@
 'use client'
 
 import Link from 'next/link'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -15,23 +16,278 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowLeft, BookOpen, Loader2, Save, ChevronRight } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ArrowLeft, BookOpen, Loader2, Save, ChevronRight, Plus, Trash2 } from 'lucide-react'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
 import { toast } from 'sonner'
 import { DASHBOARD_THEMES } from '@/components/dashboard-theme'
-import { useCourseBuilderContentModel } from './use-course-builder-content-model'
+
+interface Course {
+  id: string
+  name: string
+  subject?: string | null
+  gradeLevel?: string | null
+}
 
 export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null }) {
-  const model = useCourseBuilderContentModel({
-    courseId,
-    dataMode: 'default',
-  })
+  const [courses, setCourses] = useState<Course[]>([])
+  const [currentCourse, setCurrentCourse] = useState<Course | null>(null)
+  const [courseName, setCourseName] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [loadedModules, setLoadedModules] = useState<any[] | null>(null)
+  const [themeId, setThemeId] = useState('current')
+  const [savedVariants, setSavedVariants] = useState<any[]>([])
+  const courseBuilderRef = useRef<any>(null)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [newCourseName, setNewCourseName] = useState('')
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
-  if (model.shouldShowCoursePickerEmpty) {
+  // Fetch all tutor courses
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const res = await fetch('/api/tutor/courses', { credentials: 'include' })
+        if (res.ok) {
+          const data = await res.json()
+          const coursesList = data.courses || []
+          setCourses(coursesList)
+
+          // If courseId is provided, find and set the current course
+          if (courseId) {
+            const current = coursesList.find((c: Course) => c.id === courseId)
+            if (current) {
+              setCurrentCourse(current)
+              setCourseName(current.name)
+            }
+          } else if (coursesList.length > 0) {
+            // Default to first course if no courseId
+            setCurrentCourse(coursesList[0])
+            setCourseName(coursesList[0].name)
+          }
+        }
+      } catch (error) {
+        toast.error('Failed to load courses')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCourses()
+  }, [courseId])
+
+  // Fetch course curriculum when course changes
+  useEffect(() => {
+    if (!currentCourse?.id) return
+
+    const fetchCurriculum = async () => {
+      setLoading(true)
+      try {
+        const res = await fetch(`/api/tutor/courses/${currentCourse.id}/curriculum`, {
+          credentials: 'include',
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setLoadedModules(data.modules || [])
+        }
+      } catch (error) {
+        toast.error('Failed to load curriculum')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCurriculum()
+  }, [currentCourse?.id])
+
+  const handleCourseSelect = useCallback(
+    (selectedCourseId: string) => {
+      const selected = courses.find(c => c.id === selectedCourseId)
+      if (selected) {
+        setCurrentCourse(selected)
+        setCourseName(selected.name)
+        // Update URL without full page reload
+        window.history.replaceState({}, '', `/tutor/courses/${selected.id}/builder`)
+      }
+    },
+    [courses]
+  )
+
+  const handleCourseNameChange = useCallback(
+    async (newName: string) => {
+      setCourseName(newName)
+      if (currentCourse && newName.trim() && newName !== currentCourse.name) {
+        try {
+          const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+          const csrfData = await csrfRes.json().catch(() => ({}))
+          const csrfToken = csrfData?.token ?? null
+
+          const res = await fetch(`/api/tutor/courses/${currentCourse.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+            },
+            credentials: 'include',
+            body: JSON.stringify({ name: newName.trim() }),
+          })
+
+          if (res.ok) {
+            setCurrentCourse(prev => (prev ? { ...prev, name: newName.trim() } : null))
+            setCourses(prev =>
+              prev.map(c => (c.id === currentCourse.id ? { ...c, name: newName.trim() } : c))
+            )
+          }
+        } catch {
+          // Silent fail - name will be saved when user clicks Save Course
+        }
+      }
+    },
+    [currentCourse]
+  )
+
+  const handleCreateNewCourse = useCallback(async () => {
+    if (!newCourseName.trim()) {
+      toast.error('Please enter a course name')
+      return
+    }
+
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch('/api/tutor/courses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: newCourseName.trim(),
+          subject: 'general',
+          categories: [],
+          schedule: [],
+          isLiveOnline: false,
+        }),
+      })
+
+      const data = await res.json()
+      if (res.ok && data.course) {
+        const newCourse = data.course
+        setCourses(prev => [...prev, newCourse])
+        setCurrentCourse(newCourse)
+        setCourseName(newCourse.name)
+        setLoadedModules([])
+        setNewCourseName('')
+        setIsCreateDialogOpen(false)
+        toast.success(`Created course "${newCourse.name}"`)
+        // Navigate to the new course builder
+        window.history.replaceState({}, '', `/tutor/courses/${newCourse.id}/builder`)
+      } else {
+        toast.error(data.error || 'Failed to create course')
+      }
+    } catch {
+      toast.error('Failed to create course')
+    }
+  }, [newCourseName])
+
+  const handleDeleteCourse = useCallback(async () => {
+    if (!currentCourse) return
+    if (courses.length <= 1) {
+      toast.error('Cannot delete the last course')
+      setIsDeleteDialogOpen(false)
+      return
+    }
+
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch(`/api/tutor/courses/${currentCourse.id}`, {
+        method: 'DELETE',
+        headers: {
+          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+        },
+        credentials: 'include',
+      })
+
+      if (res.ok) {
+        const remainingCourses = courses.filter(c => c.id !== currentCourse.id)
+        setCourses(remainingCourses)
+        setCurrentCourse(remainingCourses[0])
+        setCourseName(remainingCourses[0].name)
+        setIsDeleteDialogOpen(false)
+        toast.success('Course deleted')
+        // Navigate to another course
+        window.history.replaceState({}, '', `/tutor/courses/${remainingCourses[0].id}/builder`)
+      } else {
+        const data = await res.json().catch(() => ({}))
+        toast.error(data.error || 'Failed to delete course')
+      }
+    } catch {
+      toast.error('Failed to delete course')
+    }
+  }, [currentCourse, courses])
+
+  const handleSave = useCallback(
+    async (modules: any[], options?: any) => {
+      if (!currentCourse?.id) return
+      setSaving(true)
+      try {
+        const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+        const csrfData = await csrfRes.json().catch(() => ({}))
+        const csrfToken = csrfData?.token ?? null
+
+        const res = await fetch(`/api/tutor/courses/${currentCourse.id}/curriculum`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+          },
+          credentials: 'include',
+          body: JSON.stringify({ modules }),
+        })
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          toast.error(data.error || 'Failed to save curriculum')
+        } else {
+          toast.success('Course saved successfully')
+        }
+      } catch {
+        toast.error('Failed to save course')
+      } finally {
+        setSaving(false)
+      }
+    },
+    [currentCourse?.id]
+  )
+
+  const selectedTheme = DASHBOARD_THEMES.find(t => t.id === themeId) ?? DASHBOARD_THEMES[0]
+  const themeStyle = selectedTheme.tokens
+    ? {
+        ['--dashboard-bg' as string]: selectedTheme.tokens.background,
+        ['--dashboard-panel' as string]: selectedTheme.tokens.panel,
+        ['--dashboard-accent' as string]: selectedTheme.tokens.accent,
+      }
+    : {}
+
+  if (!currentCourse && !loading) {
     return (
       <div
         className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground"
-        style={model.themeStyle}
+        style={themeStyle}
       >
         <Card className="w-full max-w-md">
           <CardHeader>
@@ -40,13 +296,13 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
               Course Builder
             </CardTitle>
             <CardDescription>
-              Select a course to edit its curriculum. Open a course from the Course Catalogue or
-              from your dashboard to use the builder.
+              You don&apos;t have any courses yet. Create a course to start building your
+              curriculum.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button asChild className="w-full">
-              <Link href="/curriculum">Open Course Catalogue</Link>
+            <Button onClick={() => setIsCreateDialogOpen(true)} className="w-full">
+              Create Your First Course
             </Button>
           </CardContent>
         </Card>
@@ -58,28 +314,62 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
     <div
       className="flex h-screen w-full flex-col items-stretch overflow-hidden bg-[#fafafc] text-foreground"
       data-tutor-route="course-builder"
-      style={model.themeStyle}
+      style={themeStyle}
     >
       <div className="sticky top-0 z-10 w-full border-b border-border bg-card">
         <div className="flex w-full items-center justify-between gap-4 px-4 py-1 sm:px-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="shrink-0"
-            onClick={() => {
-              // Navigate to course page if we have a courseId, otherwise to dashboard
-              if (courseId) {
-                model.router.push(`/tutor/courses/${courseId}`)
-              } else {
-                model.router.push('/tutor/dashboard')
-              }
-            }}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
+          <Button variant="ghost" size="sm" className="shrink-0" asChild>
+            <Link href="/tutor/dashboard">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Link>
           </Button>
+
+          {/* Course Selector and Name Editor */}
+          <div className="flex items-center gap-3">
+            <BookOpen className="h-5 w-5 text-blue-500" />
+            <Select value={currentCourse?.id} onValueChange={handleCourseSelect}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select a course" />
+              </SelectTrigger>
+              <SelectContent>
+                {courses.map(course => (
+                  <SelectItem key={course.id} value={course.id}>
+                    {course.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              value={courseName}
+              onChange={e => {
+                setCourseName(e.target.value)
+                handleCourseNameChange(e.target.value)
+              }}
+              className="w-[250px] text-center font-semibold"
+              placeholder="Course name"
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsCreateDialogOpen(true)}
+              title="Create new course"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsDeleteDialogOpen(true)}
+              title="Delete current course"
+              disabled={courses.length <= 1}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+
           <div className="flex shrink-0 items-center gap-3">
-            <Select value={model.themeId} onValueChange={model.setThemeId}>
+            <Select value={themeId} onValueChange={setThemeId}>
               <SelectTrigger className="h-8 w-[180px] border-border bg-card text-foreground">
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
@@ -93,36 +383,20 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
             </Select>
             <Button
               className="gap-2"
-              onClick={() => model.courseBuilderRef.current?.save()}
-              disabled={model.saving}
+              onClick={() => courseBuilderRef.current?.save()}
+              disabled={saving}
             >
-              {model.saving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Save Course
             </Button>
-            {courseId ? (
+            {currentCourse?.id ? (
               <Button variant="outline" className="gap-2" asChild>
-                <Link href={`/tutor/courses/${courseId}`}>
+                <Link href={`/tutor/courses/${currentCourse.id}`}>
                   Next
                   <ChevronRight className="h-4 w-4" />
                 </Link>
               </Button>
-            ) : (
-              <Button
-                variant="outline"
-                className="gap-2"
-                type="button"
-                onClick={() =>
-                  toast.error('Course ID not available yet. Please wait a moment and try again.')
-                }
-              >
-                Next
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -131,64 +405,69 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
         <h1 className="mb-2 text-center text-2xl font-bold tracking-tight text-foreground">
           Course Builder
         </h1>
-        {model.savedVariants.length > 0 && (
-          <Card className="mb-8 w-full border border-emerald-200/50 bg-emerald-50/30 shadow-xl backdrop-blur-md">
-            <CardHeader className="pb-2 pt-4">
-              <CardTitle className="text-sm text-foreground">Adaptive Variant Join Links</CardTitle>
-              <CardDescription>
-                Share the correct link with students for each difficulty level.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2 pb-4">
-              {model.savedVariants.map(variant => (
-                <div key={variant.batchId} className="rounded-md border bg-card p-2.5">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0">
-                      <p className="text-xs font-medium capitalize">{variant.difficulty}</p>
-                      <p className="truncate text-[11px] text-muted-foreground">
-                        {variant.batchName}
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      className="h-7 px-2 text-xs"
-                      onClick={async () => {
-                        try {
-                          await navigator.clipboard.writeText(variant.joinLink)
-                          toast.success(`${variant.difficulty} join link copied`)
-                        } catch {
-                          toast.error('Failed to copy link')
-                        }
-                      }}
-                    >
-                      Copy Link
-                    </Button>
-                  </div>
-                  <p className="mt-1 break-all text-[11px] text-muted-foreground">
-                    {variant.joinLink}
-                  </p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
 
-        {model.loading ? (
+        {loading ? (
           <div className="flex flex-1 items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
           </div>
         ) : (
           <CourseBuilder
-            ref={model.courseBuilderRef}
-            courseId={courseId ?? ''}
-            courseName={model.course?.name}
-            initialModules={model.loadedModules ?? undefined}
-            onSave={model.handleSave}
+            ref={courseBuilderRef}
+            courseId={currentCourse?.id ?? ''}
+            courseName={courseName}
+            initialModules={loadedModules ?? undefined}
+            onSave={handleSave}
+            hideCourseNameInTabs
           />
         )}
       </div>
+
+      {/* Create New Course Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Course</DialogTitle>
+            <DialogDescription>Enter a name for your new course.</DialogDescription>
+          </DialogHeader>
+          <Input
+            value={newCourseName}
+            onChange={e => setNewCourseName(e.target.value)}
+            placeholder="Course name"
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                handleCreateNewCourse()
+              }
+            }}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateNewCourse}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Course Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Course</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete &quot;{courseName}&quot;? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteCourse}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
