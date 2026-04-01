@@ -15,6 +15,16 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
 
 import {
   Plus,
@@ -27,6 +37,11 @@ import {
   Info,
   X,
   Trash2,
+  Calendar,
+  Clock,
+  Users,
+  AlertCircle,
+  Ban,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -83,6 +98,21 @@ type EnrolledCourse = {
   enrollmentCount: number
 }
 
+type CourseSession = {
+  id: string
+  title: string
+  subject: string
+  description?: string | null
+  gradeLevel?: string | null
+  scheduledAt: string | null
+  startedAt: string | null
+  endedAt: string | null
+  maxStudents: number
+  enrolledStudents: number
+  status: string
+  roomUrl?: string | null
+}
+
 // Inner component that uses searchParams
 function TutorDashboardContent() {
   const { data: session } = useSession()
@@ -113,6 +143,13 @@ function TutorDashboardContent() {
   const [error, setError] = useState<string | null>(null)
   const [launchingCourseId, setLaunchingCourseId] = useState<string | null>(null)
   const [oneAccountTipDismissed, setOneAccountTipDismissed] = useState(true)
+  
+  // Cancel Course Modal State
+  const [cancelModalOpen, setCancelModalOpen] = useState(false)
+  const [selectedCourseForCancel, setSelectedCourseForCancel] = useState<EnrolledCourse | null>(null)
+  const [courseSessions, setCourseSessions] = useState<CourseSession[]>([])
+  const [loadingSessions, setLoadingSessions] = useState(false)
+  const [cancellingSessionId, setCancellingSessionId] = useState<string | null>(null)
   useEffect(() => {
     try {
       setOneAccountTipDismissed(
@@ -320,33 +357,64 @@ function TutorDashboardContent() {
     [launchingCourseId, router]
   )
 
-  const handleDeleteCourse = useCallback(async (courseId: string) => {
-    if (!confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
-      return
+  const handleOpenCancelModal = useCallback(async (course: EnrolledCourse) => {
+    setSelectedCourseForCancel(course)
+    setCancelModalOpen(true)
+    setLoadingSessions(true)
+    
+    try {
+      const res = await fetch(`/api/tutor/courses/${course.id}/sessions`, {
+        credentials: 'include',
+      })
+      
+      if (res.ok) {
+        const data = await res.json()
+        setCourseSessions(data.sessions || [])
+      } else {
+        toast.error('Failed to load course sessions')
+        setCourseSessions([])
+      }
+    } catch {
+      toast.error('Failed to load course sessions')
+      setCourseSessions([])
+    } finally {
+      setLoadingSessions(false)
     }
+  }, [])
 
+  const handleCancelSession = useCallback(async (sessionId: string, reason?: string) => {
+    setCancellingSessionId(sessionId)
+    
     try {
       const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
       const csrfData = await csrfRes.json().catch(() => ({}))
       const csrfToken = csrfData?.token ?? null
 
-      const res = await fetch(`/api/tutor/courses/${courseId}`, {
-        method: 'DELETE',
+      const res = await fetch(`/api/tutor/sessions/${sessionId}`, {
+        method: 'PATCH',
         headers: {
+          'Content-Type': 'application/json',
           ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
         },
         credentials: 'include',
+        body: JSON.stringify({ action: 'cancel', reason }),
       })
 
       if (res.ok) {
-        setEnrolledCourses(prev => prev.filter(c => c.id !== courseId))
-        toast.success('Course deleted successfully')
+        setCourseSessions(prev =>
+          prev.map(s =>
+            s.id === sessionId ? { ...s, status: 'ENDED', endedAt: new Date().toISOString() } : s
+          )
+        )
+        toast.success('Session cancelled successfully')
       } else {
         const data = await res.json().catch(() => ({}))
-        toast.error(data.error || 'Failed to delete course')
+        toast.error(data.error || 'Failed to cancel session')
       }
     } catch {
-      toast.error('Failed to delete course')
+      toast.error('Failed to cancel session')
+    } finally {
+      setCancellingSessionId(null)
     }
   }, [])
 
@@ -451,9 +519,9 @@ function TutorDashboardContent() {
         </div>
 
         <div className="mb-8">
-          <Tabs defaultValue="sessions" className="space-y-4">
+          <Tabs defaultValue="courses" className="space-y-4">
             <TabsList className="grid w-full max-w-md grid-cols-3">
-              <TabsTrigger value="sessions">Sessions</TabsTrigger>
+              <TabsTrigger value="courses">Courses</TabsTrigger>
               <TabsTrigger value="calendar">Calendar</TabsTrigger>
               <TabsTrigger value="availability">My Availability</TabsTrigger>
             </TabsList>
@@ -467,7 +535,7 @@ function TutorDashboardContent() {
                 loading={loading}
               />
             </TabsContent>
-            <TabsContent value="sessions">
+            <TabsContent value="courses">
               <Card className="border border-border bg-card/95 shadow-xl backdrop-blur-md">
                 <CardHeader>
                   <CardTitle>Courses With Enrolled Students</CardTitle>
@@ -520,10 +588,11 @@ function TutorDashboardContent() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleDeleteCourse(course.id)}
-                            className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                            onClick={() => handleOpenCancelModal(course)}
+                            className="text-orange-600 hover:bg-orange-50 hover:text-orange-700"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Ban className="mr-1 h-4 w-4" />
+                            Cancel
                           </Button>
                         </div>
                       </div>
@@ -546,6 +615,148 @@ function TutorDashboardContent() {
           redirectToClass={false}
           initialDate={scheduleDate}
         />
+
+        {/* Cancel Course Modal */}
+        <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Ban className="h-5 w-5 text-orange-500" />
+                Cancel Course Sessions
+              </DialogTitle>
+              <DialogDescription>
+                {selectedCourseForCancel && (
+                  <>
+                    Manage sessions for <strong>{selectedCourseForCancel.name}</strong>
+                  </>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="mt-4">
+              {loadingSessions ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                </div>
+              ) : courseSessions.length === 0 ? (
+                <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                  <Calendar className="mx-auto mb-2 h-8 w-8 text-gray-300" />
+                  <p>No sessions found for this course.</p>
+                </div>
+              ) : (
+                <ScrollArea className="max-h-[400px]">
+                  <div className="space-y-3 pr-4">
+                    {courseSessions.map(session => {
+                      const isScheduled = session.status === 'SCHEDULED'
+                      const isActive = session.status === 'ACTIVE'
+                      const isEnded = session.status === 'ENDED'
+                      const canCancel = isScheduled || isActive
+                      
+                      return (
+                        <div
+                          key={session.id}
+                          className="flex items-center justify-between rounded-lg border p-3"
+                        >
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <p className="truncate font-medium">{session.title}</p>
+                              <Badge
+                                variant={
+                                  isEnded
+                                    ? 'secondary'
+                                    : isActive
+                                      ? 'default'
+                                      : 'outline'
+                                }
+                                className={
+                                  isActive ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''
+                                }
+                              >
+                                {session.status}
+                              </Badge>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                              {session.scheduledAt && (
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {new Date(session.scheduledAt).toLocaleDateString('en-US', {
+                                    weekday: 'short',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                  })}
+                                </span>
+                              )}
+                              {session.scheduledAt && (
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {new Date(session.scheduledAt).toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                  })}
+                                </span>
+                              )}
+                              <span className="flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                {session.enrolledStudents} / {session.maxStudents}
+                              </span>
+                            </div>
+                            {session.description && (
+                              <p className="truncate text-xs text-gray-500">
+                                {session.description}
+                              </p>
+                            )}
+                          </div>
+                          <div className="ml-4">
+                            {canCancel ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  if (
+                                    confirm(
+                                      'Are you sure you want to cancel this session? Students will be notified.'
+                                    )
+                                  ) {
+                                    handleCancelSession(session.id, 'Cancelled by tutor')
+                                  }
+                                }}
+                                disabled={cancellingSessionId === session.id}
+                                className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                              >
+                                {cancellingSessionId === session.id ? (
+                                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                ) : (
+                                  <Ban className="h-4 w-4" />
+                                )}
+                              </Button>
+                            ) : (
+                              <Button variant="ghost" size="sm" disabled>
+                                {isEnded ? 'Ended' : 'N/A'}
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </ScrollArea>
+              )}
+            </div>
+
+            <Separator className="my-4" />
+
+            <DialogFooter className="flex items-center justify-between sm:justify-between">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <AlertCircle className="h-4 w-4" />
+                <span>Cancelling a session will notify enrolled students</span>
+              </div>
+              <Button variant="outline" onClick={() => setCancelModalOpen(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )

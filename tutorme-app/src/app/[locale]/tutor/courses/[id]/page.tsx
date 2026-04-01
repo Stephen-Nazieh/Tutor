@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -45,14 +45,25 @@ import {
   Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
+  Globe,
+  Award,
+  GraduationCap,
+  School,
+  Flag,
+  MapPin,
+  Search,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { BackButton } from '@/components/navigation'
-import { CategorySelector } from '@/components/categories'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { ScheduleItem } from './constants'
 import { DAYS, TIME_SLOT_OPTIONS } from './constants'
+import {
+  REGIONS,
+  type CountryData,
+} from '@/lib/data/tutor-categories'
 
-// Categories from tutor registration - flattened list of all exam categories
+// Exam category types (local for this component)
 interface ExamCategory {
   id: string
   label: string
@@ -415,7 +426,10 @@ export default function TutorCoursePage() {
     categories?: string[]
   } | null>(null)
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null)
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([])
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([])
+  const [categoryTab, setCategoryTab] = useState('global')
+  const [categorySearch, setCategorySearch] = useState('')
   const [scheduleSummary, setScheduleSummary] = useState<ScheduleItem[]>([])
   const [scheduleWeekOffset, setScheduleWeekOffset] = useState(0)
   const [scheduleRepeatWeekly, setScheduleRepeatWeekly] = useState(false)
@@ -892,6 +906,57 @@ export default function TutorCoursePage() {
     )
   }
 
+  // Toggle region selection
+  const toggleRegion = (regionId: string) => {
+    setSelectedRegions(prev =>
+      prev.includes(regionId) ? prev.filter(r => r !== regionId) : [...prev, regionId]
+    )
+    // Clear countries when region is deselected
+    if (selectedRegions.includes(regionId)) {
+      const region = REGIONS.find(r => r.id === regionId)
+      if (region) {
+        setSelectedCountries(prev =>
+          prev.filter(c => !region.countries.some(rc => rc.code === c))
+        )
+      }
+    }
+  }
+
+  // Toggle country selection
+  const toggleCountry = (countryCode: string) => {
+    setSelectedCountries(prev =>
+      prev.includes(countryCode)
+        ? prev.filter(c => c !== countryCode)
+        : [...prev, countryCode]
+    )
+  }
+
+  // Available countries based on selected regions
+  const availableCountries = useMemo<CountryData[]>(() => {
+    if (selectedRegions.length === 0) return []
+    const countries: CountryData[] = []
+    selectedRegions.forEach(regionId => {
+      const region = REGIONS.find(r => r.id === regionId)
+      if (region) {
+        countries.push(...region.countries)
+      }
+    })
+    return countries
+  }, [selectedRegions])
+
+  // National exams based on selected countries
+  const nationalExams = useMemo<ExamCategory[]>(() => {
+    if (selectedCountries.length === 0) return []
+    const exams: ExamCategory[] = []
+    selectedCountries.forEach(countryCode => {
+      const country = availableCountries.find(c => c.code === countryCode)
+      if (country && country.nationalExams.length > 0) {
+        exams.push(...country.nationalExams)
+      }
+    })
+    return exams
+  }, [selectedCountries, availableCountries])
+
   /** Effective number of weeks when "repeat weekly" is on: from numberOfWeeks or derived from totalSessionsDesired */
   const effectiveWeeks =
     schedule.length > 0 && scheduleRepeatWeekly
@@ -1028,12 +1093,400 @@ export default function TutorCoursePage() {
 
             <div className="space-y-2">
               <Label>Categories</Label>
-              <CategorySelector
-                selectedCountry={selectedCountry}
-                selectedCategories={selectedCategories}
-                onCountryChange={setSelectedCountry}
-                onCategoriesChange={setSelectedCategories}
-              />
+              {/* Profile Settings Style Category Selector */}
+              <div className="flex flex-col gap-4 rounded-lg border lg:flex-row lg:items-start">
+                {/* Left Panel - Region & Country Selection */}
+                <div className="w-full space-y-4 border-b p-4 lg:w-[240px] lg:border-b-0 lg:border-r">
+                  {/* Region Selection */}
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2 text-xs font-medium">
+                      <Globe className="h-3.5 w-3.5 text-[#4FD1C5]" />
+                      Region
+                    </Label>
+                    <div className="space-y-1.5">
+                      {REGIONS.map(region => (
+                        <label
+                          key={region.id}
+                          className="flex cursor-pointer items-center gap-2 rounded-md p-1.5 hover:bg-gray-50"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedRegions.includes(region.id)}
+                            onChange={() => toggleRegion(region.id)}
+                            className="rounded border-gray-300"
+                          />
+                          <span className="text-sm">{region.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Country Selection */}
+                  <div className="space-y-2 border-t pt-4">
+                    <Label className="flex items-center gap-2 text-xs font-medium">
+                      <MapPin className="h-3.5 w-3.5 text-[#F17623]" />
+                      Country
+                    </Label>
+                    {selectedRegions.length === 0 ? (
+                      <p className="text-xs text-gray-400">Select a region to view countries</p>
+                    ) : availableCountries.length === 0 ? (
+                      <p className="text-xs text-gray-400">No countries available</p>
+                    ) : (
+                      <div className="max-h-[200px] space-y-1 overflow-y-auto">
+                        {availableCountries.map(country => (
+                          <label
+                            key={country.code}
+                            className="flex cursor-pointer items-center gap-2 rounded-md p-1.5 hover:bg-gray-50"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedCountries.includes(country.code)}
+                              onChange={() => toggleCountry(country.code)}
+                              className="rounded border-gray-300"
+                            />
+                            <span className="text-sm">{country.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-500">{selectedCountries.length} selected</p>
+                  </div>
+                </div>
+
+                {/* Right Panel - Category Tabs */}
+                <div className="flex-1 overflow-hidden">
+                  <Tabs
+                    value={categoryTab}
+                    onValueChange={setCategoryTab}
+                    className="flex h-full flex-col"
+                  >
+                    <div className="border-b px-4 pt-2">
+                      <TabsList className="grid h-9 w-full grid-cols-6">
+                        <TabsTrigger value="global" className="px-1 text-xs">
+                          <Globe className="mr-1 h-3 w-3" />
+                          Global
+                        </TabsTrigger>
+                        <TabsTrigger value="ap" className="px-1 text-xs">
+                          <Award className="mr-1 h-3 w-3" />
+                          AP
+                        </TabsTrigger>
+                        <TabsTrigger value="alevel" className="px-1 text-xs">
+                          <GraduationCap className="mr-1 h-3 w-3" />
+                          A Level
+                        </TabsTrigger>
+                        <TabsTrigger value="ib" className="px-1 text-xs">
+                          <BookOpen className="mr-1 h-3 w-3" />
+                          IB
+                        </TabsTrigger>
+                        <TabsTrigger value="igcse" className="px-1 text-xs">
+                          <School className="mr-1 h-3 w-3" />
+                          IGCSE
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="national"
+                          className="px-1 text-xs"
+                          disabled={nationalExams.length === 0}
+                        >
+                          <Flag className="mr-1 h-3 w-3" />
+                          National
+                        </TabsTrigger>
+                      </TabsList>
+                    </div>
+
+                    {/* Search */}
+                    <div className="border-b px-4 py-2">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                        <Input
+                          placeholder="Search categories..."
+                          value={categorySearch}
+                          onChange={e => setCategorySearch(e.target.value)}
+                          className="h-8 pl-9"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Tab Contents */}
+                    <div className="max-h-[300px] flex-1 overflow-hidden">
+                      <ScrollArea className="h-full p-4">
+                        {/* Global Tab */}
+                        <TabsContent value="global" className="mt-0">
+                          <div className="space-y-4">
+                            {GLOBAL_EXAMS_CATEGORIES.filter(
+                              cat =>
+                                !categorySearch ||
+                                cat.exams.some(e =>
+                                  e.toLowerCase().includes(categorySearch.toLowerCase())
+                                )
+                            ).map(category => (
+                              <div key={category.id} className="space-y-2">
+                                <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                                  <BookOpen className="h-4 w-4 text-[#1D4ED8]" />
+                                  {category.label}
+                                </h4>
+                                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                  {category.exams
+                                    .filter(
+                                      exam =>
+                                        !categorySearch ||
+                                        exam.toLowerCase().includes(categorySearch.toLowerCase())
+                                    )
+                                    .map(exam => (
+                                      <label
+                                        key={exam}
+                                        className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedCategories.includes(exam)}
+                                          onChange={() => toggleCategory(exam)}
+                                          className="rounded border-gray-300"
+                                        />
+                                        <span className="text-sm">{exam}</span>
+                                      </label>
+                                    ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </TabsContent>
+
+                        {/* AP Tab */}
+                        <TabsContent value="ap" className="mt-0">
+                          <div className="space-y-4">
+                            {AP_CATEGORIES.filter(
+                              cat =>
+                                !categorySearch ||
+                                cat.exams.some(e =>
+                                  e.toLowerCase().includes(categorySearch.toLowerCase())
+                                )
+                            ).map(category => (
+                              <div key={category.id} className="space-y-2">
+                                <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                                  <Award className="h-4 w-4 text-[#1D4ED8]" />
+                                  {category.label}
+                                </h4>
+                                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                  {category.exams
+                                    .filter(
+                                      exam =>
+                                        !categorySearch ||
+                                        exam.toLowerCase().includes(categorySearch.toLowerCase())
+                                    )
+                                    .map(exam => (
+                                      <label
+                                        key={exam}
+                                        className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedCategories.includes(exam)}
+                                          onChange={() => toggleCategory(exam)}
+                                          className="rounded border-gray-300"
+                                        />
+                                        <span className="text-sm">{exam}</span>
+                                      </label>
+                                    ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </TabsContent>
+
+                        {/* A Level Tab */}
+                        <TabsContent value="alevel" className="mt-0">
+                          <div className="space-y-4">
+                            {A_LEVEL_CATEGORIES.filter(
+                              cat =>
+                                !categorySearch ||
+                                cat.exams.some(e =>
+                                  e.toLowerCase().includes(categorySearch.toLowerCase())
+                                )
+                            ).map(category => (
+                              <div key={category.id} className="space-y-2">
+                                <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                                  <GraduationCap className="h-4 w-4 text-[#1D4ED8]" />
+                                  {category.label}
+                                </h4>
+                                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                  {category.exams
+                                    .filter(
+                                      exam =>
+                                        !categorySearch ||
+                                        exam.toLowerCase().includes(categorySearch.toLowerCase())
+                                    )
+                                    .map(exam => (
+                                      <label
+                                        key={exam}
+                                        className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedCategories.includes(exam)}
+                                          onChange={() => toggleCategory(exam)}
+                                          className="rounded border-gray-300"
+                                        />
+                                        <span className="text-sm">{exam}</span>
+                                      </label>
+                                    ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </TabsContent>
+
+                        {/* IB Tab */}
+                        <TabsContent value="ib" className="mt-0">
+                          <div className="space-y-4">
+                            {IB_CATEGORIES.filter(
+                              cat =>
+                                !categorySearch ||
+                                cat.exams.some(e =>
+                                  e.toLowerCase().includes(categorySearch.toLowerCase())
+                                )
+                            ).map(category => (
+                              <div key={category.id} className="space-y-2">
+                                <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                                  <BookOpen className="h-4 w-4 text-[#1D4ED8]" />
+                                  {category.label}
+                                </h4>
+                                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                  {category.exams
+                                    .filter(
+                                      exam =>
+                                        !categorySearch ||
+                                        exam.toLowerCase().includes(categorySearch.toLowerCase())
+                                    )
+                                    .map(exam => (
+                                      <label
+                                        key={exam}
+                                        className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedCategories.includes(exam)}
+                                          onChange={() => toggleCategory(exam)}
+                                          className="rounded border-gray-300"
+                                        />
+                                        <span className="text-sm">{exam}</span>
+                                      </label>
+                                    ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </TabsContent>
+
+                        {/* IGCSE Tab */}
+                        <TabsContent value="igcse" className="mt-0">
+                          <div className="space-y-4">
+                            {IGCSE_CATEGORIES.filter(
+                              cat =>
+                                !categorySearch ||
+                                cat.exams.some(e =>
+                                  e.toLowerCase().includes(categorySearch.toLowerCase())
+                                )
+                            ).map(category => (
+                              <div key={category.id} className="space-y-2">
+                                <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                                  <School className="h-4 w-4 text-[#1D4ED8]" />
+                                  {category.label}
+                                </h4>
+                                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                  {category.exams
+                                    .filter(
+                                      exam =>
+                                        !categorySearch ||
+                                        exam.toLowerCase().includes(categorySearch.toLowerCase())
+                                    )
+                                    .map(exam => (
+                                      <label
+                                        key={exam}
+                                        className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedCategories.includes(exam)}
+                                          onChange={() => toggleCategory(exam)}
+                                          className="rounded border-gray-300"
+                                        />
+                                        <span className="text-sm">{exam}</span>
+                                      </label>
+                                    ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </TabsContent>
+
+                        {/* National Tab */}
+                        <TabsContent value="national" className="mt-0">
+                          <div className="space-y-4">
+                            {nationalExams.length === 0 ? (
+                              <div className="py-8 text-center text-gray-500">
+                                <Flag className="mx-auto mb-3 h-12 w-12 text-gray-300" />
+                                <p>Select countries to view national exams</p>
+                              </div>
+                            ) : (
+                              nationalExams
+                                .filter(
+                                  cat =>
+                                    !categorySearch ||
+                                    cat.exams.some(e =>
+                                      e.toLowerCase().includes(categorySearch.toLowerCase())
+                                    )
+                                )
+                                .map(category => (
+                                  <div key={category.id} className="space-y-2">
+                                    <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                                      <Flag className="h-4 w-4 text-[#F17623]" />
+                                      {category.label}
+                                    </h4>
+                                    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                      {category.exams
+                                        .filter(
+                                          exam =>
+                                            !categorySearch ||
+                                            exam
+                                              .toLowerCase()
+                                              .includes(categorySearch.toLowerCase())
+                                        )
+                                        .map(exam => (
+                                          <label
+                                            key={exam}
+                                            className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                          >
+                                            <input
+                                              type="checkbox"
+                                              checked={selectedCategories.includes(exam)}
+                                              onChange={() => toggleCategory(exam)}
+                                              className="rounded border-gray-300"
+                                            />
+                                            <span className="text-sm">{exam}</span>
+                                          </label>
+                                        ))}
+                                    </div>
+                                  </div>
+                                ))
+                            )}
+                          </div>
+                        </TabsContent>
+                      </ScrollArea>
+                    </div>
+                  </Tabs>
+                </div>
+              </div>
+
+              {/* Selected Categories Summary */}
+              {selectedCategories.length > 0 && (
+                <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <span>
+                    {selectedCategories.length} categor
+                    {selectedCategories.length === 1 ? 'y' : 'ies'} selected
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Pricing Section - Combined with Course Details */}
