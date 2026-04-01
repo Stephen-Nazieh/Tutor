@@ -428,6 +428,32 @@ export default function TutorCoursePage() {
   const [categoryTab, setCategoryTab] = useState('global')
   const [categorySearch, setCategorySearch] = useState('')
   const [scheduleSummary, setScheduleSummary] = useState<ScheduleItem[]>([])
+
+  // Available countries based on selected regions
+  const availableCountries = useMemo<CountryData[]>(() => {
+    if (selectedRegions.length === 0) return []
+    const countries: CountryData[] = []
+    selectedRegions.forEach(regionId => {
+      const region = REGIONS.find(r => r.id === regionId)
+      if (region) {
+        countries.push(...region.countries)
+      }
+    })
+    return countries
+  }, [selectedRegions])
+
+  // National exams based on selected countries
+  const nationalExams = useMemo<ExamCategory[]>(() => {
+    if (selectedCountries.length === 0) return []
+    const exams: ExamCategory[] = []
+    selectedCountries.forEach(countryCode => {
+      const country = availableCountries.find(c => c.code === countryCode)
+      if (country && country.nationalExams.length > 0) {
+        exams.push(...country.nationalExams)
+      }
+    })
+    return exams
+  }, [selectedCountries, availableCountries])
   const [scheduleWeekOffset, setScheduleWeekOffset] = useState(0)
   const [scheduleRepeatWeekly, setScheduleRepeatWeekly] = useState(false)
   const [numberOfWeeks, setNumberOfWeeks] = useState(4)
@@ -923,32 +949,6 @@ export default function TutorCoursePage() {
       prev.includes(countryCode) ? prev.filter(c => c !== countryCode) : [...prev, countryCode]
     )
   }
-
-  // Available countries based on selected regions
-  const availableCountries = useMemo<CountryData[]>(() => {
-    if (selectedRegions.length === 0) return []
-    const countries: CountryData[] = []
-    selectedRegions.forEach(regionId => {
-      const region = REGIONS.find(r => r.id === regionId)
-      if (region) {
-        countries.push(...region.countries)
-      }
-    })
-    return countries
-  }, [selectedRegions])
-
-  // National exams based on selected countries
-  const nationalExams = useMemo<ExamCategory[]>(() => {
-    if (selectedCountries.length === 0) return []
-    const exams: ExamCategory[] = []
-    selectedCountries.forEach(countryCode => {
-      const country = availableCountries.find(c => c.code === countryCode)
-      if (country && country.nationalExams.length > 0) {
-        exams.push(...country.nationalExams)
-      }
-    })
-    return exams
-  }, [selectedCountries, availableCountries])
 
   /** Effective number of weeks when "repeat weekly" is on: from numberOfWeeks or derived from totalSessionsDesired */
   const effectiveWeeks =
