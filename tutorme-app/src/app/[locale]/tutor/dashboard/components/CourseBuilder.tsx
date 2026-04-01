@@ -3816,7 +3816,7 @@ FEEDBACK: [your explanation]`
                     className="gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                   >
                     <BrainCircuit className="h-4 w-4 text-blue-500" />
-                    Test PCI
+                    {insightsProps ? 'Live' : 'Test PCI'}
                   </TabsTrigger>
                   <TabsTrigger
                     value="builder"
