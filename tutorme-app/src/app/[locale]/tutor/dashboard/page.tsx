@@ -420,13 +420,21 @@ function TutorDashboardContent() {
 
         <div className="mb-8">
           <Tabs defaultValue="sessions" className="space-y-4">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsList className="grid w-full max-w-md grid-cols-3">
               <TabsTrigger value="sessions">Sessions</TabsTrigger>
               <TabsTrigger value="calendar">Calendar</TabsTrigger>
+              <TabsTrigger value="availability">My Availability</TabsTrigger>
             </TabsList>
             <TabsContent value="calendar">
               <InteractiveCalendar
-                initialView="week"
+                initialView="day"
+                dayClickMode="create"
+                loading={loading}
+              />
+            </TabsContent>
+            <TabsContent value="availability">
+              <InteractiveCalendar
+                initialView="availability"
                 dayClickMode="availability"
                 loading={loading}
               />
