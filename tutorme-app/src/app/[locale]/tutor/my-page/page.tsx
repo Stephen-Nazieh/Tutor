@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -41,6 +41,12 @@ import {
   Flag,
   Search,
   X,
+  Plus,
+  MoreVertical,
+  Trash2,
+  Edit3,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import { DEFAULT_LOCALE } from '@/lib/i18n/config'
 import {
@@ -66,6 +72,260 @@ const SUBJECTS = [
   { value: 'history', label: 'History' },
   { value: 'cs', label: 'Computer Science' },
 ]
+
+// My Courses Section Component
+interface Course {
+  id: string
+  name: string
+  description?: string | null
+  subject?: string | null
+  isPublished: boolean
+  isLiveOnline?: boolean
+  studentCount?: number
+  createdAt: string
+  updatedAt: string
+}
+
+function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
+  const [courses, setCourses] = useState<Course[]>([])
+  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'active' | 'unpublished' | 'catalogued'>('active')
+  const router = useRouter()
+
+  const loadCourses = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/tutor/courses', { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        setCourses(data.courses || [])
+      }
+    } catch {
+      toast.error('Failed to load courses')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadCourses()
+  }, [loadCourses])
+
+  const handleDeleteCourse = async (courseId: string) => {
+    if (!confirm('Are you sure you want to delete this course?')) return
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch(`/api/tutor/courses/${courseId}`, {
+        method: 'DELETE',
+        headers: {
+          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+        },
+        credentials: 'include',
+      })
+
+      if (res.ok) {
+        setCourses(prev => prev.filter(c => c.id !== courseId))
+        toast.success('Course deleted')
+      } else {
+        const data = await res.json().catch(() => ({}))
+        toast.error(data.error || 'Failed to delete course')
+      }
+    } catch {
+      toast.error('Failed to delete course')
+    }
+  }
+
+  const handleTogglePublish = async (course: Course) => {
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch(`/api/tutor/courses/${course.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+        },
+        credentials: 'include',
+        body: JSON.stringify({ isPublished: !course.isPublished }),
+      })
+
+      if (res.ok) {
+        setCourses(prev =>
+          prev.map(c => (c.id === course.id ? { ...c, isPublished: !c.isPublished } : c))
+        )
+        toast.success(course.isPublished ? 'Course unpublished' : 'Course published')
+      } else {
+        toast.error('Failed to update course')
+      }
+    } catch {
+      toast.error('Failed to update course')
+    }
+  }
+
+  // Filter courses based on tab
+  const filteredCourses = useMemo(() => {
+    switch (activeTab) {
+      case 'active':
+        return courses.filter(c => c.isPublished)
+      case 'unpublished':
+        return courses.filter(c => !c.isPublished)
+      case 'catalogued':
+      default:
+        return []
+    }
+  }, [courses, activeTab])
+
+  const courseCounts = useMemo(
+    () => ({
+      active: courses.filter(c => c.isPublished).length,
+      unpublished: courses.filter(c => !c.isPublished).length,
+      catalogued: 0,
+    }),
+    [courses]
+  )
+
+  return (
+    <Card className="border border-[#E2E8F0] shadow-sm">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg text-[#1F2933]">My Courses</CardTitle>
+          <Button
+            onClick={onCreateCourse}
+            className="bg-[#1D4ED8] text-white hover:bg-[#1B45C2]"
+            size="sm"
+          >
+            <Plus className="mr-1 h-4 w-4" />
+            Create Course
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Tabs */}
+        <div className="flex gap-2 border-b border-[#E2E8F0]">
+          {(['active', 'unpublished', 'catalogued'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`relative px-4 py-2 text-sm font-medium transition ${
+                activeTab === tab ? 'text-[#1D4ED8]' : 'text-[#64748B] hover:text-[#1F2933]'
+              }`}
+            >
+              <span className="capitalize">{tab}</span>
+              <span className="ml-1.5 rounded-full bg-[#F1F5F9] px-2 py-0.5 text-xs text-[#64748B]">
+                {courseCounts[tab]}
+              </span>
+              {activeTab === tab && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1D4ED8]" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Course List */}
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#1D4ED8] border-t-transparent" />
+          </div>
+        ) : filteredCourses.length === 0 ? (
+          <div className="py-8 text-center">
+            <BookOpen className="mx-auto h-12 w-12 text-[#CBD5E1]" />
+            <p className="mt-2 text-sm text-[#64748B]">
+              {activeTab === 'active'
+                ? 'No published courses yet'
+                : activeTab === 'unpublished'
+                  ? 'No unpublished courses'
+                  : 'No catalogued courses'}
+            </p>
+            {activeTab === 'active' && (
+              <Button onClick={onCreateCourse} variant="outline" className="mt-4" size="sm">
+                <Plus className="mr-1 h-4 w-4" />
+                Create your first course
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filteredCourses.map(course => (
+              <div
+                key={course.id}
+                className="flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-white p-4 hover:border-[#4FD1C5]"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="truncate font-medium text-[#0F172A]">{course.name}</h4>
+                    {course.isPublished ? (
+                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-600">
+                        Published
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-600">
+                        Draft
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-sm text-[#64748B]">
+                    {course.subject || 'General'} • {course.studentCount || 0} students • Updated{' '}
+                    {new Date(course.updatedAt).toLocaleDateString()}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const prefix = window.location.pathname.replace(/\/tutor\/my-page\/?$/, '')
+                      router.push(`${prefix}/tutor/courses/${course.id}/builder`)
+                    }}
+                    className="text-[#1D4ED8] hover:bg-[#EFF6FF]"
+                  >
+                    <Edit3 className="mr-1 h-4 w-4" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleTogglePublish(course)}
+                    className={
+                      course.isPublished
+                        ? 'text-amber-600 hover:bg-amber-50'
+                        : 'text-emerald-600 hover:bg-emerald-50'
+                    }
+                  >
+                    {course.isPublished ? (
+                      <>
+                        <EyeOff className="mr-1 h-4 w-4" />
+                        Unpublish
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="mr-1 h-4 w-4" />
+                        Publish
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDeleteCourse(course.id)}
+                    className="text-red-500 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
 
 // Generate ALL_COUNTRIES from REGIONS
 const ALL_COUNTRIES = REGIONS.flatMap(region =>
@@ -1069,6 +1329,9 @@ export default function TutorMyPage() {
             </CardContent>
           )}
         </Card>
+
+        {/* My Courses Section */}
+        <MyCoursesSection onCreateCourse={() => setCreateOpen(true)} />
       </div>
 
       <Dialog

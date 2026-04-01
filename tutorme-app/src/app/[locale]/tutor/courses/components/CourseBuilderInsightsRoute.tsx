@@ -89,7 +89,14 @@ export function CourseBuilderInsightsRoute({
             </Link>
           </Button>
           <div className="flex shrink-0 items-center gap-3">
-            <h1 className="text-lg font-bold tracking-tight text-foreground">Live Session</h1>
+            <h1 className="text-lg font-bold tracking-tight text-foreground">
+              Live Session
+              {model.course?.name && (
+                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                  — {model.course.name}
+                </span>
+              )}
+            </h1>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             {insightsProps.sessionId && (

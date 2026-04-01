@@ -3810,17 +3810,17 @@ FEEDBACK: [your explanation]`
                 onValueChange={v => setMainTab(v as 'test-pci' | 'builder')}
                 className="flex h-full w-full flex-1 flex-col"
               >
-                <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border border-border bg-muted/30 p-1">
+                <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl bg-muted/30 p-1">
                   <TabsTrigger
                     value="test-pci"
-                    className="gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                    className="gap-2 rounded-lg bg-transparent data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                   >
                     <BrainCircuit className="h-4 w-4 text-blue-500" />
-                    Test PCI
+                    {insightsProps ? 'Live' : 'Test PCI'}
                   </TabsTrigger>
                   <TabsTrigger
                     value="builder"
-                    className="gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                    className="gap-2 rounded-lg bg-transparent data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                   >
                     <Wand2 className="h-4 w-4 text-orange-500" />
                     Builder
