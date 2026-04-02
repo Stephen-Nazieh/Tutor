@@ -1495,8 +1495,7 @@ export function EnhancedWhiteboard({
               }}
               onMouseDown={e => e.stopPropagation()}
             >
-              <input
-                type="text"
+              <textarea
                 autoFocus
                 value={inlineTextInput.text}
                 onChange={e =>
@@ -1504,7 +1503,7 @@ export function EnhancedWhiteboard({
                 }
                 onKeyDown={handleInlineTextKeyDown}
                 placeholder="Type here..."
-                className="min-w-[150px] border-b-2 border-blue-500 bg-transparent px-1 py-0 text-black outline-none"
+                className="min-w-[150px] resize-none border-b-2 border-blue-500 bg-transparent px-1 py-0 text-black outline-none"
                 style={{
                   fontSize: `${inlineTextInput.fontSize * scale}px`,
                   fontWeight: inlineTextInput.format.bold ? 'bold' : 'normal',
