@@ -917,6 +917,49 @@ export default function TutorMyPage() {
     }
   }
 
+  // Quick create course - skip form and go directly to builder
+  const handleQuickCreateCourse = async () => {
+    setCreatingCourse(true)
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      // Get default values from profile or use generic defaults
+      const defaultSubject = profileCategories.length > 0 ? profileCategories[0] : 'Mathematics'
+      const defaultCategory = selectedCategories.length > 0 ? selectedCategories[0] : 'General'
+
+      const res = await fetch('/api/tutor/courses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: 'Untitled Course',
+          description: '',
+          subject: defaultSubject,
+          categories: [defaultCategory],
+          schedule: [],
+          isLiveOnline: false,
+        }),
+      })
+
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.course?.id) {
+        toast.success('Course created! Opening builder...')
+        router.push(`/tutor/courses/${data.course.id}/builder`)
+      } else {
+        toast.error(data.error || 'Failed to create course')
+      }
+    } catch {
+      toast.error('Failed to create course')
+    } finally {
+      setCreatingCourse(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F8FAFC] via-white to-[#EEF2FF] text-[#1F2933]">
       <div className="border-b border-[#E2E8F0] bg-white/90 backdrop-blur">
@@ -1331,7 +1374,7 @@ export default function TutorMyPage() {
         </Card>
 
         {/* My Courses Section */}
-        <MyCoursesSection onCreateCourse={() => router.push('/tutor/courses/new')} />
+        <MyCoursesSection onCreateCourse={handleQuickCreateCourse} />
       </div>
 
       <Dialog

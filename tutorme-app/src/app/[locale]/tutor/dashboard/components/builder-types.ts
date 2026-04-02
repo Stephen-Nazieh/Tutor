@@ -60,6 +60,15 @@ export interface DMIQuestion {
   answer: string
 }
 
+export interface DMIVersion {
+  id: string
+  versionNumber: number
+  items: DMIQuestion[]
+  createdAt: number
+  taskId?: string
+  assessmentId?: string
+}
+
 export interface Task extends WithDifficultyVariants {
   id: string
   title: string
