@@ -1216,7 +1216,7 @@ export function EnhancedWhiteboard({
 
   // Handle inline text input key presses
   const handleInlineTextKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (!inlineTextInput) return
 
       if (e.key === 'Enter') {

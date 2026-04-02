@@ -926,7 +926,6 @@ export default function TutorMyPage() {
       const csrfToken = csrfData?.token ?? null
 
       const defaultSubject = 'math'
-      const defaultCategory = profileCategories.length > 0 ? profileCategories[0] : 'General'
       const defaultCategory = selectedCategories.length > 0 ? selectedCategories[0] : 'General'
 
       const res = await fetch('/api/tutor/courses', {
@@ -1374,10 +1373,12 @@ export default function TutorMyPage() {
         </Card>
 
         {/* My Courses Section */}
-        <MyCoursesSection onCreateCourse={() => {
-          if (creatingCourse) return
-          void handleQuickCreateCourse()
-        }} />
+        <MyCoursesSection
+          onCreateCourse={() => {
+            if (creatingCourse) return
+            void handleQuickCreateCourse()
+          }}
+        />
       </div>
 
       <Dialog
