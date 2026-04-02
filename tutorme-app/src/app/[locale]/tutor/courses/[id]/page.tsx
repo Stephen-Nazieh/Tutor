@@ -1813,7 +1813,7 @@ export default function TutorCoursePage() {
                               )}
                             </div>
                           )
-                        })
+                        })}
                       </div>
                     )
                   })}
