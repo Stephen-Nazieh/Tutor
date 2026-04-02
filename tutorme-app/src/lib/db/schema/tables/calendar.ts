@@ -169,8 +169,12 @@ export const oneOnOneBookingRequest = pgTable(
       .$onUpdate(() => new Date()),
   },
   table => ({
-    OneOnOneBookingRequest_tutorId_idx: index('OneOnOneBookingRequest_tutorId_idx').on(table.tutorId),
-    OneOnOneBookingRequest_studentId_idx: index('OneOnOneBookingRequest_studentId_idx').on(table.studentId),
+    OneOnOneBookingRequest_tutorId_idx: index('OneOnOneBookingRequest_tutorId_idx').on(
+      table.tutorId
+    ),
+    OneOnOneBookingRequest_studentId_idx: index('OneOnOneBookingRequest_studentId_idx').on(
+      table.studentId
+    ),
     OneOnOneBookingRequest_status_idx: index('OneOnOneBookingRequest_status_idx').on(table.status),
     OneOnOneBookingRequest_tutorId_studentId_status_idx: index(
       'OneOnOneBookingRequest_tutorId_studentId_status_idx'

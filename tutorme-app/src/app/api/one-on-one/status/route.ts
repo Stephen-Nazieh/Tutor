@@ -9,7 +9,7 @@ import { oneOnOneBookingRequest, profile } from '@/lib/db/schema'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     // Determine which user is the current user and which is the other party
     const isStudent = session.user.role === 'STUDENT'
     const currentUserId = session.user.id
-    const targetStudentId = isStudent ? currentUserId : (studentId || currentUserId)
+    const targetStudentId = isStudent ? currentUserId : studentId || currentUserId
 
     // Check for active request
     const activeRequest = await drizzleDb.query.oneOnOneBookingRequest.findFirst({
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
         tutor: {
           columns: {
             id: true,
-            name: true,
+            handle: true,
             email: true,
             image: true,
           },
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
         student: {
           columns: {
             id: true,
-            name: true,
+            handle: true,
             email: true,
             image: true,
           },
@@ -76,7 +76,6 @@ export async function GET(request: NextRequest) {
         currency: tutorProfile?.currency || 'USD',
       },
     })
-
   } catch (error) {
     console.error('Error checking one-on-one status:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

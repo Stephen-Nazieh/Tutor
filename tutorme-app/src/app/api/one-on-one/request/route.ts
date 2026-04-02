@@ -9,11 +9,16 @@ import { z } from 'zod'
 
 const requestSchema = z.object({
   tutorId: z.string().min(1),
-  proposedSlots: z.array(z.object({
-    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD
-    startTime: z.string().regex(/^\d{2}:\d{2}$/), // HH:mm
-    endTime: z.string().regex(/^\d{2}:\d{2}$/), // HH:mm
-  })).min(1).max(5),
+  proposedSlots: z
+    .array(
+      z.object({
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD
+        startTime: z.string().regex(/^\d{2}:\d{2}$/), // HH:mm
+        endTime: z.string().regex(/^\d{2}:\d{2}$/), // HH:mm
+      })
+    )
+    .min(1)
+    .max(5),
   duration: z.number().min(30).max(180), // minutes: 30-180
   studentNotes: z.string().max(1000).optional(),
 })
@@ -21,13 +26,16 @@ const requestSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     if (session.user.role !== 'STUDENT') {
-      return NextResponse.json({ error: 'Only students can request one-on-one sessions' }, { status: 403 })
+      return NextResponse.json(
+        { error: 'Only students can request one-on-one sessions' },
+        { status: 403 }
+      )
     }
 
     const body = await request.json()
@@ -49,7 +57,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (!tutorProfile.oneOnOneEnabled || !tutorProfile.hourlyRate) {
-      return NextResponse.json({ error: 'Tutor does not offer one-on-one sessions' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Tutor does not offer one-on-one sessions' },
+        { status: 400 }
+      )
     }
 
     // Check for existing pending request with this tutor
@@ -65,11 +76,14 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingRequest) {
-      return NextResponse.json({ 
-        error: 'You already have an active request with this tutor',
-        existingRequestId: existingRequest.id,
-        status: existingRequest.status,
-      }, { status: 409 })
+      return NextResponse.json(
+        {
+          error: 'You already have an active request with this tutor',
+          existingRequestId: existingRequest.id,
+          status: existingRequest.status,
+        },
+        { status: 409 }
+      )
     }
 
     // For the existing table, use the first proposed slot as the primary request
@@ -80,39 +94,48 @@ export async function POST(request: NextRequest) {
 
     // Parse the date and time
     const requestedDate = new Date(`${primarySlot.date}T00:00:00`)
-    
+
     // Create the request
-    const newRequest = await drizzleDb.insert(oneOnOneBookingRequest).values({
-      id: nanoid(),
-      tutorId: validated.tutorId,
-      studentId: session.user.id,
-      requestedDate,
-      startTime: primarySlot.startTime,
-      endTime: primarySlot.endTime,
-      timezone: tutorProfile.timezone || 'UTC',
-      durationMinutes: validated.duration,
-      costPerSession,
-      status: 'PENDING',
-      tutorNotes: additionalSlots.length > 0 
-        ? `Alternative slots: ${JSON.stringify(additionalSlots)}`
-        : null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }).returning()
+    const newRequest = await drizzleDb
+      .insert(oneOnOneBookingRequest)
+      .values({
+        id: nanoid(),
+        tutorId: validated.tutorId,
+        studentId: session.user.id,
+        requestedDate,
+        startTime: primarySlot.startTime,
+        endTime: primarySlot.endTime,
+        timezone: tutorProfile.timezone || 'UTC',
+        durationMinutes: validated.duration,
+        costPerSession,
+        status: 'PENDING',
+        tutorNotes:
+          additionalSlots.length > 0
+            ? `Alternative slots: ${JSON.stringify(additionalSlots)}`
+            : null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning()
 
     // TODO: Send notification to tutor
 
-    return NextResponse.json({ 
-      success: true,
-      request: newRequest[0],
-    }, { status: 201 })
-
+    return NextResponse.json(
+      {
+        success: true,
+        request: newRequest[0],
+      },
+      { status: 201 }
+    )
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ 
-        error: 'Invalid request data', 
-        details: error.errors 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Invalid request data',
+          details: error.issues,
+        },
+        { status: 400 }
+      )
     }
 
     console.error('Error creating one-on-one request:', error)
@@ -124,7 +147,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -142,7 +165,7 @@ export async function GET(request: NextRequest) {
           tutor: {
             columns: {
               id: true,
-              name: true,
+              handle: true,
               email: true,
               image: true,
             },
@@ -158,7 +181,7 @@ export async function GET(request: NextRequest) {
           student: {
             columns: {
               id: true,
-              name: true,
+              handle: true,
               email: true,
               image: true,
             },
@@ -170,7 +193,6 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ requests })
-
   } catch (error) {
     console.error('Error fetching one-on-one requests:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

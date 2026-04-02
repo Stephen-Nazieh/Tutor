@@ -82,7 +82,9 @@ export const userRelations = relations(user, ({ one, many }) => ({
   mentionsReceived: many(mention, { relationName: 'mentionee' }),
   tutorFollowers: many(tutorFollow, { relationName: 'tutor' }),
   oneOnOneRequestsAsTutor: many(oneOnOneBookingRequest, { relationName: 'tutorOneOnOneRequests' }),
-  oneOnOneRequestsAsStudent: many(oneOnOneBookingRequest, { relationName: 'studentOneOnOneRequests' }),
+  oneOnOneRequestsAsStudent: many(oneOnOneBookingRequest, {
+    relationName: 'studentOneOnOneRequests',
+  }),
   calendarEventsAsTutor: many(calendarEvent, { relationName: 'tutorCalendarEvents' }),
   calendarEventsAsStudent: many(calendarEvent, { relationName: 'studentCalendarEvents' }),
 }))
