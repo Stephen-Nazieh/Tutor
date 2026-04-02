@@ -496,16 +496,13 @@ export default function CurriculumPage() {
                             ))}
                           </div>
                         </CardContent>
-                        <CardFooter className="flex gap-2">
+                        <CardFooter>
                           <Button
                             asChild
                             size="sm"
-                            className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                            className="w-full bg-indigo-600 hover:bg-indigo-700"
                           >
-                            <Link href={`/student/tutors?tutorId=${tutor.id}`}>View Profile</Link>
-                          </Button>
-                          <Button asChild variant="outline" size="sm" className="flex-1">
-                            <Link href={`/curriculum`}>View Courses</Link>
+                            <Link href={`/u/${tutor.username}`}>View Profile</Link>
                           </Button>
                         </CardFooter>
                       </Card>

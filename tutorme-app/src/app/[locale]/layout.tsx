@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { routing } from '@/lib/i18n/config'
 import { getLocaleInfo, type Locale } from '@/lib/i18n/config'
 import { AuthProvider } from '@/components/providers/auth-provider'
+import { ThemeProvider } from '@/components/ui/theme-provider'
 import { Toaster } from 'sonner'
 import { PWAInstallPrompt } from '@/components/pwa/PWAInstallPrompt'
 
@@ -31,11 +32,13 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <AuthProvider>
-        {children}
-        <PWAInstallPrompt />
-        <Toaster position="top-right" />
-      </AuthProvider>
+      <ThemeProvider defaultTheme="aura" defaultMode="system">
+        <AuthProvider>
+          {children}
+          <PWAInstallPrompt />
+          <Toaster position="top-right" />
+        </AuthProvider>
+      </ThemeProvider>
     </NextIntlClientProvider>
   )
 }
