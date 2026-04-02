@@ -48,11 +48,14 @@ export const POST = withCsrf(
         throw new NotFoundError('Lesson not found')
       }
 
-      const [moduleRow] = await drizzleDb
-        .select()
-        .from(curriculumModule)
-        .where(eq(curriculumModule.id, lessonRow.moduleId))
-        .limit(1)
+      // Handle case where lesson may not have a module (new flat structure)
+      const [moduleRow] = lessonRow.moduleId
+        ? await drizzleDb
+            .select()
+            .from(curriculumModule)
+            .where(eq(curriculumModule.id, lessonRow.moduleId))
+            .limit(1)
+        : [null]
 
       const lesson = {
         ...lessonRow,

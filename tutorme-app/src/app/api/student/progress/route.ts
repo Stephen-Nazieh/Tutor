@@ -125,9 +125,11 @@ export async function GET(req: NextRequest) {
         }
         const lessonsByModule = new Map<string, typeof lessons>()
         for (const l of lessons) {
-          const list = lessonsByModule.get(l.moduleId) ?? []
+          // Handle legacy moduleId which may be null in new schema
+          const key = l.moduleId ?? 'default'
+          const list = lessonsByModule.get(key) ?? []
           list.push(l)
-          lessonsByModule.set(l.moduleId, list)
+          lessonsByModule.set(key, list)
         }
 
         const courses = enrollmentsRows.map(enrollment => {

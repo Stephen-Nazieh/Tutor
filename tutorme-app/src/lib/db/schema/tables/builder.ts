@@ -22,13 +22,14 @@ export const builderTask = pgTable(
     id: text('id').primaryKey().notNull(),
     curriculumId: text('curriculumId').notNull(),
     lessonId: text('lessonId').notNull(),
-    moduleId: text('moduleId'), // Optional - for module-level tasks
+    /** @deprecated Modules are being removed */
+    moduleId: text('moduleId'),
     tutorId: text('tutorId').notNull(),
     title: text('title').notNull(),
     content: text('content').notNull(), // Content tab content
     pci: text('pci').notNull(), // PCI tab content (instructions)
     details: text('details'), // Additional details
-    type: text('type').notNull().default('task'), // 'task' or 'assessment'
+    type: text('type').notNull().default('task'), // 'task', 'assessment', or 'homework'
     status: text('status').notNull().default('draft'), // 'draft', 'published', 'archived'
     order: integer('order').notNull().default(0), // For ordering within lesson
     metadata: jsonb('metadata'), // Additional flexible metadata

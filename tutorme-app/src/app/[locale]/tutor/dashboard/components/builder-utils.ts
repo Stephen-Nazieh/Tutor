@@ -212,6 +212,7 @@ export const DEFAULT_LESSON = (order: number): Lesson => ({
   docs: [],
   content: [],
   tasks: [],
+  assessments: [],
   homework: [],
   worksheets: [],
   quizzes: [],

@@ -165,7 +165,9 @@ export async function GET(req: NextRequest) {
       .from(curriculumLesson)
       .where(inArray(curriculumLesson.moduleId, modules.map((m) => m.id)))
     for (const l of lessons) {
-      lessonCountsByModule.set(l.moduleId, (lessonCountsByModule.get(l.moduleId) ?? 0) + 1)
+      if (l.moduleId) {
+        lessonCountsByModule.set(l.moduleId, (lessonCountsByModule.get(l.moduleId) ?? 0) + 1)
+      }
     }
   }
 

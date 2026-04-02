@@ -77,9 +77,11 @@ export async function GET(req: NextRequest) {
     const moduleMap = new Map(modules.map(m => [m.id, m]))
     const lessonsByModule = new Map<string, typeof lessons>()
     for (const l of lessons) {
-      const list = lessonsByModule.get(l.moduleId) ?? []
+      // Handle legacy moduleId which may be null in new schema
+      const key = l.moduleId ?? 'default'
+      const list = lessonsByModule.get(key) ?? []
       list.push(l)
-      lessonsByModule.set(l.moduleId, list)
+      lessonsByModule.set(key, list)
     }
 
     const allLessonIds = lessons.map(l => l.id)

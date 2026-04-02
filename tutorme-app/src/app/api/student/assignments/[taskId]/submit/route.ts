@@ -238,11 +238,14 @@ export async function POST(
         .limit(1)
 
       if (lessonRow) {
-        const [modRow] = await drizzleDb
-          .select({ curriculumId: curriculumModule.curriculumId })
-          .from(curriculumModule)
-          .where(eq(curriculumModule.id, lessonRow.moduleId))
-          .limit(1)
+        // Handle case where lesson may not have a module (new flat structure)
+        const [modRow] = lessonRow.moduleId
+          ? await drizzleDb
+              .select({ curriculumId: curriculumModule.curriculumId })
+              .from(curriculumModule)
+              .where(eq(curriculumModule.id, lessonRow.moduleId))
+              .limit(1)
+          : [null]
         curriculumId = modRow?.curriculumId
 
         const [existingProgress] = await drizzleDb

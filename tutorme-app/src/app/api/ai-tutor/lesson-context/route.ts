@@ -89,7 +89,14 @@ async function getHandler(req: NextRequest, session: Session) {
         .from(curriculumLesson)
         .where(eq(curriculumLesson.moduleId, mod.id))
         .orderBy(asc(curriculumLesson.order))
-      lessonsByModule.set(mod.id, lessons)
+      lessonsByModule.set(
+        mod.id,
+        lessons.map(l => ({
+          ...l,
+          learningObjectives: l.learningObjectives ?? [],
+          keyConcepts: l.keyConcepts ?? [],
+        }))
+      )
     }
 
     // If specific lesson requested, return that
@@ -104,11 +111,14 @@ async function getHandler(req: NextRequest, session: Session) {
         return NextResponse.json({ error: 'Lesson not found' }, { status: 404 })
       }
 
-      const [moduleRow] = await drizzleDb
-        .select()
-        .from(curriculumModule)
-        .where(eq(curriculumModule.id, lessonRow.moduleId))
-        .limit(1)
+      // Handle case where lesson may not have a module (new flat structure)
+      const [moduleRow] = lessonRow.moduleId
+        ? await drizzleDb
+            .select()
+            .from(curriculumModule)
+            .where(eq(curriculumModule.id, lessonRow.moduleId))
+            .limit(1)
+        : [null]
 
       const [progress] = await drizzleDb
         .select()

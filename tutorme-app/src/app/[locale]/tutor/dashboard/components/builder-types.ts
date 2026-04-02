@@ -260,18 +260,30 @@ export interface Lesson extends WithDifficultyVariants {
   }
   docs: Document[]
   content: Content[]
+  /** Task folder - contains tasks with extensions */
   tasks: Task[]
+  /** Assessment folder - contains assessments with DMIs */
+  assessments: Assessment[]
+  /** Homework folder - contains homework items */
   homework: Assessment[]
   worksheets: Worksheet[]
   /** @deprecated legacy lesson quiz items are migrated into `homework` (Assessment) */
   quizzes?: Quiz[]
 }
 
+/**
+ * @deprecated Modules are no longer used. Lessons are now directly under courses.
+ * This interface is kept for backward compatibility during migration.
+ */
 export interface ModuleQuiz extends Quiz, WithDifficultyVariants {
   coverage: 'all_lessons' | 'selected_lessons'
   coveredLessonIds?: string[]
 }
 
+/**
+ * @deprecated Modules are no longer used. Lessons are now directly under courses.
+ * This interface is kept for backward compatibility during migration.
+ */
 export interface Module extends WithDifficultyVariants {
   id: string
   title: string

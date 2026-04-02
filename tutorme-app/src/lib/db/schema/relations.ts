@@ -134,6 +134,7 @@ export const curriculumRelations = relations(curriculum, ({ many }) => ({
   batches: many(courseBatch),
   enrollments: many(curriculumEnrollment),
   modules: many(curriculumModule),
+  lessons: many(curriculumLesson),
   shares: many(curriculumShare),
   progress: many(curriculumProgress),
   studentPerformances: many(studentPerformance),
@@ -151,6 +152,10 @@ export const curriculumLessonRelations = relations(curriculumLesson, ({ one, man
   module: one(curriculumModule, {
     fields: [curriculumLesson.moduleId],
     references: [curriculumModule.id],
+  }),
+  curriculum: one(curriculum, {
+    fields: [curriculumLesson.curriculumId],
+    references: [curriculum.id],
   }),
   progressRecords: many(curriculumLessonProgress),
 }))

@@ -110,9 +110,11 @@ export const GET = withAuth(
     const progressByLessonId = new Map(progressRecords.map(p => [p.lessonId, p]))
     const lessonsByModuleId = new Map<string, typeof lessons>()
     for (const l of lessons) {
-      const list = lessonsByModuleId.get(l.moduleId) ?? []
+      // Handle legacy moduleId which may be null in new schema
+      const key = l.moduleId ?? 'default'
+      const list = lessonsByModuleId.get(key) ?? []
       list.push(l)
-      lessonsByModuleId.set(l.moduleId, list)
+      lessonsByModuleId.set(key, list)
     }
 
     const totalLessons = lessons.length

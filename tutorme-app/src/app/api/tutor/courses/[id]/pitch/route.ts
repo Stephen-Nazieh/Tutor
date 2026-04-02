@@ -99,9 +99,11 @@ export const POST = withCsrf(
 
         const lessonsByModuleId = new Map<string, typeof lessons>()
         for (const lesson of lessons) {
-          const list = lessonsByModuleId.get(lesson.moduleId) ?? []
+          // Handle legacy moduleId which may be null in new schema
+          const key = lesson.moduleId ?? 'default'
+          const list = lessonsByModuleId.get(key) ?? []
           list.push(lesson)
-          lessonsByModuleId.set(lesson.moduleId, list)
+          lessonsByModuleId.set(key, list)
         }
 
         const tutorProfile = course.creatorId
