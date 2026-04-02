@@ -1725,7 +1725,7 @@ export default function TutorCoursePage() {
                         </div>
                         {DAYS.map((day, dayIndex) => {
                           const dateKey = formatDateKey(weekDates[dayIndex])
-                          const inRange = schedule.some(s => {
+                          const matchingSlotIndex = schedule.findIndex(s => {
                             if (s.dayOfWeek !== day) return false
                             if (!scheduleRepeatWeekly) {
                               if (s.date ? s.date !== dateKey : scheduleWeekOffset !== 0)
@@ -1738,6 +1738,16 @@ export default function TutorCoursePage() {
                             const slotM = th * 60 + tm
                             return slotM >= startM && slotM < endM
                           })
+                          const inRange = matchingSlotIndex >= 0
+                          // Calculate week and session number for display
+                          const slotsPerWeek = schedule.length / effectiveWeeks
+                          const weekNum = inRange ? Math.floor(matchingSlotIndex / slotsPerWeek) + 1 : 0
+                          const sessionNum = inRange ? (matchingSlotIndex % Math.max(1, slotsPerWeek)) + 1 : 0
+                          const sessionLabel = inRange 
+                            ? (effectiveWeeks > 1 
+                                ? `W${weekNum}S${sessionNum}` 
+                                : `S${sessionNum}`)
+                            : ''
                           const toggleSlot = () => {
                             setSchedule(prev => {
                               const idx = prev.findIndex(s => {
@@ -1787,7 +1797,7 @@ export default function TutorCoursePage() {
                             >
                               {inRange && (
                                 <span className="inline-flex items-center gap-0.5 text-[8px] font-medium text-blue-800">
-                                  1h
+                                  {sessionLabel}
                                   <button
                                     type="button"
                                     className="rounded-full p-0.5 hover:bg-blue-100"
@@ -1803,19 +1813,13 @@ export default function TutorCoursePage() {
                               )}
                             </div>
                           )
-                        })}
+                        })
                       </div>
                     )
                   })}
                 </div>
               </ScrollArea>
             </div>
-
-            {/* Set Schedule Button */}
-            <Button onClick={generateScheduleSummary} variant="outline" className="w-full">
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              Set Schedule
-            </Button>
 
             {/* Schedule Summary - sessions, duration, cost/revenue, interactive by day */}
             {scheduleSummary.length > 0 && (
@@ -1897,6 +1901,14 @@ export default function TutorCoursePage() {
                                   key={`${day}-${idx}-${slot.startTime}`}
                                   className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-800"
                                 >
+                                  {slot.date && (
+                                    <span className="text-xs text-slate-600">
+                                      {new Date(slot.date + 'T00:00:00').toLocaleDateString('en-US', { 
+                                        month: 'short', 
+                                        day: 'numeric' 
+                                      })}
+                                    </span>
+                                  )}
                                   <span>
                                     {formatTimeRange(slot.startTime, slot.durationMinutes)}
                                   </span>

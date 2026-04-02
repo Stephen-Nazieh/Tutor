@@ -84,6 +84,10 @@ interface Course {
   studentCount?: number
   createdAt: string
   updatedAt: string
+  hasSessions?: boolean
+  hasStudents?: boolean
+  lastSessionDate?: string | null
+  upcomingSessionsCount?: number
 }
 
 function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
@@ -95,7 +99,7 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
   const loadCourses = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/tutor/courses', { credentials: 'include' })
+      const res = await fetch('/api/tutor/courses?includeSessions=true', { credentials: 'include' })
       if (res.ok) {
         const data = await res.json()
         setCourses(data.courses || [])
@@ -167,26 +171,58 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
     }
   }
 
+  // Categorize courses based on session status
+  const categorizeCourses = useMemo(() => {
+    const active: Course[] = []
+    const unpublished: Course[] = []
+    const catalogued: Course[] = []
+
+    for (const course of courses) {
+      if (!course.isPublished) {
+        unpublished.push(course)
+      } else if (
+        course.hasSessions &&
+        course.hasStudents &&
+        course.lastSessionDate &&
+        !course.upcomingSessionsCount
+      ) {
+        // Course was published, had sessions and students, but no upcoming sessions
+        // Check if last session has ended (lastSessionDate is in the past)
+        const lastSession = new Date(course.lastSessionDate)
+        if (lastSession < new Date()) {
+          catalogued.push(course)
+        } else {
+          active.push(course)
+        }
+      } else {
+        active.push(course)
+      }
+    }
+
+    return { active, unpublished, catalogued }
+  }, [courses])
+
   // Filter courses based on tab
   const filteredCourses = useMemo(() => {
     switch (activeTab) {
       case 'active':
-        return courses.filter(c => c.isPublished)
+        return categorizeCourses.active
       case 'unpublished':
-        return courses.filter(c => !c.isPublished)
+        return categorizeCourses.unpublished
       case 'catalogued':
+        return categorizeCourses.catalogued
       default:
         return []
     }
-  }, [courses, activeTab])
+  }, [categorizeCourses, activeTab])
 
   const courseCounts = useMemo(
     () => ({
-      active: courses.filter(c => c.isPublished).length,
-      unpublished: courses.filter(c => !c.isPublished).length,
-      catalogued: 0,
+      active: categorizeCourses.active.length,
+      unpublished: categorizeCourses.unpublished.length,
+      catalogued: categorizeCourses.catalogued.length,
     }),
-    [courses]
+    [categorizeCourses]
   )
 
   return (
@@ -226,102 +262,115 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
           ))}
         </div>
 
-        {/* Course List */}
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#1D4ED8] border-t-transparent" />
-          </div>
-        ) : filteredCourses.length === 0 ? (
-          <div className="py-8 text-center">
-            <BookOpen className="mx-auto h-12 w-12 text-[#CBD5E1]" />
-            <p className="mt-2 text-sm text-[#64748B]">
-              {activeTab === 'active'
-                ? 'No published courses yet'
-                : activeTab === 'unpublished'
-                  ? 'No unpublished courses'
-                  : 'No catalogued courses'}
-            </p>
-            {activeTab === 'active' && (
-              <Button onClick={onCreateCourse} variant="outline" className="mt-4" size="sm">
-                <Plus className="mr-1 h-4 w-4" />
-                Create your first course
-              </Button>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredCourses.map(course => (
-              <div
-                key={course.id}
-                className="flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-white p-4 hover:border-[#4FD1C5]"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h4 className="truncate font-medium text-[#0F172A]">{course.name}</h4>
-                    {course.isPublished ? (
-                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-600">
-                        Published
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-600">
-                        Draft
-                      </span>
+        {/* Course List - Scrollable Container */}
+        <div className="max-h-[400px] overflow-y-auto pr-2">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#1D4ED8] border-t-transparent" />
+            </div>
+          ) : filteredCourses.length === 0 ? (
+            <div className="py-8 text-center">
+              <BookOpen className="mx-auto h-12 w-12 text-[#CBD5E1]" />
+              <p className="mt-2 text-sm text-[#64748B]">
+                {activeTab === 'active'
+                  ? 'No published courses yet'
+                  : activeTab === 'unpublished'
+                    ? 'No unpublished courses'
+                    : 'No catalogued courses'}
+              </p>
+              {activeTab === 'active' && (
+                <Button onClick={onCreateCourse} variant="outline" className="mt-4" size="sm">
+                  <Plus className="mr-1 h-4 w-4" />
+                  Create your first course
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredCourses.map(course => (
+                <div
+                  key={course.id}
+                  className="flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-white p-4 hover:border-[#4FD1C5]"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="truncate font-medium text-[#0F172A]">{course.name}</h4>
+                      {activeTab === 'catalogued' ? (
+                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                          Catalogued
+                        </span>
+                      ) : course.isPublished ? (
+                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-600">
+                          Published
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-600">
+                          Draft
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-sm text-[#64748B]">
+                      {course.subject || 'General'} • {course.studentCount || 0} students • Updated{' '}
+                      {new Date(course.updatedAt).toLocaleDateString()}
+                    </p>
+                    {activeTab === 'catalogued' && course.lastSessionDate && (
+                      <p className="mt-1 text-xs text-gray-500">
+                        Last session: {new Date(course.lastSessionDate).toLocaleDateString()}
+                      </p>
                     )}
                   </div>
-                  <p className="mt-1 text-sm text-[#64748B]">
-                    {course.subject || 'General'} • {course.studentCount || 0} students • Updated{' '}
-                    {new Date(course.updatedAt).toLocaleDateString()}
-                  </p>
-                </div>
 
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      const prefix = window.location.pathname.replace(/\/tutor\/my-page\/?$/, '')
-                      router.push(`${prefix}/tutor/courses/${course.id}/builder`)
-                    }}
-                    className="text-[#1D4ED8] hover:bg-[#EFF6FF]"
-                  >
-                    <Edit3 className="mr-1 h-4 w-4" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleTogglePublish(course)}
-                    className={
-                      course.isPublished
-                        ? 'text-amber-600 hover:bg-amber-50'
-                        : 'text-emerald-600 hover:bg-emerald-50'
-                    }
-                  >
-                    {course.isPublished ? (
-                      <>
-                        <EyeOff className="mr-1 h-4 w-4" />
-                        Unpublish
-                      </>
-                    ) : (
-                      <>
-                        <Eye className="mr-1 h-4 w-4" />
-                        Publish
-                      </>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const prefix = window.location.pathname.replace(/\/tutor\/my-page\/?$/, '')
+                        router.push(`${prefix}/tutor/courses/${course.id}/builder`)
+                      }}
+                      className="text-[#1D4ED8] hover:bg-[#EFF6FF]"
+                    >
+                      <Edit3 className="mr-1 h-4 w-4" />
+                      Edit
+                    </Button>
+                    {activeTab !== 'catalogued' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleTogglePublish(course)}
+                        className={
+                          course.isPublished
+                            ? 'text-amber-600 hover:bg-amber-50'
+                            : 'text-emerald-600 hover:bg-emerald-50'
+                        }
+                      >
+                        {course.isPublished ? (
+                          <>
+                            <EyeOff className="mr-1 h-4 w-4" />
+                            Unpublish
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="mr-1 h-4 w-4" />
+                            Publish
+                          </>
+                        )}
+                      </Button>
                     )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteCourse(course.id)}
-                    className="text-red-500 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteCourse(course.id)}
+                      className="text-red-500 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   )

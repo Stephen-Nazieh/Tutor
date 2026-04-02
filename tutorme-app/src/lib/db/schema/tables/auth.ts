@@ -81,6 +81,7 @@ export const profile = pgTable('Profile', {
   organizationName: text('organizationName'),
   isOnboarded: boolean('isOnboarded').notNull(),
   hourlyRate: doublePrecision('hourlyRate'),
+  oneOnOneEnabled: boolean('oneOnOneEnabled'),
   specialties: text('specialties').array().notNull(),
   credentials: text('credentials'),
   availability: jsonb('availability'),

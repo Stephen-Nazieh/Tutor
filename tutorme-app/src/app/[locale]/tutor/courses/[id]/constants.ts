@@ -19,9 +19,9 @@ export const DAYS = [
   'Sunday',
 ] as const
 
-/** 1-hour time slots from 08:00 to 21:00 (8:00 AM–9:00 PM) for schedule grid */
-export const TIME_SLOT_OPTIONS = Array.from({ length: 14 }, (_, i) => {
-  const hour = i + 8
+/** 1-hour time slots from 00:00 to 23:00 (12:00 AM–11:00 PM) for schedule grid */
+export const TIME_SLOT_OPTIONS = Array.from({ length: 24 }, (_, i) => {
+  const hour = i
   return `${hour.toString().padStart(2, '0')}:00`
 })
 

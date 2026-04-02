@@ -83,3 +83,13 @@ export type PreferenceStatus = (typeof preferenceStatusEnum.enumValues)[number]
 
 export const preferenceSlotTypeEnum = pgEnum('PreferenceSlotType', ['SELECTED', 'INTERSECTION'])
 export type PreferenceSlotType = (typeof preferenceSlotTypeEnum.enumValues)[number]
+
+export const bookingRequestStatusEnum = pgEnum('BookingRequestStatus', [
+  'PENDING',
+  'ACCEPTED',
+  'REJECTED',
+  'EXPIRED',
+  'PAID',
+  'CANCELLED',
+])
+export type BookingRequestStatus = (typeof bookingRequestStatusEnum.enumValues)[number]

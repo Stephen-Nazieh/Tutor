@@ -143,3 +143,37 @@ export const calendarException = pgTable(
     ).on(table.tutorId, table.date, table.startTime),
   })
 )
+
+// One-on-one booking requests
+export const oneOnOneBookingRequest = pgTable(
+  'OneOnOneBookingRequest',
+  {
+    id: text('id').primaryKey().notNull(),
+    tutorId: text('tutorId').notNull(),
+    studentId: text('studentId').notNull(),
+    requestedDate: timestamp('requestedDate', { withTimezone: true }).notNull(),
+    startTime: text('startTime').notNull(),
+    endTime: text('endTime').notNull(),
+    timezone: text('timezone').notNull(),
+    durationMinutes: integer('durationMinutes').notNull().default(60),
+    costPerSession: doublePrecision('costPerSession').notNull(),
+    status: enums.bookingRequestStatusEnum('status').notNull().default('PENDING'),
+    tutorResponseAt: timestamp('tutorResponseAt', { withTimezone: true }),
+    tutorNotes: text('tutorNotes'),
+    paymentDueAt: timestamp('paymentDueAt', { withTimezone: true }),
+    paidAt: timestamp('paidAt', { withTimezone: true }),
+    calendarEventId: text('calendarEventId'),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt', { withTimezone: true })
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  table => ({
+    OneOnOneBookingRequest_tutorId_idx: index('OneOnOneBookingRequest_tutorId_idx').on(table.tutorId),
+    OneOnOneBookingRequest_studentId_idx: index('OneOnOneBookingRequest_studentId_idx').on(table.studentId),
+    OneOnOneBookingRequest_status_idx: index('OneOnOneBookingRequest_status_idx').on(table.status),
+    OneOnOneBookingRequest_tutorId_studentId_status_idx: index(
+      'OneOnOneBookingRequest_tutorId_studentId_status_idx'
+    ).on(table.tutorId, table.studentId, table.status),
+  })
+)
