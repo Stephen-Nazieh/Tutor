@@ -53,8 +53,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useTutorCourses } from '@/hooks/use-course-assignments'
 import { AssignCourseModal } from '../../components/AssignCourseModal'
 import type { CourseGroupAssignment } from '@/types/course-assignment'
-import { PublishStatusBadge } from '@/components/tutor/PublishButton'
-import { BackButton } from '@/components/navigation'
 
 interface BuilderNavItem {
   id: string
@@ -663,34 +661,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      {/* Top Navigation Header */}
-      <header className="sticky top-0 z-50 border-b bg-white">
-        <div className="flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-4">
-            <BackButton href="/tutor/dashboard" />
-            <h1
-              className="max-w-[200px] truncate font-semibold text-gray-900"
-              title={course?.name || ''}
-            >
-              {course?.name || ''}
-            </h1>
-            {course && <PublishStatusBadge isPublished={course.isPublished} />}
-          </div>
-        </div>
-      </header>
-
-      {/* Mobile Header - Simplified */}
-      <div className="fixed left-0 right-0 top-0 z-50 border-b bg-white lg:hidden">
-        <div className="flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-3">
-            <div className="truncate font-semibold text-gray-900">
-              {course?.name || 'Course Builder'}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
+      {/* Main Content - No header here, CourseBuilderCourseRoute has its own header */}
       <main className="flex min-h-0 flex-1 flex-col">{children}</main>
 
       {/* Groups & Schedules Modal - 90% width/height */}

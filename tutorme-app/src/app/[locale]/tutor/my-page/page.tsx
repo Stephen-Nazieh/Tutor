@@ -1331,7 +1331,7 @@ export default function TutorMyPage() {
         </Card>
 
         {/* My Courses Section */}
-        <MyCoursesSection onCreateCourse={() => setCreateOpen(true)} />
+        <MyCoursesSection onCreateCourse={() => router.push('/tutor/courses/new')} />
       </div>
 
       <Dialog

@@ -316,6 +316,85 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
       data-tutor-route="course-builder"
       style={themeStyle}
     >
+      {/* Top Navigation Bar with Course Controls */}
+      <div className="sticky top-0 z-10 w-full border-b border-border bg-card">
+        <div className="flex w-full items-center justify-between gap-4 px-4 py-2 sm:px-6">
+          {/* Course Selector and Name Editor */}
+          <div className="flex items-center gap-3">
+            <BookOpen className="h-5 w-5 text-blue-500" />
+            <Select value={currentCourse?.id} onValueChange={handleCourseSelect}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select a course" />
+              </SelectTrigger>
+              <SelectContent>
+                {courses.map(course => (
+                  <SelectItem key={course.id} value={course.id}>
+                    {course.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              value={courseName}
+              onChange={e => {
+                setCourseName(e.target.value)
+                handleCourseNameChange(e.target.value)
+              }}
+              className="w-[250px] text-center font-semibold"
+              placeholder="Course name"
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsCreateDialogOpen(true)}
+              title="Create new course"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsDeleteDialogOpen(true)}
+              title="Delete current course"
+              disabled={courses.length <= 1}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-3">
+            <Select value={themeId} onValueChange={setThemeId}>
+              <SelectTrigger className="h-8 w-[180px] border-border bg-card text-foreground">
+                <SelectValue placeholder="Select theme" />
+              </SelectTrigger>
+              <SelectContent>
+                {DASHBOARD_THEMES.map(theme => (
+                  <SelectItem key={theme.id} value={theme.id}>
+                    {theme.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              className="gap-2"
+              onClick={() => courseBuilderRef.current?.save()}
+              disabled={saving}
+            >
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Save Course
+            </Button>
+            {currentCourse?.id ? (
+              <Button variant="outline" className="gap-2" asChild>
+                <Link href={`/tutor/courses/${currentCourse.id}`}>
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
       <div className="flex w-full flex-1 flex-col overflow-y-auto px-6 pb-6 pt-4 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2">
         <h1 className="mb-2 text-center text-2xl font-bold tracking-tight text-foreground">
           Course Builder
