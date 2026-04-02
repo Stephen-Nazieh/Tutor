@@ -32,6 +32,10 @@ export const GET = withAuth(
       if (!lessonRecord) {
         throw new NotFoundError('Lesson not found')
       }
+      // Handle case where lesson may not have a module (new flat structure)
+      if (!lessonRecord.moduleId) {
+        throw new NotFoundError('Module not found')
+      }
       const [moduleRow] = await drizzleDb
         .select({ curriculumId: curriculumModule.curriculumId })
         .from(curriculumModule)

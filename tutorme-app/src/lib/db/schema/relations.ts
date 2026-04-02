@@ -11,6 +11,7 @@ import {
   courseBatch,
   studyGroup,
   studyGroupMember,
+  curriculumModule,
   curriculumLesson,
   curriculumLessonProgress,
   curriculumProgress,
@@ -132,13 +133,26 @@ export const adminRoleRelations = relations(adminRole, ({ many }) => ({
 export const curriculumRelations = relations(curriculum, ({ many }) => ({
   batches: many(courseBatch),
   enrollments: many(curriculumEnrollment),
+  modules: many(curriculumModule),
   lessons: many(curriculumLesson),
   shares: many(curriculumShare),
   progress: many(curriculumProgress),
   studentPerformances: many(studentPerformance),
 }))
 
+export const curriculumModuleRelations = relations(curriculumModule, ({ one, many }) => ({
+  curriculum: one(curriculum, {
+    fields: [curriculumModule.curriculumId],
+    references: [curriculum.id],
+  }),
+  lessons: many(curriculumLesson),
+}))
+
 export const curriculumLessonRelations = relations(curriculumLesson, ({ one, many }) => ({
+  module: one(curriculumModule, {
+    fields: [curriculumLesson.moduleId],
+    references: [curriculumModule.id],
+  }),
   curriculum: one(curriculum, {
     fields: [curriculumLesson.curriculumId],
     references: [curriculum.id],
@@ -527,6 +541,10 @@ export const builderTaskRelations = relations(builderTask, ({ one, many }) => ({
   lesson: one(curriculumLesson, {
     fields: [builderTask.lessonId],
     references: [curriculumLesson.id],
+  }),
+  module: one(curriculumModule, {
+    fields: [builderTask.moduleId],
+    references: [curriculumModule.id],
   }),
   tutor: one(user, {
     fields: [builderTask.tutorId],

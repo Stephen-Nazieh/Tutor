@@ -22,6 +22,8 @@ export const builderTask = pgTable(
     id: text('id').primaryKey().notNull(),
     curriculumId: text('curriculumId').notNull(),
     lessonId: text('lessonId').notNull(),
+    /** @deprecated Modules are being removed */
+    moduleId: text('moduleId'),
     tutorId: text('tutorId').notNull(),
     title: text('title').notNull(),
     content: text('content').notNull(), // Content tab content
@@ -40,6 +42,7 @@ export const builderTask = pgTable(
   table => ({
     BuilderTask_curriculumId_idx: index('BuilderTask_curriculumId_idx').on(table.curriculumId),
     BuilderTask_lessonId_idx: index('BuilderTask_lessonId_idx').on(table.lessonId),
+    BuilderTask_moduleId_idx: index('BuilderTask_moduleId_idx').on(table.moduleId),
     BuilderTask_tutorId_idx: index('BuilderTask_tutorId_idx').on(table.tutorId),
     BuilderTask_type_idx: index('BuilderTask_type_idx').on(table.type),
     BuilderTask_status_idx: index('BuilderTask_status_idx').on(table.status),

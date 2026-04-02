@@ -24,6 +24,10 @@ export const curriculum = pgTable(
     description: text('description'),
     subject: text('subject').notNull(),
     categories: text('categories').array(),
+    /** @deprecated Use categories instead */
+    gradeLevel: text('gradeLevel'),
+    /** @deprecated No longer used */
+    difficulty: text('difficulty'),
     estimatedHours: integer('estimatedHours').notNull().default(0),
     isPublished: boolean('isPublished').notNull().default(false),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
@@ -46,6 +50,28 @@ export const curriculum = pgTable(
     Curriculum_subject_idx: index('Curriculum_subject_idx').on(table.subject),
     Curriculum_isPublished_idx: index('Curriculum_isPublished_idx').on(table.isPublished),
     Curriculum_creatorId_idx: index('Curriculum_creatorId_idx').on(table.creatorId),
+  })
+)
+
+/**
+ * @deprecated CurriculumCatalog is being replaced by the category system.
+ * Kept for backward compatibility during migration.
+ */
+export const curriculumCatalog = pgTable(
+  'CurriculumCatalog',
+  {
+    id: text('id').primaryKey().notNull(),
+    subject: text('subject').notNull(),
+    name: text('name').notNull(),
+    code: text('code'),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  },
+  table => ({
+    CurriculumCatalog_subject_idx: index('CurriculumCatalog_subject_idx').on(table.subject),
+    CurriculumCatalog_subject_name_key: uniqueIndex('CurriculumCatalog_subject_name_key').on(
+      table.subject,
+      table.name
+    ),
   })
 )
 
@@ -74,15 +100,56 @@ export const curriculumShare = pgTable(
   })
 )
 
-export const curriculumLesson = pgTable(
-  'CurriculumLesson',
+/**
+ * @deprecated Modules are being removed. Lessons will be directly under courses.
+ * Kept for backward compatibility during migration.
+ */
+export const curriculumModule = pgTable(
+  'CurriculumModule',
   {
     id: text('id').primaryKey().notNull(),
     curriculumId: text('curriculumId').notNull(),
     title: text('title').notNull(),
     description: text('description'),
+    order: integer('order').notNull(),
+    builderData: jsonb('builderData'),
+  },
+  table => ({
+    CurriculumModule_curriculumId_idx: index('CurriculumModule_curriculumId_idx').on(
+      table.curriculumId
+    ),
+    CurriculumModule_order_idx: index('CurriculumModule_order_idx').on(table.order),
+  })
+)
+
+export const curriculumLesson = pgTable(
+  'CurriculumLesson',
+  {
+    id: text('id').primaryKey().notNull(),
+    /** @deprecated Use curriculumId instead. Modules are being removed. */
+    moduleId: text('moduleId'),
+    /** New field for direct course relationship */
+    curriculumId: text('curriculumId'),
+    title: text('title').notNull(),
+    description: text('description'),
     duration: integer('duration').notNull().default(60),
     order: integer('order').notNull(),
+    /** @deprecated Stored in builderData now */
+    difficulty: text('difficulty'),
+    /** @deprecated Stored in builderData now */
+    learningObjectives: text('learningObjectives').array(),
+    /** @deprecated Stored in builderData now */
+    teachingPoints: text('teachingPoints').array(),
+    /** @deprecated Stored in builderData now */
+    keyConcepts: text('keyConcepts').array(),
+    /** @deprecated Stored in builderData now */
+    examples: jsonb('examples'),
+    /** @deprecated Stored in builderData now */
+    practiceProblems: jsonb('practiceProblems'),
+    /** @deprecated Stored in builderData now */
+    commonMisconceptions: text('commonMisconceptions').array(),
+    /** @deprecated Stored in builderData now */
+    prerequisiteLessonIds: text('prerequisiteLessonIds').array(),
     builderData: jsonb('builderData'),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
@@ -90,6 +157,7 @@ export const curriculumLesson = pgTable(
       .$onUpdate(() => new Date()),
   },
   table => ({
+    CurriculumLesson_moduleId_idx: index('CurriculumLesson_moduleId_idx').on(table.moduleId),
     CurriculumLesson_curriculumId_idx: index('CurriculumLesson_curriculumId_idx').on(
       table.curriculumId
     ),

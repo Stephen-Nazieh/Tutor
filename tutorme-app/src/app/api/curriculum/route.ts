@@ -92,8 +92,7 @@ interface CurriculumResponse {
   name: string
   description: string | null
   subject: string
-  gradeLevel: string | null
-  difficulty: string
+
   estimatedHours: number
   hasOutline: boolean
   _count: {
@@ -182,8 +181,11 @@ export const GET = withAuth(async (req, session) => {
           .where(inArray(curriculumLesson.moduleId, moduleIds))
           .groupBy(curriculumLesson.moduleId)
 
+        // Filter out lessons with null moduleId (new flat structure)
         const lessonCountsByModule = new Map<string, number>(
-          lessonsRaw.map(l => [l.moduleId, l.lessonCount])
+          lessonsRaw
+            .filter((l): l is typeof l & { moduleId: string } => l.moduleId !== null)
+            .map(l => [l.moduleId, l.lessonCount])
         )
 
         for (const m of allModules) {
@@ -232,8 +234,7 @@ export const GET = withAuth(async (req, session) => {
           name: curr.name,
           description: curr.description,
           subject: curr.subject,
-          gradeLevel: curr.gradeLevel,
-          difficulty: curr.difficulty,
+
           estimatedHours: curr.estimatedHours,
           hasOutline: hasOutline(curr.courseMaterials),
           _count: {

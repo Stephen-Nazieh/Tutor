@@ -51,13 +51,13 @@ export interface LessonContent {
   title: string
   description?: string
   duration: number
-  difficulty: string
-  learningObjectives: string[]
-  teachingPoints: string[]
-  keyConcepts: string[]
-  examples: any[]
-  practiceProblems: any[]
-  commonMisconceptions: string[]
+  difficulty?: string
+  learningObjectives?: string[]
+  teachingPoints?: string[]
+  keyConcepts?: string[]
+  examples?: any[]
+  practiceProblems?: any[]
+  commonMisconceptions?: string[]
 }
 
 const SECTIONS: LessonSection[] = ['introduction', 'concept', 'example', 'practice', 'review']
@@ -73,11 +73,14 @@ export async function startLesson(studentId: string, lessonId: string): Promise<
     .limit(1)
   if (!lessonRow) throw new Error('Lesson not found')
 
-  const [moduleRow] = await drizzleDb
-    .select()
-    .from(curriculumModule)
-    .where(eq(curriculumModule.id, lessonRow.moduleId))
-    .limit(1)
+  // Handle case where lesson may not have a module (new flat structure)
+  const [moduleRow] = lessonRow.moduleId
+    ? await drizzleDb
+        .select()
+        .from(curriculumModule)
+        .where(eq(curriculumModule.id, lessonRow.moduleId))
+        .limit(1)
+    : [null]
   if (!moduleRow) throw new Error('Module not found')
 
   const prerequisiteIds = lessonRow.prerequisiteLessonIds || []
@@ -426,11 +429,14 @@ export async function completeLesson(sessionId: string): Promise<void> {
     .limit(1)
   if (!lessonRow) return
 
-  const [moduleRow] = await drizzleDb
-    .select()
-    .from(curriculumModule)
-    .where(eq(curriculumModule.id, lessonRow.moduleId))
-    .limit(1)
+  // Handle case where lesson may not have a module (new flat structure)
+  const [moduleRow] = lessonRow.moduleId
+    ? await drizzleDb
+        .select()
+        .from(curriculumModule)
+        .where(eq(curriculumModule.id, lessonRow.moduleId))
+        .limit(1)
+    : [null]
   if (!moduleRow) return
 
   const curriculumId = moduleRow.curriculumId
@@ -649,18 +655,12 @@ export async function getLessonContent(lessonId: string): Promise<LessonContent>
     .limit(1)
   if (!lesson) throw new Error('Lesson not found')
 
+  // Legacy fields removed from schema - now stored in builderData
   return {
     id: lesson.id,
     title: lesson.title,
     description: lesson.description || undefined,
     duration: lesson.duration,
-    difficulty: lesson.difficulty,
-    learningObjectives: lesson.learningObjectives || [],
-    teachingPoints: lesson.teachingPoints || [],
-    keyConcepts: lesson.keyConcepts || [],
-    examples: (lesson.examples as any[]) || [],
-    practiceProblems: (lesson.practiceProblems as any[]) || [],
-    commonMisconceptions: lesson.commonMisconceptions || [],
   }
 }
 
