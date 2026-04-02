@@ -3823,7 +3823,7 @@ FEEDBACK: [your explanation]`
                     className="gap-2 rounded-lg bg-transparent data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                   >
                     <Wand2 className="h-4 w-4 text-orange-500" />
-                    Builder
+                    Build
                   </TabsTrigger>
                 </TabsList>
 

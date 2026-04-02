@@ -593,7 +593,12 @@ function TutorDashboardContent() {
                           </Button>
                           <Button asChild variant="outline" size="sm">
                             <Link href={withLocalePath(`/tutor/courses/${course.id}/builder`)}>
-                              Edit Course
+                              Edit
+                            </Link>
+                          </Button>
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={withLocalePath(`/tutor/courses/${course.id}/enrollments`)}>
+                              Enrollment
                             </Link>
                           </Button>
                           <Button
