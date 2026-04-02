@@ -1741,12 +1741,16 @@ export default function TutorCoursePage() {
                           const inRange = matchingSlotIndex >= 0
                           // Calculate week and session number for display
                           const slotsPerWeek = schedule.length / effectiveWeeks
-                          const weekNum = inRange ? Math.floor(matchingSlotIndex / slotsPerWeek) + 1 : 0
-                          const sessionNum = inRange ? (matchingSlotIndex % Math.max(1, slotsPerWeek)) + 1 : 0
-                          const sessionLabel = inRange 
-                            ? (effectiveWeeks > 1 
-                                ? `W${weekNum}S${sessionNum}` 
-                                : `S${sessionNum}`)
+                          const weekNum = inRange
+                            ? Math.floor(matchingSlotIndex / slotsPerWeek) + 1
+                            : 0
+                          const sessionNum = inRange
+                            ? (matchingSlotIndex % Math.max(1, slotsPerWeek)) + 1
+                            : 0
+                          const sessionLabel = inRange
+                            ? effectiveWeeks > 1
+                              ? `W${weekNum}S${sessionNum}`
+                              : `S${sessionNum}`
                             : ''
                           const toggleSlot = () => {
                             setSchedule(prev => {
@@ -1903,10 +1907,13 @@ export default function TutorCoursePage() {
                                 >
                                   {slot.date && (
                                     <span className="text-xs text-slate-600">
-                                      {new Date(slot.date + 'T00:00:00').toLocaleDateString('en-US', { 
-                                        month: 'short', 
-                                        day: 'numeric' 
-                                      })}
+                                      {new Date(slot.date + 'T00:00:00').toLocaleDateString(
+                                        'en-US',
+                                        {
+                                          month: 'short',
+                                          day: 'numeric',
+                                        }
+                                      )}
                                     </span>
                                   )}
                                   <span>
