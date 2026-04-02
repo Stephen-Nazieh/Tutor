@@ -1254,8 +1254,11 @@ export function EnhancedWhiteboard({
       if (
         (e.key === 'Delete' || e.key === 'Backspace') &&
         selectedObject &&
-        !textOverlays.some(o => document.activeElement?.tagName === 'TEXTAREA') &&
-        !inlineTextInput
+        !(
+          ['INPUT', 'TEXTAREA'].includes(
+            (document.activeElement as HTMLElement | null)?.tagName || ''
+          ) || (document.activeElement as HTMLElement | null)?.isContentEditable
+        )
       ) {
         deleteSelected()
       }
