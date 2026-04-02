@@ -8,7 +8,6 @@ import { eq, and, inArray, sql } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   curriculum,
-  curriculumModule,
   curriculumLesson,
   curriculumProgress,
   curriculumEnrollment,
@@ -28,18 +27,10 @@ export async function enrollStudentInCurriculum(
     throw new Error('Curriculum not found')
   }
 
-  const modules = await drizzleDb
-    .select()
-    .from(curriculumModule)
-    .where(eq(curriculumModule.curriculumId, curriculumId))
-  const moduleIds = modules.map(m => m.id)
-  const totalLessonsResult =
-    moduleIds.length > 0
-      ? await drizzleDb
-          .select({ count: sql<number>`count(*)::int` })
-          .from(curriculumLesson)
-          .where(inArray(curriculumLesson.moduleId, moduleIds))
-      : [{ count: 0 }]
+  const totalLessonsResult = await drizzleDb
+    .select({ count: sql<number>`count(*)::int` })
+    .from(curriculumLesson)
+    .where(eq(curriculumLesson.curriculumId, curriculumId))
   const totalLessons = totalLessonsResult[0]?.count ?? 0
 
   const [existingProgress] = await drizzleDb

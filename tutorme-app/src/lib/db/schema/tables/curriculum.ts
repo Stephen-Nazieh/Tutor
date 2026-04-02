@@ -16,24 +16,6 @@ import {
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
 
-export const curriculumCatalog = pgTable(
-  'CurriculumCatalog',
-  {
-    id: text('id').primaryKey().notNull(),
-    subject: text('subject').notNull(),
-    name: text('name').notNull(),
-    code: text('code'),
-    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
-  },
-  table => ({
-    CurriculumCatalog_subject_idx: index('CurriculumCatalog_subject_idx').on(table.subject),
-    CurriculumCatalog_subject_name_key: uniqueIndex('CurriculumCatalog_subject_name_key').on(
-      table.subject,
-      table.name
-    ),
-  })
-)
-
 export const curriculum = pgTable(
   'Curriculum',
   {
@@ -42,8 +24,6 @@ export const curriculum = pgTable(
     description: text('description'),
     subject: text('subject').notNull(),
     categories: text('categories').array(),
-    gradeLevel: text('gradeLevel'),
-    difficulty: text('difficulty').notNull().default('intermediate'),
     estimatedHours: integer('estimatedHours').notNull().default(0),
     isPublished: boolean('isPublished').notNull().default(false),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
@@ -94,45 +74,25 @@ export const curriculumShare = pgTable(
   })
 )
 
-export const curriculumModule = pgTable(
-  'CurriculumModule',
+export const curriculumLesson = pgTable(
+  'CurriculumLesson',
   {
     id: text('id').primaryKey().notNull(),
     curriculumId: text('curriculumId').notNull(),
     title: text('title').notNull(),
     description: text('description'),
+    duration: integer('duration').notNull().default(60),
     order: integer('order').notNull(),
     builderData: jsonb('builderData'),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt', { withTimezone: true })
+      .notNull()
+      .$onUpdate(() => new Date()),
   },
   table => ({
-    CurriculumModule_curriculumId_idx: index('CurriculumModule_curriculumId_idx').on(
+    CurriculumLesson_curriculumId_idx: index('CurriculumLesson_curriculumId_idx').on(
       table.curriculumId
     ),
-    CurriculumModule_order_idx: index('CurriculumModule_order_idx').on(table.order),
-  })
-)
-
-export const curriculumLesson = pgTable(
-  'CurriculumLesson',
-  {
-    id: text('id').primaryKey().notNull(),
-    moduleId: text('moduleId').notNull(),
-    title: text('title').notNull(),
-    description: text('description'),
-    duration: integer('duration').notNull(),
-    difficulty: text('difficulty').notNull(),
-    order: integer('order').notNull(),
-    learningObjectives: text('learningObjectives').array().notNull(),
-    teachingPoints: text('teachingPoints').array().notNull(),
-    keyConcepts: text('keyConcepts').array().notNull(),
-    examples: jsonb('examples'),
-    practiceProblems: jsonb('practiceProblems'),
-    commonMisconceptions: text('commonMisconceptions').array().notNull(),
-    prerequisiteLessonIds: text('prerequisiteLessonIds').array().notNull(),
-    builderData: jsonb('builderData'),
-  },
-  table => ({
-    CurriculumLesson_moduleId_idx: index('CurriculumLesson_moduleId_idx').on(table.moduleId),
     CurriculumLesson_order_idx: index('CurriculumLesson_order_idx').on(table.order),
   })
 )
