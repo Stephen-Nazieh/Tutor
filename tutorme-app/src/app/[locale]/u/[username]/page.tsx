@@ -9,6 +9,15 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { DEFAULT_LOCALE } from '@/lib/i18n/config'
 import {
   FileText,
@@ -22,9 +31,15 @@ import {
   List,
   PanelsTopLeft,
   CalendarDays,
+  Calendar,
+  Clock,
+  DollarSign,
+  Loader2,
+  Video,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { format, parseISO, addDays, startOfWeek, isSameDay } from 'date-fns'
 
 interface PublicTutorResponse {
   tutor: {
@@ -85,6 +100,316 @@ function StarRating({ rating, count }: { rating: number | null; count?: number }
         <span className="text-sm text-muted-foreground">({count})</span>
       )}
     </div>
+  )
+}
+
+interface TimeSlot {
+  date: string
+  startTime: string
+  endTime: string
+  dayOfWeek: number
+  timezone: string
+}
+
+interface AvailabilityData {
+  available: boolean
+  hourlyRate: number
+  currency: string
+  timezone: string
+  slots: TimeSlot[]
+}
+
+// Book 1 on 1 Dialog Component
+function Book1on1Dialog({
+  open,
+  onOpenChange,
+  tutor,
+  username,
+  locale,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  tutor: PublicTutorResponse['tutor']
+  username: string
+  locale: string
+}) {
+  const { data: session } = useSession()
+  const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [availability, setAvailability] = useState<AvailabilityData | null>(null)
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null)
+  const [hasPendingRequest, setHasPendingRequest] = useState(false)
+  const [activeRequest, setActiveRequest] = useState<{ id: string; status: string } | null>(null)
+
+  useEffect(() => {
+    if (open && tutor.id) {
+      loadAvailability()
+      checkExistingRequest()
+    }
+  }, [open, tutor.id])
+
+  const loadAvailability = async () => {
+    setLoading(true)
+    try {
+      const start = new Date().toISOString()
+      const end = addDays(new Date(), 21).toISOString() // 3 weeks
+      const res = await fetch(
+        `/api/public/tutors/${encodeURIComponent(username)}/availability?start=${start}&end=${end}`
+      )
+      if (res.ok) {
+        const data = await res.json()
+        setAvailability(data)
+      } else {
+        const error = await res.json()
+        toast.error(error.error || 'Failed to load availability')
+      }
+    } catch {
+      toast.error('Failed to load availability')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const checkExistingRequest = async () => {
+    if (!session?.user) return
+    try {
+      const res = await fetch(`/api/one-on-one/status?tutorId=${encodeURIComponent(tutor.id)}`, {
+        credentials: 'include',
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setHasPendingRequest(data.hasActiveRequest)
+        setActiveRequest(data.request)
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const handleSubmit = async () => {
+    if (!selectedSlot || !session?.user) {
+      toast.error('Please select a time slot')
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch('/api/one-on-one/request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          tutorId: tutor.id,
+          proposedSlots: [
+            {
+              date: selectedSlot.date,
+              startTime: selectedSlot.startTime,
+              endTime: selectedSlot.endTime,
+            },
+          ],
+          duration: 60,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        toast.success('Booking request sent! The tutor will review and confirm.')
+        setHasPendingRequest(true)
+        setActiveRequest({ id: data.request.id, status: data.request.status })
+        onOpenChange(false)
+      } else if (res.status === 409) {
+        toast.info('You already have a pending request with this tutor')
+        setHasPendingRequest(true)
+        if (data.existingRequestId) {
+          setActiveRequest({ id: data.existingRequestId, status: data.status })
+        }
+      } else {
+        toast.error(data.error || 'Failed to send request')
+      }
+    } catch {
+      toast.error('Failed to send request')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // Group slots by date
+  const slotsByDate = useMemo(() => {
+    if (!availability?.slots) return {}
+    const grouped: Record<string, TimeSlot[]> = {}
+    availability.slots.forEach(slot => {
+      if (!grouped[slot.date]) grouped[slot.date] = []
+      grouped[slot.date].push(slot)
+    })
+    return grouped
+  }, [availability])
+
+  const dates = useMemo(() => Object.keys(slotsByDate).sort(), [slotsByDate])
+
+  if (!session?.user) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Book 1 on 1 Session</DialogTitle>
+            <DialogDescription>Please log in to book a session with {tutor.name}</DialogDescription>
+          </DialogHeader>
+          <div className="py-6 text-center">
+            <Button asChild>
+              <Link href={`/${locale}/login`}>Log In</Link>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
+  if (hasPendingRequest && activeRequest) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Booking Request Pending</DialogTitle>
+            <DialogDescription>
+              You already have a pending booking request with {tutor.name}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6">
+            <div className="rounded-lg bg-amber-50 p-4 text-amber-800">
+              <p className="font-medium">Status: {activeRequest.status}</p>
+              <p className="mt-2 text-sm">
+                Please wait for the tutor to respond. You will receive a notification once they
+                accept or reject your request.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => onOpenChange(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-hidden">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Video className="h-5 w-5" />
+            Book 1 on 1 Session with {tutor.name}
+          </DialogTitle>
+          <DialogDescription>
+            Select an available time slot for your one-hour session.
+          </DialogDescription>
+        </DialogHeader>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          </div>
+        ) : !availability?.available ? (
+          <div className="py-6 text-center text-muted-foreground">
+            This tutor is not currently offering one-on-one sessions.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Price info */}
+            <div className="flex items-center gap-2 rounded-lg bg-blue-50 p-3 text-blue-800">
+              <DollarSign className="h-5 w-5" />
+              <span className="font-medium">
+                {availability.currency} {availability.hourlyRate} per session (1 hour)
+              </span>
+            </div>
+
+            {/* Timezone info */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              <span>Times shown in: {availability.timezone}</span>
+            </div>
+
+            {/* Calendar slots */}
+            <ScrollArea className="max-h-[400px]">
+              <div className="space-y-4 pr-4">
+                {dates.length === 0 ? (
+                  <div className="py-6 text-center text-muted-foreground">
+                    No available slots in the next 3 weeks.
+                  </div>
+                ) : (
+                  dates.map(date => {
+                    const dateObj = parseISO(date)
+                    const daySlots = slotsByDate[date]
+                    return (
+                      <div key={date} className="space-y-2">
+                        <h4 className="flex items-center gap-2 font-medium">
+                          <Calendar className="h-4 w-4 text-blue-500" />
+                          {format(dateObj, 'EEEE, MMMM d, yyyy')}
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {daySlots.map((slot, idx) => (
+                            <Button
+                              key={`${slot.date}-${slot.startTime}-${idx}`}
+                              variant={
+                                selectedSlot?.date === slot.date &&
+                                selectedSlot?.startTime === slot.startTime
+                                  ? 'default'
+                                  : 'outline'
+                              }
+                              size="sm"
+                              onClick={() => setSelectedSlot(slot)}
+                            >
+                              {slot.startTime} - {slot.endTime}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+            </ScrollArea>
+
+            {selectedSlot && (
+              <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-green-800">
+                <p className="font-medium">Selected:</p>
+                <p className="text-sm">
+                  {format(parseISO(selectedSlot.date), 'EEEE, MMMM d, yyyy')} at{' '}
+                  {selectedSlot.startTime} - {selectedSlot.endTime}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!selectedSlot || submitting || loading}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {submitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              'Confirm Booking Request'
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -150,6 +475,7 @@ export default function PublicTutorPage() {
     loading: true,
   })
   const [catalogLayout, setCatalogLayout] = useState<'grid' | 'list' | 'compact'>('compact')
+  const [bookDialogOpen, setBookDialogOpen] = useState(false)
 
   useEffect(() => {
     loadTutorData()
@@ -484,6 +810,17 @@ export default function PublicTutorPage() {
               >
                 {followState.isFollowing ? 'Following' : 'Follow'}
               </Button>
+              {tutor.hourlyRate && (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="gap-2 border-blue-500 text-blue-600 hover:bg-blue-50"
+                  onClick={() => setBookDialogOpen(true)}
+                >
+                  <Video className="h-4 w-4" />
+                  Book 1 on 1
+                </Button>
+              )}
             </div>
 
             <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-2 lg:items-stretch">
@@ -805,6 +1142,15 @@ export default function PublicTutorPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Book 1 on 1 Dialog */}
+      <Book1on1Dialog
+        open={bookDialogOpen}
+        onOpenChange={setBookDialogOpen}
+        tutor={tutor}
+        username={normalizedUsername}
+        locale={locale}
+      />
     </div>
   )
 }

@@ -324,7 +324,19 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
         <div className="flex w-full items-center justify-between gap-4 px-4 py-2 sm:px-6">
           {/* Course Selector and Name Editor */}
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => router.back()} title="Go back">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                // Try to go back, but if we're in a redirect loop, go to dashboard
+                if (window.history.length > 1) {
+                  router.back()
+                } else {
+                  router.push('/tutor/dashboard')
+                }
+              }}
+              title="Go back"
+            >
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <BookOpen className="h-5 w-5 text-blue-500" />

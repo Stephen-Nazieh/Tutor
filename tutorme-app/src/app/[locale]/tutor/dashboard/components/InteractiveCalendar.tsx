@@ -1476,7 +1476,7 @@ function WeekView({ currentDate, events, onEventClick, onDateClick, conflicts }:
     return day
   })
 
-  const hours = Array.from({ length: 12 }, (_, i) => i + 8)
+  const hours = Array.from({ length: 24 }, (_, i) => i)
 
   return (
     <div className="flex overflow-hidden rounded-lg border border-slate-200 bg-white/50 shadow-lg">
@@ -1545,7 +1545,7 @@ function WeekView({ currentDate, events, onEventClick, onDateClick, conflicts }:
 }
 
 function DayView({ currentDate, events, onEventClick, conflicts }: any) {
-  const hours = Array.from({ length: 14 }, (_, i) => i + 7)
+  const hours = Array.from({ length: 24 }, (_, i) => i)
 
   const dayEvents = events
     .filter((event: CalendarEvent) => event.date.toDateString() === currentDate.toDateString())
