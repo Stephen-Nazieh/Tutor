@@ -925,8 +925,8 @@ export default function TutorMyPage() {
       const csrfData = await csrfRes.json().catch(() => ({}))
       const csrfToken = csrfData?.token ?? null
 
-      // Get default values from profile or use generic defaults
-      const defaultSubject = profileCategories.length > 0 ? profileCategories[0] : 'Mathematics'
+      const defaultSubject = 'math'
+      const defaultCategory = profileCategories.length > 0 ? profileCategories[0] : 'General'
       const defaultCategory = selectedCategories.length > 0 ? selectedCategories[0] : 'General'
 
       const res = await fetch('/api/tutor/courses', {
