@@ -4372,7 +4372,7 @@ FEEDBACK: [your explanation]`
                 >
                   {/* COMBINED BUILDER: Task & Assessment Tabs */}
                   <Card className="flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card/95 shadow-xl backdrop-blur-md">
-                    <CardContent className="pt-4">
+                    <CardContent className="flex h-full flex-col overflow-hidden pt-4">
                       {/* Course Name Header - Hidden when hideCourseNameInTabs is true */}
                       {!lessonBankMode && !hideCourseNameInTabs && (
                         <div className="mb-4 flex items-center gap-2 border-b border-border pb-3">
@@ -4383,7 +4383,7 @@ FEEDBACK: [your explanation]`
                       <Tabs
                         value={mainBuilderTab}
                         onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
-                        className="w-full"
+                        className="flex h-full w-full flex-col"
                       >
                         {/* Main Builder Tabs */}
                         <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border border-border bg-muted/30 p-1">
@@ -4406,7 +4406,7 @@ FEEDBACK: [your explanation]`
                         {/* Task Builder Tab */}
                         <TabsContent
                           value="task"
-                          className="flex h-full flex-col space-y-4 overflow-hidden"
+                          className="flex h-full flex-col space-y-4 overflow-hidden data-[state=inactive]:hidden"
                         >
                           <div className="flex items-center gap-3">
                             <div className="flex-1">
@@ -4566,9 +4566,12 @@ FEEDBACK: [your explanation]`
                                   {/* Upload button - only for task (not extensions) */}
                                   {/* Assets Folder added to Slide Tab removed from here */}
                                 </TabsContent>
-                                <TabsContent value="pci" className="mt-2">
-                                  <div className="rounded-lg border bg-white">
-                                    <div className="max-h-[300px] min-h-[300px] space-y-3 overflow-y-auto p-3">
+                                <TabsContent
+                                  value="pci"
+                                  className="mt-2 flex flex-1 flex-col overflow-hidden"
+                                >
+                                  <div className="flex h-full flex-col rounded-lg border bg-white">
+                                    <div className="flex-1 space-y-3 overflow-y-auto p-3">
                                       {activeTaskPciMessages.length === 0 && (
                                         <p className="text-xs text-muted-foreground">
                                           Start a PCI chat to build instructions with the assistant.
@@ -4764,7 +4767,7 @@ FEEDBACK: [your explanation]`
                         {/* Assessment Builder Tab */}
                         <TabsContent
                           value="assessment"
-                          className="flex h-full flex-col space-y-4 overflow-hidden"
+                          className="flex h-full flex-col space-y-4 overflow-hidden data-[state=inactive]:hidden"
                         >
                           <div className="flex items-center gap-3">
                             <div className="flex-1">
@@ -4844,9 +4847,12 @@ FEEDBACK: [your explanation]`
                                   {/* Upload button - only for assessment (not extensions) */}
                                   {/* Assets Folder added to Slide Tab removed from here */}
                                 </TabsContent>
-                                <TabsContent value="pci" className="mt-2">
-                                  <div className="rounded-lg border bg-white">
-                                    <div className="max-h-[300px] min-h-[300px] space-y-3 overflow-y-auto p-3">
+                                <TabsContent
+                                  value="pci"
+                                  className="mt-2 flex flex-1 flex-col overflow-hidden"
+                                >
+                                  <div className="flex h-full flex-col rounded-lg border bg-white">
+                                    <div className="flex-1 space-y-3 overflow-y-auto p-3">
                                       {assessmentPciMessages.length === 0 && (
                                         <p className="text-xs text-muted-foreground">
                                           Start a PCI chat to build instructions with the assistant.
