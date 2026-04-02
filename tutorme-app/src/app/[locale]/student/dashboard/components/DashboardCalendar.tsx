@@ -259,11 +259,6 @@ export function DashboardCalendar({
               </div>
             )}
           </TabsContent>
-
-          {/* Calendar Tab */}
-          <TabsContent value="calendar" className="mt-0 space-y-4">
-            <InteractiveCalendar events={interactiveEvents} loading={loading} mode="student" />
-          </TabsContent>
         </CardContent>
       </Tabs>
     </Card>
