@@ -78,6 +78,7 @@ import type {
   ImportedLearningResource,
   VisibleDocumentPayload,
   DMIQuestion,
+  DMIVersion,
   Task,
   Assessment,
   QuizQuestion,
@@ -457,6 +458,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
     const [taskDmiItems, setTaskDmiItems] = useState<DMIQuestion[]>([])
     const [assessmentDmiItems, setAssessmentDmiItems] = useState<DMIQuestion[]>([])
+
+    // DMI Version history
+    const [taskDmiVersions, setTaskDmiVersions] = useState<DMIVersion[]>([])
+    const [assessmentDmiVersions, setAssessmentDmiVersions] = useState<DMIVersion[]>([])
+    const [showDmiVersionList, setShowDmiVersionList] = useState(false)
 
     // Active tab tracking for Enter button
     const [taskBuilderActiveTab, setTaskBuilderActiveTab] = useState<'content' | 'pci'>('content')
@@ -1313,14 +1319,14 @@ FEEDBACK: [your explanation]`
       }
     }
 
-    // Generate DMI using Slide content
+    // Generate DMI using Assessment content with versioning
     const handleGenerateDMI = async (type: 'task' | 'assessment') => {
       const isTask = type === 'task'
       const builder = isTask ? taskBuilder : assessmentBuilder
       const content = builder.taskContent
 
       if (!content.trim()) {
-        toast.error('Please add slide content first')
+        toast.error('Please add Assessment content first')
         return
       }
 
@@ -1357,13 +1363,49 @@ FEEDBACK: [your explanation]`
         answer: '',
       }))
 
-      if (isTask) {
-        setTaskDmiItems(items)
-      } else {
-        setAssessmentDmiItems(items)
+      // Calculate version number
+      const existingVersions = isTask ? taskDmiVersions : assessmentDmiVersions
+      const nextVersionNumber = existingVersions.length + 1
+
+      // Create new version
+      const newVersion: DMIVersion = {
+        id: `dmi-version-${Date.now()}`,
+        versionNumber: nextVersionNumber,
+        items: items,
+        createdAt: Date.now(),
+        taskId: isTask ? loadedTaskId || undefined : undefined,
+        assessmentId: !isTask ? loadedAssessmentId || undefined : undefined,
       }
 
-      toast.success('DMI form created from Slide content')
+      if (isTask) {
+        setTaskDmiItems(items)
+        setTaskDmiVersions(prev => [...prev, newVersion])
+      } else {
+        setAssessmentDmiItems(items)
+        setAssessmentDmiVersions(prev => [...prev, newVersion])
+      }
+
+      toast.success(`DMI form v${nextVersionNumber} created from Assessment content`)
+    }
+
+    // Load a specific DMI version
+    const handleLoadDmiVersion = (version: DMIVersion, type: 'task' | 'assessment') => {
+      if (type === 'task') {
+        setTaskDmiItems(version.items)
+      } else {
+        setAssessmentDmiItems(version.items)
+      }
+      setShowDmiVersionList(false)
+      toast.success(`Loaded DMI version ${version.versionNumber}`)
+    }
+
+    // Delete a DMI version
+    const handleDeleteDmiVersion = (versionId: string, type: 'task' | 'assessment') => {
+      if (type === 'task') {
+        setTaskDmiVersions(prev => prev.filter(v => v.id !== versionId))
+      } else {
+        setAssessmentDmiVersions(prev => prev.filter(v => v.id !== versionId))
+      }
     }
 
     const handleDeployAssessmentDmi = useCallback(() => {
@@ -3906,93 +3948,9 @@ FEEDBACK: [your explanation]`
                                   className="mt-2 flex h-full w-full min-w-0 flex-1 flex-col self-stretch overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                 >
                                   <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg bg-muted p-4">
-                                    {tab.id === 'student1' ? (
-                                      <Tabs
-                                        defaultValue="my-board"
-                                        className="flex h-full flex-col"
-                                      >
-                                        <TabsList className="mx-auto mb-6 grid w-full shrink-0 grid-cols-2 gap-1 rounded-xl border border-gray-300 bg-white p-1 md:w-[450px]">
-                                          <TabsTrigger
-                                            value="my-board"
-                                            className="rounded-lg border border-transparent data-[state=active]:border-gray-300 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
-                                          >
-                                            My Board
-                                          </TabsTrigger>
-                                          <TabsTrigger
-                                            value="student-boards"
-                                            className="rounded-lg border border-transparent data-[state=active]:border-gray-300 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
-                                          >
-                                            Student Boards
-                                          </TabsTrigger>
-                                        </TabsList>
-                                        <TabsContent
-                                          value="my-board"
-                                          className="mt-4 flex-1 outline-none"
-                                        >
-                                          <div className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden shadow-xl ring-1 ring-black/5">
-                                            <EnhancedWhiteboard
-                                              pages={insightsBoardPages}
-                                              currentPageIndex={insightsBoardPageIndex}
-                                              onPagesChange={setInsightsBoardPages}
-                                              onPageIndexChange={setInsightsBoardPageIndex}
-                                            />
-                                          </div>
-                                        </TabsContent>
-                                        <TabsContent
-                                          value="student-boards"
-                                          className="mt-4 flex-1 outline-none"
-                                        >
-                                          <div className="flex flex-1 flex-col overflow-hidden">
-                                            <div className="grid h-full grid-cols-1 gap-4 overflow-y-auto p-2 sm:grid-cols-2 lg:grid-cols-3">
-                                              {insightsProps?.students &&
-                                              insightsProps.students.length > 0 ? (
-                                                insightsProps.students.map(student => (
-                                                  <Card
-                                                    key={student.id}
-                                                    className="flex flex-col overflow-hidden border-border bg-card shadow-sm"
-                                                  >
-                                                    <div className="flex items-center justify-between border-b bg-muted/30 px-3 py-2">
-                                                      <span className="text-xs font-semibold">
-                                                        {student.name}
-                                                      </span>
-                                                      <Badge
-                                                        variant={
-                                                          student.status === 'online'
-                                                            ? 'default'
-                                                            : 'secondary'
-                                                        }
-                                                        className="text-[10px]"
-                                                      >
-                                                        {student.status}
-                                                      </Badge>
-                                                    </div>
-                                                    <div className="flex-1 shrink-0 p-0">
-                                                      <div className="h-[200px] w-full transform-gpu transition-all hover:scale-[1.02]">
-                                                        <EnhancedWhiteboard readOnly />
-                                                      </div>
-                                                    </div>
-                                                  </Card>
-                                                ))
-                                              ) : (
-                                                <div className="col-span-full flex h-[300px] flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-center">
-                                                  <p className="text-sm font-medium text-gray-500">
-                                                    No student boards active
-                                                  </p>
-                                                  <p className="mt-1 text-xs text-muted-foreground">
-                                                    Student live whiteboard snapshots will appear
-                                                    here
-                                                  </p>
-                                                </div>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </TabsContent>
-                                      </Tabs>
-                                    ) : (
-                                      <p className="whitespace-pre-wrap text-sm text-muted-foreground">
-                                        {testPciContent[tab.id] || `${tab.label} view content`}
-                                      </p>
-                                    )}
+                                    <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                                      {testPciContent[tab.id] || `${tab.label} view content`}
+                                    </p>
                                     {/* Show AI scores if any */}
                                     {testPciScores[tab.id]?.length > 0 && (
                                       <div className="mt-3 border-t border-gray-400 pt-3">
@@ -4446,7 +4404,10 @@ FEEDBACK: [your explanation]`
                         </TabsList>
 
                         {/* Task Builder Tab */}
-                        <TabsContent value="task" className="space-y-4">
+                        <TabsContent
+                          value="task"
+                          className="flex h-full flex-col space-y-4 overflow-hidden"
+                        >
                           <div className="flex items-center gap-3">
                             <div className="flex-1">
                               <div className="grid grid-cols-2 gap-3">
@@ -4500,22 +4461,22 @@ FEEDBACK: [your explanation]`
                               </div>
                             </div>
                           </div>
-                          <div className="flex gap-4">
+                          <div className="flex flex-1 gap-4 overflow-hidden">
                             {/* Main content with tabs */}
-                            <div className="flex-1">
+                            <div className="flex flex-1 flex-col overflow-hidden">
                               <Tabs
                                 value={taskBuilderActiveTab}
                                 onValueChange={v => {
                                   setTaskBuilderActiveTab(v as 'content' | 'pci')
                                 }}
-                                className="w-full"
+                                className="flex h-full w-full flex-col"
                               >
                                 <TabsList className="grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
                                   <TabsTrigger
                                     value="content"
                                     className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
                                   >
-                                    Slide
+                                    Assessment
                                   </TabsTrigger>
                                   <TabsTrigger
                                     value="pci"
@@ -4524,14 +4485,17 @@ FEEDBACK: [your explanation]`
                                     PCI
                                   </TabsTrigger>
                                 </TabsList>
-                                <TabsContent value="content" className="mt-2 space-y-2">
+                                <TabsContent
+                                  value="content"
+                                  className="mt-2 flex flex-1 flex-col space-y-2 overflow-y-auto"
+                                >
                                   <AutoTextarea
                                     placeholder={
                                       taskBuilder.activeExtensionId
                                         ? 'Extension content...'
                                         : 'Enter task content or drop files here...'
                                     }
-                                    className="min-h-[300px] w-full"
+                                    className="min-h-[300px] w-full flex-1"
                                     onDrop={(e: any) =>
                                       handleDragFiles(e, text => {
                                         setTaskBuilder(prev => {
@@ -4798,7 +4762,10 @@ FEEDBACK: [your explanation]`
                         </TabsContent>
 
                         {/* Assessment Builder Tab */}
-                        <TabsContent value="assessment" className="space-y-4">
+                        <TabsContent
+                          value="assessment"
+                          className="flex h-full flex-col space-y-4 overflow-hidden"
+                        >
                           <div className="flex items-center gap-3">
                             <div className="flex-1">
                               <Input
@@ -4815,22 +4782,22 @@ FEEDBACK: [your explanation]`
                               />
                             </div>
                           </div>
-                          <div className="flex gap-4">
+                          <div className="flex flex-1 gap-4 overflow-hidden">
                             {/* Main content with tabs */}
-                            <div className="flex-1">
+                            <div className="flex flex-1 flex-col overflow-hidden">
                               <Tabs
                                 value={assessmentBuilderActiveTab}
                                 onValueChange={v => {
                                   setAssessmentBuilderActiveTab(v as 'content' | 'pci')
                                 }}
-                                className="w-full"
+                                className="flex h-full w-full flex-col"
                               >
                                 <TabsList className="grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
                                   <TabsTrigger
                                     value="content"
                                     className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
                                   >
-                                    Slide
+                                    Assessment
                                   </TabsTrigger>
                                   <TabsTrigger
                                     value="pci"
@@ -4839,10 +4806,13 @@ FEEDBACK: [your explanation]`
                                     PCI
                                   </TabsTrigger>
                                 </TabsList>
-                                <TabsContent value="content" className="mt-2 space-y-2">
+                                <TabsContent
+                                  value="content"
+                                  className="mt-2 flex flex-1 flex-col space-y-2 overflow-y-auto"
+                                >
                                   <AutoTextarea
                                     placeholder="Enter assessment content or drop files here..."
-                                    className="min-h-[300px] w-full"
+                                    className="min-h-[300px] w-full flex-1"
                                     onDrop={(e: any) =>
                                       handleDragFiles(e, text => {
                                         setAssessmentBuilder(prev => {
@@ -4987,22 +4957,40 @@ FEEDBACK: [your explanation]`
                                 minWidth={150}
                                 maxWidth={300}
                                 actionButton={
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="w-full"
-                                    onClick={() => {
-                                      // Generate DMI from Slide content
-                                      const content = assessmentBuilder.taskContent
-                                      if (!content.trim()) {
-                                        toast.error('Please add content to the Slide tab first')
-                                        return
-                                      }
-                                      handleGenerateDMI('assessment')
-                                    }}
-                                  >
-                                    Generate DMI
-                                  </Button>
+                                  <div className="flex w-full gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="flex-1"
+                                      onClick={() => {
+                                        // Generate DMI from Assessment content
+                                        const content = assessmentBuilder.taskContent
+                                        if (!content.trim()) {
+                                          toast.error(
+                                            'Please add content to the Assessment tab first'
+                                          )
+                                          return
+                                        }
+                                        handleGenerateDMI('assessment')
+                                      }}
+                                    >
+                                      Generate DMI
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="px-2"
+                                      onClick={() => setShowDmiVersionList(true)}
+                                      title="View DMI Versions"
+                                    >
+                                      <History className="h-4 w-4" />
+                                      {assessmentDmiVersions.length > 0 && (
+                                        <span className="ml-1 text-xs">
+                                          ({assessmentDmiVersions.length})
+                                        </span>
+                                      )}
+                                    </Button>
+                                  </div>
                                 }
                               >
                                 <DMIPanel
@@ -5717,6 +5705,73 @@ FEEDBACK: [your explanation]`
                   }}
                 >
                   Save Course
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* DMI Version History Modal */}
+          <Dialog open={showDmiVersionList} onOpenChange={open => setShowDmiVersionList(open)}>
+            <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>DMI Version History</DialogTitle>
+                <DialogDescription>
+                  View and restore previous DMI versions for{' '}
+                  {mainBuilderTab === 'task' ? 'Task' : 'Assessment'}.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="max-h-[400px] overflow-y-auto py-4">
+                {(mainBuilderTab === 'task' ? taskDmiVersions : assessmentDmiVersions).length ===
+                0 ? (
+                  <div className="py-6 text-center text-sm text-muted-foreground">
+                    No DMI versions yet. Generate a DMI to create your first version.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {(mainBuilderTab === 'task' ? taskDmiVersions : assessmentDmiVersions)
+                      .slice()
+                      .reverse()
+                      .map(version => (
+                        <div
+                          key={version.id}
+                          className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50"
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">Version {version.versionNumber}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(version.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {version.items.length} question{version.items.length !== 1 ? 's' : ''}
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleLoadDmiVersion(version, mainBuilderTab)}
+                            >
+                              Load
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => handleDeleteDmiVersion(version.id, mainBuilderTab)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowDmiVersionList(false)}>
+                  Close
                 </Button>
               </DialogFooter>
             </DialogContent>

@@ -249,6 +249,17 @@ export function EnhancedWhiteboard({
   const [resizingOverlay, setResizingOverlay] = useState<string | null>(null)
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 })
 
+  // Direct inline text input (for "type anywhere" feature)
+  const [inlineTextInput, setInlineTextInput] = useState<{
+    id: string
+    x: number
+    y: number
+    text: string
+    fontSize: number
+    format: TextFormat
+    color: string
+  } | null>(null)
+
   // Selection state
   const [selectedObject, setSelectedObject] = useState<SelectedObject | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -833,17 +844,18 @@ export function EnhancedWhiteboard({
     }
 
     if (tool === 'text') {
-      const newOverlay: TextOverlay = {
+      // Use inline direct text input instead of overlay
+      setInlineTextInput({
         id: Date.now().toString(),
         x: point.x,
         y: point.y,
         text: '',
         fontSize: 20,
         format: { align: 'left', color: color },
-        width: 300,
-        height: 200,
-      }
-      setTextOverlays(prev => [...prev.filter(o => o.text.trim()), newOverlay])
+        color: color,
+      })
+      // Also clear any existing overlays
+      setTextOverlays(prev => prev.filter(o => o.text.trim()))
       return
     }
 
@@ -1025,8 +1037,18 @@ export function EnhancedWhiteboard({
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault()
-    const delta = e.deltaY > 0 ? 0.9 : 1.1
-    setScale(prev => Math.max(0.1, Math.min(5, prev * delta)))
+    // Ctrl/Cmd + wheel = zoom, otherwise pan
+    if (e.ctrlKey || e.metaKey) {
+      const delta = e.deltaY > 0 ? 0.9 : 1.1
+      setScale(prev => Math.max(0.1, Math.min(5, prev * delta)))
+    } else {
+      // Pan instead of zoom - scroll moves the canvas
+      const sensitivity = 0.5
+      setPan(prev => ({
+        x: prev.x - e.deltaX * sensitivity,
+        y: prev.y - e.deltaY * sensitivity,
+      }))
+    }
   }
 
   // Text overlay functions
@@ -1066,17 +1088,16 @@ export function EnhancedWhiteboard({
       texts: currentPage.texts.filter(t => t.id !== textId),
     })
 
-    const overlay: TextOverlay = {
+    // Use inline text input for editing
+    setInlineTextInput({
       id: textId,
       x: text.x,
       y: text.y,
       text: text.text,
       fontSize: text.fontSize,
       format: text.format,
-      width: text.width,
-      height: text.height,
-    }
-    setTextOverlays(prev => [...prev, overlay])
+      color: text.color,
+    })
   }
 
   const updateOverlayText = (id: string, newText: string) => {
@@ -1193,6 +1214,36 @@ export function EnhancedWhiteboard({
     setShowBackgroundPanel(false)
   }
 
+  // Handle inline text input key presses
+  const handleInlineTextKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (!inlineTextInput) return
+
+      if (e.key === 'Enter') {
+        // Confirm text
+        if (inlineTextInput.text.trim()) {
+          const newText: TextElement = {
+            id: inlineTextInput.id,
+            text: inlineTextInput.text,
+            x: inlineTextInput.x,
+            y: inlineTextInput.y,
+            color: inlineTextInput.color,
+            fontSize: inlineTextInput.fontSize,
+            format: inlineTextInput.format,
+            width: Math.max(100, inlineTextInput.text.length * inlineTextInput.fontSize * 0.6),
+            height: inlineTextInput.fontSize * 1.5,
+          }
+          updateCurrentPage({ ...currentPage, texts: [...currentPage.texts, newText] })
+        }
+        setInlineTextInput(null)
+      } else if (e.key === 'Escape') {
+        // Cancel
+        setInlineTextInput(null)
+      }
+    },
+    [inlineTextInput, currentPage, color]
+  )
+
   // Keyboard shortcuts
   useEffect(() => {
     if (readOnly) return
@@ -1203,14 +1254,18 @@ export function EnhancedWhiteboard({
       if (
         (e.key === 'Delete' || e.key === 'Backspace') &&
         selectedObject &&
-        !textOverlays.some(o => document.activeElement?.tagName === 'TEXTAREA')
+        !(
+          ['INPUT', 'TEXTAREA'].includes(
+            (document.activeElement as HTMLElement | null)?.tagName || ''
+          ) || (document.activeElement as HTMLElement | null)?.isContentEditable
+        )
       ) {
         deleteSelected()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [readOnly, selectedObject, textOverlays, currentPage])
+  }, [readOnly, selectedObject, textOverlays, currentPage, inlineTextInput])
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-lg bg-slate-900">
@@ -1429,6 +1484,38 @@ export function EnhancedWhiteboard({
               )}
             </div>
           ))}
+
+          {/* Inline Direct Text Input - type directly on canvas */}
+          {inlineTextInput && (
+            <div
+              className="absolute z-30"
+              style={{
+                left: inlineTextInput.x * scale + pan.x,
+                top: inlineTextInput.y * scale + pan.y,
+              }}
+              onMouseDown={e => e.stopPropagation()}
+            >
+              <textarea
+                autoFocus
+                value={inlineTextInput.text}
+                onChange={e =>
+                  setInlineTextInput(prev => (prev ? { ...prev, text: e.target.value } : null))
+                }
+                onKeyDown={handleInlineTextKeyDown}
+                placeholder="Type here..."
+                className="min-w-[150px] resize-none border-b-2 border-blue-500 bg-transparent px-1 py-0 text-black outline-none"
+                style={{
+                  fontSize: `${inlineTextInput.fontSize * scale}px`,
+                  fontWeight: inlineTextInput.format.bold ? 'bold' : 'normal',
+                  fontStyle: inlineTextInput.format.italic ? 'italic' : 'normal',
+                  textDecoration: inlineTextInput.format.underline ? 'underline' : 'none',
+                  textAlign: inlineTextInput.format.align || 'left',
+                  color: inlineTextInput.format.color || '#000000',
+                }}
+              />
+              <span className="ml-2 text-xs text-slate-400">Enter to confirm, Esc to cancel</span>
+            </div>
+          )}
 
           {/* Draggable and Resizable Text Input Overlays */}
           {textOverlays.map(overlay => (
