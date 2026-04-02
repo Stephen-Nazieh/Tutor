@@ -1,37 +1,37 @@
-"use client";
+'use client'
 
-import * as React from "react";
-import { createContext, useContext, useEffect, useState } from "react";
+import * as React from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 // ============================================
 // THEME TYPES
 // ============================================
 
-type Theme = "aura" | "nimbus" | "sahara";
-type Mode = "light" | "dark" | "system";
+type Theme = 'aura' | 'nimbus' | 'sahara'
+type Mode = 'light' | 'dark' | 'system'
 
 interface ThemeProviderProps {
-  children: React.ReactNode;
-  defaultTheme?: Theme;
-  defaultMode?: Mode;
-  storageKey?: string;
+  children: React.ReactNode
+  defaultTheme?: Theme
+  defaultMode?: Mode
+  storageKey?: string
 }
 
 interface ThemeProviderState {
-  theme: Theme;
-  mode: Mode;
-  resolvedMode: "light" | "dark";
-  setTheme: (theme: Theme) => void;
-  setMode: (mode: Mode) => void;
-  toggleMode: () => void;
-  cycleTheme: () => void;
+  theme: Theme
+  mode: Mode
+  resolvedMode: 'light' | 'dark'
+  setTheme: (theme: Theme) => void
+  setMode: (mode: Mode) => void
+  toggleMode: () => void
+  cycleTheme: () => void
 }
 
 // ============================================
 // THEME CONTEXT
 // ============================================
 
-const ThemeContext = createContext<ThemeProviderState | undefined>(undefined);
+const ThemeContext = createContext<ThemeProviderState | undefined>(undefined)
 
 // ============================================
 // THEME PROVIDER
@@ -39,104 +39,95 @@ const ThemeContext = createContext<ThemeProviderState | undefined>(undefined);
 
 export function ThemeProvider({
   children,
-  defaultTheme = "aura",
-  defaultMode = "system",
-  storageKey = "tutorme-theme",
+  defaultTheme = 'aura',
+  defaultMode = 'system',
+  storageKey = 'tutorme-theme',
   ...props
 }: ThemeProviderProps) {
   // Initialize state from localStorage or defaults
-  const [theme, setThemeState] = useState<Theme>(defaultTheme);
-  const [mode, setModeState] = useState<Mode>(defaultMode);
-  const [resolvedMode, setResolvedMode] = useState<"light" | "dark">("light");
-  const [mounted, setMounted] = useState(false);
+  const [theme, setThemeState] = useState<Theme>(defaultTheme)
+  const [mode, setModeState] = useState<Mode>(defaultMode)
+  const [resolvedMode, setResolvedMode] = useState<'light' | 'dark'>('light')
+  const [mounted, setMounted] = useState(false)
 
   // Load from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem(storageKey);
+    const stored = localStorage.getItem(storageKey)
     if (stored) {
       try {
-        const parsed = JSON.parse(stored);
-        if (parsed.theme) setThemeState(parsed.theme);
-        if (parsed.mode) setModeState(parsed.mode);
+        const parsed = JSON.parse(stored)
+        if (parsed.theme) setThemeState(parsed.theme)
+        if (parsed.mode) setModeState(parsed.mode)
       } catch {
         // Invalid storage, use defaults
       }
     }
-    setMounted(true);
-  }, [storageKey]);
+    setMounted(true)
+  }, [storageKey])
 
   // Resolve system mode
   useEffect(() => {
-    if (mode === "system") {
-      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      setResolvedMode(mediaQuery.matches ? "dark" : "light");
+    if (mode === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      setResolvedMode(mediaQuery.matches ? 'dark' : 'light')
 
       const handler = (e: MediaQueryListEvent) => {
-        setResolvedMode(e.matches ? "dark" : "light");
-      };
+        setResolvedMode(e.matches ? 'dark' : 'light')
+      }
 
-      mediaQuery.addEventListener("change", handler);
-      return () => mediaQuery.removeEventListener("change", handler);
+      mediaQuery.addEventListener('change', handler)
+      return () => mediaQuery.removeEventListener('change', handler)
     } else {
-      setResolvedMode(mode);
+      setResolvedMode(mode)
     }
-  }, [mode]);
+  }, [mode])
 
   // Apply theme and mode to document
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted) return
 
-    const root = window.document.documentElement;
+    const root = window.document.documentElement
 
     // Remove old theme classes
-    root.classList.remove("aura", "nimbus", "sahara", "light", "dark");
+    root.classList.remove('aura', 'nimbus', 'sahara', 'light', 'dark')
 
     // Add new theme class
-    root.classList.add(theme);
+    root.classList.add(theme)
 
     // Add mode class
-    root.classList.add(resolvedMode);
+    root.classList.add(resolvedMode)
 
     // Store in localStorage
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({ theme, mode })
-    );
-  }, [theme, resolvedMode, mounted, storageKey]);
+    localStorage.setItem(storageKey, JSON.stringify({ theme, mode }))
+  }, [theme, resolvedMode, mounted, storageKey])
 
   // Theme setter with persistence
-  const setTheme = React.useCallback(
-    (newTheme: Theme) => {
-      setThemeState(newTheme);
-    },
-    []
-  );
+  const setTheme = React.useCallback((newTheme: Theme) => {
+    setThemeState(newTheme)
+  }, [])
 
   // Mode setter with persistence
-  const setMode = React.useCallback(
-    (newMode: Mode) => {
-      setModeState(newMode);
-    },
-    []
-  );
+  const setMode = React.useCallback((newMode: Mode) => {
+    setModeState(newMode)
+  }, [])
 
   // Toggle between light and dark
   const toggleMode = React.useCallback(() => {
-    setModeState((prev) => {
-      if (prev === "light") return "dark";
-      if (prev === "dark") return "system";
-      return "light";
-    });
-  }, []);
+    setModeState(prev => {
+      if (prev === 'light') return 'dark'
+      if (prev === 'dark') return 'system'
+      return 'light'
+    })
+  }, [])
 
   // Cycle through themes
   const cycleTheme = React.useCallback(() => {
-    setThemeState((prev) => {
-      const themes: Theme[] = ["aura", "nimbus", "sahara"];
-      const currentIndex = themes.indexOf(prev);
-      return themes[(currentIndex + 1) % themes.length];
-    });
-  }, []);
+    setThemeState(prev => {
+      const themes: Theme[] = ['aura', 'nimbus', 'sahara']
+      const currentIndex = themes.indexOf(prev)
+      return themes[(currentIndex + 1) % themes.length]
+    })
+  }, [])
 
   const value = {
     theme,
@@ -146,28 +137,28 @@ export function ThemeProvider({
     setMode,
     toggleMode,
     cycleTheme,
-  };
+  }
 
   // Prevent flash of wrong theme
   if (!mounted) {
     return (
       <div
         style={{
-          visibility: "hidden",
-          position: "fixed",
+          visibility: 'hidden',
+          position: 'fixed',
           inset: 0,
         }}
       >
         {children}
       </div>
-    );
+    )
   }
 
   return (
     <ThemeContext.Provider value={value} {...props}>
       {children}
     </ThemeContext.Provider>
-  );
+  )
 }
 
 // ============================================
@@ -175,55 +166,53 @@ export function ThemeProvider({
 // ============================================
 
 export function useTheme() {
-  const context = useContext(ThemeContext);
+  const context = useContext(ThemeContext)
   if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
+    throw new Error('useTheme must be used within a ThemeProvider')
   }
-  return context;
+  return context
 }
 
 // ============================================
 // THEME SWITCHER COMPONENT
 // ============================================
 
-import { Button } from "./button";
+import { Button } from './button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./dropdown-menu";
-import { Sun, Moon, Monitor, Palette, Check } from "lucide-react";
+} from './dropdown-menu'
+import { Sun, Moon, Monitor, Palette, Check } from 'lucide-react'
 
 export function ThemeSwitcher() {
-  const { theme, mode, resolvedMode, setTheme, setMode } = useTheme();
+  const { theme, mode, resolvedMode, setTheme, setMode } = useTheme()
 
   const themes: { value: Theme; label: string; description: string }[] = [
-    { value: "aura", label: "Aura", description: "Warm neutral elegance" },
-    { value: "nimbus", label: "Nimbus", description: "Cool slate modern" },
-    { value: "sahara", label: "Sahara", description: "Warm sand organic" },
-  ];
+    { value: 'aura', label: 'Aura', description: 'Warm neutral elegance' },
+    { value: 'nimbus', label: 'Nimbus', description: 'Cool slate modern' },
+    { value: 'sahara', label: 'Sahara', description: 'Warm sand organic' },
+  ]
 
   const modes: { value: Mode; label: string; icon: React.ReactNode }[] = [
-    { value: "light", label: "Light", icon: <Sun className="w-4 h-4" /> },
-    { value: "dark", label: "Dark", icon: <Moon className="w-4 h-4" /> },
-    { value: "system", label: "System", icon: <Monitor className="w-4 h-4" /> },
-  ];
+    { value: 'light', label: 'Light', icon: <Sun className="h-4 w-4" /> },
+    { value: 'dark', label: 'Dark', icon: <Moon className="h-4 w-4" /> },
+    { value: 'system', label: 'System', icon: <Monitor className="h-4 w-4" /> },
+  ]
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="gap-2">
-          <Palette className="w-4 h-4" />
+          <Palette className="h-4 w-4" />
           <span className="hidden sm:inline">Theme</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <div className="px-2 py-1.5 text-sm font-medium text-muted-foreground">
-          Color Theme
-        </div>
-        {themes.map((t) => (
+        <div className="px-2 py-1.5 text-sm font-medium text-muted-foreground">Color Theme</div>
+        {themes.map(t => (
           <DropdownMenuItem
             key={t.value}
             onClick={() => setTheme(t.value)}
@@ -231,20 +220,16 @@ export function ThemeSwitcher() {
           >
             <div className="flex flex-col">
               <span>{t.label}</span>
-              <span className="text-xs text-muted-foreground">
-                {t.description}
-              </span>
+              <span className="text-xs text-muted-foreground">{t.description}</span>
             </div>
-            {theme === t.value && <Check className="w-4 h-4 text-primary" />}
+            {theme === t.value && <Check className="h-4 w-4 text-primary" />}
           </DropdownMenuItem>
         ))}
-        
+
         <DropdownMenuSeparator />
-        
-        <div className="px-2 py-1.5 text-sm font-medium text-muted-foreground">
-          Mode
-        </div>
-        {modes.map((m) => (
+
+        <div className="px-2 py-1.5 text-sm font-medium text-muted-foreground">Mode</div>
+        {modes.map(m => (
           <DropdownMenuItem
             key={m.value}
             onClick={() => setMode(m.value)}
@@ -254,21 +239,21 @@ export function ThemeSwitcher() {
               {m.icon}
               <span>{m.label}</span>
             </div>
-            {mode === m.value && <Check className="w-4 h-4 text-primary" />}
+            {mode === m.value && <Check className="h-4 w-4 text-primary" />}
           </DropdownMenuItem>
         ))}
-        
-        {mode === "system" && (
+
+        {mode === 'system' && (
           <>
             <DropdownMenuSeparator />
             <div className="px-2 py-1 text-xs text-muted-foreground">
-              Currently: {resolvedMode === "dark" ? "Dark" : "Light"}
+              Currently: {resolvedMode === 'dark' ? 'Dark' : 'Light'}
             </div>
           </>
         )}
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }
 
 // ============================================
@@ -276,7 +261,7 @@ export function ThemeSwitcher() {
 // ============================================
 
 export function ModeToggle() {
-  const { resolvedMode, toggleMode } = useTheme();
+  const { resolvedMode, toggleMode } = useTheme()
 
   return (
     <Button
@@ -287,19 +272,17 @@ export function ModeToggle() {
       aria-label="Toggle theme"
     >
       <Sun
-        className={`w-5 h-5 transition-all duration-300 ${
-          resolvedMode === "dark"
-            ? "rotate-90 scale-0 opacity-0"
-            : "rotate-0 scale-100 opacity-100"
+        className={`h-5 w-5 transition-all duration-300 ${
+          resolvedMode === 'dark' ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'
         }`}
       />
       <Moon
-        className={`absolute w-5 h-5 transition-all duration-300 ${
-          resolvedMode === "dark"
-            ? "rotate-0 scale-100 opacity-100"
-            : "-rotate-90 scale-0 opacity-0"
+        className={`absolute h-5 w-5 transition-all duration-300 ${
+          resolvedMode === 'dark'
+            ? 'rotate-0 scale-100 opacity-100'
+            : '-rotate-90 scale-0 opacity-0'
         }`}
       />
     </Button>
-  );
+  )
 }
