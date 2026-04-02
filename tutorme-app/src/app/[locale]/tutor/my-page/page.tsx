@@ -1374,7 +1374,10 @@ export default function TutorMyPage() {
         </Card>
 
         {/* My Courses Section */}
-        <MyCoursesSection onCreateCourse={handleQuickCreateCourse} />
+        <MyCoursesSection onCreateCourse={() => {
+          if (creatingCourse) return
+          void handleQuickCreateCourse()
+        }} />
       </div>
 
       <Dialog
