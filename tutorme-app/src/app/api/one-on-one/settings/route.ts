@@ -1,0 +1,82 @@
+/**
+ * One-on-one settings API
+ * GET: Get tutor's one-on-one settings
+ * PATCH: Update tutor's one-on-one settings
+ */
+
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { profile } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
+
+// GET: Get tutor's one-on-one settings
+export async function GET(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(req.url)
+    const tutorId = searchParams.get('tutorId')
+
+    if (!tutorId) {
+      return NextResponse.json({ error: 'Tutor ID required' }, { status: 400 })
+    }
+
+    // Get tutor's profile with hourly rate
+    const tutorProfile = await drizzleDb
+      .select({
+        id: profile.id,
+        hourlyRate: profile.hourlyRate,
+        oneOnOneEnabled: profile.oneOnOneEnabled,
+      })
+      .from(profile)
+      .where(eq(profile.id, tutorId))
+      .limit(1)
+
+    if (tutorProfile.length === 0) {
+      return NextResponse.json({ error: 'Tutor not found' }, { status: 404 })
+    }
+
+    return NextResponse.json({
+      hourlyRate: tutorProfile[0].hourlyRate || 50, // Default $50/hour
+      oneOnOneEnabled: tutorProfile[0].oneOnOneEnabled ?? true,
+      sessionDuration: 60, // Default 1 hour
+    })
+  } catch (error) {
+    console.error('Error fetching one-on-one settings:', error)
+    return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 })
+  }
+}
+
+// PATCH: Update tutor's one-on-one settings (for tutors only)
+export async function PATCH(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await req.json()
+    const { hourlyRate, oneOnOneEnabled } = body
+    const tutorId = session.user.id
+
+    // Update profile
+    await drizzleDb
+      .update(profile)
+      .set({
+        hourlyRate: hourlyRate !== undefined ? hourlyRate : undefined,
+        oneOnOneEnabled: oneOnOneEnabled !== undefined ? oneOnOneEnabled : undefined,
+        updatedAt: new Date(),
+      })
+      .where(eq(profile.id, tutorId))
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error updating one-on-one settings:', error)
+    return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 })
+  }
+}

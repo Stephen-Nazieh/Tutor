@@ -50,6 +50,8 @@ import {
   builderTaskExtension,
   builderTaskFile,
   builderTaskVersion,
+  oneOnOneBookingRequest,
+  calendarEvent,
 } from './tables'
 
 export const userRelations = relations(user, ({ one, many }) => ({
@@ -79,6 +81,10 @@ export const userRelations = relations(user, ({ one, many }) => ({
   mentionsSent: many(mention, { relationName: 'mentioner' }),
   mentionsReceived: many(mention, { relationName: 'mentionee' }),
   tutorFollowers: many(tutorFollow, { relationName: 'tutor' }),
+  oneOnOneRequestsAsTutor: many(oneOnOneBookingRequest, { relationName: 'tutorOneOnOneRequests' }),
+  oneOnOneRequestsAsStudent: many(oneOnOneBookingRequest, { relationName: 'studentOneOnOneRequests' }),
+  calendarEventsAsTutor: many(calendarEvent, { relationName: 'tutorCalendarEvents' }),
+  calendarEventsAsStudent: many(calendarEvent, { relationName: 'studentCalendarEvents' }),
 }))
 
 export const profileRelations = relations(profile, ({ one }) => ({
@@ -573,5 +579,39 @@ export const builderTaskVersionRelations = relations(builderTaskVersion, ({ one 
   task: one(builderTask, {
     fields: [builderTaskVersion.taskId],
     references: [builderTask.id],
+  }),
+}))
+
+// ============================================
+// CALENDAR & ONE-ON-ONE RELATIONS
+// ============================================
+
+export const oneOnOneBookingRequestRelations = relations(oneOnOneBookingRequest, ({ one }) => ({
+  tutor: one(user, {
+    fields: [oneOnOneBookingRequest.tutorId],
+    references: [user.id],
+    relationName: 'tutorOneOnOneRequests',
+  }),
+  student: one(user, {
+    fields: [oneOnOneBookingRequest.studentId],
+    references: [user.id],
+    relationName: 'studentOneOnOneRequests',
+  }),
+  calendarEvent: one(calendarEvent, {
+    fields: [oneOnOneBookingRequest.calendarEventId],
+    references: [calendarEvent.id],
+  }),
+}))
+
+export const calendarEventRelations = relations(calendarEvent, ({ one }) => ({
+  tutor: one(user, {
+    fields: [calendarEvent.tutorId],
+    references: [user.id],
+    relationName: 'tutorCalendarEvents',
+  }),
+  student: one(user, {
+    fields: [calendarEvent.studentId],
+    references: [user.id],
+    relationName: 'studentCalendarEvents',
   }),
 }))
