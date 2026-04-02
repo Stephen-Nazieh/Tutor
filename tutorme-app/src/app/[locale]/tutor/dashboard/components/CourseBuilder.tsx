@@ -3281,7 +3281,7 @@ FEEDBACK: [your explanation]`
                                                   </SortableTreeItem>
                                                   {loadedTaskId === task.id &&
                                                     taskBuilder.extensions.length > 0 && (
-                                                      <div className="mt-1 space-y-1 border-l border-orange-400 pl-2">
+                                                      <div className="ml-12 mt-1 space-y-1 border-l border-orange-400 pl-2">
                                                         <div
                                                           className="flex cursor-pointer items-center gap-2 rounded border bg-white px-2 py-1 text-[10px]"
                                                           onClick={() => toggleExtensions(task.id)}
