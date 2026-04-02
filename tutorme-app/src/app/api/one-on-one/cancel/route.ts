@@ -14,7 +14,7 @@ const cancelSchema = z.object({
 export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -41,14 +41,18 @@ export async function PATCH(request: NextRequest) {
 
     // Only allow canceling if status is PENDING or ACCEPTED (not yet paid)
     if (!['PENDING', 'ACCEPTED'].includes(existingRequest.status)) {
-      return NextResponse.json({ 
-        error: `Cannot cancel a request that is already ${existingRequest.status.toLowerCase()}` 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: `Cannot cancel a request that is already ${existingRequest.status.toLowerCase()}`,
+        },
+        { status: 400 }
+      )
     }
 
     // If there's a calendar event, mark it as cancelled
     if (existingRequest.calendarEventId) {
-      await drizzleDb.update(calendarEvent)
+      await drizzleDb
+        .update(calendarEvent)
         .set({
           status: 'CANCELLED',
           isCancelled: true,
@@ -58,14 +62,16 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Update request status
-    const updatedRequest = await drizzleDb.update(oneOnOneBookingRequest)
+    const updatedRequest = await drizzleDb
+      .update(oneOnOneBookingRequest)
       .set({
         status: 'CANCELLED',
-        tutorNotes: validated.reason && isStudent
-          ? `${existingRequest.tutorNotes || ''}\nCancellation reason (from student): ${validated.reason}`.trim()
-          : validated.reason && isTutor
-          ? `${existingRequest.tutorNotes || ''}\nCancellation reason (from tutor): ${validated.reason}`.trim()
-          : existingRequest.tutorNotes,
+        tutorNotes:
+          validated.reason && isStudent
+            ? `${existingRequest.tutorNotes || ''}\nCancellation reason (from student): ${validated.reason}`.trim()
+            : validated.reason && isTutor
+              ? `${existingRequest.tutorNotes || ''}\nCancellation reason (from tutor): ${validated.reason}`.trim()
+              : existingRequest.tutorNotes,
         updatedAt: new Date(),
       })
       .where(eq(oneOnOneBookingRequest.id, validated.requestId))
@@ -77,13 +83,15 @@ export async function PATCH(request: NextRequest) {
       success: true,
       request: updatedRequest[0],
     })
-
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ 
-        error: 'Invalid request data', 
-        details: error.errors 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Invalid request data',
+          details: error.issues,
+        },
+        { status: 400 }
+      )
     }
 
     console.error('Error canceling one-on-one request:', error)

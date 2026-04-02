@@ -6,6 +6,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -274,6 +275,8 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
     [currentCourse?.id]
   )
 
+  const router = useRouter()
+
   const selectedTheme = DASHBOARD_THEMES.find(t => t.id === themeId) ?? DASHBOARD_THEMES[0]
   const themeStyle = selectedTheme.tokens
     ? {
@@ -321,6 +324,9 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
         <div className="flex w-full items-center justify-between gap-4 px-4 py-2 sm:px-6">
           {/* Course Selector and Name Editor */}
           <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => router.back()} title="Go back">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
             <BookOpen className="h-5 w-5 text-blue-500" />
             <Select value={currentCourse?.id} onValueChange={handleCourseSelect}>
               <SelectTrigger className="w-[200px]">

@@ -67,11 +67,9 @@ export default function CourseBuilderPage() {
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-8">
       <div className="mx-auto max-w-3xl">
-        <Button variant="ghost" className="mb-4" asChild>
-          <Link href="/tutor/dashboard">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Link>
+        <Button variant="ghost" className="mb-4" onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
         </Button>
 
         <Card>
