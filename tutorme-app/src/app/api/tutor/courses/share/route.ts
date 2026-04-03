@@ -73,30 +73,24 @@ async function postHandler(
       }
 
       if (recipient.role !== 'PARENT' && recipient.role !== 'ADMIN') {
-        results.push({ email, status: 'not_parent' })
-        continue
-      }
+      const shareId = crypto.randomUUID()
+      const insertedShare = await drizzleDb
+        .insert(courseShare)
+        .values({
+          shareId: shareId,
+          courseId: data.courseId,
+          sharedByTutorId: session.user.id,
+          recipientId: recipient.userId,
+          message: data.message,
+          isPublic: false,
+        })
+        .onConflictDoNothing({ target: [courseShare.courseId, courseShare.recipientId] })
+        .returning({ shareId: courseShare.shareId })
 
-      const existingShare = await drizzleDb.query.courseShare.findFirst({
-        where: and(
-          eq(courseShare.courseId, data.courseId),
-          eq(courseShare.recipientId, recipient.userId)
-        ),
-      })
-
-      if (existingShare) {
+      if (insertedShare.length === 0) {
         results.push({ email, status: 'already_shared' })
         continue
       }
-
-      const shareId = crypto.randomUUID()
-      await drizzleDb.insert(courseShare).values({
-        shareId: shareId,
-        courseId: data.courseId,
-        sharedByTutorId: session.user.id,
-        recipientId: recipient.userId,
-        message: data.message,
-        isPublic: false,
       })
 
       const familyAccountId = recipient.familyMemberships?.[0]?.familyAccountId
