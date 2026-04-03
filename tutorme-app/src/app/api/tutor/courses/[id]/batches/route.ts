@@ -60,7 +60,7 @@ export const GET = withAuth(
       difficulty: b.difficulty ?? null,
       schedule: Array.isArray(b.schedule) ? b.schedule : [],
       enrollmentCount: countByBatch.get(b.batchId) ?? 0,
-      joinLink: b.meetingUrl ?? `${req.nextUrl.origin}/curriculum/${id}?batch=${b.batchId}`,
+      joinLink: b.meetingUrl ?? `${req.nextUrl.origin}/courses/${id}?batch=${b.batchId}`,
     }))
 
     return NextResponse.json({ batches: batchesWithStats })
