@@ -24,7 +24,9 @@ export const GET = withAuth(
       .limit(1)
 
     if (!courseRow) throw new NotFoundError('Course not found')
-
+    if (courseRow.creatorId !== session.userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
     const enrollmentsData = await drizzleDb
       .select({
         enrollment: courseEnrollment,
