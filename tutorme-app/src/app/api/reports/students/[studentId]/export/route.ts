@@ -31,13 +31,13 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
 
     const [studentRow] = await drizzleDb
       .select({
-        id: user.id,
+        id: user.userId,
         email: user.email,
         name: profile.name,
       })
       .from(user)
       .leftJoin(profile, eq(profile.userId, user.id))
-      .where(eq(user.id, studentId))
+      .where(eq(user.userId, studentId))
       .limit(1)
 
     if (!studentRow) {

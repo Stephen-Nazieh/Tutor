@@ -23,7 +23,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   const [sessionRow] = await drizzleDb
     .select({ tutorId: liveSession.tutorId })
     .from(liveSession)
-    .where(eq(liveSession.id, sessionId))
+    .where(eq(liveSession.sessionId, sessionId))
     .limit(1)
   if (!sessionRow) {
     return NextResponse.json({ error: 'Session not found' }, { status: 404 })

@@ -104,7 +104,7 @@ export const POST = withAuth(
       const [live] = await drizzleDb
         .select()
         .from(liveSession)
-        .where(eq(liveSession.id, data.sessionId))
+        .where(eq(liveSession.sessionId, data.sessionId))
         .limit(1)
 
       if (!live) {

@@ -46,7 +46,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   const [liveSessionRow] = await drizzleDb
     .select()
     .from(liveSession)
-    .where(eq(liveSession.id, sessionId))
+    .where(eq(liveSession.sessionId, sessionId))
     .limit(1)
   if (!liveSessionRow) {
     return NextResponse.json({ error: 'Session not found' }, { status: 404 })
@@ -101,7 +101,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
   const [liveSessionRow] = await drizzleDb
     .select()
     .from(liveSession)
-    .where(eq(liveSession.id, sessionId))
+    .where(eq(liveSession.sessionId, sessionId))
     .limit(1)
 
   if (!liveSessionRow) {
@@ -191,7 +191,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
   const [created] = await drizzleDb
     .select()
     .from(whiteboard)
-    .where(eq(whiteboard.id, whiteboardId))
+    .where(eq(whiteboard.whiteboardId, whiteboardId))
     .limit(1)
   const pages = await drizzleDb
     .select()
@@ -212,7 +212,7 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
   const [liveSessionRow] = await drizzleDb
     .select()
     .from(liveSession)
-    .where(eq(liveSession.id, sessionId))
+    .where(eq(liveSession.sessionId, sessionId))
     .limit(1)
   if (!liveSessionRow) {
     return NextResponse.json({ error: 'Session not found' }, { status: 404 })
@@ -263,12 +263,12 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
   if (backgroundColor !== undefined) updateData.backgroundColor = backgroundColor
   if (backgroundStyle !== undefined) updateData.backgroundStyle = backgroundStyle
 
-  await drizzleDb.update(whiteboard).set(updateData).where(eq(whiteboard.id, whiteboardRow.id))
+  await drizzleDb.update(whiteboard).set(updateData).where(eq(whiteboard.whiteboardId, whiteboardRow.id))
 
   const [updatedWhiteboard] = await drizzleDb
     .select()
     .from(whiteboard)
-    .where(eq(whiteboard.id, whiteboardRow.id))
+    .where(eq(whiteboard.whiteboardId, whiteboardRow.id))
     .limit(1)
 
   return NextResponse.json({ whiteboard: updatedWhiteboard! })

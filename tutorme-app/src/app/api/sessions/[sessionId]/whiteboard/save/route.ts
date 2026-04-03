@@ -61,7 +61,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
   const [page] = await drizzleDb
     .select()
     .from(whiteboardPage)
-    .where(eq(whiteboardPage.id, pageId))
+    .where(eq(whiteboardPage.pageId, pageId))
     .limit(1)
 
   if (!page) {
@@ -73,7 +73,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     .from(whiteboard)
     .where(
       and(
-        eq(whiteboard.id, page.whiteboardId),
+        eq(whiteboard.whiteboardId, page.whiteboardId),
         eq(whiteboard.sessionId, sessionId),
         eq(whiteboard.ownerId, userId)
       )
@@ -110,14 +110,14 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
       ...updateData,
       version: sql<number>`${whiteboardPage.version} + 1`,
     })
-    .where(and(eq(whiteboardPage.id, pageId), eq(whiteboardPage.version, expectedVersion)))
+    .where(and(eq(whiteboardPage.pageId, pageId), eq(whiteboardPage.version, expectedVersion)))
     .returning()
 
   if (updatedRows.length === 0) {
     const [latest] = await drizzleDb
       .select({ version: whiteboardPage.version })
       .from(whiteboardPage)
-      .where(eq(whiteboardPage.id, pageId))
+      .where(eq(whiteboardPage.pageId, pageId))
       .limit(1)
     const latestVersion = latest?.version ?? expectedVersion
     return NextResponse.json(
@@ -129,7 +129,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     )
   }
 
-  await drizzleDb.update(whiteboard).set({ updatedAt: new Date() }).where(eq(whiteboard.id, wb.id))
+  await drizzleDb.update(whiteboard).set({ updatedAt: new Date() }).where(eq(whiteboard.whiteboardId, wb.id))
 
   const updatedPage = updatedRows[0]
 
