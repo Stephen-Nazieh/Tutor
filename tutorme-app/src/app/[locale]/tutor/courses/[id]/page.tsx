@@ -1749,8 +1749,8 @@ export default function TutorCoursePage() {
                             : 0
                           const sessionLabel = inRange
                             ? effectiveWeeks > 1
-                              ? `W${weekNum}S${sessionNum}`
-                              : `S${sessionNum}`
+                              ? `Week ${weekNum} Session ${sessionNum}`
+                              : `Session ${sessionNum}`
                             : ''
                           const toggleSlot = () => {
                             setSchedule(prev => {
