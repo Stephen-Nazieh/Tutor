@@ -18,7 +18,7 @@ import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   course,
-  courseProgress,
+  courseEnrollment,
   user,
   profile,
   payment,
