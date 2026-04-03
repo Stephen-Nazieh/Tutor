@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { user, profile, curriculum, curriculumModule, curriculumLesson, curriculumEnrollment } from '@/lib/db/schema'
+import { user, profile, course, curriculumModule, courseLesson, courseEnrollment } from '@/lib/db/schema'
 import { MOCK_TUTORS, shouldUseMockPublicTutors } from '@/lib/public/mock-tutors'
 
 interface PublicCourseSummary {
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 
   const tutorsWithProfile = await drizzleDb
     .select({
-      id: user.id,
+      userId: user.userId,
       name: profile.name,
       username: profile.username,
       handle: user.handle,
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       hourlyRate: profile.hourlyRate,
     })
     .from(user)
-    .innerJoin(profile, eq(profile.userId, user.id))
+    .innerJoin(profile, eq(profile.userId, user.userId))
     .where(
       and(
         eq(user.role, 'TUTOR'),
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     )
     .limit(300)
 
-  const tutorIds = tutorsWithProfile.map((t) => t.id)
+  const tutorIds = tutorsWithProfile.map((t) => t.userId)
   if (tutorIds.length === 0) {
     const filtered: PublicTutorSummary[] = []
     return NextResponse.json({
@@ -73,88 +73,85 @@ export async function GET(request: NextRequest) {
     })
   }
 
-  const publishedCurricula = await drizzleDb
+  const publishedCourses = await drizzleDb
     .select()
-    .from(curriculum)
+    .from(course)
     .where(
       and(
-        eq(curriculum.isPublished, true),
-        sql`${curriculum.creatorId} IS NOT NULL`,
-        inArray(curriculum.creatorId, tutorIds)
+        eq(course.isPublished, true),
+        sql`${course.creatorId} IS NOT NULL`,
+        inArray(course.creatorId, tutorIds)
       )
     )
-    .orderBy(desc(curriculum.updatedAt))
+    .orderBy(desc(course.updatedAt))
 
-  const curriculumIds = publishedCurricula.map((c) => c.id)
-  const curriculaByCreator = new Map<string, typeof publishedCurricula>()
-  for (const c of publishedCurricula) {
+  const courseIds = publishedCourses.map((c) => c.courseId)
+  const coursesByCreator = new Map<string, typeof publishedCourses>()
+  for (const c of publishedCourses) {
     if (!c.creatorId) continue
-    const list = curriculaByCreator.get(c.creatorId) ?? []
+    const list = coursesByCreator.get(c.creatorId) ?? []
     if (list.length < 100) list.push(c)
-    curriculaByCreator.set(c.creatorId, list)
+    coursesByCreator.set(c.creatorId, list)
   }
 
   let moduleCounts = new Map<string, number>()
   let enrollmentCounts = new Map<string, number>()
-  let lessonCountsByModule = new Map<string, number>()
-  let modules: { curriculumId: string; id: string }[] = []
-  if (curriculumIds.length > 0) {
+  let lessonCountsByCourse = new Map<string, number>()
+  let modules: { courseId: string; moduleId: string }[] = []
+  if (courseIds.length > 0) {
     modules = await drizzleDb
-      .select({ curriculumId: curriculumModule.curriculumId, id: curriculumModule.id })
+      .select({ courseId: curriculumModule.courseId, moduleId: curriculumModule.moduleId })
       .from(curriculumModule)
-      .where(inArray(curriculumModule.curriculumId, curriculumIds))
+      .where(inArray(curriculumModule.courseId, courseIds))
     for (const m of modules) {
-      moduleCounts.set(m.curriculumId, (moduleCounts.get(m.curriculumId) ?? 0) + 1)
+      moduleCounts.set(m.courseId, (moduleCounts.get(m.courseId) ?? 0) + 1)
     }
     const enrollments = await drizzleDb
-      .select({ curriculumId: curriculumEnrollment.curriculumId })
-      .from(curriculumEnrollment)
-      .where(inArray(curriculumEnrollment.curriculumId, curriculumIds))
+      .select({ courseId: courseEnrollment.courseId })
+      .from(courseEnrollment)
+      .where(inArray(courseEnrollment.courseId, courseIds))
     for (const e of enrollments) {
-      enrollmentCounts.set(e.curriculumId, (enrollmentCounts.get(e.curriculumId) ?? 0) + 1)
+      enrollmentCounts.set(e.courseId, (enrollmentCounts.get(e.courseId) ?? 0) + 1)
     }
     const lessons = await drizzleDb
-      .select({ moduleId: curriculumLesson.moduleId })
-      .from(curriculumLesson)
-      .where(inArray(curriculumLesson.moduleId, modules.map((m) => m.id)))
+      .select({ courseId: courseLesson.courseId })
+      .from(courseLesson)
+      .where(inArray(courseLesson.courseId, courseIds))
     for (const l of lessons) {
-      if (l.moduleId) {
-        lessonCountsByModule.set(l.moduleId, (lessonCountsByModule.get(l.moduleId) ?? 0) + 1)
+      if (l.courseId) {
+        lessonCountsByCourse.set(l.courseId, (lessonCountsByCourse.get(l.courseId) ?? 0) + 1)
       }
     }
   }
-  const lessonCountByCurriculum = new Map<string, number>()
-  for (const cid of curriculumIds) {
-    const modIds = modules.filter((m) => m.curriculumId === cid).map((m) => m.id)
-    const total = modIds.reduce((s, mid) => s + (lessonCountsByModule.get(mid) ?? 0), 0)
-    lessonCountByCurriculum.set(cid, total)
+  const lessonCountByCourse = new Map<string, number>()
+  for (const cid of courseIds) {
+    const total = lessonCountsByCourse.get(cid) ?? 0
+    lessonCountByCourse.set(cid, total)
   }
 
   const mapped: PublicTutorSummary[] = tutorsWithProfile
     .map((tutor) => {
       const username = tutor.handle ?? tutor.username ?? ''
       if (!username) return null
-      const coursesList = curriculaByCreator.get(tutor.id) ?? []
-      const courses: PublicCourseSummary[] = coursesList.map((course) => ({
-        id: course.id,
-        name: course.name,
-        subject: course.subject,
-        gradeLevel: course.gradeLevel,
-        difficulty: course.difficulty,
-        enrollmentCount: enrollmentCounts.get(course.id) ?? 0,
-        moduleCount: moduleCounts.get(course.id) ?? 0,
-        lessonCount: lessonCountByCurriculum.get(course.id) ?? 0,
-        updatedAt: course.updatedAt,
+      const coursesList = coursesByCreator.get(tutor.userId) ?? []
+      const courses: PublicCourseSummary[] = coursesList.map((courseRow) => ({
+        id: courseRow.courseId,
+        name: courseRow.name,
+        categories: courseRow.categories,
+        enrollmentCount: enrollmentCounts.get(courseRow.courseId) ?? 0,
+        moduleCount: moduleCounts.get(courseRow.courseId) ?? 0,
+        lessonCount: lessonCountByCourse.get(courseRow.courseId) ?? 0,
+        updatedAt: courseRow.updatedAt,
       }))
 
       const totalEnrollments = courses.reduce((sum, course) => sum + course.enrollmentCount, 0)
-      const subjects = Array.from(new Set(courses.map((course) => course.subject))).sort((a, b) =>
+      const subjects = Array.from(new Set(courses.flatMap((course) => course.categories ?? []))).sort((a, b) =>
         a.localeCompare(b)
       )
       const latestCourseUpdatedAt = courses[0]?.updatedAt ? courses[0].updatedAt.toISOString() : null
 
       return {
-        id: tutor.id,
+        id: tutor.userId,
         name: tutor.name ?? 'Tutor',
         username,
         bio: tutor.bio ?? '',
@@ -241,7 +238,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     tutors: filtered,
     total: filtered.length,
-    availableSubjects: Array.from(new Set(mapped.flatMap((tutor) => tutor.subjects))).sort((a, b) =>
+    availableSubjects: Array.from(new Set(filtered.flatMap((tutor) => tutor.subjects))).sort((a, b) =>
       a.localeCompare(b)
     ),
     source: 'db',

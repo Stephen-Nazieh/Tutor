@@ -30,19 +30,18 @@ async function getHandler(_req: NextRequest, session: Session) {
     const contentIds = progressRows.map(p => p.contentId)
     const contents =
       contentIds.length > 0
-        ? await drizzleDb.select().from(contentItem).where(inArray(contentItem.id, contentIds))
+        ? await drizzleDb.select().from(contentItem).where(inArray(contentItem.contentId, contentIds))
         : []
-    const contentMap = new Map(contents.map(c => [c.id, c]))
+    const contentMap = new Map(contents.map(c => [c.contentId, c]))
 
     const progress = progressRows.map(p => ({
       ...p,
       content: contentMap.get(p.contentId)
         ? {
-            id: p.contentId,
+            contentId: p.contentId,
             title: contentMap.get(p.contentId)!.title,
             subject: contentMap.get(p.contentId)!.subject,
             type: contentMap.get(p.contentId)!.type,
-            duration: contentMap.get(p.contentId)!.duration,
           }
         : null,
     }))
@@ -87,15 +86,15 @@ async function postHandler(req: NextRequest, session: Session) {
           ...(lastPosition !== undefined && { lastPosition }),
           ...(completed !== undefined && { completed }),
         })
-        .where(eq(contentProgress.id, existing.id))
+        .where(eq(contentProgress.progressId, existing.progressId))
         .returning()
       updatedProgress = updated ?? existing
     } else {
-      const id = crypto.randomUUID()
+      const progressId = crypto.randomUUID()
       const createdRows = await drizzleDb
         .insert(contentProgress)
         .values({
-          id,
+          progressId,
           studentId,
           contentId,
           progress: progress ?? 0,

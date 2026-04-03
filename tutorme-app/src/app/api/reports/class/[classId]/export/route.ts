@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum, curriculumEnrollment, user, profile } from '@/lib/db/schema'
+import { course, courseEnrollment, user, profile } from '@/lib/db/schema'
 import {
   generateClassReportPDF,
   generateClassReportExcel,
@@ -19,35 +19,35 @@ import { getStudentPerformance } from '@/lib/performance/student-analytics'
 import { eq, inArray } from 'drizzle-orm'
 
 async function getClassExportData(classId: string): Promise<ClassExportData | null> {
-  const [curriculumRow] = await drizzleDb
-    .select({ id: curriculum.id, name: curriculum.name, subject: curriculum.subject })
-    .from(curriculum)
-    .where(eq(curriculum.id, classId))
+  const [courseRow] = await drizzleDb
+    .select({ courseId: course.courseId, name: course.name, categories: course.categories })
+    .from(course)
+    .where(eq(course.courseId, classId))
     .limit(1)
 
-  if (!curriculumRow) return null
+  if (!courseRow) return null
 
   const enrollmentsRows = await drizzleDb
     .select({
-      studentId: curriculumEnrollment.studentId,
+      studentId: courseEnrollment.studentId,
     })
-    .from(curriculumEnrollment)
-    .where(eq(curriculumEnrollment.curriculumId, classId))
+    .from(courseEnrollment)
+    .where(eq(courseEnrollment.courseId, classId))
 
   const studentIds = enrollmentsRows.map(r => r.studentId)
   const studentsWithProfile =
     studentIds.length > 0
       ? await drizzleDb
           .select({
-            id: user.id,
+            userId: user.userId,
             email: user.email,
             name: profile.name,
           })
           .from(user)
-          .leftJoin(profile, eq(profile.userId, user.id))
-          .where(inArray(user.id, studentIds))
+          .leftJoin(profile, eq(profile.userId, user.userId))
+          .where(inArray(user.userId, studentIds))
       : []
-  const studentMap = new Map(studentsWithProfile.map(s => [s.id, s]))
+  const studentMap = new Map(studentsWithProfile.map(s => [s.userId, s]))
 
   const students: StudentExportData[] = []
   let totalScore = 0
@@ -136,8 +136,8 @@ async function getClassExportData(classId: string): Promise<ClassExportData | nu
   return {
     classInfo: {
       id: classId,
-      title: curriculumRow.name,
-      subject: curriculumRow.subject,
+      title: courseRow.name,
+      subject: courseRow.categories?.[0] ?? '',
       totalStudents,
       averageScore,
       reportDate: new Date().toLocaleDateString(),

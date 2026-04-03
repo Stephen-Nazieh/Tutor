@@ -4,10 +4,10 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import {
   user,
   profile,
-  curriculum,
+  course,
   curriculumModule,
-  curriculumLesson,
-  curriculumEnrollment,
+  courseLesson,
+  courseEnrollment,
   tutorApplication,
   liveSession,
 } from '@/lib/db/schema'
@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
 
   const [tutorRow] = await drizzleDb
     .select({
-      id: user.id,
+      userId: user.userId,
       name: profile.name,
       username: profile.username,
       handle: user.handle,
@@ -63,8 +63,8 @@ export async function GET(req: NextRequest) {
       profileCreatedAt: profile.createdAt,
     })
     .from(user)
-    .innerJoin(profile, eq(profile.userId, user.id))
-    .leftJoin(tutorApplication, eq(tutorApplication.userId, user.id))
+    .innerJoin(profile, eq(profile.userId, user.userId))
+    .leftJoin(tutorApplication, eq(tutorApplication.userId, user.userId))
     .where(
       and(
         eq(user.role, 'TUTOR'),
@@ -116,31 +116,31 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Tutor not found' }, { status: 404 })
   }
 
-  const publishedCurricula = await drizzleDb
+  const publishedCourses = await drizzleDb
     .select()
-    .from(curriculum)
-    .where(and(eq(curriculum.creatorId, tutorRow.id), eq(curriculum.isPublished, true)))
-    .orderBy(desc(curriculum.updatedAt))
+    .from(course)
+    .where(and(eq(course.creatorId, tutorRow.userId), eq(course.isPublished, true)))
+    .orderBy(desc(course.updatedAt))
     .limit(100)
 
-  const curriculumIds = publishedCurricula.map((c) => c.id)
+  const courseIds = publishedCourses.map((c) => c.courseId)
   const enrollmentCounts = new Map<string, number>()
   const lessonCountsByModule = new Map<string, number>()
-  let modules: { curriculumId: string; id: string }[] = []
+  let modules: { courseId: string; moduleId: string }[] = []
 
   const sessionStats = new Map<string, { total: number; completed: number }>()
-  if (curriculumIds.length > 0) {
+  if (courseIds.length > 0) {
     const sessionRows = await drizzleDb
       .select({
-        curriculumId: liveSession.curriculumId,
+        courseId: liveSession.courseId,
         endedAt: liveSession.endedAt,
       })
       .from(liveSession)
       .where(
-        and(isNotNull(liveSession.curriculumId), inArray(liveSession.curriculumId, curriculumIds))
+        and(isNotNull(liveSession.courseId), inArray(liveSession.courseId, courseIds))
       )
     for (const row of sessionRows) {
-      const id = row.curriculumId as string
+      const id = row.courseId as string
       const cur = sessionStats.get(id) ?? { total: 0, completed: 0 }
       cur.total += 1
       if (row.endedAt != null) cur.completed += 1
@@ -148,45 +148,41 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  if (curriculumIds.length > 0) {
+  if (courseIds.length > 0) {
     modules = await drizzleDb
-      .select({ curriculumId: curriculumModule.curriculumId, id: curriculumModule.id })
+      .select({ courseId: curriculumModule.courseId, moduleId: curriculumModule.moduleId })
       .from(curriculumModule)
-      .where(inArray(curriculumModule.curriculumId, curriculumIds))
+      .where(inArray(curriculumModule.courseId, courseIds))
     const enrollments = await drizzleDb
-      .select({ curriculumId: curriculumEnrollment.curriculumId })
-      .from(curriculumEnrollment)
-      .where(inArray(curriculumEnrollment.curriculumId, curriculumIds))
+      .select({ courseId: courseEnrollment.courseId })
+      .from(courseEnrollment)
+      .where(inArray(courseEnrollment.courseId, courseIds))
     for (const e of enrollments) {
-      enrollmentCounts.set(e.curriculumId, (enrollmentCounts.get(e.curriculumId) ?? 0) + 1)
+      enrollmentCounts.set(e.courseId, (enrollmentCounts.get(e.courseId) ?? 0) + 1)
     }
     const lessons = await drizzleDb
-      .select({ moduleId: curriculumLesson.moduleId })
-      .from(curriculumLesson)
-      .where(inArray(curriculumLesson.moduleId, modules.map((m) => m.id)))
+      .select({ courseId: courseLesson.courseId })
+      .from(courseLesson)
+      .where(inArray(courseLesson.courseId, courseIds))
     for (const l of lessons) {
-      if (l.moduleId) {
-        lessonCountsByModule.set(l.moduleId, (lessonCountsByModule.get(l.moduleId) ?? 0) + 1)
+      if (l.courseId) {
+        lessonCountsByModule.set(l.courseId, (lessonCountsByModule.get(l.courseId) ?? 0) + 1)
       }
     }
   }
 
-  const courses = publishedCurricula.map((course) => {
-    const modIds = modules.filter((m) => m.curriculumId === course.id).map((m) => m.id)
-    const lessonCount = modIds.reduce((s, mid) => s + (lessonCountsByModule.get(mid) ?? 0), 0)
-    const live = sessionStats.get(course.id) ?? { total: 0, completed: 0 }
-    const scheduleSummary = formatScheduleSummary(course.schedule)
+  const courses = publishedCourses.map((courseRow) => {
+    const lessonCount = lessonCountsByModule.get(courseRow.courseId) ?? 0
+    const live = sessionStats.get(courseRow.courseId) ?? { total: 0, completed: 0 }
+    const scheduleSummary = formatScheduleSummary(courseRow.schedule)
     return {
-      id: course.id,
-      name: course.name,
-      description: course.description,
-      subject: course.subject,
-      gradeLevel: course.gradeLevel,
-      difficulty: course.difficulty,
-      estimatedHours: course.estimatedHours,
-      enrollmentCount: enrollmentCounts.get(course.id) ?? 0,
+      courseId: courseRow.courseId,
+      name: courseRow.name,
+      description: courseRow.description,
+      categories: courseRow.categories,
+      enrollmentCount: enrollmentCounts.get(courseRow.courseId) ?? 0,
       lessonCount,
-      updatedAt: course.updatedAt,
+      updatedAt: courseRow.updatedAt,
       scheduleSummary,
       liveSessionsTotal: live.total,
       liveSessionsCompleted: live.completed,
@@ -196,7 +192,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     tutor: {
-      id: tutorRow.id,
+      id: tutorRow.userId,
       name: tutorRow.name ?? 'Tutor',
       username: tutorRow.username ?? username,
       handle: tutorRow.handle ?? tutorRow.username ?? username,

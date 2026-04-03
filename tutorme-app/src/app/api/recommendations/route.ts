@@ -37,12 +37,12 @@ async function getHandler(_req: NextRequest, session: Session) {
       inProgressRows.map(async p => {
         const [content] = await drizzleDb
           .select({
-            id: contentItem.id,
+            contentId: contentItem.contentId,
             title: contentItem.title,
             subject: contentItem.subject,
           })
           .from(contentItem)
-          .where(eq(contentItem.id, p.contentId))
+          .where(eq(contentItem.contentId, p.contentId))
           .limit(1)
         return { ...p, content: content ?? null }
       })
