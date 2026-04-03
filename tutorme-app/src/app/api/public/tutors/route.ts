@@ -7,9 +7,7 @@ import { MOCK_TUTORS, shouldUseMockPublicTutors } from '@/lib/public/mock-tutors
 interface PublicCourseSummary {
   id: string
   name: string
-  subject: string
-  gradeLevel: string | null
-  difficulty: string | null
+  categories: string[] | null
   enrollmentCount: number
   moduleCount: number
   lessonCount: number
