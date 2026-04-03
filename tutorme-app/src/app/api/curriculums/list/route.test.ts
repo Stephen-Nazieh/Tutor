@@ -25,8 +25,7 @@ const mocks = vi.hoisted(() => ({
   }>,
   modulesRaw: [] as Array<{ courseId: string; count: number }>,
   enrollmentsRaw: [] as Array<{ courseId: string; count: number }>,
-  allModules: [] as Array<{ moduleId: string; courseId: string }>,
-  lessonsRaw: [] as Array<{ moduleId: string; count: number }>,
+  lessonsRaw: [] as Array<{ courseId: string; count: number }>,
 }))
 
 vi.mock('@/lib/api/middleware', () => ({
@@ -64,12 +63,6 @@ vi.mock('@/lib/db/drizzle', () => ({
             }),
           }
         case 4:
-          return {
-            from: () => ({
-              where: () => Promise.resolve(mocks.allModules),
-            }),
-          }
-        case 5:
           return {
             from: () => ({
               where: () => ({
@@ -111,14 +104,7 @@ describe('GET /api/curriculums/list', () => {
     ]
     mocks.modulesRaw = [{ courseId: 'c1', count: 2 }]
     mocks.enrollmentsRaw = [{ courseId: 'c1', count: 5 }]
-    mocks.allModules = [
-      { moduleId: 'm1', courseId: 'c1' },
-      { moduleId: 'm2', courseId: 'c1' },
-    ]
-    mocks.lessonsRaw = [
-      { moduleId: 'm1', count: 3 },
-      { moduleId: 'm2', count: 2 },
-    ]
+    mocks.lessonsRaw = [{ courseId: 'c1', count: 5 }]
   })
 
   it('returns 200 and list of enriched published curriculums', async () => {

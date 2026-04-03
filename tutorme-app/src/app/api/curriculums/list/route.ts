@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
     const courseIds = curriculums.map(c => c.courseId)
 
     // Parallel fetch counts
-    const [modulesRaw, enrollmentsRaw, allModules] = await Promise.all([
+    const [modulesRaw, enrollmentsRaw, lessonsRaw] = await Promise.all([
       drizzleDb
         .select({
           courseId: curriculumModule.courseId,
@@ -72,15 +72,18 @@ export async function GET(req: NextRequest) {
         .groupBy(courseEnrollment.courseId),
 
       drizzleDb
-        .select({ moduleId: curriculumModule.moduleId, courseId: curriculumModule.courseId })
-        .from(curriculumModule)
-        .where(inArray(curriculumModule.courseId, courseIds)),
+        .select({
+          courseId: courseLesson.courseId,
+          count: sql<number>`count(${courseLesson.lessonId})::int`,
+        })
+        .from(courseLesson)
+        .where(inArray(courseLesson.courseId, courseIds))
+        .groupBy(courseLesson.courseId),
     ])
 
     const moduleCounts = new Map(modulesRaw.map(m => [m.courseId, m.count]))
     const enrollmentCounts = new Map(enrollmentsRaw.map(e => [e.courseId, e.count]))
-    // Lessons now stored in builderData JSON, can't query count directly
-    const lessonsMap = new Map<string, number>()
+    const lessonCounts = new Map(lessonsRaw.map(l => [l.courseId, l.count]))
 
     const enrichedCurriculums = curriculums.map(c => ({
       id: c.courseId,
@@ -94,7 +97,7 @@ export async function GET(req: NextRequest) {
       isFree: c.isFree,
       gradeLevel: '', // No longer in schema
       modulesCount: moduleCounts.get(c.courseId) || 0,
-      lessonsCount: lessonsMap.get(c.courseId) || 0,
+      lessonsCount: lessonCounts.get(c.courseId) || 0,
       studentCount: enrollmentCounts.get(c.courseId) || 0,
       createdAt: c.createdAt,
     }))

@@ -91,7 +91,7 @@ describe('POST /api/class/join', () => {
     mocks.selectQueue = [
       [
         {
-          id: 'session-1',
+          sessionId: 'session-1',
           roomId: 'room-1',
           tutorId: 'tutor-1',
           status: 'SCHEDULED',
@@ -116,7 +116,7 @@ describe('POST /api/class/join', () => {
     mocks.selectQueue = [
       [
         {
-          id: 'session-1',
+          sessionId: 'session-1',
           roomId: 'room-1',
           tutorId: 'tutor-1',
           status: 'ACTIVE',
