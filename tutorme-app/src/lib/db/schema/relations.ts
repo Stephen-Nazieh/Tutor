@@ -353,7 +353,7 @@ export const parentActivityLogRelations = relations(parentActivityLog, ({ one })
 export const paymentRelations = relations(payment, ({ one }) => ({
   booking: one(clinicBooking, {
     fields: [payment.bookingId],
-    references: [clinicBooking.clinicId],
+    references: [clinicBooking.bookingId],
   }),
   enrollment: one(courseEnrollment, {
     fields: [payment.enrollmentId],
