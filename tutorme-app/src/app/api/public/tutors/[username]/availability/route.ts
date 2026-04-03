@@ -10,14 +10,15 @@ import { eq, and, or, gte, lte, asc, isNull } from 'drizzle-orm'
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { username: string } }
+  { params }: { params: Promise<{ username: string }> }
 ) {
   const { searchParams } = new URL(req.url)
   const start = searchParams.get('start')
   const end = searchParams.get('end')
 
   try {
-    const username = params.username.replace(/^@+/, '').toLowerCase()
+    const { username: usernameParam } = await params
+    const username = usernameParam.replace(/^@+/, '').toLowerCase()
 
     // Find tutor by username
     const tutorData = await drizzleDb.query.user.findFirst({
