@@ -34,11 +34,11 @@ export const POST = withCsrf(
           await drizzleDb
             .update(aITutorEnrollment)
             .set({ status: 'active' })
-            .where(eq(aITutorEnrollment.id, existing.id))
+            .where(eq(aITutorEnrollment.enrollmentId, existing.enrollmentId))
           const [updated] = await drizzleDb
             .select()
             .from(aITutorEnrollment)
-            .where(eq(aITutorEnrollment.id, existing.id))
+            .where(eq(aITutorEnrollment.enrollmentId, existing.enrollmentId))
             .limit(1)
           return NextResponse.json({
             enrollment: updated!,
@@ -50,7 +50,7 @@ export const POST = withCsrf(
 
       const enrollmentId = crypto.randomUUID()
       await drizzleDb.insert(aITutorEnrollment).values({
-        id: enrollmentId,
+        enrollmentId: enrollmentId,
         studentId: session.user.id,
         subjectCode: subject,
         status: 'active',
@@ -65,15 +65,15 @@ export const POST = withCsrf(
           .where(
             and(
               eq(curriculumEnrollment.studentId, session.user.id),
-              eq(curriculumEnrollment.curriculumId, curriculumId)
+              eq(curriculumEnrollment.courseId, curriculumId)
             )
           )
           .limit(1)
         if (!hasEnrollment) {
           await drizzleDb.insert(curriculumEnrollment).values({
-            id: crypto.randomUUID(),
+            enrollmentId: crypto.randomUUID(),
             studentId: session.user.id,
-            curriculumId,
+            courseId: curriculumId,
             lessonsCompleted: 0,
             enrollmentSource: 'ai-tutor',
           })
@@ -85,16 +85,16 @@ export const POST = withCsrf(
         const [curriculumRow] = await drizzleDb
           .select({
             name: curriculum.name,
-            subject: curriculum.subject,
+            categories: curriculum.categories,
             description: curriculum.description,
           })
           .from(curriculum)
-          .where(eq(curriculum.id, curriculumId))
+          .where(eq(curriculum.courseId, curriculumId))
           .limit(1)
         curriculumInfo = curriculumRow
           ? {
               name: curriculumRow.name,
-              subject: curriculumRow.subject,
+              categories: curriculumRow.categories ?? [],
               description: curriculumRow.description,
             }
           : null
@@ -103,12 +103,12 @@ export const POST = withCsrf(
       const [enrollment] = await drizzleDb
         .select()
         .from(aITutorEnrollment)
-        .where(eq(aITutorEnrollment.id, enrollmentId))
+        .where(eq(aITutorEnrollment.enrollmentId, enrollmentId))
         .limit(1)
 
       return NextResponse.json({
         enrollment: {
-          id: enrollment!.id,
+          id: enrollment!.enrollmentId,
           subjectCode: enrollment!.subjectCode,
           status: enrollment!.status,
           curriculum: curriculumInfo,

@@ -22,7 +22,7 @@ export const GET = withAuth(
       const [created] = await drizzleDb
         .insert(aITutorSubscription)
         .values({
-          id: crypto.randomUUID(),
+          subscriptionId: crypto.randomUUID(),
           userId: session.user.id,
           tier: 'FREE',
           dailySessions: 3,
@@ -94,14 +94,14 @@ export const POST = withCsrf(
                 dailySessions: limits.dailySessions,
                 dailyMessages: limits.dailyMessages,
               })
-              .where(eq(aITutorSubscription.id, existing.id))
+              .where(eq(aITutorSubscription.subscriptionId, existing.subscriptionId))
               .returning()
           )[0]!
         : (
             await drizzleDb
               .insert(aITutorSubscription)
               .values({
-                id: crypto.randomUUID(),
+                subscriptionId: crypto.randomUUID(),
                 userId: session.user.id,
                 tier: tier === 'BASIC' ? 'PRO' : tier === 'PREMIUM' ? 'ELITE' : 'FREE',
                 dailySessions: limits.dailySessions,

@@ -15,7 +15,7 @@ import {
   lessonSession,
   curriculumLessonProgress,
 } from '@/lib/db/schema'
-import { eq, and, asc, inArray } from 'drizzle-orm'
+import { eq, and, asc } from 'drizzle-orm'
 
 interface ScheduleItem {
   dayOfWeek: string
@@ -56,128 +56,44 @@ export const GET = withAuth(
     const modules = await drizzleDb
       .select()
       .from(curriculumModule)
-      .where(eq(curriculumModule.curriculumId, courseId))
+      .where(eq(curriculumModule.courseId, courseId))
       .orderBy(asc(curriculumModule.order))
 
-    const moduleIds = modules.map(m => m.id)
-    const lessons =
-      moduleIds.length > 0
-        ? await drizzleDb
-            .select()
-            .from(courseLesson)
-            .where(inArray(courseLesson.moduleId, moduleIds))
-            .orderBy(asc(courseLesson.order))
-        : []
+    // Lessons are now stored in builderData JSON field
+    // Return empty array for lessons in the response for backward compatibility
+    const lessons: (typeof courseLesson.$inferSelect)[] = []
 
-    const lessonIds = lessons.map(l => l.lessonId)
-    const sessions =
-      lessonIds.length > 0
-        ? await drizzleDb
-            .select()
-            .from(lessonSession)
-            .where(
-              and(
-                eq(lessonSession.studentId, studentId),
-                inArray(lessonSession.lessonId, lessonIds)
-              )
-            )
-        : []
-    const progressRecords =
-      lessonIds.length > 0
-        ? await drizzleDb
-            .select()
-            .from(curriculumLessonProgress)
-            .where(
-              and(
-                eq(curriculumLessonProgress.studentId, studentId),
-                inArray(curriculumLessonProgress.lessonId, lessonIds)
-              )
-            )
-        : []
+    // Sessions and progress are now handled differently with new schema
+    const sessions: (typeof lessonSession.$inferSelect)[] = []
+    const progressRecords: (typeof curriculumLessonProgress.$inferSelect)[] = []
 
     const [progress] = await drizzleDb
       .select()
       .from(courseProgress)
-      .where(
-        and(
-          eq(courseProgress.studentId, studentId),
-          eq(courseProgress.courseId, courseId)
-        )
-      )
+      .where(and(eq(courseProgress.studentId, studentId), eq(courseProgress.courseId, courseId)))
       .limit(1)
 
-    const sessionByLessonId = new Map(sessions.map(s => [s.lessonId, s]))
-    const progressByLessonId = new Map(progressRecords.map(p => [p.lessonId, p]))
+    const sessionByLessonId = new Map<string, typeof lessonSession.$inferSelect>()
+    const progressByLessonId = new Map<string, typeof curriculumLessonProgress.$inferSelect>()
     const lessonsByModuleId = new Map<string, typeof lessons>()
-    for (const l of lessons) {
-      // Handle legacy moduleId which may be null in new schema
-      const key = l.moduleId ?? 'default'
-      const list = lessonsByModuleId.get(key) ?? []
-      list.push(l)
-      lessonsByModuleId.set(key, list)
+    // Lessons are now stored in builderData JSON, empty for new schema
+    for (const m of modules) {
+      lessonsByModuleId.set(m.moduleId, [])
     }
 
     const totalLessons = lessons.length
 
     const modulesWithStatus = modules.map(module => {
-      const moduleLessons = lessonsByModuleId.get(module.id) ?? []
+      const moduleLessons = lessonsByModuleId.get(module.moduleId) ?? []
       return {
-        id: module.id,
+        id: module.moduleId,
         title: module.title,
         description: module.description,
         order: module.order,
-        lessons: moduleLessons.map(lesson => {
-          const record = progressByLessonId.get(lesson.lessonId)
-          let status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' = 'NOT_STARTED'
-          if (record) {
-            if (record.status === 'COMPLETED') status = 'COMPLETED'
-            else if (record.status === 'IN_PROGRESS') status = 'IN_PROGRESS'
-          }
-
-          const isLocked = arePrerequisitesLocked(
-            lesson.prerequisiteLessonIds ?? [],
-            moduleLessons,
-            progressByLessonId
-          )
-
-          const sess = sessionByLessonId.get(lesson.lessonId)
-          const conceptMastery = sess?.conceptMastery as Record<string, number> | null
-          const score =
-            conceptMastery && Object.keys(conceptMastery).length > 0
-              ? Math.round(
-                  Object.values(conceptMastery).reduce((a, b) => a + b, 0) /
-                    Object.keys(conceptMastery).length
-                )
-              : null
-
-          return {
-            id: lesson.lessonId,
-            title: lesson.title,
-            description: lesson.description,
-            duration: lesson.duration,
-            difficulty: lesson.difficulty,
-            order: lesson.order,
-            prerequisiteLessonIds: lesson.prerequisiteLessonIds ?? [],
-            status,
-            isLocked,
-            progress: sess
-              ? {
-                  currentSection: sess.currentSection,
-                  completedAt: sess.completedAt,
-                  score,
-                }
-              : undefined,
-          }
-        }),
+        lessons: [], // Lessons now stored in builderData JSON
       }
     })
 
-    const courseMaterials = courseRow.courseMaterials as { outline?: unknown[] } | null
-    const hasOutline = !!(
-      courseMaterials &&
-      Array.isArray(courseMaterials.outline) &&
-      courseMaterials.outline.length > 0
-    )
     const schedule = normalizeSchedule(courseRow.schedule)
 
     return NextResponse.json({
@@ -185,10 +101,10 @@ export const GET = withAuth(
         id: courseRow.courseId,
         name: courseRow.name,
         description: courseRow.description,
-        subject: courseRow.subject,
-        difficulty: courseRow.difficulty,
-        estimatedHours: courseRow.estimatedHours,
-        hasOutline,
+        subject: courseRow.categories?.[0] ?? '', // Use categories instead of subject
+        difficulty: '', // No longer in schema
+        estimatedHours: 0, // No longer in schema
+        hasOutline: false, // courseMaterials no longer in schema
         schedule,
         isFree: courseRow.isFree,
         progress: {

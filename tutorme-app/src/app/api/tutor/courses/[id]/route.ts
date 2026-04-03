@@ -147,7 +147,10 @@ export const DELETE = withCsrf(
           .where(eq(builderTask.courseId, id))
         const taskIds = tasks.map(t => t.taskId)
 
-        const quizzes = await tx.select({ quizId: quiz.quizId }).from(quiz).where(eq(quiz.courseId, id))
+        const quizzes = await tx
+          .select({ quizId: quiz.quizId })
+          .from(quiz)
+          .where(eq(quiz.courseId, id))
         const quizIds = quizzes.map(q => q.quizId)
 
         const boards = await tx
@@ -262,10 +265,7 @@ export const PATCH = withCsrf(
         if (!hasLessons) {
           validationErrors.push('Course must have at least one lesson')
         }
-        if (
-          !courseRow.isFree &&
-          (courseRow.price === null || courseRow.price === undefined)
-        ) {
+        if (!courseRow.isFree && (courseRow.price === null || courseRow.price === undefined)) {
           validationErrors.push('Course must have a price set (use free toggle for free courses)')
         }
         if (!courseRow.isFree && (courseRow.price ?? 0) > 0 && !courseRow.currency) {

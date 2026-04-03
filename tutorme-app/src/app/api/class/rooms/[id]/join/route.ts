@@ -22,7 +22,7 @@ export const POST = withCsrf(
       const [classSessionRow] = await drizzleDb
         .select()
         .from(liveSession)
-        .where(eq(liveSession.id, id))
+        .where(eq(liveSession.sessionId, id))
         .limit(1)
 
       if (!classSessionRow) {
@@ -55,7 +55,7 @@ export const POST = withCsrf(
 
       if (!existingParticipant) {
         await drizzleDb.insert(sessionParticipant).values({
-          id: crypto.randomUUID(),
+          participantId: crypto.randomUUID(),
           sessionId: id,
           studentId: session.user.id,
           joinedAt: new Date(),
@@ -75,7 +75,7 @@ export const POST = withCsrf(
       const [tutorRow] = await drizzleDb
         .select()
         .from(user)
-        .where(eq(user.id, classSessionRow.tutorId))
+        .where(eq(user.userId, classSessionRow.tutorId))
         .limit(1)
       const [tutorProfile] = tutorRow
         ? await drizzleDb

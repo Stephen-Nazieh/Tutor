@@ -29,10 +29,10 @@ export async function createApiKey(
   const keyHash = hashKey(key)
   const [record] = await drizzleDb
     .insert(apiKey)
-    .values({ id: crypto.randomUUID(), name, keyHash, createdById })
+    .values({ apiKeyId: crypto.randomUUID(), name, keyHash, createdById })
     .returning()
   if (!record) throw new Error('Failed to create API key')
-  return { id: record.id, name: record.name, key }
+  return { id: record.apiKeyId, name: record.name, key }
 }
 
 /**
@@ -43,8 +43,8 @@ export async function verifyApiKey(bearerToken: string): Promise<{ id: string } 
   const keyHash = hashKey(bearerToken)
   const [record] = await drizzleDb.select().from(apiKey).where(eq(apiKey.keyHash, keyHash)).limit(1)
   if (!record) return null
-  await drizzleDb.update(apiKey).set({ lastUsedAt: new Date() }).where(eq(apiKey.id, record.id))
-  return { id: record.id }
+  await drizzleDb.update(apiKey).set({ lastUsedAt: new Date() }).where(eq(apiKey.apiKeyId, record.apiKeyId))
+  return { id: record.apiKeyId }
 }
 
 /**
@@ -53,8 +53,8 @@ export async function verifyApiKey(bearerToken: string): Promise<{ id: string } 
 export async function revokeApiKey(id: string): Promise<boolean> {
   const deleted = await drizzleDb
     .delete(apiKey)
-    .where(eq(apiKey.id, id))
-    .returning({ id: apiKey.id })
+    .where(eq(apiKey.apiKeyId, id))
+    .returning({ apiKeyId: apiKey.apiKeyId })
   return deleted.length > 0
 }
 
@@ -64,7 +64,7 @@ export async function revokeApiKey(id: string): Promise<boolean> {
 export async function listApiKeys(createdById?: string) {
   const base = drizzleDb
     .select({
-      id: apiKey.id,
+      id: apiKey.apiKeyId,
       name: apiKey.name,
       createdAt: apiKey.createdAt,
       lastUsedAt: apiKey.lastUsedAt,

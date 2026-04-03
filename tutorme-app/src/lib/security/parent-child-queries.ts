@@ -28,13 +28,13 @@ export async function verifyStudentExists(
     const normalized = input.childEmail.toLowerCase()
     const rows = await drizzleDb
       .select({
-        userId: user.id,
+        userId: user.userId,
         email: user.email,
         name: profile.name,
         studentUniqueId: profile.studentUniqueId,
       })
       .from(user)
-      .innerJoin(profile, eq(profile.userId, user.id))
+      .innerJoin(profile, eq(profile.userId, user.userId))
       .where(and(eq(user.email, normalized), eq(user.role, 'STUDENT')))
       .limit(1)
     const row = rows[0]
@@ -57,7 +57,7 @@ export async function verifyStudentExists(
         studentUniqueId: profile.studentUniqueId,
       })
       .from(profile)
-      .innerJoin(user, eq(user.id, profile.userId))
+      .innerJoin(user, eq(user.userId, profile.userId))
       .where(and(eq(profile.studentUniqueId, input.childUniqueId), eq(user.role, 'STUDENT')))
       .limit(1)
     const row = rows[0]
@@ -108,7 +108,7 @@ export async function verifyAllChildren(children: StudentLinkingInput[]): Promis
  */
 export async function isStudentAlreadyLinked(userId: string): Promise<boolean> {
   const rows = await drizzleDb
-    .select({ id: familyMember.id })
+    .select({ familyMemberId: familyMember.familyMemberId })
     .from(familyMember)
     .where(
       and(eq(familyMember.userId, userId), inArray(familyMember.relation, ['child', 'children']))

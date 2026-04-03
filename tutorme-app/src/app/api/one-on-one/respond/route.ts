@@ -113,7 +113,7 @@ export async function PATCH(request: NextRequest) {
         type: 'class',
         title: '1-on-1 Request Accepted!',
         message: `Your tutor has accepted your 1-on-1 session request. Please complete payment to confirm your booking.`,
-        data: { requestId: updatedRequest[0].id, type: 'one-on-one-accepted' },
+        data: { requestId: updatedRequest[0].requestId, type: 'one-on-one-accepted' },
         actionUrl: '/student/dashboard',
       }).catch(console.error)
 
@@ -141,7 +141,7 @@ export async function PATCH(request: NextRequest) {
         type: 'class',
         title: '1-on-1 Request Declined',
         message: `Your tutor is unable to accommodate your 1-on-1 session request at this time. You may try booking a different time slot.`,
-        data: { requestId: updatedRequest[0].id, type: 'one-on-one-rejected' },
+        data: { requestId: updatedRequest[0].requestId, type: 'one-on-one-rejected' },
         actionUrl: '/student/tutors',
       }).catch(console.error)
 

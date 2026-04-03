@@ -12,20 +12,20 @@ const mocks = vi.hoisted(() => ({
   }),
   selectCall: 0,
   curriculums: [] as Array<{
-    id: string
+    courseId: string
     name: string
-    subject: string
+    categories: string[] | null
     description: string | null
-    difficulty: string
-    estimatedHours: number
-    price: number
-    currency: string
-    gradeLevel: string | null
+    price: number | null
+    currency: string | null
+    isFree: boolean
+    isPublished: boolean
     createdAt: Date
+    updatedAt: Date
   }>,
-  modulesRaw: [] as Array<{ curriculumId: string; count: number }>,
-  enrollmentsRaw: [] as Array<{ curriculumId: string; count: number }>,
-  allModules: [] as Array<{ id: string; curriculumId: string }>,
+  modulesRaw: [] as Array<{ courseId: string; count: number }>,
+  enrollmentsRaw: [] as Array<{ courseId: string; count: number }>,
+  allModules: [] as Array<{ moduleId: string; courseId: string }>,
   lessonsRaw: [] as Array<{ moduleId: string; count: number }>,
 }))
 
@@ -97,23 +97,23 @@ describe('GET /api/curriculums/list', () => {
     mocks.withRateLimit.mockResolvedValue({ response: null })
     mocks.curriculums = [
       {
-        id: 'c1',
+        courseId: 'c1',
         name: 'Math 101',
-        subject: 'math',
+        categories: ['math'],
         description: null,
-        difficulty: 'beginner',
-        estimatedHours: 10,
         price: 100,
         currency: 'USD',
-        gradeLevel: 'G8',
+        isFree: false,
+        isPublished: true,
         createdAt: new Date('2026-01-01'),
+        updatedAt: new Date('2026-01-01'),
       },
     ]
-    mocks.modulesRaw = [{ curriculumId: 'c1', count: 2 }]
-    mocks.enrollmentsRaw = [{ curriculumId: 'c1', count: 5 }]
+    mocks.modulesRaw = [{ courseId: 'c1', count: 2 }]
+    mocks.enrollmentsRaw = [{ courseId: 'c1', count: 5 }]
     mocks.allModules = [
-      { id: 'm1', curriculumId: 'c1' },
-      { id: 'm2', curriculumId: 'c1' },
+      { moduleId: 'm1', courseId: 'c1' },
+      { moduleId: 'm2', courseId: 'c1' },
     ]
     mocks.lessonsRaw = [
       { moduleId: 'm1', count: 3 },

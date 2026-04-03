@@ -36,7 +36,7 @@ export type SecurityEventType =
 export interface SecurityEventMetadata {
   requiredRole?: string
   attemptedResource?: string
-  curriculumId?: string
+  courseId?: string
   familyAccountId?: string
   roomId?: string
   success?: boolean
@@ -81,7 +81,7 @@ export async function logSecurityEvent(
     }
 
     await drizzleDb.insert(securityEvent).values({
-      id: crypto.randomUUID(),
+      eventId: crypto.randomUUID(),
       eventType: `security_${eventType}`,
       metadata: meta,
     })
@@ -119,11 +119,11 @@ export function logPaymentAlert(
     resource: 'payment-alert',
     resourceId: courseId,
     roomId,
-    curriculumId: courseId,
+    courseId: courseId,
     ...metadata,
   })
   logSecurityEvent('payment_alert', studentId, {
-    curriculumId: courseId,
+    courseId: courseId,
     roomId,
     ...metadata,
   })

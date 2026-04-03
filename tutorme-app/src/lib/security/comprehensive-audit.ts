@@ -187,7 +187,7 @@ export class SecurityAudit {
       const [event] = await drizzleDb
         .insert(securityEvent)
         .values({
-          id: crypto.randomUUID(),
+          eventId: crypto.randomUUID(),
           eventType: action,
           action,
           userId: userId || null,
@@ -385,7 +385,7 @@ export class SecurityAudit {
       globalErrorHandler.handleWarning('Security Alert', securityAlert)
     } catch (error) {
       globalErrorHandler.handleError(new Error('Failed to notify security team'), {
-        originalEvent: event.id,
+        originalEvent: event.eventId,
         error,
       })
     }
@@ -394,7 +394,7 @@ export class SecurityAudit {
   private async notifyExternalSecuritySystems(event: SecurityEvent): Promise<void> {
     // Placeholder for SIEM, WAF, fraud detection integrations
     if (process.env.NODE_ENV === 'development') {
-      console.debug('[SecurityAudit] External notification:', event.id)
+      console.debug('[SecurityAudit] External notification:', event.eventId)
     }
   }
 

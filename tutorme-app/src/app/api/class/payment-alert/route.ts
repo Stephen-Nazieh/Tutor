@@ -12,9 +12,9 @@ import { z } from 'zod'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   familyMember,
-  curriculum,
+  course,
   payment,
-  curriculumEnrollment,
+  courseEnrollment,
   familyNotification,
 } from '@/lib/db/schema'
 import { eq, and, inArray, sql } from 'drizzle-orm'
@@ -74,19 +74,19 @@ export async function POST(request: NextRequest) {
 
     const familyId = member.familyAccountId
 
-    const [curriculumRow] = await drizzleDb
+    const [courseRow] = await drizzleDb
       .select()
-      .from(curriculum)
-      .where(eq(curriculum.id, body.courseId))
+      .from(course)
+      .where(eq(course.courseId, body.courseId))
       .limit(1)
 
-    if (!curriculumRow) {
+    if (!courseRow) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 })
     }
 
-    const isPaidCourse = (curriculumRow.price ?? 0) > 0
-    const amount = curriculumRow.price ?? 0
-    const currency = curriculumRow.currency ?? 'SGD'
+    const isPaidCourse = (courseRow.price ?? 0) > 0
+    const amount = courseRow.price ?? 0
+    const currency = courseRow.currency ?? 'SGD'
 
     if (!isPaidCourse) {
       return NextResponse.json({
@@ -97,12 +97,12 @@ export async function POST(request: NextRequest) {
     }
 
     const enrollmentIds = await drizzleDb
-      .select({ id: curriculumEnrollment.id })
-      .from(curriculumEnrollment)
+      .select({ enrollmentId: courseEnrollment.enrollmentId })
+      .from(courseEnrollment)
       .where(
         and(
-          eq(curriculumEnrollment.curriculumId, body.courseId),
-          eq(curriculumEnrollment.studentId, session.user.id)
+          eq(courseEnrollment.courseId, body.courseId),
+          eq(courseEnrollment.studentId, session.user.id)
         )
       )
 
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
                 eq(payment.status, 'COMPLETED'),
                 inArray(
                   payment.enrollmentId,
-                  enrollmentIds.map(e => e.id)
+                  enrollmentIds.map(e => e.enrollmentId)
                 )
               )
             )
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
       .where(
         and(
           eq(payment.status, 'COMPLETED'),
-          sql`${payment.metadata}->>'curriculumId' = ${body.courseId} AND ${payment.metadata}->>'studentId' = ${session.user.id}`
+          sql`${payment.metadata}->>'courseId' = ${body.courseId} AND ${payment.metadata}->>'studentId' = ${session.user.id}`
         )
       )
 
@@ -145,10 +145,10 @@ export async function POST(request: NextRequest) {
     const paymentUrl = `/parent/payments?courseId=${encodeURIComponent(body.courseId)}&studentId=${encodeURIComponent(session.user.id)}`
 
     await drizzleDb.insert(familyNotification).values({
-      id: crypto.randomUUID(),
+      notificationId: crypto.randomUUID(),
       parentId: familyId,
       title: 'Payment Required for Course',
-      message: `${studentName} wants to join a paid course (${curriculumRow.name}). Please complete payment of ${currency} ${amount.toFixed(2)}. Go to: ${paymentUrl}`,
+      message: `${studentName} wants to join a paid course (${courseRow.name}). Please complete payment of ${currency} ${amount.toFixed(2)}. Go to: ${paymentUrl}`,
       isRead: false,
     })
 
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
       resource: 'payment-alert',
       resourceId: body.courseId,
       roomId: body.roomId,
-      curriculumId: body.courseId,
+      courseId: body.courseId,
       familyAccountId: familyId,
     })
 

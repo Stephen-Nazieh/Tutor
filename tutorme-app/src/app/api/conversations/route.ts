@@ -27,13 +27,13 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     return NextResponse.json({ conversations: [] })
   }
 
-  const convIds = conversations.map(c => c.id)
+  const convIds = conversations.map(c => c.conversationId)
   const participantIds = [
     ...new Set(conversations.flatMap(c => [c.participant1Id, c.participant2Id])),
   ]
 
   const [participants, profiles, allMessages, unreadRows] = await Promise.all([
-    drizzleDb.select().from(user).where(inArray(user.id, participantIds)),
+    drizzleDb.select().from(user).where(inArray(user.userId, participantIds)),
     drizzleDb.select().from(profile).where(inArray(profile.userId, participantIds)),
     drizzleDb
       .select()
@@ -57,7 +57,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
   ])
 
   const profileByUserId = Object.fromEntries(profiles.map(p => [p.userId, p]))
-  const userById = Object.fromEntries(participants.map(u => [u.id, u]))
+  const userById = Object.fromEntries(participants.map(u => [u.userId, u]))
   const lastMessageByConvId: Record<string, (typeof allMessages)[0]> = {}
   for (const m of allMessages) {
     if (!lastMessageByConvId[m.conversationId]) lastMessageByConvId[m.conversationId] = m
@@ -75,33 +75,39 @@ export const GET = withAuth(async (req: NextRequest, session) => {
       const p1 = userById[conv.participant1Id]
       const p2 = userById[conv.participant2Id]
       const otherParticipant = conv.participant1Id === userId ? p2 : p1
-      const otherProfile = otherParticipant ? profileByUserId[otherParticipant.id] : null
-      const lastMsg = lastMessageByConvId[conv.id]
+      const otherProfile = otherParticipant ? profileByUserId[otherParticipant.userId] : null
+      const lastMsg = lastMessageByConvId[conv.conversationId]
       return {
         ...conv,
         participant1: p1
           ? {
-              id: p1.id,
+              id: p1?.userId,
               email: p1.email,
               role: p1.role,
-              profile: profileByUserId[p1.id]
-                ? { name: profileByUserId[p1.id].name, avatarUrl: profileByUserId[p1.id].avatarUrl }
+              profile: profileByUserId[p1?.userId ?? '']
+                ? {
+                    name: profileByUserId[p1?.userId ?? ''].name,
+                    avatarUrl: profileByUserId[p1?.userId ?? ''].avatarUrl,
+                  }
                 : null,
             }
           : null,
         participant2: p2
           ? {
-              id: p2.id,
+              id: p2?.userId,
               email: p2.email,
               role: p2.role,
-              profile: profileByUserId[p2.id]
-                ? { name: profileByUserId[p2.id].name, avatarUrl: profileByUserId[p2.id].avatarUrl }
+              profile: profileByUserId[p2?.userId ?? '']
+                ? {
+                    name: profileByUserId[p2?.userId ?? ''].name,
+                    avatarUrl: profileByUserId[p2?.userId ?? ''].avatarUrl,
+                  }
                 : null,
             }
           : null,
         otherParticipant: otherParticipant
           ? {
-              id: otherParticipant.id,
+              id: otherParticipant.userId,
               name: otherProfile?.name ?? otherParticipant.email?.split('@')[0] ?? '',
               avatarUrl: otherProfile?.avatarUrl ?? null,
             }
@@ -114,7 +120,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
               senderId: lastMsg.senderId,
             }
           : null,
-        unreadCount: unreadByConvId[conv.id] ?? 0,
+        unreadCount: unreadByConvId[conv.conversationId] ?? 0,
       }
     })
 
@@ -142,12 +148,13 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     }
 
     const [participant] = await drizzleDb
-      .select({ id: user.id, role: user.role })
+      .select({ userId: user.userId, role: user.role })
       .from(user)
-      .where(eq(user.id, participantId))
+      .where(eq(user.userId, participantId))
     if (!participant) {
       return NextResponse.json({ error: 'Participant not found' }, { status: 404 })
     }
+    const participantUserId = participant.userId
 
     if (
       !canSendDirectMessage(userRole, participant.role as AppRole) ||
@@ -166,10 +173,10 @@ export const POST = withAuth(async (req: NextRequest, session) => {
         or(
           and(
             eq(conversation.participant1Id, userId),
-            eq(conversation.participant2Id, participantId)
+            eq(conversation.participant2Id, participantUserId)
           ),
           and(
-            eq(conversation.participant1Id, participantId),
+            eq(conversation.participant1Id, participantUserId),
             eq(conversation.participant2Id, userId)
           )
         )
@@ -180,11 +187,14 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     if (!conv) {
       const id = crypto.randomUUID()
       await drizzleDb.insert(conversation).values({
-        id,
+        conversationId: id,
         participant1Id: userId,
         participant2Id: participantId,
       })
-      const [created] = await drizzleDb.select().from(conversation).where(eq(conversation.id, id))
+      const [created] = await drizzleDb
+        .select()
+        .from(conversation)
+        .where(eq(conversation.conversationId, id))
       conv = created
     }
 
@@ -196,20 +206,26 @@ export const POST = withAuth(async (req: NextRequest, session) => {
       )
     }
 
-    const [p1] = await drizzleDb.select().from(user).where(eq(user.id, conv.participant1Id))
-    const [p2] = await drizzleDb.select().from(user).where(eq(user.id, conv.participant2Id))
+    const [p1] = await drizzleDb
+      .select({ userId: user.userId, email: user.email, role: user.role })
+      .from(user)
+      .where(eq(user.userId, conv.participant1Id))
+    const [p2] = await drizzleDb
+      .select({ userId: user.userId, email: user.email, role: user.role })
+      .from(user)
+      .where(eq(user.userId, conv.participant2Id))
     const prof1 = p1
-      ? (await drizzleDb.select().from(profile).where(eq(profile.userId, p1.id)))[0]
+      ? (await drizzleDb.select().from(profile).where(eq(profile.userId, p1.userId)))[0]
       : null
     const prof2 = p2
-      ? (await drizzleDb.select().from(profile).where(eq(profile.userId, p2.id)))[0]
+      ? (await drizzleDb.select().from(profile).where(eq(profile.userId, p2.userId)))[0]
       : null
 
     const conversationResponse = {
       ...conv,
       participant1: p1
         ? {
-            id: p1.id,
+            id: p1?.userId,
             email: p1.email,
             role: p1.role,
             profile: prof1 ? { name: prof1.name, avatarUrl: prof1.avatarUrl } : null,
@@ -217,7 +233,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
         : null,
       participant2: p2
         ? {
-            id: p2.id,
+            id: p2?.userId,
             email: p2.email,
             role: p2.role,
             profile: prof2 ? { name: prof2.name, avatarUrl: prof2.avatarUrl } : null,

@@ -28,14 +28,14 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
 
   const [conv] = await drizzleDb
     .select({
-      id: conversation.id,
+      id: conversation.conversationId,
       participant1Id: conversation.participant1Id,
       participant2Id: conversation.participant2Id,
     })
     .from(conversation)
     .where(
       and(
-        eq(conversation.id, id),
+        eq(conversation.conversationId, id),
         or(eq(conversation.participant1Id, userId), eq(conversation.participant2Id, userId))
       )
     )
@@ -47,14 +47,14 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
 
   const [p1, p2] = await Promise.all([
     drizzleDb
-      .select({ role: user.role })
+      .select({ role: user.role, userId: user.userId })
       .from(user)
-      .where(eq(user.id, conv.participant1Id))
+      .where(eq(user.userId, conv.participant1Id))
       .limit(1),
     drizzleDb
-      .select({ role: user.role })
+      .select({ role: user.role, userId: user.userId })
       .from(user)
-      .where(eq(user.id, conv.participant2Id))
+      .where(eq(user.userId, conv.participant2Id))
       .limit(1),
   ])
   if (
@@ -66,7 +66,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   }
 
   let messages: {
-    id: string
+    directMessageId: string
     conversationId: string
     senderId: string
     content: string
@@ -80,7 +80,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     const [cursorMsg] = await drizzleDb
       .select()
       .from(directMessage)
-      .where(and(eq(directMessage.conversationId, id), eq(directMessage.id, cursor)))
+      .where(and(eq(directMessage.conversationId, id), eq(directMessage.directMessageId, cursor)))
       .limit(1)
     const cursorTime = cursorMsg?.createdAt
     messages = cursorTime
@@ -117,16 +117,16 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     )
 
   const senderIds = [...new Set(messages.map(m => m.senderId))]
-  const senders = await drizzleDb.select().from(user).where(inArray(user.id, senderIds))
+  const senders = await drizzleDb.select().from(user).where(inArray(user.userId, senderIds))
   const profiles = await drizzleDb.select().from(profile).where(inArray(profile.userId, senderIds))
   const profileByUserId = Object.fromEntries(profiles.map(p => [p.userId, p]))
-  const userById = Object.fromEntries(senders.map(u => [u.id, u]))
+  const userById = Object.fromEntries(senders.map(u => [u.userId, u]))
 
   const messagesWithSender = messages.map(m => ({
     ...m,
     sender: userById[m.senderId]
       ? {
-          id: userById[m.senderId].id,
+          id: userById[m.senderId].userId,
           profile: profileByUserId[m.senderId]
             ? {
                 name: profileByUserId[m.senderId].name,
@@ -139,7 +139,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
 
   return NextResponse.json({
     messages: messagesWithSender.reverse(),
-    nextCursor: messages.length === limit ? messages[messages.length - 1]?.id : null,
+    nextCursor: messages.length === limit ? messages[messages.length - 1]?.directMessageId : null,
   })
 })
 
@@ -164,7 +164,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
       .from(conversation)
       .where(
         and(
-          eq(conversation.id, id),
+          eq(conversation.conversationId, id),
           or(eq(conversation.participant1Id, userId), eq(conversation.participant2Id, userId))
         )
       )
@@ -176,14 +176,14 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
 
     const [p1, p2] = await Promise.all([
       drizzleDb
-        .select({ role: user.role })
+        .select({ role: user.role, userId: user.userId })
         .from(user)
-        .where(eq(user.id, conv.participant1Id))
+        .where(eq(user.userId, conv.participant1Id))
         .limit(1),
       drizzleDb
-        .select({ role: user.role })
+        .select({ role: user.role, userId: user.userId })
         .from(user)
-        .where(eq(user.id, conv.participant2Id))
+        .where(eq(user.userId, conv.participant2Id))
         .limit(1),
     ])
     if (
@@ -196,7 +196,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
 
     const messageId = crypto.randomUUID()
     await drizzleDb.insert(directMessage).values({
-      id: messageId,
+      directMessageId: messageId,
       conversationId: id,
       senderId: userId,
       content: content ?? '',
@@ -208,13 +208,13 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     await drizzleDb
       .update(conversation)
       .set({ updatedAt: new Date() })
-      .where(eq(conversation.id, id))
+      .where(eq(conversation.conversationId, id))
 
     const recipientId = conv.participant1Id === userId ? conv.participant2Id : conv.participant1Id
     const recipientRole = conv.participant1Id === userId ? p2[0].role : p1[0].role
 
     await drizzleDb.insert(notification).values({
-      id: crypto.randomUUID(),
+      notificationId: crypto.randomUUID(),
       userId: recipientId,
       type: 'message',
       title: 'New Message',
@@ -226,8 +226,8 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     const [message] = await drizzleDb
       .select()
       .from(directMessage)
-      .where(eq(directMessage.id, messageId))
-    const [sender] = await drizzleDb.select().from(user).where(eq(user.id, userId))
+      .where(eq(directMessage.directMessageId, messageId))
+    const [sender] = await drizzleDb.select().from(user).where(eq(user.userId, userId))
     const [senderProfile] = await drizzleDb.select().from(profile).where(eq(profile.userId, userId))
 
     if (typeof content === 'string' && content.includes('@[')) {
@@ -245,7 +245,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
           ...message,
           sender: sender
             ? {
-                id: sender.id,
+                id: sender.userId,
                 profile: senderProfile
                   ? { name: senderProfile.name, avatarUrl: senderProfile.avatarUrl }
                   : null,

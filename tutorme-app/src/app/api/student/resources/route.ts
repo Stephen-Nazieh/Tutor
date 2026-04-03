@@ -44,10 +44,7 @@ export async function GET(request: NextRequest) {
 
   const courseIdsFilter =
     enrolledCourseIds.length > 0
-      ? or(
-          isNull(resourceShare.courseId),
-          inArray(resourceShare.courseId, enrolledCourseIds)
-        )
+      ? or(isNull(resourceShare.courseId), inArray(resourceShare.courseId, enrolledCourseIds))
       : isNull(resourceShare.courseId)
   const sharedWithAllRows =
     enrolledTutorIds.length > 0

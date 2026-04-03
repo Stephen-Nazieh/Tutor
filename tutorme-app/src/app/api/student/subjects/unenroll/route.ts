@@ -43,7 +43,9 @@ export const POST = withCsrf(
         throw new ValidationError('Not enrolled in this subject')
       }
 
-      await drizzleDb.delete(courseEnrollment).where(eq(courseEnrollment.enrollmentId, enrollment.enrollmentId))
+      await drizzleDb
+        .delete(courseEnrollment)
+        .where(eq(courseEnrollment.enrollmentId, enrollment.enrollmentId))
 
       return NextResponse.json({
         success: true,

@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     await logAdminAction(session.adminId, 'feature_flag.create', {
       resourceType: 'feature_flag',
-      resourceId: flag.id,
+      resourceId: flag.flagId,
       newState: flag,
       ipAddress: getClientIp(req),
       userAgent: req.headers.get('user-agent') || undefined,
@@ -90,7 +90,7 @@ export async function PATCH(req: NextRequest) {
 
     await logAdminAction(session.adminId, 'feature_flag.update', {
       resourceType: 'feature_flag',
-      resourceId: flag.id,
+      resourceId: flag.flagId,
       newState: flag,
       ipAddress: getClientIp(req),
       userAgent: req.headers.get('user-agent') || undefined,

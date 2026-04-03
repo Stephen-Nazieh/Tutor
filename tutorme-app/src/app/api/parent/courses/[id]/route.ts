@@ -41,7 +41,7 @@ export async function GET(
   const [shareRecord] = await drizzleDb
     .select()
     .from(curriculumShare)
-    .where(eq(curriculumShare.id, shareId))
+    .where(eq(curriculumShare.shareId, shareId))
     .limit(1)
 
   if (!shareRecord) {
@@ -58,7 +58,7 @@ export async function GET(
   const [courseRow] = await drizzleDb
     .select()
     .from(curriculum)
-    .where(eq(curriculum.id, shareRecord.curriculumId))
+    .where(eq(curriculum.courseId, shareRecord.curriculumId))
     .limit(1)
 
   if (!courseRow) {
@@ -76,14 +76,14 @@ export async function GET(
   const modulesList = await drizzleDb
     .select()
     .from(curriculumModule)
-    .where(eq(curriculumModule.curriculumId, courseRow.id))
+    .where(eq(curriculumModule.curriculumId, courseRow.courseId))
     .orderBy(asc(curriculumModule.order))
 
   const modulesWithLessons = await Promise.all(
     modulesList.map(async m => {
       const lessons = await drizzleDb
         .select({
-          id: curriculumLesson.id,
+          id: curriculumLesson.lessonId,
           title: curriculumLesson.title,
           description: curriculumLesson.description,
           duration: curriculumLesson.duration,
@@ -91,10 +91,10 @@ export async function GET(
           learningObjectives: curriculumLesson.learningObjectives,
         })
         .from(curriculumLesson)
-        .where(eq(curriculumLesson.moduleId, m.id))
+        .where(eq(curriculumLesson.moduleId, m.moduleId))
         .orderBy(asc(curriculumLesson.order))
       return {
-        id: m.id,
+        id: m.moduleId,
         title: m.title,
         description: m.description,
         order: m.order,
@@ -104,8 +104,8 @@ export async function GET(
   )
 
   const courseData = {
-    shareId: shareRecord.id,
-    courseId: courseRow.id,
+    shareId: shareRecord.shareId,
+    courseId: courseRow.courseId,
     name: courseRow.name,
     description: courseRow.description,
     subject: courseRow.subject,

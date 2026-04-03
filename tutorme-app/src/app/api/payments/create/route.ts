@@ -66,8 +66,8 @@ export const POST = withCsrf(
     if (courseId) {
       const [courseRow] = await drizzleDb
         .select()
-        .from(curriculum)
-        .where(and(eq(course.id, courseId), eq(course.isPublished, true)))
+        .from(course)
+        .where(and(eq(course.courseId, courseId), eq(course.isPublished, true)))
         .limit(1)
       if (!courseRow) throw new NotFoundError('Curriculum not found')
       const amount = courseRow.price != null ? Number(courseRow.price) : 0
@@ -77,10 +77,7 @@ export const POST = withCsrf(
         .select()
         .from(courseProgress)
         .where(
-          and(
-            eq(courseProgress.studentId, payerStudentId),
-            eq(courseProgress.courseId, courseId)
-          )
+          and(eq(courseProgress.studentId, payerStudentId), eq(courseProgress.courseId, courseId))
         )
         .limit(1)
       if (existingEnrollment) {
@@ -124,11 +121,7 @@ export const POST = withCsrf(
         .limit(50)
       const existingPayment = pendingCoursePayments.find(p => {
         const m = p.metadata as Record<string, unknown> | null
-        return (
-          m?.type === 'course' &&
-          m?.courseId === courseId &&
-          m?.studentId === payerStudentId
-        )
+        return m?.type === 'course' && m?.courseId === courseId && m?.studentId === payerStudentId
       })
       if (existingPayment?.gatewayCheckoutUrl) {
         return NextResponse.json({

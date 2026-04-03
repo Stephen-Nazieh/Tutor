@@ -6,12 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError, withRateLimitPreset } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  course,
-  courseEnrollment,
-  courseLesson,
-  userGamification,
-} from '@/lib/db/schema'
+import { course, courseEnrollment, courseLesson, userGamification } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 const subjectCourseMap: Record<string, { name: string; description: string }> = {

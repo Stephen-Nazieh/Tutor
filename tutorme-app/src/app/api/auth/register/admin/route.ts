@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       const profileId = crypto.randomUUID()
       const now = new Date()
       await tx.insert(user).values({
-        id: userId,
+        userId: userId,
         email,
         password: hashedPassword,
         role: 'ADMIN',
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       })
 
       await tx.insert(profile).values({
-        id: profileId,
+        profileId: profileId,
         userId,
         name,
         tosAccepted: true,
@@ -110,19 +110,19 @@ export async function POST(request: NextRequest) {
         .from(adminRole)
         .where(eq(adminRole.name, roleName))
         .limit(1)
-      const roleId = adminRoleRow?.id
-        ? adminRoleRow.id
+      const roleId = adminRoleRow?.roleId
+        ? adminRoleRow.roleId
         : (
             await tx
               .select()
               .from(adminRole)
               .where(inArray(adminRole.name, ['ADMIN', 'SUPER_ADMIN']))
               .limit(1)
-          )[0]?.id
+          )[0]?.roleId
 
       if (roleId) {
         await tx.insert(adminAssignment).values({
-          id: crypto.randomUUID(),
+          assignmentId: crypto.randomUUID(),
           userId,
           roleId,
           assignedBy: userId,
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         })
       }
 
-      const [u] = await tx.select().from(user).where(eq(user.id, userId)).limit(1)
+      const [u] = await tx.select().from(user).where(eq(user.userId, userId)).limit(1)
       return u!
     })
 
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
         success: true,
         message: 'Admin account created successfully',
         user: {
-          id: newUser.id,
+          id: newUser.userId,
           name,
           email: newUser.email,
           role: newUser.role,

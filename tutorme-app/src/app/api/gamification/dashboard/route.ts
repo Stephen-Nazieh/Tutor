@@ -38,7 +38,7 @@ export const GET = withAuth(
 
       const dailyQuestsRows = await drizzleDb
         .select({
-          id: userDailyQuest.id,
+          id: userDailyQuest.questId,
           title: mission.title,
           description: mission.description,
           xpReward: mission.xpReward,
@@ -46,7 +46,7 @@ export const GET = withAuth(
           requirement: mission.requirement,
         })
         .from(userDailyQuest)
-        .innerJoin(mission, eq(mission.id, userDailyQuest.missionId))
+        .innerJoin(mission, eq(mission.missionId, userDailyQuest.missionId))
         .where(and(eq(userDailyQuest.userId, userId), gte(userDailyQuest.date, today)))
 
       const dailyQuests = dailyQuestsRows.map(dq => ({
@@ -61,14 +61,14 @@ export const GET = withAuth(
       // Get recent achievements (badges earned) (Drizzle)
       const userBadgesRows = await drizzleDb
         .select({
-          id: userBadge.id,
+          id: userBadge.userBadgeId,
           name: badge.name,
           description: badge.description,
           xpBonus: badge.xpBonus,
           earnedAt: userBadge.earnedAt,
         })
         .from(userBadge)
-        .innerJoin(badge, eq(badge.id, userBadge.badgeId))
+        .innerJoin(badge, eq(badge.badgeId, userBadge.badgeId))
         .where(eq(userBadge.userId, userId))
         .orderBy(desc(userBadge.earnedAt))
         .limit(5)
@@ -90,7 +90,7 @@ export const GET = withAuth(
         .limit(10)
 
       const recentActivity = recentActivityRows.map(a => ({
-        id: a.id,
+        id: a.activityId,
         type: a.action,
         metadata: a.metadata,
         createdAt: a.createdAt,

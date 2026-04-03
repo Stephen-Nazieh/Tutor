@@ -122,7 +122,7 @@ export async function GET(req: NextRequest) {
       .from(liveSession)
       .where(
         and(
-          inArray(liveSession.id, ids),
+          inArray(liveSession.sessionId, ids),
           or(gte(liveSession.startedAt, startDate), inArray(liveSession.status, ACTIVE_STATUSES))
         )
       )
@@ -136,20 +136,20 @@ export async function GET(req: NextRequest) {
       .where(
         inArray(
           sessionParticipant.sessionId,
-          sessions.map(s => s.id)
+          sessions.map(s => s.sessionId)
         )
       )
 
     const studentIds = [...new Set(participantRows.map(p => p.studentId))]
     const allUserIds = [...new Set([...tutorIds, ...studentIds])]
 
-    const users = await drizzleDb.select().from(user).where(inArray(user.id, allUserIds))
+    const users = await drizzleDb.select().from(user).where(inArray(user.userId, allUserIds))
     const profiles = await drizzleDb
       .select()
       .from(profile)
       .where(inArray(profile.userId, allUserIds))
 
-    const userById = new Map(users.map(u => [u.id, u]))
+    const userById = new Map(users.map(u => [u.userId, u]))
     const profileByUserId = new Map(profiles.map(p => [p.userId, p]))
 
     const participantsBySessionId = new Map<string, typeof participantRows>()
@@ -208,7 +208,7 @@ export async function GET(req: NextRequest) {
       const active = isActiveSession(live.status, live.startedAt, live.endedAt)
       if (active) tutorNode.activeSessions += 1
 
-      const participants = participantsBySessionId.get(live.id) ?? []
+      const participants = participantsBySessionId.get(live.sessionId) ?? []
       for (const participant of participants) {
         const studentId = participant.studentId
         const studentUser = userById.get(studentId)
@@ -234,13 +234,13 @@ export async function GET(req: NextRequest) {
         tutorNode.totalConnections += 1
         studentNode.totalConnections += 1
 
-        const edgeId = `${live.id}:${tutorId}:${studentId}`
+        const edgeId = `${live.sessionId}:${tutorId}:${studentId}`
         edges.push({
           id: edgeId,
-          sessionId: live.id,
+          sessionId: live.sessionId,
           tutorId,
           studentId,
-          subject: live.subject || 'General',
+          subject: live.title || 'General',
           status: active ? 'ACTIVE' : 'RECENT',
           isActive: active,
           startedAt: live.startedAt?.toISOString() ?? null,

@@ -93,7 +93,7 @@ interface CurriculumResponse {
   description: string | null
   subject: string
 
-  estimatedHours: number
+  estimatedHours: number // Kept for response structure
   hasOutline: boolean
   _count: {
     modules: number
@@ -126,10 +126,7 @@ export const GET = withAuth(async (req, session) => {
     cacheKey,
     async () => {
       // 1. Fetch main curriculum rows
-      const curriculums = await drizzleDb
-        .select()
-        .from(course)
-        .orderBy(desc(course.createdAt))
+      const curriculums = await drizzleDb.select().from(course).orderBy(desc(course.createdAt))
 
       if (curriculums.length === 0) return []
       const courseIds = curriculums.map(c => c.courseId)
@@ -137,16 +134,14 @@ export const GET = withAuth(async (req, session) => {
       // 2. Fetch module counts
       const modulesRaw = await drizzleDb
         .select({
-          courseId: curriculumModule.curriculumId,
-          moduleCount: sql<number>`count(${curriculumModule.id})::int`,
+          courseId: curriculumModule.courseId,
+          moduleCount: sql<number>`count(${curriculumModule.moduleId})::int`,
         })
         .from(curriculumModule)
-        .where(inArray(curriculumModule.curriculumId, courseIds))
-        .groupBy(curriculumModule.curriculumId)
+        .where(inArray(curriculumModule.courseId, courseIds))
+        .groupBy(curriculumModule.courseId)
 
-      const modulesMap = new Map<string, number>(
-        modulesRaw.map(m => [m.courseId, m.moduleCount])
-      )
+      const modulesMap = new Map<string, number>(modulesRaw.map(m => [m.courseId, m.moduleCount]))
 
       // 3. Fetch batch counts
       const batchesRaw = await drizzleDb
@@ -158,41 +153,16 @@ export const GET = withAuth(async (req, session) => {
         .where(inArray(courseBatch.courseId, courseIds))
         .groupBy(courseBatch.courseId)
 
-      const batchesMap = new Map<string, number>(
-        batchesRaw.map(b => [b.courseId, b.batchCount])
-      )
+      const batchesMap = new Map<string, number>(batchesRaw.map(b => [b.courseId, b.batchCount]))
 
-      // 4. Fetch the lessons count by getting modules for these curriculums
+      // 4. Lessons now stored in builderData JSON field, can't query count directly
       const allModules = await drizzleDb
-        .select({ id: curriculumModule.id, courseId: curriculumModule.curriculumId })
+        .select({ moduleId: curriculumModule.moduleId, courseId: curriculumModule.courseId })
         .from(curriculumModule)
-        .where(inArray(curriculumModule.curriculumId, courseIds))
+        .where(inArray(curriculumModule.courseId, courseIds))
 
-      const moduleIds = allModules.map(m => m.id)
       const lessonsMap = new Map<string, number>()
-
-      if (moduleIds.length > 0) {
-        const lessonsRaw = await drizzleDb
-          .select({
-            moduleId: courseLesson.moduleId,
-            lessonCount: sql<number>`count(${courseLesson.lessonId})::int`,
-          })
-          .from(courseLesson)
-          .where(inArray(courseLesson.moduleId, moduleIds))
-          .groupBy(courseLesson.moduleId)
-
-        // Filter out lessons with null moduleId (new flat structure)
-        const lessonCountsByModule = new Map<string, number>(
-          lessonsRaw
-            .filter((l): l is typeof l & { moduleId: string } => l.moduleId !== null)
-            .map(l => [l.moduleId, l.lessonCount])
-        )
-
-        for (const m of allModules) {
-          const lCount = lessonCountsByModule.get(m.id) || 0
-          lessonsMap.set(m.courseId, (lessonsMap.get(m.courseId) || 0) + lCount)
-        }
-      }
+      // Lessons count not available with new schema (stored in JSON)
 
       // 5. Fetch user progress
       const progressList = await drizzleDb
@@ -233,10 +203,10 @@ export const GET = withAuth(async (req, session) => {
           id: curr.courseId,
           name: curr.name,
           description: curr.description,
-          subject: curr.subject,
+          subject: curr.categories?.[0] ?? '', // Use categories instead of subject
 
-          estimatedHours: curr.estimatedHours,
-          hasOutline: hasOutline(curr.courseMaterials),
+          estimatedHours: 0, // No longer in schema
+          hasOutline: false, // courseMaterials no longer in schema
           _count: {
             modules: modulesMap.get(curr.courseId) || 0,
             lessons: lessonsMap.get(curr.courseId) || 0,

@@ -24,7 +24,11 @@ export const GET = withAuth(
       return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
     }
 
-    const [courseRow] = await drizzleDb.select().from(course).where(eq(course.courseId, id)).limit(1)
+    const [courseRow] = await drizzleDb
+      .select()
+      .from(course)
+      .where(eq(course.courseId, id))
+      .limit(1)
 
     if (!courseRow) throw new NotFoundError('Course not found')
 
@@ -112,7 +116,12 @@ export const POST = withCsrf(
         .returning()
 
       return NextResponse.json({
-        batch: { id: batch.batchId, name: batch.name, startDate: batch.startDate, order: batch.order },
+        batch: {
+          id: batch.batchId,
+          name: batch.name,
+          startDate: batch.startDate,
+          order: batch.order,
+        },
         message: 'Batch created.',
       })
     },

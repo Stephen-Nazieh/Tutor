@@ -45,7 +45,9 @@ export const POST = withCsrf(
       const [parentSession] = await drizzleDb
         .select()
         .from(liveSession)
-        .where(and(eq(liveSession.id, parentSessionId), eq(liveSession.tutorId, session.user.id)))
+        .where(
+          and(eq(liveSession.sessionId, parentSessionId), eq(liveSession.tutorId, session.user.id))
+        )
         .limit(1)
 
       if (!parentSession) {
@@ -71,7 +73,7 @@ export const POST = withCsrf(
       const roomId = crypto.randomUUID()
       const assignmentId = crypto.randomUUID()
       await drizzleDb.insert(breakoutRoom).values({
-        id: roomId,
+        roomId,
         sessionId: parentSessionId,
         name: `Breakout-${breakoutRoomResult.id.slice(-6)}`,
         aiEnabled: true,
@@ -82,7 +84,7 @@ export const POST = withCsrf(
         alerts: {},
       })
       await drizzleDb.insert(breakoutRoomAssignment).values({
-        id: assignmentId,
+        assignmentId,
         roomId,
         studentId,
       })

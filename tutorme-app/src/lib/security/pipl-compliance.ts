@@ -25,8 +25,8 @@ import {
   account,
   clinicBooking,
   clinic,
-  curriculumEnrollment,
-  curriculum,
+  courseEnrollment,
+  course,
   message,
   aITutorEnrollment,
   quizAttempt,
@@ -37,7 +37,7 @@ import { generateWithFallback } from '@/lib/agents'
 
 async function logUserActivity(userId: string, action: string, metadata: Record<string, unknown>) {
   await drizzleDb.insert(userActivityLog).values({
-    id: crypto.randomUUID(),
+    activityId: crypto.randomUUID(),
     userId,
     action,
     metadata: metadata as Record<string, unknown>,
@@ -185,7 +185,7 @@ export const PIPL_ARTICLE_15 = {
 
     const [userRow] = await drizzleDb
       .select({
-        id: user.id,
+        userId: user.userId,
         email: user.email,
         role: user.role,
         emailVerified: user.emailVerified,
@@ -194,64 +194,64 @@ export const PIPL_ARTICLE_15 = {
         updatedAt: user.updatedAt,
       })
       .from(user)
-      .where(eq(user.id, userId))
+      .where(eq(user.userId, userId))
       .limit(1)
 
     const [profileRow] = await drizzleDb
       .select()
       .from(profile)
-      .where(eq(profile.userId, userId))
+      .where(eq(profile.userId, userRow?.userId ?? userId))
       .limit(1)
     const accounts = await drizzleDb
       .select({ provider: account.provider, type: account.type })
       .from(account)
-      .where(eq(account.userId, userId))
+      .where(eq(account.userId, userRow?.userId ?? userId))
 
     const clinicBookingsRaw = await drizzleDb
       .select()
       .from(clinicBooking)
-      .where(eq(clinicBooking.studentId, userId))
+      .where(eq(clinicBooking.studentId, userRow?.userId ?? userId))
     const clinicIds = [...new Set(clinicBookingsRaw.map(b => b.clinicId))]
     const clinics =
       clinicIds.length > 0
         ? await drizzleDb
-            .select({ id: clinic.id, title: clinic.title, startTime: clinic.startTime })
+            .select({ clinicId: clinic.clinicId, title: clinic.title, startTime: clinic.startTime })
             .from(clinic)
-            .where(inArray(clinic.id, clinicIds))
+            .where(inArray(clinic.clinicId, clinicIds))
         : []
-    const clinicById = Object.fromEntries(clinics.map(c => [c.id, c]))
+    const clinicById = Object.fromEntries(clinics.map(c => [c.clinicId, c]))
     const clinicBookings = clinicBookingsRaw.map(b => ({
       ...b,
       clinic: clinicById[b.clinicId] ?? null,
     }))
 
-    const curriculumEnrollmentsRaw = await drizzleDb
+    const courseEnrollmentsRaw = await drizzleDb
       .select()
-      .from(curriculumEnrollment)
-      .where(eq(curriculumEnrollment.studentId, userId))
-    const currIds = [...new Set(curriculumEnrollmentsRaw.map(e => e.curriculumId))]
-    const curricula =
-      currIds.length > 0
+      .from(courseEnrollment)
+      .where(eq(courseEnrollment.studentId, userRow?.userId ?? userId))
+    const courseIds = [...new Set(courseEnrollmentsRaw.map(e => e.courseId))]
+    const courses =
+      courseIds.length > 0
         ? await drizzleDb
-            .select({ id: curriculum.id, name: curriculum.name, subject: curriculum.subject })
-            .from(curriculum)
-            .where(inArray(curriculum.id, currIds))
+            .select({ courseId: course.courseId, name: course.name, categories: course.categories })
+            .from(course)
+            .where(inArray(course.courseId, courseIds))
         : []
-    const curriculumById = Object.fromEntries(curricula.map(c => [c.id, c]))
-    const curriculumEnrollments = curriculumEnrollmentsRaw.map(e => ({
+    const courseById = Object.fromEntries(courses.map(c => [c.courseId, c]))
+    const courseEnrollments = courseEnrollmentsRaw.map(e => ({
       ...e,
-      curriculum: curriculumById[e.curriculumId] ?? null,
+      course: courseById[e.courseId] ?? null,
     }))
 
     const messages = await drizzleDb
       .select({
-        id: message.id,
+        messageId: message.messageId,
         content: message.content,
         source: message.source,
         timestamp: message.timestamp,
       })
       .from(message)
-      .where(eq(message.userId, userId))
+      .where(eq(message.userId, userRow?.userId ?? userId))
       .orderBy(desc(message.timestamp))
       .limit(500)
 
@@ -262,31 +262,31 @@ export const PIPL_ARTICLE_15 = {
         enrolledAt: aITutorEnrollment.enrolledAt,
       })
       .from(aITutorEnrollment)
-      .where(eq(aITutorEnrollment.studentId, userId))
+      .where(eq(aITutorEnrollment.studentId, userRow?.userId ?? userId))
 
     const quizAttempts = await drizzleDb
       .select({
-        id: quizAttempt.id,
+        attemptId: quizAttempt.attemptId,
         score: quizAttempt.score,
         completedAt: quizAttempt.completedAt,
       })
       .from(quizAttempt)
-      .where(eq(quizAttempt.studentId, userId))
+      .where(eq(quizAttempt.studentId, userRow?.userId ?? userId))
       .limit(200)
 
     const activityLogs = await drizzleDb
       .select({ action: userActivityLog.action, createdAt: userActivityLog.createdAt })
       .from(userActivityLog)
-      .where(eq(userActivityLog.userId, userId))
+      .where(eq(userActivityLog.userId, userRow?.userId ?? userId))
       .orderBy(desc(userActivityLog.createdAt))
       .limit(100)
 
-    const bookingIds = clinicBookingsRaw.map(b => b.id)
+    const bookingIds = clinicBookingsRaw.map(b => b.bookingId)
     const payments =
       bookingIds.length > 0
         ? await drizzleDb
             .select({
-              id: payment.id,
+              paymentId: payment.paymentId,
               amount: payment.amount,
               status: payment.status,
               createdAt: payment.createdAt,
@@ -295,7 +295,7 @@ export const PIPL_ARTICLE_15 = {
             .where(inArray(payment.bookingId, bookingIds))
         : []
 
-    const userData = userRow ?? { id: userId }
+    const userData = userRow ?? { userId: userId }
     const profileData = profileRow ?? {}
     const piiClassification = classifyPII({ user: userData, profile: profileData })
 
@@ -306,7 +306,7 @@ export const PIPL_ARTICLE_15 = {
       profile: profileData,
       accounts: accounts ?? [],
       enrollments: [
-        ...(curriculumEnrollments ?? []),
+        ...(courseEnrollments ?? []),
         ...(aiEnrollments ?? []).map(e => ({ type: 'ai_tutor', ...e })),
       ],
       bookings: clinicBookings ?? [],

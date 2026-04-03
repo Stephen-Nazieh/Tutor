@@ -26,9 +26,9 @@ export const GET = withAuth(
     }
 
     const [content] = await drizzleDb
-      .select({ id: contentItem.id, duration: contentItem.duration })
+      .select({ id: contentItem.contentId, duration: contentItem.duration })
       .from(contentItem)
-      .where(eq(contentItem.id, contentId))
+      .where(eq(contentItem.contentId, contentId))
       .limit(1)
     if (!content) return NextResponse.json({ error: 'Content not found' }, { status: 404 })
 

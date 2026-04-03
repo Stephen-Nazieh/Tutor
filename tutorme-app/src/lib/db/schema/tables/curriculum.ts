@@ -85,9 +85,10 @@ export const courseShare = pgTable(
     ),
     CourseShare_recipientId_idx: index('CourseShare_recipientId_idx').on(table.recipientId),
     CourseShare_courseId_idx: index('CourseShare_courseId_idx').on(table.courseId),
-    CourseShare_courseId_recipientId_key: uniqueIndex(
-      'CourseShare_courseId_recipientId_key'
-    ).on(table.courseId, table.recipientId),
+    CourseShare_courseId_recipientId_key: uniqueIndex('CourseShare_courseId_recipientId_key').on(
+      table.courseId,
+      table.recipientId
+    ),
   })
 )
 
@@ -204,9 +205,10 @@ export const courseProgress = pgTable(
   },
   table => ({
     CourseProgress_studentId_idx: index('CourseProgress_studentId_idx').on(table.studentId),
-    CourseProgress_studentId_courseId_key: uniqueIndex(
-      'CourseProgress_studentId_courseId_key'
-    ).on(table.studentId, table.courseId),
+    CourseProgress_studentId_courseId_key: uniqueIndex('CourseProgress_studentId_courseId_key').on(
+      table.studentId,
+      table.courseId
+    ),
   })
 )
 

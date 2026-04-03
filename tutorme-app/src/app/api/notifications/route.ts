@@ -23,7 +23,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
 
   const filters = [eq(notification.userId, userId)]
   if (unreadOnly) filters.push(eq(notification.read, false))
-  if (cursor) filters.push(lt(notification.id, cursor)) // Assuming IDs are ordered CUIDs/UUIDs
+  if (cursor) filters.push(lt(notification.notificationId, cursor)) // Assuming IDs are ordered CUIDs/UUIDs
 
   const userNotifications = await drizzleDb
     .select()
@@ -45,7 +45,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     unreadCount,
     nextCursor:
       userNotifications.length === limit
-        ? userNotifications[userNotifications.length - 1]?.id
+        ? userNotifications[userNotifications.length - 1]?.notificationId
         : null,
   })
 })
@@ -64,7 +64,7 @@ export const POST = withAuth(
       const [newNotification] = await drizzleDb
         .insert(notification)
         .values({
-          id: crypto.randomUUID(),
+          notificationId: crypto.randomUUID(),
           userId,
           type,
           title,
@@ -107,7 +107,7 @@ export const PATCH = withAuth(async (req: NextRequest, session) => {
       await drizzleDb
         .update(notification)
         .set({ read: true, readAt: new Date() })
-        .where(and(inArray(notification.id, notificationIds), eq(notification.userId, userId)))
+        .where(and(inArray(notification.notificationId, notificationIds), eq(notification.userId, userId)))
 
       return NextResponse.json({ marked: notificationIds.length })
     }

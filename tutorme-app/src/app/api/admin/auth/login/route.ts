@@ -90,7 +90,10 @@ export async function POST(req: NextRequest) {
     if (!isValidPassword && passwordCandidates.includes(foundUser.password)) {
       isValidPassword = true
       const migratedHash = await hashPassword(password)
-      await drizzleDb.update(user).set({ password: migratedHash }).where(eq(user.id, foundUser.id))
+      await drizzleDb
+        .update(user)
+        .set({ password: migratedHash })
+        .where(eq(user.userId, foundUser.userId))
     }
 
     if (!isValidPassword) {
@@ -101,13 +104,13 @@ export async function POST(req: NextRequest) {
     const [userProfile] = await drizzleDb
       .select()
       .from(profile)
-      .where(eq(profile.userId, foundUser.id))
+      .where(eq(profile.userId, foundUser.userId))
       .limit(1)
     const assignments = await drizzleDb
       .select({ roleName: adminRole.name })
       .from(adminAssignment)
-      .innerJoin(adminRole, eq(adminAssignment.roleId, adminRole.id))
-      .where(and(eq(adminAssignment.userId, foundUser.id), eq(adminAssignment.isActive, true)))
+      .innerJoin(adminRole, eq(adminAssignment.roleId, adminRole.roleId))
+      .where(and(eq(adminAssignment.userId, foundUser.userId), eq(adminAssignment.isActive, true)))
     const hasAdminEntitlement = assignments.length > 0 || foundUser.role === 'ADMIN'
     if (!hasAdminEntitlement) {
       await logFailedLogin(clientIp, email || undefined)
@@ -116,9 +119,9 @@ export async function POST(req: NextRequest) {
     const roles = assignments.length > 0 ? assignments.map(a => a.roleName) : [foundUser.role]
 
     const userAgent = req.headers.get('user-agent') || undefined
-    const token = await createAdminSession(foundUser.id, clientIp, userAgent)
+    const token = await createAdminSession(foundUser.userId, clientIp, userAgent)
 
-    await logAdminAction(foundUser.id, 'admin.login', {
+    await logAdminAction(foundUser.userId, 'admin.login', {
       ipAddress: clientIp,
       userAgent,
     })
@@ -126,7 +129,7 @@ export async function POST(req: NextRequest) {
     const response = NextResponse.json({
       success: true,
       user: {
-        id: foundUser.id,
+        id: foundUser.userId,
         email: foundUser.email,
         name: userProfile?.name ?? null,
         roles,

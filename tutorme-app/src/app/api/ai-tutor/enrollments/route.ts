@@ -34,7 +34,7 @@ async function getHandler(_req: NextRequest, session: Session) {
 
     return NextResponse.json({
       enrollments: enrollments.map(e => ({
-        id: e.id,
+        id: e.enrollmentId,
         subjectCode: e.subjectCode,
         status: e.status,
         totalSessions: e.totalSessions,
@@ -70,7 +70,7 @@ async function patchHandler(req: NextRequest, session: Session) {
       .from(aITutorEnrollment)
       .where(
         and(
-          eq(aITutorEnrollment.id, enrollmentId),
+          eq(aITutorEnrollment.enrollmentId, enrollmentId),
           eq(aITutorEnrollment.studentId, session.user.id)
         )
       )
@@ -87,19 +87,19 @@ async function patchHandler(req: NextRequest, session: Session) {
       await drizzleDb
         .update(aITutorEnrollment)
         .set(allowedUpdates)
-        .where(eq(aITutorEnrollment.id, enrollmentId))
+        .where(eq(aITutorEnrollment.enrollmentId, enrollmentId))
     }
 
     const [updated] = await drizzleDb
       .select()
       .from(aITutorEnrollment)
-      .where(eq(aITutorEnrollment.id, enrollmentId))
+      .where(eq(aITutorEnrollment.enrollmentId, enrollmentId))
       .limit(1)
 
     return NextResponse.json({
       enrollment: updated
         ? {
-            id: updated.id,
+            id: updated.enrollmentId,
             subjectCode: updated.subjectCode,
             status: updated.status,
             totalSessions: updated.totalSessions,

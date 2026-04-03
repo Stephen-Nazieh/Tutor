@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const [sessionRow] = await drizzleDb
       .select()
       .from(liveSession)
-      .where(eq(liveSession.id, sessionId))
+      .where(eq(liveSession.sessionId, sessionId))
       .limit(1)
 
     const isTutor = sessionRow?.tutorId === session.user.id

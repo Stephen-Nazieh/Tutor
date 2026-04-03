@@ -36,15 +36,15 @@ export const GET = async (req: NextRequest) => {
   const rows = await drizzleDb
     .select({
       payment: payment,
-      bookingId: clinicBooking.id,
+      bookingId: clinicBooking.bookingId,
       bookingClinicId: clinicBooking.clinicId,
       bookingStudentId: clinicBooking.studentId,
       clinicTitle: clinic.title,
       clinicSubject: clinic.subject,
     })
     .from(payment)
-    .leftJoin(clinicBooking, eq(payment.bookingId, clinicBooking.id))
-    .leftJoin(clinic, eq(clinicBooking.clinicId, clinic.id))
+    .leftJoin(clinicBooking, eq(payment.bookingId, clinicBooking.bookingId))
+    .leftJoin(clinic, eq(clinicBooking.clinicId, clinic.clinicId))
     .where(whereClause)
     .orderBy(desc(payment.createdAt))
     .limit(limit)

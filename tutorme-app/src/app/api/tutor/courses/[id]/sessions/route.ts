@@ -15,10 +15,7 @@ export const GET = withAuth(
     const courseId = req.nextUrl.pathname.split('/').slice(-2)[0]
 
     const sessions = await drizzleDb.query.liveSession.findMany({
-      where: and(
-        eq(liveSessionTable.tutorId, tutorId),
-        eq(liveSessionTable.courseId, courseId)
-      ),
+      where: and(eq(liveSessionTable.tutorId, tutorId), eq(liveSessionTable.courseId, courseId)),
       with: {
         participants: {
           columns: { sessionId: true, studentId: true },

@@ -70,7 +70,7 @@ async function seedAdminSystem() {
       await drizzleDb
         .insert(adminRole)
         .values({
-          id: crypto.randomUUID(),
+          roleId: crypto.randomUUID(),
           ...role,
         })
         .onConflictDoNothing({ target: adminRole.name })
@@ -98,7 +98,7 @@ async function seedAdminSystem() {
       await drizzleDb.transaction(async tx => {
         const now = new Date()
         await tx.insert(user).values({
-          id: adminUserId,
+          userId: adminUserId,
           email: adminEmail,
           password: hashedPassword,
           role: 'ADMIN',
@@ -107,7 +107,7 @@ async function seedAdminSystem() {
           updatedAt: now,
         })
         await tx.insert(profile).values({
-          id: crypto.randomUUID(),
+          profileId: crypto.randomUUID(),
           userId: adminUserId,
           name: 'System Administrator',
           timezone: 'UTC',
@@ -126,9 +126,9 @@ async function seedAdminSystem() {
       })
       console.log(`  ✓ Created admin user: ${adminEmail}`)
     } else {
-      adminUserId = existingAdmin.id
+      adminUserId = existingAdmin.userId
       console.log(`  ℹ Admin user exists: ${adminEmail}`)
-      await drizzleDb.update(user).set({ password: hashedPassword }).where(eq(user.id, adminUserId))
+      await drizzleDb.update(user).set({ password: hashedPassword }).where(eq(user.userId, adminUserId))
       console.log(`  ✓ Updated password so admin123 works for login`)
     }
 
@@ -145,9 +145,9 @@ async function seedAdminSystem() {
       await drizzleDb
         .insert(adminAssignment)
         .values({
-          id: crypto.randomUUID(),
+          assignmentId: crypto.randomUUID(),
           userId: adminUserId,
-          roleId: superAdminRole.id,
+          roleId: superAdminRole.roleId,
           assignedBy: adminUserId,
           isActive: true,
         })
@@ -240,7 +240,7 @@ async function seedAdminSystem() {
       await drizzleDb
         .insert(systemSetting)
         .values({
-          id: crypto.randomUUID(),
+          settingId: crypto.randomUUID(),
           ...setting,
           settingValue: setting.settingValue as object,
           updatedBy: adminUserId,

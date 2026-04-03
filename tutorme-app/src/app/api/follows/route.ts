@@ -27,7 +27,7 @@ export const GET = withAuth(
     }
 
     const [existing] = await drizzleDb
-      .select({ id: tutorFollow.id })
+      .select({ id: tutorFollow.followId })
       .from(tutorFollow)
       .where(and(eq(tutorFollow.followerId, viewerId), eq(tutorFollow.tutorId, tutorId)))
       .limit(1)
@@ -51,9 +51,9 @@ export const POST = withCsrf(
     }
 
     const [target] = await drizzleDb
-      .select({ id: user.id, role: user.role })
+      .select({ id: user.userId, role: user.role })
       .from(user)
-      .where(eq(user.id, tutorId))
+      .where(eq(user.userId, tutorId))
       .limit(1)
 
     if (!target || normalizeRole(target.role) !== 'TUTOR') {

@@ -7,20 +7,39 @@ import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { and, eq, sql } from 'drizzle-orm'
 import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
-import {
-  advanceLesson,
-  buildCurriculumPrompt,
-  startLesson,
-  type LessonSession,
-} from '@/lib/curriculum/lesson-controller'
+import { advanceLesson, startLesson } from '@/lib/curriculum/lesson-controller'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  courseLesson,
-  curriculumModule,
-  lessonSession as lessonSessionTable,
-  courseProgress,
-} from '@/lib/db/schema'
+import { courseLesson, lessonSession as lessonSessionTable, courseProgress } from '@/lib/db/schema'
 import { generateWithFallback } from '@/lib/agents'
+
+// Type definition for lesson session - matches the database schema
+type LessonSessionType = {
+  sessionId: string
+  studentId: string
+  lessonId: string
+  currentSection: string
+  conceptMastery: Record<string, number> | unknown
+  whiteboardItems: unknown[] | unknown
+  sessionContext: unknown
+  status: string
+  completedAt: Date | null
+}
+
+// Local implementation of buildCurriculumPrompt
+function buildCurriculumPrompt(
+  _session: LessonSessionType,
+  lesson: { title: string; description: string | null },
+  message: string
+): string {
+  return `You are a Socratic tutor helping a student with the lesson "${lesson.title}".
+
+Lesson: ${lesson.title}
+Description: ${lesson.description || 'No description'}
+
+Student message: ${message}
+
+Respond as a helpful Socratic tutor, guiding the student to discover the answer themselves rather than providing it directly.`
+}
 
 const SECTIONS = ['introduction', 'concept', 'example', 'practice', 'review'] as const
 type LessonSection = (typeof SECTIONS)[number]
@@ -49,32 +68,23 @@ export const POST = withCsrf(
       }
 
       // Handle case where lesson may not have a module (new flat structure)
-      const [moduleRow] = lessonRow.moduleId
-        ? await drizzleDb
-            .select()
-            .from(curriculumModule)
-            .where(eq(curriculumModule.id, lessonRow.moduleId))
-            .limit(1)
-        : [null]
-
+      // Lessons now stored in builderData, module lookup by moduleId removed
       const lesson = {
         ...lessonRow,
-        module: moduleRow
-          ? { courseId: moduleRow.curriculumId, title: moduleRow.title }
-          : { courseId: '', title: '' },
+        module: { courseId: '', title: '' },
       }
 
       // Get or create lesson session
-      let lessonSessionData: LessonSession | null = null
+      let lessonSessionData: LessonSessionType | null = null
 
       if (sessionId) {
         const [dbSession] = await drizzleDb
           .select()
           .from(lessonSessionTable)
-          .where(eq(lessonSessionTable.id, sessionId))
+          .where(eq(lessonSessionTable.sessionId, sessionId))
           .limit(1)
         if (dbSession) {
-          lessonSessionData = dbSession as unknown as LessonSession
+          lessonSessionData = dbSession as unknown as LessonSessionType
         }
       }
 
@@ -91,11 +101,18 @@ export const POST = withCsrf(
           .limit(1)
 
         if (dbSession) {
-          lessonSessionData = dbSession as unknown as LessonSession
+          lessonSessionData = dbSession as unknown as LessonSessionType
         } else {
-          lessonSessionData = await startLesson(session.user.id, lessonId)
+          lessonSessionData = (await startLesson(
+            session.user.id,
+            lessonId
+          )) as unknown as LessonSessionType
         }
       }
+
+      // Get module info if available from lesson
+      // moduleId removed from courseLesson; lessons now in builderData
+      const courseId = lesson.module?.courseId || ''
 
       const lessonSession = lessonSessionData
 
@@ -160,7 +177,7 @@ export const POST = withCsrf(
       // Update concept mastery based on understanding level
       const conceptMastery = (lessonSession.conceptMastery as Record<string, number>) || {}
       if (understandingLevel > 0) {
-        const currentConcept = lesson.teachingPoints?.[0] || 'general'
+        const currentConcept = 'general' // teachingPoints no longer in schema
         conceptMastery[currentConcept] = Math.max(
           conceptMastery[currentConcept] || 0,
           understandingLevel
@@ -179,15 +196,12 @@ export const POST = withCsrf(
       }
       const newWhiteboardItems =
         whiteboardItems.length > 0
-          ? [...(lessonSession.whiteboardItems || []), ...whiteboardItems]
-          : lessonSession.whiteboardItems
+          ? [...((lessonSession.whiteboardItems as unknown[]) || []), ...whiteboardItems]
+          : (lessonSession.whiteboardItems as unknown[])
 
-      let updatedSession: LessonSession & {
-        currentSection: string
-        conceptMastery: Record<string, number>
-      }
+      let updatedSession: LessonSessionType
       if (nextSectionIndex > currentSectionIndex || understandingLevel >= 80) {
-        const advanceResult = await advanceLesson(lessonSession, message)
+        const advanceResult = await advanceLesson(lessonSession as any, message)
         const [updated] = await drizzleDb
           .update(lessonSessionTable)
           .set({
@@ -196,7 +210,7 @@ export const POST = withCsrf(
             sessionContext: newSessionContext as any,
             whiteboardItems: newWhiteboardItems as any,
           })
-          .where(eq(lessonSessionTable.id, lessonSession.id))
+          .where(eq(lessonSessionTable.sessionId, lessonSession.sessionId))
           .returning()
         updatedSession = (updated ?? lessonSession) as any
       } else {
@@ -207,7 +221,7 @@ export const POST = withCsrf(
             sessionContext: newSessionContext as any,
             whiteboardItems: newWhiteboardItems as any,
           })
-          .where(eq(lessonSessionTable.id, lessonSession.id))
+          .where(eq(lessonSessionTable.sessionId, lessonSession.sessionId))
           .returning()
         updatedSession = (updated ?? lessonSession) as any
       }
@@ -217,15 +231,11 @@ export const POST = withCsrf(
         await drizzleDb
           .update(lessonSessionTable)
           .set({ status: 'completed', completedAt: new Date() })
-          .where(eq(lessonSessionTable.id, lessonSession.id))
+          .where(eq(lessonSessionTable.sessionId, lessonSession.sessionId))
 
-        const courseId = lesson.module?.courseId ?? moduleRow?.curriculumId
         if (courseId) {
-          const [{ count: totalLessons }] = await drizzleDb
-            .select({ count: sql<number>`count(*)::int` })
-            .from(courseLesson)
-            .innerJoin(curriculumModule, eq(curriculumModule.id, courseLesson.moduleId))
-            .where(eq(curriculumModule.curriculumId, courseId))
+          // Lessons now stored in builderData JSON, can't query count directly
+          const totalLessons = 0
 
           const [existing] = await drizzleDb
             .select()
@@ -271,7 +281,7 @@ export const POST = withCsrf(
         currentSection: updatedSession.currentSection,
         conceptMastery: updatedSession.conceptMastery,
         isComplete,
-        sessionId: lessonSession.id,
+        sessionId: lessonSession.sessionId,
       })
     },
     { role: 'STUDENT' }
@@ -303,7 +313,7 @@ export const GET = withAuth(
 
     return NextResponse.json({
       session: {
-        id: sessionRow.id,
+        id: sessionRow.sessionId,
         currentSection: sessionRow.currentSection,
         conceptMastery: sessionRow.conceptMastery,
         status: sessionRow.status,

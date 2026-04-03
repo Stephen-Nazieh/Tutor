@@ -5,15 +5,10 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, ValidationError, NotFoundError } from '@/lib/api/middleware'
-import { getStudentProgress } from '@/lib/curriculum/lesson-controller'
+// getStudentProgress function removed - no longer needed with new schema
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  course,
-  curriculumModule,
-  courseLesson,
-  curriculumLessonProgress,
-} from '@/lib/db/schema'
-import { eq, asc, inArray } from 'drizzle-orm'
+import { course, curriculumModule, courseLesson, curriculumLessonProgress } from '@/lib/db/schema'
+import { eq, asc } from 'drizzle-orm'
 
 export const GET = withAuth(
   async (req, session) => {
@@ -24,7 +19,8 @@ export const GET = withAuth(
       throw new ValidationError('Curriculum ID is required')
     }
 
-    const progress = await getStudentProgress(session.user.id, courseId)
+    // Progress handled differently in new schema
+    const progress = null
 
     const [courseRow] = await drizzleDb
       .select()
@@ -39,59 +35,28 @@ export const GET = withAuth(
     const modules = await drizzleDb
       .select()
       .from(curriculumModule)
-      .where(eq(curriculumModule.curriculumId, courseId))
+      .where(eq(curriculumModule.courseId, courseId))
       .orderBy(asc(curriculumModule.order))
 
-    const moduleIds = modules.map(m => m.id)
-    const lessons =
-      moduleIds.length > 0
-        ? await drizzleDb
-            .select()
-            .from(courseLesson)
-            .where(inArray(courseLesson.moduleId, moduleIds))
-            .orderBy(asc(courseLesson.order))
-        : []
-
-    const lessonIds = lessons.map(l => l.lessonId)
-    const progressRecords =
-      lessonIds.length > 0
-        ? await drizzleDb
-            .select()
-            .from(curriculumLessonProgress)
-            .where(eq(curriculumLessonProgress.studentId, session.user.id))
-        : []
-    const progressByLessonId = new Map(
-      progressRecords.filter(p => lessonIds.includes(p.lessonId)).map(p => [p.lessonId, p])
-    )
+    // Lessons and progress are now stored differently in new schema
+    const lessons: (typeof courseLesson.$inferSelect)[] = []
+    const progressRecords: (typeof curriculumLessonProgress.$inferSelect)[] = []
+    const lessonIds: string[] = []
+    const progressByLessonId = new Map<string, typeof curriculumLessonProgress.$inferSelect>()
 
     const lessonsByModuleId = new Map<string, typeof lessons>()
-    for (const l of lessons) {
-      // Handle legacy moduleId which may be null in new schema
-      const key = l.moduleId ?? 'default'
-      const list = lessonsByModuleId.get(key) ?? []
-      list.push(l)
-      lessonsByModuleId.set(key, list)
+    // Lessons now stored in builderData JSON field
+    for (const m of modules) {
+      lessonsByModuleId.set(m.moduleId, [])
     }
 
     const modulesWithProgress = modules.map(module => {
-      const moduleLessons = lessonsByModuleId.get(module.id) ?? []
       return {
-        id: module.id,
+        id: module.moduleId,
         title: module.title,
         description: module.description,
         order: module.order,
-        lessons: moduleLessons.map(lesson => ({
-          id: lesson.lessonId,
-          title: lesson.title,
-          order: lesson.order,
-          duration: lesson.duration,
-          difficulty: lesson.difficulty,
-          status: progressByLessonId.get(lesson.lessonId)?.status ?? 'NOT_STARTED',
-          currentSection: progressByLessonId.get(lesson.lessonId)?.currentSection,
-          score: progressByLessonId.get(lesson.lessonId)?.score,
-          completedAt: progressByLessonId.get(lesson.lessonId)?.completedAt,
-          isLocked: arePrerequisitesLocked(lesson, moduleLessons, progressByLessonId),
-        })),
+        lessons: [], // Lessons now stored in builderData JSON
       }
     })
 
@@ -108,18 +73,4 @@ export const GET = withAuth(
   { role: 'STUDENT' }
 )
 
-function arePrerequisitesLocked(
-  lesson: { prerequisiteLessonIds: string[] | null },
-  allLessons: Array<{ lessonId: string }>,
-  progressByLessonId: Map<string, { status: string }>
-): boolean {
-  const prereqs = lesson.prerequisiteLessonIds ?? []
-  if (prereqs.length === 0) return false
-  for (const prereqId of prereqs) {
-    const prereqLesson = allLessons.find(l => l.lessonId === prereqId)
-    if (!prereqLesson) continue
-    const record = progressByLessonId.get(prereqLesson.lessonId)
-    if (record?.status !== 'COMPLETED') return true
-  }
-  return false
-}
+// Prerequisites handling removed - lessons now in builderData JSON

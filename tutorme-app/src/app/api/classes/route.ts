@@ -29,7 +29,7 @@ async function getHandler(req: NextRequest, session: Session) {
 
       const bookings = await drizzleDb
         .select({
-          bookingId: clinicBooking.id,
+          bookingId: clinicBooking.bookingId,
           clinicId: clinicBooking.clinicId,
           studentId: clinicBooking.studentId,
           bookedAt: clinicBooking.bookedAt,
@@ -46,7 +46,7 @@ async function getHandler(req: NextRequest, session: Session) {
           roomUrl: clinic.roomUrl,
           roomId: clinic.roomId,
           clinicRequiresPayment: clinic.requiresPayment,
-          paymentId: payment.id,
+          paymentId: payment.paymentId,
           paymentStatus: payment.status,
           gatewayCheckoutUrl: payment.gatewayCheckoutUrl,
           tutorName: profile.name,
@@ -54,10 +54,10 @@ async function getHandler(req: NextRequest, session: Session) {
           hourlyRate: profile.hourlyRate,
         })
         .from(clinicBooking)
-        .innerJoin(clinic, eq(clinicBooking.clinicId, clinic.id))
-        .leftJoin(payment, eq(payment.bookingId, clinicBooking.id))
-        .leftJoin(user, eq(clinic.tutorId, user.id))
-        .leftJoin(profile, eq(profile.userId, user.id))
+        .innerJoin(clinic, eq(clinicBooking.clinicId, clinic.clinicId))
+        .leftJoin(payment, eq(payment.bookingId, clinicBooking.bookingId))
+        .leftJoin(user, eq(clinic.tutorId, user.userId))
+        .leftJoin(profile, eq(profile.userId, user.userId))
         .where(bookingsWhere)
         .orderBy(asc(clinic.startTime))
         .limit(limit)
@@ -84,7 +84,7 @@ async function getHandler(req: NextRequest, session: Session) {
             ? Math.round(hourlyRate * (booking.duration / 60) * 100) / 100
             : null
         return {
-          id: booking.clinicId,
+          clinicId: booking.clinicId,
           title: booking.clinicTitle,
           subject: booking.clinicSubject,
           description: booking.clinicDescription,
@@ -127,7 +127,7 @@ async function getHandler(req: NextRequest, session: Session) {
 
     const clinics = await drizzleDb
       .select({
-        id: clinic.id,
+        clinicId: clinic.clinicId,
         title: clinic.title,
         subject: clinic.subject,
         description: clinic.description,
@@ -144,13 +144,13 @@ async function getHandler(req: NextRequest, session: Session) {
         hourlyRate: profile.hourlyRate,
       })
       .from(clinic)
-      .leftJoin(user, eq(clinic.tutorId, user.id))
-      .leftJoin(profile, eq(profile.userId, user.id))
+      .leftJoin(user, eq(clinic.tutorId, user.userId))
+      .leftJoin(profile, eq(profile.userId, user.userId))
       .where(clinicsWhere)
       .orderBy(asc(clinic.startTime))
       .limit(limit)
 
-    const clinicIds = clinics.map(c => c.id)
+    const clinicIds = clinics.map(c => c.clinicId)
     const bookingCounts =
       clinicIds.length > 0
         ? await Promise.all(
@@ -189,8 +189,8 @@ async function getHandler(req: NextRequest, session: Session) {
           : null
       return {
         ...cls,
-        isBooked: myBookingSet.has(cls.id),
-        currentBookings: countMap.get(cls.id) ?? 0,
+        isBooked: myBookingSet.has(cls.clinicId),
+        currentBookings: countMap.get(cls.clinicId) ?? 0,
         price,
         tutor: {
           id: cls.tutorId,
@@ -225,7 +225,11 @@ async function postHandler(req: NextRequest, session: Session) {
       return NextResponse.json({ error: 'Class ID required' }, { status: 400 })
     }
 
-    const [classRow] = await drizzleDb.select().from(clinic).where(eq(clinic.id, classId)).limit(1)
+    const [classRow] = await drizzleDb
+      .select()
+      .from(clinic)
+      .where(eq(clinic.clinicId, classId))
+      .limit(1)
 
     if (!classRow) {
       return NextResponse.json({ error: 'Class not found' }, { status: 404 })
@@ -266,7 +270,7 @@ async function postHandler(req: NextRequest, session: Session) {
     const bookingId = crypto.randomUUID()
 
     await drizzleDb.insert(clinicBooking).values({
-      id: bookingId,
+      bookingId,
       clinicId: classId,
       studentId: session.user.id,
       attended: false,
@@ -297,7 +301,7 @@ async function postHandler(req: NextRequest, session: Session) {
       await drizzleDb
         .update(clinicBooking)
         .set({ requiresPayment: false })
-        .where(eq(clinicBooking.id, bookingId))
+        .where(eq(clinicBooking.bookingId, bookingId))
       return NextResponse.json({
         success: true,
         booking,
@@ -323,12 +327,12 @@ async function postHandler(req: NextRequest, session: Session) {
       bookingId,
       studentEmail: studentEmail || '',
       description: `${classRow.title} - ${classRow.subject}`,
-      metadata: { clinicId: classRow.id, clinicTitle: classRow.title },
+      metadata: { clinicId: classRow.clinicId, clinicTitle: classRow.title },
     })
 
     const paymentId = crypto.randomUUID()
     await drizzleDb.insert(payment).values({
-      id: paymentId,
+      paymentId,
       bookingId,
       amount,
       currency,
@@ -365,13 +369,15 @@ async function deleteHandler(req: NextRequest, session: Session) {
 
     const [booking] = await drizzleDb
       .select({
-        bookingId: clinicBooking.id,
-        clinicId: clinic.id,
+        bookingId: clinicBooking.bookingId,
+        clinicId: clinic.clinicId,
         startTime: clinic.startTime,
       })
       .from(clinicBooking)
-      .innerJoin(clinic, eq(clinicBooking.clinicId, clinic.id))
-      .where(and(eq(clinicBooking.id, bookingId), eq(clinicBooking.studentId, session.user.id)))
+      .innerJoin(clinic, eq(clinicBooking.clinicId, clinic.clinicId))
+      .where(
+        and(eq(clinicBooking.bookingId, bookingId), eq(clinicBooking.studentId, session.user.id))
+      )
       .limit(1)
 
     if (!booking) {
@@ -382,7 +388,7 @@ async function deleteHandler(req: NextRequest, session: Session) {
       return NextResponse.json({ error: 'Cannot cancel past class' }, { status: 400 })
     }
 
-    await drizzleDb.delete(clinicBooking).where(eq(clinicBooking.id, bookingId))
+    await drizzleDb.delete(clinicBooking).where(eq(clinicBooking.bookingId, bookingId))
 
     return NextResponse.json({
       success: true,

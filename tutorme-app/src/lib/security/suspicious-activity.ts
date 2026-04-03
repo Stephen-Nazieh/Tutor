@@ -14,7 +14,7 @@ const FAILED_LOGIN_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
 export async function logFailedLogin(ip: string | null, identifier?: string): Promise<void> {
   try {
     await drizzleDb.insert(securityEvent).values({
-      id: crypto.randomUUID(),
+      eventId: crypto.randomUUID(),
       eventType: 'auth_failed',
       ip: ip ?? undefined,
       metadata: identifier ? { identifierHash: hashForLog(identifier) } : {},

@@ -14,13 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  course,
-  courseModule,
-  courseLesson,
-  questionBankItem,
-  courseBatch,
-} from '@/lib/db/schema'
+import { course, courseModule, courseLesson, questionBankItem, courseBatch } from '@/lib/db/schema'
 import { eq, and, inArray, asc, sql } from 'drizzle-orm'
 import crypto from 'crypto'
 
@@ -394,9 +388,7 @@ export async function PUT(req: NextRequest) {
           question: questionBankItem.question,
         })
         .from(questionBankItem)
-        .where(
-          and(eq(questionBankItem.tutorId, userId), eq(questionBankItem.courseId, courseId))
-        )
+        .where(and(eq(questionBankItem.tutorId, userId), eq(questionBankItem.courseId, courseId)))
       const signatures = new Set(
         existingItems.map(item =>
           toQuestionSignature(item.type, item.question, item.lessonId ?? null)
@@ -455,7 +447,11 @@ export async function PUT(req: NextRequest) {
       for (const batch of existingVariantBatches) {
         const difficulty = batch.difficulty as AdaptiveDifficulty | null
         if (!difficulty || selectedByDifficulty.has(difficulty)) continue
-        selectedByDifficulty.set(difficulty, { batchId: batch.batchId, name: batch.name, order: batch.order })
+        selectedByDifficulty.set(difficulty, {
+          batchId: batch.batchId,
+          name: batch.name,
+          order: batch.order,
+        })
       }
 
       const [{ maxOrder }] = await tx

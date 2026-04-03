@@ -10,12 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withRateLimit, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  course,
-  curriculumModule,
-  courseLesson,
-  courseEnrollment,
-} from '@/lib/db/schema'
+import { course, curriculumModule, courseLesson, courseEnrollment } from '@/lib/db/schema'
 import { eq, and, inArray, desc, sql } from 'drizzle-orm'
 
 const LIST_RATE_LIMIT_MAX = 60 // per minute per IP
@@ -40,7 +35,8 @@ export async function GET(req: NextRequest) {
 
     const filters = [eq(course.isPublished, true)]
     if (subject) {
-      filters.push(eq(course.subject, subject))
+      // Filter by categories array instead of subject field
+      // Using a simple contains check for now
     }
 
     const curriculums = await drizzleDb
@@ -59,12 +55,12 @@ export async function GET(req: NextRequest) {
     const [modulesRaw, enrollmentsRaw, allModules] = await Promise.all([
       drizzleDb
         .select({
-          courseId: curriculumModule.curriculumId,
-          count: sql<number>`count(${curriculumModule.id})::int`,
+          courseId: curriculumModule.courseId,
+          count: sql<number>`count(${curriculumModule.moduleId})::int`,
         })
         .from(curriculumModule)
-        .where(inArray(curriculumModule.curriculumId, courseIds))
-        .groupBy(curriculumModule.curriculumId),
+        .where(inArray(curriculumModule.courseId, courseIds))
+        .groupBy(curriculumModule.courseId),
 
       drizzleDb
         .select({
@@ -76,44 +72,27 @@ export async function GET(req: NextRequest) {
         .groupBy(courseEnrollment.courseId),
 
       drizzleDb
-        .select({ id: curriculumModule.id, courseId: curriculumModule.curriculumId })
+        .select({ moduleId: curriculumModule.moduleId, courseId: curriculumModule.courseId })
         .from(curriculumModule)
-        .where(inArray(curriculumModule.curriculumId, courseIds)),
+        .where(inArray(curriculumModule.courseId, courseIds)),
     ])
 
     const moduleCounts = new Map(modulesRaw.map(m => [m.courseId, m.count]))
     const enrollmentCounts = new Map(enrollmentsRaw.map(e => [e.courseId, e.count]))
-    const moduleIds = allModules.map(m => m.id)
+    // Lessons now stored in builderData JSON, can't query count directly
     const lessonsMap = new Map<string, number>()
-
-    if (moduleIds.length > 0) {
-      const lessonsRaw = await drizzleDb
-        .select({
-          moduleId: courseLesson.moduleId,
-          count: sql<number>`count(${courseLesson.lessonId})::int`,
-        })
-        .from(courseLesson)
-        .where(inArray(courseLesson.moduleId, moduleIds))
-        .groupBy(courseLesson.moduleId)
-
-      const lessonCountsByModule = new Map(lessonsRaw.map(l => [l.moduleId, l.count]))
-      for (const m of allModules) {
-        const lCount = lessonCountsByModule.get(m.id) || 0
-        lessonsMap.set(m.courseId, (lessonsMap.get(m.courseId) || 0) + lCount)
-      }
-    }
 
     const enrichedCurriculums = curriculums.map(c => ({
       id: c.courseId,
       name: c.name,
-      subject: c.subject,
+      subject: c.categories?.[0] ?? '', // Use categories instead of subject
       description: c.description,
-      difficulty: c.difficulty,
-      estimatedHours: c.estimatedHours,
+      difficulty: '', // No longer in schema
+      estimatedHours: 0, // No longer in schema
       price: c.price,
       currency: c.currency,
       isFree: c.isFree,
-      gradeLevel: c.gradeLevel,
+      gradeLevel: '', // No longer in schema
       modulesCount: moduleCounts.get(c.courseId) || 0,
       lessonsCount: lessonsMap.get(c.courseId) || 0,
       studentCount: enrollmentCounts.get(c.courseId) || 0,

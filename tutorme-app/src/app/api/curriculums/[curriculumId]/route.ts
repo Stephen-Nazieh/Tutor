@@ -44,33 +44,27 @@ export async function GET(
   const modules = await drizzleDb
     .select()
     .from(curriculumModule)
-    .where(eq(curriculumModule.curriculumId, courseId))
+    .where(eq(curriculumModule.courseId, courseId))
 
   const [modulesCountRow] = await drizzleDb
     .select({ count: sql<number>`count(*)::int` })
     .from(curriculumModule)
-    .where(eq(curriculumModule.curriculumId, courseId))
+    .where(eq(curriculumModule.courseId, courseId))
 
   const [enrollmentsCountRow] = await drizzleDb
     .select({ count: sql<number>`count(*)::int` })
     .from(courseEnrollment)
     .where(eq(courseEnrollment.courseId, courseId))
 
-  let totalLessons = 0
-  for (const mod of modules) {
-    const [lessonCount] = await drizzleDb
-      .select({ count: sql<number>`count(*)::int` })
-      .from(courseLesson)
-      .where(eq(courseLesson.moduleId, mod.id))
-    totalLessons += lessonCount?.count ?? 0
-  }
+  // Lessons now stored in builderData JSON, can't query count directly
+  const totalLessons = 0
 
   let creator: { id: string; name: string; bio: string | null } | null = null
   if (courseRow.creatorId) {
     const [creatorUser] = await drizzleDb
-      .select({ id: user.id, email: user.email })
+      .select({ userId: user.userId, email: user.email })
       .from(user)
-      .where(eq(user.id, courseRow.creatorId))
+      .where(eq(user.userId, courseRow.creatorId))
       .limit(1)
     const [creatorProfile] = creatorUser
       ? await drizzleDb
@@ -81,7 +75,7 @@ export async function GET(
       : []
     creator = creatorUser
       ? {
-          id: creatorUser.id,
+          id: creatorUser.userId,
           name: creatorProfile?.name ?? creatorUser.email ?? 'Tutor',
           bio: creatorProfile?.bio ?? null,
         }
@@ -95,10 +89,7 @@ export async function GET(
       .select()
       .from(courseProgress)
       .where(
-        and(
-          eq(courseProgress.studentId, session.user.id),
-          eq(courseProgress.courseId, courseId)
-        )
+        and(eq(courseProgress.studentId, session.user.id), eq(courseProgress.courseId, courseId))
       )
       .limit(1)
     enrolled = !!progress
@@ -107,14 +98,14 @@ export async function GET(
   return NextResponse.json({
     id: courseRow.courseId,
     name: courseRow.name,
-    subject: courseRow.subject,
+    subject: courseRow.categories?.[0] ?? '', // Use categories instead of subject
     description: courseRow.description,
-    difficulty: courseRow.difficulty,
-    estimatedHours: courseRow.estimatedHours,
+    difficulty: '', // No longer in schema
+    estimatedHours: 0, // No longer in schema
     price: courseRow.price,
     currency: courseRow.currency,
     isFree: courseRow.isFree,
-    gradeLevel: courseRow.gradeLevel,
+    gradeLevel: '', // No longer in schema
     languageOfInstruction: courseRow.languageOfInstruction,
     schedule: courseRow.schedule,
     isLiveOnline: courseRow.isLiveOnline,

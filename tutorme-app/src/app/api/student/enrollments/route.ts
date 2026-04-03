@@ -9,13 +9,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { withAuth, NotFoundError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  course,
-  courseLesson,
-  courseEnrollment,
-  courseProgress,
-  payment,
-} from '@/lib/db/schema'
+import { course, courseLesson, courseEnrollment, courseProgress, payment } from '@/lib/db/schema'
 import { eq, and, inArray, desc } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
 
@@ -61,21 +55,19 @@ export const POST = withAuth(async (req, session) => {
     }
   }
 
-  const totalLessons = (
-    await drizzleDb
-      .select({ count: sql<number>`count(*)::int` })
-      .from(courseLesson)
-      .where(eq(courseLesson.courseId, courseId))
-  )[0]?.count ?? 0
+  const totalLessons =
+    (
+      await drizzleDb
+        .select({ count: sql<number>`count(*)::int` })
+        .from(courseLesson)
+        .where(eq(courseLesson.courseId, courseId))
+    )[0]?.count ?? 0
 
   const [existingProgress] = await drizzleDb
     .select()
     .from(courseProgress)
     .where(
-      and(
-        eq(courseProgress.studentId, session.user.id),
-        eq(courseProgress.courseId, courseId)
-      )
+      and(eq(courseProgress.studentId, session.user.id), eq(courseProgress.courseId, courseId))
     )
     .limit(1)
 

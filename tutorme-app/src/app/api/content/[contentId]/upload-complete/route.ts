@@ -46,8 +46,8 @@ export const POST = withCsrf(
           ...(durationSeconds != null && { duration: durationSeconds }),
           ...(transcript != null && { transcript }),
         })
-        .where(eq(contentItem.id, contentId))
-        .returning({ id: contentItem.id })
+        .where(eq(contentItem.contentId, contentId))
+        .returning({ id: contentItem.contentId })
 
       if (result.length === 0) {
         return NextResponse.json({ error: 'Content not found' }, { status: 404 })

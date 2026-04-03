@@ -85,13 +85,22 @@ async function postHandler(req: NextRequest, session: Session) {
         const [created] = await drizzleDb
           .insert(achievement)
           .values({
-            id: crypto.randomUUID(),
+            achievementId: crypto.randomUUID(),
             userId: session.user.id,
             type: 'FIRST_LESSON',
             ...ACHIEVEMENTS.FIRST_LESSON,
           })
           .returning()
-        if (created) newAchievements.push(created)
+        if (created)
+          newAchievements.push({
+            id: created.achievementId,
+            userId: created.userId,
+            type: created.type,
+            title: created.title,
+            description: created.description,
+            unlockedAt: created.unlockedAt,
+            xpAwarded: created.xpAwarded,
+          })
       }
     }
 
@@ -113,13 +122,22 @@ async function postHandler(req: NextRequest, session: Session) {
         const [created] = await drizzleDb
           .insert(achievement)
           .values({
-            id: crypto.randomUUID(),
+            achievementId: crypto.randomUUID(),
             userId: session.user.id,
             type: 'BOOKMARK_COLLECTOR',
             ...ACHIEVEMENTS.BOOKMARK_COLLECTOR,
           })
           .returning()
-        if (created) newAchievements.push(created)
+        if (created)
+          newAchievements.push({
+            id: created.achievementId,
+            userId: created.userId,
+            type: created.type,
+            title: created.title,
+            description: created.description,
+            unlockedAt: created.unlockedAt,
+            xpAwarded: created.xpAwarded,
+          })
       }
     }
 

@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
         .limit(20000),
       drizzleDb
         .select({
-          id: securityEvent.id,
+          id: securityEvent.eventId,
           eventType: securityEvent.eventType,
           ip: securityEvent.ip,
           severity: securityEvent.severity,
@@ -102,7 +102,7 @@ export async function GET(req: NextRequest) {
         .limit(5000),
       drizzleDb
         .select({
-          id: payment.id,
+          id: payment.paymentId,
           status: payment.status,
           amount: payment.amount,
           createdAt: payment.createdAt,
@@ -112,7 +112,7 @@ export async function GET(req: NextRequest) {
         .where(gte(payment.createdAt, startDate)),
       drizzleDb
         .select({
-          id: refund.id,
+          id: refund.refundId,
           status: refund.status,
           amount: refund.amount,
           createdAt: refund.createdAt,
@@ -121,7 +121,7 @@ export async function GET(req: NextRequest) {
         .where(gte(refund.createdAt, startDate)),
       drizzleDb
         .select({
-          id: liveSession.id,
+          id: liveSession.sessionId,
           status: liveSession.status,
           startedAt: liveSession.startedAt,
           endedAt: liveSession.endedAt,
@@ -138,7 +138,7 @@ export async function GET(req: NextRequest) {
         .where(gte(sessionParticipant.joinedAt, startDate)),
       drizzleDb
         .select({
-          id: taskSubmission.id,
+          id: taskSubmission.submissionId,
           studentId: taskSubmission.studentId,
           submittedAt: taskSubmission.submittedAt,
           score: taskSubmission.score,
@@ -147,7 +147,7 @@ export async function GET(req: NextRequest) {
         .where(gte(taskSubmission.submittedAt, startDate)),
       drizzleDb
         .select({
-          id: quizAttempt.id,
+          id: quizAttempt.attemptId,
           studentId: quizAttempt.studentId,
           startedAt: quizAttempt.startedAt,
           score: quizAttempt.score,
@@ -156,7 +156,7 @@ export async function GET(req: NextRequest) {
         .where(gte(quizAttempt.startedAt, startDate)),
       drizzleDb
         .select({
-          id: videoWatchEvent.id,
+          id: videoWatchEvent.eventId,
           studentId: videoWatchEvent.studentId,
           createdAt: videoWatchEvent.createdAt,
         })
@@ -164,7 +164,7 @@ export async function GET(req: NextRequest) {
         .where(gte(videoWatchEvent.createdAt, startDate)),
       drizzleDb
         .select({
-          id: curriculumLessonProgress.id,
+          id: curriculumLessonProgress.progressId,
           studentId: curriculumLessonProgress.studentId,
           updatedAt: curriculumLessonProgress.updatedAt,
           status: curriculumLessonProgress.status,
@@ -173,7 +173,7 @@ export async function GET(req: NextRequest) {
         .where(gte(curriculumLessonProgress.updatedAt, startDate)),
       drizzleDb
         .select({
-          id: poll.id,
+          id: poll.pollId,
           status: poll.status,
           createdAt: poll.createdAt,
           totalResponses: poll.totalResponses,
@@ -182,7 +182,7 @@ export async function GET(req: NextRequest) {
         .where(gte(poll.createdAt, startDate)),
       drizzleDb
         .select({
-          id: whiteboardSession.id,
+          id: whiteboardSession.whiteboardSessionId,
           roomId: whiteboardSession.roomId,
           startedAt: whiteboardSession.startedAt,
         })

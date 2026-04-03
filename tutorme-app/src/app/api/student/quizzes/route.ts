@@ -53,17 +53,18 @@ export const GET = withAuth(
             .select()
             .from(quizAssignment)
             .where(
-              and(
-                eq(quizAssignment.isActive, true),
-                inArray(quizAssignment.quizId, courseQuizIds)
-              )
+              and(eq(quizAssignment.isActive, true), inArray(quizAssignment.quizId, courseQuizIds))
             )
         : []
 
     const quizMap = new Map<string, { quiz: typeof quiz.$inferSelect; dueDate: Date | null }>()
     for (const a of assignmentRows) {
       if (!quizMap.has(a.quizId)) {
-        const [quizRow] = await drizzleDb.select().from(quiz).where(eq(quiz.quizId, a.quizId)).limit(1)
+        const [quizRow] = await drizzleDb
+          .select()
+          .from(quiz)
+          .where(eq(quiz.quizId, a.quizId))
+          .limit(1)
         if (quizRow) {
           quizMap.set(a.quizId, {
             quiz: quizRow,
@@ -74,7 +75,11 @@ export const GET = withAuth(
     }
     for (const a of courseAssignments) {
       if (!quizMap.has(a.quizId)) {
-        const [quizRow] = await drizzleDb.select().from(quiz).where(eq(quiz.quizId, a.quizId)).limit(1)
+        const [quizRow] = await drizzleDb
+          .select()
+          .from(quiz)
+          .where(eq(quiz.quizId, a.quizId))
+          .limit(1)
         if (quizRow) {
           quizMap.set(a.quizId, {
             quiz: quizRow,

@@ -45,12 +45,7 @@ export async function enrollStudentInCourse(
   const [existingProgress] = await drizzleDb
     .select()
     .from(courseProgress)
-    .where(
-      and(
-        eq(courseProgress.studentId, studentId),
-        eq(courseProgress.courseId, courseId)
-      )
-    )
+    .where(and(eq(courseProgress.studentId, studentId), eq(courseProgress.courseId, courseId)))
     .limit(1)
   if (existingProgress) {
     return { enrolled: false }
@@ -59,12 +54,7 @@ export async function enrollStudentInCourse(
   const [existingEnrollment] = await drizzleDb
     .select()
     .from(courseEnrollment)
-    .where(
-      and(
-        eq(courseEnrollment.studentId, studentId),
-        eq(courseEnrollment.courseId, courseId)
-      )
-    )
+    .where(and(eq(courseEnrollment.studentId, studentId), eq(courseEnrollment.courseId, courseId)))
     .limit(1)
 
   if (existingEnrollment) {
@@ -95,5 +85,8 @@ export async function enrollStudentInCourse(
     })
     .returning()
 
-  return { enrolled: true, progress: inserted[0] ? { progressId: inserted[0].progressId } : undefined }
+  return {
+    enrolled: true,
+    progress: inserted[0] ? { progressId: inserted[0].progressId } : undefined,
+  }
 }

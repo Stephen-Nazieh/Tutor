@@ -30,16 +30,16 @@ export const POST = withCsrf(
         return NextResponse.json({ error: 'eventType and videoSeconds required' }, { status: 400 })
 
       const [content] = await drizzleDb
-        .select({ id: contentItem.id, isPublished: contentItem.isPublished })
+        .select({ id: contentItem.contentId, isPublished: contentItem.isPublished })
         .from(contentItem)
-        .where(eq(contentItem.id, contentId))
+        .where(eq(contentItem.contentId, contentId))
         .limit(1)
       if (!content || !content.isPublished)
         return NextResponse.json({ error: 'Content not found' }, { status: 404 })
 
       await drizzleDb.insert(videoWatchEvent).values(
         events.map((e: { eventType: string; videoSeconds: number; metadata?: unknown }) => ({
-          id: crypto.randomUUID(),
+          eventId: crypto.randomUUID(),
           contentId,
           studentId: session.user.id,
           eventType: e.eventType,

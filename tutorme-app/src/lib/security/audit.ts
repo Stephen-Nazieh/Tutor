@@ -40,7 +40,7 @@ export async function logAudit(
 ): Promise<void> {
   try {
     await drizzleDb.insert(userActivityLog).values({
-      id: crypto.randomUUID(),
+      activityId: crypto.randomUUID(),
       userId,
       action,
       metadata: (metadata ?? {}) as object,

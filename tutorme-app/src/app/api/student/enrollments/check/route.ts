@@ -32,10 +32,7 @@ export const GET = withAuth(
       .select()
       .from(courseProgress)
       .where(
-        and(
-          eq(courseProgress.studentId, session.user.id),
-          eq(courseProgress.courseId, courseId)
-        )
+        and(eq(courseProgress.studentId, session.user.id), eq(courseProgress.courseId, courseId))
       )
       .limit(1)
 

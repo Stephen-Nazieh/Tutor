@@ -10,13 +10,7 @@ import { z } from 'zod'
 import { eq, and, desc, sql } from 'drizzle-orm'
 import { withAuth, withRateLimit } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  course,
-  user,
-  courseShare,
-  familyNotification,
-  familyMember,
-} from '@/lib/db/schema'
+import { course, user, courseShare, familyNotification, familyMember } from '@/lib/db/schema'
 import { logAudit, AUDIT_ACTIONS } from '@/lib/security/audit'
 import crypto from 'crypto'
 

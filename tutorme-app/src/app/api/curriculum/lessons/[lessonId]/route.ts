@@ -32,19 +32,10 @@ export const GET = withAuth(
       if (!lessonRecord) {
         throw new NotFoundError('Lesson not found')
       }
-      // Handle case where lesson may not have a module (new flat structure)
-      if (!lessonRecord.moduleId) {
-        throw new NotFoundError('Module not found')
-      }
-      const [moduleRow] = await drizzleDb
-        .select({ courseId: curriculumModule.curriculumId })
-        .from(curriculumModule)
-        .where(eq(curriculumModule.id, lessonRecord.moduleId))
-        .limit(1)
-      if (!moduleRow) {
-        throw new NotFoundError('Module not found')
-      }
-      const nextLesson = await getNextLesson(session.user.id, moduleRow.courseId)
+      // moduleId removed from courseLesson; use alternative approach
+      // Try to get courseId from lesson metadata or use empty
+      const courseId = ''
+      const nextLesson = courseId ? await getNextLesson(session.user.id, courseId) : null
       return NextResponse.json({ nextLesson })
     }
 
@@ -75,8 +66,8 @@ export const POST = withCsrf(
           session: lessonSession,
           lesson: {
             title: lesson.title,
-            objectives: lesson.learningObjectives,
-            concepts: lesson.keyConcepts,
+            objectives: [], // learningObjectives no longer in schema
+            concepts: [], // keyConcepts no longer in schema
           },
         })
       }

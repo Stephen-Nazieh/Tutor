@@ -20,7 +20,7 @@ export const GET = withAuth(
     const [item] = await drizzleDb
       .select()
       .from(contentItem)
-      .where(and(eq(contentItem.id, contentId), eq(contentItem.isPublished, true)))
+      .where(and(eq(contentItem.contentId, contentId), eq(contentItem.isPublished, true)))
       .limit(1)
 
     if (!item) {
@@ -29,7 +29,7 @@ export const GET = withAuth(
 
     const quizCheckpoints = await drizzleDb
       .select({
-        id: contentQuizCheckpoint.id,
+        checkpointId: contentQuizCheckpoint.checkpointId,
         videoTimestampSec: contentQuizCheckpoint.videoTimestampSec,
         title: contentQuizCheckpoint.title,
         questions: contentQuizCheckpoint.questions,
@@ -44,7 +44,7 @@ export const GET = withAuth(
 
     return NextResponse.json({
       content: {
-        id: item.id,
+        id: item.contentId,
         subject: item.subject,
         topic: item.title,
         videoUrl,
@@ -53,7 +53,7 @@ export const GET = withAuth(
         videoVariants: Object.keys(variants).length ? variants : undefined,
         quizTimestamps: quizCheckpoints.map(q => q.videoTimestampSec),
         quizCheckpoints: quizCheckpoints.map(q => ({
-          id: q.id,
+          id: q.checkpointId,
           videoTimestampSec: q.videoTimestampSec,
           title: q.title,
           questions: q.questions,
