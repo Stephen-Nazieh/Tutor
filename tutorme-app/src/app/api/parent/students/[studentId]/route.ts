@@ -9,7 +9,7 @@ import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { user, curriculumEnrollment, userGamification } from '@/lib/db/schema'
+import { user, courseEnrollment, userGamification } from '@/lib/db/schema'
 import cacheManager from '@/lib/cache-manager'
 
 const CACHE_TTL = parseInt(process.env.CACHE_TTL_STUDENT_ANALYTICS || '45', 10)
@@ -47,19 +47,19 @@ export const GET = withAuth(
 
     const [userData, enrollments, gamificationData] = await Promise.all([
       drizzleDb.query.user.findFirst({
-        where: eq(user.id, studentId),
+        where: eq(user.userId, studentId),
         with: {
           profile: { columns: { name: true } },
         },
         columns: {
-          id: true,
+          userId: true,
           email: true,
         },
       }),
-      drizzleDb.query.curriculumEnrollment.findMany({
-        where: eq(curriculumEnrollment.studentId, studentId),
+      drizzleDb.query.courseEnrollment.findMany({
+        where: eq(courseEnrollment.studentId, studentId),
         with: {
-          curriculum: { columns: { id: true, name: true } },
+          course: { columns: { courseId: true, name: true } },
         },
       }),
       drizzleDb.query.userGamification.findFirst({
@@ -72,13 +72,13 @@ export const GET = withAuth(
     }
 
     const data = {
-      id: userData.id,
+      id: userData.userId,
       name: userData.profile?.name ?? member.name,
       email: userData.email,
       relation: member.relation,
       enrollments: enrollments.map((e: any) => ({
-        curriculumId: e.curriculum.id,
-        curriculumName: e.curriculum.name,
+        courseId: e.course.courseId,
+        courseName: e.course.name,
         enrolledAt: e.enrolledAt,
       })),
       level: gamificationData?.level ?? null,

@@ -61,18 +61,18 @@ export async function GET(request: NextRequest) {
         const options = await drizzleDb
           .select()
           .from(pollOption)
-          .where(eq(pollOption.pollId, pollRow.id))
+          .where(eq(pollOption.pollId, pollRow.pollId))
           .orderBy(asc(pollOption.label))
         const responses = await drizzleDb
           .select({
-            id: pollResponse.id,
+            id: pollResponse.responseId,
             optionIds: pollResponse.optionIds,
             rating: pollResponse.rating,
             textAnswer: pollResponse.textAnswer,
             createdAt: pollResponse.createdAt,
           })
           .from(pollResponse)
-          .where(eq(pollResponse.pollId, pollRow.id))
+          .where(eq(pollResponse.pollId, pollRow.pollId))
         return {
           ...pollRow,
           options,
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
       | 'WORD_CLOUD'
 
     await drizzleDb.insert(poll).values({
-      id: pollId,
+      pollId,
       sessionId: validated.sessionId,
       tutorId: session.user.id,
       question: validated.question,
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
     })
 
     const options = validated.options?.map((opt, index) => ({
-      id: crypto.randomUUID(),
+      optionId: crypto.randomUUID(),
       pollId,
       label: opt.label || String.fromCharCode(65 + index),
       text: opt.text,
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
       await drizzleDb.insert(pollOption).values(options)
     }
 
-    const [created] = await drizzleDb.select().from(poll).where(eq(poll.id, pollId)).limit(1)
+    const [created] = await drizzleDb.select().from(poll).where(eq(poll.pollId, pollId)).limit(1)
     const optionsList = await drizzleDb
       .select()
       .from(pollOption)

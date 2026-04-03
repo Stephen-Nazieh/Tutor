@@ -38,7 +38,7 @@ export const GET = withAuth(
 
     const data = {
       notifications: notifications.map((n: any) => ({
-        id: n.id,
+        id: n.notificationId,
         title: n.title,
         message: n.message,
         isRead: n.isRead,
@@ -72,7 +72,7 @@ export const PATCH = withAuth(
     if (body.all === true) {
       conditions.push(eq(familyNotification.isRead, false))
     } else if (body.ids?.length) {
-      conditions.push(inArray(familyNotification.id, body.ids))
+      conditions.push(inArray(familyNotification.notificationId, body.ids))
     } else {
       return NextResponse.json({ error: '请提供 ids 或 all' }, { status: 400 })
     }

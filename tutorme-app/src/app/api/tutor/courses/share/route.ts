@@ -145,8 +145,7 @@ async function getHandler(_req: NextRequest, session: { user: { id: string } }) 
         columns: {
           courseId: true,
           name: true,
-          subject: true,
-          gradeLevel: true,
+          categories: true,
           description: true,
         },
       },

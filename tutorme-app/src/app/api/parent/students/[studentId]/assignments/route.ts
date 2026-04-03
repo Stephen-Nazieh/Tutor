@@ -40,22 +40,15 @@ export const GET = withAuth(
       with: {
         tutor: {
           with: { profile: { columns: { name: true } } },
-          columns: { id: true },
+          columns: { userId: true },
         },
         lesson: {
-          with: {
-            module: {
-              with: {
-                curriculum: { columns: { name: true } },
-              },
-            },
-          },
-          columns: { id: true, title: true },
+          columns: { lessonId: true, title: true, courseId: true },
         },
       },
     })
 
-    const taskIds = tasksResult.map(t => t.id)
+    const taskIds = tasksResult.map(t => t.taskId)
 
     // 2. Get submissions and feedback workflows
     const [submissions, workflows] = await Promise.all([
@@ -88,14 +81,14 @@ export const GET = withAuth(
     const feedbackBySubmissionId = new Map(relevantWorkflows.map(fw => [fw.submissionId, fw]))
 
     const formattedAssignments = tasksResult.map((task: any) => {
-      const submission = submissionMap.get(task.id) as any
+      const submission = submissionMap.get(task.taskId) as any
       const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !submission
       const status = submission ? 'submitted' : isOverdue ? 'overdue' : 'pending'
 
       const feedback = submission ? (feedbackBySubmissionId.get(submission.id) as any) : null
 
       return {
-        id: task.id,
+        id: task.taskId,
         title: task.title,
         description: task.description,
         type: task.type,
@@ -110,7 +103,7 @@ export const GET = withAuth(
         questionCount: Array.isArray(task.questions) ? (task.questions as unknown[]).length : 0,
         lessonId: task.lessonId,
         lessonTitle: task.lesson?.title ?? null,
-        curriculumName: task.lesson?.module?.curriculum?.name ?? null,
+        courseId: task.lesson?.courseId ?? null,
         tutorName: task.tutor?.profile?.name ?? null,
         timeSpent: submission?.timeSpent ?? null,
         attempts: submission?.attempts ?? 0,

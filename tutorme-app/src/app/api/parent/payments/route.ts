@@ -8,7 +8,7 @@ import { eq, desc, inArray } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { familyPayment, curriculumEnrollment, clinicBooking, payment } from '@/lib/db/schema'
+import { familyPayment, courseEnrollment, clinicBooking, payment } from '@/lib/db/schema'
 import cacheManager from '@/lib/cache-manager'
 
 const CACHE_TTL = 120
@@ -37,11 +37,11 @@ export const GET = withAuth(
         limit: 50,
       }),
       family.studentIds.length > 0
-        ? drizzleDb.query.curriculumEnrollment.findMany({
-            where: inArray(curriculumEnrollment.studentId, family.studentIds),
+        ? drizzleDb.query.courseEnrollment.findMany({
+            where: inArray(courseEnrollment.studentId, family.studentIds),
             with: {
               student: { with: { profile: { columns: { name: true } } } },
-              curriculum: { columns: { name: true } },
+              course: { columns: { name: true } },
             },
           })
         : Promise.resolve([]),
@@ -57,7 +57,7 @@ export const GET = withAuth(
       family.studentIds.length > 0
         ? drizzleDb
             .select({
-              paymentId: payment.id,
+              paymentId: payment.paymentId,
               amount: payment.amount,
               currency: payment.currency,
               status: payment.status,
@@ -66,13 +66,13 @@ export const GET = withAuth(
               enrollmentId: payment.enrollmentId,
             })
             .from(payment)
-            .innerJoin(curriculumEnrollment, eq(payment.enrollmentId, curriculumEnrollment.id))
-            .where(inArray(curriculumEnrollment.studentId, family.studentIds))
+            .innerJoin(courseEnrollment, eq(payment.enrollmentId, courseEnrollment.enrollmentId))
+            .where(inArray(courseEnrollment.studentId, family.studentIds))
         : Promise.resolve([]),
       family.studentIds.length > 0
         ? drizzleDb
             .select({
-              paymentId: payment.id,
+              paymentId: payment.paymentId,
               amount: payment.amount,
               currency: payment.currency,
               status: payment.status,
@@ -81,7 +81,7 @@ export const GET = withAuth(
               bookingId: payment.bookingId,
             })
             .from(payment)
-            .innerJoin(clinicBooking, eq(payment.bookingId, clinicBooking.id))
+            .innerJoin(clinicBooking, eq(payment.bookingId, clinicBooking.bookingId))
             .where(inArray(clinicBooking.studentId, family.studentIds))
         : Promise.resolve([]),
     ])
@@ -89,20 +89,20 @@ export const GET = withAuth(
     const enrollmentById = new Map(
       (
         enrollmentsWithDetails as {
-          id: string
-          curriculum?: { name: string } | null
+          enrollmentId: string
+          course?: { name: string } | null
           student?: { profile?: { name: string | null } } | null
         }[]
-      ).map(e => [e.id, e])
+      ).map(e => [e.enrollmentId, e])
     )
     const bookingById = new Map(
       (
         bookingsWithDetails as {
-          id: string
+          bookingId: string
           clinic?: { title: string } | null
           student?: { profile?: { name: string | null } } | null
         }[]
-      ).map(b => [b.id, b])
+      ).map(b => [b.bookingId, b])
     )
 
     const coursePayments = coursePaymentRows.map(p => {
@@ -115,7 +115,7 @@ export const GET = withAuth(
         status: p.status,
         createdAt: p.createdAt,
         paidAt: p.paidAt,
-        description: e?.curriculum?.name ?? null,
+        description: e?.course?.name ?? null,
         studentName: e?.student?.profile?.name ?? null,
       }
     })
@@ -136,7 +136,7 @@ export const GET = withAuth(
     })
 
     const budgetPayments = familyPaymentsRaw.map((p: any) => ({
-      id: p.id,
+      id: p.familyPaymentId,
       type: 'budget' as const,
       amount: p.amount,
       currency: family.defaultCurrency,

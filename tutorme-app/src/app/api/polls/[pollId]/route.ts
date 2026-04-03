@@ -30,7 +30,7 @@ export async function GET(
       return NextResponse.json({ error: 'Poll ID required' }, { status: 400 })
     }
 
-    const [pollRow] = await drizzleDb.select().from(poll).where(eq(poll.id, pollId)).limit(1)
+    const [pollRow] = await drizzleDb.select().from(poll).where(eq(poll.pollId, pollId)).limit(1)
 
     if (!pollRow) {
       return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
@@ -44,7 +44,7 @@ export async function GET(
 
     const responses = await drizzleDb
       .select({
-        id: pollResponse.id,
+        id: pollResponse.responseId,
         optionIds: pollResponse.optionIds,
         rating: pollResponse.rating,
         textAnswer: pollResponse.textAnswer,
@@ -122,14 +122,14 @@ export async function PATCH(
     }
 
     if (Object.keys(updateData).length === 0) {
-      const [existing] = await drizzleDb.select().from(poll).where(eq(poll.id, pollId)).limit(1)
+      const [existing] = await drizzleDb.select().from(poll).where(eq(poll.pollId, pollId)).limit(1)
       if (!existing) {
         return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
       }
       const options = await drizzleDb.select().from(pollOption).where(eq(pollOption.pollId, pollId))
       const responses = await drizzleDb
         .select({
-          id: pollResponse.id,
+          id: pollResponse.responseId,
           optionIds: pollResponse.optionIds,
           rating: pollResponse.rating,
           textAnswer: pollResponse.textAnswer,
@@ -140,13 +140,13 @@ export async function PATCH(
       return NextResponse.json({ poll: { ...existing, options, responses } })
     }
 
-    await drizzleDb.update(poll).set(updateData).where(eq(poll.id, pollId))
+    await drizzleDb.update(poll).set(updateData).where(eq(poll.pollId, pollId))
 
-    const [updated] = await drizzleDb.select().from(poll).where(eq(poll.id, pollId)).limit(1)
+    const [updated] = await drizzleDb.select().from(poll).where(eq(poll.pollId, pollId)).limit(1)
     const options = await drizzleDb.select().from(pollOption).where(eq(pollOption.pollId, pollId))
     const responses = await drizzleDb
       .select({
-        id: pollResponse.id,
+        id: pollResponse.responseId,
         optionIds: pollResponse.optionIds,
         rating: pollResponse.rating,
         textAnswer: pollResponse.textAnswer,
@@ -185,7 +185,7 @@ export async function DELETE(
 
     await drizzleDb.delete(pollResponse).where(eq(pollResponse.pollId, pollId))
     await drizzleDb.delete(pollOption).where(eq(pollOption.pollId, pollId))
-    await drizzleDb.delete(poll).where(eq(poll.id, pollId))
+    await drizzleDb.delete(poll).where(eq(poll.pollId, pollId))
 
     return NextResponse.json({ success: true })
   } catch (error) {

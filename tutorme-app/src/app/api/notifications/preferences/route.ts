@@ -99,7 +99,7 @@ export async function PUT(req: NextRequest) {
   const [created] = await drizzleDb
     .insert(notificationPreference)
     .values({
-      id: crypto.randomUUID(),
+      preferenceId: crypto.randomUUID(),
       userId,
       ...DEFAULT_PREFS,
       ...data,

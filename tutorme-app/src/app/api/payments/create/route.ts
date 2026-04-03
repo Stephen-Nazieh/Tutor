@@ -90,8 +90,8 @@ export const POST = withCsrf(
           paymentGatewayPreference: profile.paymentGatewayPreference,
         })
         .from(user)
-        .leftJoin(profile, eq(profile.userId, user.id))
-        .where(eq(user.id, payerStudentId))
+        .leftJoin(profile, eq(profile.userId, user.userId))
+        .where(eq(user.userId, payerStudentId))
         .limit(1)
       const studentEmail = userRow?.email ?? ''
       const currency = (courseRow.currency as string) || 'SGD'
@@ -126,7 +126,7 @@ export const POST = withCsrf(
       if (existingPayment?.gatewayCheckoutUrl) {
         return NextResponse.json({
           checkoutUrl: existingPayment.gatewayCheckoutUrl,
-          paymentId: existingPayment.id,
+          paymentId: existingPayment.paymentId,
         })
       }
 
@@ -136,7 +136,7 @@ export const POST = withCsrf(
         currency,
         courseId,
         studentEmail,
-        description: `${courseRow.name} (${courseRow.subject})`,
+        description: `${courseRow.name} (${courseRow.categories?.[0] ?? 'Course'})`,
         metadata: {
           type: 'course',
           courseId,
@@ -151,7 +151,7 @@ export const POST = withCsrf(
 
       const paymentId = crypto.randomUUID()
       await drizzleDb.insert(payment).values({
-        id: paymentId,
+        paymentId,
         bookingId: null,
         amount,
         currency,
@@ -192,8 +192,8 @@ export const POST = withCsrf(
         studentId: clinicBooking.studentId,
       })
       .from(clinicBooking)
-      .innerJoin(clinic, eq(clinic.id, clinicBooking.clinicId))
-      .where(eq(clinicBooking.id, bookingId))
+      .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
+      .where(eq(clinicBooking.bookingId, bookingId))
       .limit(1)
 
     if (!bookingRow) {
@@ -210,14 +210,14 @@ export const POST = withCsrf(
     // Fetch tutor profile for hourly rate and payment preference
     const [tutorUser] = await drizzleDb
       .select({
-        userId: user.id,
+        userId: user.userId,
         hourlyRate: profile.hourlyRate,
         currency: profile.currency,
         paymentGatewayPreference: profile.paymentGatewayPreference,
       })
       .from(user)
-      .innerJoin(profile, eq(profile.userId, user.id))
-      .where(eq(user.id, bookingRow.tutorId))
+      .innerJoin(profile, eq(profile.userId, user.userId))
+      .where(eq(user.userId, bookingRow.tutorId))
       .limit(1)
 
     // Existing payment for this booking
@@ -234,7 +234,7 @@ export const POST = withCsrf(
       if (existingPaymentRow.status === 'PENDING' && existingPaymentRow.gatewayCheckoutUrl) {
         return NextResponse.json({
           checkoutUrl: existingPaymentRow.gatewayCheckoutUrl,
-          paymentId: existingPaymentRow.id,
+          paymentId: existingPaymentRow.paymentId,
         })
       }
     }
@@ -259,17 +259,17 @@ export const POST = withCsrf(
     const [studentRow] = await drizzleDb
       .select({ email: user.email })
       .from(user)
-      .where(eq(user.id, booking.studentId))
+      .where(eq(user.userId, booking.studentId))
       .limit(1)
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || ''
     const paymentResponse = await gateway.createPayment({
       amount,
       currency,
-      bookingId: booking.id,
+      bookingId: booking.bookingId,
       studentEmail: studentRow?.email ?? '',
       description: `${bookingRow.clinicTitle} - ${bookingRow.clinicSubject}`,
-      metadata: { clinicId: bookingRow.clinic.id, clinicTitle: bookingRow.clinicTitle },
+      metadata: { clinicId: bookingRow.clinic.clinicId, clinicTitle: bookingRow.clinicTitle },
       successUrl: `${baseUrl}/payment/success?type=booking`,
       cancelUrl: `${baseUrl}/payment/cancel?type=booking`,
     })
@@ -284,13 +284,13 @@ export const POST = withCsrf(
           gatewayCheckoutUrl: paymentResponse.checkoutUrl,
           status: 'PENDING',
         })
-        .where(eq(payment.id, existingPaymentRow.id))
-      paymentId = existingPaymentRow.id
+        .where(eq(payment.paymentId, existingPaymentRow.paymentId))
+      paymentId = existingPaymentRow.paymentId
     } else {
       paymentId = crypto.randomUUID()
       await drizzleDb.insert(payment).values({
-        id: paymentId,
-        bookingId: booking.id,
+        paymentId,
+        bookingId: booking.bookingId,
         amount,
         currency,
         status: 'PENDING',
