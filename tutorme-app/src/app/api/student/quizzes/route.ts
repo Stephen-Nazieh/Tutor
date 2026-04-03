@@ -73,7 +73,15 @@ export const GET = withAuth(
         }
       }
     }
+    const courseQuizzes =
+      courseQuizIds.length > 0
+        ? await drizzleDb.select().from(quiz).where(inArray(quiz.quizId, courseQuizIds))
+        : []
+    const courseQuizById = new Map(courseQuizzes.map(q => [q.quizId, q]))
+
     for (const a of courseAssignments) {
+      if (!quizMap.has(a.quizId)) {
+        const quizRow = courseQuizById.get(a.quizId)
       if (!quizMap.has(a.quizId)) {
         const [quizRow] = await drizzleDb
           .select()
