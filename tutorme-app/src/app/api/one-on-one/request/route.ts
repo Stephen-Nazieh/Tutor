@@ -4,6 +4,7 @@ import { eq, and, or } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { oneOnOneBookingRequest, profile } from '@/lib/db/schema'
+import { notify } from '@/lib/notifications/notify'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 
@@ -118,7 +119,15 @@ export async function POST(request: NextRequest) {
       })
       .returning()
 
-    // TODO: Send notification to tutor
+    // Send notification to tutor
+    notify({
+      userId: validated.tutorId,
+      type: 'class',
+      title: 'New 1-on-1 Booking Request',
+      message: `A student has requested a 1-on-1 session. Please review and accept or reject.`,
+      data: { requestId: newRequest[0].id, type: 'one-on-one-request' },
+      actionUrl: '/tutor/dashboard',
+    }).catch(console.error)
 
     return NextResponse.json(
       {

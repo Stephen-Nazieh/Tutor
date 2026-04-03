@@ -1739,19 +1739,27 @@ export default function TutorCoursePage() {
                             return slotM >= startM && slotM < endM
                           })
                           const inRange = matchingSlotIndex >= 0
-                          // Calculate week and session number for display
-                          const slotsPerWeek = schedule.length / effectiveWeeks
-                          const weekNum = inRange
-                            ? Math.floor(matchingSlotIndex / slotsPerWeek) + 1
-                            : 0
-                          const sessionNum = inRange
-                            ? (matchingSlotIndex % Math.max(1, slotsPerWeek)) + 1
-                            : 0
-                          const sessionLabel = inRange
-                            ? effectiveWeeks > 1
-                              ? `Week ${weekNum} Session ${sessionNum}`
-                              : `Session ${sessionNum}`
-                            : ''
+                          // Calculate chronological session number
+                          // Sort all sessions by date and start time, then find position
+                          let sessionNum = 0
+                          if (inRange) {
+                            const currentSlot = schedule[matchingSlotIndex]
+                            // Create a sortable key for each session: date_startTime
+                            const sortedSessions = [...schedule].sort((a, b) => {
+                              const aDate = a.date || ''
+                              const bDate = b.date || ''
+                              if (aDate !== bDate) return aDate.localeCompare(bDate)
+                              return a.startTime.localeCompare(b.startTime)
+                            })
+                            sessionNum =
+                              sortedSessions.findIndex(
+                                s =>
+                                  s.dayOfWeek === currentSlot.dayOfWeek &&
+                                  s.startTime === currentSlot.startTime &&
+                                  s.date === currentSlot.date
+                              ) + 1
+                          }
+                          const sessionLabel = inRange ? `Session ${sessionNum}` : ''
                           const toggleSlot = () => {
                             setSchedule(prev => {
                               const idx = prev.findIndex(s => {

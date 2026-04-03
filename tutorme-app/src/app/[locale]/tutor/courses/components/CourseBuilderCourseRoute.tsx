@@ -327,15 +327,8 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => {
-                // Try to go back, but if we're in a redirect loop, go to dashboard
-                if (window.history.length > 1) {
-                  router.back()
-                } else {
-                  router.push('/tutor/dashboard')
-                }
-              }}
-              title="Go back"
+              onClick={() => router.push('/tutor/dashboard')}
+              title="Back to Dashboard"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
