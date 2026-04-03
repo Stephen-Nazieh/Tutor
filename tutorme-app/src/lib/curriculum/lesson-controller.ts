@@ -1,24 +1,24 @@
 /**
- * Curriculum Lesson Controller
+ * Course Lesson Controller
  * Manages structured lesson flow with AI tutor (Drizzle ORM)
  */
 
 import { and, eq, inArray, sql } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
-  curriculumLesson,
-  curriculumLessonProgress,
-  curriculumModule,
-  curriculumProgress,
+  course,
+  courseLesson,
+  courseLessonProgress,
+  courseModule,
+  courseProgress,
   lessonSession,
 } from '@/lib/db/schema'
 import { chatWithFallback } from '@/lib/agents'
 
 export type LessonSection = 'introduction' | 'concept' | 'example' | 'practice' | 'review'
 
-export interface LessonSession {
-  id: string
+export interface LessonSessionType {
+  sessionId: string
   lessonId: string
   studentId: string
   status: string
@@ -47,10 +47,10 @@ export interface UnderstandingAssessment {
 }
 
 export interface LessonContent {
-  id: string
+  lessonId: string
   title: string
   description?: string
-  duration: number
+  duration?: number
   difficulty?: string
   learningObjectives?: string[]
   teachingPoints?: string[]
@@ -65,34 +65,30 @@ const SECTIONS: LessonSection[] = ['introduction', 'concept', 'example', 'practi
 /**
  * Start a new lesson session
  */
-export async function startLesson(studentId: string, lessonId: string): Promise<LessonSession> {
+export async function startLesson(studentId: string, lessonId: string): Promise<LessonSessionType> {
   const [lessonRow] = await drizzleDb
     .select()
-    .from(curriculumLesson)
-    .where(eq(curriculumLesson.id, lessonId))
+    .from(courseLesson)
+    .where(eq(courseLesson.lessonId, lessonId))
     .limit(1)
   if (!lessonRow) throw new Error('Lesson not found')
 
-  // Handle case where lesson may not have a module (new flat structure)
-  const [moduleRow] = lessonRow.moduleId
-    ? await drizzleDb
-        .select()
-        .from(curriculumModule)
-        .where(eq(curriculumModule.id, lessonRow.moduleId))
-        .limit(1)
-    : [null]
-  if (!moduleRow) throw new Error('Module not found')
+  // Handle case where lesson may have a module (legacy support)
+  const courseId = lessonRow.courseId
+  if (!courseId) throw new Error('Course not found for lesson')
 
-  const prerequisiteIds = lessonRow.prerequisiteLessonIds || []
+  // Note: prerequisiteLessonIds removed from schema - now in builderData
+  // For now, we'll skip prerequisite checking or check via builderData if available
+  const prerequisiteIds: string[] = []
   if (prerequisiteIds.length > 0) {
     const [countRow] = await drizzleDb
       .select({ count: sql<number>`count(*)::int` })
-      .from(curriculumLessonProgress)
+      .from(courseLessonProgress)
       .where(
         and(
-          eq(curriculumLessonProgress.studentId, studentId),
-          inArray(curriculumLessonProgress.lessonId, prerequisiteIds),
-          eq(curriculumLessonProgress.status, 'COMPLETED')
+          eq(courseLessonProgress.studentId, studentId),
+          inArray(courseLessonProgress.lessonId, prerequisiteIds),
+          eq(courseLessonProgress.status, 'COMPLETED')
         )
       )
     if ((countRow?.count ?? 0) < prerequisiteIds.length) {
@@ -106,13 +102,13 @@ export async function startLesson(studentId: string, lessonId: string): Promise<
     .where(and(eq(lessonSession.studentId, studentId), eq(lessonSession.lessonId, lessonId)))
     .limit(1)
   if (existingSession && existingSession.status !== 'completed') {
-    return existingSession as LessonSession
+    return existingSession as LessonSessionType
   }
 
   await drizzleDb
-    .insert(curriculumLessonProgress)
+    .insert(courseLessonProgress)
     .values({
-      id: crypto.randomUUID(),
+      progressId: crypto.randomUUID(),
       lessonId,
       studentId,
       status: 'IN_PROGRESS',
@@ -120,7 +116,7 @@ export async function startLesson(studentId: string, lessonId: string): Promise<
       updatedAt: new Date(),
     })
     .onConflictDoUpdate({
-      target: [curriculumLessonProgress.lessonId, curriculumLessonProgress.studentId],
+      target: [courseLessonProgress.lessonId, courseLessonProgress.studentId],
       set: {
         status: 'IN_PROGRESS',
         currentSection: 'introduction',
@@ -130,7 +126,7 @@ export async function startLesson(studentId: string, lessonId: string): Promise<
   const [session] = await drizzleDb
     .insert(lessonSession)
     .values({
-      id: crypto.randomUUID(),
+      sessionId: crypto.randomUUID(),
       studentId,
       lessonId,
       status: 'active',
@@ -150,14 +146,14 @@ export async function startLesson(studentId: string, lessonId: string): Promise<
     })
     .returning()
   if (!session) throw new Error('Failed to create lesson session')
-  return session as LessonSession
+  return session as LessonSessionType
 }
 
 /**
  * Advance lesson to next section based on student response
  */
 export async function advanceLesson(
-  session: LessonSession,
+  session: LessonSessionType,
   studentResponse: string
 ): Promise<LessonAdvanceResult> {
   const currentIndex = SECTIONS.indexOf(session.currentSection)
@@ -165,7 +161,7 @@ export async function advanceLesson(
   // Check if we're at the end
   if (currentIndex >= SECTIONS.length - 1) {
     // Mark as complete
-    await completeLesson(session.id)
+    await completeLesson(session.sessionId)
     return {
       newSection: 'review',
       sectionComplete: true,
@@ -183,15 +179,15 @@ export async function advanceLesson(
   await drizzleDb
     .update(lessonSession)
     .set({ currentSection: nextSection, sessionContext: context })
-    .where(eq(lessonSession.id, session.id))
+    .where(eq(lessonSession.sessionId, session.sessionId))
 
   await drizzleDb
-    .update(curriculumLessonProgress)
+    .update(courseLessonProgress)
     .set({ currentSection: nextSection })
     .where(
       and(
-        eq(curriculumLessonProgress.lessonId, session.lessonId),
-        eq(curriculumLessonProgress.studentId, session.studentId)
+        eq(courseLessonProgress.lessonId, session.lessonId),
+        eq(courseLessonProgress.studentId, session.studentId)
       )
     )
 
@@ -279,10 +275,10 @@ export async function assessUnderstanding(
 }
 
 /**
- * Build curriculum-aware prompt for AI
+ * Build course-aware prompt for AI
  */
-export function buildCurriculumPrompt(
-  session: LessonSession,
+export function buildCoursePrompt(
+  session: LessonSessionType,
   lesson: any,
   studentMessage: string
 ): string {
@@ -337,17 +333,6 @@ export function buildCurriculumPrompt(
 ## 当前课程信息
 课程名称: ${lesson.title}
 课程描述: ${lesson.description || 'N/A'}
-难度级别: ${lesson.difficulty}
-预计时长: ${lesson.duration} 分钟
-
-## 学习目标
-${(lesson.learningObjectives || []).map((obj: string) => `- ${obj}`).join('\n')}
-
-## 教学要点
-${(lesson.teachingPoints || []).map((point: string) => `- ${point}`).join('\n')}
-
-## 关键概念
-${(lesson.keyConcepts || []).map((concept: string) => `- ${concept}`).join('\n')}
 
 ## 当前教学阶段
 ${sectionInstructions[currentSection]}
@@ -366,9 +351,6 @@ ${
     .map(([concept, level]) => `- ${concept}: ${level}%`)
     .join('\n') || '暂无数据'
 }
-
-## 常见误解（需要留意）
-${(lesson.commonMisconceptions || []).map((m: string) => `- ${m}`).join('\n')}
 
 ## 教学原则
 1. 严格遵循当前阶段的教学指导
@@ -418,28 +400,20 @@ export async function completeLesson(sessionId: string): Promise<void> {
   const [sessionRow] = await drizzleDb
     .select()
     .from(lessonSession)
-    .where(eq(lessonSession.id, sessionId))
+    .where(eq(lessonSession.sessionId, sessionId))
     .limit(1)
   if (!sessionRow) return
 
   const [lessonRow] = await drizzleDb
     .select()
-    .from(curriculumLesson)
-    .where(eq(curriculumLesson.id, sessionRow.lessonId))
+    .from(courseLesson)
+    .where(eq(courseLesson.lessonId, sessionRow.lessonId))
     .limit(1)
   if (!lessonRow) return
 
-  // Handle case where lesson may not have a module (new flat structure)
-  const [moduleRow] = lessonRow.moduleId
-    ? await drizzleDb
-        .select()
-        .from(curriculumModule)
-        .where(eq(curriculumModule.id, lessonRow.moduleId))
-        .limit(1)
-    : [null]
-  if (!moduleRow) return
+  const courseId = lessonRow.courseId
+  if (!courseId) return
 
-  const curriculumId = moduleRow.curriculumId
   const mastery = (sessionRow.conceptMastery as Record<string, number>) || {}
   const avgScore =
     Object.keys(mastery).length > 0
@@ -450,10 +424,10 @@ export async function completeLesson(sessionId: string): Promise<void> {
     await tx
       .update(lessonSession)
       .set({ status: 'completed', completedAt: new Date() })
-      .where(eq(lessonSession.id, sessionId))
+      .where(eq(lessonSession.sessionId, sessionId))
 
     await tx
-      .update(curriculumLessonProgress)
+      .update(courseLessonProgress)
       .set({
         status: 'COMPLETED',
         completedAt: new Date(),
@@ -461,34 +435,34 @@ export async function completeLesson(sessionId: string): Promise<void> {
       })
       .where(
         and(
-          eq(curriculumLessonProgress.lessonId, sessionRow.lessonId),
-          eq(curriculumLessonProgress.studentId, sessionRow.studentId)
+          eq(courseLessonProgress.lessonId, sessionRow.lessonId),
+          eq(courseLessonProgress.studentId, sessionRow.studentId)
         )
       )
 
+    // Get total lessons for this course
     const [totalRow] = await tx
       .select({
         count: sql<number>`count(*)::int`,
       })
-      .from(curriculumLesson)
-      .innerJoin(curriculumModule, eq(curriculumModule.id, curriculumLesson.moduleId))
-      .where(eq(curriculumModule.curriculumId, curriculumId))
+      .from(courseLesson)
+      .where(eq(courseLesson.courseId, courseId))
     const totalLessons = totalRow?.count ?? 0
 
     const [existing] = await tx
       .select()
-      .from(curriculumProgress)
+      .from(courseProgress)
       .where(
         and(
-          eq(curriculumProgress.studentId, sessionRow.studentId),
-          eq(curriculumProgress.curriculumId, curriculumId)
+          eq(courseProgress.studentId, sessionRow.studentId),
+          eq(courseProgress.courseId, courseId)
         )
       )
       .limit(1)
 
     if (existing) {
       await tx
-        .update(curriculumProgress)
+        .update(courseProgress)
         .set({
           lessonsCompleted: existing.lessonsCompleted + 1,
           currentLessonId: sessionRow.lessonId,
@@ -496,15 +470,15 @@ export async function completeLesson(sessionId: string): Promise<void> {
         })
         .where(
           and(
-            eq(curriculumProgress.studentId, sessionRow.studentId),
-            eq(curriculumProgress.curriculumId, curriculumId)
+            eq(courseProgress.studentId, sessionRow.studentId),
+            eq(courseProgress.courseId, courseId)
           )
         )
     } else {
-      await tx.insert(curriculumProgress).values({
-        id: crypto.randomUUID(),
+      await tx.insert(courseProgress).values({
+        progressId: crypto.randomUUID(),
         studentId: sessionRow.studentId,
-        curriculumId,
+        courseId,
         lessonsCompleted: 1,
         totalLessons,
         currentLessonId: sessionRow.lessonId,
@@ -527,54 +501,35 @@ export async function completeLesson(sessionId: string): Promise<void> {
  */
 export async function getNextLesson(
   studentId: string,
-  curriculumId: string
+  courseId: string
 ): Promise<{ lessonId: string; title: string; moduleTitle: string } | null> {
-  const modules = await drizzleDb
+  // Get all lessons for this course ordered by order
+  const lessons = await drizzleDb
     .select()
-    .from(curriculumModule)
-    .where(eq(curriculumModule.curriculumId, curriculumId))
-    .orderBy(curriculumModule.order)
+    .from(courseLesson)
+    .where(eq(courseLesson.courseId, courseId))
+    .orderBy(courseLesson.order)
 
-  for (const mod of modules) {
-    const lessons = await drizzleDb
+  for (const lesson of lessons) {
+    const [progress] = await drizzleDb
       .select()
-      .from(curriculumLesson)
-      .where(eq(curriculumLesson.moduleId, mod.id))
-      .orderBy(curriculumLesson.order)
-
-    for (const lesson of lessons) {
-      const [progress] = await drizzleDb
-        .select()
-        .from(curriculumLessonProgress)
-        .where(
-          and(
-            eq(curriculumLessonProgress.lessonId, lesson.id),
-            eq(curriculumLessonProgress.studentId, studentId)
-          )
+      .from(courseLessonProgress)
+      .where(
+        and(
+          eq(courseLessonProgress.lessonId, lesson.lessonId),
+          eq(courseLessonProgress.studentId, studentId)
         )
-        .limit(1)
-      if (progress?.status === 'COMPLETED') continue
+      )
+      .limit(1)
+    if (progress?.status === 'COMPLETED') continue
 
-      const prereqs = lesson.prerequisiteLessonIds || []
-      if (prereqs.length > 0) {
-        const [countRow] = await drizzleDb
-          .select({ count: sql<number>`count(*)::int` })
-          .from(curriculumLessonProgress)
-          .where(
-            and(
-              eq(curriculumLessonProgress.studentId, studentId),
-              inArray(curriculumLessonProgress.lessonId, prereqs),
-              eq(curriculumLessonProgress.status, 'COMPLETED')
-            )
-          )
-        if ((countRow?.count ?? 0) < prereqs.length) continue
-      }
+    // Note: prerequisiteLessonIds removed from schema - now in builderData
+    // Skip prerequisite checking for now or implement via builderData
 
-      return {
-        lessonId: lesson.id,
-        title: lesson.title,
-        moduleTitle: mod.title,
-      }
+    return {
+      lessonId: lesson.lessonId,
+      title: lesson.title,
+      moduleTitle: '', // Modules are deprecated
     }
   }
   return null
@@ -583,63 +538,50 @@ export async function getNextLesson(
 /**
  * Get student progress overview
  */
-export async function getStudentProgress(
+export async function getStudentProgressOverview(
   studentId: string,
-  curriculumId: string
+  courseId: string
 ): Promise<{
   totalLessons: number
   completedLessons: number
-  currentModule: string
   overallProgress: number
 }> {
-  const [curriculumRow] = await drizzleDb
+  const [courseRow] = await drizzleDb
     .select()
-    .from(curriculum)
-    .where(eq(curriculum.id, curriculumId))
+    .from(course)
+    .where(eq(course.courseId, courseId))
     .limit(1)
-  if (!curriculumRow) throw new Error('Curriculum not found')
+  if (!courseRow) throw new Error('Course not found')
 
-  const modules = await drizzleDb
+  const lessons = await drizzleDb
     .select()
-    .from(curriculumModule)
-    .where(eq(curriculumModule.curriculumId, curriculumId))
-    .orderBy(curriculumModule.order)
+    .from(courseLesson)
+    .where(eq(courseLesson.courseId, courseId))
+    .orderBy(courseLesson.order)
 
   let totalLessons = 0
   let completedLessons = 0
-  let currentModule = ''
 
-  for (const mod of modules) {
-    const lessons = await drizzleDb
+  for (const lesson of lessons) {
+    totalLessons++
+    const [progress] = await drizzleDb
       .select()
-      .from(curriculumLesson)
-      .where(eq(curriculumLesson.moduleId, mod.id))
-      .orderBy(curriculumLesson.order)
-
-    for (const lesson of lessons) {
-      totalLessons++
-      const [progress] = await drizzleDb
-        .select()
-        .from(curriculumLessonProgress)
-        .where(
-          and(
-            eq(curriculumLessonProgress.lessonId, lesson.id),
-            eq(curriculumLessonProgress.studentId, studentId)
-          )
+      .from(courseLessonProgress)
+      .where(
+        and(
+          eq(courseLessonProgress.lessonId, lesson.lessonId),
+          eq(courseLessonProgress.studentId, studentId)
         )
-        .limit(1)
-      if (progress?.status === 'COMPLETED') {
-        completedLessons++
-      } else if (!currentModule && progress?.status === 'IN_PROGRESS') {
-        currentModule = mod.title
-      }
+      )
+      .limit(1)
+    if (progress?.status === 'COMPLETED') {
+      completedLessons++
     }
   }
 
   return {
     totalLessons,
     completedLessons,
-    currentModule: currentModule || modules[0]?.title || '',
     overallProgress: totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0,
   }
 }
@@ -650,17 +592,16 @@ export async function getStudentProgress(
 export async function getLessonContent(lessonId: string): Promise<LessonContent> {
   const [lesson] = await drizzleDb
     .select()
-    .from(curriculumLesson)
-    .where(eq(curriculumLesson.id, lessonId))
+    .from(courseLesson)
+    .where(eq(courseLesson.lessonId, lessonId))
     .limit(1)
   if (!lesson) throw new Error('Lesson not found')
 
   // Legacy fields removed from schema - now stored in builderData
   return {
-    id: lesson.id,
+    lessonId: lesson.lessonId,
     title: lesson.title,
     description: lesson.description || undefined,
-    duration: lesson.duration,
   }
 }
 

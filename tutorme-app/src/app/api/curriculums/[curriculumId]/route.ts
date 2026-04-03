@@ -10,11 +10,11 @@ import { getParamAsync } from '@/lib/api/params'
 import { and, eq, sql } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
-  curriculumEnrollment,
+  course,
+  courseEnrollment,
   curriculumModule,
-  curriculumLesson,
-  curriculumProgress,
+  courseLesson,
+  courseProgress,
   profile,
   user,
 } from '@/lib/db/schema'
@@ -25,58 +25,58 @@ export async function GET(
     params: Promise<Record<string, string | string[]>>
   }
 ) {
-  const curriculumId = await getParamAsync(context.params, 'curriculumId')
+  const courseId = await getParamAsync(context.params, 'curriculumId')
 
-  if (!curriculumId) {
+  if (!courseId) {
     return NextResponse.json({ error: 'Curriculum ID required' }, { status: 400 })
   }
 
-  const [curriculumRow] = await drizzleDb
+  const [courseRow] = await drizzleDb
     .select()
-    .from(curriculum)
-    .where(and(eq(curriculum.id, curriculumId), eq(curriculum.isPublished, true)))
+    .from(course)
+    .where(and(eq(course.courseId, courseId), eq(course.isPublished, true)))
     .limit(1)
 
-  if (!curriculumRow) {
+  if (!courseRow) {
     return NextResponse.json({ error: 'Curriculum not found' }, { status: 404 })
   }
 
   const modules = await drizzleDb
     .select()
     .from(curriculumModule)
-    .where(eq(curriculumModule.curriculumId, curriculumId))
+    .where(eq(curriculumModule.curriculumId, courseId))
 
   const [modulesCountRow] = await drizzleDb
     .select({ count: sql<number>`count(*)::int` })
     .from(curriculumModule)
-    .where(eq(curriculumModule.curriculumId, curriculumId))
+    .where(eq(curriculumModule.curriculumId, courseId))
 
   const [enrollmentsCountRow] = await drizzleDb
     .select({ count: sql<number>`count(*)::int` })
-    .from(curriculumEnrollment)
-    .where(eq(curriculumEnrollment.curriculumId, curriculumId))
+    .from(courseEnrollment)
+    .where(eq(courseEnrollment.courseId, courseId))
 
   let totalLessons = 0
   for (const mod of modules) {
     const [lessonCount] = await drizzleDb
       .select({ count: sql<number>`count(*)::int` })
-      .from(curriculumLesson)
-      .where(eq(curriculumLesson.moduleId, mod.id))
+      .from(courseLesson)
+      .where(eq(courseLesson.moduleId, mod.id))
     totalLessons += lessonCount?.count ?? 0
   }
 
   let creator: { id: string; name: string; bio: string | null } | null = null
-  if (curriculumRow.creatorId) {
+  if (courseRow.creatorId) {
     const [creatorUser] = await drizzleDb
       .select({ id: user.id, email: user.email })
       .from(user)
-      .where(eq(user.id, curriculumRow.creatorId))
+      .where(eq(user.id, courseRow.creatorId))
       .limit(1)
     const [creatorProfile] = creatorUser
       ? await drizzleDb
           .select({ name: profile.name, bio: profile.bio })
           .from(profile)
-          .where(eq(profile.userId, curriculumRow.creatorId!))
+          .where(eq(profile.userId, courseRow.creatorId!))
           .limit(1)
       : []
     creator = creatorUser
@@ -93,11 +93,11 @@ export async function GET(
   if (session?.user?.id) {
     const [progress] = await drizzleDb
       .select()
-      .from(curriculumProgress)
+      .from(courseProgress)
       .where(
         and(
-          eq(curriculumProgress.studentId, session.user.id),
-          eq(curriculumProgress.curriculumId, curriculumId)
+          eq(courseProgress.studentId, session.user.id),
+          eq(courseProgress.courseId, courseId)
         )
       )
       .limit(1)
@@ -105,19 +105,19 @@ export async function GET(
   }
 
   return NextResponse.json({
-    id: curriculumRow.id,
-    name: curriculumRow.name,
-    subject: curriculumRow.subject,
-    description: curriculumRow.description,
-    difficulty: curriculumRow.difficulty,
-    estimatedHours: curriculumRow.estimatedHours,
-    price: curriculumRow.price,
-    currency: curriculumRow.currency,
-    isFree: curriculumRow.isFree,
-    gradeLevel: curriculumRow.gradeLevel,
-    languageOfInstruction: curriculumRow.languageOfInstruction,
-    schedule: curriculumRow.schedule,
-    isLiveOnline: curriculumRow.isLiveOnline,
+    id: courseRow.courseId,
+    name: courseRow.name,
+    subject: courseRow.subject,
+    description: courseRow.description,
+    difficulty: courseRow.difficulty,
+    estimatedHours: courseRow.estimatedHours,
+    price: courseRow.price,
+    currency: courseRow.currency,
+    isFree: courseRow.isFree,
+    gradeLevel: courseRow.gradeLevel,
+    languageOfInstruction: courseRow.languageOfInstruction,
+    schedule: courseRow.schedule,
+    isLiveOnline: courseRow.isLiveOnline,
     modulesCount: modulesCountRow?.count ?? 0,
     lessonsCount: totalLessons,
     studentCount: enrollmentsCountRow?.count ?? 0,

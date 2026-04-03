@@ -7,11 +7,10 @@ import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculumEnrollment,
-  curriculum,
-  curriculumModule,
-  curriculumLesson,
-  curriculumLessonProgress,
+  courseEnrollment,
+  course,
+  courseLesson,
+  courseLessonProgress,
   quizAttempt,
 } from '@/lib/db/schema'
 import { eq, desc, inArray } from 'drizzle-orm'
@@ -20,16 +19,16 @@ export const GET = withAuth(
   async (req, session) => {
     const enrollmentsRows = await drizzleDb
       .select({
-        curriculumId: curriculum.id,
-        curriculumName: curriculum.name,
-        curriculumSubject: curriculum.subject,
-        curriculumDescription: curriculum.description,
-        lastActivity: curriculumEnrollment.lastActivity,
-        enrollmentSource: curriculumEnrollment.enrollmentSource,
+        courseId: course.courseId,
+        courseName: course.name,
+        courseCategories: course.categories,
+        courseDescription: course.description,
+        lastActivity: courseEnrollment.lastActivity,
+        enrollmentSource: courseEnrollment.enrollmentSource,
       })
-      .from(curriculumEnrollment)
-      .innerJoin(curriculum, eq(curriculumEnrollment.curriculumId, curriculum.id))
-      .where(eq(curriculumEnrollment.studentId, session.user.id))
+      .from(courseEnrollment)
+      .innerJoin(course, eq(courseEnrollment.courseId, course.courseId))
+      .where(eq(courseEnrollment.studentId, session.user.id))
 
     const quizAttempts = await drizzleDb
       .select()
@@ -44,45 +43,38 @@ export const GET = withAuth(
           quizAttempts.length
         : 0
 
-    const progressByCurriculum = new Map<string, { total: number; completed: number }>()
+    const progressByCourse = new Map<string, { total: number; completed: number }>()
     for (const row of enrollmentsRows) {
-      const key = row.curriculumId
-      if (!progressByCurriculum.has(key)) {
-        const mods = await drizzleDb
+      const key = row.courseId
+      if (!progressByCourse.has(key)) {
+        const lessons = await drizzleDb
           .select()
-          .from(curriculumModule)
-          .where(eq(curriculumModule.curriculumId, key))
-        const mids = mods.map(m => m.id)
-        const less =
-          mids.length > 0
-            ? await drizzleDb
-                .select()
-                .from(curriculumLesson)
-                .where(inArray(curriculumLesson.moduleId, mids))
-            : []
+          .from(courseLesson)
+          .where(eq(courseLesson.courseId, key))
+        const lessonIds = lessons.map(l => l.lessonId)
         const recs = await drizzleDb
           .select()
-          .from(curriculumLessonProgress)
-          .where(eq(curriculumLessonProgress.studentId, session.user.id))
+          .from(courseLessonProgress)
+          .where(eq(courseLessonProgress.studentId, session.user.id))
         const completed = recs.filter(
-          r => r.status === 'COMPLETED' && less.some(l => l.id === r.lessonId)
+          r => r.status === 'COMPLETED' && lessonIds.some(l => l === r.lessonId)
         ).length
-        progressByCurriculum.set(key, { total: less.length, completed })
+        progressByCourse.set(key, { total: lessons.length, completed })
       }
     }
 
     const subjects = enrollmentsRows.map(enrollment => {
-      const { total, completed } = progressByCurriculum.get(enrollment.curriculumId) ?? {
+      const { total, completed } = progressByCourse.get(enrollment.courseId) ?? {
         total: 0,
         completed: 0,
       }
       const progress = total > 0 ? Math.round((completed / total) * 100) : 0
-      const skills = generateSubjectSkills(enrollment.curriculumSubject, avgScore)
+      const skills = generateSubjectSkills(enrollment.courseCategories?.[0] ?? '', avgScore)
       return {
-        id: enrollment.curriculumId,
-        name: enrollment.curriculumName,
-        subject: enrollment.curriculumSubject,
-        description: enrollment.curriculumDescription,
+        courseId: enrollment.courseId,
+        name: enrollment.courseName,
+        categories: enrollment.courseCategories,
+        description: enrollment.courseDescription,
         progress,
         completedLessons: completed,
         totalLessons: total,
@@ -100,7 +92,7 @@ export const GET = withAuth(
   { role: 'STUDENT' }
 )
 
-function generateSubjectSkills(subjectCode: string, baseScore: number) {
+function generateSubjectSkills(category: string, baseScore: number) {
   const skillsMap: Record<string, string[]> = {
     english: ['Grammar', 'Vocabulary', 'Writing', 'Reading Comprehension', 'Speaking'],
     math: ['Algebra', 'Geometry', 'Calculus', 'Statistics', 'Problem Solving'],
@@ -111,7 +103,7 @@ function generateSubjectSkills(subjectCode: string, baseScore: number) {
     cs: ['Programming', 'Algorithms', 'Data Structures', 'Databases', 'Web Dev'],
   }
 
-  const skillNames = skillsMap[subjectCode.toLowerCase()] || [
+  const skillNames = skillsMap[category.toLowerCase()] || [
     'Skill 1',
     'Skill 2',
     'Skill 3',

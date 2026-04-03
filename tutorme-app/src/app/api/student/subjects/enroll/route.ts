@@ -1,21 +1,20 @@
 /**
  * Enroll in a Subject API
- * Add a new subject to student's curriculum
+ * Add a new subject to student's course
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError, withRateLimitPreset } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
-  curriculumEnrollment,
-  curriculumModule,
-  curriculumLesson,
+  course,
+  courseEnrollment,
+  courseLesson,
   userGamification,
 } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
-const subjectCurriculumMap: Record<string, { name: string; description: string }> = {
+const subjectCourseMap: Record<string, { name: string; description: string }> = {
   english: {
     name: 'English Language Arts',
     description: 'Language arts, writing, grammar, and literature analysis',
@@ -79,25 +78,25 @@ export const POST = withCsrf(
       }
 
       const subjectKey = subjectCode.toLowerCase()
-      const subjectInfo = subjectCurriculumMap[subjectKey]
+      const subjectInfo = subjectCourseMap[subjectKey]
       if (!subjectInfo) {
         throw new ValidationError('Invalid subject code')
       }
 
-      const [curriculumBySubject] = await drizzleDb
+      const [courseByCategory] = await drizzleDb
         .select()
-        .from(curriculum)
-        .where(eq(curriculum.subject, subjectKey))
+        .from(course)
+        .where(eq(course.categories, [subjectKey]))
         .limit(1)
 
-      if (curriculumBySubject) {
+      if (courseByCategory) {
         const [existingEnrollment] = await drizzleDb
           .select()
-          .from(curriculumEnrollment)
+          .from(courseEnrollment)
           .where(
             and(
-              eq(curriculumEnrollment.studentId, session.user.id),
-              eq(curriculumEnrollment.curriculumId, curriculumBySubject.id)
+              eq(courseEnrollment.studentId, session.user.id),
+              eq(courseEnrollment.courseId, courseByCategory.courseId)
             )
           )
           .limit(1)
@@ -106,21 +105,19 @@ export const POST = withCsrf(
         }
       }
 
-      let curriculumId: string
-      if (curriculumBySubject) {
-        curriculumId = curriculumBySubject.id
+      let courseId: string
+      if (courseByCategory) {
+        courseId = courseByCategory.courseId
       } else {
-        curriculumId = crypto.randomUUID()
+        courseId = crypto.randomUUID()
         const now = new Date()
 
         // Insert with accurate schema defaults
-        const curriculumValues: Record<string, unknown> = {
-          id: curriculumId,
+        const courseValues: Record<string, unknown> = {
+          courseId,
           name: subjectInfo.name,
-          subject: subjectKey,
+          categories: [subjectKey],
           description: subjectInfo.description,
-          difficulty: 'intermediate',
-          estimatedHours: 40,
           isPublished: true,
           isLiveOnline: true,
           isFree: false,
@@ -129,17 +126,17 @@ export const POST = withCsrf(
         }
 
         await drizzleDb
-          .insert(curriculum)
-          .values(curriculumValues as typeof curriculum.$inferInsert)
+          .insert(course)
+          .values(courseValues as typeof course.$inferInsert)
           .returning()
-        await createDefaultModules(curriculumId, subjectCode)
+        await createDefaultLessons(courseId, subjectCode)
       }
 
       const enrollmentId = crypto.randomUUID()
-      await drizzleDb.insert(curriculumEnrollment).values({
-        id: enrollmentId,
+      await drizzleDb.insert(courseEnrollment).values({
+        enrollmentId,
         studentId: session.user.id,
-        curriculumId,
+        courseId,
         lessonsCompleted: 0,
         enrollmentSource: 'browse',
       })
@@ -157,7 +154,7 @@ export const POST = withCsrf(
           .where(eq(userGamification.userId, session.user.id))
       } else {
         await drizzleDb.insert(userGamification).values({
-          id: crypto.randomUUID(),
+          gamificationId: crypto.randomUUID(),
           userId: session.user.id,
           level: 1,
           xp: 50,
@@ -176,8 +173,8 @@ export const POST = withCsrf(
 
       const [enrollment] = await drizzleDb
         .select()
-        .from(curriculumEnrollment)
-        .where(eq(curriculumEnrollment.id, enrollmentId))
+        .from(courseEnrollment)
+        .where(eq(courseEnrollment.enrollmentId, enrollmentId))
         .limit(1)
 
       return NextResponse.json({
@@ -190,144 +187,110 @@ export const POST = withCsrf(
   )
 )
 
-async function createDefaultModules(curriculumId: string, subjectCode: string) {
-  const moduleData = getDefaultModules(subjectCode)
-  for (let i = 0; i < moduleData.length; i++) {
-    const mod = moduleData[i]
-    const moduleId = crypto.randomUUID()
-    await drizzleDb.insert(curriculumModule).values({
-      id: moduleId,
-      curriculumId,
-      title: mod.title,
-      description: mod.description,
+async function createDefaultLessons(courseId: string, subjectCode: string) {
+  const lessonData = getDefaultLessons(subjectCode)
+  for (let i = 0; i < lessonData.length; i++) {
+    const lesson = lessonData[i]
+    const lessonId = crypto.randomUUID()
+    await drizzleDb.insert(courseLesson).values({
+      lessonId,
+      courseId,
+      title: lesson.title,
+      description: lesson.description,
       order: i,
     })
-    const lessonValues = mod.lessons.map((lessonTitle: string, j: number) => ({
-      id: crypto.randomUUID(),
-      moduleId,
-      title: lessonTitle,
-      description: null,
-      duration: 30,
-      difficulty: 'beginner',
-      order: j,
-      learningObjectives: [],
-      teachingPoints: [],
-      keyConcepts: [],
-      commonMisconceptions: [],
-      prerequisiteLessonIds: [],
-    }))
-    await drizzleDb.insert(curriculumLesson).values(lessonValues)
   }
 }
 
-function getDefaultModules(subjectCode: string) {
-  const modules: Record<string, any[]> = {
+function getDefaultLessons(subjectCode: string) {
+  const lessons: Record<string, any[]> = {
     precalculus: [
       {
         title: 'Functions and Graphs',
         description: 'Understanding functions, domain, range, and transformations',
-        lessons: ['Introduction to Functions', 'Function Operations', 'Graph Transformations'],
       },
       {
         title: 'Trigonometry',
         description: 'Trigonometric functions, identities, and equations',
-        lessons: ['Unit Circle', 'Trig Functions', 'Trig Identities'],
       },
       {
         title: 'Analytic Geometry',
         description: 'Conic sections and parametric equations',
-        lessons: ['Circles and Parabolas', 'Ellipses and Hyperbolas', 'Parametric Equations'],
       },
       {
         title: 'Sequences and Series',
         description: 'Arithmetic, geometric sequences and series',
-        lessons: ['Arithmetic Sequences', 'Geometric Sequences', 'Series and Summation'],
       },
     ],
     'ap-calculus-ab': [
       {
         title: 'Limits and Continuity',
         description: 'Understanding limits and continuity',
-        lessons: ['Introduction to Limits', 'Limit Properties', 'Continuity'],
       },
       {
         title: 'Derivatives',
         description: 'Definition, rules, and applications of derivatives',
-        lessons: ['Derivative Definition', 'Differentiation Rules', 'Chain Rule', 'Applications'],
       },
       {
         title: 'Integrals',
         description: 'Definite and indefinite integrals',
-        lessons: ['Antiderivatives', 'Definite Integrals', 'Fundamental Theorem', 'Applications'],
       },
     ],
     'ap-calculus-bc': [
       {
         title: 'Limits and Continuity',
         description: 'Understanding limits and continuity',
-        lessons: ['Introduction to Limits', 'Limit Properties', 'Continuity'],
       },
       {
         title: 'Derivatives',
         description: 'Definition, rules, and applications',
-        lessons: ['Derivative Definition', 'Differentiation Rules', 'Applications'],
       },
       {
         title: 'Integrals',
         description: 'Definite and indefinite integrals',
-        lessons: ['Antiderivatives', 'Definite Integrals', 'Applications'],
       },
       {
         title: 'Series',
         description: 'Infinite series and convergence',
-        lessons: ['Sequences', 'Series Convergence', 'Power Series', 'Taylor Series'],
       },
       {
         title: 'Parametric and Polar',
         description: 'Parametric equations and polar coordinates',
-        lessons: ['Parametric Curves', 'Polar Coordinates', 'Calculus in Polar'],
       },
     ],
     'ap-statistics': [
       {
         title: 'Exploring Data',
         description: 'Describing and analyzing data patterns',
-        lessons: ['Graphical Displays', 'Summarizing Distributions', 'Comparing Distributions'],
       },
       {
         title: 'Sampling and Experimentation',
         description: 'Data collection methods',
-        lessons: ['Sampling Methods', 'Experimental Design', 'Simulations'],
       },
       {
         title: 'Probability',
         description: 'Randomness and probability',
-        lessons: ['Probability Rules', 'Random Variables', 'Normal Distribution'],
       },
       {
         title: 'Inference',
         description: 'Statistical inference and testing',
-        lessons: ['Confidence Intervals', 'Hypothesis Testing', 'Comparing Groups'],
       },
     ],
   }
 
   return (
-    modules[subjectCode.toLowerCase()] || [
+    lessons[subjectCode.toLowerCase()] || [
       {
         title: 'Introduction',
         description: 'Getting started with the subject',
-        lessons: ['Welcome', 'Basics', 'Getting Started'],
       },
       {
         title: 'Core Concepts',
         description: 'Fundamental principles',
-        lessons: ['Concept 1', 'Concept 2', 'Concept 3'],
       },
       {
         title: 'Advanced Topics',
         description: 'Deeper exploration',
-        lessons: ['Advanced 1', 'Advanced 2'],
       },
     ]
   )

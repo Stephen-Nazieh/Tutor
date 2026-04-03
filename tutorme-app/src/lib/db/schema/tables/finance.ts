@@ -19,7 +19,7 @@ import * as enums from '../enums'
 export const payment = pgTable(
   'Payment',
   {
-    id: text('id').primaryKey().notNull(),
+    paymentId: text('paymentId').primaryKey().notNull(),
     bookingId: text('bookingId').unique(),
     amount: doublePrecision('amount').notNull(),
     currency: text('currency').notNull(),
@@ -57,7 +57,7 @@ export const payment = pgTable(
 export const refund = pgTable(
   'Refund',
   {
-    id: text('id').primaryKey().notNull(),
+    refundId: text('refundId').primaryKey().notNull(),
     paymentId: text('paymentId').notNull(),
     amount: doublePrecision('amount').notNull(),
     reason: text('reason'),
@@ -77,7 +77,7 @@ export const refund = pgTable(
 export const webhookEvent = pgTable(
   'WebhookEvent',
   {
-    id: text('id').primaryKey().notNull(),
+    eventId: text('eventId').primaryKey().notNull(),
     paymentId: text('paymentId'),
     gateway: enums.paymentGatewayEnum('gateway').notNull(),
     eventType: text('eventType').notNull(),
@@ -98,7 +98,7 @@ export const webhookEvent = pgTable(
 export const payout = pgTable(
   'Payout',
   {
-    id: text('id').primaryKey().notNull(),
+    payoutId: text('payoutId').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     amount: doublePrecision('amount').notNull(),
     currency: text('currency').notNull(),
@@ -121,7 +121,7 @@ export const payout = pgTable(
 export const paymentOnPayout = pgTable(
   'PaymentOnPayout',
   {
-    id: text('id').primaryKey().notNull(),
+    paymentOnPayoutId: text('paymentOnPayoutId').primaryKey().notNull(),
     paymentId: text('paymentId').notNull(),
     payoutId: text('payoutId').notNull(),
     amount: doublePrecision('amount').notNull(),
@@ -139,7 +139,7 @@ export const paymentOnPayout = pgTable(
 export const platformRevenue = pgTable(
   'PlatformRevenue',
   {
-    id: text('id').primaryKey().notNull(),
+    revenueId: text('revenueId').primaryKey().notNull(),
     paymentId: text('paymentId').notNull(),
     amount: doublePrecision('amount').notNull(),
     month: text('month').notNull(),

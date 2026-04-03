@@ -8,10 +8,10 @@ import { withAuth, NotFoundError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
+  course,
   curriculumModule,
-  curriculumLesson,
-  curriculumProgress,
+  courseLesson,
+  courseProgress,
   lessonSession,
   curriculumLessonProgress,
 } from '@/lib/db/schema'
@@ -37,26 +37,26 @@ function normalizeSchedule(schedule: unknown): ScheduleItem[] {
 
 export const GET = withAuth(
   async (_req, session, context) => {
-    const curriculumId = await getParamAsync(context?.params, 'curriculumId')
-    if (!curriculumId) {
+    const courseId = await getParamAsync(context?.params, 'curriculumId')
+    if (!courseId) {
       return NextResponse.json({ error: 'Curriculum ID required' }, { status: 400 })
     }
     const studentId = session.user.id
 
-    const [curriculumRow] = await drizzleDb
+    const [courseRow] = await drizzleDb
       .select()
-      .from(curriculum)
-      .where(eq(curriculum.id, curriculumId))
+      .from(course)
+      .where(eq(course.courseId, courseId))
       .limit(1)
 
-    if (!curriculumRow) {
+    if (!courseRow) {
       throw new NotFoundError('Curriculum not found')
     }
 
     const modules = await drizzleDb
       .select()
       .from(curriculumModule)
-      .where(eq(curriculumModule.curriculumId, curriculumId))
+      .where(eq(curriculumModule.curriculumId, courseId))
       .orderBy(asc(curriculumModule.order))
 
     const moduleIds = modules.map(m => m.id)
@@ -64,12 +64,12 @@ export const GET = withAuth(
       moduleIds.length > 0
         ? await drizzleDb
             .select()
-            .from(curriculumLesson)
-            .where(inArray(curriculumLesson.moduleId, moduleIds))
-            .orderBy(asc(curriculumLesson.order))
+            .from(courseLesson)
+            .where(inArray(courseLesson.moduleId, moduleIds))
+            .orderBy(asc(courseLesson.order))
         : []
 
-    const lessonIds = lessons.map(l => l.id)
+    const lessonIds = lessons.map(l => l.lessonId)
     const sessions =
       lessonIds.length > 0
         ? await drizzleDb
@@ -97,11 +97,11 @@ export const GET = withAuth(
 
     const [progress] = await drizzleDb
       .select()
-      .from(curriculumProgress)
+      .from(courseProgress)
       .where(
         and(
-          eq(curriculumProgress.studentId, studentId),
-          eq(curriculumProgress.curriculumId, curriculumId)
+          eq(courseProgress.studentId, studentId),
+          eq(courseProgress.courseId, courseId)
         )
       )
       .limit(1)
@@ -127,7 +127,7 @@ export const GET = withAuth(
         description: module.description,
         order: module.order,
         lessons: moduleLessons.map(lesson => {
-          const record = progressByLessonId.get(lesson.id)
+          const record = progressByLessonId.get(lesson.lessonId)
           let status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' = 'NOT_STARTED'
           if (record) {
             if (record.status === 'COMPLETED') status = 'COMPLETED'
@@ -140,7 +140,7 @@ export const GET = withAuth(
             progressByLessonId
           )
 
-          const sess = sessionByLessonId.get(lesson.id)
+          const sess = sessionByLessonId.get(lesson.lessonId)
           const conceptMastery = sess?.conceptMastery as Record<string, number> | null
           const score =
             conceptMastery && Object.keys(conceptMastery).length > 0
@@ -151,7 +151,7 @@ export const GET = withAuth(
               : null
 
           return {
-            id: lesson.id,
+            id: lesson.lessonId,
             title: lesson.title,
             description: lesson.description,
             duration: lesson.duration,
@@ -172,25 +172,25 @@ export const GET = withAuth(
       }
     })
 
-    const courseMaterials = curriculumRow.courseMaterials as { outline?: unknown[] } | null
+    const courseMaterials = courseRow.courseMaterials as { outline?: unknown[] } | null
     const hasOutline = !!(
       courseMaterials &&
       Array.isArray(courseMaterials.outline) &&
       courseMaterials.outline.length > 0
     )
-    const schedule = normalizeSchedule(curriculumRow.schedule)
+    const schedule = normalizeSchedule(courseRow.schedule)
 
     return NextResponse.json({
       curriculum: {
-        id: curriculumRow.id,
-        name: curriculumRow.name,
-        description: curriculumRow.description,
-        subject: curriculumRow.subject,
-        difficulty: curriculumRow.difficulty,
-        estimatedHours: curriculumRow.estimatedHours,
+        id: courseRow.courseId,
+        name: courseRow.name,
+        description: courseRow.description,
+        subject: courseRow.subject,
+        difficulty: courseRow.difficulty,
+        estimatedHours: courseRow.estimatedHours,
         hasOutline,
         schedule,
-        isFree: curriculumRow.isFree,
+        isFree: courseRow.isFree,
         progress: {
           lessonsCompleted: progress?.lessonsCompleted ?? 0,
           totalLessons,
@@ -207,14 +207,14 @@ export const GET = withAuth(
 
 function arePrerequisitesLocked(
   prerequisiteIds: string[],
-  allLessons: Array<{ id: string }>,
+  allLessons: Array<{ lessonId: string }>,
   progressByLessonId: Map<string, { status: string }>
 ): boolean {
   if (prerequisiteIds.length === 0) return false
   for (const prereqId of prerequisiteIds) {
-    const prereqLesson = allLessons.find(l => l.id === prereqId)
+    const prereqLesson = allLessons.find(l => l.lessonId === prereqId)
     if (!prereqLesson) continue
-    const record = progressByLessonId.get(prereqLesson.id)
+    const record = progressByLessonId.get(prereqLesson.lessonId)
     const isCompleted = record?.status === 'COMPLETED'
     if (!isCompleted) return true
   }

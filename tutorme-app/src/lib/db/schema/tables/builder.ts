@@ -19,11 +19,9 @@ import * as enums from '../enums'
 export const builderTask = pgTable(
   'BuilderTask',
   {
-    id: text('id').primaryKey().notNull(),
-    curriculumId: text('curriculumId').notNull(),
+    taskId: text('taskId').primaryKey().notNull(),
+    courseId: text('courseId').notNull(),
     lessonId: text('lessonId').notNull(),
-    /** @deprecated Modules are being removed */
-    moduleId: text('moduleId'),
     tutorId: text('tutorId').notNull(),
     title: text('title').notNull(),
     content: text('content').notNull(), // Content tab content
@@ -40,14 +38,13 @@ export const builderTask = pgTable(
     publishedAt: timestamp('publishedAt', { withTimezone: true }),
   },
   table => ({
-    BuilderTask_curriculumId_idx: index('BuilderTask_curriculumId_idx').on(table.curriculumId),
+    BuilderTask_courseId_idx: index('BuilderTask_courseId_idx').on(table.courseId),
     BuilderTask_lessonId_idx: index('BuilderTask_lessonId_idx').on(table.lessonId),
-    BuilderTask_moduleId_idx: index('BuilderTask_moduleId_idx').on(table.moduleId),
     BuilderTask_tutorId_idx: index('BuilderTask_tutorId_idx').on(table.tutorId),
     BuilderTask_type_idx: index('BuilderTask_type_idx').on(table.type),
     BuilderTask_status_idx: index('BuilderTask_status_idx').on(table.status),
-    BuilderTask_curriculumId_lessonId_idx: index('BuilderTask_curriculumId_lessonId_idx').on(
-      table.curriculumId,
+    BuilderTask_courseId_lessonId_idx: index('BuilderTask_courseId_lessonId_idx').on(
+      table.courseId,
       table.lessonId
     ),
   })
@@ -56,7 +53,7 @@ export const builderTask = pgTable(
 export const builderTaskExtension = pgTable(
   'BuilderTaskExtension',
   {
-    id: text('id').primaryKey().notNull(),
+    extensionId: text('extensionId').primaryKey().notNull(),
     taskId: text('taskId').notNull(),
     name: text('name').notNull(), // Extension 1, Extension 2, etc.
     content: text('content').notNull(), // Extension content
@@ -81,7 +78,7 @@ export const builderTaskExtension = pgTable(
 export const builderTaskFile = pgTable(
   'BuilderTaskFile',
   {
-    id: text('id').primaryKey().notNull(),
+    fileId: text('fileId').primaryKey().notNull(),
     taskId: text('taskId').notNull(),
     name: text('name').notNull(),
     url: text('url').notNull(),
@@ -98,7 +95,7 @@ export const builderTaskFile = pgTable(
 export const builderTaskVersion = pgTable(
   'BuilderTaskVersion',
   {
-    id: text('id').primaryKey().notNull(),
+    versionId: text('versionId').primaryKey().notNull(),
     taskId: text('taskId').notNull(),
     version: integer('version').notNull(),
     content: text('content').notNull(),
@@ -123,7 +120,7 @@ export const builderTaskVersion = pgTable(
 export const taskPoll = pgTable(
   'TaskPoll',
   {
-    id: text('id').primaryKey().notNull(),
+    pollId: text('pollId').primaryKey().notNull(),
     taskId: text('taskId').notNull(),
     tutorId: text('tutorId').notNull(),
     sessionId: text('sessionId').notNull(), // Live session this poll belongs to
@@ -146,7 +143,7 @@ export const taskPoll = pgTable(
 export const taskQuestion = pgTable(
   'TaskQuestion',
   {
-    id: text('id').primaryKey().notNull(),
+    questionId: text('questionId').primaryKey().notNull(),
     taskId: text('taskId').notNull(),
     tutorId: text('tutorId').notNull(),
     sessionId: text('sessionId').notNull(), // Live session this question belongs to
@@ -168,7 +165,7 @@ export const taskQuestion = pgTable(
 export const taskDeployment = pgTable(
   'TaskDeployment',
   {
-    id: text('id').primaryKey().notNull(),
+    deploymentId: text('deploymentId').primaryKey().notNull(),
     taskId: text('taskId').notNull(),
     tutorId: text('tutorId').notNull(),
     sessionId: text('sessionId').notNull(),
@@ -192,7 +189,7 @@ export const taskDeployment = pgTable(
 export const tutorAsset = pgTable(
   'TutorAsset',
   {
-    id: text('id').primaryKey().notNull(),
+    assetId: text('assetId').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     name: text('name').notNull(),
     content: text('content'), // Extracted text content

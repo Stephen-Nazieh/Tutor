@@ -1,62 +1,62 @@
 /**
  * Check Enrollment Status API (Drizzle ORM)
- * GET: Check if student is enrolled in a specific curriculum
+ * GET: Check if student is enrolled in a specific course
  */
 
 import { and, eq } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum, curriculumEnrollment, curriculumProgress } from '@/lib/db/schema'
+import { course, courseEnrollment, courseProgress } from '@/lib/db/schema'
 
 export const GET = withAuth(
   async (req, session) => {
-    const curriculumId = req.nextUrl.searchParams.get('curriculumId')
+    const courseId = req.nextUrl.searchParams.get('courseId')
 
-    if (!curriculumId) {
-      return NextResponse.json({ error: 'Curriculum ID is required' }, { status: 400 })
+    if (!courseId) {
+      return NextResponse.json({ error: 'Course ID is required' }, { status: 400 })
     }
 
     const [enrollment] = await drizzleDb
       .select()
-      .from(curriculumEnrollment)
+      .from(courseEnrollment)
       .where(
         and(
-          eq(curriculumEnrollment.studentId, session.user.id),
-          eq(curriculumEnrollment.curriculumId, curriculumId)
+          eq(courseEnrollment.studentId, session.user.id),
+          eq(courseEnrollment.courseId, courseId)
         )
       )
       .limit(1)
 
     const [progress] = await drizzleDb
       .select()
-      .from(curriculumProgress)
+      .from(courseProgress)
       .where(
         and(
-          eq(curriculumProgress.studentId, session.user.id),
-          eq(curriculumProgress.curriculumId, curriculumId)
+          eq(courseProgress.studentId, session.user.id),
+          eq(courseProgress.courseId, courseId)
         )
       )
       .limit(1)
 
-    let curriculumData: {
-      id: string
+    let courseData: {
+      courseId: string
       name: string
       price: number | null
       currency: string | null
     } | null = null
     if (enrollment) {
-      const [cur] = await drizzleDb
+      const [courseRow] = await drizzleDb
         .select({
-          id: curriculum.id,
-          name: curriculum.name,
-          price: curriculum.price,
-          currency: curriculum.currency,
+          courseId: course.courseId,
+          name: course.name,
+          price: course.price,
+          currency: course.currency,
         })
-        .from(curriculum)
-        .where(eq(curriculum.id, enrollment.curriculumId))
+        .from(course)
+        .where(eq(course.courseId, enrollment.courseId))
         .limit(1)
-      curriculumData = cur ?? null
+      courseData = courseRow ?? null
     }
 
     return NextResponse.json({
@@ -64,7 +64,7 @@ export const GET = withAuth(
       enrollment: enrollment
         ? {
             ...enrollment,
-            curriculum: curriculumData,
+            course: courseData,
           }
         : null,
       progress: progress ?? null,

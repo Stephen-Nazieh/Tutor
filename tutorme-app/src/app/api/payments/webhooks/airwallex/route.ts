@@ -16,8 +16,8 @@ import {
   clinic,
   user,
   profile,
-  curriculumEnrollment,
-  curriculum,
+  courseEnrollment,
+  course,
 } from '@/lib/db/schema'
 import { AirwallexGateway } from '@/lib/payments'
 import {
@@ -114,27 +114,27 @@ export async function POST(req: NextRequest) {
       if (
         !paymentRow.bookingId &&
         meta?.type === 'course' &&
-        typeof meta.curriculumId === 'string' &&
+        typeof meta.courseId === 'string' &&
         typeof meta.studentId === 'string'
       ) {
         const { enrollStudentInCurriculum } = await import('@/lib/enrollment')
         enrollStudentInCurriculum(
           meta.studentId as string,
-          meta.curriculumId as string,
+          meta.courseId as string,
           meta.startDate as string | undefined
         )
           .then(async () => {
             const [enrollment] = await drizzleDb
               .select({
-                id: curriculumEnrollment.id,
-                creatorId: curriculum.creatorId,
+                id: courseEnrollment.id,
+                creatorId: course.creatorId,
               })
-              .from(curriculumEnrollment)
-              .innerJoin(curriculum, eq(curriculum.id, curriculumEnrollment.curriculumId))
+              .from(courseEnrollment)
+              .innerJoin(course, eq(course.id, courseEnrollment.courseId))
               .where(
                 and(
-                  eq(curriculumEnrollment.studentId, meta.studentId as string),
-                  eq(curriculumEnrollment.curriculumId, meta.curriculumId as string)
+                  eq(courseEnrollment.studentId, meta.studentId as string),
+                  eq(courseEnrollment.courseId, meta.courseId as string)
                 )
               )
               .limit(1)

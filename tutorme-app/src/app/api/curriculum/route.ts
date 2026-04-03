@@ -10,12 +10,12 @@ import { withAuth } from '@/lib/api/middleware'
 import { cache } from '@/lib/db'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
-  curriculumProgress,
+  course,
+  courseProgress,
   curriculumModule,
-  curriculumLesson,
+  courseLesson,
   courseBatch,
-  curriculumEnrollment,
+  courseEnrollment,
 } from '@/lib/db/schema'
 import { eq, inArray, desc, sql, and } from 'drizzle-orm'
 
@@ -128,45 +128,45 @@ export const GET = withAuth(async (req, session) => {
       // 1. Fetch main curriculum rows
       const curriculums = await drizzleDb
         .select()
-        .from(curriculum)
-        .orderBy(desc(curriculum.createdAt))
+        .from(course)
+        .orderBy(desc(course.createdAt))
 
       if (curriculums.length === 0) return []
-      const curriculumIds = curriculums.map(c => c.id)
+      const courseIds = curriculums.map(c => c.courseId)
 
       // 2. Fetch module counts
       const modulesRaw = await drizzleDb
         .select({
-          curriculumId: curriculumModule.curriculumId,
+          courseId: curriculumModule.curriculumId,
           moduleCount: sql<number>`count(${curriculumModule.id})::int`,
         })
         .from(curriculumModule)
-        .where(inArray(curriculumModule.curriculumId, curriculumIds))
+        .where(inArray(curriculumModule.curriculumId, courseIds))
         .groupBy(curriculumModule.curriculumId)
 
       const modulesMap = new Map<string, number>(
-        modulesRaw.map(m => [m.curriculumId, m.moduleCount])
+        modulesRaw.map(m => [m.courseId, m.moduleCount])
       )
 
       // 3. Fetch batch counts
       const batchesRaw = await drizzleDb
         .select({
-          curriculumId: courseBatch.curriculumId,
-          batchCount: sql<number>`count(${courseBatch.id})::int`,
+          courseId: courseBatch.courseId,
+          batchCount: sql<number>`count(${courseBatch.batchId})::int`,
         })
         .from(courseBatch)
-        .where(inArray(courseBatch.curriculumId, curriculumIds))
-        .groupBy(courseBatch.curriculumId)
+        .where(inArray(courseBatch.courseId, courseIds))
+        .groupBy(courseBatch.courseId)
 
       const batchesMap = new Map<string, number>(
-        batchesRaw.map(b => [b.curriculumId, b.batchCount])
+        batchesRaw.map(b => [b.courseId, b.batchCount])
       )
 
       // 4. Fetch the lessons count by getting modules for these curriculums
       const allModules = await drizzleDb
-        .select({ id: curriculumModule.id, curriculumId: curriculumModule.curriculumId })
+        .select({ id: curriculumModule.id, courseId: curriculumModule.curriculumId })
         .from(curriculumModule)
-        .where(inArray(curriculumModule.curriculumId, curriculumIds))
+        .where(inArray(curriculumModule.curriculumId, courseIds))
 
       const moduleIds = allModules.map(m => m.id)
       const lessonsMap = new Map<string, number>()
@@ -174,12 +174,12 @@ export const GET = withAuth(async (req, session) => {
       if (moduleIds.length > 0) {
         const lessonsRaw = await drizzleDb
           .select({
-            moduleId: curriculumLesson.moduleId,
-            lessonCount: sql<number>`count(${curriculumLesson.id})::int`,
+            moduleId: courseLesson.moduleId,
+            lessonCount: sql<number>`count(${courseLesson.lessonId})::int`,
           })
-          .from(curriculumLesson)
-          .where(inArray(curriculumLesson.moduleId, moduleIds))
-          .groupBy(curriculumLesson.moduleId)
+          .from(courseLesson)
+          .where(inArray(courseLesson.moduleId, moduleIds))
+          .groupBy(courseLesson.moduleId)
 
         // Filter out lessons with null moduleId (new flat structure)
         const lessonCountsByModule = new Map<string, number>(
@@ -190,47 +190,47 @@ export const GET = withAuth(async (req, session) => {
 
         for (const m of allModules) {
           const lCount = lessonCountsByModule.get(m.id) || 0
-          lessonsMap.set(m.curriculumId, (lessonsMap.get(m.curriculumId) || 0) + lCount)
+          lessonsMap.set(m.courseId, (lessonsMap.get(m.courseId) || 0) + lCount)
         }
       }
 
       // 5. Fetch user progress
       const progressList = await drizzleDb
         .select()
-        .from(curriculumProgress)
+        .from(courseProgress)
         .where(
           and(
-            eq(curriculumProgress.studentId, session.user.id),
-            inArray(curriculumProgress.curriculumId, curriculumIds)
+            eq(courseProgress.studentId, session.user.id),
+            inArray(courseProgress.courseId, courseIds)
           )
         )
 
-      const progressByCurriculumId = new Map<string, (typeof progressList)[number]>(
-        progressList.map(p => [p.curriculumId, p])
+      const progressByCourseId = new Map<string, (typeof progressList)[number]>(
+        progressList.map(p => [p.courseId, p])
       )
 
       // 5.5 Fetch user enrollment
       const enrollmentList = await drizzleDb
         .select()
-        .from(curriculumEnrollment)
+        .from(courseEnrollment)
         .where(
           and(
-            eq(curriculumEnrollment.studentId, session.user.id),
-            inArray(curriculumEnrollment.curriculumId, curriculumIds)
+            eq(courseEnrollment.studentId, session.user.id),
+            inArray(courseEnrollment.courseId, courseIds)
           )
         )
 
-      const enrollmentByCurriculumId = new Map<string, (typeof enrollmentList)[number]>(
-        enrollmentList.map(e => [e.curriculumId, e])
+      const enrollmentByCourseId = new Map<string, (typeof enrollmentList)[number]>(
+        enrollmentList.map(e => [e.courseId, e])
       )
 
       // 6. Map everything together
       return curriculums.map((curr): CurriculumResponse => {
-        const progress = progressByCurriculumId.get(curr.id)
-        const enrollment = enrollmentByCurriculumId.get(curr.id)
+        const progress = progressByCourseId.get(curr.courseId)
+        const enrollment = enrollmentByCourseId.get(curr.courseId)
         const schedule = normalizeSchedule(curr.schedule)
         return {
-          id: curr.id,
+          id: curr.courseId,
           name: curr.name,
           description: curr.description,
           subject: curr.subject,
@@ -238,9 +238,9 @@ export const GET = withAuth(async (req, session) => {
           estimatedHours: curr.estimatedHours,
           hasOutline: hasOutline(curr.courseMaterials),
           _count: {
-            modules: modulesMap.get(curr.id) || 0,
-            lessons: lessonsMap.get(curr.id) || 0,
-            batches: batchesMap.get(curr.id) || 0,
+            modules: modulesMap.get(curr.courseId) || 0,
+            lessons: lessonsMap.get(curr.courseId) || 0,
+            batches: batchesMap.get(curr.courseId) || 0,
           },
           availability: {
             summary: availabilitySummary(schedule),

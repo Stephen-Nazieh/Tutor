@@ -16,13 +16,13 @@ import {
   builderTaskVersion,
   calendarEvent,
   courseBatch,
-  curriculum,
-  curriculumEnrollment,
-  curriculumLesson,
-  curriculumLessonProgress,
-  curriculumModule,
-  curriculumProgress,
-  curriculumShare,
+  course,
+  courseEnrollment,
+  courseLesson,
+  courseLessonProgress,
+  courseModule,
+  courseProgress,
+  courseShare,
   lessonSession,
   liveSession,
   quiz,
@@ -42,41 +42,41 @@ export const GET = withAuth(
     const id = await getParamAsync(context?.params, 'id')
     if (!id) return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
 
-    const [curriculumRow] = await drizzleDb.select().from(curriculum).where(eq(curriculum.id, id))
-    if (!curriculumRow) throw new NotFoundError('Course not found')
+    const [courseRow] = await drizzleDb.select().from(course).where(eq(course.courseId, id))
+    if (!courseRow) throw new NotFoundError('Course not found')
 
     const modules = await drizzleDb
       .select()
-      .from(curriculumModule)
-      .where(eq(curriculumModule.curriculumId, id))
-      .orderBy(asc(curriculumModule.order))
+      .from(courseModule)
+      .where(eq(courseModule.courseId, id))
+      .orderBy(asc(courseModule.order))
 
-    const moduleIds = modules.map(m => m.id)
+    const moduleIds = modules.map(m => m.moduleId)
     const lessons =
       moduleIds.length > 0
         ? await drizzleDb
             .select()
-            .from(curriculumLesson)
-            .where(and(inArray(curriculumLesson.moduleId, moduleIds)))
-            .orderBy(asc(curriculumLesson.order))
+            .from(courseLesson)
+            .where(and(inArray(courseLesson.moduleId, moduleIds)))
+            .orderBy(asc(courseLesson.order))
         : []
 
     const [{ count: enrollmentCount }] = await drizzleDb
       .select({ count: sql<number>`count(*)::int` })
-      .from(curriculumEnrollment)
-      .where(eq(curriculumEnrollment.curriculumId, id))
+      .from(courseEnrollment)
+      .where(eq(courseEnrollment.courseId, id))
 
     const modulesWithLessons = modules.map(m => ({
       ...m,
-      lessons: lessons.filter(l => l.moduleId === m.id),
+      lessons: lessons.filter(l => l.moduleId === m.moduleId),
     }))
 
-    const schedule = curriculumRow.schedule as Array<{
+    const schedule = courseRow.schedule as Array<{
       dayOfWeek: string
       startTime: string
       durationMinutes: number
     }> | null
-    const materials = curriculumRow.courseMaterials as {
+    const materials = courseRow.courseMaterials as {
       curriculumText?: string
       notesText?: string
       editableCurriculum?: string
@@ -87,21 +87,21 @@ export const GET = withAuth(
 
     return NextResponse.json({
       course: {
-        id: curriculumRow.id,
-        name: curriculumRow.name,
-        description: curriculumRow.description,
-        subject: curriculumRow.subject,
-        gradeLevel: curriculumRow.gradeLevel,
-        difficulty: curriculumRow.difficulty,
-        estimatedHours: curriculumRow.estimatedHours,
-        isPublished: curriculumRow.isPublished,
-        isLiveOnline: curriculumRow.isLiveOnline,
-        languageOfInstruction: curriculumRow.languageOfInstruction,
-        price: curriculumRow.price,
-        currency: curriculumRow.currency,
-        isFree: curriculumRow.isFree,
-        curriculumSource: curriculumRow.curriculumSource,
-        outlineSource: curriculumRow.outlineSource,
+        id: courseRow.courseId,
+        name: courseRow.name,
+        description: courseRow.description,
+        subject: courseRow.subject,
+        gradeLevel: courseRow.gradeLevel,
+        difficulty: courseRow.difficulty,
+        estimatedHours: courseRow.estimatedHours,
+        isPublished: courseRow.isPublished,
+        isLiveOnline: courseRow.isLiveOnline,
+        languageOfInstruction: courseRow.languageOfInstruction,
+        price: courseRow.price,
+        currency: courseRow.currency,
+        isFree: courseRow.isFree,
+        curriculumSource: courseRow.curriculumSource,
+        outlineSource: courseRow.outlineSource,
         schedule: schedule ?? [],
         studentCount: enrollmentCount ?? 0,
         modules: modulesWithLessons,
@@ -119,61 +119,61 @@ export const DELETE = withCsrf(
       if (!id) return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
 
       const userId = session?.user?.id
-      const [curriculumRow] = await drizzleDb.select().from(curriculum).where(eq(curriculum.id, id))
-      if (!curriculumRow) throw new NotFoundError('Course not found')
-      if (curriculumRow.creatorId !== userId) {
+      const [courseRow] = await drizzleDb.select().from(course).where(eq(course.courseId, id))
+      if (!courseRow) throw new NotFoundError('Course not found')
+      if (courseRow.creatorId !== userId) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
 
       await drizzleDb.transaction(async tx => {
         const modules = await tx
-          .select({ id: curriculumModule.id })
-          .from(curriculumModule)
-          .where(eq(curriculumModule.curriculumId, id))
-        const moduleIds = modules.map(m => m.id)
+          .select({ moduleId: courseModule.moduleId })
+          .from(courseModule)
+          .where(eq(courseModule.courseId, id))
+        const moduleIds = modules.map(m => m.moduleId)
 
         const lessons =
           moduleIds.length > 0
             ? await tx
-                .select({ id: curriculumLesson.id })
-                .from(curriculumLesson)
-                .where(inArray(curriculumLesson.moduleId, moduleIds))
+                .select({ lessonId: courseLesson.lessonId })
+                .from(courseLesson)
+                .where(inArray(courseLesson.moduleId, moduleIds))
             : []
-        const lessonIds = lessons.map(l => l.id)
+        const lessonIds = lessons.map(l => l.lessonId)
 
         const tasks = await tx
-          .select({ id: builderTask.id })
+          .select({ taskId: builderTask.taskId })
           .from(builderTask)
-          .where(eq(builderTask.curriculumId, id))
-        const taskIds = tasks.map(t => t.id)
+          .where(eq(builderTask.courseId, id))
+        const taskIds = tasks.map(t => t.taskId)
 
-        const quizzes = await tx.select({ id: quiz.id }).from(quiz).where(eq(quiz.curriculumId, id))
-        const quizIds = quizzes.map(q => q.id)
+        const quizzes = await tx.select({ quizId: quiz.quizId }).from(quiz).where(eq(quiz.courseId, id))
+        const quizIds = quizzes.map(q => q.quizId)
 
         const boards = await tx
-          .select({ id: whiteboard.id })
+          .select({ whiteboardId: whiteboard.whiteboardId })
           .from(whiteboard)
-          .where(eq(whiteboard.curriculumId, id))
-        const boardIds = boards.map(b => b.id)
+          .where(eq(whiteboard.courseId, id))
+        const boardIds = boards.map(b => b.whiteboardId)
 
         if (lessonIds.length > 0) {
           await tx.delete(lessonSession).where(inArray(lessonSession.lessonId, lessonIds))
           await tx
-            .delete(curriculumLessonProgress)
-            .where(inArray(curriculumLessonProgress.lessonId, lessonIds))
+            .delete(courseLessonProgress)
+            .where(inArray(courseLessonProgress.lessonId, lessonIds))
         }
 
         if (taskIds.length > 0) {
           await tx.delete(builderTaskExtension).where(inArray(builderTaskExtension.taskId, taskIds))
           await tx.delete(builderTaskFile).where(inArray(builderTaskFile.taskId, taskIds))
           await tx.delete(builderTaskVersion).where(inArray(builderTaskVersion.taskId, taskIds))
-          await tx.delete(builderTask).where(inArray(builderTask.id, taskIds))
+          await tx.delete(builderTask).where(inArray(builderTask.taskId, taskIds))
         }
 
         if (quizIds.length > 0) {
           await tx.delete(quizAttempt).where(inArray(quizAttempt.quizId, quizIds))
           await tx.delete(quizAssignment).where(inArray(quizAssignment.quizId, quizIds))
-          await tx.delete(quiz).where(inArray(quiz.id, quizIds))
+          await tx.delete(quiz).where(inArray(quiz.quizId, quizIds))
         }
 
         if (boardIds.length > 0) {
@@ -184,23 +184,23 @@ export const DELETE = withCsrf(
           await tx
             .delete(whiteboardSession)
             .where(inArray(whiteboardSession.whiteboardId, boardIds))
-          await tx.delete(whiteboard).where(inArray(whiteboard.id, boardIds))
+          await tx.delete(whiteboard).where(inArray(whiteboard.whiteboardId, boardIds))
         }
 
-        await tx.delete(curriculumEnrollment).where(eq(curriculumEnrollment.curriculumId, id))
-        await tx.delete(curriculumProgress).where(eq(curriculumProgress.curriculumId, id))
-        await tx.delete(studentPerformance).where(eq(studentPerformance.curriculumId, id))
-        await tx.delete(curriculumShare).where(eq(curriculumShare.curriculumId, id))
-        await tx.delete(courseBatch).where(eq(courseBatch.curriculumId, id))
-        await tx.delete(liveSession).where(eq(liveSession.curriculumId, id))
-        await tx.delete(calendarEvent).where(eq(calendarEvent.curriculumId, id))
+        await tx.delete(courseEnrollment).where(eq(courseEnrollment.courseId, id))
+        await tx.delete(courseProgress).where(eq(courseProgress.courseId, id))
+        await tx.delete(studentPerformance).where(eq(studentPerformance.courseId, id))
+        await tx.delete(courseShare).where(eq(courseShare.courseId, id))
+        await tx.delete(courseBatch).where(eq(courseBatch.courseId, id))
+        await tx.delete(liveSession).where(eq(liveSession.courseId, id))
+        await tx.delete(calendarEvent).where(eq(calendarEvent.courseId, id))
 
         if (moduleIds.length > 0) {
-          await tx.delete(curriculumLesson).where(inArray(curriculumLesson.moduleId, moduleIds))
-          await tx.delete(curriculumModule).where(inArray(curriculumModule.id, moduleIds))
+          await tx.delete(courseLesson).where(inArray(courseLesson.moduleId, moduleIds))
+          await tx.delete(courseModule).where(inArray(courseModule.moduleId, moduleIds))
         }
 
-        await tx.delete(curriculum).where(eq(curriculum.id, id))
+        await tx.delete(course).where(eq(course.courseId, id))
       })
 
       return NextResponse.json({ success: true })
@@ -215,20 +215,20 @@ export const PATCH = withCsrf(
       const id = await getParamAsync(context?.params, 'id')
       if (!id) return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
 
-      const [curriculumRow] = await drizzleDb.select().from(curriculum).where(eq(curriculum.id, id))
-      if (!curriculumRow) throw new NotFoundError('Course not found')
+      const [courseRow] = await drizzleDb.select().from(course).where(eq(course.courseId, id))
+      if (!courseRow) throw new NotFoundError('Course not found')
 
       const modules = await drizzleDb
         .select()
-        .from(curriculumModule)
-        .where(eq(curriculumModule.curriculumId, id))
-      const moduleIds = modules.map(m => m.id)
+        .from(courseModule)
+        .where(eq(courseModule.courseId, id))
+      const moduleIds = modules.map(m => m.moduleId)
       const lessons =
         moduleIds.length > 0
           ? await drizzleDb
               .select()
-              .from(curriculumLesson)
-              .where(inArray(curriculumLesson.moduleId, moduleIds))
+              .from(courseLesson)
+              .where(inArray(courseLesson.moduleId, moduleIds))
           : []
 
       const body = await req.json().catch(() => ({}))
@@ -247,28 +247,28 @@ export const PATCH = withCsrf(
           ? sanitizeHtmlWithMax(String(data.description), 5000)
           : undefined
 
-      if (data.isPublished === true && !curriculumRow.isPublished) {
+      if (data.isPublished === true && !courseRow.isPublished) {
         const validationErrors: string[] = []
-        if (!curriculumRow.name || curriculumRow.name.trim().length < 2) {
+        if (!courseRow.name || courseRow.name.trim().length < 2) {
           validationErrors.push('Course must have a name (at least 2 characters)')
         }
-        if (!curriculumRow.subject) {
+        if (!courseRow.subject) {
           validationErrors.push('Course must have a subject selected')
         }
         if (modules.length === 0) {
           validationErrors.push('Course must have at least one module')
         }
-        const hasLessons = modules.some(m => lessons.some(l => l.moduleId === m.id))
+        const hasLessons = modules.some(m => lessons.some(l => l.moduleId === m.moduleId))
         if (!hasLessons) {
           validationErrors.push('Course must have at least one lesson')
         }
         if (
-          !curriculumRow.isFree &&
-          (curriculumRow.price === null || curriculumRow.price === undefined)
+          !courseRow.isFree &&
+          (courseRow.price === null || courseRow.price === undefined)
         ) {
           validationErrors.push('Course must have a price set (use free toggle for free courses)')
         }
-        if (!curriculumRow.isFree && (curriculumRow.price ?? 0) > 0 && !curriculumRow.currency) {
+        if (!courseRow.isFree && (courseRow.price ?? 0) > 0 && !courseRow.currency) {
           validationErrors.push('Currency must be set for paid courses')
         }
         if (validationErrors.length > 0) {
@@ -299,9 +299,9 @@ export const PATCH = withCsrf(
       }
 
       const [updated] = await drizzleDb
-        .update(curriculum)
+        .update(course)
         .set(updatePayload as Record<string, unknown>)
-        .where(eq(curriculum.id, id))
+        .where(eq(course.courseId, id))
         .returning()
 
       if (!updated) {
@@ -310,7 +310,7 @@ export const PATCH = withCsrf(
 
       return NextResponse.json({
         course: {
-          id: updated.id,
+          id: updated.courseId,
           name: updated.name,
           description: updated.description,
           gradeLevel: updated.gradeLevel,

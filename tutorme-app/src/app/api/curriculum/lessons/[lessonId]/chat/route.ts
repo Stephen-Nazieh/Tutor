@@ -15,10 +15,10 @@ import {
 } from '@/lib/curriculum/lesson-controller'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculumLesson,
+  courseLesson,
   curriculumModule,
   lessonSession as lessonSessionTable,
-  curriculumProgress,
+  courseProgress,
 } from '@/lib/db/schema'
 import { generateWithFallback } from '@/lib/agents'
 
@@ -40,8 +40,8 @@ export const POST = withCsrf(
       // Get lesson details
       const [lessonRow] = await drizzleDb
         .select()
-        .from(curriculumLesson)
-        .where(eq(curriculumLesson.id, lessonId))
+        .from(courseLesson)
+        .where(eq(courseLesson.lessonId, lessonId))
         .limit(1)
 
       if (!lessonRow) {
@@ -60,8 +60,8 @@ export const POST = withCsrf(
       const lesson = {
         ...lessonRow,
         module: moduleRow
-          ? { curriculumId: moduleRow.curriculumId, title: moduleRow.title }
-          : { curriculumId: '', title: '' },
+          ? { courseId: moduleRow.curriculumId, title: moduleRow.title }
+          : { courseId: '', title: '' },
       }
 
       // Get or create lesson session
@@ -219,39 +219,39 @@ export const POST = withCsrf(
           .set({ status: 'completed', completedAt: new Date() })
           .where(eq(lessonSessionTable.id, lessonSession.id))
 
-        const curriculumId = lesson.module?.curriculumId ?? moduleRow?.curriculumId
-        if (curriculumId) {
+        const courseId = lesson.module?.courseId ?? moduleRow?.curriculumId
+        if (courseId) {
           const [{ count: totalLessons }] = await drizzleDb
             .select({ count: sql<number>`count(*)::int` })
-            .from(curriculumLesson)
-            .innerJoin(curriculumModule, eq(curriculumModule.id, curriculumLesson.moduleId))
-            .where(eq(curriculumModule.curriculumId, curriculumId))
+            .from(courseLesson)
+            .innerJoin(curriculumModule, eq(curriculumModule.id, courseLesson.moduleId))
+            .where(eq(curriculumModule.curriculumId, courseId))
 
           const [existing] = await drizzleDb
             .select()
-            .from(curriculumProgress)
+            .from(courseProgress)
             .where(
               and(
-                eq(curriculumProgress.studentId, session.user.id),
-                eq(curriculumProgress.curriculumId, curriculumId)
+                eq(courseProgress.studentId, session.user.id),
+                eq(courseProgress.courseId, courseId)
               )
             )
             .limit(1)
 
           if (existing) {
             await drizzleDb
-              .update(curriculumProgress)
+              .update(courseProgress)
               .set({
                 lessonsCompleted: existing.lessonsCompleted + 1,
                 currentLessonId: lessonId,
                 averageScore: understandingLevel,
               })
-              .where(eq(curriculumProgress.id, existing.id))
+              .where(eq(courseProgress.progressId, existing.progressId))
           } else {
-            await drizzleDb.insert(curriculumProgress).values({
-              id: crypto.randomUUID(),
+            await drizzleDb.insert(courseProgress).values({
+              progressId: crypto.randomUUID(),
               studentId: session.user.id,
-              curriculumId,
+              courseId,
               lessonsCompleted: 1,
               totalLessons: totalLessons ?? 0,
               currentLessonId: lessonId,

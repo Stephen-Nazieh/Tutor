@@ -19,12 +19,12 @@ import * as enums from '../enums'
 export const whiteboard = pgTable(
   'Whiteboard',
   {
-    id: text('id').primaryKey().notNull(),
+    whiteboardId: text('whiteboardId').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     ownerId: text('ownerId').notNull(),
     sessionId: text('sessionId'),
     roomId: text('roomId'),
-    curriculumId: text('curriculumId'),
+    courseId: text('courseId'),
     lessonId: text('lessonId'),
     title: text('title').notNull(),
     description: text('description'),
@@ -50,7 +50,7 @@ export const whiteboard = pgTable(
     Whiteboard_ownerId_idx: index('Whiteboard_ownerId_idx').on(table.ownerId),
     Whiteboard_sessionId_idx: index('Whiteboard_sessionId_idx').on(table.sessionId),
     Whiteboard_roomId_idx: index('Whiteboard_roomId_idx').on(table.roomId),
-    Whiteboard_curriculumId_idx: index('Whiteboard_curriculumId_idx').on(table.curriculumId),
+    Whiteboard_courseId_idx: index('Whiteboard_courseId_idx').on(table.courseId),
     Whiteboard_lessonId_idx: index('Whiteboard_lessonId_idx').on(table.lessonId),
     Whiteboard_isTemplate_idx: index('Whiteboard_isTemplate_idx').on(table.isTemplate),
     Whiteboard_createdAt_idx: index('Whiteboard_createdAt_idx').on(table.createdAt),
@@ -74,7 +74,7 @@ export const whiteboard = pgTable(
 export const whiteboardPage = pgTable(
   'WhiteboardPage',
   {
-    id: text('id').primaryKey().notNull(),
+    pageId: text('pageId').primaryKey().notNull(),
     whiteboardId: text('whiteboardId').notNull(),
     name: text('name').notNull(),
     order: integer('order').notNull(),
@@ -107,7 +107,7 @@ export const whiteboardPage = pgTable(
 export const whiteboardSnapshot = pgTable(
   'WhiteboardSnapshot',
   {
-    id: text('id').primaryKey().notNull(),
+    snapshotId: text('snapshotId').primaryKey().notNull(),
     whiteboardId: text('whiteboardId').notNull(),
     name: text('name').notNull(),
     thumbnailUrl: text('thumbnailUrl'),
@@ -126,7 +126,7 @@ export const whiteboardSnapshot = pgTable(
 export const whiteboardSession = pgTable(
   'WhiteboardSession',
   {
-    id: text('id').primaryKey().notNull(),
+    whiteboardSessionId: text('whiteboardSessionId').primaryKey().notNull(),
     whiteboardId: text('whiteboardId').notNull(),
     roomId: text('roomId').notNull(),
     tutorId: text('tutorId').notNull(),
@@ -150,7 +150,7 @@ export const whiteboardSession = pgTable(
 export const mathWhiteboardSession = pgTable(
   'MathWhiteboardSession',
   {
-    id: text('id').primaryKey().notNull(),
+    mathSessionId: text('mathSessionId').primaryKey().notNull(),
     liveSessionId: text('liveSessionId').notNull(),
     tutorId: text('tutorId').notNull(),
     title: text('title').notNull(),
@@ -180,7 +180,7 @@ export const mathWhiteboardSession = pgTable(
 export const mathWhiteboardPage = pgTable(
   'MathWhiteboardPage',
   {
-    id: text('id').primaryKey().notNull(),
+    mathPageId: text('mathPageId').primaryKey().notNull(),
     sessionId: text('sessionId').notNull(),
     name: text('name').notNull(),
     order: integer('order').notNull(),
@@ -208,7 +208,7 @@ export const mathWhiteboardPage = pgTable(
 export const mathWhiteboardParticipant = pgTable(
   'MathWhiteboardParticipant',
   {
-    id: text('id').primaryKey().notNull(),
+    participantId: text('participantId').primaryKey().notNull(),
     sessionId: text('sessionId').notNull(),
     userId: text('userId').notNull(),
     role: enums.roleEnum('role').notNull(),
@@ -238,7 +238,7 @@ export const mathWhiteboardParticipant = pgTable(
 export const mathWhiteboardSnapshot = pgTable(
   'MathWhiteboardSnapshot',
   {
-    id: text('id').primaryKey().notNull(),
+    mathSnapshotId: text('mathSnapshotId').primaryKey().notNull(),
     sessionId: text('sessionId').notNull(),
     name: text('name').notNull(),
     description: text('description'),
@@ -261,7 +261,7 @@ export const mathWhiteboardSnapshot = pgTable(
 export const mathAIInteraction = pgTable(
   'MathAIInteraction',
   {
-    id: text('id').primaryKey().notNull(),
+    interactionId: text('interactionId').primaryKey().notNull(),
     sessionId: text('sessionId').notNull(),
     userId: text('userId').notNull(),
     type: enums.mathAIInteractionTypeEnum('type').notNull(),

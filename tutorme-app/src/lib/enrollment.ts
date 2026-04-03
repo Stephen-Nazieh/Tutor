@@ -1,5 +1,5 @@
 /**
- * Server-side enrollment logic (curriculum).
+ * Server-side enrollment logic (course).
  * Used by POST /api/curriculum/[id]/enroll and by payment webhooks for course purchases.
  * Drizzle ORM.
  */
@@ -7,48 +7,48 @@
 import { eq, and, inArray, sql } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
-  curriculumModule,
-  curriculumLesson,
-  curriculumProgress,
-  curriculumEnrollment,
+  course,
+  courseModule,
+  courseLesson,
+  courseProgress,
+  courseEnrollment,
 } from '@/lib/db/schema'
 
-export async function enrollStudentInCurriculum(
+export async function enrollStudentInCourse(
   studentId: string,
-  curriculumId: string,
+  courseId: string,
   startDate?: string | Date
-): Promise<{ enrolled: boolean; progress?: { id: string } }> {
-  const [curriculumRow] = await drizzleDb
+): Promise<{ enrolled: boolean; progress?: { progressId: string } }> {
+  const [courseRow] = await drizzleDb
     .select()
-    .from(curriculum)
-    .where(eq(curriculum.id, curriculumId))
+    .from(course)
+    .where(eq(course.courseId, courseId))
     .limit(1)
-  if (!curriculumRow) {
-    throw new Error('Curriculum not found')
+  if (!courseRow) {
+    throw new Error('Course not found')
   }
 
   const modules = await drizzleDb
     .select()
-    .from(curriculumModule)
-    .where(eq(curriculumModule.curriculumId, curriculumId))
-  const moduleIds = modules.map(m => m.id)
+    .from(courseModule)
+    .where(eq(courseModule.courseId, courseId))
+  const moduleIds = modules.map(m => m.moduleId)
   const totalLessonsResult =
     moduleIds.length > 0
       ? await drizzleDb
           .select({ count: sql<number>`count(*)::int` })
-          .from(curriculumLesson)
-          .where(inArray(curriculumLesson.moduleId, moduleIds))
+          .from(courseLesson)
+          .where(inArray(courseLesson.moduleId, moduleIds))
       : [{ count: 0 }]
   const totalLessons = totalLessonsResult[0]?.count ?? 0
 
   const [existingProgress] = await drizzleDb
     .select()
-    .from(curriculumProgress)
+    .from(courseProgress)
     .where(
       and(
-        eq(curriculumProgress.studentId, studentId),
-        eq(curriculumProgress.curriculumId, curriculumId)
+        eq(courseProgress.studentId, studentId),
+        eq(courseProgress.courseId, courseId)
       )
     )
     .limit(1)
@@ -58,25 +58,25 @@ export async function enrollStudentInCurriculum(
 
   const [existingEnrollment] = await drizzleDb
     .select()
-    .from(curriculumEnrollment)
+    .from(courseEnrollment)
     .where(
       and(
-        eq(curriculumEnrollment.studentId, studentId),
-        eq(curriculumEnrollment.curriculumId, curriculumId)
+        eq(courseEnrollment.studentId, studentId),
+        eq(courseEnrollment.courseId, courseId)
       )
     )
     .limit(1)
 
   if (existingEnrollment) {
     await drizzleDb
-      .update(curriculumEnrollment)
+      .update(courseEnrollment)
       .set({ enrollmentSource: 'signup' })
-      .where(eq(curriculumEnrollment.id, existingEnrollment.id))
+      .where(eq(courseEnrollment.enrollmentId, existingEnrollment.enrollmentId))
   } else {
-    await drizzleDb.insert(curriculumEnrollment).values({
-      id: crypto.randomUUID(),
+    await drizzleDb.insert(courseEnrollment).values({
+      enrollmentId: crypto.randomUUID(),
       studentId,
-      curriculumId,
+      courseId,
       startDate: startDate ? new Date(startDate) : undefined,
       lessonsCompleted: 0,
       enrollmentSource: 'signup',
@@ -84,16 +84,16 @@ export async function enrollStudentInCurriculum(
   }
 
   const inserted = await drizzleDb
-    .insert(curriculumProgress)
+    .insert(courseProgress)
     .values({
-      id: crypto.randomUUID(),
+      progressId: crypto.randomUUID(),
       studentId,
-      curriculumId,
+      courseId,
       lessonsCompleted: 0,
       totalLessons,
       isCompleted: false,
     })
     .returning()
 
-  return { enrolled: true, progress: inserted[0] ? { id: inserted[0].id } : undefined }
+  return { enrolled: true, progress: inserted[0] ? { progressId: inserted[0].progressId } : undefined }
 }

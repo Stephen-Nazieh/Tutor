@@ -24,7 +24,7 @@ export async function PATCH(request: NextRequest) {
 
     // Get the existing request
     const existingRequest = await drizzleDb.query.oneOnOneBookingRequest.findFirst({
-      where: eq(oneOnOneBookingRequest.id, validated.requestId),
+      where: eq(oneOnOneBookingRequest.requestId, validated.requestId),
     })
 
     if (!existingRequest) {
@@ -58,7 +58,7 @@ export async function PATCH(request: NextRequest) {
           isCancelled: true,
           updatedAt: new Date(),
         })
-        .where(eq(calendarEvent.id, existingRequest.calendarEventId))
+        .where(eq(calendarEvent.eventId, existingRequest.calendarEventId))
     }
 
     // Update request status
@@ -74,7 +74,7 @@ export async function PATCH(request: NextRequest) {
               : existingRequest.tutorNotes,
         updatedAt: new Date(),
       })
-      .where(eq(oneOnOneBookingRequest.id, validated.requestId))
+      .where(eq(oneOnOneBookingRequest.requestId, validated.requestId))
       .returning()
 
     // TODO: Send notification to the other party

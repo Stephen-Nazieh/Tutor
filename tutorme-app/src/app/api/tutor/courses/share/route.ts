@@ -11,9 +11,9 @@ import { eq, and, desc, sql } from 'drizzle-orm'
 import { withAuth, withRateLimit } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
+  course,
   user,
-  curriculumShare,
+  courseShare,
   familyNotification,
   familyMember,
 } from '@/lib/db/schema'
@@ -44,12 +44,12 @@ async function postHandler(
   }
   const data = parseResult.data
 
-  const [course] = await drizzleDb
+  const [courseRow] = await drizzleDb
     .select()
-    .from(curriculum)
-    .where(and(eq(curriculum.id, data.courseId), eq(curriculum.creatorId, session.user.id)))
+    .from(course)
+    .where(and(eq(course.courseId, data.courseId), eq(course.creatorId, session.user.id)))
 
-  if (!course) {
+  if (!courseRow) {
     return NextResponse.json({ error: 'Course not found or permission denied' }, { status: 404 })
   }
 
@@ -83,10 +83,10 @@ async function postHandler(
         continue
       }
 
-      const existingShare = await drizzleDb.query.curriculumShare.findFirst({
+      const existingShare = await drizzleDb.query.courseShare.findFirst({
         where: and(
-          eq(curriculumShare.curriculumId, data.courseId),
-          eq(curriculumShare.recipientId, recipient.id)
+          eq(courseShare.courseId, data.courseId),
+          eq(courseShare.recipientId, recipient.userId)
         ),
       })
 
@@ -96,11 +96,11 @@ async function postHandler(
       }
 
       const shareId = crypto.randomUUID()
-      await drizzleDb.insert(curriculumShare).values({
-        id: shareId,
-        curriculumId: data.courseId,
+      await drizzleDb.insert(courseShare).values({
+        shareId: shareId,
+        courseId: data.courseId,
         sharedByTutorId: session.user.id,
-        recipientId: recipient.id,
+        recipientId: recipient.userId,
         message: data.message,
         isPublic: false,
       })
@@ -109,10 +109,10 @@ async function postHandler(
       if (familyAccountId) {
         const tutorName = session.user.name ?? 'Your teacher'
         await drizzleDb.insert(familyNotification).values({
-          id: crypto.randomUUID(),
+          notificationId: crypto.randomUUID(),
           parentId: familyAccountId,
           title: 'Course Shared by Tutor',
-          message: `${tutorName} shared a course with you: "${course.name}". ${data.message} View: /parent/courses/${shareId}`,
+          message: `${tutorName} shared a course with you: "${courseRow.name}". ${data.message} View: /parent/courses/${shareId}`,
           isRead: false,
         })
       }
@@ -129,7 +129,7 @@ async function postHandler(
   }
 
   await logAudit(session.user.id, AUDIT_ACTIONS.COURSE_SHARE, {
-    resource: 'curriculum-share',
+    resource: 'course-share',
     resourceId: data.courseId,
     recipientCount: data.recipientEmails.length,
     results: results.map(r => ({ email: r.email, status: r.status })),
@@ -144,18 +144,18 @@ async function postHandler(
 }
 
 async function getHandler(_req: NextRequest, session: { user: { id: string } }) {
-  const sharedCourses = await drizzleDb.query.curriculumShare.findMany({
-    where: eq(curriculumShare.sharedByTutorId, session.user.id),
-    orderBy: [desc(curriculumShare.sharedAt)],
+  const sharedCourses = await drizzleDb.query.courseShare.findMany({
+    where: eq(courseShare.sharedByTutorId, session.user.id),
+    orderBy: [desc(courseShare.sharedAt)],
     with: {
       recipient: {
         with: {
           profile: { columns: { name: true } },
         },
       },
-      curriculum: {
+      course: {
         columns: {
-          id: true,
+          courseId: true,
           name: true,
           subject: true,
           gradeLevel: true,

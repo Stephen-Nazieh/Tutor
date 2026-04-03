@@ -6,17 +6,16 @@ import {
   adminSession,
   adminAssignment,
   adminRole,
-  curriculum,
-  curriculumEnrollment,
-  courseBatch,
+  course,
+  courseEnrollment,
   studyGroup,
   studyGroupMember,
-  curriculumModule,
-  curriculumLesson,
-  curriculumLessonProgress,
-  curriculumProgress,
+  courseModule,
+  courseLesson,
+  courseLessonProgress,
+  courseProgress,
   studentPerformance,
-  curriculumShare,
+  courseShare,
   liveSession,
   sessionParticipant,
   clinic,
@@ -65,7 +64,7 @@ export const userRelations = relations(user, ({ one, many }) => ({
   }),
   adminAssignments: many(adminAssignment),
   adminSessions: many(adminSession),
-  curriculumEnrollments: many(curriculumEnrollment),
+  courseEnrollments: many(courseEnrollment),
   liveSessionsAsTutor: many(liveSession),
   sessionParticipations: many(sessionParticipant),
   payouts: many(payout),
@@ -130,7 +129,7 @@ export const adminAssignmentRelations = relations(adminAssignment, ({ one }) => 
   }),
   role: one(adminRole, {
     fields: [adminAssignment.roleId],
-    references: [adminRole.id],
+    references: [adminRole.roleId],
   }),
 }))
 
@@ -138,55 +137,54 @@ export const adminRoleRelations = relations(adminRole, ({ many }) => ({
   assignments: many(adminAssignment),
 }))
 
-export const curriculumRelations = relations(curriculum, ({ many }) => ({
-  batches: many(courseBatch),
-  enrollments: many(curriculumEnrollment),
-  modules: many(curriculumModule),
-  lessons: many(curriculumLesson),
-  shares: many(curriculumShare),
-  progress: many(curriculumProgress),
+export const courseRelations = relations(course, ({ many }) => ({
+  enrollments: many(courseEnrollment),
+  modules: many(courseModule),
+  lessons: many(courseLesson),
+  shares: many(courseShare),
+  progress: many(courseProgress),
   studentPerformances: many(studentPerformance),
 }))
 
-export const curriculumModuleRelations = relations(curriculumModule, ({ one, many }) => ({
-  curriculum: one(curriculum, {
-    fields: [curriculumModule.curriculumId],
-    references: [curriculum.id],
+export const courseModuleRelations = relations(courseModule, ({ one, many }) => ({
+  course: one(course, {
+    fields: [courseModule.courseId],
+    references: [course.courseId],
   }),
-  lessons: many(curriculumLesson),
+  lessons: many(courseLesson),
 }))
 
-export const curriculumLessonRelations = relations(curriculumLesson, ({ one, many }) => ({
-  module: one(curriculumModule, {
-    fields: [curriculumLesson.moduleId],
-    references: [curriculumModule.id],
+export const courseLessonRelations = relations(courseLesson, ({ one, many }) => ({
+  module: one(courseModule, {
+    fields: [courseLesson.moduleId],
+    references: [courseModule.moduleId],
   }),
-  curriculum: one(curriculum, {
-    fields: [curriculumLesson.curriculumId],
-    references: [curriculum.id],
+  course: one(course, {
+    fields: [courseLesson.courseId],
+    references: [course.courseId],
   }),
-  progressRecords: many(curriculumLessonProgress),
+  progressRecords: many(courseLessonProgress),
 }))
 
-export const curriculumLessonProgressRelations = relations(curriculumLessonProgress, ({ one }) => ({
-  lesson: one(curriculumLesson, {
-    fields: [curriculumLessonProgress.lessonId],
-    references: [curriculumLesson.id],
+export const courseLessonProgressRelations = relations(courseLessonProgress, ({ one }) => ({
+  lesson: one(courseLesson, {
+    fields: [courseLessonProgress.lessonId],
+    references: [courseLesson.lessonId],
   }),
   student: one(user, {
-    fields: [curriculumLessonProgress.studentId],
+    fields: [courseLessonProgress.studentId],
     references: [user.id],
   }),
 }))
 
-export const curriculumProgressRelations = relations(curriculumProgress, ({ one }) => ({
+export const courseProgressRelations = relations(courseProgress, ({ one }) => ({
   student: one(user, {
-    fields: [curriculumProgress.studentId],
+    fields: [courseProgress.studentId],
     references: [user.id],
   }),
-  curriculum: one(curriculum, {
-    fields: [curriculumProgress.curriculumId],
-    references: [curriculum.id],
+  course: one(course, {
+    fields: [courseProgress.courseId],
+    references: [course.courseId],
   }),
 }))
 
@@ -195,46 +193,34 @@ export const studentPerformanceRelations = relations(studentPerformance, ({ one 
     fields: [studentPerformance.studentId],
     references: [user.id],
   }),
-  curriculum: one(curriculum, {
-    fields: [studentPerformance.curriculumId],
-    references: [curriculum.id],
+  course: one(course, {
+    fields: [studentPerformance.courseId],
+    references: [course.courseId],
   }),
 }))
 
-export const courseBatchRelations = relations(courseBatch, ({ one, many }) => ({
-  curriculum: one(curriculum, {
-    fields: [courseBatch.curriculumId],
-    references: [curriculum.id],
-  }),
-  enrollments: many(curriculumEnrollment),
-}))
-
-export const curriculumEnrollmentRelations = relations(curriculumEnrollment, ({ one }) => ({
+export const courseEnrollmentRelations = relations(courseEnrollment, ({ one }) => ({
   student: one(user, {
-    fields: [curriculumEnrollment.studentId],
+    fields: [courseEnrollment.studentId],
     references: [user.id],
   }),
-  curriculum: one(curriculum, {
-    fields: [curriculumEnrollment.curriculumId],
-    references: [curriculum.id],
-  }),
-  batch: one(courseBatch, {
-    fields: [curriculumEnrollment.batchId],
-    references: [courseBatch.id],
+  course: one(course, {
+    fields: [courseEnrollment.courseId],
+    references: [course.courseId],
   }),
 }))
 
-export const curriculumShareRelations = relations(curriculumShare, ({ one }) => ({
-  curriculum: one(curriculum, {
-    fields: [curriculumShare.curriculumId],
-    references: [curriculum.id],
+export const courseShareRelations = relations(courseShare, ({ one }) => ({
+  course: one(course, {
+    fields: [courseShare.courseId],
+    references: [course.courseId],
   }),
   sharedBy: one(user, {
-    fields: [curriculumShare.sharedByTutorId],
+    fields: [courseShare.sharedByTutorId],
     references: [user.id],
   }),
   recipient: one(user, {
-    fields: [curriculumShare.recipientId],
+    fields: [courseShare.recipientId],
     references: [user.id],
   }),
 }))
@@ -246,7 +232,7 @@ export const studyGroupRelations = relations(studyGroup, ({ many }) => ({
 export const studyGroupMemberRelations = relations(studyGroupMember, ({ one }) => ({
   group: one(studyGroup, {
     fields: [studyGroupMember.groupId],
-    references: [studyGroup.id],
+    references: [studyGroup.groupId],
   }),
   user: one(user, {
     fields: [studyGroupMember.studentId],
@@ -265,7 +251,7 @@ export const liveSessionRelations = relations(liveSession, ({ one, many }) => ({
 export const sessionParticipantRelations = relations(sessionParticipant, ({ one }) => ({
   session: one(liveSession, {
     fields: [sessionParticipant.sessionId],
-    references: [liveSession.id],
+    references: [liveSession.sessionId],
   }),
   student: one(user, {
     fields: [sessionParticipant.studentId],
@@ -284,7 +270,7 @@ export const clinicRelations = relations(clinic, ({ one, many }) => ({
 export const clinicBookingRelations = relations(clinicBooking, ({ one }) => ({
   clinic: one(clinic, {
     fields: [clinicBooking.clinicId],
-    references: [clinic.id],
+    references: [clinic.clinicId],
   }),
   student: one(user, {
     fields: [clinicBooking.studentId],
@@ -303,11 +289,11 @@ export const payoutRelations = relations(payout, ({ one, many }) => ({
 export const paymentOnPayoutRelations = relations(paymentOnPayout, ({ one }) => ({
   payout: one(payout, {
     fields: [paymentOnPayout.payoutId],
-    references: [payout.id],
+    references: [payout.payoutId],
   }),
   payment: one(payment, {
     fields: [paymentOnPayout.paymentId],
-    references: [payment.id],
+    references: [payment.paymentId],
   }),
 }))
 
@@ -335,7 +321,7 @@ export const familyAccountRelations = relations(familyAccount, ({ many }) => ({
 export const familyMemberRelations = relations(familyMember, ({ one }) => ({
   familyAccount: one(familyAccount, {
     fields: [familyMember.familyAccountId],
-    references: [familyAccount.id],
+    references: [familyAccount.familyAccountId],
   }),
   user: one(user, {
     fields: [familyMember.userId],
@@ -346,32 +332,32 @@ export const familyMemberRelations = relations(familyMember, ({ one }) => ({
 export const familyPaymentRelations = relations(familyPayment, ({ one }) => ({
   parent: one(familyAccount, {
     fields: [familyPayment.parentId],
-    references: [familyAccount.id],
+    references: [familyAccount.familyAccountId],
   }),
 }))
 
 export const familyNotificationRelations = relations(familyNotification, ({ one }) => ({
   parent: one(familyAccount, {
     fields: [familyNotification.parentId],
-    references: [familyAccount.id],
+    references: [familyAccount.familyAccountId],
   }),
 }))
 
 export const parentActivityLogRelations = relations(parentActivityLog, ({ one }) => ({
   parent: one(familyAccount, {
     fields: [parentActivityLog.parentId],
-    references: [familyAccount.id],
+    references: [familyAccount.familyAccountId],
   }),
 }))
 
 export const paymentRelations = relations(payment, ({ one }) => ({
   booking: one(clinicBooking, {
     fields: [payment.bookingId],
-    references: [clinicBooking.id],
+    references: [clinicBooking.clinicId],
   }),
-  enrollment: one(curriculumEnrollment, {
+  enrollment: one(courseEnrollment, {
     fields: [payment.enrollmentId],
-    references: [curriculumEnrollment.id],
+    references: [courseEnrollment.enrollmentId],
   }),
 }))
 
@@ -380,13 +366,13 @@ export const quizRelations = relations(quiz, ({ one, many }) => ({
     fields: [quiz.tutorId],
     references: [user.id],
   }),
-  curriculum: one(curriculum, {
-    fields: [quiz.curriculumId],
-    references: [curriculum.id],
+  course: one(course, {
+    fields: [quiz.courseId],
+    references: [course.courseId],
   }),
-  lesson: one(curriculumLesson, {
+  lesson: one(courseLesson, {
     fields: [quiz.lessonId],
-    references: [curriculumLesson.id],
+    references: [courseLesson.lessonId],
   }),
   attempts: many(quizAttempt),
   assignments: many(quizAssignment),
@@ -395,7 +381,7 @@ export const quizRelations = relations(quiz, ({ one, many }) => ({
 export const quizAttemptRelations = relations(quizAttempt, ({ one }) => ({
   quiz: one(quiz, {
     fields: [quizAttempt.quizId],
-    references: [quiz.id],
+    references: [quiz.quizId],
   }),
   student: one(user, {
     fields: [quizAttempt.studentId],
@@ -403,14 +389,14 @@ export const quizAttemptRelations = relations(quizAttempt, ({ one }) => ({
   }),
   assignment: one(quizAssignment, {
     fields: [quizAttempt.assignmentId],
-    references: [quizAssignment.id],
+    references: [quizAssignment.assignmentId],
   }),
 }))
 
 export const quizAssignmentRelations = relations(quizAssignment, ({ one, many }) => ({
   quiz: one(quiz, {
     fields: [quizAssignment.quizId],
-    references: [quiz.id],
+    references: [quiz.quizId],
   }),
   tutor: one(user, {
     fields: [quizAssignment.assignedByTutorId],
@@ -435,7 +421,7 @@ export const conversationRelations = relations(conversation, ({ one, many }) => 
 export const directMessageRelations = relations(directMessage, ({ one }) => ({
   conversation: one(conversation, {
     fields: [directMessage.conversationId],
-    references: [conversation.id],
+    references: [conversation.conversationId],
   }),
   sender: one(user, {
     fields: [directMessage.senderId],
@@ -446,7 +432,7 @@ export const directMessageRelations = relations(directMessage, ({ one }) => ({
 export const mentionRelations = relations(mention, ({ one }) => ({
   message: one(directMessage, {
     fields: [mention.messageId],
-    references: [directMessage.id],
+    references: [directMessage.directMessageId],
   }),
   mentioner: one(user, {
     fields: [mention.mentionerId],
@@ -465,9 +451,9 @@ export const generatedTaskRelations = relations(generatedTask, ({ one, many }) =
     fields: [generatedTask.tutorId],
     references: [user.id],
   }),
-  lesson: one(curriculumLesson, {
+  lesson: one(courseLesson, {
     fields: [generatedTask.lessonId],
-    references: [curriculumLesson.id],
+    references: [courseLesson.lessonId],
   }),
   submissions: many(taskSubmission),
 }))
@@ -475,14 +461,14 @@ export const generatedTaskRelations = relations(generatedTask, ({ one, many }) =
 export const taskSubmissionRelations = relations(taskSubmission, ({ one }) => ({
   task: one(generatedTask, {
     fields: [taskSubmission.taskId],
-    references: [generatedTask.id],
+    references: [generatedTask.taskId],
   }),
   student: one(user, {
     fields: [taskSubmission.studentId],
     references: [user.id],
   }),
   feedbackWorkflow: one(feedbackWorkflow, {
-    fields: [taskSubmission.id],
+    fields: [taskSubmission.submissionId],
     references: [feedbackWorkflow.submissionId],
   }),
 }))
@@ -490,7 +476,7 @@ export const taskSubmissionRelations = relations(taskSubmission, ({ one }) => ({
 export const feedbackWorkflowRelations = relations(feedbackWorkflow, ({ one }) => ({
   submission: one(taskSubmission, {
     fields: [feedbackWorkflow.submissionId],
-    references: [taskSubmission.id],
+    references: [taskSubmission.submissionId],
   }),
   student: one(user, {
     fields: [feedbackWorkflow.studentId],
@@ -499,9 +485,9 @@ export const feedbackWorkflowRelations = relations(feedbackWorkflow, ({ one }) =
 }))
 
 export const lessonSessionRelations = relations(lessonSession, ({ one }) => ({
-  lesson: one(curriculumLesson, {
+  lesson: one(courseLesson, {
     fields: [lessonSession.lessonId],
-    references: [curriculumLesson.id],
+    references: [courseLesson.lessonId],
   }),
   student: one(user, {
     fields: [lessonSession.studentId],
@@ -542,17 +528,13 @@ export const userActivityLogRelations = relations(userActivityLog, ({ one }) => 
 // ============================================
 
 export const builderTaskRelations = relations(builderTask, ({ one, many }) => ({
-  curriculum: one(curriculum, {
-    fields: [builderTask.curriculumId],
-    references: [curriculum.id],
+  course: one(course, {
+    fields: [builderTask.courseId],
+    references: [course.courseId],
   }),
-  lesson: one(curriculumLesson, {
+  lesson: one(courseLesson, {
     fields: [builderTask.lessonId],
-    references: [curriculumLesson.id],
-  }),
-  module: one(curriculumModule, {
-    fields: [builderTask.moduleId],
-    references: [curriculumModule.id],
+    references: [courseLesson.lessonId],
   }),
   tutor: one(user, {
     fields: [builderTask.tutorId],
@@ -566,21 +548,21 @@ export const builderTaskRelations = relations(builderTask, ({ one, many }) => ({
 export const builderTaskExtensionRelations = relations(builderTaskExtension, ({ one }) => ({
   task: one(builderTask, {
     fields: [builderTaskExtension.taskId],
-    references: [builderTask.id],
+    references: [builderTask.taskId],
   }),
 }))
 
 export const builderTaskFileRelations = relations(builderTaskFile, ({ one }) => ({
   task: one(builderTask, {
     fields: [builderTaskFile.taskId],
-    references: [builderTask.id],
+    references: [builderTask.taskId],
   }),
 }))
 
 export const builderTaskVersionRelations = relations(builderTaskVersion, ({ one }) => ({
   task: one(builderTask, {
     fields: [builderTaskVersion.taskId],
-    references: [builderTask.id],
+    references: [builderTask.taskId],
   }),
 }))
 
@@ -601,7 +583,7 @@ export const oneOnOneBookingRequestRelations = relations(oneOnOneBookingRequest,
   }),
   calendarEvent: one(calendarEvent, {
     fields: [oneOnOneBookingRequest.calendarEventId],
-    references: [calendarEvent.id],
+    references: [calendarEvent.eventId],
   }),
 }))
 

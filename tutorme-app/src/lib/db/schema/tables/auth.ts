@@ -19,7 +19,7 @@ import * as enums from '../enums'
 export const user = pgTable(
   'User',
   {
-    id: text('id').primaryKey().notNull(),
+    userId: text('userId').primaryKey().notNull(),
     email: text('email').notNull().unique(),
     password: text('password'),
     handle: text('handle'),
@@ -39,7 +39,7 @@ export const user = pgTable(
 export const account = pgTable(
   'Account',
   {
-    id: text('id').primaryKey().notNull(),
+    accountId: text('accountId').primaryKey().notNull(),
     userId: text('userId').notNull(),
     type: text('type').notNull(),
     provider: text('provider').notNull(),
@@ -61,7 +61,7 @@ export const account = pgTable(
 )
 
 export const profile = pgTable('Profile', {
-  id: text('id').primaryKey().notNull(),
+  profileId: text('profileId').primaryKey().notNull(),
   userId: text('userId').notNull().unique(),
   name: text('name'),
   username: text('username').unique(),
@@ -97,7 +97,7 @@ export const profile = pgTable('Profile', {
 export const tutorApplication = pgTable(
   'TutorApplication',
   {
-    id: text('id').primaryKey().notNull(),
+    applicationId: text('applicationId').primaryKey().notNull(),
     userId: text('userId').notNull().unique(),
     firstName: text('firstName').notNull(),
     middleName: text('middleName'),

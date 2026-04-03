@@ -19,7 +19,7 @@ import * as enums from '../enums'
 export const familyAccount = pgTable(
   'FamilyAccount',
   {
-    id: text('id').primaryKey().notNull(),
+    familyAccountId: text('familyAccountId').primaryKey().notNull(),
     familyName: text('familyName').notNull(),
     familyType: text('familyType').notNull(),
     primaryEmail: text('primaryEmail').notNull().unique(),
@@ -61,7 +61,7 @@ export const familyAccount = pgTable(
 export const familyMember = pgTable(
   'FamilyMember',
   {
-    id: text('id').primaryKey().notNull(),
+    familyMemberId: text('familyMemberId').primaryKey().notNull(),
     familyAccountId: text('familyAccountId').notNull(),
     userId: text('userId'),
     name: text('name').notNull(),
@@ -92,7 +92,7 @@ export const familyMember = pgTable(
 export const familyBudget = pgTable(
   'FamilyBudget',
   {
-    id: text('id').primaryKey().notNull(),
+    budgetId: text('budgetId').primaryKey().notNull(),
     parentId: text('parentId').notNull(),
     month: integer('month').notNull(),
     year: integer('year').notNull(),
@@ -121,7 +121,7 @@ export const familyBudget = pgTable(
 export const familyPayment = pgTable(
   'FamilyPayment',
   {
-    id: text('id').primaryKey().notNull(),
+    familyPaymentId: text('familyPaymentId').primaryKey().notNull(),
     parentId: text('parentId').notNull(),
     amount: doublePrecision('amount').notNull(),
     method: text('method').notNull(),
@@ -148,7 +148,7 @@ export const familyPayment = pgTable(
 export const budgetAlert = pgTable(
   'BudgetAlert',
   {
-    id: text('id').primaryKey().notNull(),
+    alertId: text('alertId').primaryKey().notNull(),
     parentId: text('parentId').notNull(),
     type: text('type').notNull(),
     message: text('message').notNull(),
@@ -163,7 +163,7 @@ export const budgetAlert = pgTable(
 export const parentActivityLog = pgTable(
   'ParentActivityLog',
   {
-    id: text('id').primaryKey().notNull(),
+    activityLogId: text('activityLogId').primaryKey().notNull(),
     parentId: text('parentId').notNull(),
     action: text('action').notNull(),
     details: text('details'),
@@ -181,7 +181,7 @@ export const parentActivityLog = pgTable(
 export const familyNotification = pgTable(
   'FamilyNotification',
   {
-    id: text('id').primaryKey().notNull(),
+    notificationId: text('notificationId').primaryKey().notNull(),
     parentId: text('parentId').notNull(),
     title: text('title').notNull(),
     message: text('message').notNull(),
@@ -203,7 +203,7 @@ export const familyNotification = pgTable(
 export const emergencyContact = pgTable(
   'EmergencyContact',
   {
-    id: text('id').primaryKey().notNull(),
+    contactId: text('contactId').primaryKey().notNull(),
     parentId: text('parentId').notNull(),
     name: text('name').notNull(),
     relation: text('relation').notNull(),
@@ -227,7 +227,7 @@ export const emergencyContact = pgTable(
 export const studentProgressSnapshot = pgTable(
   'StudentProgressSnapshot',
   {
-    id: text('id').primaryKey().notNull(),
+    snapshotId: text('snapshotId').primaryKey().notNull(),
     parentId: text('parentId').notNull(),
     studentId: text('studentId').notNull(),
     data: jsonb('data').notNull(),
@@ -254,7 +254,7 @@ export const studentProgressSnapshot = pgTable(
 export const parentPaymentAuthorization = pgTable(
   'ParentPaymentAuthorization',
   {
-    id: text('id').primaryKey().notNull(),
+    authorizationId: text('authorizationId').primaryKey().notNull(),
     parentId: text('parentId').notNull().unique(),
     level: text('level').notNull(),
     maxAmount: doublePrecision('maxAmount'),
@@ -275,7 +275,7 @@ export const parentPaymentAuthorization = pgTable(
 export const parentSpendingLimit = pgTable(
   'ParentSpendingLimit',
   {
-    id: text('id').primaryKey().notNull(),
+    spendingLimitId: text('spendingLimitId').primaryKey().notNull(),
     parentId: text('parentId').notNull(),
     category: text('category').notNull(),
     limit: doublePrecision('limit').notNull(),
@@ -290,7 +290,3 @@ export const parentSpendingLimit = pgTable(
     ParentSpendingLimit_parentId_idx: index('ParentSpendingLimit_parentId_idx').on(table.parentId),
   })
 )
-
-// ============================================
-// TASK BUILDER TABLES - For Course Builder
-// ============================================

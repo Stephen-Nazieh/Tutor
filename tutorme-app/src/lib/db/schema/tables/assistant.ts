@@ -19,7 +19,7 @@ import * as enums from '../enums'
 export const aIAssistantSession = pgTable(
   'AIAssistantSession',
   {
-    id: text('id').primaryKey().notNull(),
+    assistantSessionId: text('assistantSessionId').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     title: text('title').notNull(),
     context: text('context'),
@@ -39,7 +39,7 @@ export const aIAssistantSession = pgTable(
 export const aIAssistantMessage = pgTable(
   'AIAssistantMessage',
   {
-    id: text('id').primaryKey().notNull(),
+    assistantMessageId: text('assistantMessageId').primaryKey().notNull(),
     sessionId: text('sessionId').notNull(),
     role: text('role').notNull(),
     content: text('content').notNull(),
@@ -55,7 +55,7 @@ export const aIAssistantMessage = pgTable(
 export const aIAssistantInsight = pgTable(
   'AIAssistantInsight',
   {
-    id: text('id').primaryKey().notNull(),
+    insightId: text('insightId').primaryKey().notNull(),
     sessionId: text('sessionId').notNull(),
     type: text('type').notNull(),
     title: text('title').notNull(),
@@ -74,7 +74,7 @@ export const aIAssistantInsight = pgTable(
 export const clinic = pgTable(
   'Clinic',
   {
-    id: text('id').primaryKey().notNull(),
+    clinicId: text('clinicId').primaryKey().notNull(),
     title: text('title').notNull(),
     subject: text('subject').notNull(),
     description: text('description'),
@@ -100,7 +100,7 @@ export const clinic = pgTable(
 export const clinicBooking = pgTable(
   'ClinicBooking',
   {
-    id: text('id').primaryKey().notNull(),
+    bookingId: text('bookingId').primaryKey().notNull(),
     clinicId: text('clinicId').notNull(),
     studentId: text('studentId').notNull(),
     bookedAt: timestamp('bookedAt', { withTimezone: true }).notNull().defaultNow(),

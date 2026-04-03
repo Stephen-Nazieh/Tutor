@@ -3,7 +3,7 @@
  * GET /api/curriculums/list — returns published curriculums only (no auth).
  * Rate limited per IP. For "my courses" with user progress, use GET /api/curriculum (withAuth) instead.
  *
- * Subject codes: ?subject= is normalized (lowercased). Supported values should match curriculum.subject
+ * Subject codes: ?subject= is normalized (lowercased). Supported values should match course.subject
  * in DB (e.g. math, english). Aliases below map URL/subject codes to DB values for consistency with
  * dashboard signup links (e.g. /student/subjects/math/courses).
  */
@@ -11,10 +11,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withRateLimit, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
+  course,
   curriculumModule,
-  curriculumLesson,
-  curriculumEnrollment,
+  courseLesson,
+  courseEnrollment,
 } from '@/lib/db/schema'
 import { eq, and, inArray, desc, sql } from 'drizzle-orm'
 
@@ -38,73 +38,73 @@ export async function GET(req: NextRequest) {
       ? (SUBJECT_ALIAS[subjectParam.toLowerCase()] ?? subjectParam.toLowerCase())
       : undefined
 
-    const filters = [eq(curriculum.isPublished, true)]
+    const filters = [eq(course.isPublished, true)]
     if (subject) {
-      filters.push(eq(curriculum.subject, subject))
+      filters.push(eq(course.subject, subject))
     }
 
     const curriculums = await drizzleDb
       .select()
-      .from(curriculum)
+      .from(course)
       .where(and(...filters))
-      .orderBy(desc(curriculum.createdAt))
+      .orderBy(desc(course.createdAt))
 
     if (curriculums.length === 0) {
       return NextResponse.json({ curriculums: [] })
     }
 
-    const curriculumIds = curriculums.map(c => c.id)
+    const courseIds = curriculums.map(c => c.courseId)
 
     // Parallel fetch counts
     const [modulesRaw, enrollmentsRaw, allModules] = await Promise.all([
       drizzleDb
         .select({
-          curriculumId: curriculumModule.curriculumId,
+          courseId: curriculumModule.curriculumId,
           count: sql<number>`count(${curriculumModule.id})::int`,
         })
         .from(curriculumModule)
-        .where(inArray(curriculumModule.curriculumId, curriculumIds))
+        .where(inArray(curriculumModule.curriculumId, courseIds))
         .groupBy(curriculumModule.curriculumId),
 
       drizzleDb
         .select({
-          curriculumId: curriculumEnrollment.curriculumId,
-          count: sql<number>`count(${curriculumEnrollment.id})::int`,
+          courseId: courseEnrollment.courseId,
+          count: sql<number>`count(${courseEnrollment.enrollmentId})::int`,
         })
-        .from(curriculumEnrollment)
-        .where(inArray(curriculumEnrollment.curriculumId, curriculumIds))
-        .groupBy(curriculumEnrollment.curriculumId),
+        .from(courseEnrollment)
+        .where(inArray(courseEnrollment.courseId, courseIds))
+        .groupBy(courseEnrollment.courseId),
 
       drizzleDb
-        .select({ id: curriculumModule.id, curriculumId: curriculumModule.curriculumId })
+        .select({ id: curriculumModule.id, courseId: curriculumModule.curriculumId })
         .from(curriculumModule)
-        .where(inArray(curriculumModule.curriculumId, curriculumIds)),
+        .where(inArray(curriculumModule.curriculumId, courseIds)),
     ])
 
-    const moduleCounts = new Map(modulesRaw.map(m => [m.curriculumId, m.count]))
-    const enrollmentCounts = new Map(enrollmentsRaw.map(e => [e.curriculumId, e.count]))
+    const moduleCounts = new Map(modulesRaw.map(m => [m.courseId, m.count]))
+    const enrollmentCounts = new Map(enrollmentsRaw.map(e => [e.courseId, e.count]))
     const moduleIds = allModules.map(m => m.id)
     const lessonsMap = new Map<string, number>()
 
     if (moduleIds.length > 0) {
       const lessonsRaw = await drizzleDb
         .select({
-          moduleId: curriculumLesson.moduleId,
-          count: sql<number>`count(${curriculumLesson.id})::int`,
+          moduleId: courseLesson.moduleId,
+          count: sql<number>`count(${courseLesson.lessonId})::int`,
         })
-        .from(curriculumLesson)
-        .where(inArray(curriculumLesson.moduleId, moduleIds))
-        .groupBy(curriculumLesson.moduleId)
+        .from(courseLesson)
+        .where(inArray(courseLesson.moduleId, moduleIds))
+        .groupBy(courseLesson.moduleId)
 
       const lessonCountsByModule = new Map(lessonsRaw.map(l => [l.moduleId, l.count]))
       for (const m of allModules) {
         const lCount = lessonCountsByModule.get(m.id) || 0
-        lessonsMap.set(m.curriculumId, (lessonsMap.get(m.curriculumId) || 0) + lCount)
+        lessonsMap.set(m.courseId, (lessonsMap.get(m.courseId) || 0) + lCount)
       }
     }
 
     const enrichedCurriculums = curriculums.map(c => ({
-      id: c.id,
+      id: c.courseId,
       name: c.name,
       subject: c.subject,
       description: c.description,
@@ -114,9 +114,9 @@ export async function GET(req: NextRequest) {
       currency: c.currency,
       isFree: c.isFree,
       gradeLevel: c.gradeLevel,
-      modulesCount: moduleCounts.get(c.id) || 0,
-      lessonsCount: lessonsMap.get(c.id) || 0,
-      studentCount: enrollmentCounts.get(c.id) || 0,
+      modulesCount: moduleCounts.get(c.courseId) || 0,
+      lessonsCount: lessonsMap.get(c.courseId) || 0,
+      studentCount: enrollmentCounts.get(c.courseId) || 0,
       createdAt: c.createdAt,
     }))
 

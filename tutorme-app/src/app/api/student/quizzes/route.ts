@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculumEnrollment, quizAssignment, quiz, quizAttempt } from '@/lib/db/schema'
+import { courseEnrollment, quizAssignment, quiz, quizAttempt } from '@/lib/db/schema'
 import { eq, and, or, inArray, desc } from 'drizzle-orm'
 import { StudentQuiz, QuizType } from '@/types/quiz'
 
@@ -17,10 +17,10 @@ export const GET = withAuth(
     const status = searchParams.get('status') // 'available', 'completed', 'all'
 
     const enrollments = await drizzleDb
-      .select({ curriculumId: curriculumEnrollment.curriculumId })
-      .from(curriculumEnrollment)
-      .where(eq(curriculumEnrollment.studentId, studentId))
-    const enrolledCurriculumIds = enrollments.map(e => e.curriculumId)
+      .select({ courseId: courseEnrollment.courseId })
+      .from(courseEnrollment)
+      .where(eq(courseEnrollment.studentId, studentId))
+    const enrolledCourseIds = enrollments.map(e => e.courseId)
 
     const assignmentRows = await drizzleDb
       .select()
@@ -38,24 +38,24 @@ export const GET = withAuth(
         )
       )
 
-    const curriculumQuizIds =
-      enrolledCurriculumIds.length > 0
+    const courseQuizIds =
+      enrolledCourseIds.length > 0
         ? (
             await drizzleDb
-              .select({ id: quiz.id })
+              .select({ quizId: quiz.quizId })
               .from(quiz)
-              .where(inArray(quiz.curriculumId, enrolledCurriculumIds))
-          ).map(q => q.id)
+              .where(inArray(quiz.courseId, enrolledCourseIds))
+          ).map(q => q.quizId)
         : []
-    const curriculumAssignments =
-      curriculumQuizIds.length > 0
+    const courseAssignments =
+      courseQuizIds.length > 0
         ? await drizzleDb
             .select()
             .from(quizAssignment)
             .where(
               and(
                 eq(quizAssignment.isActive, true),
-                inArray(quizAssignment.quizId, curriculumQuizIds)
+                inArray(quizAssignment.quizId, courseQuizIds)
               )
             )
         : []
@@ -63,7 +63,7 @@ export const GET = withAuth(
     const quizMap = new Map<string, { quiz: typeof quiz.$inferSelect; dueDate: Date | null }>()
     for (const a of assignmentRows) {
       if (!quizMap.has(a.quizId)) {
-        const [quizRow] = await drizzleDb.select().from(quiz).where(eq(quiz.id, a.quizId)).limit(1)
+        const [quizRow] = await drizzleDb.select().from(quiz).where(eq(quiz.quizId, a.quizId)).limit(1)
         if (quizRow) {
           quizMap.set(a.quizId, {
             quiz: quizRow,
@@ -72,9 +72,9 @@ export const GET = withAuth(
         }
       }
     }
-    for (const a of curriculumAssignments) {
+    for (const a of courseAssignments) {
       if (!quizMap.has(a.quizId)) {
-        const [quizRow] = await drizzleDb.select().from(quiz).where(eq(quiz.id, a.quizId)).limit(1)
+        const [quizRow] = await drizzleDb.select().from(quiz).where(eq(quiz.quizId, a.quizId)).limit(1)
         if (quizRow) {
           quizMap.set(a.quizId, {
             quiz: quizRow,
@@ -129,7 +129,7 @@ export const GET = withAuth(
 
       const questions = quizRow.questions as unknown[]
       quizzes.push({
-        id: quizRow.id,
+        quizId: quizRow.quizId,
         title: quizRow.title,
         description: quizRow.description ?? undefined,
         type: quizRow.type as QuizType,

@@ -2,7 +2,7 @@
  * POST /api/payments/create
  * Creates a payment and returns checkout URL.
  * - Booking: body.bookingId — for clinic booking (amount from tutor hourly rate × duration).
- * - Course: body.curriculumId — for course purchase (amount from curriculum.price).
+ * - Course: body.courseId — for course purchase (amount from course.price).
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -17,8 +17,8 @@ import {
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
-  curriculumProgress,
+  course,
+  courseProgress,
   user,
   profile,
   payment,
@@ -36,7 +36,7 @@ export const POST = withCsrf(
     const body = await req.json()
     const {
       bookingId,
-      curriculumId,
+      courseId,
       studentId,
       gateway: requestedGateway,
       metadata: customMetadata,
@@ -63,23 +63,23 @@ export const POST = withCsrf(
     }
 
     // --- Course payment ---
-    if (curriculumId) {
-      const [curriculumRow] = await drizzleDb
+    if (courseId) {
+      const [courseRow] = await drizzleDb
         .select()
         .from(curriculum)
-        .where(and(eq(curriculum.id, curriculumId), eq(curriculum.isPublished, true)))
+        .where(and(eq(course.id, courseId), eq(course.isPublished, true)))
         .limit(1)
-      if (!curriculumRow) throw new NotFoundError('Curriculum not found')
-      const amount = curriculumRow.price != null ? Number(curriculumRow.price) : 0
+      if (!courseRow) throw new NotFoundError('Curriculum not found')
+      const amount = courseRow.price != null ? Number(courseRow.price) : 0
       if (amount <= 0) throw new ValidationError('This course is free; use Enroll instead')
 
       const [existingEnrollment] = await drizzleDb
         .select()
-        .from(curriculumProgress)
+        .from(courseProgress)
         .where(
           and(
-            eq(curriculumProgress.studentId, payerStudentId),
-            eq(curriculumProgress.curriculumId, curriculumId)
+            eq(courseProgress.studentId, payerStudentId),
+            eq(courseProgress.courseId, courseId)
           )
         )
         .limit(1)
@@ -97,7 +97,7 @@ export const POST = withCsrf(
         .where(eq(user.id, payerStudentId))
         .limit(1)
       const studentEmail = userRow?.email ?? ''
-      const currency = (curriculumRow.currency as string) || 'SGD'
+      const currency = (courseRow.currency as string) || 'SGD'
 
       // Determine gateway: frontend preference > user profile > environment default
       let gatewayName: GatewayName
@@ -126,7 +126,7 @@ export const POST = withCsrf(
         const m = p.metadata as Record<string, unknown> | null
         return (
           m?.type === 'course' &&
-          m?.curriculumId === curriculumId &&
+          m?.courseId === courseId &&
           m?.studentId === payerStudentId
         )
       })
@@ -141,19 +141,19 @@ export const POST = withCsrf(
       const paymentResponse = await gateway.createPayment({
         amount,
         currency,
-        curriculumId,
+        courseId,
         studentEmail,
-        description: `${curriculumRow.name} (${curriculumRow.subject})`,
+        description: `${courseRow.name} (${courseRow.subject})`,
         metadata: {
           type: 'course',
-          curriculumId,
+          courseId,
           studentId: payerStudentId,
           payerId: session.user.id,
           payerRole: session.user.role,
           startDate: customMetadata?.startDate,
         },
-        successUrl: `${baseUrl}/payment/success?type=course&curriculumId=${encodeURIComponent(curriculumId)}`,
-        cancelUrl: `${baseUrl}/payment/cancel?type=course&curriculumId=${encodeURIComponent(curriculumId)}`,
+        successUrl: `${baseUrl}/payment/success?type=course&courseId=${encodeURIComponent(courseId)}`,
+        cancelUrl: `${baseUrl}/payment/cancel?type=course&courseId=${encodeURIComponent(courseId)}`,
       })
 
       const paymentId = crypto.randomUUID()
@@ -164,12 +164,12 @@ export const POST = withCsrf(
         currency,
         status: 'PENDING',
         gateway: gatewayName,
-        tutorId: curriculumRow.creatorId ?? null,
+        tutorId: courseRow.creatorId ?? null,
         gatewayPaymentId: paymentResponse.paymentId,
         gatewayCheckoutUrl: paymentResponse.checkoutUrl,
         metadata: {
           type: 'course',
-          curriculumId,
+          courseId,
           studentId: payerStudentId,
           payerId: session.user.id,
           payerRole: session.user.role,
@@ -185,7 +185,7 @@ export const POST = withCsrf(
 
     // --- Booking payment ---
     if (!bookingId) {
-      throw new ValidationError('bookingId or curriculumId is required')
+      throw new ValidationError('bookingId or courseId is required')
     }
 
     const [bookingRow] = await drizzleDb

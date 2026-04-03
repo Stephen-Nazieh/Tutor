@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server'
 import { desc, eq, sql, count } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum, curriculumEnrollment, liveSession } from '@/lib/db/schema'
+import { course, courseEnrollment, liveSession } from '@/lib/db/schema'
 
 export const GET = withAuth(
   async (_req, session) => {
@@ -16,56 +16,56 @@ export const GET = withAuth(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const enrollmentCount = sql<number>`count(${curriculumEnrollment.id})`.as('enrollmentCount')
+    const enrollmentCount = sql<number>`count(${courseEnrollment.enrollmentId})`.as('enrollmentCount')
 
     const courses = await drizzleDb
       .select({
-        id: curriculum.id,
-        name: curriculum.name,
-        subject: curriculum.subject,
-        gradeLevel: curriculum.gradeLevel,
-        isPublished: curriculum.isPublished,
-        price: curriculum.price,
-        currency: curriculum.currency,
+        courseId: course.courseId,
+        name: course.name,
+        subject: course.subject,
+        gradeLevel: course.gradeLevel,
+        isPublished: course.isPublished,
+        price: course.price,
+        currency: course.currency,
         enrollmentCount,
       })
-      .from(curriculum)
-      .innerJoin(curriculumEnrollment, eq(curriculumEnrollment.curriculumId, curriculum.id))
-      .where(eq(curriculum.creatorId, tutorId))
+      .from(course)
+      .innerJoin(courseEnrollment, eq(courseEnrollment.courseId, course.courseId))
+      .where(eq(course.creatorId, tutorId))
       .groupBy(
-        curriculum.id,
-        curriculum.name,
-        curriculum.subject,
-        curriculum.gradeLevel,
-        curriculum.isPublished,
-        curriculum.price,
-        curriculum.currency
+        course.courseId,
+        course.name,
+        course.subject,
+        course.gradeLevel,
+        course.isPublished,
+        course.price,
+        course.currency
       )
       .orderBy(desc(enrollmentCount))
 
     // Get session counts for each course
-    const courseIds = courses.map(c => c.id)
-    let sessionCounts: { curriculumId: string; count: number }[] = []
+    const courseIds = courses.map(c => c.courseId)
+    let sessionCounts: { courseId: string; count: number }[] = []
 
     if (courseIds.length > 0) {
       const sessions = await drizzleDb
         .select({
-          curriculumId: liveSession.curriculumId,
-          count: count(liveSession.id),
+          courseId: liveSession.courseId,
+          count: count(liveSession.sessionId),
         })
         .from(liveSession)
         .where(eq(liveSession.tutorId, tutorId))
-        .groupBy(liveSession.curriculumId)
+        .groupBy(liveSession.courseId)
 
       sessionCounts = sessions.map(s => ({
-        curriculumId: s.curriculumId ?? '',
+        courseId: s.courseId ?? '',
         count: s.count,
       }))
     }
 
     const coursesWithSessionCount = courses.map(course => ({
       ...course,
-      sessionCount: sessionCounts.find(s => s.curriculumId === course.id)?.count ?? 0,
+      sessionCount: sessionCounts.find(s => s.courseId === course.courseId)?.count ?? 0,
     }))
 
     return NextResponse.json({ courses: coursesWithSessionCount })

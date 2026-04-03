@@ -8,9 +8,9 @@ import { withAuth, ValidationError, NotFoundError } from '@/lib/api/middleware'
 import { getStudentProgress } from '@/lib/curriculum/lesson-controller'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
+  course,
   curriculumModule,
-  curriculumLesson,
+  courseLesson,
   curriculumLessonProgress,
 } from '@/lib/db/schema'
 import { eq, asc, inArray } from 'drizzle-orm'
@@ -18,28 +18,28 @@ import { eq, asc, inArray } from 'drizzle-orm'
 export const GET = withAuth(
   async (req, session) => {
     const { searchParams } = new URL(req.url)
-    const curriculumId = searchParams.get('curriculumId')
+    const courseId = searchParams.get('curriculumId')
 
-    if (!curriculumId) {
+    if (!courseId) {
       throw new ValidationError('Curriculum ID is required')
     }
 
-    const progress = await getStudentProgress(session.user.id, curriculumId)
+    const progress = await getStudentProgress(session.user.id, courseId)
 
-    const [curriculumRow] = await drizzleDb
+    const [courseRow] = await drizzleDb
       .select()
-      .from(curriculum)
-      .where(eq(curriculum.id, curriculumId))
+      .from(course)
+      .where(eq(course.courseId, courseId))
       .limit(1)
 
-    if (!curriculumRow) {
+    if (!courseRow) {
       throw new NotFoundError('Curriculum not found')
     }
 
     const modules = await drizzleDb
       .select()
       .from(curriculumModule)
-      .where(eq(curriculumModule.curriculumId, curriculumId))
+      .where(eq(curriculumModule.curriculumId, courseId))
       .orderBy(asc(curriculumModule.order))
 
     const moduleIds = modules.map(m => m.id)
@@ -47,12 +47,12 @@ export const GET = withAuth(
       moduleIds.length > 0
         ? await drizzleDb
             .select()
-            .from(curriculumLesson)
-            .where(inArray(curriculumLesson.moduleId, moduleIds))
-            .orderBy(asc(curriculumLesson.order))
+            .from(courseLesson)
+            .where(inArray(courseLesson.moduleId, moduleIds))
+            .orderBy(asc(courseLesson.order))
         : []
 
-    const lessonIds = lessons.map(l => l.id)
+    const lessonIds = lessons.map(l => l.lessonId)
     const progressRecords =
       lessonIds.length > 0
         ? await drizzleDb
@@ -81,15 +81,15 @@ export const GET = withAuth(
         description: module.description,
         order: module.order,
         lessons: moduleLessons.map(lesson => ({
-          id: lesson.id,
+          id: lesson.lessonId,
           title: lesson.title,
           order: lesson.order,
           duration: lesson.duration,
           difficulty: lesson.difficulty,
-          status: progressByLessonId.get(lesson.id)?.status ?? 'NOT_STARTED',
-          currentSection: progressByLessonId.get(lesson.id)?.currentSection,
-          score: progressByLessonId.get(lesson.id)?.score,
-          completedAt: progressByLessonId.get(lesson.id)?.completedAt,
+          status: progressByLessonId.get(lesson.lessonId)?.status ?? 'NOT_STARTED',
+          currentSection: progressByLessonId.get(lesson.lessonId)?.currentSection,
+          score: progressByLessonId.get(lesson.lessonId)?.score,
+          completedAt: progressByLessonId.get(lesson.lessonId)?.completedAt,
           isLocked: arePrerequisitesLocked(lesson, moduleLessons, progressByLessonId),
         })),
       }
@@ -98,9 +98,9 @@ export const GET = withAuth(
     return NextResponse.json({
       progress,
       curriculum: {
-        id: curriculumRow.id,
-        name: curriculumRow.name,
-        description: curriculumRow.description,
+        id: courseRow.courseId,
+        name: courseRow.name,
+        description: courseRow.description,
         modules: modulesWithProgress,
       },
     })
@@ -110,15 +110,15 @@ export const GET = withAuth(
 
 function arePrerequisitesLocked(
   lesson: { prerequisiteLessonIds: string[] | null },
-  allLessons: Array<{ id: string }>,
+  allLessons: Array<{ lessonId: string }>,
   progressByLessonId: Map<string, { status: string }>
 ): boolean {
   const prereqs = lesson.prerequisiteLessonIds ?? []
   if (prereqs.length === 0) return false
   for (const prereqId of prereqs) {
-    const prereqLesson = allLessons.find(l => l.id === prereqId)
+    const prereqLesson = allLessons.find(l => l.lessonId === prereqId)
     if (!prereqLesson) continue
-    const record = progressByLessonId.get(prereqLesson.id)
+    const record = progressByLessonId.get(prereqLesson.lessonId)
     if (record?.status !== 'COMPLETED') return true
   }
   return false

@@ -17,20 +17,20 @@ export const GET = withAuth(
     const sessions = await drizzleDb.query.liveSession.findMany({
       where: and(
         eq(liveSessionTable.tutorId, tutorId),
-        eq(liveSessionTable.curriculumId, courseId)
+        eq(liveSessionTable.courseId, courseId)
       ),
       with: {
         participants: {
-          columns: { id: true, studentId: true },
+          columns: { sessionId: true, studentId: true },
         },
       },
       orderBy: [asc(liveSessionTable.scheduledAt)],
     })
 
     const formattedSessions = sessions.map(s => ({
-      id: s.id,
+      id: s.sessionId,
       title: s.title,
-      subject: s.subject,
+      category: s.category,
       description: s.description,
       gradeLevel: s.gradeLevel,
       scheduledAt: s.scheduledAt?.toISOString() ?? null,
