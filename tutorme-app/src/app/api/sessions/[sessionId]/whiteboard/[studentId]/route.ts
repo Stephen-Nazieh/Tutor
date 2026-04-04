@@ -40,7 +40,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   }
   if (userRole === 'STUDENT') {
     const [participant] = await drizzleDb
-      .select({ id: sessionParticipant.id })
+      .select({ id: sessionParticipant.participantId })
       .from(sessionParticipant)
       .where(
         and(eq(sessionParticipant.sessionId, sessionId), eq(sessionParticipant.studentId, userId))
@@ -76,7 +76,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       const pages = await drizzleDb
         .select()
         .from(whiteboardPage)
-        .where(eq(whiteboardPage.whiteboardId, whiteboardRow.id))
+        .where(eq(whiteboardPage.whiteboardId, whiteboardRow.whiteboardId))
         .orderBy(asc(whiteboardPage.order))
       return NextResponse.json({
         whiteboard: { ...whiteboardRow, pages },

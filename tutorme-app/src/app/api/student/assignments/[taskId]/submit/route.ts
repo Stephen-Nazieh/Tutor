@@ -24,10 +24,8 @@ import {
   generatedTask,
   taskSubmission,
   curriculumLesson,
-  curriculumModule,
   curriculumLessonProgress,
   userGamification,
-  courseBatch,
 } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { desc } from 'drizzle-orm'
@@ -75,7 +73,7 @@ export async function POST(
     const [task] = await drizzleDb
       .select()
       .from(generatedTask)
-      .where(eq(generatedTask.id, taskId))
+      .where(eq(generatedTask.taskId, taskId))
       .limit(1)
 
     if (!task) {
@@ -197,18 +195,18 @@ export async function POST(
           attempts: attemptNumber,
           submittedAt: new Date(),
         })
-        .where(eq(taskSubmission.id, existing.id))
+        .where(eq(taskSubmission.submissionId, existing.submissionId))
       submission = {
-        id: existing.id,
+        id: existing.submissionId,
         score: scoreRounded,
         maxScore: maxScoreVal,
         status: 'submitted',
         attempts: attemptNumber,
       }
     } else {
-      const id = crypto.randomUUID()
+      const submissionId = crypto.randomUUID()
       await drizzleDb.insert(taskSubmission).values({
-        id,
+        submissionId,
         taskId,
         studentId,
         answers: answers as any,
@@ -221,7 +219,7 @@ export async function POST(
         tutorApproved: false,
       })
       submission = {
-        id,
+        id: submissionId,
         score: scoreRounded,
         maxScore: maxScoreVal,
         status: 'submitted',
@@ -232,21 +230,13 @@ export async function POST(
     let curriculumId: string | undefined
     if (task.lessonId) {
       const [lessonRow] = await drizzleDb
-        .select({ moduleId: curriculumLesson.moduleId })
+        .select({ courseId: curriculumLesson.courseId })
         .from(curriculumLesson)
-        .where(eq(curriculumLesson.id, task.lessonId))
+        .where(eq(curriculumLesson.lessonId, task.lessonId))
         .limit(1)
 
       if (lessonRow) {
-        // Handle case where lesson may not have a module (new flat structure)
-        const [modRow] = lessonRow.moduleId
-          ? await drizzleDb
-              .select({ curriculumId: curriculumModule.curriculumId })
-              .from(curriculumModule)
-              .where(eq(curriculumModule.id, lessonRow.moduleId))
-              .limit(1)
-          : [null]
-        curriculumId = modRow?.curriculumId
+        curriculumId = lessonRow.courseId ?? undefined
 
         const [existingProgress] = await drizzleDb
           .select()
@@ -272,11 +262,11 @@ export async function POST(
                 score: newScore,
                 completedAt,
               })
-              .where(eq(curriculumLessonProgress.id, existingProgress.id))
+              .where(eq(curriculumLessonProgress.progressId, existingProgress.progressId))
           } else {
             const progressId = crypto.randomUUID()
             await drizzleDb.insert(curriculumLessonProgress).values({
-              id: progressId,
+              progressId,
               lessonId: task.lessonId,
               studentId,
               status: newStatus,
@@ -330,15 +320,6 @@ export async function POST(
       }
     } catch (err) {
       console.error('Failed to update gamification:', err)
-    }
-
-    if (!curriculumId && task.batchId) {
-      const [batch] = await drizzleDb
-        .select({ curriculumId: courseBatch.curriculumId })
-        .from(courseBatch)
-        .where(eq(courseBatch.id, task.batchId))
-        .limit(1)
-      curriculumId = batch?.curriculumId
     }
 
     if (curriculumId) {

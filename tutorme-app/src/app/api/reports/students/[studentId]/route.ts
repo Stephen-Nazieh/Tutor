@@ -30,7 +30,7 @@ export const GET = withAuth(async (req, session, context) => {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
   if (isTutor) {
-    const hasRelation = await tutorHasStudent(session.user.userId, studentId)
+    const hasRelation = await tutorHasStudent(session.user.id, studentId)
     if (!hasRelation) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }

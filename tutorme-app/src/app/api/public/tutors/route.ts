@@ -199,9 +199,7 @@ export async function GET(request: NextRequest) {
         coursePreview: tutor.courses.slice(0, 4).map((course) => ({
           id: course.id,
           name: course.name,
-          subject: course.subject,
-          gradeLevel: course.gradeLevel,
-          difficulty: course.difficulty,
+          categories: [course.subject],
           enrollmentCount: course.enrollmentCount,
           moduleCount: course.moduleCount,
           lessonCount: course.lessonCount,

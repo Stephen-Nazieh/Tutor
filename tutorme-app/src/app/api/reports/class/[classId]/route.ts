@@ -18,7 +18,7 @@ export const GET = withAuth(
 
     const isAdmin = session.user.role === 'ADMIN'
     if (!isAdmin) {
-      const ownsCourse = await tutorOwnsCourse(session.user.userId, classId)
+      const ownsCourse = await tutorOwnsCourse(session.user.id, classId)
       if (!ownsCourse) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }

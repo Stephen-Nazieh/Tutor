@@ -178,7 +178,7 @@ export async function getAdminSession(req?: NextRequest): Promise<AdminSession |
     await drizzleDb
       .update(adminSessionTable)
       .set({ lastActiveAt: new Date() })
-      .where(eq(adminSessionTable.id, sessionData.id))
+      .where(eq(adminSessionTable.sessionId, sessionData.sessionId))
 
     // Collect permissions from all roles
     const roles = sessionData.admin.adminAssignments.map(a => a.role.name)
@@ -190,7 +190,7 @@ export async function getAdminSession(req?: NextRequest): Promise<AdminSession |
     })
 
     return {
-      id: sessionData.id,
+      sessionId: sessionData.sessionId,
       adminId: sessionData.adminId,
       email: sessionData.admin.email,
       name: sessionData.admin.profile?.name || null,
@@ -276,7 +276,7 @@ export async function getAdminUsers(): Promise<AdminUser[]> {
           .select()
           .from(adminAssignmentTable)
           .where(
-            and(eq(adminAssignmentTable.userId, users.id), eq(adminAssignmentTable.isActive, true))
+            and(eq(adminAssignmentTable.userId, users.userId), eq(adminAssignmentTable.isActive, true))
           )
       ),
     with: {
@@ -300,7 +300,7 @@ export async function getAdminUsers(): Promise<AdminUser[]> {
     })
 
     return {
-      id: user.id,
+      userId: user.userId,
       email: user.email,
       name: user.profile?.name || null,
       image: user.image,

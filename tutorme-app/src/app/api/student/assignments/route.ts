@@ -32,7 +32,7 @@ export async function GET(_request: NextRequest) {
       return Object.keys(assignments).includes(studentId)
     })
 
-    const taskIds = studentTasks.map(t => t.id)
+    const taskIds = studentTasks.map(t => t.taskId)
     const submissions =
       taskIds.length > 0
         ? await drizzleDb
@@ -45,10 +45,10 @@ export async function GET(_request: NextRequest) {
     const submissionMap = new Map(submissions.map(s => [s.taskId, s]))
 
     const assignments = studentTasks.map(task => {
-      const submission = submissionMap.get(task.id)
+      const submission = submissionMap.get(task.taskId)
       const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !submission
       return {
-        id: task.id,
+        id: task.taskId,
         title: task.title,
         description: task.description,
         type: task.type,
@@ -60,7 +60,6 @@ export async function GET(_request: NextRequest) {
         submittedAt: submission?.submittedAt?.toISOString() ?? null,
         questionCount: Array.isArray(task.questions) ? (task.questions as unknown[]).length : 0,
         lessonId: task.lessonId,
-        batchId: task.batchId,
         documentSource: task.documentSource,
       }
     })

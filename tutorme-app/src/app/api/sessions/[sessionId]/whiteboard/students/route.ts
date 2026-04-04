@@ -61,11 +61,11 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       const pages = await drizzleDb
         .select()
         .from(whiteboardPage)
-        .where(eq(whiteboardPage.whiteboardId, wb.id))
+        .where(eq(whiteboardPage.whiteboardId, wb.whiteboardId))
         .orderBy(asc(whiteboardPage.order))
         .limit(1)
       return {
-        id: wb.id,
+        id: wb.whiteboardId,
         studentId: wb.ownerId,
         studentName: studentMap.get(wb.ownerId) ?? 'Unknown',
         visibility: wb.visibility,

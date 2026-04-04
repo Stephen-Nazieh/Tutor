@@ -504,7 +504,7 @@ async function getQuiz(quizId: string): Promise<Quiz | null> {
   const [quizRow] = await drizzleDb
     .select()
     .from(quizTable)
-    .where(eq(quizTable.id, quizId))
+    .where(eq(quizTable.quizId, quizId))
     .limit(1)
 
   if (!quizRow) return null
@@ -538,7 +538,7 @@ async function getQuiz(quizId: string): Promise<Quiz | null> {
         : 'medium'
 
     return {
-      id: (q as any).id ?? `${quizRow.id}:q${idx + 1}`,
+      id: (q as any).id ?? `${quizRow.quizId}:q${idx + 1}`,
       type,
       question: String((q as any).question ?? ''),
       options: Array.isArray((q as any).options) ? (q as any).options : undefined,
@@ -550,7 +550,7 @@ async function getQuiz(quizId: string): Promise<Quiz | null> {
   })
 
   return {
-    id: quizRow.id,
+    id: quizRow.quizId,
     lessonId: quizRow.lessonId ?? '',
     title: quizRow.title,
     questions,

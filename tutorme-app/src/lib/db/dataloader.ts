@@ -22,7 +22,7 @@ export async function batchLoadUsers(userIds: string[]) {
     cacheKey,
     async () => {
       if (userIds.length === 0) return []
-      const users = await drizzleDb.select().from(user).where(inArray(user.id, userIds))
+      const users = await drizzleDb.select().from(user).where(inArray(user.userId, userIds))
       const profiles =
         users.length > 0
           ? await drizzleDb
@@ -31,21 +31,21 @@ export async function batchLoadUsers(userIds: string[]) {
               .where(
                 inArray(
                   profile.userId,
-                  users.map(u => u.id)
+                  users.map(u => u.userId)
                 )
               )
           : []
       const profileMap = new Map(profiles.map(p => [p.userId, p]))
       const userMap = new Map(
         users.map(u => [
-          u.id,
+          u.userId,
           {
             ...u,
-            profile: profileMap.get(u.id)
+            profile: profileMap.get(u.userId)
               ? {
-                  name: profileMap.get(u.id)!.name,
-                  avatarUrl: profileMap.get(u.id)!.avatarUrl,
-                  gradeLevel: profileMap.get(u.id)!.gradeLevel,
+                  name: profileMap.get(u.userId)!.name,
+                  avatarUrl: profileMap.get(u.userId)!.avatarUrl,
+                  gradeLevel: profileMap.get(u.userId)!.gradeLevel,
                 }
               : null,
           },
@@ -136,9 +136,9 @@ export async function batchLoadBookingsByClass(classIds: string[]) {
       const profileMap = new Map(profiles.map(p => [p.userId, p]))
       const users =
         studentIds.length > 0
-          ? await drizzleDb.select().from(user).where(inArray(user.id, studentIds))
+          ? await drizzleDb.select().from(user).where(inArray(user.userId, studentIds))
           : []
-      const userMap = new Map(users.map(u => [u.id, u]))
+      const userMap = new Map(users.map(u => [u.userId, u]))
       type BookingWithStudent = (typeof bookings)[0] & {
         student: {
           id: string

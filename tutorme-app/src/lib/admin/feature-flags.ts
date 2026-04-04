@@ -138,7 +138,7 @@ export async function updateFeatureFlag(
   const [previousFlag] = await drizzleDb
     .select()
     .from(featureFlag)
-    .where(eq(featureFlag.id, id))
+    .where(eq(featureFlag.flagId, id))
     .limit(1)
   if (!previousFlag) throw new Error('Feature flag not found')
   await drizzleDb.insert(featureFlagChange).values({
@@ -159,7 +159,7 @@ export async function updateFeatureFlag(
   const [flag] = await drizzleDb
     .update(featureFlag)
     .set(set as Partial<typeof featureFlag.$inferInsert>)
-    .where(eq(featureFlag.id, id))
+    .where(eq(featureFlag.flagId, id))
     .returning()
   flagsCache = null
   if (!flag) throw new Error('Failed to update feature flag')
@@ -170,7 +170,7 @@ export async function deleteFeatureFlag(id: string, adminSession: AdminSession):
   await drizzleDb
     .update(featureFlag)
     .set({ deletedAt: new Date(), updatedBy: adminSession.adminId })
-    .where(eq(featureFlag.id, id))
+    .where(eq(featureFlag.flagId, id))
   flagsCache = null
 }
 

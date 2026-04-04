@@ -134,7 +134,7 @@ export const POST = withCsrf(
       const paymentResponse = await gateway.createPayment({
         amount,
         currency,
-        courseId,
+        curriculumId: courseId,
         studentEmail,
         description: `${courseRow.name} (${courseRow.categories?.[0] ?? 'Course'})`,
         metadata: {

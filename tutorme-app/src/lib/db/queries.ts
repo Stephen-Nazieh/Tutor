@@ -25,7 +25,7 @@ export async function getUserById(userId: string) {
   return cache.getOrSet(
     `user:${userId}`,
     async () => {
-      const [userRow] = await drizzleDb.select().from(user).where(eq(user.id, userId)).limit(1)
+      const [userRow] = await drizzleDb.select().from(user).where(eq(user.userId, userId)).limit(1)
       if (!userRow) return null
       const [profileRow] = await drizzleDb
         .select()
@@ -36,7 +36,7 @@ export async function getUserById(userId: string) {
         ...userRow,
         profile: profileRow
           ? {
-              id: profileRow.id,
+              userId: profileRow.userId,
               name: profileRow.name,
               bio: profileRow.bio,
               avatarUrl: profileRow.avatarUrl,
@@ -65,7 +65,7 @@ export async function getUserByEmail(email: string) {
   const [profileRow] = await drizzleDb
     .select()
     .from(profile)
-    .where(eq(profile.userId, userRow.id))
+    .where(eq(profile.userId, userRow.userId))
     .limit(1)
   return {
     ...userRow,
@@ -101,14 +101,14 @@ export async function getTutorDashboardStats(tutorId: string) {
       const uniqueStudents = await drizzleDb
         .select({ studentId: clinicBooking.studentId })
         .from(clinicBooking)
-        .innerJoin(clinic, eq(clinic.id, clinicBooking.clinicId))
+        .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
         .where(eq(clinic.tutorId, tutorId))
         .groupBy(clinicBooking.studentId)
       const totalStudents = uniqueStudents.length
 
       const recentClasses = await drizzleDb
         .select({
-          id: clinic.id,
+          clinicId: clinic.clinicId,
           title: clinic.title,
           startTime: clinic.startTime,
           status: clinic.status,
@@ -125,7 +125,7 @@ export async function getTutorDashboardStats(tutorId: string) {
         .where(
           inArray(
             clinicBooking.clinicId,
-            recentClasses.map(c => c.id)
+            recentClasses.map(c => c.clinicId)
           )
         )
         .groupBy(clinicBooking.clinicId)
@@ -137,7 +137,7 @@ export async function getTutorDashboardStats(tutorId: string) {
         totalStudents,
         recentClasses: recentClasses.map(c => ({
           ...c,
-          _count: { bookings: countMap.get(c.id) ?? 0 },
+          _count: { bookings: countMap.get(c.clinicId) ?? 0 },
         })),
       }
     },
@@ -169,7 +169,7 @@ export async function getTutorClasses(
   ])
   const total = totalResult[0]?.count ?? 0
 
-  const clinicIds = classes.map(c => c.id)
+  const clinicIds = classes.map(c => c.clinicId)
   const bookings =
     clinicIds.length > 0
       ? await drizzleDb
@@ -191,13 +191,13 @@ export async function getTutorClasses(
   const profileMap = new Map(profiles.map(p => [p.userId, p]))
 
   const classesWithBookings = classes.map(c => {
-    const clsBookings = bookingsByClinic.get(c.id) ?? []
+    const clsBookings = bookingsByClinic.get(c.clinicId) ?? []
     return {
       ...c,
       price: (c as { price?: number })?.price ?? null,
       meetingUrl: c.roomUrl ?? null,
       bookings: clsBookings.map(b => ({
-        id: b.id,
+        id: b.bookingId,
         status: (b as { status?: string })?.status ?? null,
         student: profileMap.get(b.studentId)
           ? {
@@ -235,7 +235,7 @@ export async function getStudentDashboardData(studentId: string) {
               clinic: clinic,
             })
             .from(clinicBooking)
-            .innerJoin(clinic, eq(clinic.id, clinicBooking.clinicId))
+            .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
             .where(
               and(
                 eq(clinicBooking.studentId, studentId),
@@ -273,7 +273,7 @@ export async function getStudentDashboardData(studentId: string) {
         upcomingClasses: bookingsWithClinic.map(({ booking, clinic: c }) => ({
           ...booking,
           clinic: {
-            id: c.id,
+            id: c.clinicId,
             title: c.title,
             startTime: c.startTime,
             endTime: new Date(c.startTime.getTime() + (c.duration || 60) * 60 * 1000),
@@ -313,9 +313,9 @@ export async function getStudentProgress(
   const contentIds = progressRows.map(p => p.contentId)
   const contents =
     contentIds.length > 0
-      ? await drizzleDb.select().from(contentItem).where(inArray(contentItem.id, contentIds))
+      ? await drizzleDb.select().from(contentItem).where(inArray(contentItem.contentId, contentIds))
       : []
-  const contentMap = new Map(contents.map(c => [c.id, c]))
+  const contentMap = new Map(contents.map(c => [c.clinicId, c]))
   const progress = progressRows.map(p => ({
     ...p,
     content: contentMap.get(p.contentId)
@@ -359,7 +359,7 @@ export async function getAvailableClasses(
   ])
   const total = totalResult[0]?.count ?? 0
   const bookingByClinic = new Map(studentBookings.map(b => [b.clinicId, b]))
-  const clinicIds = classes.map(c => c.id)
+  const clinicIds = classes.map(c => c.clinicId)
   const bookingCounts =
     clinicIds.length > 0
       ? await drizzleDb
@@ -378,8 +378,8 @@ export async function getAvailableClasses(
   const profileMap = new Map(profiles.map(p => [p.userId, p]))
 
   const transformed = classes.map(c => {
-    const b = bookingByClinic.get(c.id)
-    const spots = (c.maxStudents ?? 50) - (countMap.get(c.id) ?? 0)
+    const b = bookingByClinic.get(c.clinicId)
+    const spots = (c.maxStudents ?? 50) - (countMap.get(c.clinicId) ?? 0)
     return {
       ...c,
       meetingUrl: c.roomUrl,
@@ -393,11 +393,11 @@ export async function getAvailableClasses(
             },
           }
         : null,
-      bookings: b ? [{ id: b.id, status: (b as { status?: string })?.status }] : [],
+      bookings: b ? [{ id: b.bookingId, status: (b as { status?: string })?.status }] : [],
       isBooked: !!b,
       bookingStatus: b ? ((b as { status?: string })?.status ?? null) : null,
       spotsLeft: spots,
-      _count: { bookings: countMap.get(c.id) ?? 0 },
+      _count: { bookings: countMap.get(c.clinicId) ?? 0 },
     }
   })
   return { classes: transformed, total, hasMore: offset + limit < total }
@@ -407,7 +407,7 @@ export async function getClassDetails(classId: string) {
   return cache.getOrSet(
     `class:${classId}`,
     async () => {
-      const [c] = await drizzleDb.select().from(clinic).where(eq(clinic.id, classId)).limit(1)
+      const [c] = await drizzleDb.select().from(clinic).where(eq(clinic.clinicId, classId)).limit(1)
       if (!c) return null
       const [bookings, tutorProfile] = await Promise.all([
         drizzleDb.select().from(clinicBooking).where(eq(clinicBooking.clinicId, classId)),
@@ -421,9 +421,9 @@ export async function getClassDetails(classId: string) {
       const studentProfileMap = new Map(studentProfiles.map(p => [p.userId, p]))
       const usersForStudents =
         studentIds.length > 0
-          ? await drizzleDb.select().from(user).where(inArray(user.id, studentIds))
+          ? await drizzleDb.select().from(user).where(inArray(user.userId, studentIds))
           : []
-      const userMap = new Map(usersForStudents.map(u => [u.id, u]))
+      const userMap = new Map(usersForStudents.map(u => [u.userId, u]))
       return {
         ...c,
         meetingUrl: c.roomUrl,

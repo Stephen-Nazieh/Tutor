@@ -24,7 +24,7 @@ export const POST = withCsrf(
       const [attempt] = await drizzleDb
         .insert(quizAttempt)
         .values({
-          id: crypto.randomUUID(),
+          attemptId: crypto.randomUUID(),
           studentId: session.user.id,
           quizId,
           answers: answers ?? {},
