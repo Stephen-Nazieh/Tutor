@@ -37,6 +37,7 @@ interface NotificationItem {
   message: string
   read: boolean
   actionUrl?: string
+  data?: Record<string, unknown> | null
   createdAt: string
 }
 
@@ -45,6 +46,7 @@ export function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [respondingIds, setRespondingIds] = useState<Record<string, 'accept' | 'reject' | null>>({})
   const dropdownRef = useRef<HTMLDivElement>(null)
   const eventSourceRef = useRef<EventSource | null>(null)
 
@@ -130,6 +132,31 @@ export function NotificationBell() {
       /* ignore */
     }
   }
+
+  const respondToOneOnOne = async (
+    notificationId: string,
+    requestId: string,
+    action: 'accept' | 'reject'
+  ) => {
+    setRespondingIds(prev => ({ ...prev, [notificationId]: action }))
+    try {
+      const res = await fetch('/api/one-on-one/respond', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ requestId, action }),
+      })
+      if (res.ok) {
+        await markAsRead(notificationId)
+      }
+    } finally {
+      setRespondingIds(prev => ({ ...prev, [notificationId]: null }))
+    }
+  }
+
+  const isOneOnOneRequest = (notification: NotificationItem) =>
+    notification.data?.type === 'one-on-one-request' &&
+    typeof notification.data?.requestId === 'string'
 
   const getIcon = (type: string) => {
     const iconClass = 'w-4 h-4'
@@ -243,6 +270,36 @@ export function NotificationBell() {
                       )}
                     </p>
                     <p className="mt-0.5 line-clamp-2 text-xs text-gray-500">{n.message}</p>
+                    {isOneOnOneRequest(n) && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 text-xs"
+                          disabled={!!respondingIds[n.id]}
+                          onClick={e => {
+                            e.stopPropagation()
+                            const requestId = n.data?.requestId as string
+                            void respondToOneOnOne(n.id, requestId, 'accept')
+                          }}
+                        >
+                          Accept
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 text-xs text-red-600 hover:text-red-700"
+                          disabled={!!respondingIds[n.id]}
+                          onClick={e => {
+                            e.stopPropagation()
+                            const requestId = n.data?.requestId as string
+                            void respondToOneOnOne(n.id, requestId, 'reject')
+                          }}
+                        >
+                          Reject
+                        </Button>
+                      </div>
+                    )}
                     <p className="mt-1 text-[11px] text-gray-400">{formatTime(n.createdAt)}</p>
                   </div>
                 </div>

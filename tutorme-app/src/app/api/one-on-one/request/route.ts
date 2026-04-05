@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { eq, and, or } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { oneOnOneBookingRequest, profile } from '@/lib/db/schema'
+import { oneOnOneBookingRequest, profile, user } from '@/lib/db/schema'
 import { notify } from '@/lib/notifications/notify'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
@@ -163,6 +163,41 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const role = searchParams.get('role') // 'sent' or 'received'
+    const requestId = searchParams.get('requestId')
+
+    if (requestId) {
+      const requestRow = await drizzleDb.query.oneOnOneBookingRequest.findFirst({
+        where: eq(oneOnOneBookingRequest.requestId, requestId),
+      })
+
+      if (!requestRow) {
+        return NextResponse.json({ error: 'Request not found' }, { status: 404 })
+      }
+
+      const isOwner =
+        requestRow.studentId === session.user.id || requestRow.tutorId === session.user.id
+      if (!isOwner && session.user.role !== 'ADMIN') {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+      }
+
+      const [tutorRow] = await drizzleDb
+        .select({
+          userId: user.userId,
+          handle: user.handle,
+          image: user.image,
+          name: profile.name,
+          currency: profile.currency,
+        })
+        .from(user)
+        .leftJoin(profile, eq(profile.userId, user.userId))
+        .where(eq(user.userId, requestRow.tutorId))
+        .limit(1)
+
+      return NextResponse.json({
+        request: requestRow,
+        tutor: tutorRow ?? null,
+      })
+    }
 
     let requests
     if (role === 'sent' || session.user.role === 'STUDENT') {

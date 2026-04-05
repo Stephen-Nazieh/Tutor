@@ -114,6 +114,23 @@ type CourseSession = {
   roomUrl?: string | null
 }
 
+type OneOnOneRequest = {
+  requestId: string
+  studentId: string
+  requestedDate: string
+  startTime: string
+  endTime: string
+  timezone: string
+  costPerSession: number
+  status: string
+  student?: {
+    userId?: string | null
+    handle?: string | null
+    email?: string | null
+    image?: string | null
+  } | null
+}
+
 // Inner component that uses searchParams
 function TutorDashboardContent() {
   const { data: session } = useSession()
@@ -144,6 +161,8 @@ function TutorDashboardContent() {
   const [error, setError] = useState<string | null>(null)
   const [launchingCourseId, setLaunchingCourseId] = useState<string | null>(null)
   const [oneAccountTipDismissed, setOneAccountTipDismissed] = useState(true)
+  const [oneOnOneRequests, setOneOnOneRequests] = useState<OneOnOneRequest[]>([])
+  const [respondingRequestId, setRespondingRequestId] = useState<string | null>(null)
 
   // Cancel Course Modal State
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
@@ -174,13 +193,14 @@ function TutorDashboardContent() {
     if (!session?.user?.id) return
     setError(null)
     try {
-      const [statsRes, classesRes, studentsRes, allStudentsRes, enrolledRes] =
+      const [statsRes, classesRes, studentsRes, allStudentsRes, enrolledRes, oneOnOneRes] =
         await Promise.allSettled([
           fetch('/api/tutor/stats', { credentials: 'include' }),
           fetch('/api/tutor/classes', { credentials: 'include' }),
           fetch('/api/tutor/students-needing-attention', { credentials: 'include' }),
           fetch('/api/tutor/students', { credentials: 'include' }),
           fetch('/api/tutor/courses/enrolled', { credentials: 'include' }),
+          fetch('/api/one-on-one/request?role=received', { credentials: 'include' }),
         ])
 
       const failures: string[] = []
@@ -224,6 +244,14 @@ function TutorDashboardContent() {
         setEnrolledCourses(d.courses ?? [])
       } else {
         failures.push('enrolled-courses')
+      }
+
+      if (oneOnOneRes.status === 'fulfilled' && oneOnOneRes.value.ok) {
+        const d = await oneOnOneRes.value.json()
+        const pending = (d.requests ?? []).filter(
+          (req: OneOnOneRequest) => req.status === 'PENDING'
+        )
+        setOneOnOneRequests(pending)
       }
 
       if (failures.length >= 2) {
@@ -311,6 +339,32 @@ function TutorDashboardContent() {
       toast.error('Failed to remove class')
     }
   }, [])
+
+  const handleOneOnOneResponse = useCallback(
+    async (requestId: string, action: 'accept' | 'reject') => {
+      setRespondingRequestId(requestId)
+      try {
+        const res = await fetch('/api/one-on-one/respond', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ requestId, action }),
+        })
+        if (res.ok) {
+          setOneOnOneRequests(prev => prev.filter(r => r.requestId !== requestId))
+          toast.success(`Request ${action === 'accept' ? 'accepted' : 'rejected'}`)
+        } else {
+          const data = await res.json().catch(() => ({}))
+          toast.error(data.error || 'Unable to respond to request')
+        }
+      } catch {
+        toast.error('Unable to respond to request')
+      } finally {
+        setRespondingRequestId(null)
+      }
+    },
+    []
+  )
 
   const handleEnterCourseClassroom = useCallback(
     async (course: EnrolledCourse) => {
@@ -522,6 +576,80 @@ function TutorDashboardContent() {
                   <p className="mt-1 text-sm text-gray-400">Task/Assessment completion</p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 1-on-1 Requests */}
+        <div className="mb-8">
+          <Card className="border border-border bg-card/95 shadow-xl backdrop-blur-md">
+            <CardHeader className="flex flex-row items-center justify-between gap-3">
+              <div>
+                <CardTitle>1-on-1 Requests</CardTitle>
+                <p className="text-xs text-muted-foreground">Pending requests from students</p>
+              </div>
+              <Button asChild variant="outline" size="sm">
+                <Link href={withLocalePath('/tutor/notifications')}>View all</Link>
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {oneOnOneRequests.length === 0 ? (
+                <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                  No pending 1-on-1 requests.
+                </div>
+              ) : (
+                oneOnOneRequests.slice(0, 3).map(request => (
+                  <div
+                    key={request.requestId}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-white p-4"
+                  >
+                    <div className="min-w-0 space-y-1">
+                      <p className="truncate font-semibold text-slate-900">
+                        @{request.student?.handle || 'student'}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        <span>
+                          {new Date(request.requestedDate).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </span>
+                        <span>•</span>
+                        <span>
+                          {request.startTime} - {request.endTime}
+                        </span>
+                        <span>•</span>
+                        <span>{request.timezone}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={respondingRequestId === request.requestId}
+                        onClick={() => handleOneOnOneResponse(request.requestId, 'accept')}
+                      >
+                        Accept
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-red-600 hover:text-red-700"
+                        disabled={respondingRequestId === request.requestId}
+                        onClick={() => handleOneOnOneResponse(request.requestId, 'reject')}
+                      >
+                        Reject
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+              {oneOnOneRequests.length > 3 ? (
+                <p className="text-xs text-muted-foreground">
+                  +{oneOnOneRequests.length - 3} more pending requests
+                </p>
+              ) : null}
             </CardContent>
           </Card>
         </div>

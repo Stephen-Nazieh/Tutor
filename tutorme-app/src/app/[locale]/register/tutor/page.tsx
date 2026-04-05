@@ -17,6 +17,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
+import { HANDLE_REGEX, isReservedHandle } from '@/lib/mentions/handles'
 import {
   GraduationCap,
   ShieldCheck,
@@ -1767,7 +1768,7 @@ export default function TutorRegistrationPage() {
   const [step, setStep] = useState(1)
 
   const [usernameStatus, setUsernameStatus] = useState<{
-    status: 'idle' | 'checking' | 'available' | 'taken'
+    status: 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
     message?: string
     suggestion?: string
   }>({
@@ -1936,7 +1937,7 @@ export default function TutorRegistrationPage() {
       .replace(/[^a-z0-9_]/g, '')
       .replace(/_+/g, '_')
       .replace(/^_+|_+$/g, '')
-      .slice(0, 30)
+      .slice(0, 15)
 
   // Generate username suggestion from first and last name
   const generateUsernameSuggestion = () => {
@@ -1956,6 +1957,17 @@ export default function TutorRegistrationPage() {
     const normalized = normalizeUsernameInput(value)
     if (!normalized.trim()) {
       setUsernameStatus({ status: 'idle' })
+      return
+    }
+    if (!HANDLE_REGEX.test(normalized)) {
+      setUsernameStatus({
+        status: 'invalid',
+        message: 'Username must be 3-15 characters (letters, numbers, underscores)',
+      })
+      return
+    }
+    if (isReservedHandle(normalized)) {
+      setUsernameStatus({ status: 'invalid', message: 'This username is reserved' })
       return
     }
     setUsernameStatus({ status: 'checking' })
@@ -2031,6 +2043,17 @@ export default function TutorRegistrationPage() {
     const normalized = normalizeUsernameInput(formData.username)
     if (!normalized) {
       setUsernameStatus({ status: 'idle' })
+      return
+    }
+    if (!HANDLE_REGEX.test(normalized)) {
+      setUsernameStatus({
+        status: 'invalid',
+        message: 'Username must be 3-15 characters (letters, numbers, underscores)',
+      })
+      return
+    }
+    if (isReservedHandle(normalized)) {
+      setUsernameStatus({ status: 'invalid', message: 'This username is reserved' })
       return
     }
     const handle = setTimeout(() => {
@@ -2109,6 +2132,19 @@ export default function TutorRegistrationPage() {
       toast.error('Username is required')
       return false
     }
+    const normalized = normalizeUsernameInput(formData.username)
+    if (!HANDLE_REGEX.test(normalized)) {
+      toast.error('Username must be 3-15 characters (letters, numbers, underscores)')
+      return false
+    }
+    if (isReservedHandle(normalized)) {
+      toast.error('This username is reserved')
+      return false
+    }
+    if (usernameStatus.status === 'invalid') {
+      toast.error(usernameStatus.message || 'Username is invalid')
+      return false
+    }
     if (usernameStatus.status === 'taken') {
       toast.error('Username is already taken')
       return false
@@ -2124,7 +2160,6 @@ export default function TutorRegistrationPage() {
 
     // Show checking modal and verify username
     setShowUsernameCheckModal(true)
-    const normalized = normalizeUsernameInput(formData.username)
     await checkUsernameAvailability(normalized)
 
     // Check again after API call
@@ -2952,8 +2987,11 @@ export default function TutorRegistrationPage() {
                       )}
                     </div>
                   )}
+                  {usernameStatus.status === 'invalid' && (
+                    <p className="text-xs text-red-600">{usernameStatus.message}</p>
+                  )}
                   <p className="text-xs text-gray-500">
-                    Only letters, numbers, and underscores allowed
+                    3-15 characters. Only letters, numbers, and underscores allowed.
                   </p>
                 </div>
 

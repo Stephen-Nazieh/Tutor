@@ -25,6 +25,7 @@ import {
   payment,
   clinicBooking,
   clinic,
+  oneOnOneBookingRequest,
 } from '@/lib/db/schema'
 import { getPaymentGateway, type GatewayName } from '@/lib/payments'
 import { eq, and, isNull } from 'drizzle-orm'
@@ -38,6 +39,7 @@ export const POST = withCsrf(
     const {
       bookingId,
       courseId,
+      oneOnOneRequestId,
       studentId,
       gateway: requestedGateway,
       metadata: customMetadata,
@@ -168,6 +170,131 @@ export const POST = withCsrf(
           payerId: session.user.id,
           payerRole: session.user.role,
           startDate: customMetadata?.startDate,
+        },
+      })
+
+      return NextResponse.json({
+        checkoutUrl: paymentResponse.checkoutUrl,
+        paymentId,
+      })
+    }
+
+    // --- One-on-one payment ---
+    if (oneOnOneRequestId) {
+      const [requestRow] = await drizzleDb
+        .select({
+          request: oneOnOneBookingRequest,
+          tutorCurrency: profile.currency,
+          tutorPaymentGateway: profile.paymentGatewayPreference,
+        })
+        .from(oneOnOneBookingRequest)
+        .innerJoin(user, eq(user.userId, oneOnOneBookingRequest.tutorId))
+        .leftJoin(profile, eq(profile.userId, oneOnOneBookingRequest.tutorId))
+        .where(eq(oneOnOneBookingRequest.requestId, oneOnOneRequestId))
+        .limit(1)
+
+      if (!requestRow) {
+        throw new NotFoundError('One-on-one request not found')
+      }
+
+      if (requestRow.request.studentId !== payerStudentId) {
+        throw new ForbiddenError('You can only pay for your own request')
+      }
+
+      if (requestRow.request.status !== 'ACCEPTED') {
+        throw new ValidationError('This request is not accepted yet')
+      }
+
+      if (requestRow.request.paidAt) {
+        throw new ValidationError('This request has already been paid')
+      }
+
+      const amount = Number(requestRow.request.costPerSession || 0)
+      if (amount <= 0) {
+        throw new ValidationError('Invalid payment amount')
+      }
+
+      const currency = requestRow.tutorCurrency || 'USD'
+
+      const [payerUser] = await drizzleDb
+        .select({
+          email: user.email,
+          paymentGatewayPreference: profile.paymentGatewayPreference,
+        })
+        .from(user)
+        .leftJoin(profile, eq(profile.userId, user.userId))
+        .where(eq(user.userId, payerStudentId))
+        .limit(1)
+      const studentEmail = payerUser?.email ?? ''
+
+      let gatewayName: GatewayName
+      if (requestedGateway && (requestedGateway === 'HITPAY' || requestedGateway === 'AIRWALLEX')) {
+        gatewayName = requestedGateway
+      } else if (payerUser?.paymentGatewayPreference) {
+        gatewayName = payerUser.paymentGatewayPreference as GatewayName
+      } else {
+        gatewayName = (process.env.PAYMENT_DEFAULT_GATEWAY || 'HITPAY') as GatewayName
+      }
+
+      const gateway = getPaymentGateway(gatewayName)
+
+      const pendingPayments = await drizzleDb
+        .select()
+        .from(payment)
+        .where(and(isNull(payment.bookingId), eq(payment.status, 'PENDING')))
+        .limit(50)
+      const existingPayment = pendingPayments.find(p => {
+        const m = p.metadata as Record<string, unknown> | null
+        return m?.type === 'one-on-one' && m?.requestId === oneOnOneRequestId
+      })
+      if (existingPayment?.gatewayCheckoutUrl) {
+        return NextResponse.json({
+          checkoutUrl: existingPayment.gatewayCheckoutUrl,
+          paymentId: existingPayment.paymentId,
+        })
+      }
+
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || ''
+      const paymentResponse = await gateway.createPayment({
+        amount,
+        currency,
+        curriculumId: undefined,
+        studentEmail,
+        description: '1-on-1 tutoring session',
+        metadata: {
+          type: 'one-on-one',
+          requestId: oneOnOneRequestId,
+          tutorId: requestRow.request.tutorId,
+          studentId: payerStudentId,
+          payerId: session.user.id,
+          payerRole: session.user.role,
+        },
+        successUrl: `${baseUrl}/payment/success?type=one-on-one&requestId=${encodeURIComponent(
+          oneOnOneRequestId
+        )}`,
+        cancelUrl: `${baseUrl}/payment/cancel?type=one-on-one&requestId=${encodeURIComponent(
+          oneOnOneRequestId
+        )}`,
+      })
+
+      const paymentId = crypto.randomUUID()
+      await drizzleDb.insert(payment).values({
+        paymentId,
+        bookingId: null,
+        amount,
+        currency,
+        status: 'PENDING',
+        gateway: gatewayName,
+        tutorId: requestRow.request.tutorId,
+        gatewayPaymentId: paymentResponse.paymentId,
+        gatewayCheckoutUrl: paymentResponse.checkoutUrl,
+        metadata: {
+          type: 'one-on-one',
+          requestId: oneOnOneRequestId,
+          tutorId: requestRow.request.tutorId,
+          studentId: payerStudentId,
+          payerId: session.user.id,
+          payerRole: session.user.role,
         },
       })
 
