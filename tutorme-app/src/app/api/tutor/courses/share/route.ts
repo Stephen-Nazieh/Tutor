@@ -73,6 +73,10 @@ async function postHandler(
       }
 
       if (recipient.role !== 'PARENT' && recipient.role !== 'ADMIN') {
+        results.push({ email, status: 'not_parent' })
+        continue
+      }
+
       const shareId = crypto.randomUUID()
       const insertedShare = await drizzleDb
         .insert(courseShare)
@@ -91,7 +95,6 @@ async function postHandler(
         results.push({ email, status: 'already_shared' })
         continue
       }
-      })
 
       const familyAccountId = recipient.familyMemberships?.[0]?.familyAccountId
       if (familyAccountId) {

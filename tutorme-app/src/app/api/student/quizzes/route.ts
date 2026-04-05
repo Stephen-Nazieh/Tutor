@@ -82,12 +82,6 @@ export const GET = withAuth(
     for (const a of courseAssignments) {
       if (!quizMap.has(a.quizId)) {
         const quizRow = courseQuizById.get(a.quizId)
-      if (!quizMap.has(a.quizId)) {
-        const [quizRow] = await drizzleDb
-          .select()
-          .from(quiz)
-          .where(eq(quiz.quizId, a.quizId))
-          .limit(1)
         if (quizRow) {
           quizMap.set(a.quizId, {
             quiz: quizRow,

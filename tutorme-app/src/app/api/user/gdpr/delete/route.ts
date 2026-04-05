@@ -29,7 +29,7 @@ export const POST = withCsrf(
         image: null,
         emailVerified: null,
       })
-      .where(eq(user.id, userId))
+      .where(eq(user.userId, userId))
 
     const [profileRow] = await drizzleDb
       .select()

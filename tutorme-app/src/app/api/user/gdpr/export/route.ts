@@ -15,7 +15,7 @@ export const GET = withAuth(async (_req, session) => {
 
   const [userRow] = await drizzleDb
     .select({
-      id: user.id,
+      userId: user.userId,
       email: user.email,
       role: user.role,
       emailVerified: user.emailVerified,
@@ -23,7 +23,7 @@ export const GET = withAuth(async (_req, session) => {
       updatedAt: user.updatedAt,
     })
     .from(user)
-    .where(eq(user.id, userId))
+    .where(eq(user.userId, userId))
     .limit(1)
 
   const [profileRow] = await drizzleDb
@@ -39,7 +39,7 @@ export const GET = withAuth(async (_req, session) => {
 
   const bookingsWithClinic = await drizzleDb
     .select({
-      id: clinicBooking.id,
+      bookingId: clinicBooking.bookingId,
       clinicId: clinicBooking.clinicId,
       bookedAt: clinicBooking.bookedAt,
       attended: clinicBooking.attended,
@@ -47,15 +47,15 @@ export const GET = withAuth(async (_req, session) => {
       clinicStartTime: clinic.startTime,
     })
     .from(clinicBooking)
-    .innerJoin(clinic, eq(clinicBooking.clinicId, clinic.id))
+    .innerJoin(clinic, eq(clinicBooking.clinicId, clinic.clinicId))
     .where(eq(clinicBooking.studentId, userId))
 
-  const bookingIds = bookingsWithClinic.map(b => b.id)
+  const bookingIds = bookingsWithClinic.map(b => b.bookingId)
   const paymentsSummary =
     bookingIds.length > 0
       ? await drizzleDb
           .select({
-            id: payment.id,
+            paymentId: payment.paymentId,
             amount: payment.amount,
             status: payment.status,
             createdAt: payment.createdAt,
@@ -69,7 +69,7 @@ export const GET = withAuth(async (_req, session) => {
   }
 
   const clinicBookings = bookingsWithClinic.map(b => ({
-    id: b.id,
+    bookingId: b.bookingId,
     clinicId: b.clinicId,
     bookedAt: b.bookedAt,
     attended: b.attended,

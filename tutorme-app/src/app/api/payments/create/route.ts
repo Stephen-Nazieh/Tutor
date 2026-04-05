@@ -19,6 +19,7 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import {
   course,
   courseEnrollment,
+  courseProgress,
   user,
   profile,
   payment,

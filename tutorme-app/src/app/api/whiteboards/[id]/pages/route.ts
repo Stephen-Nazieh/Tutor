@@ -36,7 +36,7 @@ export const GET = withAuth(
         .from(whiteboard)
         .where(
           and(
-            eq(whiteboard.id, whiteboardId),
+            eq(whiteboard.whiteboardId, whiteboardId),
             eq(whiteboard.ownerId, userId),
             isNull(whiteboard.deletedAt)
           )
@@ -89,7 +89,7 @@ export const POST = withAuth(
         .from(whiteboard)
         .where(
           and(
-            eq(whiteboard.id, whiteboardId),
+            eq(whiteboard.whiteboardId, whiteboardId),
             eq(whiteboard.ownerId, userId),
             isNull(whiteboard.deletedAt)
           )
@@ -114,7 +114,7 @@ export const POST = withAuth(
       const inserted = await drizzleDb
         .insert(whiteboardPage)
         .values({
-          id: crypto.randomUUID(),
+          pageId: crypto.randomUUID(),
           whiteboardId,
           name: data.name,
           order,
@@ -178,7 +178,7 @@ export const PUT = withAuth(
         .from(whiteboard)
         .where(
           and(
-            eq(whiteboard.id, whiteboardId),
+            eq(whiteboard.whiteboardId, whiteboardId),
             eq(whiteboard.ownerId, userId),
             isNull(whiteboard.deletedAt)
           )
@@ -190,10 +190,10 @@ export const PUT = withAuth(
       }
 
       const ownedPages = await drizzleDb
-        .select({ id: whiteboardPage.id })
+        .select({ pageId: whiteboardPage.pageId })
         .from(whiteboardPage)
         .where(
-          and(eq(whiteboardPage.whiteboardId, whiteboardId), inArray(whiteboardPage.id, pageIds))
+          and(eq(whiteboardPage.whiteboardId, whiteboardId), inArray(whiteboardPage.pageId, pageIds))
         )
       if (ownedPages.length !== pageOrders.length) {
         return NextResponse.json(
@@ -207,7 +207,7 @@ export const PUT = withAuth(
           await tx
             .update(whiteboardPage)
             .set({ order: po.order })
-            .where(and(eq(whiteboardPage.id, po.id), eq(whiteboardPage.whiteboardId, whiteboardId)))
+            .where(and(eq(whiteboardPage.pageId, po.id), eq(whiteboardPage.whiteboardId, whiteboardId)))
         }
       })
 

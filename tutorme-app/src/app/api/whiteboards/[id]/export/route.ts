@@ -95,7 +95,7 @@ export const GET = withAuth(
         .from(whiteboard)
         .where(
           and(
-            eq(whiteboard.id, whiteboardId),
+            eq(whiteboard.whiteboardId, whiteboardId),
             eq(whiteboard.ownerId, userId),
             isNull(whiteboard.deletedAt)
           )
@@ -116,7 +116,7 @@ export const GET = withAuth(
         case 'json': {
           return NextResponse.json({
             whiteboard: {
-              id: wb.id,
+              id: wb.whiteboardId,
               title: wb.title,
               description: wb.description,
               width: wb.width,
@@ -155,7 +155,7 @@ export const GET = withAuth(
           return NextResponse.json({
             message: `${format.toUpperCase()} export requires server-side rendering. Use client-side export or implement a rendering service.`,
             whiteboard: {
-              id: wb.id,
+              id: wb.whiteboardId,
               title: wb.title,
               pageCount: pages.length,
             },
