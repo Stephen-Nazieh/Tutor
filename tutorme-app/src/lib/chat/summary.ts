@@ -43,7 +43,7 @@ export async function generateSessionSummary(
   try {
     const messagesRows = await drizzleDb
       .select({
-        id: message.id,
+        messageId: message.messageId,
         sessionId: message.sessionId,
         userId: message.userId,
         content: message.content,
@@ -52,8 +52,8 @@ export async function generateSessionSummary(
         userName: profile.name,
       })
       .from(message)
-      .leftJoin(user, eq(message.userId, user.id))
-      .leftJoin(profile, eq(user.id, profile.userId))
+      .leftJoin(user, eq(message.userId, user.userId))
+      .leftJoin(profile, eq(user.userId, profile.userId))
       .where(eq(message.sessionId, sessionId))
       .orderBy(asc(message.timestamp))
     const messages = messagesRows.map(m => ({
@@ -134,8 +134,8 @@ export async function generateBreakoutSummary(
         userName: profile.name,
       })
       .from(message)
-      .leftJoin(user, eq(message.userId, user.id))
-      .leftJoin(profile, eq(user.id, profile.userId))
+      .leftJoin(user, eq(message.userId, user.userId))
+      .leftJoin(profile, eq(user.userId, profile.userId))
       .where(like(message.sessionId, `breakout_${breakoutRoomId}%`))
       .orderBy(asc(message.timestamp))
     const messages = messagesRows.map(m => ({

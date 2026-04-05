@@ -6,13 +6,10 @@ import {
   liveSession,
   sessionParticipant,
   sessionReplayArtifact,
-  user,
   profile,
   generatedTask,
   taskSubmission,
   curriculumLesson,
-  curriculumModule,
-  courseBatch,
 } from '@/lib/db/schema'
 import { eq, and, inArray, desc } from 'drizzle-orm'
 
@@ -43,7 +40,7 @@ export async function GET(_req: NextRequest) {
       .from(liveSession)
       .where(
         and(
-          inArray(liveSession.id, sessionIds),
+          inArray(liveSession.sessionId, sessionIds),
           inArray(liveSession.status, ['completed', 'ended'])
         )
       )
@@ -60,7 +57,7 @@ export async function GET(_req: NextRequest) {
         .where(
           inArray(
             sessionReplayArtifact.sessionId,
-            endedSessions.map(s => s.id)
+            endedSessions.map(s => s.sessionId)
           )
         )
       replays.forEach(r => replayBySession.set(r.sessionId, r))
@@ -84,32 +81,19 @@ export async function GET(_req: NextRequest) {
         let taskCount = 0
         let submittedCount = 0
 
-        if (liveSessionRow.curriculumId) {
-          const modules = await drizzleDb
-            .select({ id: curriculumModule.id })
-            .from(curriculumModule)
-            .where(eq(curriculumModule.curriculumId, liveSessionRow.curriculumId))
-          const moduleIds = modules.map(m => m.id)
-          const lessonIds =
-            moduleIds.length > 0
-              ? (
-                  await drizzleDb
-                    .select({ id: curriculumLesson.id })
-                    .from(curriculumLesson)
-                    .where(inArray(curriculumLesson.moduleId, moduleIds))
-                ).map(l => l.id)
-              : []
-          const batchIds = (
+        // Lessons now directly reference courses (no modules)
+        if (liveSessionRow.courseId) {
+          const lessonIds = (
             await drizzleDb
-              .select({ id: courseBatch.id })
-              .from(courseBatch)
-              .where(eq(courseBatch.curriculumId, liveSessionRow.curriculumId))
-          ).map(b => b.id)
+              .select({ lessonId: curriculumLesson.lessonId })
+              .from(curriculumLesson)
+              .where(eq(curriculumLesson.courseId, liveSessionRow.courseId))
+          ).map(l => l.lessonId)
 
           const allTaskIds: string[] = []
           if (lessonIds.length > 0) {
             const byLesson = await drizzleDb
-              .select({ id: generatedTask.id })
+              .select({ taskId: generatedTask.taskId })
               .from(generatedTask)
               .where(
                 and(
@@ -117,19 +101,7 @@ export async function GET(_req: NextRequest) {
                   inArray(generatedTask.lessonId, lessonIds)
                 )
               )
-            allTaskIds.push(...byLesson.map(t => t.id))
-          }
-          if (batchIds.length > 0) {
-            const byBatch = await drizzleDb
-              .select({ id: generatedTask.id })
-              .from(generatedTask)
-              .where(
-                and(
-                  eq(generatedTask.tutorId, liveSessionRow.tutorId),
-                  inArray(generatedTask.batchId, batchIds)
-                )
-              )
-            allTaskIds.push(...byBatch.map(t => t.id))
+            allTaskIds.push(...byLesson.map(t => t.taskId))
           }
           const uniqueTaskIds = [...new Set(allTaskIds)]
           taskCount = uniqueTaskIds.length
@@ -148,7 +120,7 @@ export async function GET(_req: NextRequest) {
           }
         }
 
-        const artifact = replayBySession.get(liveSessionRow.id)
+        const artifact = replayBySession.get(liveSessionRow.sessionId)
         const replaySummary =
           artifact?.summary ||
           (typeof artifact?.summaryJson === 'object' &&
@@ -160,9 +132,9 @@ export async function GET(_req: NextRequest) {
         const tutorName = tutorNameByUserId.get(liveSessionRow.tutorId) ?? 'Tutor'
 
         return {
-          id: liveSessionRow.id,
+          id: liveSessionRow.sessionId,
           title: liveSessionRow.title,
-          subject: liveSessionRow.subject,
+          subject: liveSessionRow.category,
           tutorName,
           scheduledAt: liveSessionRow.scheduledAt,
           endedAt: liveSessionRow.endedAt,

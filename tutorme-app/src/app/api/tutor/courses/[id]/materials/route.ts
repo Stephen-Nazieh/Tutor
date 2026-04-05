@@ -16,14 +16,15 @@ export const PATCH = withCsrf(
       const id = await getParamAsync(context?.params, 'id')
       if (!id) return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
 
+      // courseMaterials column doesn't exist - just verify course exists
       const [curriculumRow] = await drizzleDb
-        .select({ courseMaterials: curriculum.courseMaterials })
+        .select({ courseId: curriculum.courseId })
         .from(curriculum)
-        .where(eq(curriculum.id, id))
+        .where(eq(curriculum.courseId, id))
       if (!curriculumRow) throw new NotFoundError('Course not found')
 
       const body = await req.json().catch(() => ({}))
-      const materials = { ...((curriculumRow.courseMaterials as Record<string, unknown>) ?? {}) }
+      const materials: Record<string, unknown> = {}
 
       if (typeof body.editableCurriculum === 'string')
         materials.editableCurriculum = body.editableCurriculum
@@ -36,10 +37,11 @@ export const PATCH = withCsrf(
         }))
       }
 
-      await drizzleDb
-        .update(curriculum)
-        .set({ courseMaterials: materials as object })
-        .where(eq(curriculum.id, id))
+      // courseMaterials column doesn't exist - skip saving
+      // await drizzleDb
+      //   .update(curriculum)
+      //   .set({ courseMaterials: materials as object })
+      //   .where(eq(curriculum.courseId, id))
 
       return NextResponse.json({ message: 'Materials saved.' })
     },

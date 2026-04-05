@@ -10,8 +10,8 @@ import {
   achievement,
   clinic,
   contentItem,
-  curriculum,
-  curriculumLesson,
+  course,
+  courseLesson,
   curriculumModule,
   profile,
   user,
@@ -25,7 +25,7 @@ async function main() {
   const tutorId = crypto.randomUUID()
   const now = new Date()
   await drizzleDb.insert(user).values({
-    id: tutorId,
+    userId: tutorId,
     email: 'tutor@example.com',
     role: 'TUTOR',
     password: 'hashed',
@@ -33,7 +33,7 @@ async function main() {
     updatedAt: now,
   })
   await drizzleDb.insert(profile).values({
-    id: crypto.randomUUID(),
+    profileId: crypto.randomUUID(),
     userId: tutorId,
     name: 'Sample Tutor',
     bio: 'Experienced mathematics tutor',
@@ -56,7 +56,7 @@ async function main() {
 
   const studentId = crypto.randomUUID()
   await drizzleDb.insert(user).values({
-    id: studentId,
+    userId: studentId,
     email: 'student@example.com',
     role: 'STUDENT',
     password: 'hashed',
@@ -64,7 +64,7 @@ async function main() {
     updatedAt: now,
   })
   await drizzleDb.insert(profile).values({
-    id: crypto.randomUUID(),
+    profileId: crypto.randomUUID(),
     userId: studentId,
     name: 'Sample Student',
     gradeLevel: '10th Grade',
@@ -85,15 +85,13 @@ async function main() {
   })
   console.log('Created student:', studentId)
 
-  // Create sample curriculum
-  const curriculumId = crypto.randomUUID()
-  await drizzleDb.insert(curriculum).values({
-    id: curriculumId,
+  // Create sample course
+  const courseId = crypto.randomUUID()
+  await drizzleDb.insert(course).values({
+    courseId: courseId,
     name: 'Mathematics Fundamentals',
-    subject: 'Mathematics',
-    difficulty: 'beginner',
+    categories: ['Mathematics'],
     description: 'Core mathematics concepts including algebra and geometry',
-    estimatedHours: 20,
     isPublished: true,
     isLiveOnline: false,
     creatorId: tutorId,
@@ -102,46 +100,41 @@ async function main() {
   })
   const moduleId = crypto.randomUUID()
   await drizzleDb.insert(curriculumModule).values({
-    id: moduleId,
-    curriculumId,
+    moduleId: moduleId,
+    courseId: courseId,
     title: 'Linear Equations',
     description: 'Understanding and solving linear equations',
     order: 0,
+    builderData: {},
   })
-  await drizzleDb.insert(curriculumLesson).values({
-    id: crypto.randomUUID(),
-    moduleId,
+  await drizzleDb.insert(courseLesson).values({
+    lessonId: crypto.randomUUID(),
+    courseId: courseId,
     title: 'Introduction to Linear Equations',
     description: 'Learn the fundamentals of linear equations',
-    duration: 30,
-    difficulty: 'beginner',
     order: 0,
-    learningObjectives: ['Understand what linear equations are', 'Identify linear equation forms'],
-    teachingPoints: ['Definition of linear equations', 'Standard form: ax + b = 0'],
-    keyConcepts: ['Variables', 'Coefficients', 'Constants'],
-    commonMisconceptions: [],
-    prerequisiteLessonIds: [],
+    tasks: [],
+    assessments: [],
+    homework: [],
+    builderData: {},
   })
-  await drizzleDb.insert(curriculumLesson).values({
-    id: crypto.randomUUID(),
-    moduleId,
+  await drizzleDb.insert(courseLesson).values({
+    lessonId: crypto.randomUUID(),
+    courseId: courseId,
     title: 'Solving Simple Equations',
     description: 'Practice solving basic linear equations',
-    duration: 45,
-    difficulty: 'beginner',
     order: 1,
-    learningObjectives: ['Solve one-step equations', 'Solve two-step equations'],
-    teachingPoints: ['Isolating variables', 'Inverse operations'],
-    keyConcepts: ['Addition property', 'Multiplication property'],
-    commonMisconceptions: [],
-    prerequisiteLessonIds: [],
+    tasks: [],
+    assessments: [],
+    homework: [],
+    builderData: {},
   })
   console.log('Created curriculum: Mathematics Fundamentals')
 
   // Create sample clinic
   const clinicId = crypto.randomUUID()
   await drizzleDb.insert(clinic).values({
-    id: clinicId,
+    clinicId: clinicId,
     title: 'Math Study Session',
     description: 'Weekly math tutoring session focusing on linear equations',
     tutorId,
@@ -156,7 +149,7 @@ async function main() {
 
   // Create sample content item
   await drizzleDb.insert(contentItem).values({
-    id: crypto.randomUUID(),
+    contentId: crypto.randomUUID(),
     type: 'video',
     subject: 'Mathematics',
     title: 'Introduction to Linear Equations',
@@ -170,7 +163,7 @@ async function main() {
 
   // Create sample achievement
   await drizzleDb.insert(achievement).values({
-    id: crypto.randomUUID(),
+    achievementId: crypto.randomUUID(),
     userId: studentId,
     type: 'FIRST_LOGIN',
     title: 'Welcome Aboard!',
@@ -181,7 +174,7 @@ async function main() {
 
   // Create sample gamification record
   await drizzleDb.insert(userGamification).values({
-    id: crypto.randomUUID(),
+    gamificationId: crypto.randomUUID(),
     userId: studentId,
     xp: 100,
     streakDays: 3,
@@ -195,6 +188,7 @@ async function main() {
     confidenceScore: 0,
     fluencyScore: 0,
     unlockedWorlds: [],
+    lastLogin: new Date(),
   })
   console.log('Created gamification record')
 

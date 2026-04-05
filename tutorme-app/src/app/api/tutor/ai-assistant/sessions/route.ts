@@ -21,7 +21,7 @@ export const GET = withAuth(
       .where(eq(aIAssistantSession.tutorId, tutorId))
       .orderBy(desc(aIAssistantSession.updatedAt))
 
-    const sessionIds = sessions.map(s => s.id)
+    const sessionIds = sessions.map(s => s.assistantSessionId)
     const [messageCounts, insightCounts] = await Promise.all([
       sessionIds.length > 0
         ? drizzleDb
@@ -51,8 +51,8 @@ export const GET = withAuth(
     const sessionsWithCounts = sessions.map(s => ({
       ...s,
       _count: {
-        messages: msgMap.get(s.id) ?? 0,
-        insights: insMap.get(s.id) ?? 0,
+        messages: msgMap.get(s.assistantSessionId) ?? 0,
+        insights: insMap.get(s.assistantSessionId) ?? 0,
       },
     }))
 
@@ -68,7 +68,7 @@ export const DELETE = withAuth(
 
     try {
       const toArchive = await drizzleDb
-        .select({ id: aIAssistantSession.id })
+        .select({ id: aIAssistantSession.assistantSessionId })
         .from(aIAssistantSession)
         .where(
           and(eq(aIAssistantSession.tutorId, tutorId), eq(aIAssistantSession.status, 'active'))
@@ -81,7 +81,7 @@ export const DELETE = withAuth(
         await drizzleDb
           .update(aIAssistantSession)
           .set({ status: 'archived' })
-          .where(inArray(aIAssistantSession.id, ids))
+          .where(inArray(aIAssistantSession.assistantSessionId, ids))
       }
 
       return NextResponse.json({

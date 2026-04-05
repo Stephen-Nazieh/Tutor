@@ -21,14 +21,14 @@ export const DELETE = withAuth(async (_req: NextRequest, session, context) => {
     const [existing] = await drizzleDb
       .select()
       .from(notification)
-      .where(and(eq(notification.id, id), eq(notification.userId, userId)))
+      .where(and(eq(notification.notificationId, id), eq(notification.userId, userId)))
       .limit(1)
 
     if (!existing) {
       return NextResponse.json({ error: 'Notification not found' }, { status: 404 })
     }
 
-    await drizzleDb.delete(notification).where(eq(notification.id, id))
+    await drizzleDb.delete(notification).where(eq(notification.notificationId, id))
 
     return NextResponse.json({ success: true })
   } catch (error) {

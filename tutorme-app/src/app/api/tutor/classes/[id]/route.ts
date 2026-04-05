@@ -56,7 +56,7 @@ export const GET = withAuth(
     const sessionRows = await drizzleDb
       .select()
       .from(liveSession)
-      .where(and(eq(liveSession.id, classId), eq(liveSession.tutorId, tutorId)))
+      .where(and(eq(liveSession.sessionId, classId), eq(liveSession.tutorId, tutorId)))
       .limit(1)
 
     const liveSessionRow = sessionRows[0]
@@ -75,8 +75,8 @@ export const GET = withAuth(
         email: user.email,
       })
       .from(sessionParticipant)
-      .innerJoin(user, eq(sessionParticipant.studentId, user.id))
-      .leftJoin(profile, eq(profile.userId, user.id))
+      .innerJoin(user, eq(sessionParticipant.studentId, user.userId))
+      .leftJoin(profile, eq(profile.userId, user.userId))
       .where(eq(sessionParticipant.sessionId, classId))
 
     const messages = await drizzleDb
@@ -89,8 +89,8 @@ export const GET = withAuth(
         userEmail: user.email,
       })
       .from(message)
-      .innerJoin(user, eq(message.userId, user.id))
-      .leftJoin(profile, eq(profile.userId, user.id))
+      .innerJoin(user, eq(message.userId, user.userId))
+      .leftJoin(profile, eq(profile.userId, user.userId))
       .where(eq(message.sessionId, classId))
       .orderBy(asc(message.timestamp))
       .limit(200)
@@ -138,9 +138,14 @@ export const GET = withAuth(
     )
 
     const tutorCourses = await drizzleDb
-      .select({ id: curriculum.id, name: curriculum.name, updatedAt: curriculum.updatedAt })
+      .select({ id: curriculum.courseId, name: curriculum.name, updatedAt: curriculum.updatedAt })
       .from(curriculum)
-      .where(and(eq(curriculum.creatorId, tutorId), eq(curriculum.subject, liveSessionRow.subject)))
+      .where(
+        and(
+          eq(curriculum.creatorId, tutorId),
+          sql`${curriculum.categories} @> ARRAY[${liveSessionRow.category}]`
+        )
+      )
       .orderBy(desc(curriculum.updatedAt))
       .limit(50)
 
@@ -158,13 +163,13 @@ export const GET = withAuth(
     })
     const subjectSingleton = tutorCourses.length === 1 ? tutorCourses[0] : null
     const linkedCourse = exactNameMatch || containsMatch || subjectSingleton || null
-    const deterministicLinkedCourseId = liveSessionRow.curriculumId || linkedCourse?.id || null
+    const deterministicLinkedCourseId = liveSessionRow.courseId || linkedCourse?.id || null
 
     return NextResponse.json({
       session: {
-        id: liveSessionRow.id,
+        id: liveSessionRow.sessionId,
         title: liveSessionRow.title,
-        subject: liveSessionRow.subject,
+        subject: liveSessionRow.category,
         status: liveSessionRow.status,
         roomId: liveSessionRow.roomId,
         roomUrl: liveSessionRow.roomUrl,
@@ -175,7 +180,7 @@ export const GET = withAuth(
       },
       students,
       messages: messages.map(m => ({
-        id: m.msg.id,
+        id: m.msg.messageId,
         studentId: m.userId,
         studentName: m.userName || m.userEmail || 'User',
         content: m.content,
@@ -215,7 +220,7 @@ export const POST = withCsrf(
       const sessionRows = await drizzleDb
         .select()
         .from(liveSession)
-        .where(and(eq(liveSession.id, classId), eq(liveSession.tutorId, tutorId)))
+        .where(and(eq(liveSession.sessionId, classId), eq(liveSession.tutorId, tutorId)))
         .limit(1)
 
       const liveSessionRow = sessionRows[0]
@@ -236,12 +241,12 @@ export const POST = withCsrf(
           status: 'ACTIVE',
           startedAt: liveSessionRow.startedAt || new Date(),
         })
-        .where(eq(liveSession.id, classId))
+        .where(eq(liveSession.sessionId, classId))
         .returning()
 
       return NextResponse.json({
         session: {
-          id: updated!.id,
+          id: updated!.sessionId,
           status: updated!.status,
           startedAt: updated!.startedAt?.toISOString?.() ?? null,
           roomId: updated!.roomId,
@@ -263,7 +268,7 @@ export const PATCH = withCsrf(
       const sessionRows = await drizzleDb
         .select()
         .from(liveSession)
-        .where(and(eq(liveSession.id, classId), eq(liveSession.tutorId, tutorId)))
+        .where(and(eq(liveSession.sessionId, classId), eq(liveSession.tutorId, tutorId)))
         .limit(1)
 
       const liveSessionRow = sessionRows[0]
@@ -286,7 +291,7 @@ export const PATCH = withCsrf(
           endedAt,
           recordingAvailableAt: liveSessionRow.recordingUrl ? endedAt : null,
         })
-        .where(eq(liveSession.id, classId))
+        .where(eq(liveSession.sessionId, classId))
 
       const [partCount, messagesCountResult] = await Promise.all([
         drizzleDb
@@ -321,7 +326,7 @@ export const PATCH = withCsrf(
           .where(eq(sessionReplayArtifact.sessionId, classId))
       } else {
         await drizzleDb.insert(sessionReplayArtifact).values({
-          id: randomUUID(),
+          artifactId: randomUUID(),
           sessionId: classId,
           tutorId,
           recordingUrl: liveSessionRow.recordingUrl,
@@ -340,8 +345,8 @@ export const PATCH = withCsrf(
             userEmail: user.email,
           })
           .from(message)
-          .innerJoin(user, eq(message.userId, user.id))
-          .leftJoin(profile, eq(profile.userId, user.id))
+          .innerJoin(user, eq(message.userId, user.userId))
+          .leftJoin(profile, eq(profile.userId, user.userId))
           .where(eq(message.sessionId, classId))
           .orderBy(asc(message.timestamp))
 
@@ -368,7 +373,7 @@ export const PATCH = withCsrf(
           ...(summaryResult.success && summaryResult.summary ? summaryResult.summary : {}),
           sessionMeta: {
             title: liveSessionRow.title,
-            subject: liveSessionRow.subject,
+            subject: liveSessionRow.category,
             participants: _count.participants,
             messages: _count.messages,
             generatedAt: new Date().toISOString(),
@@ -417,7 +422,7 @@ export const DELETE = withAuth(
       const sessionRows = await drizzleDb
         .select()
         .from(liveSession)
-        .where(and(eq(liveSession.id, classId), eq(liveSession.tutorId, tutorId)))
+        .where(and(eq(liveSession.sessionId, classId), eq(liveSession.tutorId, tutorId)))
         .limit(1)
 
       const liveSessionRow = sessionRows[0]
@@ -439,7 +444,7 @@ export const DELETE = withAuth(
         return NextResponse.json({ error: 'Cannot delete a completed class' }, { status: 400 })
       }
 
-      await drizzleDb.delete(liveSession).where(eq(liveSession.id, classId))
+      await drizzleDb.delete(liveSession).where(eq(liveSession.sessionId, classId))
 
       return NextResponse.json({ message: 'Class deleted successfully' })
     } catch (error) {

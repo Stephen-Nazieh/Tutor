@@ -15,7 +15,6 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import {
   curriculumEnrollment,
   curriculum,
-  curriculumModule,
   curriculumLesson,
   curriculumLessonProgress,
   studentPerformance,
@@ -36,8 +35,8 @@ export async function GET(req: NextRequest) {
       .from(curriculumEnrollment)
       .where(eq(curriculumEnrollment.studentId, studentId))
 
-    const curriculumIds = enrollmentRows.map(e => e.curriculumId)
-    if (curriculumIds.length === 0) {
+    const courseIds = enrollmentRows.map(e => e.courseId)
+    if (courseIds.length === 0) {
       return NextResponse.json({
         success: true,
         data: {
@@ -54,37 +53,29 @@ export async function GET(req: NextRequest) {
     const curricula = await drizzleDb
       .select()
       .from(curriculum)
-      .where(inArray(curriculum.id, curriculumIds))
+      .where(inArray(curriculum.courseId, courseIds))
 
-    const curriculumMap = new Map(curricula.map(c => [c.id, c]))
+    const curriculumMap = new Map(curricula.map(c => [c.courseId, c]))
 
-    const modules = await drizzleDb
-      .select()
-      .from(curriculumModule)
-      .where(inArray(curriculumModule.curriculumId, curriculumIds))
-      .orderBy(asc(curriculumModule.order))
-
-    const moduleIds = modules.map(m => m.id)
+    // Lessons now directly reference courses (no modules)
     const lessons =
-      moduleIds.length > 0
+      courseIds.length > 0
         ? await drizzleDb
             .select()
             .from(curriculumLesson)
-            .where(inArray(curriculumLesson.moduleId, moduleIds))
+            .where(inArray(curriculumLesson.courseId, courseIds))
             .orderBy(asc(curriculumLesson.order))
         : []
 
-    const moduleMap = new Map(modules.map(m => [m.id, m]))
-    const lessonsByModule = new Map<string, typeof lessons>()
+    const lessonsByCourse = new Map<string, typeof lessons>()
     for (const l of lessons) {
-      // Handle legacy moduleId which may be null in new schema
-      const key = l.moduleId ?? 'default'
-      const list = lessonsByModule.get(key) ?? []
+      const courseId = l.courseId ?? 'default'
+      const list = lessonsByCourse.get(courseId) ?? []
       list.push(l)
-      lessonsByModule.set(key, list)
+      lessonsByCourse.set(courseId, list)
     }
 
-    const allLessonIds = lessons.map(l => l.id)
+    const allLessonIds = lessons.map(l => l.lessonId)
     const lessonProgress =
       allLessonIds.length > 0
         ? await drizzleDb
@@ -111,10 +102,8 @@ export async function GET(req: NextRequest) {
       lessonId: string
       title: string
       description: string | null
-      duration: number
       courseName: string
       courseId: string
-      moduleTitle: string
       status: 'completed' | 'in_progress' | 'not_started'
       score: number | null
       order: number
@@ -124,33 +113,28 @@ export async function GET(req: NextRequest) {
     let globalOrder = 0
 
     for (const enrollment of enrollmentRows) {
-      const curriculumRow = curriculumMap.get(enrollment.curriculumId)
+      const curriculumRow = curriculumMap.get(enrollment.courseId)
       if (!curriculumRow) continue
-      const curriculumModules = modules.filter(m => m.curriculumId === enrollment.curriculumId)
-      for (const mod of curriculumModules) {
-        const modLessons = lessonsByModule.get(mod.id) ?? []
-        for (const lesson of modLessons) {
-          const prog = progressMap.get(lesson.id)
-          const status: 'completed' | 'in_progress' | 'not_started' =
-            (prog as any)?.status === 'COMPLETED'
-              ? 'completed'
-              : (prog as any)?.status === 'IN_PROGRESS'
-                ? 'in_progress'
-                : 'not_started'
+      const courseLessons = lessonsByCourse.get(enrollment.courseId) ?? []
+      for (const lesson of courseLessons) {
+        const prog = progressMap.get(lesson.lessonId)
+        const status: 'completed' | 'in_progress' | 'not_started' =
+          prog?.status === 'COMPLETED'
+            ? 'completed'
+            : prog?.status === 'IN_PROGRESS'
+              ? 'in_progress'
+              : 'not_started'
 
-          pathEntries.push({
-            lessonId: lesson.id,
-            title: lesson.title,
-            description: lesson.description ?? null,
-            duration: lesson.duration,
-            courseName: curriculumRow.name,
-            courseId: curriculumRow.id,
-            moduleTitle: mod.title,
-            status,
-            score: (prog as any)?.score ?? null,
-            order: globalOrder++,
-          })
-        }
+        pathEntries.push({
+          lessonId: lesson.lessonId,
+          title: lesson.title,
+          description: null,
+          courseName: curriculumRow.name,
+          courseId: curriculumRow.courseId,
+          status,
+          score: prog?.score ?? null,
+          order: globalOrder++,
+        })
       }
     }
 

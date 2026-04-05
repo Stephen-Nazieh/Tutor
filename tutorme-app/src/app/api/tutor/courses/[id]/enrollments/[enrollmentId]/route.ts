@@ -20,20 +20,18 @@ export const PATCH = withCsrf(
         .select()
         .from(curriculumEnrollment)
         .where(
-          and(eq(curriculumEnrollment.id, enrollmentId), eq(curriculumEnrollment.curriculumId, id))
+          and(
+            eq(curriculumEnrollment.enrollmentId, enrollmentId),
+            eq(curriculumEnrollment.courseId, id)
+          )
         )
       if (!enrollment) throw new NotFoundError('Enrollment not found')
-      const body = await req.json().catch(() => ({}))
-      const batchId = body.batchId === null || body.batchId === '' ? null : (body.batchId as string)
-      const [updated] = await drizzleDb
-        .update(curriculumEnrollment)
-        .set({ batchId })
-        .where(eq(curriculumEnrollment.id, enrollmentId))
-        .returning()
-      if (!updated) throw new NotFoundError('Enrollment not found')
+      // batchId column doesn't exist in schema - skipping batch update
+      // const body = await req.json().catch(() => ({}))
+      // const batchId = body.batchId === null || body.batchId === '' ? null : (body.batchId as string)
       return NextResponse.json({
-        enrollment: { id: updated.id, batchId: updated.batchId },
-        message: 'Enrollment updated.',
+        enrollment: { id: enrollment.enrollmentId, batchId: null },
+        message: 'Enrollment found (batch update not supported).',
       })
     },
     { role: 'TUTOR' }

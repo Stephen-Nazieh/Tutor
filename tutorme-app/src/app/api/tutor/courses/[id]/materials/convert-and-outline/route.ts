@@ -24,13 +24,12 @@ export const POST = withCsrf(
 
       const [curriculumRow] = await drizzleDb
         .select({
-          id: curriculum.id,
-          subject: curriculum.subject,
+          id: curriculum.courseId,
+          subject: curriculum.categories,
           languageOfInstruction: curriculum.languageOfInstruction,
-          courseMaterials: curriculum.courseMaterials,
         })
         .from(curriculum)
-        .where(eq(curriculum.id, id))
+        .where(eq(curriculum.courseId, id))
       if (!curriculumRow) throw new NotFoundError('Course not found')
 
       const body = await req.json().catch(() => ({}))
@@ -45,7 +44,6 @@ export const POST = withCsrf(
       }
 
       const lang = curriculumRow.languageOfInstruction ?? 'en'
-      const materials = (curriculumRow.courseMaterials as Record<string, unknown>) ?? {}
 
       // Step 1: Convert to editable
       const converted = await convertToEditable({
@@ -55,23 +53,16 @@ export const POST = withCsrf(
       })
       const editableCurriculum = converted.editable
 
-      materials.curriculumText = text
-      materials.editableCurriculum = editableCurriculum
-
       // Step 2: Generate outline from converted curriculum
       const outlined = await generateCourseOutlineFromCurriculum({
         curriculumText: editableCurriculum,
-        subject: curriculumRow.subject,
+        subject: curriculumRow.subject?.[0] || '',
         typicalLessonMinutes,
         language: lang,
       })
       const outline = outlined.outline
 
-      materials.outline = outline
-      await drizzleDb
-        .update(curriculum)
-        .set({ courseMaterials: materials as object })
-        .where(eq(curriculum.id, id))
+      // courseMaterials column doesn't exist - skip saving materials
 
       return NextResponse.json({
         editableCurriculum,

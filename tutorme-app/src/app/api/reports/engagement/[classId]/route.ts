@@ -23,9 +23,9 @@ export const GET = withAuth(
 
     try {
       const [curriculumRow] = await drizzleDb
-        .select({ name: curriculum.name, subject: curriculum.subject })
+        .select({ name: curriculum.name, subject: curriculum.categories })
         .from(curriculum)
-        .where(eq(curriculum.id, classId))
+        .where(eq(curriculum.courseId, classId))
         .limit(1)
 
       if (!curriculumRow) {

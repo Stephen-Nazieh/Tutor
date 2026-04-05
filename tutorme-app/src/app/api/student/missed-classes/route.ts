@@ -63,11 +63,11 @@ export async function GET(req: NextRequest) {
 
     const enrollmentRows = await drizzleDb
       .select({
-        curriculumId: curriculumEnrollment.curriculumId,
+        courseId: curriculumEnrollment.courseId,
         creatorId: curriculum.creatorId,
       })
       .from(curriculumEnrollment)
-      .innerJoin(curriculum, eq(curriculumEnrollment.curriculumId, curriculum.id))
+      .innerJoin(curriculum, eq(curriculumEnrollment.courseId, curriculum.courseId))
       .where(eq(curriculumEnrollment.studentId, studentId))
 
     const tutorIds = [...new Set(enrollmentRows.map(e => e.creatorId).filter(Boolean))] as string[]
@@ -113,11 +113,11 @@ export async function GET(req: NextRequest) {
     }
 
     const missed = missedSessionRows
-      .filter(s => s.endedAt != null && !fullyAttendedIds.has(s.id))
+      .filter(s => s.endedAt != null && !fullyAttendedIds.has(s.sessionId))
       .map(s => ({
-        id: s.id,
+        id: s.sessionId,
         title: s.title,
-        subject: s.subject,
+        subject: s.category,
         tutorName: tutorNames.get(s.tutorId) ?? '',
         scheduledAt: s.scheduledAt,
         endedAt: s.endedAt,
@@ -128,7 +128,7 @@ export async function GET(req: NextRequest) {
         recordingUrl: s.recordingUrl,
         recordingAvailableAt: s.recordingAvailableAt,
         hasRecording: !!s.recordingUrl,
-        leftEarly: participatedIds.has(s.id),
+        leftEarly: participatedIds.has(s.sessionId),
       }))
 
     return NextResponse.json({

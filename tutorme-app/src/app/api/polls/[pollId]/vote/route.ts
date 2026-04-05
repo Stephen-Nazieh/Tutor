@@ -46,7 +46,7 @@ export async function POST(
     const body = await request.json()
     const validated = VoteSchema.parse(body)
 
-    const [pollRow] = await drizzleDb.select().from(poll).where(eq(poll.id, pollId)).limit(1)
+    const [pollRow] = await drizzleDb.select().from(poll).where(eq(poll.pollId, pollId)).limit(1)
 
     if (!pollRow) {
       return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
@@ -58,7 +58,7 @@ export async function POST(
 
     const responses = await drizzleDb
       .select({
-        id: pollResponse.id,
+        id: pollResponse.responseId,
         studentId: pollResponse.studentId,
         respondentHash: pollResponse.respondentHash,
       })
@@ -101,7 +101,7 @@ export async function POST(
 
     const responseId = crypto.randomUUID()
     await drizzleDb.insert(pollResponse).values({
-      id: responseId,
+      responseId,
       pollId,
       respondentHash,
       studentId: pollRow.isAnonymous ? null : session.user.id,
@@ -113,12 +113,12 @@ export async function POST(
     await drizzleDb
       .update(poll)
       .set({ totalResponses: pollRow.totalResponses + 1 })
-      .where(eq(poll.id, pollId))
+      .where(eq(poll.pollId, pollId))
 
     const [response] = await drizzleDb
       .select()
       .from(pollResponse)
-      .where(eq(pollResponse.id, responseId))
+      .where(eq(pollResponse.responseId, responseId))
       .limit(1)
 
     return NextResponse.json({ response }, { status: 201 })

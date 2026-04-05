@@ -16,7 +16,7 @@ const CreateWhiteboardSchema = z.object({
   description: z.string().optional(),
   sessionId: z.string().optional(),
   roomId: z.string().optional(),
-  curriculumId: z.string().optional(),
+  courseId: z.string().optional(),
   lessonId: z.string().optional(),
   isTemplate: z.boolean().default(false),
   isPublic: z.boolean().default(false),
@@ -55,14 +55,14 @@ export const GET = withAuth(
         .orderBy(desc(whiteboard.updatedAt))
         .limit(limit)
 
-      const boardIds = boards.map(b => b.id)
+      const boardIds = boards.map(b => b.whiteboardId)
 
       const [pagesRows, snapshotCounts] = await Promise.all([
         boardIds.length
           ? drizzleDb
               .select({
                 whiteboardId: whiteboardPage.whiteboardId,
-                id: whiteboardPage.id,
+                pageId: whiteboardPage.pageId,
                 name: whiteboardPage.name,
                 order: whiteboardPage.order,
               })
@@ -89,20 +89,23 @@ export const GET = withAuth(
         ])
       )
       const pagesByBoard = (
-        pagesRows as { whiteboardId: string; id: string; name: string; order: number }[]
+        pagesRows as { whiteboardId: string; pageId: string; name: string; order: number }[]
       ).reduce(
         (acc, p) => {
           if (!acc[p.whiteboardId]) acc[p.whiteboardId] = []
-          acc[p.whiteboardId].push({ id: p.id, name: p.name, order: p.order })
+          acc[p.whiteboardId].push({ pageId: p.pageId, name: p.name, order: p.order })
           return acc
         },
-        {} as Record<string, { id: string; name: string; order: number }[]>
+        {} as Record<string, { pageId: string; name: string; order: number }[]>
       )
 
       const whiteboards = boards.map(b => ({
         ...b,
-        pages: (pagesByBoard[b.id] ?? []).sort((a, b) => a.order - b.order),
-        _count: { pages: pagesByBoard[b.id]?.length ?? 0, snapshots: snapshotByBoard[b.id] ?? 0 },
+        pages: (pagesByBoard[b.whiteboardId] ?? []).sort((a, b) => a.order - b.order),
+        _count: {
+          pages: pagesByBoard[b.whiteboardId]?.length ?? 0,
+          snapshots: snapshotByBoard[b.whiteboardId] ?? 0,
+        },
       }))
 
       return NextResponse.json({ whiteboards })
@@ -136,14 +139,14 @@ export const POST = withAuth(
 
       await drizzleDb.transaction(async tx => {
         await tx.insert(whiteboard).values({
-          id: whiteboardId,
+          whiteboardId,
           tutorId: userId,
           ownerId: userId,
           title: data.title,
           description: data.description ?? null,
           sessionId: data.sessionId ?? null,
           roomId: data.roomId ?? null,
-          curriculumId: data.curriculumId ?? null,
+          courseId: data.courseId ?? null,
           lessonId: data.lessonId ?? null,
           isTemplate: data.isTemplate,
           isPublic: data.isPublic,
@@ -156,7 +159,7 @@ export const POST = withAuth(
           ownerType: 'tutor',
         })
         await tx.insert(whiteboardPage).values({
-          id: pageId,
+          pageId,
           whiteboardId,
           name: 'Page 1',
           order: 0,
@@ -167,7 +170,10 @@ export const POST = withAuth(
         })
       })
 
-      const [wb] = await drizzleDb.select().from(whiteboard).where(eq(whiteboard.id, whiteboardId))
+      const [wb] = await drizzleDb
+        .select()
+        .from(whiteboard)
+        .where(eq(whiteboard.whiteboardId, whiteboardId))
       const pages = await drizzleDb
         .select()
         .from(whiteboardPage)

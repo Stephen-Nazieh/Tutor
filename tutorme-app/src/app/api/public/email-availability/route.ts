@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     }
 
     const [existing] = await drizzleDb
-      .select({ id: user.id })
+      .select({ userId: user.userId })
       .from(user)
       .where(eq(user.email, normalized))
       .limit(1)

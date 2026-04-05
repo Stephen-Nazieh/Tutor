@@ -158,9 +158,8 @@ export interface Tutor {
 
 import { cache } from '@/lib/db'
 import {
-  curriculum as curriculumTable,
-  curriculumLesson,
-  curriculumModule,
+  course as curriculumTable,
+  courseLesson as curriculumLesson,
   liveSession as liveSessionTable,
   studentPerformance,
   user,
@@ -191,7 +190,7 @@ async function getDb() {
 export async function getStudent(studentId: string): Promise<Student | null> {
   const db = await getDb()
   const userRow = await db.query.user.findFirst({
-    where: eq(user.id, studentId),
+    where: eq(user.userId, studentId),
     with: {
       profile: true,
       gamification: true,
@@ -212,7 +211,7 @@ export async function getStudent(studentId: string): Promise<Student | null> {
     performance[0]?.learningStyle || userRow.profile?.learningGoals?.[0] || 'mixed'
 
   return {
-    id: userRow.id,
+    id: userRow.userId,
     name: userRow.profile?.name || 'Student',
     email: userRow.email,
     grade: userRow.profile?.gradeLevel || 'unknown',
@@ -286,47 +285,38 @@ export async function getCurriculum(subject: string, grade: string): Promise<Cur
   const curriculumRow = await db
     .select()
     .from(curriculumTable)
-    .where(and(eq(curriculumTable.subject, subject), eq(curriculumTable.isPublished, true)))
+    .where(and(eq(curriculumTable.categories, [subject]), eq(curriculumTable.isPublished, true)))
     .limit(1)
 
   if (!curriculumRow[0]) return null
 
-  const modules = await db
+  const lessons = await db
     .select()
-    .from(curriculumModule)
-    .where(eq(curriculumModule.curriculumId, curriculumRow[0].id))
-    .orderBy(curriculumModule.order)
-
-  const moduleIds = modules.map(m => m.id)
-  const lessons = moduleIds.length
-    ? await db
-        .select()
-        .from(curriculumLesson)
-        .where(inArray(curriculumLesson.moduleId, moduleIds))
-        .orderBy(curriculumLesson.order)
-    : []
+    .from(curriculumLesson)
+    .where(eq(curriculumLesson.courseId, curriculumRow[0].courseId))
+    .orderBy(curriculumLesson.order)
 
   return {
-    id: curriculumRow[0].id,
-    subject: curriculumRow[0].subject,
+    id: curriculumRow[0].courseId,
+    subject: curriculumRow[0].categories?.[0] ?? '',
     grade,
     learningObjectives: curriculumRow[0].categories || [],
-    modules: modules.map(m => ({
-      id: m.id,
-      title: m.title,
-      description: m.description || '',
-      order: m.order,
-      lessons: lessons
-        .filter(lesson => lesson.moduleId === m.id)
-        .map(lesson => ({
-          id: lesson.id,
+    modules: [
+      {
+        id: 'default-module',
+        title: 'Course Content',
+        description: '',
+        order: 0,
+        lessons: lessons.map(lesson => ({
+          id: lesson.lessonId,
           title: lesson.title,
           content: lesson.description || '',
-          difficulty: (lesson.difficulty as Lesson['difficulty']) || 'medium',
-          estimatedTime: lesson.duration,
-          prerequisites: lesson.prerequisiteLessonIds || [],
+          difficulty: 'medium' as Lesson['difficulty'],
+          estimatedTime: 30,
+          prerequisites: [],
         })),
-    })),
+      },
+    ],
   }
 }
 
@@ -364,17 +354,17 @@ export async function getLiveSession(sessionId: string): Promise<LiveSession | n
   const sessions = await db
     .select()
     .from(liveSessionTable)
-    .where(eq(liveSessionTable.id, sessionId))
+    .where(eq(liveSessionTable.sessionId, sessionId))
     .limit(1)
 
   const session = sessions[0]
   if (!session) return null
 
   return {
-    id: session.id,
+    id: session.sessionId,
     tutorId: session.tutorId,
     students: [],
-    subject: session.subject,
+    subject: session.category,
     status: session.status as LiveSession['status'],
     startTime: session.startedAt || session.scheduledAt || new Date(),
     endTime: session.endedAt || undefined,

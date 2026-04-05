@@ -10,13 +10,12 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import {
   curriculumEnrollment,
   curriculum,
-  curriculumModule,
   curriculumLesson,
   curriculumLessonProgress,
   quizAttempt,
   userGamification,
 } from '@/lib/db/schema'
-import { eq, and, desc, inArray } from 'drizzle-orm'
+import { eq, and, desc, inArray, sql } from 'drizzle-orm'
 
 export const GET = withAuth(
   async (_req: NextRequest, session, context) => {
@@ -25,10 +24,11 @@ export const GET = withAuth(
       return NextResponse.json({ error: 'Subject code required' }, { status: 400 })
     }
 
+    // Use categories array instead of subject field
     const [curriculumRow] = await drizzleDb
       .select()
       .from(curriculum)
-      .where(eq(curriculum.subject, subjectCode))
+      .where(sql`${curriculum.categories} @> ARRAY[${subjectCode}]::text[]`)
       .limit(1)
     if (!curriculumRow) {
       throw new NotFoundError('Subject not found')
@@ -40,7 +40,7 @@ export const GET = withAuth(
       .where(
         and(
           eq(curriculumEnrollment.studentId, session.user.id),
-          eq(curriculumEnrollment.curriculumId, curriculumRow.id)
+          eq(curriculumEnrollment.courseId, curriculumRow.courseId)
         )
       )
       .limit(1)
@@ -48,19 +48,12 @@ export const GET = withAuth(
       throw new NotFoundError('Subject not found')
     }
 
-    const modules = await drizzleDb
+    // Lessons now directly reference courses (no modules)
+    const lessons = await drizzleDb
       .select()
-      .from(curriculumModule)
-      .where(eq(curriculumModule.curriculumId, curriculumRow.id))
-    const moduleIds = modules.map(m => m.id)
-    const lessons =
-      moduleIds.length > 0
-        ? await drizzleDb
-            .select()
-            .from(curriculumLesson)
-            .where(inArray(curriculumLesson.moduleId, moduleIds))
-        : []
-    const lessonIds = lessons.map(l => l.id)
+      .from(curriculumLesson)
+      .where(eq(curriculumLesson.courseId, curriculumRow.courseId))
+    const lessonIds = lessons.map(l => l.lessonId)
     const progressRecords =
       lessonIds.length > 0
         ? await drizzleDb
@@ -90,7 +83,7 @@ export const GET = withAuth(
 
     const totalLessons = lessons.length
     const completedLessons = lessons.filter(
-      l => progressByLessonId.get(l.id)?.status === 'COMPLETED'
+      l => progressByLessonId.get(l.lessonId)?.status === 'COMPLETED'
     ).length
     const progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
 
@@ -105,9 +98,9 @@ export const GET = withAuth(
       subjectCode.toLowerCase() === 'math' ? generateMathConceptMastery(quizAttempts) : undefined
 
     const recentLessons = lessons.slice(0, 5).map(lesson => {
-      const rec = progressByLessonId.get(lesson.id)
+      const rec = progressByLessonId.get(lesson.lessonId)
       return {
-        id: lesson.id,
+        id: lesson.lessonId,
         title: lesson.title,
         completed: rec?.status === 'COMPLETED',
         score: rec?.score ?? undefined,
@@ -116,9 +109,9 @@ export const GET = withAuth(
 
     return NextResponse.json({
       subject: {
-        id: curriculumRow.id,
+        id: curriculumRow.courseId,
         name: curriculumRow.name,
-        subject: curriculumRow.subject,
+        categories: curriculumRow.categories,
         description: curriculumRow.description,
         progress,
         completedLessons,

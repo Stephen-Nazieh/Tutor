@@ -41,11 +41,11 @@ async function ensurePdfWhiteboard(userId: string, roomId: string) {
     const pages = await drizzleDb
       .select()
       .from(whiteboardPage)
-      .where(eq(whiteboardPage.whiteboardId, existing.id))
+      .where(eq(whiteboardPage.whiteboardId, existing.whiteboardId))
     if (pages.length === 0) {
       await drizzleDb.insert(whiteboardPage).values({
-        id: crypto.randomUUID(),
-        whiteboardId: existing.id,
+        pageId: crypto.randomUUID(),
+        whiteboardId: existing.whiteboardId,
         name: 'PDF Page 1',
         order: 0,
         backgroundColor: '#ffffff',
@@ -61,7 +61,7 @@ async function ensurePdfWhiteboard(userId: string, roomId: string) {
 
   const whiteboardId = crypto.randomUUID()
   await drizzleDb.insert(whiteboard).values({
-    id: whiteboardId,
+    whiteboardId,
     tutorId: userId,
     ownerId: userId,
     roomId,
@@ -78,7 +78,7 @@ async function ensurePdfWhiteboard(userId: string, roomId: string) {
     isBroadcasting: false,
   })
   await drizzleDb.insert(whiteboardPage).values({
-    id: crypto.randomUUID(),
+    pageId: crypto.randomUUID(),
     whiteboardId,
     name: 'PDF Page 1',
     order: 0,
@@ -92,7 +92,7 @@ async function ensurePdfWhiteboard(userId: string, roomId: string) {
   const [created] = await drizzleDb
     .select()
     .from(whiteboard)
-    .where(eq(whiteboard.id, whiteboardId))
+    .where(eq(whiteboard.whiteboardId, whiteboardId))
     .limit(1)
   return created!
 }
@@ -111,7 +111,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
   const snapshots = await drizzleDb
     .select()
     .from(whiteboardSnapshot)
-    .where(eq(whiteboardSnapshot.whiteboardId, wb.id))
+    .where(eq(whiteboardSnapshot.whiteboardId, wb.whiteboardId))
     .orderBy(desc(whiteboardSnapshot.createdAt))
     .limit(limit)
 
@@ -132,8 +132,8 @@ export const POST = withAuth(async (req: NextRequest, session) => {
 
   const snapshotId = crypto.randomUUID()
   await drizzleDb.insert(whiteboardSnapshot).values({
-    id: snapshotId,
-    whiteboardId: wb.id,
+    snapshotId: snapshotId,
+    whiteboardId: wb.whiteboardId,
     name: name ?? `PDF Snapshot ${new Date().toLocaleString()}`,
     createdBy: userId,
     pages: [
@@ -148,26 +148,28 @@ export const POST = withAuth(async (req: NextRequest, session) => {
   })
 
   const allSnapshots = await drizzleDb
-    .select({ id: whiteboardSnapshot.id })
+    .select({ snapshotId: whiteboardSnapshot.snapshotId })
     .from(whiteboardSnapshot)
-    .where(eq(whiteboardSnapshot.whiteboardId, wb.id))
+    .where(eq(whiteboardSnapshot.whiteboardId, wb.whiteboardId))
     .orderBy(desc(whiteboardSnapshot.createdAt))
   const toDelete = allSnapshots.slice(MAX_SNAPSHOTS_PER_ROOM)
   for (const row of toDelete) {
-    await drizzleDb.delete(whiteboardSnapshot).where(eq(whiteboardSnapshot.id, row.id))
+    await drizzleDb
+      .delete(whiteboardSnapshot)
+      .where(eq(whiteboardSnapshot.snapshotId, row.snapshotId))
   }
 
   const [snapshot] = await drizzleDb
     .select()
     .from(whiteboardSnapshot)
-    .where(eq(whiteboardSnapshot.id, snapshotId))
+    .where(eq(whiteboardSnapshot.snapshotId, snapshotId))
     .limit(1)
 
   return NextResponse.json(
     {
       snapshot: snapshot ?? {
-        id: snapshotId,
-        whiteboardId: wb.id,
+        snapshotId: snapshotId,
+        whiteboardId: wb.whiteboardId,
         name: name ?? '',
         pages: [],
         createdBy: userId,

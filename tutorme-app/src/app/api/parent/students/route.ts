@@ -8,7 +8,7 @@ import { inArray } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculumEnrollment, curriculumProgress, userGamification } from '@/lib/db/schema'
+import { courseEnrollment, courseProgress, userGamification } from '@/lib/db/schema'
 import cacheManager from '@/lib/cache-manager'
 
 const CACHE_TTL = 180
@@ -20,7 +20,7 @@ export const GET = withAuth(
       return NextResponse.json({ error: '未找到家庭账户' }, { status: 404 })
     }
 
-    const cacheKey = `parent:students:${family.id}`
+    const cacheKey = `parent:students:${family.familyAccountId}`
     const cached = await cacheManager.get<object>(cacheKey)
     if (cached) return NextResponse.json({ success: true, data: cached })
 
@@ -38,19 +38,22 @@ export const GET = withAuth(
         enrollments: [],
         progress: null,
       }))
-      await cacheManager.set(cacheKey, data, { ttl: CACHE_TTL, tags: [`family:${family.id}`] })
+      await cacheManager.set(cacheKey, data, {
+        ttl: CACHE_TTL,
+        tags: [`family:${family.familyAccountId}`],
+      })
       return NextResponse.json({ success: true, data })
     }
 
     const [enrollments, progressRecords, gamification] = await Promise.all([
-      drizzleDb.query.curriculumEnrollment.findMany({
-        where: inArray(curriculumEnrollment.studentId, family.studentIds),
+      drizzleDb.query.courseEnrollment.findMany({
+        where: inArray(courseEnrollment.studentId, family.studentIds),
         with: {
-          curriculum: { columns: { id: true, name: true } },
+          course: { columns: { courseId: true, name: true } },
         },
       }),
-      drizzleDb.query.curriculumProgress.findMany({
-        where: inArray(curriculumProgress.studentId, family.studentIds),
+      drizzleDb.query.courseProgress.findMany({
+        where: inArray(courseProgress.studentId, family.studentIds),
       }),
       drizzleDb.query.userGamification.findMany({
         where: inArray(userGamification.userId, family.studentIds),
@@ -69,8 +72,8 @@ export const GET = withAuth(
         relation: m.relation,
         userId: uid,
         enrollments: enrolls.map((e: any) => ({
-          curriculumId: e.curriculum?.id,
-          curriculumName: e.curriculum?.name,
+          courseId: e.course?.courseId,
+          courseName: e.course?.name,
           enrolledAt: e.enrolledAt,
         })),
         progress: prog
@@ -86,7 +89,10 @@ export const GET = withAuth(
       }
     })
 
-    await cacheManager.set(cacheKey, data, { ttl: CACHE_TTL, tags: [`family:${family.id}`] })
+    await cacheManager.set(cacheKey, data, {
+      ttl: CACHE_TTL,
+      tags: [`family:${family.familyAccountId}`],
+    })
     return NextResponse.json({ success: true, data })
   },
   { role: 'PARENT' }

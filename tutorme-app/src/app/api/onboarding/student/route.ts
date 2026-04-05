@@ -34,7 +34,7 @@ async function postHandler(req: NextRequest, session: Session) {
     const [profile] = await drizzleDb
       .insert(profileTable)
       .values({
-        id: crypto.randomUUID(),
+        profileId: crypto.randomUUID(),
         userId: session.user.id,
         gradeLevel,
         subjectsOfInterest,
@@ -60,7 +60,7 @@ async function postHandler(req: NextRequest, session: Session) {
 
     return NextResponse.json({
       message: 'Onboarding completed successfully',
-      profileId: profile.id,
+      profileId: profile.profileId,
     })
   } catch (error: unknown) {
     console.error('Student onboarding error:', error)

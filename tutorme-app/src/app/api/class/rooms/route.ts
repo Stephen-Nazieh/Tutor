@@ -9,7 +9,7 @@ import { withAuth, withCsrf } from '@/lib/api/middleware'
 import { CreateRoomSchema, validateRequest } from '@/lib/validation/schemas'
 import { dailyProvider } from '@/lib/video/daily-provider'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { liveSession, curriculum, user, profile, sessionParticipant } from '@/lib/db/schema'
+import { liveSession, course, user, profile, sessionParticipant } from '@/lib/db/schema'
 import crypto from 'crypto'
 
 // POST /api/class/rooms - Create a new class room
@@ -26,13 +26,13 @@ export const POST = withCsrf(
       const isScheduledForFuture = scheduledAt.getTime() > Date.now()
 
       if (data.curriculumId) {
-        const [ownedCurriculum] = await drizzleDb
-          .select({ id: curriculum.id, subject: curriculum.subject })
-          .from(curriculum)
-          .where(and(eq(curriculum.id, data.curriculumId), eq(curriculum.creatorId, userId)))
+        const [ownedCourse] = await drizzleDb
+          .select({ courseId: course.courseId })
+          .from(course)
+          .where(and(eq(course.courseId, data.curriculumId), eq(course.creatorId, userId)))
           .limit(1)
 
-        if (!ownedCurriculum) {
+        if (!ownedCourse) {
           return NextResponse.json(
             { error: 'Invalid curriculum selection for this tutor' },
             { status: 400 }
@@ -58,14 +58,13 @@ export const POST = withCsrf(
       const [classSessionResult] = await drizzleDb
         .insert(liveSession)
         .values({
-          id: crypto.randomUUID(),
+          sessionId: crypto.randomUUID(),
           tutorId: userId,
-          curriculumId: data.curriculumId || null,
+          courseId: data.curriculumId || null,
           title: data.title || `${data.subject} Class`,
-          subject: data.subject,
+          category: data.subject,
           description: data.description || null,
           gradeLevel: data.gradeLevel || null,
-          type: 'GROUP',
           roomUrl: room.url,
           roomId: room.id,
           maxStudents: data.maxStudents,
@@ -100,18 +99,18 @@ export const GET = withAuth(async (req, session) => {
     gte(liveSession.scheduledAt, new Date(Date.now() - 4 * 60 * 60 * 1000)),
   ]
 
-  if (subject) filtersOfRequest.push(eq(liveSession.subject, subject))
+  if (subject) filtersOfRequest.push(eq(liveSession.category, subject))
   if (tutorId) filtersOfRequest.push(eq(liveSession.tutorId, tutorId))
   if (gradeLevel) filtersOfRequest.push(eq(liveSession.gradeLevel, gradeLevel))
-  if (curriculumId) filtersOfRequest.push(eq(liveSession.curriculumId, curriculumId))
+  if (curriculumId) filtersOfRequest.push(eq(liveSession.courseId, curriculumId))
 
   // For students, also include classes that match their grade level or have no grade specified
   if (session?.user?.role === 'STUDENT' && !gradeLevel) {
     const [studentUser] = await drizzleDb
       .select({ gradeLevel: profile.gradeLevel })
       .from(user)
-      .innerJoin(profile, eq(profile.userId, user.id))
-      .where(eq(user.id, session.user.id))
+      .innerJoin(profile, eq(profile.userId, user.userId))
+      .where(eq(user.userId, session.user.id))
       .limit(1)
 
     const studentGrade = studentUser?.gradeLevel
@@ -134,8 +133,8 @@ export const GET = withAuth(async (req, session) => {
       tutorAvatar: profile.avatarUrl,
     })
     .from(liveSession)
-    .innerJoin(user, eq(user.id, liveSession.tutorId))
-    .innerJoin(profile, eq(profile.userId, user.id))
+    .innerJoin(user, eq(user.userId, liveSession.tutorId))
+    .innerJoin(profile, eq(profile.userId, user.userId))
     .where(filtersOfRequest.length > 0 ? and(...filtersOfRequest) : undefined)
     .orderBy(desc(liveSession.scheduledAt))
 

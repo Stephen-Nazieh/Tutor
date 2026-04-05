@@ -106,7 +106,7 @@ export async function createFeatureFlag(
   const [flag] = await drizzleDb
     .insert(featureFlag)
     .values({
-      id: crypto.randomUUID(),
+      flagId: crypto.randomUUID(),
       key: data.key,
       name: data.name,
       description: data.description ?? null,
@@ -138,11 +138,11 @@ export async function updateFeatureFlag(
   const [previousFlag] = await drizzleDb
     .select()
     .from(featureFlag)
-    .where(eq(featureFlag.id, id))
+    .where(eq(featureFlag.flagId, id))
     .limit(1)
   if (!previousFlag) throw new Error('Feature flag not found')
   await drizzleDb.insert(featureFlagChange).values({
-    id: crypto.randomUUID(),
+    changeId: crypto.randomUUID(),
     flagId: id,
     changedBy: adminSession.adminId,
     previousValue: previousFlag as unknown as Record<string, unknown>,
@@ -159,7 +159,7 @@ export async function updateFeatureFlag(
   const [flag] = await drizzleDb
     .update(featureFlag)
     .set(set as Partial<typeof featureFlag.$inferInsert>)
-    .where(eq(featureFlag.id, id))
+    .where(eq(featureFlag.flagId, id))
     .returning()
   flagsCache = null
   if (!flag) throw new Error('Failed to update feature flag')
@@ -170,7 +170,7 @@ export async function deleteFeatureFlag(id: string, adminSession: AdminSession):
   await drizzleDb
     .update(featureFlag)
     .set({ deletedAt: new Date(), updatedBy: adminSession.adminId })
-    .where(eq(featureFlag.id, id))
+    .where(eq(featureFlag.flagId, id))
   flagsCache = null
 }
 
@@ -299,7 +299,7 @@ export async function initializeDefaultFeatureFlags(adminId: string): Promise<vo
       .limit(1)
     if (!existing) {
       await drizzleDb.insert(featureFlag).values({
-        id: crypto.randomUUID(),
+        flagId: crypto.randomUUID(),
         key: flag.key,
         name: flag.name,
         description: flag.description ?? null,

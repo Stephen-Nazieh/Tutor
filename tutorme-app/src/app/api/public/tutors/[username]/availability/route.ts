@@ -32,7 +32,7 @@ export async function GET(
       return NextResponse.json({ error: 'Tutor not found' }, { status: 404 })
     }
 
-    const tutorId = tutorData.id
+    const tutorId = tutorData.userId
     const tutorProfile = tutorData.profile
 
     // Check if one-on-one is enabled

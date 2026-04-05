@@ -35,9 +35,9 @@ async function getHandler(req: NextRequest, session: Session) {
           creatorAvatar: profile.avatarUrl,
         })
         .from(studyGroupMember)
-        .innerJoin(studyGroup, eq(studyGroup.id, studyGroupMember.groupId))
-        .innerJoin(user, eq(user.id, studyGroup.createdBy))
-        .innerJoin(profile, eq(profile.userId, user.id))
+        .innerJoin(studyGroup, eq(studyGroup.groupId, studyGroupMember.groupId))
+        .innerJoin(user, eq(user.userId, studyGroup.createdBy))
+        .innerJoin(profile, eq(profile.userId, user.userId))
         .where(eq(studyGroupMember.studentId, session.user.id))
         .orderBy(desc(studyGroup.createdAt))
         .limit(limit)
@@ -48,7 +48,7 @@ async function getHandler(req: NextRequest, session: Session) {
           const [stats] = await drizzleDb
             .select({ value: count() })
             .from(studyGroupMember)
-            .where(eq(studyGroupMember.groupId, m.group.id))
+            .where(eq(studyGroupMember.groupId, m.group.groupId))
 
           return {
             ...m.group,
@@ -76,8 +76,8 @@ async function getHandler(req: NextRequest, session: Session) {
           creatorAvatar: profile.avatarUrl,
         })
         .from(studyGroup)
-        .innerJoin(user, eq(user.id, studyGroup.createdBy))
-        .innerJoin(profile, eq(profile.userId, user.id))
+        .innerJoin(user, eq(user.userId, studyGroup.createdBy))
+        .innerJoin(profile, eq(profile.userId, user.userId))
         .where(and(...filters))
         .orderBy(desc(studyGroup.createdAt))
         .limit(limit)
@@ -87,14 +87,14 @@ async function getHandler(req: NextRequest, session: Session) {
           const [stats] = await drizzleDb
             .select({ value: count() })
             .from(studyGroupMember)
-            .where(eq(studyGroupMember.groupId, g.group.id))
+            .where(eq(studyGroupMember.groupId, g.group.groupId))
 
           const [myMembership] = await drizzleDb
             .select({ role: studyGroupMember.role })
             .from(studyGroupMember)
             .where(
               and(
-                eq(studyGroupMember.groupId, g.group.id),
+                eq(studyGroupMember.groupId, g.group.groupId),
                 eq(studyGroupMember.studentId, session.user.id)
               )
             )
@@ -142,7 +142,7 @@ async function postHandler(req: NextRequest, session: Session) {
     const [group] = await drizzleDb
       .select()
       .from(studyGroup)
-      .where(eq(studyGroup.id, groupId))
+      .where(eq(studyGroup.groupId, groupId))
       .limit(1)
 
     if (!group) {
@@ -179,7 +179,7 @@ async function postHandler(req: NextRequest, session: Session) {
     const [membership] = await drizzleDb
       .insert(studyGroupMember)
       .values({
-        id: crypto.randomUUID(),
+        membershipId: crypto.randomUUID(),
         groupId,
         studentId: session.user.id,
         role: 'member',
@@ -224,7 +224,7 @@ async function putHandler(req: NextRequest, session: Session) {
       const [newGroup] = await tx
         .insert(studyGroup)
         .values({
-          id: newGroupId,
+          groupId: newGroupId,
           name: safeName,
           subject: String(subject).trim().slice(0, 50),
           description: safeDescription,
@@ -235,7 +235,7 @@ async function putHandler(req: NextRequest, session: Session) {
         .returning()
 
       await tx.insert(studyGroupMember).values({
-        id: crypto.randomUUID(),
+        membershipId: crypto.randomUUID(),
         groupId: newGroupId,
         studentId: session.user.id,
         role: 'admin',
@@ -286,12 +286,12 @@ async function deleteHandler(req: NextRequest, session: Session) {
     // Find membership
     const [membership] = await drizzleDb
       .select({
-        id: studyGroupMember.id,
+        membershipId: studyGroupMember.membershipId,
         groupCreatedBy: studyGroup.createdBy,
         groupName: studyGroup.name,
       })
       .from(studyGroupMember)
-      .innerJoin(studyGroup, eq(studyGroup.id, studyGroupMember.groupId))
+      .innerJoin(studyGroup, eq(studyGroup.groupId, studyGroupMember.groupId))
       .where(
         and(eq(studyGroupMember.groupId, groupId), eq(studyGroupMember.studentId, session.user.id))
       )
@@ -311,7 +311,9 @@ async function deleteHandler(req: NextRequest, session: Session) {
       )
     }
 
-    await drizzleDb.delete(studyGroupMember).where(eq(studyGroupMember.id, membership.id))
+    await drizzleDb
+      .delete(studyGroupMember)
+      .where(eq(studyGroupMember.membershipId, membership.membershipId))
 
     return NextResponse.json({
       success: true,

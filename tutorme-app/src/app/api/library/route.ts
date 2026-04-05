@@ -6,7 +6,7 @@ import { desc, eq } from 'drizzle-orm'
 
 function mapTask(task: typeof libraryTask.$inferSelect) {
   return {
-    id: task.id,
+    id: task.libraryTaskId,
     question: task.question,
     type: task.type as 'multiple_choice' | 'short_answer',
     options: (task.options as string[] | null) ?? undefined,
@@ -53,7 +53,7 @@ export const POST = withCsrf(
     try {
       const id = crypto.randomUUID()
       await drizzleDb.insert(libraryTask).values({
-        id,
+        libraryTaskId: id,
         userId: session.user.id,
         question: data.question,
         type: data.type,
@@ -70,7 +70,7 @@ export const POST = withCsrf(
       const [task] = await drizzleDb
         .select()
         .from(libraryTask)
-        .where(eq(libraryTask.id, id))
+        .where(eq(libraryTask.libraryTaskId, id))
         .limit(1)
       if (!task) {
         return handleApiError(

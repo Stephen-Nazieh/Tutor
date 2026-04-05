@@ -9,9 +9,9 @@ import { withAuth } from '@/lib/api/middleware'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculumEnrollment,
-  curriculumLessonProgress,
-  curriculumProgress,
+  courseEnrollment,
+  courseLessonProgress,
+  courseProgress,
   studentPerformance,
   userGamification,
   achievement,
@@ -27,7 +27,7 @@ export const GET = withAuth(
       return NextResponse.json({ error: '未找到家庭账户' }, { status: 404 })
     }
 
-    const cacheKey = `parent:progress:${family.id}`
+    const cacheKey = `parent:progress:${family.familyAccountId}`
     const cached = await cacheManager.get<object>(cacheKey)
     if (cached) return NextResponse.json({ success: true, data: cached })
 
@@ -47,25 +47,21 @@ export const GET = withAuth(
       gamification,
       achievements,
     ] = await Promise.all([
-      drizzleDb.query.curriculumEnrollment.findMany({
-        where: inArray(curriculumEnrollment.studentId, family.studentIds),
+      drizzleDb.query.courseEnrollment.findMany({
+        where: inArray(courseEnrollment.studentId, family.studentIds),
         with: {
-          curriculum: {
+          course: {
             with: {
-              modules: {
-                with: {
-                  lessons: { columns: { id: true, title: true, order: true } },
-                },
-              },
+              lessons: { columns: { lessonId: true, title: true, order: true } },
             },
           },
         },
       }),
-      drizzleDb.query.curriculumLessonProgress.findMany({
-        where: inArray(curriculumLessonProgress.studentId, family.studentIds),
+      drizzleDb.query.courseLessonProgress.findMany({
+        where: inArray(courseLessonProgress.studentId, family.studentIds),
       }),
-      drizzleDb.query.curriculumProgress.findMany({
-        where: inArray(curriculumProgress.studentId, family.studentIds),
+      drizzleDb.query.courseProgress.findMany({
+        where: inArray(courseProgress.studentId, family.studentIds),
       }),
       drizzleDb.query.studentPerformance.findMany({
         where: inArray(studentPerformance.studentId, family.studentIds),
@@ -95,13 +91,13 @@ export const GET = withAuth(
         const studentAchievements = achievements.filter((a: any) => a.userId === uid)
 
         const courses = enrolls.map((e: any) => {
-          const allLessons = (e.curriculum?.modules || []).flatMap((mod: any) => mod.lessons || [])
+          const allLessons = (e.course?.modules || []).flatMap((mod: any) => mod.lessons || [])
           const completed = allLessons.filter(
-            (l: any) => (progressMap.get(`${uid}:${l.id}`) as any)?.status === 'COMPLETED'
+            (l: any) => (progressMap.get(`${uid}:${l.lessonId}`) as any)?.status === 'COMPLETED'
           ).length
           return {
-            curriculumId: e.curriculum?.id,
-            name: e.curriculum?.name,
+            courseId: e.course?.courseId,
+            name: e.course?.name,
             totalLessons: allLessons.length,
             completedLessons: completed,
             progress: allLessons.length > 0 ? Math.round((completed / allLessons.length) * 100) : 0,
@@ -125,7 +121,7 @@ export const GET = withAuth(
           level: gam?.level ?? 1,
           xp: gam?.xp ?? 0,
           achievements: studentAchievements.map((a: any) => ({
-            id: a.id,
+            id: a.achievementId,
             title: a.title,
             type: a.type,
             unlockedAt: a.unlockedAt,
@@ -153,7 +149,10 @@ export const GET = withAuth(
       },
     }
 
-    await cacheManager.set(cacheKey, data, { ttl: CACHE_TTL, tags: [`family:${family.id}`] })
+    await cacheManager.set(cacheKey, data, {
+      ttl: CACHE_TTL,
+      tags: [`family:${family.familyAccountId}`],
+    })
     return NextResponse.json({ success: true, data })
   },
   { role: 'PARENT' }

@@ -22,7 +22,7 @@ export const POST = withCsrf(
       }
       const studentId = session.user.id
 
-      const [quizRow] = await drizzleDb.select().from(quiz).where(eq(quiz.id, id)).limit(1)
+      const [quizRow] = await drizzleDb.select().from(quiz).where(eq(quiz.quizId, id)).limit(1)
 
       if (!quizRow) {
         throw new NotFoundError('Quiz not found')
@@ -67,7 +67,7 @@ export const POST = withCsrf(
 
       if (existingAttempt) {
         return NextResponse.json({
-          attemptId: existingAttempt.id,
+          attemptId: existingAttempt.attemptId,
           startedAt: existingAttempt.startedAt,
           timeRemaining: quizRow.timeLimit
             ? calculateTimeRemaining(existingAttempt.startedAt, quizRow.timeLimit)
@@ -77,7 +77,7 @@ export const POST = withCsrf(
 
       const attemptId = crypto.randomUUID()
       await drizzleDb.insert(quizAttempt).values({
-        id: attemptId,
+        attemptId,
         quizId: id,
         studentId,
         status: 'in_progress',

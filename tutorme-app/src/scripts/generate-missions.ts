@@ -6,10 +6,10 @@
 import crypto from 'crypto'
 import { and, asc, eq, inArray } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum, curriculumLesson, curriculumModule, mission } from '@/lib/db/schema'
+import { course, courseLesson, curriculumModule, mission } from '@/lib/db/schema'
 
-// World to curriculum mapping
-const WORLD_CURRICULUM_MAP: Record<string, string> = {
+// World to course mapping
+const WORLD_COURSE_MAP: Record<string, string> = {
   survival: 'ielts', // Default for now
   workplace: 'ielts',
   daily_life: 'ielts',
@@ -41,34 +41,31 @@ const GRAMMAR_FOCUS: Record<number, string[]> = {
   4: ['advanced tenses', 'subjunctive', 'complex structures'],
 }
 
-async function generateMissionsFromCurriculum() {
-  console.log('🎮 Generating missions from curriculum...\n')
+async function generateMissionsFromCourses() {
+  console.log('🎮 Generating missions from courses...\n')
 
-  const curriculums = await drizzleDb.select().from(curriculum)
-  console.log(`Found ${curriculums.length} curriculums`)
+  const courses = await drizzleDb.select().from(course)
+  console.log(`Found ${courses.length} courses`)
 
   let totalMissions = 0
 
-  for (const cur of curriculums) {
-    console.log(`📚 Processing curriculum: ${cur.name}`)
+  for (const cur of courses) {
+    console.log(`📚 Processing course: ${cur.name}`)
     const modules = await drizzleDb
       .select()
       .from(curriculumModule)
-      .where(eq(curriculumModule.curriculumId, cur.id))
+      .where(eq(curriculumModule.courseId, cur.courseId))
       .orderBy(asc(curriculumModule.order))
-    const moduleIds = modules.map(m => m.id)
-    const lessons = moduleIds.length
-      ? await drizzleDb
-          .select()
-          .from(curriculumLesson)
-          .where(inArray(curriculumLesson.moduleId, moduleIds))
-          .orderBy(asc(curriculumLesson.order))
-      : []
+    const lessons = await drizzleDb
+      .select()
+      .from(courseLesson)
+      .where(eq(courseLesson.courseId, cur.courseId))
+      .orderBy(asc(courseLesson.order))
 
     let missionCount = 0
     for (const lesson of lessons) {
       const [existing] = await drizzleDb
-        .select({ id: mission.id })
+        .select({ missionId: mission.missionId })
         .from(mission)
         .where(and(eq(mission.type, 'lesson'), eq(mission.title, lesson.title)))
         .limit(1)
@@ -84,20 +81,18 @@ async function generateMissionsFromCurriculum() {
       const grammarFocus = grammarOptions[missionCount % grammarOptions.length]
 
       await drizzleDb.insert(mission).values({
-        id: crypto.randomUUID(),
+        missionId: crypto.randomUUID(),
         title: lesson.title,
-        description:
-          lesson.learningObjectives?.[0] || lesson.description || `Learn ${lesson.title}`,
+        description: lesson.description || `Learn ${lesson.title}`,
         type: 'lesson',
         xpReward: 40 + difficulty * 10,
         requirement: {
           missionType,
           grammarFocus,
           difficulty,
-          curriculumId: cur.id,
-          moduleId: lesson.moduleId,
-          lessonId: lesson.id,
-          estimatedTime: lesson.duration || 15,
+          courseId: cur.courseId,
+          lessonId: lesson.lessonId,
+          estimatedTime: 15,
         },
         isActive: true,
       })
@@ -114,7 +109,7 @@ async function generateMissionsFromCurriculum() {
 
 async function main() {
   try {
-    await generateMissionsFromCurriculum()
+    await generateMissionsFromCourses()
   } catch (error) {
     console.error('❌ Error generating missions:', error)
     process.exit(1)

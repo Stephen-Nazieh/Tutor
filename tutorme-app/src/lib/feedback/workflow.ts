@@ -272,7 +272,7 @@ export async function submitFeedbackForReview(
     const now = new Date()
 
     await drizzleDb.insert(feedbackWorkflow).values({
-      id: workflowId,
+      workflowId: workflowId,
       submissionId: request.submissionId,
       studentId: request.studentId,
       aiScore: feedback.score ?? null,
@@ -290,7 +290,7 @@ export async function submitFeedbackForReview(
       await drizzleDb
         .update(feedbackWorkflow)
         .set({ status: 'sent_to_student' })
-        .where(eq(feedbackWorkflow.id, workflowId))
+        .where(eq(feedbackWorkflow.workflowId, workflowId))
     }
 
     return {
@@ -321,7 +321,7 @@ export async function getPendingFeedback(
   }
 ): Promise<{
   items: {
-    id: string
+    workflowId: string
     studentId: string
     submissionId: string
     type: FeedbackType
@@ -337,7 +337,7 @@ export async function getPendingFeedback(
   const [workflowsRows, countResult] = await Promise.all([
     drizzleDb
       .select({
-        id: feedbackWorkflow.id,
+        workflowId: feedbackWorkflow.workflowId,
         studentId: feedbackWorkflow.studentId,
         submissionId: feedbackWorkflow.submissionId,
         aiScore: feedbackWorkflow.aiScore,
@@ -350,13 +350,16 @@ export async function getPendingFeedback(
         studentName: profile.name,
       })
       .from(feedbackWorkflow)
-      .leftJoin(user, eq(feedbackWorkflow.studentId, user.id))
-      .leftJoin(profile, eq(user.id, profile.userId))
+      .leftJoin(user, eq(feedbackWorkflow.studentId, user.userId))
+      .leftJoin(profile, eq(user.userId, profile.userId))
       .where(statusFilter)
       .orderBy(asc(feedbackWorkflow.createdAt))
       .limit(options?.limit ?? 20)
       .offset(options?.offset ?? 0),
-    drizzleDb.select({ id: feedbackWorkflow.id }).from(feedbackWorkflow).where(statusFilter),
+    drizzleDb
+      .select({ workflowId: feedbackWorkflow.workflowId })
+      .from(feedbackWorkflow)
+      .where(statusFilter),
   ])
 
   const total = countResult.length
@@ -364,7 +367,7 @@ export async function getPendingFeedback(
 
   return {
     items: workflows.map(w => ({
-      id: w.id,
+      workflowId: w.workflowId,
       studentId: w.studentId,
       submissionId: w.submissionId,
       type: 'task_feedback' as FeedbackType,
@@ -402,7 +405,7 @@ export async function reviewFeedback(
     const [workflow] = await drizzleDb
       .select()
       .from(feedbackWorkflow)
-      .where(eq(feedbackWorkflow.id, workflowId))
+      .where(eq(feedbackWorkflow.workflowId, workflowId))
       .limit(1)
 
     if (!workflow) {
@@ -433,13 +436,13 @@ export async function reviewFeedback(
     await drizzleDb
       .update(feedbackWorkflow)
       .set(firstUpdate)
-      .where(eq(feedbackWorkflow.id, workflowId))
+      .where(eq(feedbackWorkflow.workflowId, workflowId))
 
     if (isApproveOrModify) {
       await drizzleDb
         .update(feedbackWorkflow)
         .set({ status: 'sent_to_student' })
-        .where(eq(feedbackWorkflow.id, workflowId))
+        .where(eq(feedbackWorkflow.workflowId, workflowId))
     }
 
     return { success: true }
@@ -467,11 +470,11 @@ export async function getFeedbackStats(tutorId?: string): Promise<{
 
   const [pendingRows, approvedTodayRows, rejectedTodayRows, allWorkflows] = await Promise.all([
     drizzleDb
-      .select({ id: feedbackWorkflow.id })
+      .select({ workflowId: feedbackWorkflow.workflowId })
       .from(feedbackWorkflow)
       .where(inArray(feedbackWorkflow.status, ['ai_generated', 'tutor_modified'])),
     drizzleDb
-      .select({ id: feedbackWorkflow.id })
+      .select({ workflowId: feedbackWorkflow.workflowId })
       .from(feedbackWorkflow)
       .where(
         and(
@@ -480,7 +483,7 @@ export async function getFeedbackStats(tutorId?: string): Promise<{
         )
       ),
     drizzleDb
-      .select({ id: feedbackWorkflow.id })
+      .select({ workflowId: feedbackWorkflow.workflowId })
       .from(feedbackWorkflow)
       .where(and(eq(feedbackWorkflow.status, 'rejected'), gte(feedbackWorkflow.approvedAt, today))),
     drizzleDb.select({ autoApproved: feedbackWorkflow.autoApproved }).from(feedbackWorkflow),

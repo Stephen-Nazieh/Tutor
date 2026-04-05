@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'You already have an active request with this tutor',
-          existingRequestId: existingRequest.id,
+          existingRequestId: existingRequest.requestId,
           status: existingRequest.status,
         },
         { status: 409 }
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     const newRequest = await drizzleDb
       .insert(oneOnOneBookingRequest)
       .values({
-        id: nanoid(),
+        requestId: nanoid(),
         tutorId: validated.tutorId,
         studentId: session.user.id,
         requestedDate,
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
       type: 'class',
       title: 'New 1-on-1 Booking Request',
       message: `A student has requested a 1-on-1 session. Please review and accept or reject.`,
-      data: { requestId: newRequest[0].id, type: 'one-on-one-request' },
+      data: { requestId: newRequest[0].requestId, type: 'one-on-one-request' },
       actionUrl: '/tutor/dashboard',
     }).catch(console.error)
 
@@ -173,7 +173,7 @@ export async function GET(request: NextRequest) {
         with: {
           tutor: {
             columns: {
-              id: true,
+              userId: true,
               handle: true,
               email: true,
               image: true,
@@ -189,7 +189,7 @@ export async function GET(request: NextRequest) {
         with: {
           student: {
             columns: {
-              id: true,
+              userId: true,
               handle: true,
               email: true,
               image: true,

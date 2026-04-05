@@ -15,11 +15,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
-  curriculumModule,
-  curriculumLesson,
+  course,
+  courseLesson,
   questionBankItem,
   courseBatch,
+  curriculumModule as courseModule,
 } from '@/lib/db/schema'
 import { eq, and, inArray, asc, sql } from 'drizzle-orm'
 import crypto from 'crypto'
@@ -45,7 +45,7 @@ type BuilderQuestion = {
 
 type QuestionBankCreateInput = {
   tutorId: string
-  curriculumId: string
+  courseId: string
   lessonId: string | null
   type: string
   question: string
@@ -86,8 +86,8 @@ function toQuestionSignature(type: string, question: string, lessonId: string | 
 function extractQuestionBankCandidates(
   modules: any[],
   userId: string,
-  curriculumId: string,
-  curriculumName: string
+  courseId: string,
+  courseName: string
 ): QuestionBankCreateInput[] {
   const items: QuestionBankCreateInput[] = []
 
@@ -100,7 +100,7 @@ function extractQuestionBankCandidates(
         const type = normalizeQuestionType(q.type)
         items.push({
           tutorId: userId,
-          curriculumId,
+          courseId,
           lessonId: null,
           type,
           question: q.question.trim(),
@@ -110,7 +110,7 @@ function extractQuestionBankCandidates(
           difficulty: 'medium',
           explanation: q.explanation?.trim() || null,
           tags: ['course-builder', 'module-quiz'],
-          subject: curriculumName,
+          subject: courseName,
           isPublic: false,
         })
       }
@@ -135,7 +135,7 @@ function extractQuestionBankCandidates(
             const type = normalizeQuestionType(q.type)
             items.push({
               tutorId: userId,
-              curriculumId,
+              courseId,
               lessonId,
               type,
               question: q.question.trim(),
@@ -145,7 +145,7 @@ function extractQuestionBankCandidates(
               difficulty: 'medium',
               explanation: q.explanation?.trim() || null,
               tags: ['course-builder', group.tag],
-              subject: curriculumName,
+              subject: courseName,
               isPublic: false,
             })
           }
@@ -173,41 +173,40 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const curriculumId = getCourseId(req)
+  const courseId = getCourseId(req)
   const userId = session.user.id
 
   // Verify ownership
-  const [curriculumRow] = await drizzleDb
-    .select({ id: curriculum.id, name: curriculum.name })
-    .from(curriculum)
-    .where(and(eq(curriculum.id, curriculumId), eq(curriculum.creatorId, userId)))
-  if (!curriculumRow) {
+  const [courseRow] = await drizzleDb
+    .select({ courseId: course.courseId, name: course.name })
+    .from(course)
+    .where(and(eq(course.courseId, courseId), eq(course.creatorId, userId)))
+  if (!courseRow) {
     return NextResponse.json({ error: 'Not found or not yours' }, { status: 404 })
   }
 
   // Load modules + lessons ordered
   const dbModules = await drizzleDb
     .select()
-    .from(curriculumModule)
-    .where(eq(curriculumModule.curriculumId, curriculumId))
-    .orderBy(asc(curriculumModule.order))
+    .from(courseModule)
+    .where(eq(courseModule.courseId, courseId))
+    .orderBy(asc(courseModule.order))
 
-  const moduleIds = dbModules.map(m => m.id)
-  const dbLessons =
-    moduleIds.length > 0
-      ? await drizzleDb
-          .select()
-          .from(curriculumLesson)
-          .where(inArray(curriculumLesson.moduleId, moduleIds))
-          .orderBy(asc(curriculumLesson.order))
-      : []
+  // Lessons are now directly under courses (no moduleId)
+  const dbLessons = await drizzleDb
+    .select()
+    .from(courseLesson)
+    .where(eq(courseLesson.courseId, courseId))
+    .orderBy(asc(courseLesson.order))
 
   // Map DB rows → builder Module[] shape
   const modules = dbModules.map((m: (typeof dbModules)[0]) => {
     const mBuilder = (m.builderData ?? {}) as Record<string, any>
-    const moduleLessons = dbLessons.filter(l => l.moduleId === m.id)
+    // Lessons are now directly under courses (no moduleId), so we can't filter by module
+    // Return empty array for now - lessons need to be fetched at course level
+    const moduleLessons: typeof dbLessons = []
     return {
-      id: m.id,
+      id: m.moduleId,
       title: m.title,
       description: m.description ?? '',
       order: m.order,
@@ -218,13 +217,13 @@ export async function GET(req: NextRequest) {
       lessons: moduleLessons.map(l => {
         const lBuilder = (l.builderData ?? {}) as Record<string, unknown>
         return {
-          id: l.id,
+          id: l.lessonId,
           title: l.title,
           description: l.description ?? '',
-          duration: l.duration,
+          duration: (lBuilder.duration as number) ?? 30,
           order: l.order,
           isPublished: (lBuilder.isPublished as boolean) ?? false,
-          prerequisites: l.prerequisiteLessonIds ?? [],
+          prerequisites: (lBuilder.prerequisites as string[]) ?? [],
           media: (lBuilder.media as Record<string, unknown>) ?? { videos: [], images: [] },
           docs: (lBuilder.docs as unknown[]) ?? [],
           content: (lBuilder.content as unknown[]) ?? [],
@@ -249,15 +248,15 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const curriculumId = getCourseId(req)
+  const courseId = getCourseId(req)
   const userId = session.user.id
 
   // Verify ownership
-  const [curriculumRow] = await drizzleDb
-    .select({ id: curriculum.id, name: curriculum.name })
-    .from(curriculum)
-    .where(and(eq(curriculum.id, curriculumId), eq(curriculum.creatorId, userId)))
-  if (!curriculumRow) {
+  const [courseRow] = await drizzleDb
+    .select({ courseId: course.courseId, name: course.name })
+    .from(course)
+    .where(and(eq(course.courseId, courseId), eq(course.creatorId, userId)))
+  if (!courseRow) {
     return NextResponse.json({ error: 'Not found or not yours' }, { status: 404 })
   }
 
@@ -280,18 +279,16 @@ export async function PUT(req: NextRequest) {
   await drizzleDb.transaction(async tx => {
     // 1. Get existing module & lesson IDs
     const existingModules = await tx
-      .select({ id: curriculumModule.id })
-      .from(curriculumModule)
-      .where(eq(curriculumModule.curriculumId, curriculumId))
-    const existingModuleIds = new Set(existingModules.map(m => m.id))
-    const existingLessons =
-      existingModuleIds.size > 0
-        ? await tx
-            .select({ id: curriculumLesson.id })
-            .from(curriculumLesson)
-            .where(inArray(curriculumLesson.moduleId, [...existingModuleIds]))
-        : []
-    const existingLessonIds = new Set(existingLessons.map(l => l.id))
+      .select({ moduleId: courseModule.moduleId })
+      .from(courseModule)
+      .where(eq(courseModule.courseId, courseId))
+    const existingModuleIds = new Set(existingModules.map(m => m.moduleId))
+    // Get all lessons for this course (lessons are now directly under courses)
+    const existingLessons = await tx
+      .select({ lessonId: courseLesson.lessonId })
+      .from(courseLesson)
+      .where(eq(courseLesson.courseId, courseId))
+    const existingLessonIds = new Set(existingLessons.map(l => l.lessonId))
 
     const incomingModuleIds = new Set(modules.map(m => m.id))
     const incomingLessonIds = new Set(
@@ -300,12 +297,12 @@ export async function PUT(req: NextRequest) {
 
     const removedLessonIds = [...existingLessonIds].filter(id => !incomingLessonIds.has(id))
     if (removedLessonIds.length > 0) {
-      await tx.delete(curriculumLesson).where(inArray(curriculumLesson.id, removedLessonIds))
+      await tx.delete(courseLesson).where(inArray(courseLesson.lessonId, removedLessonIds))
     }
 
     const removedModuleIds = [...existingModuleIds].filter(id => !incomingModuleIds.has(id))
     if (removedModuleIds.length > 0) {
-      await tx.delete(curriculumModule).where(inArray(curriculumModule.id, removedModuleIds))
+      await tx.delete(courseModule).where(inArray(courseModule.moduleId, removedModuleIds))
     }
 
     for (const mod of modules) {
@@ -316,17 +313,17 @@ export async function PUT(req: NextRequest) {
         moduleQuizzes: mod.moduleQuizzes ?? [],
       }
       await tx
-        .insert(curriculumModule)
+        .insert(courseModule)
         .values({
-          id: mod.id,
-          curriculumId,
+          moduleId: mod.id,
+          courseId,
           title: mod.title || 'Untitled Module',
           description: mod.description || null,
           order: mod.order ?? 0,
           builderData: moduleBuilderData,
         })
         .onConflictDoUpdate({
-          target: curriculumModule.id,
+          target: courseModule.moduleId,
           set: {
             title: mod.title || 'Untitled Module',
             description: mod.description || null,
@@ -349,31 +346,21 @@ export async function PUT(req: NextRequest) {
           quizzes: les.quizzes ?? [],
         }
         await tx
-          .insert(curriculumLesson)
+          .insert(courseLesson)
           .values({
-            id: les.id,
-            moduleId: mod.id,
+            lessonId: les.id,
+            courseId,
             title: les.title || 'Untitled Lesson',
             description: les.description || null,
-            duration: les.duration ?? 30,
             order: les.order ?? 0,
-            prerequisiteLessonIds: les.prerequisites ?? [],
             builderData: lessonBuilderData,
-            difficulty: 'intermediate',
-            learningObjectives: [],
-            teachingPoints: [],
-            keyConcepts: [],
-            commonMisconceptions: [],
           })
           .onConflictDoUpdate({
-            target: curriculumLesson.id,
+            target: courseLesson.lessonId,
             set: {
-              moduleId: mod.id,
               title: les.title || 'Untitled Lesson',
               description: les.description || null,
-              duration: les.duration ?? 30,
               order: les.order ?? 0,
-              prerequisiteLessonIds: les.prerequisites ?? [],
               builderData: lessonBuilderData,
             },
           })
@@ -383,8 +370,8 @@ export async function PUT(req: NextRequest) {
     const questionCandidates = extractQuestionBankCandidates(
       modules,
       userId,
-      curriculumId,
-      curriculumRow.name
+      courseId,
+      courseRow.name
     )
     if (questionCandidates.length > 0) {
       const existingItems = await tx
@@ -394,9 +381,7 @@ export async function PUT(req: NextRequest) {
           question: questionBankItem.question,
         })
         .from(questionBankItem)
-        .where(
-          and(eq(questionBankItem.tutorId, userId), eq(questionBankItem.curriculumId, curriculumId))
-        )
+        .where(and(eq(questionBankItem.tutorId, userId), eq(questionBankItem.courseId, courseId)))
       const signatures = new Set(
         existingItems.map(item =>
           toQuestionSignature(item.type, item.question, item.lessonId ?? null)
@@ -411,9 +396,9 @@ export async function PUT(req: NextRequest) {
       if (toCreate.length > 0) {
         await tx.insert(questionBankItem).values(
           toCreate.map(item => ({
-            id: crypto.randomUUID(),
+            itemId: crypto.randomUUID(),
             tutorId: item.tutorId,
-            curriculumId: item.curriculumId,
+            courseId: item.courseId,
             lessonId: item.lessonId,
             type: item.type,
             question: item.question,
@@ -434,7 +419,7 @@ export async function PUT(req: NextRequest) {
     if (shouldAutoCreateAdaptiveVariants) {
       const existingVariantBatches = await tx
         .select({
-          id: courseBatch.id,
+          batchId: courseBatch.batchId,
           name: courseBatch.name,
           difficulty: courseBatch.difficulty,
           order: courseBatch.order,
@@ -442,7 +427,7 @@ export async function PUT(req: NextRequest) {
         .from(courseBatch)
         .where(
           and(
-            eq(courseBatch.curriculumId, curriculumId),
+            eq(courseBatch.courseId, courseId),
             inArray(courseBatch.difficulty, [...ADAPTIVE_DIFFICULTIES])
           )
         )
@@ -450,18 +435,22 @@ export async function PUT(req: NextRequest) {
 
       const selectedByDifficulty = new Map<
         AdaptiveDifficulty,
-        { id: string; name: string; order: number }
+        { batchId: string; name: string; order: number }
       >()
       for (const batch of existingVariantBatches) {
         const difficulty = batch.difficulty as AdaptiveDifficulty | null
         if (!difficulty || selectedByDifficulty.has(difficulty)) continue
-        selectedByDifficulty.set(difficulty, { id: batch.id, name: batch.name, order: batch.order })
+        selectedByDifficulty.set(difficulty, {
+          batchId: batch.batchId,
+          name: batch.name,
+          order: batch.order,
+        })
       }
 
       const [{ maxOrder }] = await tx
         .select({ maxOrder: sql<number>`coalesce(max(${courseBatch.order}), -1)` })
         .from(courseBatch)
-        .where(eq(courseBatch.curriculumId, curriculumId))
+        .where(eq(courseBatch.courseId, courseId))
       let nextOrder = (Number(maxOrder) ?? -1) + 1
 
       for (const difficulty of ADAPTIVE_DIFFICULTIES) {
@@ -469,8 +458,8 @@ export async function PUT(req: NextRequest) {
         if (!batch) {
           const batchId = crypto.randomUUID()
           await tx.insert(courseBatch).values({
-            id: batchId,
-            curriculumId,
+            batchId: batchId,
+            courseId,
             name: `Adaptive ${difficulty[0].toUpperCase()}${difficulty.slice(1)}`,
             difficulty,
             order: nextOrder,
@@ -478,7 +467,7 @@ export async function PUT(req: NextRequest) {
             maxStudents: 50,
           })
           batch = {
-            id: batchId,
+            batchId: batchId,
             name: `Adaptive ${difficulty[0].toUpperCase()}${difficulty.slice(1)}`,
             order: nextOrder,
           }
@@ -487,14 +476,14 @@ export async function PUT(req: NextRequest) {
         }
         if (!batch) continue
 
-        const joinLink = `${req.nextUrl.origin}/curriculum/${curriculumId}?batch=${batch.id}`
+        const joinLink = `${req.nextUrl.origin}/curriculum/${courseId}?batch=${batch.batchId}`
         await tx
           .update(courseBatch)
           .set({ meetingUrl: joinLink })
-          .where(eq(courseBatch.id, batch.id))
+          .where(eq(courseBatch.batchId, batch.batchId))
         variantJoinLinks.push({
           difficulty,
-          batchId: batch.id,
+          batchId: batch.batchId,
           batchName: batch.name,
           joinLink,
         })

@@ -41,7 +41,7 @@ export async function calculateClassEngagement(
   const enrollments = await drizzleDb
     .select({ studentId: curriculumEnrollment.studentId })
     .from(curriculumEnrollment)
-    .where(eq(curriculumEnrollment.curriculumId, classId))
+    .where(eq(curriculumEnrollment.courseId, classId))
   const studentIds = enrollments.map(e => e.studentId)
 
   if (studentIds.length === 0) {
@@ -143,7 +143,7 @@ async function calculateAttendanceRate(
     .from(liveSession)
     .where(
       and(
-        eq(liveSession.curriculumId, classId),
+        eq(liveSession.courseId, classId),
         gte(liveSession.scheduledAt, startDate),
         lt(liveSession.scheduledAt, new Date(endDate.getTime() + 1))
       )
@@ -160,7 +160,7 @@ async function calculateAttendanceRate(
       .from(sessionParticipant)
       .where(
         and(
-          eq(sessionParticipant.sessionId, session.id),
+          eq(sessionParticipant.sessionId, session.sessionId),
           inArray(sessionParticipant.studentId, studentIds)
         )
       )
@@ -335,7 +335,7 @@ async function calculateDailyTrend(
       .from(liveSession)
       .where(
         and(
-          eq(liveSession.curriculumId, classId),
+          eq(liveSession.courseId, classId),
           gte(liveSession.scheduledAt, dayStart),
           lt(liveSession.scheduledAt, dayEnd)
         )
@@ -348,7 +348,7 @@ async function calculateDailyTrend(
         .from(sessionParticipant)
         .where(
           and(
-            eq(sessionParticipant.sessionId, s.id),
+            eq(sessionParticipant.sessionId, s.sessionId),
             inArray(sessionParticipant.studentId, studentIds)
           )
         )
@@ -461,7 +461,11 @@ async function identifyStudentsAtRisk(
     const quizCount = quizRow?.count ?? 0
 
     if (attendanceCount < 2 || assignmentCount < 2 || quizCount < 1) {
-      const [userRow] = await drizzleDb.select().from(user).where(eq(user.id, studentId)).limit(1)
+      const [userRow] = await drizzleDb
+        .select()
+        .from(user)
+        .where(eq(user.userId, studentId))
+        .limit(1)
       const [profileRow] = userRow
         ? await drizzleDb
             .select({ name: profile.name })
@@ -489,7 +493,7 @@ export async function getLiveSessionEngagement(sessionId: string): Promise<{
   const [session] = await drizzleDb
     .select()
     .from(liveSession)
-    .where(eq(liveSession.id, sessionId))
+    .where(eq(liveSession.sessionId, sessionId))
     .limit(1)
 
   if (!session) {

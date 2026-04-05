@@ -38,11 +38,11 @@ export async function GET() {
     // For now, we'll return recently published tasks from curriculums
     const tasks = await drizzleDb
       .select({
-        id: builderTask.id,
+        id: builderTask.taskId,
         title: builderTask.title,
         content: builderTask.content,
         type: builderTask.type,
-        curriculumId: builderTask.curriculumId,
+        courseId: builderTask.courseId,
         lessonId: builderTask.lessonId,
         tutorId: builderTask.tutorId,
         publishedAt: builderTask.publishedAt,

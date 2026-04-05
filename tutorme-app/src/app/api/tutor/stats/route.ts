@@ -44,7 +44,7 @@ export const GET = withAuth(
           .where(eq(liveSession.tutorId, tutorId)),
 
         drizzleDb
-          .select({ id: liveSession.id })
+          .select({ sessionId: liveSession.sessionId })
           .from(liveSession)
           .where(eq(liveSession.tutorId, tutorId)),
 
@@ -66,14 +66,14 @@ export const GET = withAuth(
         drizzleDb
           .select({ amount: payment.amount })
           .from(payment)
-          .innerJoin(clinicBooking, eq(clinicBooking.id, payment.bookingId))
-          .innerJoin(clinic, eq(clinic.id, clinicBooking.clinicId))
+          .innerJoin(clinicBooking, eq(clinicBooking.bookingId, payment.bookingId))
+          .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
           .where(and(eq(payment.status, 'COMPLETED'), eq(clinic.tutorId, tutorId))),
       ])
 
       const totalClasses = Number(totalClassesRes[0]?.value || 0)
       const upcomingCount = Number(upcomingCountRes[0]?.value || 0)
-      const sessionIds = sessionIdsRes.map(s => s.id)
+      const sessionIds = sessionIdsRes.map(s => s.sessionId)
 
       let totalStudents = 0
       if (sessionIds.length > 0) {

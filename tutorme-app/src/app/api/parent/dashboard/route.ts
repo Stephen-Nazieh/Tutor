@@ -13,9 +13,9 @@ import { withAuth } from '@/lib/api/middleware'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
-  curriculumEnrollment,
-  curriculumLessonProgress,
+  course,
+  courseEnrollment,
+  courseLessonProgress,
   userGamification,
   achievement,
   taskSubmission,
@@ -40,7 +40,7 @@ export const GET = withAuth(
       return NextResponse.json({ error: '未找到家庭账户，请先完成家长注册' }, { status: 404 })
     }
 
-    const cacheKey = `parent:dashboard:${family.id}:${session.user.id}`
+    const cacheKey = `parent:dashboard:${family.familyAccountId}:${session.user.id}`
 
     const data = await cacheManager.getOrSet(
       cacheKey,
@@ -64,16 +64,16 @@ export const GET = withAuth(
           parentActivities,
         ] = await Promise.all([
           studentIds.length > 0
-            ? drizzleDb.query.curriculumEnrollment.findMany({
-                where: inArray(curriculumEnrollment.studentId, studentIds),
+            ? drizzleDb.query.courseEnrollment.findMany({
+                where: inArray(courseEnrollment.studentId, studentIds),
                 with: {
-                  curriculum: { columns: { id: true, name: true } },
+                  course: { columns: { courseId: true, name: true } },
                 },
               })
             : Promise.resolve([]),
           studentIds.length > 0
-            ? drizzleDb.query.curriculumLessonProgress.findMany({
-                where: inArray(curriculumLessonProgress.studentId, studentIds),
+            ? drizzleDb.query.courseLessonProgress.findMany({
+                where: inArray(courseLessonProgress.studentId, studentIds),
                 columns: { studentId: true, status: true, completedAt: true },
               })
             : Promise.resolve([]),
@@ -89,7 +89,7 @@ export const GET = withAuth(
                 orderBy: [desc(achievement.unlockedAt)],
                 limit: 10,
                 columns: {
-                  id: true,
+                  achievementId: true,
                   userId: true,
                   title: true,
                   description: true,
@@ -100,7 +100,7 @@ export const GET = withAuth(
           studentIds.length > 0
             ? drizzleDb.query.taskSubmission.findMany({
                 where: inArray(taskSubmission.studentId, studentIds),
-                columns: { id: true, taskId: true, studentId: true, submittedAt: true },
+                columns: { submissionId: true, taskId: true, studentId: true, submittedAt: true },
               })
             : Promise.resolve([]),
           studentIds.length > 0
@@ -108,7 +108,7 @@ export const GET = withAuth(
                 where: inArray(generatedTask.status, ['assigned', 'completed']),
                 orderBy: [desc(generatedTask.createdAt)],
                 limit: 200,
-                columns: { id: true, dueDate: true, assignments: true },
+                columns: { taskId: true, dueDate: true, assignments: true },
               })
             : Promise.resolve([]),
           studentIds.length > 0
@@ -121,26 +121,26 @@ export const GET = withAuth(
             : Promise.resolve([]),
           drizzleDb.query.familyPayment.findMany({
             where: and(
-              eq(familyPayment.parentId, family.id),
+              eq(familyPayment.parentId, family.familyAccountId),
               gte(familyPayment.createdAt, startOfMonth)
             ),
             orderBy: [desc(familyPayment.createdAt)],
             limit: 100,
-            columns: { id: true, amount: true, status: true, createdAt: true },
+            columns: { familyPaymentId: true, amount: true, status: true, createdAt: true },
           }),
           studentIds.length > 0
             ? drizzleDb
-                .select({ id: payment.id, amount: payment.amount })
+                .select({ paymentId: payment.paymentId, amount: payment.amount })
                 .from(payment)
-                .leftJoin(clinicBooking, eq(payment.bookingId, clinicBooking.id))
-                .leftJoin(curriculumEnrollment, eq(payment.enrollmentId, curriculumEnrollment.id))
+                .leftJoin(clinicBooking, eq(payment.bookingId, clinicBooking.bookingId))
+                .leftJoin(courseEnrollment, eq(payment.enrollmentId, courseEnrollment.enrollmentId))
                 .where(
                   and(
                     eq(payment.status, 'COMPLETED'),
                     gte(payment.createdAt, startOfMonth),
                     or(
                       inArray(clinicBooking.studentId, studentIds),
-                      inArray(curriculumEnrollment.studentId, studentIds)
+                      inArray(courseEnrollment.studentId, studentIds)
                     )
                   )
                 )
@@ -148,24 +148,24 @@ export const GET = withAuth(
           studentIds.length > 0
             ? drizzleDb
                 .select({
-                  id: payment.id,
+                  paymentId: payment.paymentId,
                   amount: payment.amount,
                   createdAt: payment.createdAt,
                   clinicTitle: clinic.title,
                   clinicStartTime: clinic.startTime,
-                  curriculumName: curriculum.name,
+                  courseName: course.name,
                 })
                 .from(payment)
-                .leftJoin(clinicBooking, eq(payment.bookingId, clinicBooking.id))
-                .leftJoin(curriculumEnrollment, eq(payment.enrollmentId, curriculumEnrollment.id))
-                .leftJoin(clinic, eq(clinicBooking.clinicId, clinic.id))
-                .leftJoin(curriculum, eq(curriculumEnrollment.curriculumId, curriculum.id))
+                .leftJoin(clinicBooking, eq(payment.bookingId, clinicBooking.bookingId))
+                .leftJoin(courseEnrollment, eq(payment.enrollmentId, courseEnrollment.enrollmentId))
+                .leftJoin(clinic, eq(clinicBooking.clinicId, clinic.clinicId))
+                .leftJoin(course, eq(courseEnrollment.courseId, course.courseId))
                 .where(
                   and(
                     inArray(payment.status, ['PENDING', 'PROCESSING']),
                     or(
                       inArray(clinicBooking.studentId, studentIds),
-                      inArray(curriculumEnrollment.studentId, studentIds)
+                      inArray(courseEnrollment.studentId, studentIds)
                     )
                   )
                 )
@@ -173,16 +173,16 @@ export const GET = withAuth(
                 .limit(20)
             : Promise.resolve([]),
           drizzleDb.query.familyNotification.findMany({
-            where: eq(familyNotification.parentId, family.id),
+            where: eq(familyNotification.parentId, family.familyAccountId),
             orderBy: [desc(familyNotification.createdAt)],
             limit: 10,
-            columns: { id: true, message: true, isRead: true, createdAt: true },
+            columns: { notificationId: true, message: true, isRead: true, createdAt: true },
           }),
           drizzleDb.query.parentActivityLog.findMany({
-            where: eq(parentActivityLog.parentId, family.id),
+            where: eq(parentActivityLog.parentId, family.familyAccountId),
             orderBy: [desc(parentActivityLog.createdAt)],
             limit: 10,
-            columns: { id: true, action: true, details: true, createdAt: true },
+            columns: { activityLogId: true, action: true, details: true, createdAt: true },
           }),
         ])
 
@@ -198,7 +198,7 @@ export const GET = withAuth(
           const assignmentMap = (task.assignments || {}) as Record<string, unknown>
           for (const sid of studentIds) {
             if (!Object.prototype.hasOwnProperty.call(assignmentMap, sid)) continue
-            const submitted = submissionSet.has(`${sid}:${task.id}`)
+            const submitted = submissionSet.has(`${sid}:${task.taskId}`)
             if (!submitted) {
               assignmentsDueByStudent.set(sid, (assignmentsDueByStudent.get(sid) ?? 0) + 1)
             }
@@ -229,7 +229,7 @@ export const GET = withAuth(
               assignmentsDue,
               progress: total > 0 ? Math.round((completed / total) * 100) : 0,
               lastActive: gam?.lastLogin ? formatRelativeTime(gam.lastLogin) : '—',
-              subjects: [...new Set(enrolls.map((e: any) => e.curriculum?.name).filter(Boolean))],
+              subjects: [...new Set(enrolls.map((e: any) => e.course?.name).filter(Boolean))],
               recentAchievement: recentAchievement?.title || null,
             }
           })
@@ -246,16 +246,16 @@ export const GET = withAuth(
         )
         const spentThisMonth = familySpentThisMonth + studentSpentThisMonth
 
-        const recentActivity = [
+        const activityList = [
           ...parentActivities.slice(0, 5).map((a: any) => ({
-            id: a.id,
+            id: a.activityLogId,
             type: 'activity' as const,
             description: a.action + (a.details ? `: ${a.details}` : ''),
             time: formatRelativeTime(a.createdAt),
             _ts: a.createdAt.getTime(),
           })),
           ...achievements.slice(0, 3).map((a: any) => ({
-            id: a.id,
+            id: a.achievementId,
             type: 'achievement_earned' as const,
             description: `${a.title} - ${a.description}`,
             time: formatRelativeTime(a.unlockedAt),
@@ -276,15 +276,15 @@ export const GET = withAuth(
               .slice(0, 5)
               .map(
                 (p: {
-                  id: string
+                  paymentId: string
                   amount: number
                   clinicTitle?: string | null
-                  curriculumName?: string | null
+                  courseName?: string | null
                   clinicStartTime?: Date | null
                   createdAt: Date
                 }) => ({
-                  id: p.id,
-                  description: p.clinicTitle ?? p.curriculumName ?? 'Pending payment',
+                  id: p.paymentId,
+                  description: p.clinicTitle ?? p.courseName ?? 'Pending payment',
                   amount: p.amount,
                   dueDate:
                     (p.clinicStartTime ?? p.createdAt) instanceof Date
@@ -293,9 +293,9 @@ export const GET = withAuth(
                 })
               ),
           },
-          recentActivity,
+          recentActivity: activityList,
           notifications: familyNotifications.map((n: any) => ({
-            id: n.id,
+            id: n.notificationId,
             type: 'info' as const,
             message: n.message,
             read: n.isRead,
@@ -310,7 +310,7 @@ export const GET = withAuth(
       },
       {
         ttl: CACHE_TTL,
-        tags: [`family:${family.id}`, `parent:${session.user.id}`, 'dashboard'],
+        tags: [`family:${family.familyAccountId}`, `parent:${session.user.id}`, 'dashboard'],
       }
     )
 

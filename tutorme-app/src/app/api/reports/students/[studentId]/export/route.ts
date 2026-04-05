@@ -31,13 +31,13 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
 
     const [studentRow] = await drizzleDb
       .select({
-        id: user.id,
+        id: user.userId,
         email: user.email,
         name: profile.name,
       })
       .from(user)
-      .leftJoin(profile, eq(profile.userId, user.id))
-      .where(eq(user.id, studentId))
+      .leftJoin(profile, eq(profile.userId, user.userId))
+      .where(eq(user.userId, studentId))
       .limit(1)
 
     if (!studentRow) {
@@ -49,12 +49,12 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     let classInfo = { title: 'All Classes', subject: 'General' }
     if (classId) {
       const [curriculumRow] = await drizzleDb
-        .select({ name: curriculum.name, subject: curriculum.subject })
+        .select({ name: curriculum.name, subject: curriculum.categories })
         .from(curriculum)
-        .where(eq(curriculum.id, classId))
+        .where(eq(curriculum.courseId, classId))
         .limit(1)
       if (curriculumRow) {
-        classInfo = { title: curriculumRow.name, subject: curriculumRow.subject }
+        classInfo = { title: curriculumRow.name, subject: curriculumRow.subject?.[0] ?? 'General' }
       }
     }
 

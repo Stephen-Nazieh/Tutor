@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { generatedTask, taskSubmission, user, profile } from '@/lib/db/schema'
+import { generatedTask, taskSubmission, user as userTable, profile } from '@/lib/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 
 function getTaskId(req: NextRequest): string {
@@ -37,14 +37,14 @@ export async function GET(req: NextRequest) {
   const [task] = await drizzleDb
     .select()
     .from(generatedTask)
-    .where(and(eq(generatedTask.id, taskId), eq(generatedTask.tutorId, session.user.id)))
+    .where(and(eq(generatedTask.taskId, taskId), eq(generatedTask.tutorId, session.user.id)))
   if (!task) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
   const submissions = await drizzleDb
     .select({
-      id: taskSubmission.id,
+      submissionId: taskSubmission.submissionId,
       studentId: taskSubmission.studentId,
       score: taskSubmission.score,
       timeSpent: taskSubmission.timeSpent,
@@ -52,12 +52,12 @@ export async function GET(req: NextRequest) {
       status: taskSubmission.status,
       submittedAt: taskSubmission.submittedAt,
       maxScore: taskSubmission.maxScore,
-      userId: user.id,
+      userId: userTable.userId,
       name: profile.name,
     })
     .from(taskSubmission)
-    .innerJoin(user, eq(user.id, taskSubmission.studentId))
-    .leftJoin(profile, eq(profile.userId, user.id))
+    .innerJoin(userTable, eq(userTable.userId, taskSubmission.studentId))
+    .leftJoin(profile, eq(profile.userId, userTable.userId))
     .where(eq(taskSubmission.taskId, taskId))
     .orderBy(desc(taskSubmission.submittedAt))
 
@@ -222,7 +222,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     task: {
-      id: task.id,
+      id: task.taskId,
       title: task.title,
       type: task.type,
       difficulty: task.difficulty,

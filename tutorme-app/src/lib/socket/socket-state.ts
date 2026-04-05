@@ -56,7 +56,7 @@ export async function getConversationParticipantIds(
         participant2Id: conversation.participant2Id,
       })
       .from(conversation)
-      .where(eq(conversation.id, conversationId))
+      .where(eq(conversation.conversationId, conversationId))
       .limit(1)
     return conv
       ? { participant1Id: conv.participant1Id, participant2Id: conv.participant2Id }

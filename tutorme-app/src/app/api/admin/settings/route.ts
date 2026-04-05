@@ -156,12 +156,12 @@ export async function POST(req: NextRequest) {
           settingValue: value,
           updatedBy: session.adminId,
         })
-        .where(eq(systemSetting.id, row.id))
+        .where(eq(systemSetting.settingId, row.settingId))
       setting = { ...row, settingValue: value, updatedBy: session.adminId }
     } else {
       const id = crypto.randomUUID()
       await drizzleDb.insert(systemSetting).values({
-        id,
+        settingId: id,
         category,
         key,
         settingValue: value,
@@ -174,13 +174,13 @@ export async function POST(req: NextRequest) {
       const [inserted] = await drizzleDb
         .select()
         .from(systemSetting)
-        .where(eq(systemSetting.id, id))
+        .where(eq(systemSetting.settingId, id))
       setting = inserted!
     }
 
     await logAdminAction(session.adminId, 'settings.update', {
       resourceType: 'system_setting',
-      resourceId: setting.id,
+      resourceId: setting.settingId,
       newState: setting,
       ipAddress: getClientIp(req),
       userAgent: req.headers.get('user-agent') || undefined,

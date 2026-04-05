@@ -51,7 +51,7 @@ async function checkUsage(userId: string) {
     const [inserted] = await drizzleDb
       .insert(aITutorDailyUsage)
       .values({
-        id: crypto.randomUUID(),
+        usageId: crypto.randomUUID(),
         userId,
         date: today,
         sessionCount: 0,
@@ -108,21 +108,21 @@ export const POST = withCsrf(
           await drizzleDb
             .update(aITutorDailyUsage)
             .set({ messageCount: row.messageCount + amount })
-            .where(eq(aITutorDailyUsage.id, row.id))
+            .where(eq(aITutorDailyUsage.usageId, row.usageId))
         } else if (type === 'session') {
           await drizzleDb
             .update(aITutorDailyUsage)
             .set({ sessionCount: row.sessionCount + amount })
-            .where(eq(aITutorDailyUsage.id, row.id))
+            .where(eq(aITutorDailyUsage.usageId, row.usageId))
         } else if (type === 'minute') {
           await drizzleDb
             .update(aITutorDailyUsage)
             .set({ minutesUsed: row.minutesUsed + amount })
-            .where(eq(aITutorDailyUsage.id, row.id))
+            .where(eq(aITutorDailyUsage.usageId, row.usageId))
         }
       } else {
         await drizzleDb.insert(aITutorDailyUsage).values({
-          id: crypto.randomUUID(),
+          usageId: crypto.randomUUID(),
           userId: session.user.id,
           date: today,
           sessionCount: type === 'session' ? amount : 0,

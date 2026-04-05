@@ -64,7 +64,7 @@ export const POST = withAuth(
       const [resourceRow] = await drizzleDb
         .insert(resource)
         .values({
-          id: randomUUID(),
+          resourceId: randomUUID(),
           tutorId,
           name: name.slice(0, 255),
           description: description?.slice(0, 1000) ?? null,

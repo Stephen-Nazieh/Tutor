@@ -49,7 +49,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
 
     const quizAttempts = await drizzleDb
       .select({
-        id: quizAttempt.id,
+        attemptId: quizAttempt.attemptId,
         quizId: quizAttempt.quizId,
         score: quizAttempt.score,
         maxScore: quizAttempt.maxScore,
@@ -64,7 +64,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     // AI session summaries ONLY — not full chat content
     const aiSessions = await drizzleDb
       .select({
-        id: aIInteractionSession.id,
+        interactionId: aIInteractionSession.interactionId,
         subjectCode: aIInteractionSession.subjectCode,
         startedAt: aIInteractionSession.startedAt,
         endedAt: aIInteractionSession.endedAt,
@@ -109,7 +109,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
           }
         : null,
       courseEnrollments: enrollments.map(e => ({
-        curriculumId: e.curriculumId,
+        courseId: e.courseId,
         enrolledAt: e.enrolledAt,
         completedAt: e.completedAt,
         lessonsCompleted: e.lessonsCompleted,

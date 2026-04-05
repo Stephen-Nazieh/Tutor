@@ -26,7 +26,7 @@ export async function GET(
 
     const [classItem] = await drizzleDb
       .select({
-        id: clinic.id,
+        clinicId: clinic.clinicId,
         title: clinic.title,
         subject: clinic.subject,
         description: clinic.description,
@@ -34,7 +34,7 @@ export async function GET(
         tutorId: clinic.tutorId,
       })
       .from(clinic)
-      .where(eq(clinic.id, id))
+      .where(eq(clinic.clinicId, id))
       .limit(1)
 
     if (!classItem) {

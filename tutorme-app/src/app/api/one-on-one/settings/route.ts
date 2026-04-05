@@ -29,12 +29,12 @@ export async function GET(req: NextRequest) {
     // Get tutor's profile with hourly rate
     const tutorProfile = await drizzleDb
       .select({
-        id: profile.id,
+        profileId: profile.profileId,
         hourlyRate: profile.hourlyRate,
         oneOnOneEnabled: profile.oneOnOneEnabled,
       })
       .from(profile)
-      .where(eq(profile.id, tutorId))
+      .where(eq(profile.userId, tutorId))
       .limit(1)
 
     if (tutorProfile.length === 0) {
@@ -72,7 +72,7 @@ export async function PATCH(req: NextRequest) {
         oneOnOneEnabled: oneOnOneEnabled !== undefined ? oneOnOneEnabled : undefined,
         updatedAt: new Date(),
       })
-      .where(eq(profile.id, tutorId))
+      .where(eq(profile.userId, tutorId))
 
     return NextResponse.json({ success: true })
   } catch (error) {

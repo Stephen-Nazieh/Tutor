@@ -8,7 +8,7 @@ import { eq, desc } from 'drizzle-orm'
 import { withAuth, NotFoundError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum, curriculumEnrollment, user, profile, courseBatch } from '@/lib/db/schema'
+import { course, courseEnrollment, user, profile, courseBatch } from '@/lib/db/schema'
 
 export const GET = withAuth(
   async (req: NextRequest, session, context) => {
@@ -17,35 +17,37 @@ export const GET = withAuth(
       return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
     }
 
-    const [course] = await drizzleDb
-      .select({ id: curriculum.id, creatorId: curriculum.creatorId })
-      .from(curriculum)
-      .where(eq(curriculum.id, id))
+    const [courseRow] = await drizzleDb
+      .select({ courseId: course.courseId, creatorId: course.creatorId })
+      .from(course)
+      .where(eq(course.courseId, id))
       .limit(1)
 
-    if (!course) throw new NotFoundError('Course not found')
-
+    if (!courseRow) throw new NotFoundError('Course not found')
+    if (courseRow.creatorId !== session.user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
     const enrollmentsData = await drizzleDb
       .select({
-        enrollment: curriculumEnrollment,
+        enrollment: courseEnrollment,
         studentUser: user,
         studentProfile: profile,
         batch: courseBatch,
       })
-      .from(curriculumEnrollment)
-      .innerJoin(user, eq(user.id, curriculumEnrollment.studentId))
-      .leftJoin(profile, eq(profile.userId, user.id))
-      .leftJoin(courseBatch, eq(courseBatch.id, curriculumEnrollment.batchId))
-      .where(eq(curriculumEnrollment.curriculumId, id))
-      .orderBy(desc(curriculumEnrollment.enrolledAt))
+      .from(courseEnrollment)
+      .innerJoin(user, eq(user.userId, courseEnrollment.studentId))
+      .leftJoin(profile, eq(profile.userId, user.userId))
+
+      .where(eq(courseEnrollment.courseId, id))
+      .orderBy(desc(courseEnrollment.enrolledAt))
 
     const list = enrollmentsData.map(row => ({
-      id: row.enrollment.id,
+      id: row.enrollment.enrollmentId,
       studentId: row.enrollment.studentId,
       studentName: row.studentProfile?.name ?? row.studentUser.email ?? 'Unknown',
       studentEmail: row.studentUser.email,
-      batchId: row.enrollment.batchId,
-      batchName: row.batch?.name ?? null,
+      batchId: null,
+      batchName: null,
       enrolledAt: row.enrollment.enrolledAt,
       lastActivity: row.enrollment.lastActivity,
       lessonsCompleted: row.enrollment.lessonsCompleted,

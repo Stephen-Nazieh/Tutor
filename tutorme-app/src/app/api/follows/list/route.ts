@@ -9,7 +9,7 @@ export const GET = withAuth(async (req, session) => {
 
   const following = await drizzleDb
     .select({
-      id: user.id,
+      id: user.userId,
       name: profile.name,
       handle: user.handle,
       avatarUrl: profile.avatarUrl,
@@ -17,8 +17,8 @@ export const GET = withAuth(async (req, session) => {
       specialties: profile.specialties,
     })
     .from(tutorFollow)
-    .innerJoin(user, eq(tutorFollow.tutorId, user.id))
-    .leftJoin(profile, eq(user.id, profile.userId))
+    .innerJoin(user, eq(tutorFollow.tutorId, user.userId))
+    .leftJoin(profile, eq(user.userId, profile.userId))
     .where(eq(tutorFollow.followerId, viewerId))
     .orderBy(tutorFollow.createdAt)
 

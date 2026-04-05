@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
   try {
     const assets = await drizzleDb
       .select({
-        id: tutorAsset.id,
+        id: tutorAsset.assetId,
         name: tutorAsset.name,
         content: tutorAsset.content,
         url: tutorAsset.url,
@@ -82,7 +82,7 @@ export async function PUT(req: NextRequest) {
     await drizzleDb.transaction(async tx => {
       // Get existing asset IDs for this tutor
       const existingAssets = await tx
-        .select({ id: tutorAsset.id })
+        .select({ id: tutorAsset.assetId })
         .from(tutorAsset)
         .where(eq(tutorAsset.tutorId, tutorId))
 
@@ -95,7 +95,7 @@ export async function PUT(req: NextRequest) {
         for (const id of idsToDelete) {
           await tx
             .delete(tutorAsset)
-            .where(and(eq(tutorAsset.id, id), eq(tutorAsset.tutorId, tutorId)))
+            .where(and(eq(tutorAsset.assetId, id), eq(tutorAsset.tutorId, tutorId)))
         }
       }
 
@@ -104,7 +104,7 @@ export async function PUT(req: NextRequest) {
         await tx
           .insert(tutorAsset)
           .values({
-            id: asset.id,
+            assetId: asset.id,
             tutorId,
             name: asset.name,
             content: asset.content || null,
@@ -113,7 +113,7 @@ export async function PUT(req: NextRequest) {
             size: asset.size || null,
           })
           .onConflictDoUpdate({
-            target: tutorAsset.id,
+            target: tutorAsset.assetId,
             set: {
               name: asset.name,
               content: asset.content || null,
@@ -155,7 +155,7 @@ export async function DELETE(req: NextRequest) {
   try {
     await drizzleDb
       .delete(tutorAsset)
-      .where(and(eq(tutorAsset.id, assetId), eq(tutorAsset.tutorId, tutorId)))
+      .where(and(eq(tutorAsset.assetId, assetId), eq(tutorAsset.tutorId, tutorId)))
 
     return NextResponse.json({ message: 'Asset deleted successfully' })
   } catch (error) {

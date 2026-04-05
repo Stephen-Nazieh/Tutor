@@ -32,7 +32,7 @@ export async function GET(
     const [task] = await drizzleDb
       .select()
       .from(generatedTask)
-      .where(eq(generatedTask.id, taskId))
+      .where(eq(generatedTask.taskId, taskId))
       .limit(1)
 
     if (!task) {
@@ -63,7 +63,7 @@ export async function GET(
 
     return NextResponse.json({
       task: {
-        id: task.id,
+        id: task.taskId,
         title: task.title,
         description: task.description,
         type: task.type,

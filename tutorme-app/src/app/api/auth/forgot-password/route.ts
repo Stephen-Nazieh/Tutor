@@ -85,7 +85,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ForgotPasswor
         email: normalizedEmail,
         token: resetToken,
         expires: tokenExpiry.toISOString(),
-        userId: userRecord.id,
+        userId: userRecord.userId,
       })
     }
 

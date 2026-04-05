@@ -7,7 +7,7 @@ import { and, eq } from 'drizzle-orm'
 
 function mapTask(task: typeof libraryTask.$inferSelect) {
   return {
-    id: task.id,
+    id: task.libraryTaskId,
     question: task.question,
     type: task.type as 'multiple_choice' | 'short_answer',
     options: (task.options as string[] | null) ?? undefined,
@@ -41,7 +41,7 @@ export const PATCH = withCsrf(
       const [task] = await drizzleDb
         .select()
         .from(libraryTask)
-        .where(and(eq(libraryTask.id, taskId), eq(libraryTask.userId, session.user.id)))
+        .where(and(eq(libraryTask.libraryTaskId, taskId), eq(libraryTask.userId, session.user.id)))
         .limit(1)
 
       if (!task) {
@@ -52,12 +52,12 @@ export const PATCH = withCsrf(
         await drizzleDb
           .update(libraryTask)
           .set({ isFavorite: !task.isFavorite })
-          .where(eq(libraryTask.id, taskId))
+          .where(eq(libraryTask.libraryTaskId, taskId))
 
         const [updated] = await drizzleDb
           .select()
           .from(libraryTask)
-          .where(eq(libraryTask.id, taskId))
+          .where(eq(libraryTask.libraryTaskId, taskId))
           .limit(1)
         if (!updated) {
           return handleApiError(
@@ -73,7 +73,7 @@ export const PATCH = withCsrf(
         await drizzleDb
           .update(libraryTask)
           .set({ usageCount: task.usageCount + 1, lastUsedAt: new Date() })
-          .where(eq(libraryTask.id, taskId))
+          .where(eq(libraryTask.libraryTaskId, taskId))
         return NextResponse.json({ success: true })
       }
 
@@ -95,7 +95,7 @@ export const DELETE = withCsrf(
     try {
       await drizzleDb
         .delete(libraryTask)
-        .where(and(eq(libraryTask.id, taskId), eq(libraryTask.userId, session.user.id)))
+        .where(and(eq(libraryTask.libraryTaskId, taskId), eq(libraryTask.userId, session.user.id)))
 
       return NextResponse.json({ success: true })
     } catch (error) {

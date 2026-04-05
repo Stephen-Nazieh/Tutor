@@ -28,7 +28,10 @@ export const GET = withAuth(
       .select()
       .from(resource)
       .where(
-        and(eq(resource.id, id), or(eq(resource.tutorId, userId), eq(resource.isPublic, true))!)
+        and(
+          eq(resource.resourceId, id),
+          or(eq(resource.tutorId, userId), eq(resource.isPublic, true))!
+        )
       )
       .limit(1)
     resourceRow = direct[0] ?? null
@@ -37,10 +40,10 @@ export const GET = withAuth(
       const shared = await drizzleDb
         .select({ resource })
         .from(resource)
-        .innerJoin(resourceShare, eq(resourceShare.resourceId, resource.id))
+        .innerJoin(resourceShare, eq(resourceShare.resourceId, resource.resourceId))
         .where(
           and(
-            eq(resource.id, id),
+            eq(resource.resourceId, id),
             or(eq(resourceShare.recipientId, userId), eq(resourceShare.sharedWithAll, true))!
           )
         )
@@ -55,7 +58,7 @@ export const GET = withAuth(
     drizzleDb
       .update(resource)
       .set({ downloadCount: resourceRow.downloadCount + 1 })
-      .where(eq(resource.id, id))
+      .where(eq(resource.resourceId, id))
       .then(() => {})
       .catch(() => {})
 

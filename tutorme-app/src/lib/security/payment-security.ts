@@ -306,10 +306,10 @@ export class PaymentSecurityValidator {
     try {
       const cutoffRecent = new Date(Date.now() - this.FRAUD_THRESHOLDS.SUSPICIOUS_TIME_WINDOW)
       const bookingRows = await drizzleDb
-        .select({ id: clinicBooking.id })
+        .select({ bookingId: clinicBooking.bookingId })
         .from(clinicBooking)
         .where(eq(clinicBooking.studentId, studentId))
-      const ids = bookingRows.map(b => b.id)
+      const ids = bookingRows.map(b => b.bookingId)
       const conditions =
         ids.length > 0
           ? or(sql`(metadata->>'studentId') = ${studentId}`, inArray(payment.bookingId, ids))
@@ -403,10 +403,10 @@ export class PaymentSecurityValidator {
       const weekCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       const studentBookingIds = (
         await drizzleDb
-          .select({ id: clinicBooking.id })
+          .select({ bookingId: clinicBooking.bookingId })
           .from(clinicBooking)
           .where(eq(clinicBooking.studentId, data.studentId))
-      ).map(b => b.id)
+      ).map(b => b.bookingId)
       const payCondition =
         studentBookingIds.length > 0
           ? or(
@@ -590,7 +590,7 @@ export class PaymentSecurityValidator {
       const [userRow] = await drizzleDb
         .select({ createdAt: userTable.createdAt, email: userTable.email })
         .from(userTable)
-        .where(eq(userTable.id, studentId))
+        .where(eq(userTable.userId, studentId))
         .limit(1)
 
       if (!userRow) {

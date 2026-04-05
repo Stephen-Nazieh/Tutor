@@ -16,19 +16,17 @@ import {
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
 
-export const curriculum = pgTable(
-  'Curriculum',
+// ============================================
+// COURSE TABLES
+// ============================================
+
+export const course = pgTable(
+  'Course',
   {
-    id: text('id').primaryKey().notNull(),
+    courseId: text('courseId').primaryKey().notNull(),
     name: text('name').notNull(),
     description: text('description'),
-    subject: text('subject').notNull(),
     categories: text('categories').array(),
-    /** @deprecated Use categories instead */
-    gradeLevel: text('gradeLevel'),
-    /** @deprecated No longer used */
-    difficulty: text('difficulty'),
-    estimatedHours: integer('estimatedHours').notNull().default(0),
     isPublished: boolean('isPublished').notNull().default(false),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
@@ -40,46 +38,41 @@ export const curriculum = pgTable(
     price: doublePrecision('price'),
     currency: text('currency'),
     isFree: boolean('isFree').notNull().default(false),
-    curriculumSource: text('curriculumSource'),
-    outlineSource: text('outlineSource'),
     schedule: jsonb('schedule'),
-    courseMaterials: jsonb('courseMaterials'),
-    coursePitch: text('coursePitch'),
   },
   table => ({
-    Curriculum_subject_idx: index('Curriculum_subject_idx').on(table.subject),
-    Curriculum_isPublished_idx: index('Curriculum_isPublished_idx').on(table.isPublished),
-    Curriculum_creatorId_idx: index('Curriculum_creatorId_idx').on(table.creatorId),
+    Course_isPublished_idx: index('Course_isPublished_idx').on(table.isPublished),
+    Course_creatorId_idx: index('Course_creatorId_idx').on(table.creatorId),
   })
 )
 
 /**
- * @deprecated CurriculumCatalog is being replaced by the category system.
+ * @deprecated CourseCatalog is being replaced by the category system.
  * Kept for backward compatibility during migration.
  */
-export const curriculumCatalog = pgTable(
-  'CurriculumCatalog',
+export const courseCatalog = pgTable(
+  'CourseCatalog',
   {
-    id: text('id').primaryKey().notNull(),
-    subject: text('subject').notNull(),
+    catalogId: text('catalogId').primaryKey().notNull(),
+    category: text('category').notNull(),
     name: text('name').notNull(),
     code: text('code'),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
   },
   table => ({
-    CurriculumCatalog_subject_idx: index('CurriculumCatalog_subject_idx').on(table.subject),
-    CurriculumCatalog_subject_name_key: uniqueIndex('CurriculumCatalog_subject_name_key').on(
-      table.subject,
+    CourseCatalog_category_idx: index('CourseCatalog_category_idx').on(table.category),
+    CourseCatalog_category_name_key: uniqueIndex('CourseCatalog_category_name_key').on(
+      table.category,
       table.name
     ),
   })
 )
 
-export const curriculumShare = pgTable(
-  'CurriculumShare',
+export const courseShare = pgTable(
+  'CourseShare',
   {
-    id: text('id').primaryKey().notNull(),
-    curriculumId: text('curriculumId').notNull(),
+    shareId: text('shareId').primaryKey().notNull(),
+    courseId: text('courseId').notNull(),
     sharedByTutorId: text('sharedByTutorId').notNull(),
     recipientId: text('recipientId').notNull(),
     message: text('message').notNull(),
@@ -87,69 +80,30 @@ export const curriculumShare = pgTable(
     sharedAt: timestamp('sharedAt', { withTimezone: true }).notNull().defaultNow(),
   },
   table => ({
-    CurriculumShare_sharedByTutorId_idx: index('CurriculumShare_sharedByTutorId_idx').on(
+    CourseShare_sharedByTutorId_idx: index('CourseShare_sharedByTutorId_idx').on(
       table.sharedByTutorId
     ),
-    CurriculumShare_recipientId_idx: index('CurriculumShare_recipientId_idx').on(table.recipientId),
-    CurriculumShare_curriculumId_idx: index('CurriculumShare_curriculumId_idx').on(
-      table.curriculumId
+    CourseShare_recipientId_idx: index('CourseShare_recipientId_idx').on(table.recipientId),
+    CourseShare_courseId_idx: index('CourseShare_courseId_idx').on(table.courseId),
+    CourseShare_courseId_recipientId_key: uniqueIndex('CourseShare_courseId_recipientId_key').on(
+      table.courseId,
+      table.recipientId
     ),
-    CurriculumShare_curriculumId_recipientId_key: uniqueIndex(
-      'CurriculumShare_curriculumId_recipientId_key'
-    ).on(table.curriculumId, table.recipientId),
   })
 )
 
-/**
- * @deprecated Modules are being removed. Lessons will be directly under courses.
- * Kept for backward compatibility during migration.
- */
-export const curriculumModule = pgTable(
-  'CurriculumModule',
+export const courseLesson = pgTable(
+  'CourseLesson',
   {
-    id: text('id').primaryKey().notNull(),
-    curriculumId: text('curriculumId').notNull(),
+    lessonId: text('lessonId').primaryKey().notNull(),
+    courseId: text('courseId'),
     title: text('title').notNull(),
     description: text('description'),
     order: integer('order').notNull(),
-    builderData: jsonb('builderData'),
-  },
-  table => ({
-    CurriculumModule_curriculumId_idx: index('CurriculumModule_curriculumId_idx').on(
-      table.curriculumId
-    ),
-    CurriculumModule_order_idx: index('CurriculumModule_order_idx').on(table.order),
-  })
-)
-
-export const curriculumLesson = pgTable(
-  'CurriculumLesson',
-  {
-    id: text('id').primaryKey().notNull(),
-    /** @deprecated Use curriculumId instead. Modules are being removed. */
-    moduleId: text('moduleId'),
-    /** New field for direct course relationship */
-    curriculumId: text('curriculumId'),
-    title: text('title').notNull(),
-    description: text('description'),
-    duration: integer('duration').notNull().default(60),
-    order: integer('order').notNull(),
-    /** @deprecated Stored in builderData now */
-    difficulty: text('difficulty'),
-    /** @deprecated Stored in builderData now */
-    learningObjectives: text('learningObjectives').array(),
-    /** @deprecated Stored in builderData now */
-    teachingPoints: text('teachingPoints').array(),
-    /** @deprecated Stored in builderData now */
-    keyConcepts: text('keyConcepts').array(),
-    /** @deprecated Stored in builderData now */
-    examples: jsonb('examples'),
-    /** @deprecated Stored in builderData now */
-    practiceProblems: jsonb('practiceProblems'),
-    /** @deprecated Stored in builderData now */
-    commonMisconceptions: text('commonMisconceptions').array(),
-    /** @deprecated Stored in builderData now */
-    prerequisiteLessonIds: text('prerequisiteLessonIds').array(),
+    // New fields for tasks/assessments/homework structure
+    tasks: jsonb('tasks'), // Array of task objects
+    assessments: jsonb('assessments'), // Array of assessment objects
+    homework: jsonb('homework'), // Array of homework objects
     builderData: jsonb('builderData'),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
@@ -157,18 +111,15 @@ export const curriculumLesson = pgTable(
       .$onUpdate(() => new Date()),
   },
   table => ({
-    CurriculumLesson_moduleId_idx: index('CurriculumLesson_moduleId_idx').on(table.moduleId),
-    CurriculumLesson_curriculumId_idx: index('CurriculumLesson_curriculumId_idx').on(
-      table.curriculumId
-    ),
-    CurriculumLesson_order_idx: index('CurriculumLesson_order_idx').on(table.order),
+    CourseLesson_courseId_idx: index('CourseLesson_courseId_idx').on(table.courseId),
+    CourseLesson_order_idx: index('CourseLesson_order_idx').on(table.order),
   })
 )
 
 export const lessonSession = pgTable(
   'LessonSession',
   {
-    id: text('id').primaryKey().notNull(),
+    sessionId: text('sessionId').primaryKey().notNull(),
     studentId: text('studentId').notNull(),
     lessonId: text('lessonId').notNull(),
     status: text('status').notNull(),
@@ -193,10 +144,10 @@ export const lessonSession = pgTable(
   })
 )
 
-export const curriculumLessonProgress = pgTable(
-  'CurriculumLessonProgress',
+export const courseLessonProgress = pgTable(
+  'CourseLessonProgress',
   {
-    id: text('id').primaryKey().notNull(),
+    progressId: text('progressId').primaryKey().notNull(),
     lessonId: text('lessonId').notNull(),
     studentId: text('studentId').notNull(),
     status: text('status').notNull(),
@@ -208,22 +159,21 @@ export const curriculumLessonProgress = pgTable(
       .$onUpdate(() => new Date()),
   },
   table => ({
-    CurriculumLessonProgress_studentId_idx: index('CurriculumLessonProgress_studentId_idx').on(
+    CourseLessonProgress_studentId_idx: index('CourseLessonProgress_studentId_idx').on(
       table.studentId
     ),
-    CurriculumLessonProgress_lessonId_studentId_key: uniqueIndex(
-      'CurriculumLessonProgress_lessonId_studentId_key'
+    CourseLessonProgress_lessonId_studentId_key: uniqueIndex(
+      'CourseLessonProgress_lessonId_studentId_key'
     ).on(table.lessonId, table.studentId),
   })
 )
 
-export const curriculumEnrollment = pgTable(
-  'CurriculumEnrollment',
+export const courseEnrollment = pgTable(
+  'CourseEnrollment',
   {
-    id: text('id').primaryKey().notNull(),
+    enrollmentId: text('enrollmentId').primaryKey().notNull(),
     studentId: text('studentId').notNull(),
-    curriculumId: text('curriculumId').notNull(),
-    batchId: text('batchId'),
+    courseId: text('courseId').notNull(),
     enrolledAt: timestamp('enrolledAt', { withTimezone: true }).notNull().defaultNow(),
     startDate: timestamp('startDate', { withTimezone: true }),
     completedAt: timestamp('completedAt', { withTimezone: true }),
@@ -232,44 +182,19 @@ export const curriculumEnrollment = pgTable(
     enrollmentSource: text('enrollmentSource'),
   },
   table => ({
-    CurriculumEnrollment_studentId_idx: index('CurriculumEnrollment_studentId_idx').on(
-      table.studentId
-    ),
-    CurriculumEnrollment_batchId_idx: index('CurriculumEnrollment_batchId_idx').on(table.batchId),
-    CurriculumEnrollment_studentId_curriculumId_key: uniqueIndex(
-      'CurriculumEnrollment_studentId_curriculumId_key'
-    ).on(table.studentId, table.curriculumId),
+    CourseEnrollment_studentId_idx: index('CourseEnrollment_studentId_idx').on(table.studentId),
+    CourseEnrollment_studentId_courseId_key: uniqueIndex(
+      'CourseEnrollment_studentId_courseId_key'
+    ).on(table.studentId, table.courseId),
   })
 )
 
-export const courseBatch = pgTable(
-  'CourseBatch',
+export const courseProgress = pgTable(
+  'CourseProgress',
   {
-    id: text('id').primaryKey().notNull(),
-    curriculumId: text('curriculumId').notNull(),
-    name: text('name').notNull(),
-    startDate: timestamp('startDate', { withTimezone: true }),
-    order: integer('order').notNull(),
-    difficulty: text('difficulty'),
-    schedule: jsonb('schedule'),
-    price: doublePrecision('price'),
-    currency: text('currency'),
-    languageOfInstruction: text('languageOfInstruction'),
-    isLive: boolean('isLive').notNull(),
-    meetingUrl: text('meetingUrl'),
-    maxStudents: integer('maxStudents').notNull(),
-  },
-  table => ({
-    CourseBatch_curriculumId_idx: index('CourseBatch_curriculumId_idx').on(table.curriculumId),
-  })
-)
-
-export const curriculumProgress = pgTable(
-  'CurriculumProgress',
-  {
-    id: text('id').primaryKey().notNull(),
+    progressId: text('progressId').primaryKey().notNull(),
     studentId: text('studentId').notNull(),
-    curriculumId: text('curriculumId').notNull(),
+    courseId: text('courseId').notNull(),
     lessonsCompleted: integer('lessonsCompleted').notNull(),
     totalLessons: integer('totalLessons').notNull(),
     currentLessonId: text('currentLessonId'),
@@ -279,19 +204,20 @@ export const curriculumProgress = pgTable(
     completedAt: timestamp('completedAt', { withTimezone: true }),
   },
   table => ({
-    CurriculumProgress_studentId_idx: index('CurriculumProgress_studentId_idx').on(table.studentId),
-    CurriculumProgress_studentId_curriculumId_key: uniqueIndex(
-      'CurriculumProgress_studentId_curriculumId_key'
-    ).on(table.studentId, table.curriculumId),
+    CourseProgress_studentId_idx: index('CourseProgress_studentId_idx').on(table.studentId),
+    CourseProgress_studentId_courseId_key: uniqueIndex('CourseProgress_studentId_courseId_key').on(
+      table.studentId,
+      table.courseId
+    ),
   })
 )
 
 export const studentPerformance = pgTable(
   'StudentPerformance',
   {
-    id: text('id').primaryKey().notNull(),
+    performanceId: text('performanceId').primaryKey().notNull(),
     studentId: text('studentId').notNull(),
-    curriculumId: text('curriculumId'),
+    courseId: text('courseId'),
     averageScore: doublePrecision('averageScore').notNull(),
     completionRate: doublePrecision('completionRate').notNull(),
     engagementScore: doublePrecision('engagementScore').notNull(),
@@ -313,20 +239,18 @@ export const studentPerformance = pgTable(
   },
   table => ({
     StudentPerformance_studentId_idx: index('StudentPerformance_studentId_idx').on(table.studentId),
-    StudentPerformance_curriculumId_idx: index('StudentPerformance_curriculumId_idx').on(
-      table.curriculumId
-    ),
+    StudentPerformance_courseId_idx: index('StudentPerformance_courseId_idx').on(table.courseId),
     StudentPerformance_cluster_idx: index('StudentPerformance_cluster_idx').on(table.cluster),
-    StudentPerformance_studentId_curriculumId_key: uniqueIndex(
-      'StudentPerformance_studentId_curriculumId_key'
-    ).on(table.studentId, table.curriculumId),
+    StudentPerformance_studentId_courseId_key: uniqueIndex(
+      'StudentPerformance_studentId_courseId_key'
+    ).on(table.studentId, table.courseId),
   })
 )
 
 export const taskSubmission = pgTable(
   'TaskSubmission',
   {
-    id: text('id').primaryKey().notNull(),
+    submissionId: text('submissionId').primaryKey().notNull(),
     taskId: text('taskId').notNull(),
     studentId: text('studentId').notNull(),
     answers: jsonb('answers').notNull(),
@@ -355,7 +279,7 @@ export const taskSubmission = pgTable(
 export const feedbackWorkflow = pgTable(
   'FeedbackWorkflow',
   {
-    id: text('id').primaryKey().notNull(),
+    workflowId: text('workflowId').primaryKey().notNull(),
     submissionId: text('submissionId').notNull().unique(),
     studentId: text('studentId').notNull(),
     aiScore: doublePrecision('aiScore'),
@@ -384,7 +308,7 @@ export const feedbackWorkflow = pgTable(
 export const generatedTask = pgTable(
   'GeneratedTask',
   {
-    id: text('id').primaryKey().notNull(),
+    taskId: text('taskId').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     roomId: text('roomId'),
     title: text('title').notNull(),
@@ -399,7 +323,6 @@ export const generatedTask = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     assignedAt: timestamp('assignedAt', { withTimezone: true }),
     lessonId: text('lessonId'),
-    batchId: text('batchId'),
     dueDate: timestamp('dueDate', { withTimezone: true }),
     maxScore: integer('maxScore').notNull(),
     timeLimitMinutes: integer('timeLimitMinutes'),
@@ -412,6 +335,64 @@ export const generatedTask = pgTable(
     GeneratedTask_roomId_idx: index('GeneratedTask_roomId_idx').on(table.roomId),
     GeneratedTask_status_idx: index('GeneratedTask_status_idx').on(table.status),
     GeneratedTask_lessonId_idx: index('GeneratedTask_lessonId_idx').on(table.lessonId),
-    GeneratedTask_batchId_idx: index('GeneratedTask_batchId_idx').on(table.batchId),
+  })
+)
+
+// ============================================
+// LEGACY EXPORTS (for backward compatibility)
+// ============================================
+
+/** @deprecated Use 'course' instead */
+export const curriculum = course
+/** @deprecated Use 'courseCatalog' instead */
+export const curriculumCatalog = courseCatalog
+/** @deprecated Use 'courseShare' instead */
+export const curriculumShare = courseShare
+/** @deprecated Use 'courseLesson' instead */
+export const curriculumLesson = courseLesson
+/** @deprecated Use 'courseLessonProgress' instead */
+export const curriculumLessonProgress = courseLessonProgress
+/** @deprecated Use 'courseEnrollment' instead */
+export const curriculumEnrollment = courseEnrollment
+/** @deprecated Use 'courseProgress' instead */
+export const curriculumProgress = courseProgress
+
+/** @deprecated CourseBatch table removed - use course directly */
+export const courseBatch = pgTable(
+  'CourseBatch',
+  {
+    batchId: text('batchId').primaryKey().notNull(),
+    courseId: text('courseId').notNull(),
+    name: text('name').notNull(),
+    startDate: timestamp('startDate', { withTimezone: true }),
+    order: integer('order').notNull(),
+    difficulty: text('difficulty'),
+    schedule: jsonb('schedule'),
+    price: doublePrecision('price'),
+    currency: text('currency'),
+    languageOfInstruction: text('languageOfInstruction'),
+    isLive: boolean('isLive').notNull(),
+    meetingUrl: text('meetingUrl'),
+    maxStudents: integer('maxStudents').notNull(),
+  },
+  table => ({
+    CourseBatch_courseId_idx: index('CourseBatch_courseId_idx').on(table.courseId),
+  })
+)
+
+/** @deprecated CurriculumModule table removed - lessons are directly under courses */
+export const curriculumModule = pgTable(
+  'CurriculumModule',
+  {
+    moduleId: text('moduleId').primaryKey().notNull(),
+    courseId: text('courseId').notNull(),
+    title: text('title').notNull(),
+    description: text('description'),
+    order: integer('order').notNull(),
+    builderData: jsonb('builderData'),
+  },
+  table => ({
+    CurriculumModule_courseId_idx: index('CurriculumModule_courseId_idx').on(table.courseId),
+    CurriculumModule_order_idx: index('CurriculumModule_order_idx').on(table.order),
   })
 )

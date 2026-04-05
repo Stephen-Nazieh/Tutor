@@ -22,7 +22,7 @@ export const GET = withAuth(
     const difficulty = searchParams.get('difficulty') as QuestionDifficulty | null
     const subject = searchParams.get('subject')
     const tagsParam = searchParams.get('tags')?.split(',').filter(Boolean) as string[] | undefined
-    const curriculumId = searchParams.get('curriculumId')
+    const courseId = searchParams.get('courseId') || searchParams.get('curriculumId')
     const lessonId = searchParams.get('lessonId')
     const searchQuery = searchParams.get('q')
     const isPublic = searchParams.get('isPublic')
@@ -35,7 +35,7 @@ export const GET = withAuth(
     if (type) conditions.push(eq(questionBankItem.type, type))
     if (difficulty) conditions.push(eq(questionBankItem.difficulty, difficulty))
     if (subject) conditions.push(sql`lower(${questionBankItem.subject}) = lower(${subject})`)
-    if (curriculumId) conditions.push(eq(questionBankItem.curriculumId, curriculumId))
+    if (courseId) conditions.push(eq(questionBankItem.courseId, courseId))
     if (lessonId) conditions.push(eq(questionBankItem.lessonId, lessonId))
     if (isPublic !== null && isPublic !== '')
       conditions.push(eq(questionBankItem.isPublic, isPublic === 'true'))
@@ -100,7 +100,7 @@ export const POST = withCsrf(
         difficulty = 'medium',
         tags = [],
         subject,
-        curriculumId,
+        courseId: curriculumId,
         lessonId,
         isPublic = false,
       } = body
@@ -126,7 +126,7 @@ export const POST = withCsrf(
       const [newQuestion] = await drizzleDb
         .insert(questionBankItem)
         .values({
-          id: randomUUID(),
+          itemId: randomUUID(),
           tutorId: session.user.id,
           type,
           question,
@@ -138,7 +138,7 @@ export const POST = withCsrf(
           difficulty,
           tags: tags ?? [],
           subject: subject ?? null,
-          curriculumId: curriculumId ?? null,
+          courseId: curriculumId ?? null,
           lessonId: lessonId ?? null,
           isPublic,
           usageCount: 0,

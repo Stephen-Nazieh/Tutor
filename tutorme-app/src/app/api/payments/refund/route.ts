@@ -14,7 +14,7 @@ import {
   ForbiddenError,
 } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { payment, refund, clinicBooking, clinic, curriculum } from '@/lib/db/schema'
+import { payment, refund, clinicBooking, clinic, course } from '@/lib/db/schema'
 import { getPaymentGateway, type GatewayName } from '@/lib/payments'
 import { eq } from 'drizzle-orm'
 
@@ -35,7 +35,7 @@ export const POST = withCsrf(
     const [paymentRow] = await drizzleDb
       .select()
       .from(payment)
-      .where(eq(payment.id, paymentId))
+      .where(eq(payment.paymentId, paymentId))
       .limit(1)
 
     if (!paymentRow) {
@@ -52,8 +52,8 @@ export const POST = withCsrf(
       const [bookingWithClinic] = await drizzleDb
         .select({ tutorId: clinic.tutorId })
         .from(clinicBooking)
-        .innerJoin(clinic, eq(clinic.id, clinicBooking.clinicId))
-        .where(eq(clinicBooking.id, paymentRow.bookingId))
+        .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
+        .where(eq(clinicBooking.bookingId, paymentRow.bookingId))
         .limit(1)
       isTutorOfClinic = bookingWithClinic?.tutorId === session.user.id
     }
@@ -63,20 +63,20 @@ export const POST = withCsrf(
         throw new ForbiddenError('You can only refund payments for your own classes')
       }
     } else {
-      const meta = paymentRow.metadata as { curriculumId?: string } | null
-      const curriculumId = meta?.curriculumId
-      if (!curriculumId || typeof curriculumId !== 'string') {
+      const meta = paymentRow.metadata as { courseId?: string } | null
+      const courseId = meta?.courseId
+      if (!courseId || typeof courseId !== 'string') {
         throw new ForbiddenError('Course payment could not be resolved')
       }
-      const [curriculumRow] = await drizzleDb
-        .select({ creatorId: curriculum.creatorId })
-        .from(curriculum)
-        .where(eq(curriculum.id, curriculumId))
+      const [courseRow] = await drizzleDb
+        .select({ creatorId: course.creatorId })
+        .from(course)
+        .where(eq(course.courseId, courseId))
         .limit(1)
-      if (!curriculumRow) {
+      if (!courseRow) {
         throw new NotFoundError('Course not found')
       }
-      const isCreatorOfCourse = curriculumRow.creatorId === session.user.id
+      const isCreatorOfCourse = courseRow.creatorId === session.user.id
       if (role === 'TUTOR' && !isCreatorOfCourse) {
         throw new ForbiddenError('You can only refund payments for your own courses')
       }
@@ -89,7 +89,7 @@ export const POST = withCsrf(
     const refundPaymentId =
       paymentRow.gateway === 'AIRWALLEX' && metadata?.payment_attempt_id
         ? metadata.payment_attempt_id
-        : (paymentRow.gatewayPaymentId ?? paymentRow.id)
+        : (paymentRow.gatewayPaymentId ?? paymentRow.paymentId)
     const refundResponse = await gateway.refundPayment(refundPaymentId, refundAmount)
 
     if (refundResponse.error) {
@@ -105,8 +105,8 @@ export const POST = withCsrf(
         : 'PENDING'
     const refundId = crypto.randomUUID()
     await drizzleDb.insert(refund).values({
-      id: refundId,
-      paymentId: paymentRow.id,
+      refundId: refundId,
+      paymentId: paymentRow.paymentId,
       amount: refundAmount,
       reason: reason ?? 'customer_requested',
       status: refundStatus,
@@ -124,7 +124,7 @@ export const POST = withCsrf(
         status: fullRefund ? 'REFUNDED' : paymentRow.status,
         refundedAt: fullRefund ? new Date() : paymentRow.refundedAt,
       })
-      .where(eq(payment.id, paymentRow.id))
+      .where(eq(payment.paymentId, paymentRow.paymentId))
 
     return NextResponse.json({
       success: true,

@@ -28,7 +28,7 @@ export async function sendMentionNotification(params: {
 
   if (channels.push && isUserOnline(mentioneeId)) {
     emitToUser(mentioneeId, 'notification:mention', {
-      id: record?.id ?? null,
+      id: record?.notificationId ?? null,
       messageId,
       title,
       message,

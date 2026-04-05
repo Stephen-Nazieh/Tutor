@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
     const [created] = await drizzleDb
       .insert(notificationPreference)
       .values({
-        id: crypto.randomUUID(),
+        preferenceId: crypto.randomUUID(),
         userId: session.user.id,
         ...DEFAULT_PREFS,
         updatedAt: new Date(),
@@ -91,7 +91,7 @@ export async function PUT(req: NextRequest) {
     const [updated] = await drizzleDb
       .update(notificationPreference)
       .set(data as Partial<typeof notificationPreference.$inferInsert>)
-      .where(eq(notificationPreference.id, existing.id))
+      .where(eq(notificationPreference.preferenceId, existing.preferenceId))
       .returning()
     return NextResponse.json({ success: true, preferences: updated ?? existing })
   }
@@ -99,7 +99,7 @@ export async function PUT(req: NextRequest) {
   const [created] = await drizzleDb
     .insert(notificationPreference)
     .values({
-      id: crypto.randomUUID(),
+      preferenceId: crypto.randomUUID(),
       userId,
       ...DEFAULT_PREFS,
       ...data,

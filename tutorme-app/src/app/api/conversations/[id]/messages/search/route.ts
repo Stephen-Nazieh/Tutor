@@ -35,7 +35,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     .from(conversation)
     .where(
       and(
-        eq(conversation.id, id),
+        eq(conversation.conversationId, id),
         or(eq(conversation.participant1Id, userId), eq(conversation.participant2Id, userId))
       )
     )
@@ -48,12 +48,12 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   const [p1] = await drizzleDb
     .select({ role: user.role })
     .from(user)
-    .where(eq(user.id, conv.participant1Id))
+    .where(eq(user.userId, conv.participant1Id))
     .limit(1)
   const [p2] = await drizzleDb
     .select({ role: user.role })
     .from(user)
-    .where(eq(user.id, conv.participant2Id))
+    .where(eq(user.userId, conv.participant2Id))
     .limit(1)
 
   if (!p1 || !p2 || !isConversationAllowedByRoles(p1.role as AppRole, p2.role as AppRole)) {
@@ -63,7 +63,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   const searchPattern = `%${query}%`
   const messagesRows = await drizzleDb
     .select({
-      id: directMessage.id,
+      id: directMessage.directMessageId,
       conversationId: directMessage.conversationId,
       senderId: directMessage.senderId,
       content: directMessage.content,
@@ -76,8 +76,8 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       avatarUrl: profile.avatarUrl,
     })
     .from(directMessage)
-    .innerJoin(user, eq(user.id, directMessage.senderId))
-    .leftJoin(profile, eq(profile.userId, user.id))
+    .innerJoin(user, eq(user.userId, directMessage.senderId))
+    .leftJoin(profile, eq(profile.userId, user.userId))
     .where(and(eq(directMessage.conversationId, id), ilike(directMessage.content, searchPattern)))
     .orderBy(desc(directMessage.createdAt))
     .limit(limit)

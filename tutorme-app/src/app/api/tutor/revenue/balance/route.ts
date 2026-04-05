@@ -8,14 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  payment,
-  payout,
-  clinicBooking,
-  clinic,
-  curriculumEnrollment,
-  curriculum,
-} from '@/lib/db/schema'
+import { payment, payout, clinicBooking, clinic, courseEnrollment, course } from '@/lib/db/schema'
 import { eq, and, inArray } from 'drizzle-orm'
 
 const COMPLETED = 'COMPLETED'
@@ -26,38 +19,41 @@ export const GET = withAuth(
   async (req: NextRequest, session) => {
     const tutorId = session.user.id
 
-    const [clinicIdsResult, curriculumIdsResult] = await Promise.all([
-      drizzleDb.select({ id: clinic.id }).from(clinic).where(eq(clinic.tutorId, tutorId)),
+    const [clinicIdsResult, courseIdsResult] = await Promise.all([
       drizzleDb
-        .select({ id: curriculum.id })
-        .from(curriculum)
-        .where(eq(curriculum.creatorId, tutorId)),
+        .select({ clinicId: clinic.clinicId })
+        .from(clinic)
+        .where(eq(clinic.tutorId, tutorId)),
+      drizzleDb
+        .select({ courseId: course.courseId })
+        .from(course)
+        .where(eq(course.creatorId, tutorId)),
     ])
 
-    const clinicIds = clinicIdsResult.map(c => c.id)
-    const curriculumIds = curriculumIdsResult.map(c => c.id)
+    const clinicIds = clinicIdsResult.map(c => c.clinicId)
+    const courseIds = courseIdsResult.map(c => c.courseId)
 
     let bookingIds: string[] = []
     let enrollmentIds: string[] = []
 
     if (clinicIds.length > 0) {
       const bookings = await drizzleDb
-        .select({ id: clinicBooking.id })
+        .select({ bookingId: clinicBooking.bookingId })
         .from(clinicBooking)
         .where(inArray(clinicBooking.clinicId, clinicIds))
-      bookingIds = bookings.map(b => b.id)
+      bookingIds = bookings.map(b => b.bookingId)
     }
-    if (curriculumIds.length > 0) {
+    if (courseIds.length > 0) {
       const enrollments = await drizzleDb
-        .select({ id: curriculumEnrollment.id })
-        .from(curriculumEnrollment)
-        .where(inArray(curriculumEnrollment.curriculumId, curriculumIds))
-      enrollmentIds = enrollments.map(e => e.id)
+        .select({ enrollmentId: courseEnrollment.enrollmentId })
+        .from(courseEnrollment)
+        .where(inArray(courseEnrollment.courseId, courseIds))
+      enrollmentIds = enrollments.map(e => e.enrollmentId)
     }
 
     const allCompleted = await drizzleDb
       .select({
-        id: payment.id,
+        paymentId: payment.paymentId,
         amount: payment.amount,
         currency: payment.currency,
         createdAt: payment.createdAt,
@@ -77,7 +73,7 @@ export const GET = withAuth(
 
     const allPending = await drizzleDb
       .select({
-        id: payment.id,
+        paymentId: payment.paymentId,
         amount: payment.amount,
         currency: payment.currency,
         tutorId: payment.tutorId,
@@ -140,7 +136,7 @@ export const GET = withAuth(
       .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
       .slice(0, 5)
       .map(p => ({
-        id: p.id,
+        paymentId: p.paymentId,
         amount: p.amount,
         currency: p.currency,
         date: p.createdAt,

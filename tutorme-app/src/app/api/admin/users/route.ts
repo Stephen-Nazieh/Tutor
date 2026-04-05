@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     if (search) {
       const [emailRows, nameRows] = await Promise.all([
         drizzleDb
-          .select({ id: user.id })
+          .select({ id: user.userId })
           .from(user)
           .where(ilike(user.email, `%${search}%`)),
         drizzleDb
@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
           pagination: { page, limit, total: 0, totalPages: 0 },
         })
       }
-      conditions.push(inArray(user.id, searchIds))
+      conditions.push(inArray(user.userId, searchIds))
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
       .where(whereClause)
     const total = countRows[0]?.count ?? 0
 
-    const userIds = users.map(u => u.id)
+    const userIds = users.map(u => u.userId)
     const profiles =
       userIds.length > 0
         ? await drizzleDb.select().from(profile).where(inArray(profile.userId, userIds))
@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
         ? await drizzleDb
             .select({ userId: adminAssignment.userId, roleName: adminRole.name })
             .from(adminAssignment)
-            .innerJoin(adminRole, eq(adminAssignment.roleId, adminRole.id))
+            .innerJoin(adminRole, eq(adminAssignment.roleId, adminRole.roleId))
             .where(
               and(inArray(adminAssignment.userId, userIds), eq(adminAssignment.isActive, true))
             )
@@ -129,10 +129,10 @@ export async function GET(req: NextRequest) {
     const quizByUserId = new Map(quizCounts.map(q => [q.studentId, q.count]))
 
     const formattedUsers = users.map(u => {
-      const p = profileByUserId.get(u.id)
-      const adminRoles = assignmentsByUserId.get(u.id) ?? []
+      const p = profileByUserId.get(u.userId)
+      const adminRoles = assignmentsByUserId.get(u.userId) ?? []
       return {
-        id: u.id,
+        id: u.userId,
         email: u.email,
         name: p?.name ?? null,
         avatar: p?.avatarUrl ?? null,
@@ -143,9 +143,9 @@ export async function GET(req: NextRequest) {
         isVerified: !!u.emailVerified,
         createdAt: u.createdAt,
         stats: {
-          enrollments: enrollByUserId.get(u.id) ?? 0,
-          sessions: sessionByUserId.get(u.id) ?? 0,
-          quizzes: quizByUserId.get(u.id) ?? 0,
+          enrollments: enrollByUserId.get(u.userId) ?? 0,
+          sessions: sessionByUserId.get(u.userId) ?? 0,
+          quizzes: quizByUserId.get(u.userId) ?? 0,
         },
       }
     })

@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     const [room] = await drizzleDb
       .select()
       .from(liveSession)
-      .where(and(eq(liveSession.id, roomId), eq(liveSession.tutorId, session.user.id)))
+      .where(and(eq(liveSession.sessionId, roomId), eq(liveSession.tutorId, session.user.id)))
       .limit(1)
 
     if (!room) {

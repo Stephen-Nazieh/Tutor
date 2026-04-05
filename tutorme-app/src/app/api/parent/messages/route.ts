@@ -30,13 +30,13 @@ export const GET = withAuth(
           with: {
             profile: { columns: { name: true } },
           },
-          columns: { id: true, email: true },
+          columns: { userId: true, email: true },
         },
         participant2: {
           with: {
             profile: { columns: { name: true } },
           },
-          columns: { id: true, email: true },
+          columns: { userId: true, email: true },
         },
         messages: {
           orderBy: [desc(sql`createdAt`)], // Using sql here because of Drizzle's nested orderBy syntax
@@ -46,7 +46,7 @@ export const GET = withAuth(
               with: {
                 profile: { columns: { name: true } },
               },
-              columns: { id: true },
+              columns: { userId: true },
             },
           },
         },
@@ -59,16 +59,16 @@ export const GET = withAuth(
       conversations: conversationsResult.map((c: any) => {
         const other = c.participant1Id === userId ? c.participant2 : c.participant1
         return {
-          id: c.id,
+          id: c.conversationId,
           otherUser: {
-            id: other.id,
+            id: other.userId,
             name: other.profile?.name ?? other.email,
             email: other.email,
           },
           lastUpdated: c.updatedAt,
           messages: c.messages
             .map((m: any) => ({
-              id: m.id,
+              id: m.messageId,
               content: m.content,
               senderId: m.senderId,
               senderName: m.sender.profile?.name ?? null,

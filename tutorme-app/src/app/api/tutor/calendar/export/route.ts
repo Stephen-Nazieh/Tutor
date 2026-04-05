@@ -141,8 +141,8 @@ export const GET = withAuth(
       const [tutorRow] = await drizzleDb
         .select({ profileName: profile.name })
         .from(user)
-        .leftJoin(profile, eq(user.id, profile.userId))
-        .where(eq(user.id, tutorId))
+        .leftJoin(profile, eq(user.userId, profile.userId))
+        .where(eq(user.userId, tutorId))
         .limit(1)
 
       const tutorName = tutorRow?.profileName || 'Tutor'

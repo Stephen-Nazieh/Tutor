@@ -3,14 +3,14 @@
  *
  * Returns resources shared with the student, either:
  *  - Directly (by recipientId)
- *  - Shared with all via curriculum they're enrolled in
+ *  - Shared with all via course they're enrolled in
  *  - Marked as public (isPublic = true) by a tutor they're enrolled with
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculumEnrollment, curriculum, resource, resourceShare, profile } from '@/lib/db/schema'
+import { courseEnrollment, course, resource, resourceShare, profile } from '@/lib/db/schema'
 import { eq, and, inArray, desc, or, isNull } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
@@ -23,17 +23,17 @@ export async function GET(request: NextRequest) {
 
   const enrollmentsRows = await drizzleDb
     .select({
-      curriculumId: curriculumEnrollment.curriculumId,
-      creatorId: curriculum.creatorId,
+      courseId: courseEnrollment.courseId,
+      creatorId: course.creatorId,
     })
-    .from(curriculumEnrollment)
-    .innerJoin(curriculum, eq(curriculumEnrollment.curriculumId, curriculum.id))
-    .where(eq(curriculumEnrollment.studentId, studentId))
+    .from(courseEnrollment)
+    .innerJoin(course, eq(courseEnrollment.courseId, course.courseId))
+    .where(eq(courseEnrollment.studentId, studentId))
 
   const enrolledTutorIds = [
     ...new Set(enrollmentsRows.map(e => e.creatorId).filter((id): id is string => id != null)),
   ]
-  const enrolledCurriculumIds = enrollmentsRows.map(e => e.curriculumId)
+  const enrolledCourseIds = enrollmentsRows.map(e => e.courseId)
 
   const directShareIds = (
     await drizzleDb
@@ -42,13 +42,10 @@ export async function GET(request: NextRequest) {
       .where(eq(resourceShare.recipientId, studentId))
   ).map(r => r.resourceId)
 
-  const curriculumIdsFilter =
-    enrolledCurriculumIds.length > 0
-      ? or(
-          isNull(resourceShare.curriculumId),
-          inArray(resourceShare.curriculumId, enrolledCurriculumIds)
-        )
-      : isNull(resourceShare.curriculumId)
+  const courseIdsFilter =
+    enrolledCourseIds.length > 0
+      ? or(isNull(resourceShare.courseId), inArray(resourceShare.courseId, enrolledCourseIds))
+      : isNull(resourceShare.courseId)
   const sharedWithAllRows =
     enrolledTutorIds.length > 0
       ? await drizzleDb
@@ -58,7 +55,7 @@ export async function GET(request: NextRequest) {
             and(
               eq(resourceShare.sharedWithAll, true),
               inArray(resourceShare.sharedByTutorId, enrolledTutorIds),
-              curriculumIdsFilter
+              courseIdsFilter
             )
           )
       : []
@@ -68,10 +65,10 @@ export async function GET(request: NextRequest) {
     enrolledTutorIds.length > 0
       ? (
           await drizzleDb
-            .select({ id: resource.id })
+            .select({ resourceId: resource.resourceId })
             .from(resource)
             .where(and(eq(resource.isPublic, true), inArray(resource.tutorId, enrolledTutorIds)))
-        ).map(r => r.id)
+        ).map(r => r.resourceId)
       : []
 
   const allResourceIds = [
@@ -85,7 +82,7 @@ export async function GET(request: NextRequest) {
   const resources = await drizzleDb
     .select()
     .from(resource)
-    .where(inArray(resource.id, allResourceIds))
+    .where(inArray(resource.resourceId, allResourceIds))
     .orderBy(desc(resource.createdAt))
 
   const tutorIds = [...new Set(resources.map(r => r.tutorId))]
@@ -113,7 +110,7 @@ export async function GET(request: NextRequest) {
   const messageByResourceId = new Map(sharesToStudent.map(s => [s.resourceId, s.message]))
 
   const formatted = resources.map(r => ({
-    id: r.id,
+    resourceId: r.resourceId,
     name: r.name,
     description: r.description,
     type: r.type,
@@ -124,7 +121,7 @@ export async function GET(request: NextRequest) {
     downloadCount: r.downloadCount,
     createdAt: r.createdAt,
     tutorName: nameByTutorId.get(r.tutorId) ?? 'Tutor',
-    sharedMessage: messageByResourceId.get(r.id) ?? null,
+    sharedMessage: messageByResourceId.get(r.resourceId) ?? null,
   }))
 
   return NextResponse.json({ resources: formatted })

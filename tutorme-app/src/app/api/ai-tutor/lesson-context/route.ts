@@ -11,11 +11,10 @@ import { withAuth, requireCsrf, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   aITutorEnrollment,
-  curriculumEnrollment,
-  curriculum,
-  curriculumModule,
-  curriculumLesson,
-  curriculumLessonProgress,
+  courseEnrollment,
+  course,
+  courseLesson,
+  courseLessonProgress,
   aIInteractionSession,
 } from '@/lib/db/schema'
 
@@ -43,8 +42,8 @@ async function getHandler(req: NextRequest, session: Session) {
     // Get student's curriculum enrollment
     const [enrollmentRow] = await drizzleDb
       .select()
-      .from(curriculumEnrollment)
-      .where(eq(curriculumEnrollment.studentId, session.user.id))
+      .from(courseEnrollment)
+      .where(eq(courseEnrollment.studentId, session.user.id))
       .limit(1)
 
     if (!enrollmentRow) {
@@ -53,80 +52,44 @@ async function getHandler(req: NextRequest, session: Session) {
 
     const [curriculumRow] = await drizzleDb
       .select()
-      .from(curriculum)
-      .where(eq(curriculum.id, enrollmentRow.curriculumId))
+      .from(course)
+      .where(eq(course.courseId, enrollmentRow.courseId))
       .limit(1)
 
     if (!curriculumRow) {
       return NextResponse.json({ error: 'No curriculum assigned' }, { status: 404 })
     }
 
-    const modulesList = await drizzleDb
-      .select()
-      .from(curriculumModule)
-      .where(eq(curriculumModule.curriculumId, curriculumRow.id))
-      .orderBy(asc(curriculumModule.order))
-
-    const lessonsByModule = new Map<
-      string,
-      {
-        id: string
-        title: string
-        order: number
-        learningObjectives: string[]
-        keyConcepts: string[]
-      }[]
-    >()
-    for (const mod of modulesList) {
-      const lessons = await drizzleDb
-        .select({
-          id: curriculumLesson.id,
-          title: curriculumLesson.title,
-          order: curriculumLesson.order,
-          learningObjectives: curriculumLesson.learningObjectives,
-          keyConcepts: curriculumLesson.keyConcepts,
-        })
-        .from(curriculumLesson)
-        .where(eq(curriculumLesson.moduleId, mod.id))
-        .orderBy(asc(curriculumLesson.order))
-      lessonsByModule.set(
-        mod.id,
-        lessons.map(l => ({
-          ...l,
-          learningObjectives: l.learningObjectives ?? [],
-          keyConcepts: l.keyConcepts ?? [],
-        }))
-      )
-    }
+    // Get lessons directly under course (modules deprecated)
+    const lessonsList = await drizzleDb
+      .select({
+        lessonId: courseLesson.lessonId,
+        title: courseLesson.title,
+        order: courseLesson.order,
+      })
+      .from(courseLesson)
+      .where(eq(courseLesson.courseId, curriculumRow.courseId))
+      .orderBy(asc(courseLesson.order))
 
     // If specific lesson requested, return that
     if (lessonId) {
       const [lessonRow] = await drizzleDb
         .select()
-        .from(curriculumLesson)
-        .where(eq(curriculumLesson.id, lessonId))
+        .from(courseLesson)
+        .where(eq(courseLesson.lessonId, lessonId))
         .limit(1)
 
       if (!lessonRow) {
         return NextResponse.json({ error: 'Lesson not found' }, { status: 404 })
       }
 
-      // Handle case where lesson may not have a module (new flat structure)
-      const [moduleRow] = lessonRow.moduleId
-        ? await drizzleDb
-            .select()
-            .from(curriculumModule)
-            .where(eq(curriculumModule.id, lessonRow.moduleId))
-            .limit(1)
-        : [null]
-
       const [progress] = await drizzleDb
         .select()
-        .from(curriculumLessonProgress)
+        .from(courseLessonProgress)
         .where(
           and(
-            eq(curriculumLessonProgress.lessonId, lessonId),
-            eq(curriculumLessonProgress.studentId, session.user.id)
+            eq(courseLessonProgress.lessonId, lessonId),
+            eq(courseLessonProgress.studentId, session.user.id)
           )
         )
         .limit(1)
@@ -134,11 +97,11 @@ async function getHandler(req: NextRequest, session: Session) {
       return NextResponse.json({
         context: 'specific_lesson',
         lesson: {
-          id: lessonRow.id,
+          id: lessonRow.lessonId,
           title: lessonRow.title,
-          moduleTitle: moduleRow?.title ?? '',
-          learningObjectives: lessonRow.learningObjectives,
-          keyConcepts: lessonRow.keyConcepts,
+          moduleTitle: '',
+          learningObjectives: [],
+          keyConcepts: [],
         },
         progress: progress ?? { status: 'NOT_STARTED' },
       })
@@ -146,67 +109,52 @@ async function getHandler(req: NextRequest, session: Session) {
 
     // Otherwise, recommend lessons based on progress
     let currentLesson: {
-      id: string
+      lessonId: string
       title: string
       order: number
-      learningObjectives: string[]
-      keyConcepts: string[]
     } | null = null
-    let currentModule: (typeof modulesList)[0] | null = null
 
-    for (const mod of modulesList) {
-      const lessons = lessonsByModule.get(mod.id) ?? []
-      for (const lesson of lessons) {
-        const [progress] = await drizzleDb
-          .select()
-          .from(curriculumLessonProgress)
-          .where(
-            and(
-              eq(curriculumLessonProgress.lessonId, lesson.id),
-              eq(curriculumLessonProgress.studentId, session.user.id)
-            )
+    for (const lesson of lessonsList) {
+      const [progress] = await drizzleDb
+        .select()
+        .from(courseLessonProgress)
+        .where(
+          and(
+            eq(courseLessonProgress.lessonId, lesson.lessonId),
+            eq(courseLessonProgress.studentId, session.user.id)
           )
-          .limit(1)
-        if (!progress || progress.status !== 'COMPLETED') {
-          currentLesson = lesson
-          currentModule = mod
-          break
-        }
+        )
+        .limit(1)
+      if (!progress || progress.status !== 'COMPLETED') {
+        currentLesson = lesson
+        break
       }
-      if (currentLesson) break
     }
 
-    if (!currentLesson && modulesList.length > 0) {
-      const lastModule = modulesList[modulesList.length - 1]
-      currentModule = lastModule
-      const lastLessons = lessonsByModule.get(lastModule.id) ?? []
-      currentLesson = lastLessons[0] ?? null
+    if (!currentLesson && lessonsList.length > 0) {
+      currentLesson = lessonsList[0]
     }
 
-    const totalLessons = modulesList.reduce(
-      (acc, m) => acc + (lessonsByModule.get(m.id)?.length ?? 0),
-      0
-    )
+    const totalLessons = lessonsList.length
 
     return NextResponse.json({
       context: 'recommended_lesson',
       curriculum: {
-        id: curriculumRow.id,
+        id: curriculumRow.courseId,
         name: curriculumRow.name,
-        subject: curriculumRow.subject,
+        categories: curriculumRow.categories,
         description: curriculumRow.description,
       },
-      currentLesson:
-        currentLesson && currentModule
-          ? {
-              id: currentLesson.id,
-              title: currentLesson.title,
-              moduleTitle: currentModule.title,
-              learningObjectives: currentLesson.learningObjectives,
-              keyConcepts: currentLesson.keyConcepts,
-            }
-          : null,
-      modulesCount: modulesList.length,
+      currentLesson: currentLesson
+        ? {
+            id: currentLesson.lessonId,
+            title: currentLesson.title,
+            moduleTitle: '',
+            learningObjectives: [],
+            keyConcepts: [],
+          }
+        : null,
+      modulesCount: 0,
       totalLessons,
     })
   } catch (error) {
@@ -235,7 +183,7 @@ async function postHandler(req: NextRequest, session: Session) {
     const [tutoringSession] = await drizzleDb
       .update(aIInteractionSession)
       .set({ subjectCode: lessonId })
-      .where(eq(aIInteractionSession.id, String(sessionId)))
+      .where(eq(aIInteractionSession.interactionId, String(sessionId)))
       .returning()
 
     return NextResponse.json({ success: true, session: tutoringSession ?? null })

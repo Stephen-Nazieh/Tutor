@@ -9,9 +9,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
+  course,
   curriculumModule,
-  curriculumLesson,
+  courseLesson,
   courseBatch,
   generatedTask,
   taskSubmission,
@@ -32,57 +32,35 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const curriculumId = getCourseId(req)
+  const courseId = getCourseId(req)
 
-  const [curriculumRow] = await drizzleDb
-    .select({ id: curriculum.id, name: curriculum.name })
-    .from(curriculum)
-    .where(and(eq(curriculum.id, curriculumId), eq(curriculum.creatorId, session.user.id)))
-  if (!curriculumRow) {
+  const [courseRow] = await drizzleDb
+    .select({ courseId: course.courseId, name: course.name })
+    .from(course)
+    .where(and(eq(course.courseId, courseId), eq(course.creatorId, session.user.id)))
+  if (!courseRow) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  const modules = await drizzleDb
-    .select({ id: curriculumModule.id })
-    .from(curriculumModule)
-    .where(eq(curriculumModule.curriculumId, curriculumId))
-  const moduleIds = modules.map(m => m.id)
-  const lessons =
-    moduleIds.length > 0
-      ? await drizzleDb
-          .select({ id: curriculumLesson.id })
-          .from(curriculumLesson)
-          .where(inArray(curriculumLesson.moduleId, moduleIds))
-      : []
-  const lessonIds = lessons.map(l => l.id)
+  // Lessons now directly reference courses
+  const lessons = await drizzleDb
+    .select({ lessonId: courseLesson.lessonId })
+    .from(courseLesson)
+    .where(eq(courseLesson.courseId, courseId))
+  const lessonIds = lessons.map(l => l.lessonId)
 
   const batches = await drizzleDb
-    .select({ id: courseBatch.id })
+    .select({ batchId: courseBatch.batchId })
     .from(courseBatch)
-    .where(eq(courseBatch.curriculumId, curriculumId))
-  const batchIds = batches.map(b => b.id)
+    .where(eq(courseBatch.courseId, courseId))
+  const batchIds = batches.map(b => b.batchId)
 
   const batchFilter = req.nextUrl.searchParams.get('batchId')
 
-  const taskWhere =
-    lessonIds.length > 0 || batchIds.length > 0
-      ? or(
-          lessonIds.length > 0
-            ? inArray(generatedTask.lessonId, lessonIds)
-            : inArray(generatedTask.lessonId, ['__none__']),
-          batchIds.length > 0
-            ? inArray(generatedTask.batchId, batchIds)
-            : inArray(generatedTask.batchId, ['__none__'])
-        )
-      : sql`1=0`
+  // Note: batchId doesn't exist on generatedTask
+  const taskWhere = lessonIds.length > 0 ? inArray(generatedTask.lessonId, lessonIds) : sql`1=0`
 
-  const taskWhereFull = batchFilter
-    ? and(
-        eq(generatedTask.tutorId, session.user.id),
-        eq(generatedTask.batchId, batchFilter),
-        taskWhere
-      )
-    : and(eq(generatedTask.tutorId, session.user.id), taskWhere)
+  const taskWhereFull = and(eq(generatedTask.tutorId, session.user.id), taskWhere)
 
   const tasks = await drizzleDb
     .select()
@@ -92,7 +70,7 @@ export async function GET(req: NextRequest) {
 
   if (tasks.length === 0) {
     return NextResponse.json({
-      courseName: curriculumRow.name,
+      courseName: courseRow.name,
       totalTasks: 0,
       totalSubmissions: 0,
       classAverage: 0,
@@ -101,11 +79,11 @@ export async function GET(req: NextRequest) {
     })
   }
 
-  const taskIds = tasks.map(t => t.id)
+  const taskIds = tasks.map(t => t.taskId)
 
   const allSubmissions = await drizzleDb
     .select({
-      id: taskSubmission.id,
+      submissionId: taskSubmission.submissionId,
       taskId: taskSubmission.taskId,
       studentId: taskSubmission.studentId,
       score: taskSubmission.score,
@@ -118,7 +96,7 @@ export async function GET(req: NextRequest) {
     .where(inArray(taskSubmission.taskId, taskIds))
 
   const taskSummaries = tasks.map(t => {
-    const subs = allSubmissions.filter(s => s.taskId === t.id)
+    const subs = allSubmissions.filter(s => s.taskId === t.taskId)
     const scores = subs.map(s => s.score ?? 0)
     const avg =
       scores.length > 0
@@ -145,7 +123,7 @@ export async function GET(req: NextRequest) {
     }
 
     return {
-      id: t.id,
+      id: t.taskId,
       title: t.title,
       type: t.type,
       difficulty: t.difficulty,
@@ -189,7 +167,7 @@ export async function GET(req: NextRequest) {
     .sort((a, b) => a.averageScore - b.averageScore)
 
   return NextResponse.json({
-    courseName: curriculumRow.name,
+    courseName: courseRow.name,
     totalTasks: tasks.length,
     totalSubmissions: allSubmissions.length,
     classAverage,

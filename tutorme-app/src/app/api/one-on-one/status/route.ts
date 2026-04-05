@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       with: {
         tutor: {
           columns: {
-            id: true,
+            userId: true,
             handle: true,
             email: true,
             image: true,
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
         },
         student: {
           columns: {
-            id: true,
+            userId: true,
             handle: true,
             email: true,
             image: true,

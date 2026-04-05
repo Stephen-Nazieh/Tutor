@@ -12,7 +12,7 @@ import {
   ForbiddenError,
 } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum, courseBatch, curriculumEnrollment } from '@/lib/db/schema'
+import { course, courseBatch, courseEnrollment } from '@/lib/db/schema'
 import { getParamAsync } from '@/lib/api/params'
 import { sanitizeHtmlWithMax } from '@/lib/security/sanitize'
 import crypto from 'crypto'
@@ -24,39 +24,40 @@ export const GET = withAuth(
       return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
     }
 
-    const [course] = await drizzleDb.select().from(curriculum).where(eq(curriculum.id, id)).limit(1)
+    const [courseRow] = await drizzleDb
+      .select()
+      .from(course)
+      .where(eq(course.courseId, id))
+      .limit(1)
 
-    if (!course) throw new NotFoundError('Course not found')
+    if (!courseRow) throw new NotFoundError('Course not found')
 
     // Fetch batches and enrollment counts in 2 queries instead of N+1
     const batches = await drizzleDb
       .select()
       .from(courseBatch)
-      .where(eq(courseBatch.curriculumId, id))
+      .where(eq(courseBatch.courseId, id))
       .orderBy(asc(courseBatch.order))
 
-    const enrollmentCounts = await drizzleDb
+    // Count total course enrollments (enrollments are at course level, not batch level)
+    const [enrollmentResult] = await drizzleDb
       .select({
-        batchId: curriculumEnrollment.batchId,
         count: sql<number>`count(*)::int`,
       })
-      .from(curriculumEnrollment)
-      .where(eq(curriculumEnrollment.curriculumId, id))
-      .groupBy(curriculumEnrollment.batchId)
+      .from(courseEnrollment)
+      .where(eq(courseEnrollment.courseId, id))
 
-    const countByBatch = new Map(
-      enrollmentCounts.filter(row => row.batchId != null).map(row => [row.batchId!, row.count])
-    )
+    const totalEnrollments = enrollmentResult?.count ?? 0
 
     const batchesWithStats = batches.map(b => ({
-      id: b.id,
+      id: b.batchId,
       name: b.name,
       startDate: b.startDate,
       order: b.order,
       difficulty: b.difficulty ?? null,
       schedule: Array.isArray(b.schedule) ? b.schedule : [],
-      enrollmentCount: countByBatch.get(b.id) ?? 0,
-      joinLink: b.meetingUrl ?? `${req.nextUrl.origin}/curriculum/${id}?batch=${b.id}`,
+      enrollmentCount: totalEnrollments,
+      joinLink: b.meetingUrl ?? `${req.nextUrl.origin}/courses/${id}?batch=${b.batchId}`,
     }))
 
     return NextResponse.json({ batches: batchesWithStats })
@@ -72,16 +73,16 @@ export const POST = withCsrf(
         return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
       }
 
-      const [course] = await drizzleDb
-        .select({ id: curriculum.id, creatorId: curriculum.creatorId })
-        .from(curriculum)
-        .where(eq(curriculum.id, id))
+      const [courseRow] = await drizzleDb
+        .select({ courseId: course.courseId, creatorId: course.creatorId })
+        .from(course)
+        .where(eq(course.courseId, id))
         .limit(1)
 
-      if (!course) throw new NotFoundError('Course not found')
+      if (!courseRow) throw new NotFoundError('Course not found')
 
       // Verify the tutor owns this course
-      if (course.creatorId !== session.user.id) {
+      if (courseRow.creatorId !== session.user.id) {
         throw new ForbiddenError('You do not own this course')
       }
 
@@ -94,15 +95,15 @@ export const POST = withCsrf(
       const [result] = await drizzleDb
         .select({ maxValue: sql<number>`coalesce(max(${courseBatch.order}), -1)::int` })
         .from(courseBatch)
-        .where(eq(courseBatch.curriculumId, id))
+        .where(eq(courseBatch.courseId, id))
 
       const maxOrder = Number(result?.maxValue ?? -1)
 
       const [batch] = await drizzleDb
         .insert(courseBatch)
         .values({
-          id: crypto.randomUUID(),
-          curriculumId: id,
+          batchId: crypto.randomUUID(),
+          courseId: id,
           name,
           startDate,
           order: maxOrder + 1,
@@ -112,7 +113,12 @@ export const POST = withCsrf(
         .returning()
 
       return NextResponse.json({
-        batch: { id: batch.id, name: batch.name, startDate: batch.startDate, order: batch.order },
+        batch: {
+          id: batch.batchId,
+          name: batch.name,
+          startDate: batch.startDate,
+          order: batch.order,
+        },
         message: 'Batch created.',
       })
     },

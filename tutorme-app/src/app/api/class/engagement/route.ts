@@ -38,7 +38,7 @@ export const GET = withAuth(
     try {
       const snapshots = await drizzleDb
         .select({
-          id: engagementSnapshot.id,
+          id: engagementSnapshot.snapshotId,
           sessionId: engagementSnapshot.sessionId,
           studentId: engagementSnapshot.studentId,
           engagementScore: engagementSnapshot.engagementScore,
@@ -53,8 +53,8 @@ export const GET = withAuth(
           studentEmail: user.email,
         })
         .from(engagementSnapshot)
-        .innerJoin(user, eq(engagementSnapshot.studentId, user.id))
-        .leftJoin(profile, eq(user.id, profile.userId))
+        .innerJoin(user, eq(engagementSnapshot.studentId, user.userId))
+        .leftJoin(profile, eq(user.userId, profile.userId))
         .where(eq(engagementSnapshot.sessionId, roomId))
         .orderBy(desc(engagementSnapshot.timestamp))
 
@@ -69,7 +69,7 @@ export const GET = withAuth(
       const [summary] = await drizzleDb
         .select()
         .from(sessionEngagementSummary)
-        .where(eq(sessionEngagementSummary.sessionId, roomId))
+        .where(eq(sessionEngagementSummary.summarySessionId, roomId))
         .limit(1)
 
       return NextResponse.json({
@@ -96,7 +96,7 @@ export const POST = withAuth(async (req: NextRequest) => {
 
     const id = crypto.randomUUID()
     await drizzleDb.insert(engagementSnapshot).values({
-      id,
+      snapshotId: id,
       sessionId: data.roomId,
       studentId: data.studentId,
       engagementScore: data.engagementScore,
@@ -111,7 +111,7 @@ export const POST = withAuth(async (req: NextRequest) => {
     const [snapshot] = await drizzleDb
       .select()
       .from(engagementSnapshot)
-      .where(eq(engagementSnapshot.id, id))
+      .where(eq(engagementSnapshot.snapshotId, id))
     return NextResponse.json({ success: true, snapshot })
   } catch (error) {
     if (error instanceof z.ZodError) {

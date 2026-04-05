@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   try {
     const providers = await drizzleDb.select().from(llmProvider).orderBy(asc(llmProvider.priority))
 
-    const providerIds = providers.map(p => p.id)
+    const providerIds = providers.map(p => p.providerId)
     const models =
       providerIds.length > 0
         ? await drizzleDb
@@ -46,8 +46,8 @@ export async function GET(req: NextRequest) {
 
     const safeProviders = providers.map(p => ({
       ...p,
-      models: modelsByProvider.get(p.id) ?? [],
-      _count: { routingRules: ruleCountByProvider.get(p.id) ?? 0 },
+      models: modelsByProvider.get(p.providerId) ?? [],
+      _count: { routingRules: ruleCountByProvider.get(p.providerId) ?? 0 },
       apiKeyEncrypted: p.apiKeyEncrypted ? '***encrypted***' : null,
     }))
 
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
     const id = crypto.randomUUID()
     const rateLimitsVal = rateLimits ?? { requests_per_minute: 60, tokens_per_day: 100000 }
     await drizzleDb.insert(llmProvider).values({
-      id,
+      providerId: id,
       name,
       providerType,
       apiKeyEncrypted: apiKey || null,
@@ -87,11 +87,14 @@ export async function POST(req: NextRequest) {
       isActive: true,
       isDefault: false,
     })
-    const [provider] = await drizzleDb.select().from(llmProvider).where(eq(llmProvider.id, id))
+    const [provider] = await drizzleDb
+      .select()
+      .from(llmProvider)
+      .where(eq(llmProvider.providerId, id))
 
     await logAdminAction(session.adminId, 'llm_provider.create', {
       resourceType: 'llm_provider',
-      resourceId: provider!.id,
+      resourceId: provider!.providerId,
       newState: { ...provider, apiKeyEncrypted: '***' },
       ipAddress: getClientIp(req),
       userAgent: req.headers.get('user-agent') || undefined,
@@ -120,7 +123,7 @@ export async function PATCH(req: NextRequest) {
     const [existingProvider] = await drizzleDb
       .select()
       .from(llmProvider)
-      .where(eq(llmProvider.id, id))
+      .where(eq(llmProvider.providerId, id))
       .limit(1)
     if (!existingProvider) {
       return NextResponse.json({ error: 'Provider not found' }, { status: 404 })
@@ -153,14 +156,17 @@ export async function PATCH(req: NextRequest) {
       await drizzleDb
         .update(llmProvider)
         .set(set as Partial<typeof llmProvider.$inferInsert>)
-        .where(eq(llmProvider.id, id))
+        .where(eq(llmProvider.providerId, id))
     }
-    const [provider] = await drizzleDb.select().from(llmProvider).where(eq(llmProvider.id, id))
+    const [provider] = await drizzleDb
+      .select()
+      .from(llmProvider)
+      .where(eq(llmProvider.providerId, id))
     const providerForResponse = provider ?? existingProvider
 
     await logAdminAction(session.adminId, 'llm_provider.update', {
       resourceType: 'llm_provider',
-      resourceId: providerForResponse.id,
+      resourceId: providerForResponse.providerId,
       newState: { ...providerForResponse, apiKeyEncrypted: '***' },
       ipAddress: getClientIp(req),
       userAgent: req.headers.get('user-agent') || undefined,

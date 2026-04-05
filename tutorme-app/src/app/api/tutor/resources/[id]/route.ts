@@ -25,7 +25,7 @@ export const GET = withAuth(
     const rows = await drizzleDb
       .select()
       .from(resource)
-      .where(and(eq(resource.id, id), eq(resource.tutorId, tutorId)))
+      .where(and(eq(resource.resourceId, id), eq(resource.tutorId, tutorId)))
       .limit(1)
 
     const resourceRow = rows[0]
@@ -54,7 +54,7 @@ export const PATCH = withAuth(
       const existing = await drizzleDb
         .select()
         .from(resource)
-        .where(and(eq(resource.id, id), eq(resource.tutorId, tutorId)))
+        .where(and(eq(resource.resourceId, id), eq(resource.tutorId, tutorId)))
         .limit(1)
         .then(r => r[0])
 
@@ -76,7 +76,7 @@ export const PATCH = withAuth(
       const [resourceRow] = await drizzleDb
         .update(resource)
         .set(updateData)
-        .where(eq(resource.id, id))
+        .where(eq(resource.resourceId, id))
         .returning()
 
       return NextResponse.json({ resource: resourceRow })
@@ -101,7 +101,7 @@ export const DELETE = withAuth(
       const existing = await drizzleDb
         .select()
         .from(resource)
-        .where(and(eq(resource.id, id), eq(resource.tutorId, tutorId)))
+        .where(and(eq(resource.resourceId, id), eq(resource.tutorId, tutorId)))
         .limit(1)
         .then(r => r[0])
 
@@ -117,7 +117,7 @@ export const DELETE = withAuth(
         }
       }
 
-      await drizzleDb.delete(resource).where(eq(resource.id, id))
+      await drizzleDb.delete(resource).where(eq(resource.resourceId, id))
 
       return NextResponse.json({ success: true })
     } catch (error) {

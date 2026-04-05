@@ -7,25 +7,23 @@ import { NextRequest, NextResponse } from 'next/server'
 import { eq, desc } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculumShare } from '@/lib/db/schema'
+import { courseShare } from '@/lib/db/schema'
 
 export const GET = withAuth(async (_req: NextRequest, session) => {
   if (session.user.role !== 'PARENT' && session.user.role !== 'ADMIN') {
     return NextResponse.json({ error: 'Only parents can view shared courses' }, { status: 403 })
   }
 
-  const sharedCourses = await drizzleDb.query.curriculumShare.findMany({
-    where: eq(curriculumShare.recipientId, session.user.id),
-    orderBy: [desc(curriculumShare.sharedAt)],
+  const sharedCourses = await drizzleDb.query.courseShare.findMany({
+    where: eq(courseShare.recipientId, session.user.id),
+    orderBy: [desc(courseShare.sharedAt)],
     with: {
-      curriculum: {
+      course: {
         columns: {
-          id: true,
+          courseId: true,
           name: true,
           description: true,
-          subject: true,
-          gradeLevel: true,
-          estimatedHours: true,
+          categories: true,
           price: true,
           currency: true,
         },
@@ -39,15 +37,13 @@ export const GET = withAuth(async (_req: NextRequest, session) => {
   })
 
   const courses = sharedCourses.map((s: any) => ({
-    shareId: s.id,
-    courseId: s.curriculum.id,
-    name: s.curriculum.name,
-    description: s.curriculum.description,
-    subject: s.curriculum.subject,
-    gradeLevel: s.curriculum.gradeLevel,
-    estimatedHours: s.curriculum.estimatedHours,
-    price: s.curriculum.price,
-    currency: s.curriculum.currency ?? 'SGD',
+    shareId: s.shareId,
+    courseId: s.course.courseId,
+    name: s.course.name,
+    description: s.course.description,
+    categories: s.course.categories,
+    price: s.course.price,
+    currency: s.course.currency ?? 'SGD',
     tutorName: s.sharedBy?.profile?.name ?? 'Tutor',
     sharedMessage: s.message,
     sharedAt: s.sharedAt,

@@ -33,7 +33,7 @@ export const PATCH = withAuth(
       const [existingPoll] = await drizzleDb
         .select()
         .from(poll)
-        .where(and(eq(poll.id, pollId), eq(poll.tutorId, session.user.id)))
+        .where(and(eq(poll.pollId, pollId), eq(poll.tutorId, session.user.id)))
         .limit(1)
 
       if (!existingPoll) {
@@ -57,8 +57,8 @@ export const PATCH = withAuth(
         ) as 'DRAFT' | 'ACTIVE' | 'CLOSED'
       }
 
-      await drizzleDb.update(poll).set(set).where(eq(poll.id, pollId))
-      const [updated] = await drizzleDb.select().from(poll).where(eq(poll.id, pollId)).limit(1)
+      await drizzleDb.update(poll).set(set).where(eq(poll.pollId, pollId))
+      const [updated] = await drizzleDb.select().from(poll).where(eq(poll.pollId, pollId)).limit(1)
 
       return NextResponse.json({ success: true, poll: updated })
     } catch (error) {
@@ -84,14 +84,14 @@ export const DELETE = withAuth(
       const [existingPoll] = await drizzleDb
         .select()
         .from(poll)
-        .where(and(eq(poll.id, pollId), eq(poll.tutorId, session.user.id)))
+        .where(and(eq(poll.pollId, pollId), eq(poll.tutorId, session.user.id)))
         .limit(1)
 
       if (!existingPoll) {
         return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
       }
 
-      await drizzleDb.delete(poll).where(eq(poll.id, pollId))
+      await drizzleDb.delete(poll).where(eq(poll.pollId, pollId))
 
       return NextResponse.json({ success: true })
     } catch (error) {

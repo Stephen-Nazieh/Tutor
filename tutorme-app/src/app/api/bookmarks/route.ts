@@ -20,14 +20,14 @@ async function getHandler(_req: NextRequest, session: Session) {
     rows.map(async b => {
       const [content] = await drizzleDb
         .select({
-          id: contentItem.id,
+          id: contentItem.contentId,
           title: contentItem.title,
           subject: contentItem.subject,
           type: contentItem.type,
           duration: contentItem.duration,
         })
         .from(contentItem)
-        .where(eq(contentItem.id, b.contentId))
+        .where(eq(contentItem.contentId, b.contentId))
         .limit(1)
       return { ...b, content: content ?? null }
     })
@@ -43,7 +43,7 @@ async function postHandler(req: NextRequest, session: Session) {
     const [bookmark] = await drizzleDb
       .insert(bookmarkTable)
       .values({
-        id: crypto.randomUUID(),
+        bookmarkId: crypto.randomUUID(),
         studentId: session.user.id,
         contentId,
       })

@@ -1,6 +1,6 @@
 /**
  * Student Enrollment API
- * POST: Enroll student in a curriculum
+ * POST: Enroll student in a course
  * GET: List student's enrollments
  */
 
@@ -9,44 +9,37 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { withAuth, NotFoundError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  curriculum,
-  curriculumModule,
-  curriculumLesson,
-  curriculumEnrollment,
-  curriculumProgress,
-  payment,
-} from '@/lib/db/schema'
+import { course, courseLesson, courseEnrollment, courseProgress, payment } from '@/lib/db/schema'
 import { eq, and, inArray, desc } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
 
 export const POST = withAuth(async (req, session) => {
   const body = await req.json().catch(() => ({}))
-  const { curriculumId, startDate } = body
+  const { courseId, startDate } = body
 
-  if (!curriculumId || typeof curriculumId !== 'string') {
-    return NextResponse.json({ error: 'Curriculum ID is required' }, { status: 400 })
+  if (!courseId || typeof courseId !== 'string') {
+    return NextResponse.json({ error: 'Course ID is required' }, { status: 400 })
   }
 
-  const [curriculumRow] = await drizzleDb
+  const [courseRow] = await drizzleDb
     .select()
-    .from(curriculum)
-    .where(eq(curriculum.id, curriculumId))
+    .from(course)
+    .where(eq(course.courseId, courseId))
     .limit(1)
 
-  if (!curriculumRow) {
+  if (!courseRow) {
     throw new NotFoundError('Course not found')
   }
 
-  if (!curriculumRow.isFree && curriculumRow.price && curriculumRow.price > 0) {
+  if (!courseRow.isFree && courseRow.price && courseRow.price > 0) {
     const payments = await drizzleDb
       .select()
       .from(payment)
       .where(inArray(payment.status, ['COMPLETED', 'PENDING']))
 
     const hasPayment = payments.some(p => {
-      const meta = p.metadata as { curriculumId?: string; studentId?: string } | null
-      return meta?.curriculumId === curriculumId && meta?.studentId === session.user.id
+      const meta = p.metadata as { courseId?: string; studentId?: string } | null
+      return meta?.courseId === courseId && meta?.studentId === session.user.id
     })
 
     if (!hasPayment) {
@@ -54,37 +47,27 @@ export const POST = withAuth(async (req, session) => {
         {
           error: 'Payment required',
           requiresPayment: true,
-          amount: curriculumRow.price,
-          currency: curriculumRow.currency || 'USD',
+          amount: courseRow.price,
+          currency: courseRow.currency || 'USD',
         },
         { status: 402 }
       )
     }
   }
 
-  const moduleRows = await drizzleDb
-    .select({ id: curriculumModule.id })
-    .from(curriculumModule)
-    .where(eq(curriculumModule.curriculumId, curriculumId))
-  const moduleIds = moduleRows.map(m => m.id)
   const totalLessons =
-    moduleIds.length === 0
-      ? 0
-      : ((
-          await drizzleDb
-            .select({ count: sql<number>`count(*)::int` })
-            .from(curriculumLesson)
-            .where(inArray(curriculumLesson.moduleId, moduleIds))
-        )[0]?.count ?? 0)
+    (
+      await drizzleDb
+        .select({ count: sql<number>`count(*)::int` })
+        .from(courseLesson)
+        .where(eq(courseLesson.courseId, courseId))
+    )[0]?.count ?? 0
 
   const [existingProgress] = await drizzleDb
     .select()
-    .from(curriculumProgress)
+    .from(courseProgress)
     .where(
-      and(
-        eq(curriculumProgress.studentId, session.user.id),
-        eq(curriculumProgress.curriculumId, curriculumId)
-      )
+      and(eq(courseProgress.studentId, session.user.id), eq(courseProgress.courseId, courseId))
     )
     .limit(1)
 
@@ -99,19 +82,19 @@ export const POST = withAuth(async (req, session) => {
   const enrollmentId = crypto.randomUUID()
   const progressId = crypto.randomUUID()
 
-  await drizzleDb.insert(curriculumEnrollment).values({
-    id: enrollmentId,
+  await drizzleDb.insert(courseEnrollment).values({
+    enrollmentId,
     studentId: session.user.id,
-    curriculumId,
+    courseId,
     startDate: startDate ? new Date(startDate) : undefined,
     lessonsCompleted: 0,
     enrollmentSource: 'browse',
   })
 
-  await drizzleDb.insert(curriculumProgress).values({
-    id: progressId,
+  await drizzleDb.insert(courseProgress).values({
+    progressId,
     studentId: session.user.id,
-    curriculumId,
+    courseId,
     lessonsCompleted: 0,
     totalLessons,
     isCompleted: false,
@@ -119,13 +102,13 @@ export const POST = withAuth(async (req, session) => {
 
   const [enrollment] = await drizzleDb
     .select()
-    .from(curriculumEnrollment)
-    .where(eq(curriculumEnrollment.id, enrollmentId))
+    .from(courseEnrollment)
+    .where(eq(courseEnrollment.enrollmentId, enrollmentId))
     .limit(1)
   const [progress] = await drizzleDb
     .select()
-    .from(curriculumProgress)
-    .where(eq(curriculumProgress.id, progressId))
+    .from(courseProgress)
+    .where(eq(courseProgress.progressId, progressId))
     .limit(1)
 
   return NextResponse.json({
@@ -139,45 +122,41 @@ export const POST = withAuth(async (req, session) => {
 export const GET = withAuth(async (req, session) => {
   const enrollmentsRows = await drizzleDb
     .select({
-      enrollment: curriculumEnrollment,
-      curriculumId: curriculum.id,
-      curriculumName: curriculum.name,
-      curriculumSubject: curriculum.subject,
-      curriculumDescription: curriculum.description,
-      curriculumDifficulty: curriculum.difficulty,
-      curriculumEstimatedHours: curriculum.estimatedHours,
-      curriculumIsPublished: curriculum.isPublished,
-      curriculumSchedule: curriculum.schedule,
+      enrollment: courseEnrollment,
+      courseId: course.courseId,
+      courseName: course.name,
+      courseCategories: course.categories,
+      courseDescription: course.description,
+      courseIsPublished: course.isPublished,
+      courseSchedule: course.schedule,
     })
-    .from(curriculumEnrollment)
-    .innerJoin(curriculum, eq(curriculumEnrollment.curriculumId, curriculum.id))
-    .where(eq(curriculumEnrollment.studentId, session.user.id))
-    .orderBy(desc(curriculumEnrollment.enrolledAt))
+    .from(courseEnrollment)
+    .innerJoin(course, eq(courseEnrollment.courseId, course.courseId))
+    .where(eq(courseEnrollment.studentId, session.user.id))
+    .orderBy(desc(courseEnrollment.enrolledAt))
 
-  const moduleCounts = await Promise.all(
+  const lessonCounts = await Promise.all(
     enrollmentsRows.map(async row => {
       const [{ count }] = await drizzleDb
         .select({ count: sql<number>`count(*)::int` })
-        .from(curriculumModule)
-        .where(eq(curriculumModule.curriculumId, row.curriculumId))
-      return { curriculumId: row.curriculumId, moduleCount: count ?? 0 }
+        .from(courseLesson)
+        .where(eq(courseLesson.courseId, row.courseId))
+      return { courseId: row.courseId, lessonCount: count ?? 0 }
     })
   )
-  const moduleCountByCurriculum = new Map(moduleCounts.map(m => [m.curriculumId, m.moduleCount]))
+  const lessonCountByCourse = new Map(lessonCounts.map(m => [m.courseId, m.lessonCount]))
 
   const enrollments = enrollmentsRows.map(row => ({
     ...row.enrollment,
-    curriculum: {
-      id: row.curriculumId,
-      name: row.curriculumName,
-      subject: row.curriculumSubject,
-      description: row.curriculumDescription,
-      difficulty: row.curriculumDifficulty,
-      estimatedHours: row.curriculumEstimatedHours,
-      isPublished: row.curriculumIsPublished,
-      schedule: row.curriculumSchedule,
+    course: {
+      courseId: row.courseId,
+      name: row.courseName,
+      categories: row.courseCategories,
+      description: row.courseDescription,
+      isPublished: row.courseIsPublished,
+      schedule: row.courseSchedule,
       _count: {
-        modules: moduleCountByCurriculum.get(row.curriculumId) ?? 0,
+        lessons: lessonCountByCourse.get(row.courseId) ?? 0,
       },
     },
   }))

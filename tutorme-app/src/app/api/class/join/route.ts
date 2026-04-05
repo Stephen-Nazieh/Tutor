@@ -33,7 +33,7 @@ export const POST = withCsrf(
     const [sessionRow] = await drizzleDb
       .select()
       .from(liveSessionTable)
-      .where(or(eq(liveSessionTable.id, sessionId), eq(liveSessionTable.roomId, sessionId)))
+      .where(or(eq(liveSessionTable.sessionId, sessionId), eq(liveSessionTable.roomId, sessionId)))
       .limit(1)
 
     if (!sessionRow) {
@@ -47,7 +47,7 @@ export const POST = withCsrf(
     const participants = await drizzleDb
       .select()
       .from(sessionParticipant)
-      .where(eq(sessionParticipant.sessionId, sessionRow.id))
+      .where(eq(sessionParticipant.sessionId, sessionRow.sessionId))
 
     if (participants.length >= sessionRow.maxStudents) {
       throw new ValidationError('Class session is full')
@@ -58,7 +58,7 @@ export const POST = withCsrf(
       .from(sessionParticipant)
       .where(
         and(
-          eq(sessionParticipant.sessionId, sessionRow.id),
+          eq(sessionParticipant.sessionId, sessionRow.sessionId),
           eq(sessionParticipant.studentId, session.user.id)
         )
       )
@@ -66,8 +66,8 @@ export const POST = withCsrf(
 
     if (!existingParticipant) {
       await drizzleDb.insert(sessionParticipant).values({
-        id: crypto.randomUUID(),
-        sessionId: sessionRow.id,
+        participantId: crypto.randomUUID(),
+        sessionId: sessionRow.sessionId,
         studentId: session.user.id,
         joinedAt: new Date(),
       })
@@ -83,7 +83,7 @@ export const POST = withCsrf(
     })
 
     return NextResponse.json({
-      sessionId: sessionRow.id,
+      sessionId: sessionRow.sessionId,
       room: {
         url: sessionRow.roomUrl ?? undefined,
         id: sessionRow.roomId ?? undefined,

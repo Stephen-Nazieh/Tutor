@@ -3,8 +3,8 @@
  *
  * Aggregates real progress data from:
  *  - StudentPerformance (scores, strengths, weaknesses, skillBreakdown, taskHistory)
- *  - CurriculumLessonProgress (per-lesson completion)
- *  - CurriculumEnrollment (enrolled courses)
+ *  - CourseLessonProgress (per-lesson completion)
+ *  - CourseEnrollment (enrolled courses)
  *  - UserGamification (XP, level, streak)
  *  - Achievement (earned badges)
  *  - TaskSubmission (submission counts)
@@ -18,11 +18,10 @@ import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculumEnrollment,
-  curriculum,
-  curriculumModule,
-  curriculumLesson,
-  curriculumLessonProgress,
+  courseEnrollment,
+  course,
+  courseLesson,
+  courseLessonProgress,
   studentPerformance,
   userGamification,
   achievement,
@@ -49,42 +48,33 @@ export async function GET(req: NextRequest) {
       async () => {
         const enrollmentsRows = await drizzleDb
           .select()
-          .from(curriculumEnrollment)
-          .where(eq(curriculumEnrollment.studentId, studentId))
-        const curriculumIds = enrollmentsRows.map(r => r.curriculumId)
-        const curricula =
-          curriculumIds.length > 0
-            ? await drizzleDb.select().from(curriculum).where(inArray(curriculum.id, curriculumIds))
+          .from(courseEnrollment)
+          .where(eq(courseEnrollment.studentId, studentId))
+        const courseIds = enrollmentsRows.map(r => r.courseId)
+        const coursesData =
+          courseIds.length > 0
+            ? await drizzleDb.select().from(course).where(inArray(course.courseId, courseIds))
             : []
-        const curriculumMap = new Map(curricula.map(c => [c.id, c]))
-        const modules =
-          curriculumIds.length > 0
-            ? await drizzleDb
-                .select()
-                .from(curriculumModule)
-                .where(inArray(curriculumModule.curriculumId, curriculumIds))
-            : []
-        const moduleIds = modules.map(m => m.id)
+        const courseMap = new Map(coursesData.map(c => [c.courseId, c]))
         const lessons =
-          moduleIds.length > 0
+          courseIds.length > 0
             ? await drizzleDb
                 .select({
-                  id: curriculumLesson.id,
-                  title: curriculumLesson.title,
-                  order: curriculumLesson.order,
-                  duration: curriculumLesson.duration,
-                  moduleId: curriculumLesson.moduleId,
+                  lessonId: courseLesson.lessonId,
+                  title: courseLesson.title,
+                  order: courseLesson.order,
+                  courseId: courseLesson.courseId,
                 })
-                .from(curriculumLesson)
-                .where(inArray(curriculumLesson.moduleId, moduleIds))
+                .from(courseLesson)
+                .where(inArray(courseLesson.courseId, courseIds))
             : []
-        const allLessonIds = lessons.map(l => l.id)
+        const allLessonIds = lessons.map(l => l.lessonId)
         const lessonProgress =
           allLessonIds.length > 0
             ? await drizzleDb
                 .select()
-                .from(curriculumLessonProgress)
-                .where(eq(curriculumLessonProgress.studentId, studentId))
+                .from(courseLessonProgress)
+                .where(eq(courseLessonProgress.studentId, studentId))
             : []
         const progressMap = new Map(
           lessonProgress
@@ -117,40 +107,33 @@ export async function GET(req: NextRequest) {
 
         const totalStudyMinutes = gamification?.totalStudyMinutes ?? 0
 
-        const moduleByCurriculum = new Map<string, typeof modules>()
-        for (const m of modules) {
-          const list = moduleByCurriculum.get(m.curriculumId) ?? []
-          list.push(m)
-          moduleByCurriculum.set(m.curriculumId, list)
-        }
-        const lessonsByModule = new Map<string, typeof lessons>()
+        const lessonsByCourse = new Map<string, typeof lessons>()
         for (const l of lessons) {
-          // Handle legacy moduleId which may be null in new schema
-          const key = l.moduleId ?? 'default'
-          const list = lessonsByModule.get(key) ?? []
+          // Handle legacy courseId which may be null in new schema
+          const key = l.courseId ?? 'default'
+          const list = lessonsByCourse.get(key) ?? []
           list.push(l)
-          lessonsByModule.set(key, list)
+          lessonsByCourse.set(key, list)
         }
 
         const courses = enrollmentsRows.map(enrollment => {
-          const curr = curriculumMap.get(enrollment.curriculumId)
-          const mods = moduleByCurriculum.get(enrollment.curriculumId) ?? []
-          const allLessons = mods.flatMap(m => lessonsByModule.get(m.id) ?? [])
+          const courseRow = courseMap.get(enrollment.courseId)
+          const allLessons = lessonsByCourse.get(enrollment.courseId) ?? []
           const completedLessons = allLessons.filter(
-            l => progressMap.get(l.id)?.status === 'COMPLETED'
+            l => progressMap.get(l.lessonId)?.status === 'COMPLETED'
           )
           const inProgressLessons = allLessons.filter(
-            l => progressMap.get(l.id)?.status === 'IN_PROGRESS'
+            l => progressMap.get(l.lessonId)?.status === 'IN_PROGRESS'
           )
           const scores = completedLessons
-            .map(l => progressMap.get(l.id)?.score)
+            .map(l => progressMap.get(l.lessonId)?.score)
             .filter((s): s is number => s != null)
           const avgScore =
             scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null
-          const studyMinutes = completedLessons.reduce((sum, l) => sum + (l.duration || 30), 0)
+          const studyMinutes = completedLessons.reduce((sum, l) => sum + 30, 0) // Default 30 min per lesson
           return {
-            id: curr?.id ?? enrollment.curriculumId,
-            name: curr?.name ?? '',
+            courseId: courseRow?.courseId ?? enrollment.courseId,
+            name: courseRow?.name ?? '',
             totalLessons: allLessons.length,
             completedLessons: completedLessons.length,
             inProgressLessons: inProgressLessons.length,
@@ -200,7 +183,7 @@ export async function GET(req: NextRequest) {
           weaknesses: weaknessCounts.slice(0, 5),
           scoreTrend,
           achievements: achievements.map(a => ({
-            id: a.id,
+            achievementId: a.achievementId,
             type: a.type,
             title: a.title,
             description: a.description,

@@ -19,7 +19,7 @@ import * as enums from '../enums'
 export const studyGroup = pgTable(
   'StudyGroup',
   {
-    id: text('id').primaryKey().notNull(),
+    groupId: text('groupId').primaryKey().notNull(),
     name: text('name').notNull(),
     subject: text('subject').notNull(),
     description: text('description'),
@@ -40,7 +40,7 @@ export const studyGroup = pgTable(
 export const studyGroupMember = pgTable(
   'StudyGroupMember',
   {
-    id: text('id').primaryKey().notNull(),
+    membershipId: text('membershipId').primaryKey().notNull(),
     groupId: text('groupId').notNull(),
     studentId: text('studentId').notNull(),
     joinedAt: timestamp('joinedAt', { withTimezone: true }).notNull().defaultNow(),
@@ -57,7 +57,7 @@ export const studyGroupMember = pgTable(
 export const userActivityLog = pgTable(
   'UserActivityLog',
   {
-    id: text('id').primaryKey().notNull(),
+    activityId: text('activityId').primaryKey().notNull(),
     userId: text('userId').notNull(),
     action: text('action').notNull(),
     metadata: jsonb('metadata'),
@@ -76,7 +76,7 @@ export const userActivityLog = pgTable(
 export const apiKey = pgTable(
   'ApiKey',
   {
-    id: text('id').primaryKey().notNull(),
+    apiKeyId: text('apiKeyId').primaryKey().notNull(),
     name: text('name').notNull(),
     keyHash: text('keyHash').notNull(),
     createdById: text('createdById'),
@@ -91,7 +91,7 @@ export const apiKey = pgTable(
 export const securityEvent = pgTable(
   'SecurityEvent',
   {
-    id: text('id').primaryKey().notNull(),
+    eventId: text('eventId').primaryKey().notNull(),
     eventType: text('eventType').notNull(),
     ip: text('ip'),
     metadata: jsonb('metadata'),

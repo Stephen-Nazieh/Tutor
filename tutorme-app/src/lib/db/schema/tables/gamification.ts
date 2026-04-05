@@ -17,7 +17,7 @@ import {
 import * as enums from '../enums'
 
 export const userGamification = pgTable('UserGamification', {
-  id: text('id').primaryKey().notNull(),
+  gamificationId: text('gamificationId').primaryKey().notNull(),
   userId: text('userId').notNull().unique(),
   level: integer('level').notNull(),
   xp: integer('xp').notNull(),
@@ -38,7 +38,7 @@ export const userGamification = pgTable('UserGamification', {
 export const achievement = pgTable(
   'Achievement',
   {
-    id: text('id').primaryKey().notNull(),
+    achievementId: text('achievementId').primaryKey().notNull(),
     userId: text('userId').notNull(),
     type: text('type').notNull(),
     title: text('title').notNull(),
@@ -52,7 +52,7 @@ export const achievement = pgTable(
 )
 
 export const mission = pgTable('Mission', {
-  id: text('id').primaryKey().notNull(),
+  missionId: text('missionId').primaryKey().notNull(),
   title: text('title').notNull(),
   description: text('description').notNull(),
   type: text('type').notNull(),
@@ -64,7 +64,7 @@ export const mission = pgTable('Mission', {
 export const missionProgress = pgTable(
   'MissionProgress',
   {
-    id: text('id').primaryKey().notNull(),
+    progressId: text('progressId').primaryKey().notNull(),
     missionId: text('missionId').notNull(),
     studentId: text('studentId').notNull(),
     progress: integer('progress').notNull(),
@@ -82,7 +82,7 @@ export const missionProgress = pgTable(
 export const userDailyQuest = pgTable(
   'UserDailyQuest',
   {
-    id: text('id').primaryKey().notNull(),
+    questId: text('questId').primaryKey().notNull(),
     userId: text('userId').notNull(),
     missionId: text('missionId').notNull(),
     date: timestamp('date', { withTimezone: true }).notNull().defaultNow(),
@@ -97,7 +97,7 @@ export const userDailyQuest = pgTable(
 )
 
 export const badge = pgTable('Badge', {
-  id: text('id').primaryKey().notNull(),
+  badgeId: text('badgeId').primaryKey().notNull(),
   key: text('key').notNull().unique(),
   name: text('name').notNull(),
   description: text('description').notNull(),
@@ -115,7 +115,7 @@ export const badge = pgTable('Badge', {
 export const userBadge = pgTable(
   'UserBadge',
   {
-    id: text('id').primaryKey().notNull(),
+    userBadgeId: text('userBadgeId').primaryKey().notNull(),
     userId: text('userId').notNull(),
     badgeId: text('badgeId').notNull(),
     earnedAt: timestamp('earnedAt', { withTimezone: true }).notNull().defaultNow(),
@@ -134,7 +134,7 @@ export const userBadge = pgTable(
 export const leaderboardEntry = pgTable(
   'LeaderboardEntry',
   {
-    id: text('id').primaryKey().notNull(),
+    entryId: text('entryId').primaryKey().notNull(),
     userId: text('userId').notNull(),
     type: text('type').notNull(),
     periodStart: timestamp('periodStart', { withTimezone: true }),

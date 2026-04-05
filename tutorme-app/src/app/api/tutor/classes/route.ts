@@ -30,17 +30,17 @@ export const GET = withAuth(
           ),
       with: {
         participants: {
-          columns: { id: true },
+          columns: { participantId: true },
         },
       },
       orderBy: [asc(liveSessionTable.scheduledAt)],
     })
 
     const classes = sessions.map(s => ({
-      id: s.id,
-      curriculumId: s.curriculumId,
+      id: s.sessionId,
+      curriculumId: s.courseId,
       title: s.title,
-      subject: s.subject,
+      subject: s.category,
       scheduledAt: s.scheduledAt?.toISOString() ?? new Date().toISOString(),
       startedAt: s.startedAt?.toISOString() ?? null,
       endedAt: s.endedAt?.toISOString() ?? null,

@@ -18,7 +18,7 @@ export const POST = withCsrf(
 
       const contentId = crypto.randomUUID()
       await drizzleDb.insert(contentItem).values({
-        id: contentId,
+        contentId: contentId,
         title: String(title).slice(0, 500),
         subject: String(subject).slice(0, 100),
         type: 'video',
@@ -28,15 +28,16 @@ export const POST = withCsrf(
         difficulty: 'beginner',
         isPublished: false,
       })
-      const content = { id: contentId }
+      const content = { contentId: contentId }
 
-      const key = 'content/' + content.id + '/' + String(filename).replace(/[^a-zA-Z0-9._-]/g, '_')
+      const key =
+        'content/' + content.contentId + '/' + String(filename).replace(/[^a-zA-Z0-9._-]/g, '_')
 
       if (isGcsConfigured()) {
         const presign = await getPresignedPutUrl(key, contentType)
         if (presign) {
           return NextResponse.json({
-            contentId: content.id,
+            contentId: content.contentId,
             uploadUrl: presign.uploadUrl,
             key: presign.key,
             publicUrl: presign.publicUrl,
@@ -47,7 +48,7 @@ export const POST = withCsrf(
       }
 
       return NextResponse.json({
-        contentId: content.id,
+        contentId: content.contentId,
         message: 'GCS not configured. Set GCS_* env vars or set URL via upload-complete.',
         key,
       })

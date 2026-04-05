@@ -41,11 +41,21 @@ export const POST = withAuth(
 
       // 2. Resolve groupIds to studentIds
       if (groupIds.length > 0) {
-        const groupEnrollments = await drizzleDb.query.curriculumEnrollment.findMany({
-          where: inArray(curriculumEnrollment.batchId, groupIds),
-          columns: { studentId: true },
+        // First get courseIds from batches
+        const batches = await drizzleDb.query.courseBatch.findMany({
+          where: inArray(courseBatch.batchId, groupIds),
+          columns: { courseId: true },
         })
-        groupEnrollments.forEach(e => targetStudentIds.add(e.studentId))
+        const courseIdsFromBatches = batches.map(b => b.courseId)
+
+        // Then find enrollments for those courses
+        if (courseIdsFromBatches.length > 0) {
+          const groupEnrollments = await drizzleDb.query.curriculumEnrollment.findMany({
+            where: inArray(curriculumEnrollment.courseId, courseIdsFromBatches),
+            columns: { studentId: true },
+          })
+          groupEnrollments.forEach(e => targetStudentIds.add(e.studentId))
+        }
       }
 
       if (targetStudentIds.size === 0) {
@@ -54,7 +64,7 @@ export const POST = withAuth(
 
       // 3. Create notifications for each student
       const notificationsToInsert = Array.from(targetStudentIds).map(studentId => ({
-        id: crypto.randomUUID(),
+        notificationId: crypto.randomUUID(),
         userId: studentId,
         type: 'CLASS_INVITATION',
         title: 'Class Invitation',

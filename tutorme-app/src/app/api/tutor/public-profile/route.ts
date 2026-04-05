@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { eq, and, ne, desc } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { user, profile, curriculum, tutorApplication } from '@/lib/db/schema'
+import { user, profile, course, tutorApplication } from '@/lib/db/schema'
 import { nanoid } from 'nanoid'
 
 function normalizeUsername(value: string): string {
@@ -23,7 +23,7 @@ async function generateUniqueUsername(preferredSeed: string, tutorId: string): P
     const suffix = attempt === 0 ? '' : String(Math.floor(Math.random() * 9000) + 1000)
     const candidate = `${base}${suffix}`.slice(0, 30)
     const [existing] = await drizzleDb
-      .select({ id: profile.id })
+      .select({ profileId: profile.profileId })
       .from(profile)
       .where(and(eq(profile.username, candidate), ne(profile.userId, tutorId)))
       .limit(1)
@@ -37,12 +37,12 @@ export const GET = withAuth(
     const tutorId = session.user.id
 
     const [userRow] = await drizzleDb
-      .select({ id: user.id, email: user.email, role: user.role })
+      .select({ userId: user.userId, email: user.email, role: user.role })
       .from(user)
-      .where(eq(user.id, tutorId))
+      .where(eq(user.userId, tutorId))
       .limit(1)
 
-    if (!userRow || userRow.role !== 'TUTOR') {
+    if (!userRow) {
       return NextResponse.json({ error: 'Tutor not found' }, { status: 404 })
     }
 
@@ -74,17 +74,15 @@ export const GET = withAuth(
 
     const courses = await drizzleDb
       .select({
-        id: curriculum.id,
-        name: curriculum.name,
-        description: curriculum.description,
-        subject: curriculum.subject,
-        gradeLevel: curriculum.gradeLevel,
-        difficulty: curriculum.difficulty,
-        updatedAt: curriculum.updatedAt,
+        courseId: course.courseId,
+        name: course.name,
+        description: course.description,
+        categories: course.categories,
+        updatedAt: course.updatedAt,
       })
-      .from(curriculum)
-      .where(and(eq(curriculum.creatorId, tutorId), eq(curriculum.isPublished, true)))
-      .orderBy(desc(curriculum.updatedAt))
+      .from(course)
+      .where(and(eq(course.creatorId, tutorId), eq(course.isPublished, true)))
+      .orderBy(desc(course.updatedAt))
       .limit(50)
 
     return NextResponse.json({
@@ -132,7 +130,7 @@ export const PATCH = withAuth(
 
     const [prof] = await drizzleDb
       .select({
-        id: profile.id,
+        profileId: profile.profileId,
         userId: profile.userId,
         name: profile.name,
         username: profile.username,
@@ -154,7 +152,7 @@ export const PATCH = withAuth(
       }
 
       const [existing] = await drizzleDb
-        .select({ id: profile.id })
+        .select({ profileId: profile.profileId })
         .from(profile)
         .where(and(eq(profile.username, normalized), ne(profile.userId, tutorId)))
         .limit(1)

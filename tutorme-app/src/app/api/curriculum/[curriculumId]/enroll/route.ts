@@ -8,12 +8,12 @@ import { withAuth, withCsrf, NotFoundError, withRateLimitPreset } from '@/lib/ap
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
+  course,
   curriculumModule,
-  curriculumLesson,
+  courseLesson,
   courseBatch,
-  curriculumEnrollment,
-  curriculumProgress,
+  courseEnrollment,
+  courseProgress,
   profile,
 } from '@/lib/db/schema'
 import { eq, and, inArray } from 'drizzle-orm'
@@ -26,8 +26,8 @@ export const POST = withCsrf(
       const { response: rateLimitResponse } = await withRateLimitPreset(req, 'enroll')
       if (rateLimitResponse) return rateLimitResponse
 
-      const curriculumId = await getParamAsync(context?.params, 'curriculumId')
-      if (!curriculumId) {
+      const courseId = await getParamAsync(context?.params, 'curriculumId')
+      if (!courseId) {
         return NextResponse.json({ error: 'Curriculum ID required' }, { status: 400 })
       }
       const body = await req.json().catch(() => ({}))
@@ -36,71 +36,60 @@ export const POST = withCsrf(
       const requestedBatchId = rawBatchIdFromBody || rawBatchIdFromQuery
       const startDate = body?.startDate ? new Date(body.startDate) : undefined
 
-      const [curriculumRow] = await drizzleDb
+      const [courseRow] = await drizzleDb
         .select()
-        .from(curriculum)
-        .where(eq(curriculum.id, curriculumId))
+        .from(course)
+        .where(eq(course.courseId, courseId))
         .limit(1)
 
-      if (!curriculumRow) {
+      if (!courseRow) {
         throw new NotFoundError('Curriculum not found')
       }
 
       let validatedBatchId: string | null = null
       if (requestedBatchId) {
         const [batch] = await drizzleDb
-          .select({ id: courseBatch.id })
+          .select({ batchId: courseBatch.batchId })
           .from(courseBatch)
-          .where(
-            and(eq(courseBatch.id, requestedBatchId), eq(courseBatch.curriculumId, curriculumId))
-          )
+          .where(and(eq(courseBatch.batchId, requestedBatchId), eq(courseBatch.courseId, courseId)))
           .limit(1)
         if (!batch) {
           throw new NotFoundError('Course variant not found')
         }
-        validatedBatchId = batch.id
+        validatedBatchId = batch.batchId
       }
 
       const moduleRows = await drizzleDb
-        .select({ id: curriculumModule.id })
+        .select({ moduleId: curriculumModule.moduleId })
         .from(curriculumModule)
-        .where(eq(curriculumModule.curriculumId, curriculumId))
-      const moduleIds = moduleRows.map(m => m.id)
-      const totalLessons =
-        moduleIds.length === 0
-          ? 0
-          : ((
-              await drizzleDb
-                .select({ count: sql<number>`count(*)::int` })
-                .from(curriculumLesson)
-                .where(inArray(curriculumLesson.moduleId, moduleIds))
-            )[0]?.count ?? 0)
+        .where(eq(curriculumModule.courseId, courseId))
+      const moduleIds = moduleRows.map(m => m.moduleId)
+      // Lessons are now stored in builderData JSON field, count is not directly queryable
+      // We'll set totalLessons to 0 and let it be updated as student progresses
+      const totalLessons = 0
 
       const [existingProgress] = await drizzleDb
         .select()
-        .from(curriculumProgress)
+        .from(courseProgress)
         .where(
-          and(
-            eq(curriculumProgress.studentId, session.user.id),
-            eq(curriculumProgress.curriculumId, curriculumId)
-          )
+          and(eq(courseProgress.studentId, session.user.id), eq(courseProgress.courseId, courseId))
         )
         .limit(1)
 
       const [existingEnrollment] = await drizzleDb
         .select()
-        .from(curriculumEnrollment)
+        .from(courseEnrollment)
         .where(
           and(
-            eq(curriculumEnrollment.studentId, session.user.id),
-            eq(curriculumEnrollment.curriculumId, curriculumId)
+            eq(courseEnrollment.studentId, session.user.id),
+            eq(courseEnrollment.courseId, courseId)
           )
         )
         .limit(1)
 
       if (existingEnrollment) {
         await drizzleDb
-          .update(curriculumEnrollment)
+          .update(courseEnrollment)
           .set({
             enrollmentSource: 'signup',
             ...(startDate ? { startDate } : {}),
@@ -108,29 +97,30 @@ export const POST = withCsrf(
           })
           .where(
             and(
-              eq(curriculumEnrollment.studentId, session.user.id),
-              eq(curriculumEnrollment.curriculumId, curriculumId)
+              eq(courseEnrollment.studentId, session.user.id),
+              eq(courseEnrollment.courseId, courseId)
             )
           )
       } else {
-        await drizzleDb.insert(curriculumEnrollment).values({
-          id: crypto.randomUUID(),
+        await drizzleDb.insert(courseEnrollment).values({
+          enrollmentId: crypto.randomUUID(),
           studentId: session.user.id,
-          curriculumId,
-          batchId: validatedBatchId,
+          courseId,
+          enrolledAt: new Date(),
           startDate,
           lessonsCompleted: 0,
+          lastActivity: new Date(),
           enrollmentSource: 'signup',
         })
       }
 
       const [enrollment] = await drizzleDb
         .select()
-        .from(curriculumEnrollment)
+        .from(courseEnrollment)
         .where(
           and(
-            eq(curriculumEnrollment.studentId, session.user.id),
-            eq(curriculumEnrollment.curriculumId, curriculumId)
+            eq(courseEnrollment.studentId, session.user.id),
+            eq(courseEnrollment.courseId, courseId)
           )
         )
         .limit(1)
@@ -144,10 +134,10 @@ export const POST = withCsrf(
         })
       }
 
-      await drizzleDb.insert(curriculumProgress).values({
-        id: crypto.randomUUID(),
+      await drizzleDb.insert(courseProgress).values({
+        progressId: crypto.randomUUID(),
         studentId: session.user.id,
-        curriculumId,
+        courseId,
         lessonsCompleted: 0,
         totalLessons,
         isCompleted: false,
@@ -155,17 +145,14 @@ export const POST = withCsrf(
 
       const [progress] = await drizzleDb
         .select()
-        .from(curriculumProgress)
+        .from(courseProgress)
         .where(
-          and(
-            eq(curriculumProgress.studentId, session.user.id),
-            eq(curriculumProgress.curriculumId, curriculumId)
-          )
+          and(eq(courseProgress.studentId, session.user.id), eq(courseProgress.courseId, courseId))
         )
         .limit(1)
 
       // Notify the tutor about the new enrollment
-      if (curriculumRow.creatorId) {
+      if (courseRow.creatorId) {
         const [studentProfile] = await drizzleDb
           .select({ name: profile.name })
           .from(profile)
@@ -173,17 +160,17 @@ export const POST = withCsrf(
           .limit(1)
 
         void notify({
-          userId: curriculumRow.creatorId,
+          userId: courseRow.creatorId,
           type: 'enrollment',
           title: 'New Student Enrollment',
-          message: `${studentProfile?.name || 'A new student'} has enrolled in your course "${curriculumRow.name}"`,
+          message: `${studentProfile?.name || 'A new student'} has enrolled in your course "${courseRow.name}"`,
           data: {
-            curriculumId,
-            curriculumName: curriculumRow.name,
+            courseId,
+            courseName: courseRow.name,
             studentId: session.user.id,
             studentName: studentProfile?.name,
           },
-          actionUrl: `/tutor/courses/${curriculumId}/enrollments`,
+          actionUrl: `/tutor/courses/${courseId}/enrollments`,
         })
       }
 

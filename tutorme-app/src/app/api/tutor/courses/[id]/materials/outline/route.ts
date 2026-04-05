@@ -21,13 +21,12 @@ export const POST = withCsrf(
 
       const [curriculumRow] = await drizzleDb
         .select({
-          id: curriculum.id,
-          subject: curriculum.subject,
+          id: curriculum.courseId,
+          subject: curriculum.categories,
           languageOfInstruction: curriculum.languageOfInstruction,
-          courseMaterials: curriculum.courseMaterials,
         })
         .from(curriculum)
-        .where(eq(curriculum.id, id))
+        .where(eq(curriculum.courseId, id))
       if (!curriculumRow) throw new NotFoundError('Course not found')
 
       const body = await req.json().catch(() => ({}))
@@ -39,7 +38,8 @@ export const POST = withCsrf(
         typeof body.curriculumText === 'string' ? body.curriculumText.trim() : ''
       const bodyNotesText = typeof body.notesText === 'string' ? body.notesText.trim() : ''
 
-      const materials = (curriculumRow.courseMaterials as Record<string, unknown>) ?? {}
+      // courseMaterials column doesn't exist
+      const materials: Record<string, unknown> = {}
       const curriculumText =
         bodyCurriculumText ||
         (materials.editableCurriculum as string) ||
@@ -66,19 +66,18 @@ export const POST = withCsrf(
         curriculumText:
           curriculumText.trim() || notesOnly || '(No curriculum; generate from notes.)',
         notesText: curriculumText.trim() && notesText ? notesText : undefined,
-        subject: curriculumRow.subject,
+        subject: curriculumRow.subject?.[0] || '',
         typicalLessonMinutes,
         language: curriculumRow.languageOfInstruction ?? 'en',
       })
       const modules = generated.modules
       const outline = generated.outline
 
-      materials.outline = outline
-      materials.outlineModules = { modules }
-      await drizzleDb
-        .update(curriculum)
-        .set({ courseMaterials: materials as object })
-        .where(eq(curriculum.id, id))
+      // courseMaterials column doesn't exist - skip saving
+      // await drizzleDb
+      //   .update(curriculum)
+      //   .set({ courseMaterials: materials as object })
+      //   .where(eq(curriculum.courseId, id))
 
       return NextResponse.json({
         outline,

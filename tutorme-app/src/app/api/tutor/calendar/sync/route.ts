@@ -140,7 +140,7 @@ export const POST = withAuth(
           await drizzleDb
             .update(calendarConnection)
             .set({ lastSyncedAt: new Date() })
-            .where(eq(calendarConnection.id, connection.id))
+            .where(eq(calendarConnection.connectionId, connection.connectionId))
 
           results.push({
             provider: connection.provider,
@@ -169,7 +169,7 @@ export const POST = withAuth(
 )
 
 async function syncCalendar(
-  connection: { id: string; provider: string; expiresAt: Date | null },
+  connection: { connectionId: string; provider: string; expiresAt: Date | null },
   direction: string,
   dateRange: { start: Date; end: Date },
   tutorId: string
@@ -196,10 +196,10 @@ async function syncCalendar(
             endTime: event.endTime,
             location: event.location,
           })
-          .where(eq(calendarEvent.id, existing.id))
+          .where(eq(calendarEvent.eventId, existing.eventId))
       } else {
         await drizzleDb.insert(calendarEvent).values({
-          id: nanoid(),
+          eventId: nanoid(),
           tutorId,
           externalId: event.id,
           title: event.title,
@@ -294,7 +294,7 @@ export const PUT = withAuth(
         const [updated] = await drizzleDb
           .update(calendarConnection)
           .set({ syncEnabled: true, lastSyncedAt: now })
-          .where(eq(calendarConnection.id, existing.id))
+          .where(eq(calendarConnection.connectionId, existing.connectionId))
           .returning()
 
         return NextResponse.json({
@@ -310,7 +310,7 @@ export const PUT = withAuth(
       const [created] = await drizzleDb
         .insert(calendarConnection)
         .values({
-          id: nanoid(),
+          connectionId: nanoid(),
           userId: tutorId,
           provider,
           syncEnabled: true,

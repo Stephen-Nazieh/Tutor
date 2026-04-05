@@ -25,7 +25,7 @@ export async function PATCH(req: NextRequest) {
   const rows = await drizzleDb
     .select()
     .from(liveSession)
-    .where(and(eq(liveSession.id, liveSessionId), eq(liveSession.tutorId, session.user.id)))
+    .where(and(eq(liveSession.sessionId, liveSessionId), eq(liveSession.tutorId, session.user.id)))
     .limit(1)
 
   const liveSessionRow = rows[0]
@@ -39,7 +39,7 @@ export async function PATCH(req: NextRequest) {
       recordingUrl: isRecording ? null : recordingUrl,
       recordingAvailableAt: isRecording ? null : recordingUrl ? new Date() : null,
     })
-    .where(eq(liveSession.id, liveSessionId))
+    .where(eq(liveSession.sessionId, liveSessionId))
 
   const existing = await drizzleDb
     .select()
@@ -59,7 +59,7 @@ export async function PATCH(req: NextRequest) {
       .where(eq(sessionReplayArtifact.sessionId, liveSessionId))
   } else {
     await drizzleDb.insert(sessionReplayArtifact).values({
-      id: randomUUID(),
+      artifactId: randomUUID(),
       sessionId: liveSessionId,
       tutorId: session.user.id,
       recordingUrl: isRecording ? null : recordingUrl,

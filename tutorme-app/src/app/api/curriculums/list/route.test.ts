@@ -12,21 +12,20 @@ const mocks = vi.hoisted(() => ({
   }),
   selectCall: 0,
   curriculums: [] as Array<{
-    id: string
+    courseId: string
     name: string
-    subject: string
+    categories: string[] | null
     description: string | null
-    difficulty: string
-    estimatedHours: number
-    price: number
-    currency: string
-    gradeLevel: string | null
+    price: number | null
+    currency: string | null
+    isFree: boolean
+    isPublished: boolean
     createdAt: Date
+    updatedAt: Date
   }>,
-  modulesRaw: [] as Array<{ curriculumId: string; count: number }>,
-  enrollmentsRaw: [] as Array<{ curriculumId: string; count: number }>,
-  allModules: [] as Array<{ id: string; curriculumId: string }>,
-  lessonsRaw: [] as Array<{ moduleId: string; count: number }>,
+  modulesRaw: [] as Array<{ courseId: string; count: number }>,
+  enrollmentsRaw: [] as Array<{ courseId: string; count: number }>,
+  lessonsRaw: [] as Array<{ courseId: string; count: number }>,
 }))
 
 vi.mock('@/lib/api/middleware', () => ({
@@ -66,12 +65,6 @@ vi.mock('@/lib/db/drizzle', () => ({
         case 4:
           return {
             from: () => ({
-              where: () => Promise.resolve(mocks.allModules),
-            }),
-          }
-        case 5:
-          return {
-            from: () => ({
               where: () => ({
                 groupBy: () => Promise.resolve(mocks.lessonsRaw),
               }),
@@ -97,28 +90,21 @@ describe('GET /api/curriculums/list', () => {
     mocks.withRateLimit.mockResolvedValue({ response: null })
     mocks.curriculums = [
       {
-        id: 'c1',
+        courseId: 'c1',
         name: 'Math 101',
-        subject: 'math',
+        categories: ['math'],
         description: null,
-        difficulty: 'beginner',
-        estimatedHours: 10,
         price: 100,
         currency: 'USD',
-        gradeLevel: 'G8',
+        isFree: false,
+        isPublished: true,
         createdAt: new Date('2026-01-01'),
+        updatedAt: new Date('2026-01-01'),
       },
     ]
-    mocks.modulesRaw = [{ curriculumId: 'c1', count: 2 }]
-    mocks.enrollmentsRaw = [{ curriculumId: 'c1', count: 5 }]
-    mocks.allModules = [
-      { id: 'm1', curriculumId: 'c1' },
-      { id: 'm2', curriculumId: 'c1' },
-    ]
-    mocks.lessonsRaw = [
-      { moduleId: 'm1', count: 3 },
-      { moduleId: 'm2', count: 2 },
-    ]
+    mocks.modulesRaw = [{ courseId: 'c1', count: 2 }]
+    mocks.enrollmentsRaw = [{ courseId: 'c1', count: 5 }]
+    mocks.lessonsRaw = [{ courseId: 'c1', count: 5 }]
   })
 
   it('returns 200 and list of enriched published curriculums', async () => {

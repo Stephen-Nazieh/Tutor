@@ -10,13 +10,7 @@ import { z } from 'zod'
 import { eq, and, desc, sql } from 'drizzle-orm'
 import { withAuth, withRateLimit } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  curriculum,
-  user,
-  curriculumShare,
-  familyNotification,
-  familyMember,
-} from '@/lib/db/schema'
+import { course, user, courseShare, familyNotification, familyMember } from '@/lib/db/schema'
 import { logAudit, AUDIT_ACTIONS } from '@/lib/security/audit'
 import crypto from 'crypto'
 
@@ -44,12 +38,12 @@ async function postHandler(
   }
   const data = parseResult.data
 
-  const [course] = await drizzleDb
+  const [courseRow] = await drizzleDb
     .select()
-    .from(curriculum)
-    .where(and(eq(curriculum.id, data.courseId), eq(curriculum.creatorId, session.user.id)))
+    .from(course)
+    .where(and(eq(course.courseId, data.courseId), eq(course.creatorId, session.user.id)))
 
-  if (!course) {
+  if (!courseRow) {
     return NextResponse.json({ error: 'Course not found or permission denied' }, { status: 404 })
   }
 
@@ -83,36 +77,33 @@ async function postHandler(
         continue
       }
 
-      const existingShare = await drizzleDb.query.curriculumShare.findFirst({
-        where: and(
-          eq(curriculumShare.curriculumId, data.courseId),
-          eq(curriculumShare.recipientId, recipient.id)
-        ),
-      })
+      const shareId = crypto.randomUUID()
+      const insertedShare = await drizzleDb
+        .insert(courseShare)
+        .values({
+          shareId: shareId,
+          courseId: data.courseId,
+          sharedByTutorId: session.user.id,
+          recipientId: recipient.userId,
+          message: data.message,
+          isPublic: false,
+        })
+        .onConflictDoNothing({ target: [courseShare.courseId, courseShare.recipientId] })
+        .returning({ shareId: courseShare.shareId })
 
-      if (existingShare) {
+      if (insertedShare.length === 0) {
         results.push({ email, status: 'already_shared' })
         continue
       }
-
-      const shareId = crypto.randomUUID()
-      await drizzleDb.insert(curriculumShare).values({
-        id: shareId,
-        curriculumId: data.courseId,
-        sharedByTutorId: session.user.id,
-        recipientId: recipient.id,
-        message: data.message,
-        isPublic: false,
-      })
 
       const familyAccountId = recipient.familyMemberships?.[0]?.familyAccountId
       if (familyAccountId) {
         const tutorName = session.user.name ?? 'Your teacher'
         await drizzleDb.insert(familyNotification).values({
-          id: crypto.randomUUID(),
+          notificationId: crypto.randomUUID(),
           parentId: familyAccountId,
           title: 'Course Shared by Tutor',
-          message: `${tutorName} shared a course with you: "${course.name}". ${data.message} View: /parent/courses/${shareId}`,
+          message: `${tutorName} shared a course with you: "${courseRow.name}". ${data.message} View: /parent/courses/${shareId}`,
           isRead: false,
         })
       }
@@ -129,7 +120,7 @@ async function postHandler(
   }
 
   await logAudit(session.user.id, AUDIT_ACTIONS.COURSE_SHARE, {
-    resource: 'curriculum-share',
+    resource: 'course-share',
     resourceId: data.courseId,
     recipientCount: data.recipientEmails.length,
     results: results.map(r => ({ email: r.email, status: r.status })),
@@ -144,21 +135,20 @@ async function postHandler(
 }
 
 async function getHandler(_req: NextRequest, session: { user: { id: string } }) {
-  const sharedCourses = await drizzleDb.query.curriculumShare.findMany({
-    where: eq(curriculumShare.sharedByTutorId, session.user.id),
-    orderBy: [desc(curriculumShare.sharedAt)],
+  const sharedCourses = await drizzleDb.query.courseShare.findMany({
+    where: eq(courseShare.sharedByTutorId, session.user.id),
+    orderBy: [desc(courseShare.sharedAt)],
     with: {
       recipient: {
         with: {
           profile: { columns: { name: true } },
         },
       },
-      curriculum: {
+      course: {
         columns: {
-          id: true,
+          courseId: true,
           name: true,
-          subject: true,
-          gradeLevel: true,
+          categories: true,
           description: true,
         },
       },

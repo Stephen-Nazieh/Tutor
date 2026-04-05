@@ -51,7 +51,7 @@ export const GET = withAuth(
 
         if (contents.length === 0) return []
 
-        const contentIds = contents.map(c => c.id)
+        const contentIds = contents.map(c => c.contentId)
         const progressList = await drizzleDb
           .select()
           .from(contentProgress)
@@ -65,7 +65,7 @@ export const GET = withAuth(
 
         return contents.map(
           (content: {
-            id: string
+            contentId: string
             subject: string
             title: string
             type: string
@@ -73,11 +73,11 @@ export const GET = withAuth(
             difficulty: string | null
             thumbnailUrl: string | null
           }) => {
-            const progress = progressByContentId.get(content.id) as
+            const progress = progressByContentId.get(content.contentId) as
               | { progress: number; completed: boolean; updatedAt: Date }
               | undefined
             return {
-              id: content.id,
+              id: content.contentId,
               subject: content.subject,
               topic: content.title,
               type: content.type,

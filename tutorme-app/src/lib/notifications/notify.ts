@@ -157,7 +157,7 @@ async function sendNotificationEmail(
   const [u] = await drizzleDb
     .select({ email: user.email })
     .from(user)
-    .where(eq(user.id, userId))
+    .where(eq(user.userId, userId))
     .limit(1)
   if (!u?.email) return
 
@@ -209,7 +209,7 @@ export async function notify(params: NotifyParams) {
   const channels = await getChannelDecision(userId, type, force)
 
   let inAppRecord: {
-    id: string
+    notificationId: string
     userId: string
     type: string
     title: string
@@ -221,7 +221,7 @@ export async function notify(params: NotifyParams) {
     const [row] = await drizzleDb
       .insert(notification)
       .values({
-        id: crypto.randomUUID(),
+        notificationId: crypto.randomUUID(),
         userId,
         type,
         title,

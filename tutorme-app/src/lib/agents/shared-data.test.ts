@@ -34,7 +34,7 @@ describe('shared-data', () => {
   it('maps student data from the database', async () => {
     const now = new Date('2024-01-01T00:00:00Z')
     mocks.dbMock.query.user.findFirst.mockResolvedValue({
-      id: 'u1',
+      userId: 'u1',
       email: 'test@example.com',
       updatedAt: now,
       profile: {

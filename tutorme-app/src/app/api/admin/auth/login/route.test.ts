@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
   logFailedLogin: vi.fn(),
   // Drizzle state per test
   whitelistCount: 0,
-  userByEmail: null as { id: string; email: string; password: string; role: string } | null,
+  userByEmail: null as { userId: string; email: string; password: string; role: string } | null,
   profileByUserId: null as { name: string } | null,
   assignmentRoles: [] as Array<{ roleName: string }>,
   drizzleSelectIndex: 0,
@@ -106,7 +106,7 @@ describe('POST /api/admin/auth/login', () => {
 
   it('returns 401 and logs failed attempt for invalid credentials', async () => {
     mocks.userByEmail = {
-      id: 'admin-1',
+      userId: 'admin-1',
       email: 'admin@example.com',
       password: 'hashed-password',
       role: 'ADMIN',
@@ -174,7 +174,7 @@ describe('POST /api/admin/auth/login', () => {
 
   it('returns 200 and sets cookie when credentials are valid', async () => {
     mocks.userByEmail = {
-      id: 'admin-1',
+      userId: 'admin-1',
       email: 'admin@example.com',
       password: 'hashed-password',
       role: 'ADMIN',
@@ -199,7 +199,7 @@ describe('POST /api/admin/auth/login', () => {
 
   it('returns 403 when user has no admin role or assignment', async () => {
     mocks.userByEmail = {
-      id: 'student-1',
+      userId: 'student-1',
       email: 'student@example.com',
       password: 'hashed-password',
       role: 'STUDENT',

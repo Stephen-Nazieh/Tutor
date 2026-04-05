@@ -16,8 +16,8 @@ import {
   clinic,
   user,
   profile,
-  curriculumEnrollment,
-  curriculum,
+  courseEnrollment,
+  course,
 } from '@/lib/db/schema'
 import { HitpayGateway } from '@/lib/payments'
 import {
@@ -69,12 +69,12 @@ export async function POST(req: NextRequest) {
       .from(payment)
       .where(and(eq(payment.gatewayPaymentId, gatewayPaymentId), eq(payment.gateway, 'HITPAY')))
       .limit(1)
-    paymentIdForEvent = p?.id ?? null
+    paymentIdForEvent = p?.paymentId ?? null
   }
 
   const webhookEventId = crypto.randomUUID()
   await drizzleDb.insert(webhookEvent).values({
-    id: webhookEventId,
+    eventId: webhookEventId,
     paymentId: paymentIdForEvent,
     gateway: 'HITPAY',
     eventType: 'payment_request.completed',
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
     ) as string[]
     let paymentRow:
       | {
-          id: string
+          paymentId: string
           bookingId: string | null
           metadata: unknown
           amount: number
@@ -112,33 +112,33 @@ export async function POST(req: NextRequest) {
       await drizzleDb
         .update(payment)
         .set({ status: 'COMPLETED', paidAt: new Date() })
-        .where(eq(payment.id, paymentRow.id))
+        .where(eq(payment.paymentId, paymentRow.paymentId))
 
       const meta = paymentRow.metadata as Record<string, unknown> | null
       if (
         !paymentRow.bookingId &&
         meta?.type === 'course' &&
-        typeof meta.curriculumId === 'string' &&
+        typeof meta.courseId === 'string' &&
         typeof meta.studentId === 'string'
       ) {
-        const { enrollStudentInCurriculum } = await import('@/lib/enrollment')
-        enrollStudentInCurriculum(
+        const { enrollStudentInCourse } = await import('@/lib/enrollment')
+        enrollStudentInCourse(
           meta.studentId as string,
-          meta.curriculumId as string,
+          meta.courseId as string,
           meta.startDate as string | undefined
         )
           .then(async () => {
             const [enrollment] = await drizzleDb
               .select({
-                id: curriculumEnrollment.id,
-                creatorId: curriculum.creatorId,
+                enrollmentId: courseEnrollment.enrollmentId,
+                creatorId: course.creatorId,
               })
-              .from(curriculumEnrollment)
-              .innerJoin(curriculum, eq(curriculum.id, curriculumEnrollment.curriculumId))
+              .from(courseEnrollment)
+              .innerJoin(course, eq(course.courseId, courseEnrollment.courseId))
               .where(
                 and(
-                  eq(curriculumEnrollment.studentId, meta.studentId as string),
-                  eq(curriculumEnrollment.curriculumId, meta.curriculumId as string)
+                  eq(courseEnrollment.studentId, meta.studentId as string),
+                  eq(courseEnrollment.courseId, meta.courseId as string)
                 )
               )
               .limit(1)
@@ -146,10 +146,10 @@ export async function POST(req: NextRequest) {
               await drizzleDb
                 .update(payment)
                 .set({
-                  enrollmentId: enrollment.id,
+                  enrollmentId: enrollment.enrollmentId,
                   tutorId: enrollment.creatorId ?? paymentRow.tutorId,
                 })
-                .where(eq(payment.id, paymentRow.id))
+                .where(eq(payment.paymentId, paymentRow.paymentId))
             }
           })
           .catch(() => {})
@@ -159,13 +159,13 @@ export async function POST(req: NextRequest) {
             name: profile.name,
           })
           .from(user)
-          .leftJoin(profile, eq(profile.userId, user.id))
-          .where(eq(user.id, meta.studentId as string))
+          .leftJoin(profile, eq(profile.userId, user.userId))
+          .where(eq(user.userId, meta.studentId as string))
           .limit(1)
         const description = 'Course enrollment'
         if (userRow?.email) {
           sendPaymentConfirmation({
-            paymentId: paymentRow.id,
+            paymentId: paymentRow.paymentId,
             studentEmail: userRow.email,
             studentName: userRow.name ?? undefined,
             amount: paymentRow.amount,
@@ -182,26 +182,26 @@ export async function POST(req: NextRequest) {
             tutorId: clinic.tutorId,
           })
           .from(clinicBooking)
-          .innerJoin(clinic, eq(clinic.id, clinicBooking.clinicId))
-          .where(eq(clinicBooking.id, paymentRow.bookingId))
+          .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
+          .where(eq(clinicBooking.bookingId, paymentRow.bookingId))
           .limit(1)
         if (bookingClinic) {
           const [studentRow] = await drizzleDb
             .select({ email: user.email, name: profile.name })
             .from(user)
-            .leftJoin(profile, eq(profile.userId, user.id))
-            .where(eq(user.id, bookingClinic.studentId))
+            .leftJoin(profile, eq(profile.userId, user.userId))
+            .where(eq(user.userId, bookingClinic.studentId))
             .limit(1)
           const [tutorRow] = await drizzleDb
             .select({ email: user.email, name: profile.name })
             .from(user)
-            .leftJoin(profile, eq(profile.userId, user.id))
-            .where(eq(user.id, bookingClinic.tutorId))
+            .leftJoin(profile, eq(profile.userId, user.userId))
+            .where(eq(user.userId, bookingClinic.tutorId))
             .limit(1)
           const description = `${bookingClinic.clinicTitle} – ${bookingClinic.clinicSubject}`
           if (studentRow?.email) {
             sendPaymentConfirmation({
-              paymentId: paymentRow.id,
+              paymentId: paymentRow.paymentId,
               studentEmail: studentRow.email,
               studentName: studentRow.name ?? undefined,
               amount: paymentRow.amount,
@@ -211,7 +211,7 @@ export async function POST(req: NextRequest) {
           }
           if (tutorRow?.email) {
             sendTutorPaymentReceived({
-              paymentId: paymentRow.id,
+              paymentId: paymentRow.paymentId,
               tutorEmail: tutorRow.email,
               tutorName: tutorRow.name ?? undefined,
               amount: paymentRow.amount,
@@ -227,7 +227,7 @@ export async function POST(req: NextRequest) {
   await drizzleDb
     .update(webhookEvent)
     .set({ processed: true, processedAt: new Date() })
-    .where(eq(webhookEvent.id, webhookEventId))
+    .where(eq(webhookEvent.eventId, webhookEventId))
 
   return NextResponse.json({ received: true })
 }

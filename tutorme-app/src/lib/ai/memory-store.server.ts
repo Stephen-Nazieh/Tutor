@@ -37,7 +37,7 @@ function coerceEnglishLevel(value: unknown): EnglishLevel {
 async function buildDefaultStudentProfile(studentId: string): Promise<StudentProfile | null> {
   const [row] = await drizzleDb
     .select({
-      userId: userTable.id,
+      userId: userTable.userId,
       email: userTable.email,
       name: profileTable.name,
       gradeLevel: profileTable.gradeLevel,
@@ -45,8 +45,8 @@ async function buildDefaultStudentProfile(studentId: string): Promise<StudentPro
       subjectsOfInterest: profileTable.subjectsOfInterest,
     })
     .from(userTable)
-    .leftJoin(profileTable, eq(profileTable.userId, userTable.id))
-    .where(eq(userTable.id, studentId))
+    .leftJoin(profileTable, eq(profileTable.userId, userTable.userId))
+    .where(eq(userTable.userId, studentId))
     .limit(1)
 
   if (!row) return null
@@ -115,7 +115,7 @@ export async function getStudentContextDb(studentId: string): Promise<StudentCon
   const now = new Date()
   const studentSignals = await drizzleDb
     .select({
-      id: studentAgentSignal.id,
+      signalId: studentAgentSignal.signalId,
       source: studentAgentSignal.source,
       type: studentAgentSignal.type,
       content: studentAgentSignal.content,
@@ -134,7 +134,7 @@ export async function getStudentContextDb(studentId: string): Promise<StudentCon
     .limit(50)
 
   const signals: AgentSignal[] = studentSignals.map(s => ({
-    id: String(s.id),
+    id: String(s.signalId),
     source: s.source as AgentSignal['source'],
     type: s.type as AgentSignal['type'],
     content: s.content,

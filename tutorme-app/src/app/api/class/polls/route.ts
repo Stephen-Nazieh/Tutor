@@ -57,11 +57,11 @@ export const GET = withAuth(
           const options = await drizzleDb
             .select()
             .from(pollOption)
-            .where(eq(pollOption.pollId, p.id))
+            .where(eq(pollOption.pollId, p.pollId))
             .orderBy(asc(pollOption.label))
           const responses = await drizzleDb
             .select({
-              id: pollResponse.id,
+              responseId: pollResponse.responseId,
               studentId: pollResponse.studentId,
               optionIds: pollResponse.optionIds,
               rating: pollResponse.rating,
@@ -69,7 +69,7 @@ export const GET = withAuth(
               createdAt: pollResponse.createdAt,
             })
             .from(pollResponse)
-            .where(eq(pollResponse.pollId, p.id))
+            .where(eq(pollResponse.pollId, p.pollId))
           return {
             ...p,
             responses,
@@ -111,7 +111,7 @@ export const POST = withAuth(
       let correctOptionId: string | null = null
 
       await drizzleDb.insert(poll).values({
-        id: pollId,
+        pollId,
         sessionId: data.roomId,
         tutorId: session.user.id,
         question: safeQuestion,
@@ -139,13 +139,23 @@ export const POST = withAuth(
           }
         }
       )
-      await drizzleDb.insert(pollOption).values(optionRows)
+      await drizzleDb.insert(pollOption).values(
+        optionRows.map(o => ({
+          optionId: o.id,
+          pollId: o.pollId,
+          label: o.label,
+          text: o.text,
+          color: o.color,
+          responseCount: o.responseCount,
+          percentage: o.percentage,
+        }))
+      )
 
       if (correctOptionId) {
-        await drizzleDb.update(poll).set({ correctOptionId }).where(eq(poll.id, pollId))
+        await drizzleDb.update(poll).set({ correctOptionId }).where(eq(poll.pollId, pollId))
       }
 
-      const [created] = await drizzleDb.select().from(poll).where(eq(poll.id, pollId)).limit(1)
+      const [created] = await drizzleDb.select().from(poll).where(eq(poll.pollId, pollId)).limit(1)
       const optionsList = await drizzleDb
         .select()
         .from(pollOption)

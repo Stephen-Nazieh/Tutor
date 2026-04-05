@@ -10,12 +10,12 @@ import { withAuth } from '@/lib/api/middleware'
 import { cache } from '@/lib/db'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
-  curriculumProgress,
+  course,
+  courseProgress,
   curriculumModule,
-  curriculumLesson,
+  courseLesson,
   courseBatch,
-  curriculumEnrollment,
+  courseEnrollment,
 } from '@/lib/db/schema'
 import { eq, inArray, desc, sql, and } from 'drizzle-orm'
 
@@ -93,7 +93,7 @@ interface CurriculumResponse {
   description: string | null
   subject: string
 
-  estimatedHours: number
+  estimatedHours: number // Kept for response structure
   hasOutline: boolean
   _count: {
     modules: number
@@ -126,121 +126,91 @@ export const GET = withAuth(async (req, session) => {
     cacheKey,
     async () => {
       // 1. Fetch main curriculum rows
-      const curriculums = await drizzleDb
-        .select()
-        .from(curriculum)
-        .orderBy(desc(curriculum.createdAt))
+      const curriculums = await drizzleDb.select().from(course).orderBy(desc(course.createdAt))
 
       if (curriculums.length === 0) return []
-      const curriculumIds = curriculums.map(c => c.id)
+      const courseIds = curriculums.map(c => c.courseId)
 
       // 2. Fetch module counts
       const modulesRaw = await drizzleDb
         .select({
-          curriculumId: curriculumModule.curriculumId,
-          moduleCount: sql<number>`count(${curriculumModule.id})::int`,
+          courseId: curriculumModule.courseId,
+          moduleCount: sql<number>`count(${curriculumModule.moduleId})::int`,
         })
         .from(curriculumModule)
-        .where(inArray(curriculumModule.curriculumId, curriculumIds))
-        .groupBy(curriculumModule.curriculumId)
+        .where(inArray(curriculumModule.courseId, courseIds))
+        .groupBy(curriculumModule.courseId)
 
-      const modulesMap = new Map<string, number>(
-        modulesRaw.map(m => [m.curriculumId, m.moduleCount])
-      )
+      const modulesMap = new Map<string, number>(modulesRaw.map(m => [m.courseId, m.moduleCount]))
 
       // 3. Fetch batch counts
       const batchesRaw = await drizzleDb
         .select({
-          curriculumId: courseBatch.curriculumId,
-          batchCount: sql<number>`count(${courseBatch.id})::int`,
+          courseId: courseBatch.courseId,
+          batchCount: sql<number>`count(${courseBatch.batchId})::int`,
         })
         .from(courseBatch)
-        .where(inArray(courseBatch.curriculumId, curriculumIds))
-        .groupBy(courseBatch.curriculumId)
+        .where(inArray(courseBatch.courseId, courseIds))
+        .groupBy(courseBatch.courseId)
 
-      const batchesMap = new Map<string, number>(
-        batchesRaw.map(b => [b.curriculumId, b.batchCount])
-      )
+      const batchesMap = new Map<string, number>(batchesRaw.map(b => [b.courseId, b.batchCount]))
 
-      // 4. Fetch the lessons count by getting modules for these curriculums
+      // 4. Lessons now stored in builderData JSON field, can't query count directly
       const allModules = await drizzleDb
-        .select({ id: curriculumModule.id, curriculumId: curriculumModule.curriculumId })
+        .select({ moduleId: curriculumModule.moduleId, courseId: curriculumModule.courseId })
         .from(curriculumModule)
-        .where(inArray(curriculumModule.curriculumId, curriculumIds))
+        .where(inArray(curriculumModule.courseId, courseIds))
 
-      const moduleIds = allModules.map(m => m.id)
       const lessonsMap = new Map<string, number>()
-
-      if (moduleIds.length > 0) {
-        const lessonsRaw = await drizzleDb
-          .select({
-            moduleId: curriculumLesson.moduleId,
-            lessonCount: sql<number>`count(${curriculumLesson.id})::int`,
-          })
-          .from(curriculumLesson)
-          .where(inArray(curriculumLesson.moduleId, moduleIds))
-          .groupBy(curriculumLesson.moduleId)
-
-        // Filter out lessons with null moduleId (new flat structure)
-        const lessonCountsByModule = new Map<string, number>(
-          lessonsRaw
-            .filter((l): l is typeof l & { moduleId: string } => l.moduleId !== null)
-            .map(l => [l.moduleId, l.lessonCount])
-        )
-
-        for (const m of allModules) {
-          const lCount = lessonCountsByModule.get(m.id) || 0
-          lessonsMap.set(m.curriculumId, (lessonsMap.get(m.curriculumId) || 0) + lCount)
-        }
-      }
+      // Lessons count not available with new schema (stored in JSON)
 
       // 5. Fetch user progress
       const progressList = await drizzleDb
         .select()
-        .from(curriculumProgress)
+        .from(courseProgress)
         .where(
           and(
-            eq(curriculumProgress.studentId, session.user.id),
-            inArray(curriculumProgress.curriculumId, curriculumIds)
+            eq(courseProgress.studentId, session.user.id),
+            inArray(courseProgress.courseId, courseIds)
           )
         )
 
-      const progressByCurriculumId = new Map<string, (typeof progressList)[number]>(
-        progressList.map(p => [p.curriculumId, p])
+      const progressByCourseId = new Map<string, (typeof progressList)[number]>(
+        progressList.map(p => [p.courseId, p])
       )
 
       // 5.5 Fetch user enrollment
       const enrollmentList = await drizzleDb
         .select()
-        .from(curriculumEnrollment)
+        .from(courseEnrollment)
         .where(
           and(
-            eq(curriculumEnrollment.studentId, session.user.id),
-            inArray(curriculumEnrollment.curriculumId, curriculumIds)
+            eq(courseEnrollment.studentId, session.user.id),
+            inArray(courseEnrollment.courseId, courseIds)
           )
         )
 
-      const enrollmentByCurriculumId = new Map<string, (typeof enrollmentList)[number]>(
-        enrollmentList.map(e => [e.curriculumId, e])
+      const enrollmentByCourseId = new Map<string, (typeof enrollmentList)[number]>(
+        enrollmentList.map(e => [e.courseId, e])
       )
 
       // 6. Map everything together
       return curriculums.map((curr): CurriculumResponse => {
-        const progress = progressByCurriculumId.get(curr.id)
-        const enrollment = enrollmentByCurriculumId.get(curr.id)
+        const progress = progressByCourseId.get(curr.courseId)
+        const enrollment = enrollmentByCourseId.get(curr.courseId)
         const schedule = normalizeSchedule(curr.schedule)
         return {
-          id: curr.id,
+          id: curr.courseId,
           name: curr.name,
           description: curr.description,
-          subject: curr.subject,
+          subject: curr.categories?.[0] ?? '', // Use categories instead of subject
 
-          estimatedHours: curr.estimatedHours,
-          hasOutline: hasOutline(curr.courseMaterials),
+          estimatedHours: 0, // No longer in schema
+          hasOutline: false, // courseMaterials no longer in schema
           _count: {
-            modules: modulesMap.get(curr.id) || 0,
-            lessons: lessonsMap.get(curr.id) || 0,
-            batches: batchesMap.get(curr.id) || 0,
+            modules: modulesMap.get(curr.courseId) || 0,
+            lessons: lessonsMap.get(curr.courseId) || 0,
+            batches: batchesMap.get(curr.courseId) || 0,
           },
           availability: {
             summary: availabilitySummary(schedule),

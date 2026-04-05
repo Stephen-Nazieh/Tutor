@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
 import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculumEnrollment, clinicBooking, curriculum, clinic } from '@/lib/db/schema'
+import { courseEnrollment, clinicBooking, course, clinic } from '@/lib/db/schema'
 
 export const GET = withAuth(
   async (req, session) => {
@@ -15,14 +15,14 @@ export const GET = withAuth(
     if (!tutorId) return NextResponse.json({ students: [] })
 
     try {
-      // Students enrolled in curricula created by this tutor
-      const enrollments = await drizzleDb.query.curriculumEnrollment.findMany({
+      // Students enrolled in courses created by this tutor
+      const enrollments = await drizzleDb.query.courseEnrollment.findMany({
         where: (ce, { exists, and }) =>
           exists(
             drizzleDb
               .select()
-              .from(curriculum)
-              .where(and(eq(curriculum.id, ce.curriculumId), eq(curriculum.creatorId, tutorId)))
+              .from(course)
+              .where(and(eq(course.courseId, ce.courseId), eq(course.creatorId, tutorId)))
           ),
         with: {
           student: {
@@ -31,13 +31,10 @@ export const GET = withAuth(
                 columns: { name: true },
               },
             },
-            columns: { id: true, email: true },
+            columns: { userId: true, email: true },
           },
-          curriculum: {
-            columns: { id: true, name: true },
-          },
-          batch: {
-            columns: { id: true, name: true },
+          course: {
+            columns: { courseId: true, name: true },
           },
         },
       })
@@ -49,7 +46,7 @@ export const GET = withAuth(
             drizzleDb
               .select()
               .from(clinic)
-              .where(and(eq(clinic.id, cb.clinicId), eq(clinic.tutorId, tutorId)))
+              .where(and(eq(clinic.clinicId, cb.clinicId), eq(clinic.tutorId, tutorId)))
           ),
         with: {
           student: {
@@ -58,10 +55,10 @@ export const GET = withAuth(
                 columns: { name: true },
               },
             },
-            columns: { id: true, email: true },
+            columns: { userId: true, email: true },
           },
           clinic: {
-            columns: { id: true, title: true, startTime: true },
+            columns: { clinicId: true, title: true, startTime: true },
           },
         },
       })
@@ -73,9 +70,8 @@ export const GET = withAuth(
           name: string
           email: string
           courses: {
-            curriculumId: string
-            curriculumName: string
-            batchName: string | null
+            courseId: string
+            courseName: string
             enrolledAt: Date
           }[]
           classes: { clinicId: string; clinicTitle: string; startTime: Date }[]
@@ -83,7 +79,7 @@ export const GET = withAuth(
       >()
 
       for (const e of enrollments) {
-        const sid = e.student.id
+        const sid = e.student.userId
         const name = e.student.profile?.name ?? e.student.email ?? 'Unknown'
         if (!byStudentId.has(sid)) {
           byStudentId.set(sid, {
@@ -95,15 +91,14 @@ export const GET = withAuth(
           })
         }
         byStudentId.get(sid)!.courses.push({
-          curriculumId: e.curriculum.id,
-          curriculumName: e.curriculum.name,
-          batchName: e.batch?.name ?? null,
+          courseId: e.course.courseId,
+          courseName: e.course.name,
           enrolledAt: e.enrolledAt,
         })
       }
 
       for (const b of bookings) {
-        const sid = b.student.id
+        const sid = b.student.userId
         const name = b.student.profile?.name ?? b.student.email ?? 'Unknown'
         if (!byStudentId.has(sid)) {
           byStudentId.set(sid, {
@@ -115,7 +110,7 @@ export const GET = withAuth(
           })
         }
         byStudentId.get(sid)!.classes.push({
-          clinicId: b.clinic.id,
+          clinicId: b.clinic.clinicId,
           clinicTitle: b.clinic.title,
           startTime: b.clinic.startTime,
         })

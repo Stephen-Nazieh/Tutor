@@ -104,7 +104,7 @@ export const POST = withAuth(
       const [live] = await drizzleDb
         .select()
         .from(liveSession)
-        .where(eq(liveSession.id, data.sessionId))
+        .where(eq(liveSession.sessionId, data.sessionId))
         .limit(1)
 
       if (!live) {
@@ -114,7 +114,7 @@ export const POST = withAuth(
       const [engagementSummary] = await drizzleDb
         .select()
         .from(sessionEngagementSummary)
-        .where(eq(sessionEngagementSummary.sessionId, data.sessionId))
+        .where(eq(sessionEngagementSummary.summarySessionId, data.sessionId))
         .limit(1)
 
       const allSnapshots = await drizzleDb
@@ -130,7 +130,7 @@ export const POST = withAuth(
       const snapshots = Array.from(byStudent.values())
 
       const studentInsightsData = snapshots.map(s => ({
-        id: crypto.randomUUID(),
+        insightId: crypto.randomUUID(),
         sessionId: data.sessionId,
         studentId: s.studentId,
         engagement: s.engagementScore,
@@ -152,7 +152,7 @@ export const POST = withAuth(
 
       const reportId = crypto.randomUUID()
       await drizzleDb.insert(postSessionReport).values({
-        id: reportId,
+        reportId,
         sessionId: data.sessionId,
         tutorId: session.user.id,
         status: 'processing',
@@ -194,7 +194,7 @@ export const POST = withAuth(
       const [report] = await drizzleDb
         .select()
         .from(postSessionReport)
-        .where(eq(postSessionReport.id, reportId))
+        .where(eq(postSessionReport.reportId, reportId))
         .limit(1)
 
       return NextResponse.json({ success: true, report: report ?? null })

@@ -28,7 +28,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     const body = await req.json()
     const data = voteSchema.parse(body)
 
-    const [pollRow] = await drizzleDb.select().from(poll).where(eq(poll.id, pollId)).limit(1)
+    const [pollRow] = await drizzleDb.select().from(poll).where(eq(poll.pollId, pollId)).limit(1)
 
     if (!pollRow) {
       return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
@@ -70,7 +70,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
 
     const responseId = crypto.randomUUID()
     await drizzleDb.insert(pollResponse).values({
-      id: responseId,
+      responseId,
       pollId,
       studentId: pollRow.isAnonymous ? null : session.user.id,
       respondentHash,
@@ -82,11 +82,11 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     const [response] = await drizzleDb
       .select()
       .from(pollResponse)
-      .where(eq(pollResponse.id, responseId))
+      .where(eq(pollResponse.responseId, responseId))
       .limit(1)
 
     const newTotal = (pollRow.totalResponses ?? 0) + 1
-    await drizzleDb.update(poll).set({ totalResponses: newTotal }).where(eq(poll.id, pollId))
+    await drizzleDb.update(poll).set({ totalResponses: newTotal }).where(eq(poll.pollId, pollId))
 
     return NextResponse.json({
       success: true,

@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { getClassPerformanceSummary } from '@/lib/performance/student-analytics'
-import { tutorOwnsCurriculum } from '@/lib/security/tutor-student-access'
+import { tutorOwnsCourse } from '@/lib/security/tutor-student-access'
 
 export const GET = withAuth(
   async (_req, session, context) => {
@@ -18,8 +18,8 @@ export const GET = withAuth(
 
     const isAdmin = session.user.role === 'ADMIN'
     if (!isAdmin) {
-      const ownsCurriculum = await tutorOwnsCurriculum(session.user.id, classId)
-      if (!ownsCurriculum) {
+      const ownsCourse = await tutorOwnsCourse(session.user.id, classId)
+      if (!ownsCourse) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
     }

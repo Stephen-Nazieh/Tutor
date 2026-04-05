@@ -44,10 +44,7 @@ export const GET = withAuth(
           where: eq(lessonSession.studentId, studentId),
           with: {
             lesson: {
-              with: {
-                module: { with: { curriculum: { columns: { name: true } } } },
-              },
-              columns: { id: true, title: true },
+              columns: { lessonId: true, title: true, courseId: true },
             },
           },
           orderBy: [desc(lessonSession.lastActivityAt)],
@@ -95,10 +92,10 @@ export const GET = withAuth(
       const lastMessage = context.lastMessage as string | undefined
       const lastResponse = context.lastResponse as string | undefined
       return {
-        id: ls.id,
+        id: ls.sessionId,
         lessonId: ls.lessonId,
         lessonTitle: ls.lesson?.title ?? null,
-        curriculumName: ls.lesson?.module?.curriculum?.name ?? null,
+        courseId: ls.lesson?.courseId ?? null,
         status: ls.status,
         currentSection: ls.currentSection,
         conceptMastery: ls.conceptMastery as Record<string, number>,
@@ -112,7 +109,7 @@ export const GET = withAuth(
     })
 
     const interactionSessions = interactions.map((s: any) => ({
-      id: s.id,
+      id: s.sessionId,
       subjectCode: s.subjectCode,
       startedAt: s.startedAt.toISOString(),
       endedAt: s.endedAt?.toISOString() ?? null,
@@ -150,7 +147,7 @@ export const GET = withAuth(
           minutesUsed: u.minutesUsed,
         })),
         recentActivities: activities.map((a: any) => ({
-          id: a.id,
+          id: a.activityLogId,
           action: a.action,
           metadata: a.metadata,
           createdAt: a.createdAt.toISOString(),

@@ -11,7 +11,7 @@ export async function trackPlatformRevenue(
 ): Promise<void> {
   const month = new Date().toISOString().slice(0, 7) // YYYY-MM format
   await drizzleDb.insert(platformRevenue).values({
-    id: crypto.randomUUID(),
+    revenueId: crypto.randomUUID(),
     paymentId,
     amount: commissionAmount,
     month,

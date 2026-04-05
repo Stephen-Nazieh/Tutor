@@ -11,7 +11,7 @@ async function generateSuggestion(seed: string): Promise<string> {
     const suffix = attempt === 0 ? '' : String(Math.floor(Math.random() * 9000) + 1000)
     const candidate = `${base}${suffix}`.slice(0, 15)
     if (!HANDLE_REGEX.test(candidate) || isReservedHandle(candidate)) continue
-    const [existing] = await drizzleDb.select({ id: user.id }).from(user).where(eq(user.handle, candidate)).limit(1)
+    const [existing] = await drizzleDb.select({ userId: user.userId }).from(user).where(eq(user.handle, candidate)).limit(1)
     if (!existing) return candidate
   }
   return `tutor${nanoid(8).toLowerCase()}`.slice(0, 15)
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     }
 
     const [existing] = await drizzleDb
-      .select({ id: user.id })
+      .select({ userId: user.userId })
       .from(user)
       .where(eq(user.handle, normalized))
       .limit(1)

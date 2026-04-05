@@ -96,7 +96,7 @@ export async function initializeDailyQuests() {
       .limit(1)
     if (!existing) {
       await drizzleDb.insert(mission).values({
-        id: crypto.randomUUID(),
+        missionId: crypto.randomUUID(),
         title: q.title,
         description: q.description,
         type: 'daily',
@@ -116,12 +116,12 @@ export async function generateDailyQuests(userId: string) {
 
   const existing = await drizzleDb
     .select({
-      id: userDailyQuest.id,
+      questId: userDailyQuest.questId,
       userId: userDailyQuest.userId,
       missionId: userDailyQuest.missionId,
       date: userDailyQuest.date,
       completed: userDailyQuest.completed,
-      mId: mission.id,
+      mId: mission.missionId,
       mTitle: mission.title,
       mDescription: mission.description,
       mType: mission.type,
@@ -130,7 +130,7 @@ export async function generateDailyQuests(userId: string) {
       mIsActive: mission.isActive,
     })
     .from(userDailyQuest)
-    .innerJoin(mission, eq(mission.id, userDailyQuest.missionId))
+    .innerJoin(mission, eq(mission.missionId, userDailyQuest.missionId))
     .where(
       and(
         eq(userDailyQuest.userId, userId),
@@ -141,13 +141,13 @@ export async function generateDailyQuests(userId: string) {
 
   if (existing.length > 0) {
     return existing.map(r => ({
-      id: r.id,
+      questId: r.questId,
       userId: r.userId,
       missionId: r.missionId,
       date: r.date,
       completed: r.completed,
       mission: {
-        id: r.mId,
+        missionId: r.mId,
         title: r.mTitle,
         description: r.mDescription,
         type: r.mType,
@@ -169,20 +169,20 @@ export async function generateDailyQuests(userId: string) {
   const selected = shuffled.slice(0, 3)
 
   const userQuests: Array<{
-    id: string
+    questId: string
     userId: string
     missionId: string
     date: Date
     completed: boolean
-    mission: typeof mission.$inferSelect & { id: string }
+    mission: typeof mission.$inferSelect
   }> = []
   for (const m of selected) {
     const [row] = await drizzleDb
       .insert(userDailyQuest)
       .values({
-        id: crypto.randomUUID(),
+        questId: crypto.randomUUID(),
         userId,
-        missionId: m.id,
+        missionId: m.missionId,
         date: today,
         completed: false,
       })
@@ -200,12 +200,12 @@ export async function getTodayQuests(userId: string) {
 
   const quests = await drizzleDb
     .select({
-      id: userDailyQuest.id,
+      questId: userDailyQuest.questId,
       userId: userDailyQuest.userId,
       missionId: userDailyQuest.missionId,
       date: userDailyQuest.date,
       completed: userDailyQuest.completed,
-      mId: mission.id,
+      mId: mission.missionId,
       mTitle: mission.title,
       mDescription: mission.description,
       mType: mission.type,
@@ -214,7 +214,7 @@ export async function getTodayQuests(userId: string) {
       mIsActive: mission.isActive,
     })
     .from(userDailyQuest)
-    .innerJoin(mission, eq(mission.id, userDailyQuest.missionId))
+    .innerJoin(mission, eq(mission.missionId, userDailyQuest.missionId))
     .where(
       and(
         eq(userDailyQuest.userId, userId),
@@ -226,13 +226,13 @@ export async function getTodayQuests(userId: string) {
   if (quests.length === 0) return generateDailyQuests(userId)
 
   return quests.map(r => ({
-    id: r.id,
+    questId: r.questId,
     userId: r.userId,
     missionId: r.missionId,
     date: r.date,
     completed: r.completed,
     mission: {
-      id: r.mId,
+      missionId: r.mId,
       title: r.mTitle,
       description: r.mDescription,
       type: r.mType,
@@ -255,15 +255,16 @@ export async function updateQuestProgress(
 
   const userQuests = await drizzleDb
     .select({
-      id: userDailyQuest.id,
+      questId: userDailyQuest.questId,
       completed: userDailyQuest.completed,
-      mId: mission.id,
+      missionId: userDailyQuest.missionId,
+      mId: mission.missionId,
       mTitle: mission.title,
       mXpReward: mission.xpReward,
       mRequirement: mission.requirement,
     })
     .from(userDailyQuest)
-    .innerJoin(mission, eq(mission.id, userDailyQuest.missionId))
+    .innerJoin(mission, eq(mission.missionId, userDailyQuest.missionId))
     .where(
       and(
         eq(userDailyQuest.userId, userId),
@@ -279,17 +280,17 @@ export async function updateQuestProgress(
   const [updated] = await drizzleDb
     .update(userDailyQuest)
     .set({ completed: true })
-    .where(eq(userDailyQuest.id, matching.id))
+    .where(eq(userDailyQuest.questId, matching.questId))
     .returning()
 
   if (!updated) return null
 
   await awardXp(userId, matching.mXpReward, 'quest_complete', {
-    questId: matching.mId,
+    questId: matching.missionId,
     questTitle: matching.mTitle,
   })
   await logActivity(userId, 'QUEST_COMPLETE', {
-    questId: matching.mId,
+    questId: matching.missionId,
     questTitle: matching.mTitle,
     xpEarned: matching.mXpReward,
   })
@@ -297,7 +298,7 @@ export async function updateQuestProgress(
   return {
     ...updated,
     mission: {
-      id: matching.mId,
+      missionId: matching.missionId,
       title: matching.mTitle,
       xpReward: matching.mXpReward,
       requirement: matching.mRequirement,
@@ -313,12 +314,12 @@ export async function getQuestSummary(userId: string) {
 
   const todayQuests = await drizzleDb
     .select({
-      id: userDailyQuest.id,
+      questId: userDailyQuest.questId,
       userId: userDailyQuest.userId,
       missionId: userDailyQuest.missionId,
       date: userDailyQuest.date,
       completed: userDailyQuest.completed,
-      mId: mission.id,
+      mId: mission.missionId,
       mTitle: mission.title,
       mDescription: mission.description,
       mType: mission.type,
@@ -327,7 +328,7 @@ export async function getQuestSummary(userId: string) {
       mIsActive: mission.isActive,
     })
     .from(userDailyQuest)
-    .innerJoin(mission, eq(mission.id, userDailyQuest.missionId))
+    .innerJoin(mission, eq(mission.missionId, userDailyQuest.missionId))
     .where(
       and(
         eq(userDailyQuest.userId, userId),
@@ -341,13 +342,13 @@ export async function getQuestSummary(userId: string) {
   const totalXp = todayQuests.filter(q => q.completed).reduce((sum, q) => sum + q.mXpReward, 0)
 
   const quests = todayQuests.map(q => ({
-    id: q.id,
+    questId: q.questId,
     userId: q.userId,
     missionId: q.missionId,
     date: q.date,
     completed: q.completed,
     mission: {
-      id: q.mId,
+      missionId: q.mId,
       title: q.mTitle,
       description: q.mDescription,
       type: q.mType,

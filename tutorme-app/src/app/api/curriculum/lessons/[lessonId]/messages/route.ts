@@ -76,7 +76,7 @@ export const POST = withCsrf(
       await drizzleDb
         .update(lessonSession)
         .set({ sessionContext: context as any })
-        .where(eq(lessonSession.id, sessionRow.id))
+        .where(eq(lessonSession.sessionId, sessionRow.sessionId))
 
       return NextResponse.json({ success: true })
     },

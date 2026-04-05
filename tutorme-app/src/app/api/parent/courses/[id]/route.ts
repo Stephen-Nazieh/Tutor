@@ -9,13 +9,7 @@ import { asc, eq } from 'drizzle-orm'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  curriculumShare,
-  curriculum,
-  curriculumModule,
-  curriculumLesson,
-  profile,
-} from '@/lib/db/schema'
+import { courseShare, course, curriculumModule, courseLesson, profile } from '@/lib/db/schema'
 
 export async function GET(
   req: NextRequest,
@@ -40,8 +34,8 @@ export async function GET(
 
   const [shareRecord] = await drizzleDb
     .select()
-    .from(curriculumShare)
-    .where(eq(curriculumShare.id, shareId))
+    .from(courseShare)
+    .where(eq(courseShare.shareId, shareId))
     .limit(1)
 
   if (!shareRecord) {
@@ -57,8 +51,8 @@ export async function GET(
 
   const [courseRow] = await drizzleDb
     .select()
-    .from(curriculum)
-    .where(eq(curriculum.id, shareRecord.curriculumId))
+    .from(course)
+    .where(eq(course.courseId, shareRecord.courseId))
     .limit(1)
 
   if (!courseRow) {
@@ -76,25 +70,23 @@ export async function GET(
   const modulesList = await drizzleDb
     .select()
     .from(curriculumModule)
-    .where(eq(curriculumModule.curriculumId, courseRow.id))
+    .where(eq(curriculumModule.courseId, courseRow.courseId))
     .orderBy(asc(curriculumModule.order))
 
   const modulesWithLessons = await Promise.all(
     modulesList.map(async m => {
       const lessons = await drizzleDb
         .select({
-          id: curriculumLesson.id,
-          title: curriculumLesson.title,
-          description: curriculumLesson.description,
-          duration: curriculumLesson.duration,
-          order: curriculumLesson.order,
-          learningObjectives: curriculumLesson.learningObjectives,
+          lessonId: courseLesson.lessonId,
+          title: courseLesson.title,
+          description: courseLesson.description,
+          order: courseLesson.order,
         })
-        .from(curriculumLesson)
-        .where(eq(curriculumLesson.moduleId, m.id))
-        .orderBy(asc(curriculumLesson.order))
+        .from(courseLesson)
+        .where(eq(courseLesson.courseId, courseRow.courseId))
+        .orderBy(asc(courseLesson.order))
       return {
-        id: m.id,
+        moduleId: m.moduleId,
         title: m.title,
         description: m.description,
         order: m.order,
@@ -104,14 +96,11 @@ export async function GET(
   )
 
   const courseData = {
-    shareId: shareRecord.id,
-    courseId: courseRow.id,
+    shareId: shareRecord.shareId,
+    courseId: courseRow.courseId,
     name: courseRow.name,
     description: courseRow.description,
-    subject: courseRow.subject,
-    gradeLevel: courseRow.gradeLevel,
-    difficulty: courseRow.difficulty,
-    estimatedHours: courseRow.estimatedHours,
+    categories: courseRow.categories,
     price: courseRow.price,
     currency: courseRow.currency ?? 'SGD',
     languageOfInstruction: courseRow.languageOfInstruction,

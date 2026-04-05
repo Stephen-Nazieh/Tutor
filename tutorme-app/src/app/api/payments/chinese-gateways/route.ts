@@ -80,7 +80,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
   const [student] = await drizzleDb
     .select({ email: user.email })
     .from(user)
-    .where(eq(user.id, session.user.id))
+    .where(eq(user.userId, session.user.id))
     .limit(1)
   const studentEmail = student?.email ?? ''
 

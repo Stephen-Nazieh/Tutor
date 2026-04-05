@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum as curriculumTable, curriculumModule, curriculumLesson } from '@/lib/db/schema'
+import { course as courseTable, courseLesson } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { CreateCurriculumSchema } from '@/lib/validation/schemas'
 import { ZodError } from 'zod'
@@ -14,15 +14,14 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const courses = await drizzleDb.query.curriculum.findMany({
-      where: (curriculum, { eq }) => eq(curriculum.creatorId, session.user.id),
-      orderBy: (curriculum, { desc }) => [desc(curriculum.createdAt)],
+    const courses = await drizzleDb.query.course.findMany({
+      where: (course, { eq }) => eq(course.creatorId, session.user.id),
+      orderBy: (course, { desc }) => [desc(course.createdAt)],
       columns: {
-        id: true,
+        courseId: true,
         name: true,
         description: true,
-        subject: true,
-        difficulty: true,
+        categories: true,
         isPublished: true,
         isLiveOnline: true,
         createdAt: true,
@@ -65,18 +64,14 @@ export async function POST(req: NextRequest) {
     const now = new Date()
 
     // Build insert values
-    const curriculumValues: Record<string, unknown> = {
-      id: crypto.randomUUID(),
+    const courseValues: Record<string, unknown> = {
+      courseId: crypto.randomUUID(),
       name: data.title,
       description: data.description ?? null,
-      subject: data.subject ?? 'general',
-      gradeLevel: data.gradeLevel ?? null,
-      difficulty: data.difficulty ?? 'intermediate',
-      estimatedHours: data.estimatedHours ?? 0,
       isPublished: false,
       isLiveOnline: data.isLiveOnline ?? false,
       isFree: false,
-      categories: data.categories ?? [],
+      categories: data.categories ?? [data.subject ?? 'general'],
       currency: 'USD',
       schedule: Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : null,
       createdAt: now,
@@ -84,60 +79,46 @@ export async function POST(req: NextRequest) {
       creatorId: userId,
     }
 
-    // Insert curriculum first (outside transaction to handle column errors)
-    const [newCurriculum] = await drizzleDb
-      .insert(curriculumTable)
-      .values(curriculumValues as typeof curriculumTable.$inferInsert)
+    // Insert course first (outside transaction to handle column errors)
+    const [newCourse] = await drizzleDb
+      .insert(courseTable)
+      .values(courseValues as typeof courseTable.$inferInsert)
       .returning()
-    console.log('Curriculum created:', newCurriculum.id)
+    console.log('Course created:', newCourse.courseId)
 
-    // Then create module and lesson in a transaction
+    // Then create a default lesson in a transaction
     try {
       await drizzleDb.transaction(async tx => {
-        const moduleId = crypto.randomUUID()
-        await tx.insert(curriculumModule).values({
-          id: moduleId,
-          curriculumId: newCurriculum.id,
-          title: 'Lesson 1',
-          description: 'Get started',
-          order: 0,
-        })
-        console.log('Module created:', moduleId)
-
-        await tx.insert(curriculumLesson).values({
-          id: crypto.randomUUID(),
-          moduleId: moduleId,
+        await tx.insert(courseLesson).values({
+          lessonId: crypto.randomUUID(),
+          courseId: newCourse.courseId,
           title: 'Introduction',
           description: 'Introduction to this course.',
           order: 0,
-          duration: 30,
-          difficulty: newCurriculum.difficulty ?? 'intermediate',
-          learningObjectives: [],
-          teachingPoints: [],
-          keyConcepts: [],
-          commonMisconceptions: [],
-          prerequisiteLessonIds: [],
+          tasks: [],
+          assessments: [],
+          homework: [],
+          builderData: {},
         })
-        console.log('Lesson created for module:', moduleId)
+        console.log('Lesson created for course:', newCourse.courseId)
       })
     } catch (txError) {
-      // If module/lesson creation fails, we should ideally rollback the curriculum insert
+      // If lesson creation fails, we should ideally rollback the course insert
       // But since we already committed it, log the error
-      console.error('Failed to create module/lesson after curriculum was created:', txError)
-      // Still return the curriculum since it was created successfully
+      console.error('Failed to create lesson after course was created:', txError)
+      // Still return the course since it was created successfully
     }
 
     return NextResponse.json({
       course: {
-        id: newCurriculum.id,
-        name: newCurriculum.name,
-        description: newCurriculum.description,
-        subject: newCurriculum.subject,
-        difficulty: newCurriculum.difficulty,
-        isPublished: newCurriculum.isPublished,
-        isLiveOnline: newCurriculum.isLiveOnline,
-        createdAt: newCurriculum.createdAt?.toISOString?.() ?? newCurriculum.createdAt,
-        updatedAt: newCurriculum.updatedAt?.toISOString?.() ?? newCurriculum.updatedAt,
+        id: newCourse.courseId,
+        name: newCourse.name,
+        description: newCourse.description,
+        categories: newCourse.categories,
+        isPublished: newCourse.isPublished,
+        isLiveOnline: newCourse.isLiveOnline,
+        createdAt: newCourse.createdAt?.toISOString?.() ?? newCourse.createdAt,
+        updatedAt: newCourse.updatedAt?.toISOString?.() ?? newCourse.updatedAt,
       },
     })
   } catch (error) {
@@ -163,9 +144,9 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Course ID is required' }, { status: 400 })
     }
 
-    const existingCourse = await drizzleDb.query.curriculum.findFirst({
-      where: (curriculum, { eq, and }) =>
-        and(eq(curriculum.id, courseId), eq(curriculum.creatorId, session.user.id)),
+    const existingCourse = await drizzleDb.query.course.findFirst({
+      where: (course, { eq, and }) =>
+        and(eq(course.courseId, courseId), eq(course.creatorId, session.user.id)),
     })
 
     if (!existingCourse) {
@@ -187,9 +168,9 @@ export async function PUT(req: NextRequest) {
     if (updates.categories !== undefined) updateData.categories = updates.categories
 
     const [updatedCourse] = await drizzleDb
-      .update(curriculumTable)
+      .update(courseTable)
       .set(updateData)
-      .where(eq(curriculumTable.id, courseId))
+      .where(eq(courseTable.courseId, courseId))
       .returning()
 
     return NextResponse.json({ course: updatedCourse })
@@ -213,16 +194,16 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Course ID is required' }, { status: 400 })
     }
 
-    const existingCourse = await drizzleDb.query.curriculum.findFirst({
-      where: (curriculum, { eq, and }) =>
-        and(eq(curriculum.id, courseId), eq(curriculum.creatorId, session.user.id)),
+    const existingCourse = await drizzleDb.query.course.findFirst({
+      where: (course, { eq, and }) =>
+        and(eq(course.courseId, courseId), eq(course.creatorId, session.user.id)),
     })
 
     if (!existingCourse) {
       return NextResponse.json({ error: 'Course not found or access denied' }, { status: 404 })
     }
 
-    await drizzleDb.delete(curriculumTable).where(eq(curriculumTable.id, courseId))
+    await drizzleDb.delete(courseTable).where(eq(courseTable.courseId, courseId))
 
     return NextResponse.json({ success: true })
   } catch (error) {

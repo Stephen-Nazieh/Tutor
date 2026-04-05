@@ -19,7 +19,7 @@ import * as enums from '../enums'
 export const calendarConnection = pgTable(
   'CalendarConnection',
   {
-    id: text('id').primaryKey().notNull(),
+    connectionId: text('connectionId').primaryKey().notNull(),
     userId: text('userId').notNull(),
     provider: text('provider').notNull(),
     providerAccountId: text('providerAccountId'),
@@ -46,7 +46,7 @@ export const calendarConnection = pgTable(
 export const calendarEvent = pgTable(
   'CalendarEvent',
   {
-    id: text('id').primaryKey().notNull(),
+    eventId: text('eventId').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     title: text('title').notNull(),
     description: text('description'),
@@ -62,8 +62,7 @@ export const calendarEvent = pgTable(
     location: text('location'),
     meetingUrl: text('meetingUrl'),
     isVirtual: boolean('isVirtual').notNull(),
-    curriculumId: text('curriculumId'),
-    batchId: text('batchId'),
+    courseId: text('courseId'),
     studentId: text('studentId'),
     attendees: jsonb('attendees'),
     maxAttendees: integer('maxAttendees').notNull(),
@@ -90,15 +89,14 @@ export const calendarEvent = pgTable(
     CalendarEvent_tutorId_startTime_endTime_idx: index(
       'CalendarEvent_tutorId_startTime_endTime_idx'
     ).on(table.tutorId, table.startTime, table.endTime),
-    CalendarEvent_curriculumId_idx: index('CalendarEvent_curriculumId_idx').on(table.curriculumId),
-    CalendarEvent_batchId_idx: index('CalendarEvent_batchId_idx').on(table.batchId),
+    CalendarEvent_courseId_idx: index('CalendarEvent_courseId_idx').on(table.courseId),
   })
 )
 
 export const calendarAvailability = pgTable(
   'CalendarAvailability',
   {
-    id: text('id').primaryKey().notNull(),
+    availabilityId: text('availabilityId').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     dayOfWeek: integer('dayOfWeek').notNull(),
     startTime: text('startTime').notNull(),
@@ -126,7 +124,7 @@ export const calendarAvailability = pgTable(
 export const calendarException = pgTable(
   'CalendarException',
   {
-    id: text('id').primaryKey().notNull(),
+    exceptionId: text('exceptionId').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     date: timestamp('date', { withTimezone: true }).notNull(),
     isAvailable: boolean('isAvailable').notNull(),
@@ -148,7 +146,7 @@ export const calendarException = pgTable(
 export const oneOnOneBookingRequest = pgTable(
   'OneOnOneBookingRequest',
   {
-    id: text('id').primaryKey().notNull(),
+    requestId: text('requestId').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     studentId: text('studentId').notNull(),
     requestedDate: timestamp('requestedDate', { withTimezone: true }).notNull(),

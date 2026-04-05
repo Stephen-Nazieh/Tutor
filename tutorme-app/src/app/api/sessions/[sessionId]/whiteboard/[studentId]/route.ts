@@ -29,7 +29,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   const [sessionRow] = await drizzleDb
     .select({ tutorId: liveSession.tutorId })
     .from(liveSession)
-    .where(eq(liveSession.id, sessionId))
+    .where(eq(liveSession.sessionId, sessionId))
     .limit(1)
   if (!sessionRow) {
     return NextResponse.json({ error: 'Session not found' }, { status: 404 })
@@ -40,7 +40,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   }
   if (userRole === 'STUDENT') {
     const [participant] = await drizzleDb
-      .select({ id: sessionParticipant.id })
+      .select({ id: sessionParticipant.participantId })
       .from(sessionParticipant)
       .where(
         and(eq(sessionParticipant.sessionId, sessionId), eq(sessionParticipant.studentId, userId))
@@ -76,7 +76,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       const pages = await drizzleDb
         .select()
         .from(whiteboardPage)
-        .where(eq(whiteboardPage.whiteboardId, whiteboardRow.id))
+        .where(eq(whiteboardPage.whiteboardId, whiteboardRow.whiteboardId))
         .orderBy(asc(whiteboardPage.order))
       return NextResponse.json({
         whiteboard: { ...whiteboardRow, pages },
@@ -90,7 +90,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   const pages = await drizzleDb
     .select()
     .from(whiteboardPage)
-    .where(eq(whiteboardPage.whiteboardId, whiteboardRow.id))
+    .where(eq(whiteboardPage.whiteboardId, whiteboardRow.whiteboardId))
     .orderBy(asc(whiteboardPage.order))
 
   const [profileRow] = await drizzleDb

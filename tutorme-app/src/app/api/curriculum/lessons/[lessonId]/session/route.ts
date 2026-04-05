@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, NotFoundError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculumLesson, lessonSession } from '@/lib/db/schema'
+import { courseLesson, lessonSession } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { startLesson } from '@/lib/curriculum/lesson-controller'
 
@@ -21,8 +21,8 @@ export const POST = withCsrf(
 
       const [lesson] = await drizzleDb
         .select()
-        .from(curriculumLesson)
-        .where(eq(curriculumLesson.id, lessonId))
+        .from(courseLesson)
+        .where(eq(courseLesson.lessonId, lessonId))
         .limit(1)
 
       if (!lesson) {

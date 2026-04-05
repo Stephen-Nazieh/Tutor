@@ -47,11 +47,11 @@ export async function GET(req: NextRequest) {
       adminIds.length > 0
         ? await drizzleDb
             .select({
-              id: user.id,
+              id: user.userId,
               email: user.email,
             })
             .from(user)
-            .where(inArray(user.id, adminIds))
+            .where(inArray(user.userId, adminIds))
         : []
     const profiles =
       adminIds.length > 0
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
     const userById = new Map(admins.map(u => [u.id, u]))
 
     const formattedLogs = logs.map(log => ({
-      id: log.id,
+      id: log.auditLogId,
       admin: {
         id: log.adminId,
         email: userById.get(log.adminId)?.email,

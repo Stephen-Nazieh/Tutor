@@ -43,11 +43,15 @@ export async function GET(_request: NextRequest) {
     const generatedTasks =
       taskIds.length > 0
         ? await drizzleDb
-            .select({ id: generatedTask.id, title: generatedTask.title, type: generatedTask.type })
+            .select({
+              taskId: generatedTask.taskId,
+              title: generatedTask.title,
+              type: generatedTask.type,
+            })
             .from(generatedTask)
-            .where(inArray(generatedTask.id, taskIds))
+            .where(inArray(generatedTask.taskId, taskIds))
         : []
-    const taskById = new Map(generatedTasks.map(t => [t.id, t]))
+    const taskById = new Map(generatedTasks.map(t => [t.taskId, t]))
 
     const [gamification] = await drizzleDb
       .select()
@@ -57,15 +61,15 @@ export async function GET(_request: NextRequest) {
 
     const enrollmentsRows = await drizzleDb
       .select({
-        id: curriculumEnrollment.id,
-        curriculumId: curriculumEnrollment.curriculumId,
+        enrollmentId: curriculumEnrollment.enrollmentId,
+        courseId: curriculumEnrollment.courseId,
         lastActivity: curriculumEnrollment.lastActivity,
         enrolledAt: curriculumEnrollment.enrolledAt,
         curriculumName: curriculum.name,
-        curriculumSubject: curriculum.subject,
+        curriculumCategories: curriculum.categories,
       })
       .from(curriculumEnrollment)
-      .innerJoin(curriculum, eq(curriculumEnrollment.curriculumId, curriculum.id))
+      .innerJoin(curriculum, eq(curriculumEnrollment.courseId, curriculum.courseId))
       .where(eq(curriculumEnrollment.studentId, studentId))
 
     type SubjectScore = {
@@ -87,9 +91,10 @@ export async function GET(_request: NextRequest) {
     const subjectScores = new Map<string, SubjectScore>()
 
     enrollmentsRows.forEach(row => {
-      subjectScores.set(row.curriculumId, {
-        id: row.curriculumId,
-        subject: row.curriculumSubject,
+      const subject = row.curriculumCategories?.[0] ?? 'general'
+      subjectScores.set(row.courseId, {
+        id: row.courseId,
+        subject: subject,
         subjectName: row.curriculumName,
         totalScore: 0,
         maxScore: 0,
@@ -104,7 +109,7 @@ export async function GET(_request: NextRequest) {
       })
     })
 
-    const firstSubjectId = enrollmentsRows[0]?.curriculumId
+    const firstSubjectId = enrollmentsRows[0]?.courseId
     if (firstSubjectId && subjectScores.has(firstSubjectId)) {
       quizAttempts.forEach(attempt => {
         const score = subjectScores.get(firstSubjectId)!
@@ -194,7 +199,7 @@ export async function GET(_request: NextRequest) {
     const quizzes = quizAttempts
       .filter(q => q.completedAt)
       .map((q, i) => ({
-        id: q.id,
+        id: q.attemptId,
         quizTitle: `Quiz ${i + 1}`,
         subject: 'General',
         score: q.score ?? 0,
@@ -208,14 +213,14 @@ export async function GET(_request: NextRequest) {
     const formattedAssignments = taskSubmissions.map(a => {
       const task = taskById.get(a.taskId)
       return {
-        id: a.id,
+        id: a.submissionId,
         assignmentTitle: task?.title ?? 'Assignment',
         subject: 'General',
         score: a.status === 'graded' ? a.score : null,
         maxScore: a.maxScore ?? 100,
         status: (a.status?.toLowerCase() ?? 'submitted') as 'submitted' | 'graded' | 'pending',
         submittedAt: a.submittedAt,
-        dueDate: task?.id ? new Date().toISOString() : new Date().toISOString(),
+        dueDate: task?.taskId ? new Date().toISOString() : new Date().toISOString(),
       }
     })
 

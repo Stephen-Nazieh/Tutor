@@ -22,7 +22,9 @@ export async function POST(request: NextRequest) {
     const [schedule] = await drizzleDb
       .select()
       .from(reviewSchedule)
-      .where(and(eq(reviewSchedule.id, reviewId), eq(reviewSchedule.studentId, session.user.id)))
+      .where(
+        and(eq(reviewSchedule.scheduleId, reviewId), eq(reviewSchedule.studentId, session.user.id))
+      )
       .limit(1)
 
     if (!schedule) {
@@ -41,7 +43,7 @@ export async function POST(request: NextRequest) {
         nextReview: newNextReview,
         updatedAt: new Date(),
       })
-      .where(eq(reviewSchedule.id, schedule.id))
+      .where(eq(reviewSchedule.scheduleId, schedule.scheduleId))
 
     return NextResponse.json({
       success: true,
