@@ -106,7 +106,7 @@ export async function createFeatureFlag(
   const [flag] = await drizzleDb
     .insert(featureFlag)
     .values({
-      id: crypto.randomUUID(),
+      flagId: crypto.randomUUID(),
       key: data.key,
       name: data.name,
       description: data.description ?? null,
@@ -142,7 +142,7 @@ export async function updateFeatureFlag(
     .limit(1)
   if (!previousFlag) throw new Error('Feature flag not found')
   await drizzleDb.insert(featureFlagChange).values({
-    id: crypto.randomUUID(),
+    changeId: crypto.randomUUID(),
     flagId: id,
     changedBy: adminSession.adminId,
     previousValue: previousFlag as unknown as Record<string, unknown>,
@@ -299,7 +299,7 @@ export async function initializeDefaultFeatureFlags(adminId: string): Promise<vo
       .limit(1)
     if (!existing) {
       await drizzleDb.insert(featureFlag).values({
-        id: crypto.randomUUID(),
+        flagId: crypto.randomUUID(),
         key: flag.key,
         name: flag.name,
         description: flag.description ?? null,

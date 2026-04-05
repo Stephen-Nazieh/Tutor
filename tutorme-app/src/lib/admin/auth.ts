@@ -43,7 +43,7 @@ const JWT_SECRET = getJwtSecret()
 
 // Types
 export interface AdminSession {
-  id: string
+  sessionId: string
   adminId: string
   email: string
   name: string | null
@@ -92,7 +92,7 @@ export async function createAdminSession(
 
   // Store session in database
   await drizzleDb.insert(adminSessionTable).values({
-    id: crypto.randomUUID(),
+    sessionId: crypto.randomUUID(),
     adminId,
     token,
     ipAddress: ipAddress || null,
@@ -303,7 +303,7 @@ export async function getAdminUsers(): Promise<AdminUser[]> {
     })
 
     return {
-      userId: user.userId,
+      id: user.userId,
       email: user.email,
       name: user.profile?.name || null,
       image: user.image,
@@ -332,7 +332,7 @@ export async function logAdminAction(
 ): Promise<void> {
   try {
     await drizzleDb.insert(adminAuditLogTable).values({
-      id: crypto.randomUUID(),
+      auditLogId: crypto.randomUUID(),
       adminId,
       action,
       resourceType: details.resourceType || null,
