@@ -113,6 +113,47 @@ export const builderTaskVersion = pgTable(
   })
 )
 
+export const builderTaskDmi = pgTable(
+  'BuilderTaskDmi',
+  {
+    dmiId: text('dmiId').primaryKey().notNull(),
+    taskId: text('taskId').notNull(),
+    type: text('type').notNull().default('assessment'),
+    items: jsonb('items').notNull(),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt', { withTimezone: true })
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  table => ({
+    BuilderTaskDmi_taskId_idx: index('BuilderTaskDmi_taskId_idx').on(table.taskId),
+    BuilderTaskDmi_taskId_type_idx: index('BuilderTaskDmi_taskId_type_idx').on(
+      table.taskId,
+      table.type
+    ),
+  })
+)
+
+export const builderTaskDmiVersion = pgTable(
+  'BuilderTaskDmiVersion',
+  {
+    versionId: text('versionId').primaryKey().notNull(),
+    taskId: text('taskId').notNull(),
+    type: text('type').notNull().default('assessment'),
+    versionNumber: integer('versionNumber').notNull(),
+    items: jsonb('items').notNull(),
+    createdBy: text('createdBy').notNull(),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  },
+  table => ({
+    BuilderTaskDmiVersion_taskId_idx: index('BuilderTaskDmiVersion_taskId_idx').on(table.taskId),
+    BuilderTaskDmiVersion_taskId_version_idx: index('BuilderTaskDmiVersion_taskId_version_idx').on(
+      table.taskId,
+      table.versionNumber
+    ),
+  })
+)
+
 // ============================================
 // TASK FEEDBACK TABLES - For Polls and Questions
 // ============================================
