@@ -30,7 +30,7 @@ export const GET = withAuth(
       const { searchParams } = new URL(req.url)
       const studentId = searchParams.get('studentId') ?? undefined
 
-      const cacheKey = `parent:financial:dashboard:${family.id}:${studentId ?? 'all'}`
+      const cacheKey = `parent:financial:dashboard:${family.familyAccountId}:${studentId ?? 'all'}`
 
       const data = await cacheManager.getOrSet(
         cacheKey,
@@ -47,7 +47,7 @@ export const GET = withAuth(
             family.defaultCurrency
           )
 
-          const budgetRecord = await getBudgetForCurrentMonth(family.id)
+          const budgetRecord = await getBudgetForCurrentMonth(family.familyAccountId)
           const actualSpent = summary.totalSpent
           const budget = budgetRecord?.amount ?? family.monthlyBudget
           const budgetVsActual = computeBudgetVsActual(budget, actualSpent, family.defaultCurrency)
@@ -72,7 +72,7 @@ export const GET = withAuth(
         },
         {
           ttl: CACHE_TTL,
-          tags: [`family:${family.id}`, 'financial', 'dashboard'],
+          tags: [`family:${family.familyAccountId}`, 'financial', 'dashboard'],
         }
       )
 

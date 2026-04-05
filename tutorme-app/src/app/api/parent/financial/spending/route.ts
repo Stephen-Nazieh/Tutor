@@ -27,7 +27,7 @@ export const GET = withAuth(
       const studentId = searchParams.get('studentId') ?? undefined
       const period = (searchParams.get('period') ?? 'monthly') as 'monthly' | 'weekly'
 
-      const cacheKey = `parent:financial:spending:${family.id}:${studentId ?? 'all'}:${period}`
+      const cacheKey = `parent:financial:spending:${family.familyAccountId}:${studentId ?? 'all'}:${period}`
       const cached = await cacheManager.get<object>(cacheKey)
       if (cached) return NextResponse.json({ success: true, data: cached })
 
@@ -61,7 +61,7 @@ export const GET = withAuth(
 
       await cacheManager.set(cacheKey, data, {
         ttl: CACHE_TTL,
-        tags: [`family:${family.id}`],
+        tags: [`family:${family.familyAccountId}`],
       })
 
       return NextResponse.json({ success: true, data })

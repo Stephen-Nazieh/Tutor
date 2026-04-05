@@ -307,10 +307,10 @@ export async function initializeBadges() {
           isSecret: b.isSecret ?? false,
           order: b.order,
         })
-        .where(eq(badge.id, existing.id))
+        .where(eq(badge.badgeId, existing.badgeId))
     } else {
       await drizzleDb.insert(badge).values({
-        id: crypto.randomUUID(),
+        badgeId: crypto.randomUUID(),
         key: b.key,
         name: b.name,
         description: b.description,
@@ -335,14 +335,14 @@ export async function awardBadge(userId: string, badgeKey: string) {
   const [existing] = await drizzleDb
     .select()
     .from(userBadge)
-    .where(and(eq(userBadge.userId, userId), eq(userBadge.badgeId, badgeRow.id)))
+    .where(and(eq(userBadge.userId, userId), eq(userBadge.badgeId, badgeRow.badgeId)))
     .limit(1)
   if (existing) return { awarded: false, alreadyHad: true }
 
   await drizzleDb.insert(userBadge).values({
-    id: crypto.randomUUID(),
+    userBadgeId: crypto.randomUUID(),
     userId,
-    badgeId: badgeRow.id,
+    badgeId: badgeRow.badgeId,
     progress: 0,
   })
 
@@ -366,7 +366,7 @@ export async function awardBadge(userId: string, badgeKey: string) {
 export async function getUserBadges(userId: string) {
   const rows = await drizzleDb
     .select({
-      id: badge.id,
+      badgeId: badge.badgeId,
       key: badge.key,
       name: badge.name,
       description: badge.description,
@@ -381,7 +381,7 @@ export async function getUserBadges(userId: string) {
       earnedAt: userBadge.earnedAt,
     })
     .from(userBadge)
-    .innerJoin(badge, eq(badge.id, userBadge.badgeId))
+    .innerJoin(badge, eq(badge.badgeId, userBadge.badgeId))
     .where(eq(userBadge.userId, userId))
     .orderBy(desc(userBadge.earnedAt))
 
@@ -406,9 +406,9 @@ export async function getAllBadgesWithProgress(userId: string) {
 
   return allBadges.map(b => ({
     ...b,
-    earned: earnedBadgeIds.has(b.id),
-    earnedAt: userBadgeMap.get(b.id)?.earnedAt ?? null,
-    progress: userBadgeMap.get(b.id)?.progress ?? 0,
+    earned: earnedBadgeIds.has(b.badgeId),
+    earnedAt: userBadgeMap.get(b.badgeId)?.earnedAt ?? null,
+    progress: userBadgeMap.get(b.badgeId)?.progress ?? 0,
   }))
 }
 
@@ -482,7 +482,7 @@ export async function getBadgeStats(userId: string) {
         bXpBonus: badge.xpBonus,
       })
       .from(userBadge)
-      .innerJoin(badge, eq(badge.id, userBadge.badgeId))
+      .innerJoin(badge, eq(badge.badgeId, userBadge.badgeId))
       .where(eq(userBadge.userId, userId)),
     drizzleDb.select().from(badge),
   ])

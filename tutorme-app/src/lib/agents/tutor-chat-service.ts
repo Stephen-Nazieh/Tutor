@@ -85,7 +85,7 @@ export async function runTutorChat(input: TutorChatInput): Promise<TutorChatOutp
     const [missionRow] = await drizzleDb
       .select()
       .from(mission)
-      .where(eq(mission.id, input.missionId))
+      .where(eq(mission.missionId, input.missionId))
       .limit(1)
     if (missionRow) {
       const requirement = missionRow.requirement as Record<string, unknown> | null
@@ -95,14 +95,14 @@ export async function runTutorChat(input: TutorChatInput): Promise<TutorChatOutp
         worldId:
           requirement && typeof requirement.worldId === 'string'
             ? requirement.worldId
-            : missionRow.id,
+            : missionRow.missionId,
         worldName:
           requirement && typeof requirement.worldName === 'string'
             ? requirement.worldName
             : 'Current mission',
         worldEmoji:
           requirement && typeof requirement.worldEmoji === 'string' ? requirement.worldEmoji : '🎯',
-        missionId: missionRow.id,
+        missionId: missionRow.missionId,
         missionTitle: missionRow.title,
         missionObjective: missionRow.description,
         missionType: missionRow.type,
@@ -167,7 +167,7 @@ export async function runTutorChat(input: TutorChatInput): Promise<TutorChatOutp
   await updateQuestProgress(input.userId, 'speaking', 1)
 
   await drizzleDb.insert(aIInteractionSession).values({
-    id: crypto.randomUUID(),
+    interactionId: crypto.randomUUID(),
     studentId: input.userId,
     subjectCode: input.subject || 'chat',
     messageCount: 0,

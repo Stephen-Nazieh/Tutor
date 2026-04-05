@@ -44,7 +44,7 @@ export async function logComplianceAudit(
       await logAudit(userId, `compliance_${action}`, rest)
     }
     await drizzleDb.insert(securityEvent).values({
-      id: randomUUID(),
+      eventId: randomUUID(),
       eventType: `compliance_${action}`,
       metadata: metadata as object,
     })

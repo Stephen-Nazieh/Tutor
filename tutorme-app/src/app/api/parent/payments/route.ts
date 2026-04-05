@@ -20,7 +20,7 @@ export const GET = withAuth(
       return NextResponse.json({ error: '未找到家庭账户' }, { status: 404 })
     }
 
-    const cacheKey = `parent:payments:${family.id}`
+    const cacheKey = `parent:payments:${family.familyAccountId}`
     const cached = await cacheManager.get<object>(cacheKey)
     if (cached) return NextResponse.json({ success: true, data: cached })
 
@@ -32,7 +32,7 @@ export const GET = withAuth(
       clinicPaymentRows,
     ] = await Promise.all([
       drizzleDb.query.familyPayment.findMany({
-        where: eq(familyPayment.parentId, family.id),
+        where: eq(familyPayment.parentId, family.familyAccountId),
         orderBy: [desc(familyPayment.createdAt)],
         limit: 50,
       }),
@@ -164,7 +164,7 @@ export const GET = withAuth(
       },
     }
 
-    await cacheManager.set(cacheKey, data, { ttl: CACHE_TTL, tags: [`family:${family.id}`] })
+    await cacheManager.set(cacheKey, data, { ttl: CACHE_TTL, tags: [`family:${family.familyAccountId}`] })
     return NextResponse.json({ success: true, data })
   },
   { role: 'PARENT' }

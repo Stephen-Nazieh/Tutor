@@ -483,22 +483,22 @@ export async function getStudentPerformance(
   let submissions
   if (curriculumId) {
     const batchIds = await drizzleDb
-      .select({ id: courseBatch.id })
+      .select({ batchId: courseBatch.batchId })
       .from(courseBatch)
-      .where(eq(courseBatch.curriculumId, curriculumId))
+      .where(eq(courseBatch.courseId, curriculumId))
     const taskIds =
       batchIds.length > 0
         ? (
             await drizzleDb
-              .select({ id: generatedTask.id })
+              .select({ taskId: generatedTask.taskId })
               .from(generatedTask)
               .where(
                 inArray(
-                  generatedTask.batchId,
-                  batchIds.map(b => b.id)
+                  generatedTask.lessonId,
+                  batchIds.map(b => b.batchId)
                 )
               )
-          ).map(t => t.id)
+          ).map(t => t.taskId)
         : []
     submissions =
       taskIds.length > 0
@@ -585,7 +585,7 @@ export async function getClassPerformanceSummary(curriculumId: string): Promise<
       studentId: curriculumEnrollment.studentId,
     })
     .from(curriculumEnrollment)
-    .where(eq(curriculumEnrollment.curriculumId, curriculumId))
+    .where(eq(curriculumEnrollment.courseId, curriculumId))
 
   const studentPerformances = await Promise.all(
     enrollments.map(async enrollment => {
@@ -708,14 +708,14 @@ export async function updateStudentPerformanceRecord(
         attendanceRate: data.attendanceRate,
         participationRate: data.participationRate,
         pace: data.pace,
-        curriculumId: curriculumId ?? null,
+        courseId: curriculumId ?? null,
       })
-      .where(eq(studentPerformance.id, existing.id))
+      .where(eq(studentPerformance.performanceId, existing.performanceId))
   } else {
     await drizzleDb.insert(studentPerformance).values({
-      id: crypto.randomUUID(),
+      performanceId: crypto.randomUUID(),
       studentId: data.studentId,
-      curriculumId: curriculumId ?? null,
+      courseId: curriculumId ?? null,
       cluster: data.cluster,
       strengths: data.strengths,
       weaknesses: data.weaknesses,

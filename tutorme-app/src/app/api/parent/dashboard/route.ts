@@ -40,7 +40,7 @@ export const GET = withAuth(
       return NextResponse.json({ error: '未找到家庭账户，请先完成家长注册' }, { status: 404 })
     }
 
-    const cacheKey = `parent:dashboard:${family.id}:${session.user.id}`
+    const cacheKey = `parent:dashboard:${family.familyAccountId}:${session.user.id}`
 
     const data = await cacheManager.getOrSet(
       cacheKey,
@@ -121,7 +121,7 @@ export const GET = withAuth(
             : Promise.resolve([]),
           drizzleDb.query.familyPayment.findMany({
             where: and(
-              eq(familyPayment.parentId, family.id),
+              eq(familyPayment.parentId, family.familyAccountId),
               gte(familyPayment.createdAt, startOfMonth)
             ),
             orderBy: [desc(familyPayment.createdAt)],
@@ -173,13 +173,13 @@ export const GET = withAuth(
                 .limit(20)
             : Promise.resolve([]),
           drizzleDb.query.familyNotification.findMany({
-            where: eq(familyNotification.parentId, family.id),
+            where: eq(familyNotification.parentId, family.familyAccountId),
             orderBy: [desc(familyNotification.createdAt)],
             limit: 10,
             columns: { notificationId: true, message: true, isRead: true, createdAt: true },
           }),
           drizzleDb.query.parentActivityLog.findMany({
-            where: eq(parentActivityLog.parentId, family.id),
+            where: eq(parentActivityLog.parentId, family.familyAccountId),
             orderBy: [desc(parentActivityLog.createdAt)],
             limit: 10,
             columns: { activityLogId: true, action: true, details: true, createdAt: true },
@@ -310,7 +310,7 @@ export const GET = withAuth(
       },
       {
         ttl: CACHE_TTL,
-        tags: [`family:${family.id}`, `parent:${session.user.id}`, 'dashboard'],
+        tags: [`family:${family.familyAccountId}`, `parent:${session.user.id}`, 'dashboard'],
       }
     )
 

@@ -147,7 +147,7 @@ export function withAuth(handler: Handler, options?: WithAuthOptions) {
         const [freshUser] = await drizzleDb
           .select({ role: userTable.role })
           .from(userTable)
-          .where(eq(userTable.id, session.user.id))
+          .where(eq(userTable.userId, session.user.id))
           .limit(1)
         if (normalizeRole(freshUser?.role) !== normalizeRole(options.role)) {
           throw new ForbiddenError(`This endpoint requires ${options.role} role`)

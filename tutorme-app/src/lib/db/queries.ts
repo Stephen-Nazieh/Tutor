@@ -315,7 +315,7 @@ export async function getStudentProgress(
     contentIds.length > 0
       ? await drizzleDb.select().from(contentItem).where(inArray(contentItem.contentId, contentIds))
       : []
-  const contentMap = new Map(contents.map(c => [c.clinicId, c]))
+  const contentMap = new Map(contents.map(c => [c.contentId, c]))
   const progress = progressRows.map(p => ({
     ...p,
     content: contentMap.get(p.contentId)

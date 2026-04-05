@@ -29,7 +29,7 @@ export const GET = withAuth(
       const status = searchParams.get('status') ?? undefined
       const type = searchParams.get('type') as 'course' | 'clinic' | 'budget' | undefined
 
-      const cacheKey = `parent:financial:payments:${family.id}:${studentId ?? 'all'}:${limit}:${status ?? 'all'}:${type ?? 'all'}`
+      const cacheKey = `parent:financial:payments:${family.familyAccountId}:${studentId ?? 'all'}:${limit}:${status ?? 'all'}:${type ?? 'all'}`
       const cached = await cacheManager.get<object>(cacheKey)
       if (cached) return NextResponse.json({ success: true, data: cached })
 
@@ -68,7 +68,7 @@ export const GET = withAuth(
 
       await cacheManager.set(cacheKey, data, {
         ttl: CACHE_TTL,
-        tags: [`family:${family.id}`],
+        tags: [`family:${family.familyAccountId}`],
       })
 
       return NextResponse.json({ success: true, data })

@@ -58,7 +58,7 @@ export async function logActivity(
 ) {
   try {
     await drizzleDb.insert(userActivityLog).values({
-      id: crypto.randomUUID(),
+      activityId: crypto.randomUUID(),
       userId,
       action: eventType,
       metadata: metadata ?? {},

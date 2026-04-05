@@ -24,7 +24,7 @@ export async function getOrCreateGamification(userId: string) {
   const [created] = await drizzleDb
     .insert(userGamification)
     .values({
-      id: crypto.randomUUID(),
+      gamificationId: crypto.randomUUID(),
       userId,
       level: 1,
       xp: 0,

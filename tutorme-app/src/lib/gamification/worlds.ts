@@ -121,7 +121,7 @@ export async function startMission(userId: string, missionId: string) {
   const [missionRow] = await drizzleDb
     .select()
     .from(mission)
-    .where(eq(mission.id, missionId))
+    .where(eq(mission.missionId, missionId))
     .limit(1)
   if (!missionRow) throw new Error('Mission not found')
 
@@ -143,7 +143,7 @@ export async function startMission(userId: string, missionId: string) {
   const [progress] = await drizzleDb
     .insert(missionProgress)
     .values({
-      id: crypto.randomUUID(),
+      progressId: crypto.randomUUID(),
       missionId,
       studentId: userId,
       progress: 0,
@@ -165,7 +165,7 @@ export async function completeMission(
   const [missionRow] = await drizzleDb
     .select()
     .from(mission)
-    .where(eq(mission.id, missionId))
+    .where(eq(mission.missionId, missionId))
     .limit(1)
   if (!missionRow) throw new Error('Mission not found')
 
@@ -189,7 +189,7 @@ export async function completeMission(
     const [updated] = await drizzleDb
       .update(missionProgress)
       .set({ progress: progressValue, completed: true, completedAt })
-      .where(eq(missionProgress.id, existing.id))
+      .where(eq(missionProgress.progressId, existing.progressId))
       .returning()
     if (!updated) throw new Error('Failed to update mission progress')
 
@@ -201,7 +201,7 @@ export async function completeMission(
   const [created] = await drizzleDb
     .insert(missionProgress)
     .values({
-      id: crypto.randomUUID(),
+      progressId: crypto.randomUUID(),
       missionId,
       studentId: userId,
       progress: progressValue,
@@ -256,7 +256,7 @@ export async function getMissionSummary(userId: string) {
 export async function getRecommendedMission(userId: string) {
   const [inProgress] = await drizzleDb
     .select({
-      mId: mission.id,
+      mId: mission.missionId,
       mTitle: mission.title,
       mDescription: mission.description,
       mType: mission.type,
@@ -265,7 +265,7 @@ export async function getRecommendedMission(userId: string) {
       mIsActive: mission.isActive,
     })
     .from(missionProgress)
-    .innerJoin(mission, eq(mission.id, missionProgress.missionId))
+    .innerJoin(mission, eq(mission.missionId, missionProgress.missionId))
     .where(and(eq(missionProgress.studentId, userId), eq(missionProgress.completed, false)))
     .limit(1)
 
@@ -291,7 +291,7 @@ export async function getRecommendedMission(userId: string) {
     const [next] = await drizzleDb
       .select()
       .from(mission)
-      .where(and(eq(mission.isActive, true), notInArray(mission.id, completedMissionIds)))
+      .where(and(eq(mission.isActive, true), notInArray(mission.missionId, completedMissionIds)))
       .limit(1)
     return next ?? null
   }

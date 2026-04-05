@@ -50,7 +50,6 @@ export async function fetchFamilyPayments(
           where: inArray(curriculumEnrollment.studentId, filterStudentIds),
           with: {
             student: { with: { profile: { columns: { name: true } } } },
-            curriculum: { columns: { name: true } },
           },
         })
       : Promise.resolve([]),
@@ -66,7 +65,7 @@ export async function fetchFamilyPayments(
     filterStudentIds.length > 0
       ? drizzleDb
           .select({
-            paymentId: payment.id,
+            paymentId: payment.paymentId,
             amount: payment.amount,
             currency: payment.currency,
             status: payment.status,
@@ -75,7 +74,7 @@ export async function fetchFamilyPayments(
             enrollmentId: payment.enrollmentId,
           })
           .from(payment)
-          .innerJoin(curriculumEnrollment, eq(payment.enrollmentId, curriculumEnrollment.id))
+          .innerJoin(curriculumEnrollment, eq(payment.enrollmentId, curriculumEnrollment.enrollmentId))
           .where(
             and(
               inArray(curriculumEnrollment.studentId, filterStudentIds),
@@ -87,7 +86,7 @@ export async function fetchFamilyPayments(
     filterStudentIds.length > 0
       ? drizzleDb
           .select({
-            paymentId: payment.id,
+            paymentId: payment.paymentId,
             amount: payment.amount,
             currency: payment.currency,
             status: payment.status,
@@ -96,7 +95,7 @@ export async function fetchFamilyPayments(
             bookingId: payment.bookingId,
           })
           .from(payment)
-          .innerJoin(clinicBooking, eq(payment.bookingId, clinicBooking.id))
+          .innerJoin(clinicBooking, eq(payment.bookingId, clinicBooking.bookingId))
           .where(
             and(
               inArray(clinicBooking.studentId, filterStudentIds),
@@ -107,7 +106,7 @@ export async function fetchFamilyPayments(
       : Promise.resolve([]),
     drizzleDb.query.familyPayment.findMany({
       where: and(
-        eq(familyPayment.parentId, family.id),
+        eq(familyPayment.parentId, family.familyAccountId),
         ...(options?.startDate ? [gte(familyPayment.createdAt, options.startDate)] : []),
         ...(options?.endDate ? [lte(familyPayment.createdAt, options.endDate)] : [])
       ),
@@ -117,22 +116,21 @@ export async function fetchFamilyPayments(
   const enrollmentById = new Map(
     (
       enrollmentsWithDetails as {
-        id: string
+        enrollmentId: string
         studentId: string
-        curriculum?: { name: string } | null
         student?: { profile?: { name: string | null } } | null
       }[]
-    ).map(e => [e.id, e])
+    ).map(e => [e.enrollmentId, e])
   )
   const bookingById = new Map(
     (
       bookingsWithDetails as {
-        id: string
+        bookingId: string
         studentId: string
         clinic?: { title: string } | null
         student?: { profile?: { name: string | null } } | null
       }[]
-    ).map(b => [b.id, b])
+    ).map(b => [b.bookingId, b])
   )
 
   const coursePayments: UnifiedPayment[] = coursePaymentRows.map(p => {
@@ -145,7 +143,7 @@ export async function fetchFamilyPayments(
       status: p.status,
       createdAt: p.createdAt,
       paidAt: p.paidAt,
-      description: e?.curriculum?.name,
+      description: undefined,
       studentName: e?.student?.profile?.name ?? undefined,
       studentId: e?.studentId,
     }
@@ -168,7 +166,7 @@ export async function fetchFamilyPayments(
   })
 
   const budgetPayments: UnifiedPayment[] = familyPaymentsRaw.map(p => ({
-    id: p.id,
+    id: p.familyPaymentId,
     type: 'budget' as const,
     amount: p.amount,
     currency: family.defaultCurrency,

@@ -31,12 +31,12 @@ export const GET = withAuth(
       return NextResponse.json({ error: '无权查看该学生' }, { status: 403 })
     }
 
-    const member = family.members.find(m => m.userId === studentId || m.id === studentId)
+    const member = family.members.find(m => m.userId === studentId || m.familyMemberId === studentId)
     if (!member?.userId) {
       return NextResponse.json({ error: '学生未关联' }, { status: 404 })
     }
 
-    const cacheKey = `parent:student:analytics:${family.id}:${studentId}`
+    const cacheKey = `parent:student:analytics:${family.familyAccountId}:${studentId}`
     const cached = await cacheManager.get<object>(cacheKey)
     if (cached) {
       const res = NextResponse.json({ success: true, data: cached })
@@ -87,7 +87,7 @@ export const GET = withAuth(
 
     await cacheManager.set(cacheKey, data, {
       ttl: CACHE_TTL,
-      tags: [`family:${family.id}`, `student:${studentId}`],
+      tags: [`family:${family.familyAccountId}`, `student:${studentId}`],
     })
 
     const res = NextResponse.json({ success: true, data })

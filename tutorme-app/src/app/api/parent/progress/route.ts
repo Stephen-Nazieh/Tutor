@@ -27,7 +27,7 @@ export const GET = withAuth(
       return NextResponse.json({ error: '未找到家庭账户' }, { status: 404 })
     }
 
-    const cacheKey = `parent:progress:${family.id}`
+    const cacheKey = `parent:progress:${family.familyAccountId}`
     const cached = await cacheManager.get<object>(cacheKey)
     if (cached) return NextResponse.json({ success: true, data: cached })
 
@@ -149,7 +149,7 @@ export const GET = withAuth(
       },
     }
 
-    await cacheManager.set(cacheKey, data, { ttl: CACHE_TTL, tags: [`family:${family.id}`] })
+    await cacheManager.set(cacheKey, data, { ttl: CACHE_TTL, tags: [`family:${family.familyAccountId}`] })
     return NextResponse.json({ success: true, data })
   },
   { role: 'PARENT' }

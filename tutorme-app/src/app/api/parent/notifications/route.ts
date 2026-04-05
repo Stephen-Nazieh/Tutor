@@ -26,12 +26,12 @@ export const GET = withAuth(
       return NextResponse.json({ error: '未找到家庭账户' }, { status: 404 })
     }
 
-    const cacheKey = `parent:notifications:${family.id}`
+    const cacheKey = `parent:notifications:${family.familyAccountId}`
     const cached = await cacheManager.get<object>(cacheKey)
     if (cached) return NextResponse.json({ success: true, data: cached })
 
     const notifications = await drizzleDb.query.familyNotification.findMany({
-      where: eq(familyNotification.parentId, family.id),
+      where: eq(familyNotification.parentId, family.familyAccountId),
       orderBy: [desc(familyNotification.createdAt)],
       limit: 50,
     })
@@ -47,7 +47,7 @@ export const GET = withAuth(
       unreadCount: notifications.filter((n: any) => !n.isRead).length,
     }
 
-    await cacheManager.set(cacheKey, data, { ttl: CACHE_TTL, tags: [`family:${family.id}`] })
+    await cacheManager.set(cacheKey, data, { ttl: CACHE_TTL, tags: [`family:${family.familyAccountId}`] })
     return NextResponse.json({ success: true, data })
   },
   { role: 'PARENT' }
@@ -67,7 +67,7 @@ export const PATCH = withAuth(
       return NextResponse.json({ error: '无效请求' }, { status: 400 })
     }
 
-    let conditions: any[] = [eq(familyNotification.parentId, family.id)]
+    let conditions: any[] = [eq(familyNotification.parentId, family.familyAccountId)]
 
     if (body.all === true) {
       conditions.push(eq(familyNotification.isRead, false))
@@ -82,7 +82,7 @@ export const PATCH = withAuth(
       .set({ isRead: true })
       .where(and(...conditions))
 
-    await cacheManager.invalidateTag(`family:${family.id}`)
+    await cacheManager.invalidateTag(`family:${family.familyAccountId}`)
 
     return NextResponse.json({ success: true })
   },

@@ -250,7 +250,7 @@ export async function performRegistration(
 
     const checkHandle = async (handle: string) => {
       const [existing] = await tx
-        .select({ id: user.id })
+        .select({ userId: user.userId })
         .from(user)
         .where(eq(user.handle, handle))
         .limit(1)
@@ -275,7 +275,7 @@ export async function performRegistration(
     const finalHandle = desiredHandle ?? (await generateUniqueHandle(checkHandle, fallbackSeed))
 
     await tx.insert(user).values({
-      id: userId,
+      userId,
       email: normalizedEmail,
       password: hashedPassword,
       role,
@@ -288,7 +288,7 @@ export async function performRegistration(
       role === 'TUTOR' ? tutorProfileDataSchema.parse(data.profileData) : undefined
 
     await tx.insert(profile).values({
-      id: crypto.randomUUID(),
+      profileId: crypto.randomUUID(),
       userId,
       name,
       username: finalHandle,
@@ -329,7 +329,7 @@ export async function performRegistration(
         .where(eq(profile.userId, userId))
 
       const tutorApplicationValues = {
-        id: crypto.randomUUID(),
+        applicationId: crypto.randomUUID(),
         userId,
         firstName: tutorData.firstName,
         middleName: tutorData.middleName ?? null,
@@ -367,7 +367,7 @@ export async function performRegistration(
         | undefined
       const familyAccountId = crypto.randomUUID()
       await tx.insert(familyAccount).values({
-        id: familyAccountId,
+        familyAccountId,
         familyName: name,
         familyType: 'PARENT_STUDENT',
         primaryEmail: normalizedEmail,
@@ -381,7 +381,7 @@ export async function performRegistration(
         isVerified: false,
       })
       await tx.insert(familyMember).values({
-        id: crypto.randomUUID(),
+        familyMemberId: crypto.randomUUID(),
         familyAccountId,
         userId,
         name,
@@ -397,10 +397,10 @@ export async function performRegistration(
         phone: string
       }>) {
         await tx.insert(emergencyContact).values({
-          id: crypto.randomUUID(),
+          contactId: crypto.randomUUID(),
           parentId: familyAccountId,
           name: contact.name,
-          relation: contact.relationship,
+          relation: contact.relationship as string,
           phone: contact.phone,
           isPrimary: false,
         })
@@ -412,7 +412,7 @@ export async function performRegistration(
           if (v) {
             const studentName = (students[i] as { name?: string })?.name || v.name || v.email
             await tx.insert(familyMember).values({
-              id: crypto.randomUUID(),
+              familyMemberId: crypto.randomUUID(),
               familyAccountId,
               userId: v.userId,
               name: studentName,

@@ -92,14 +92,14 @@ export async function updateLeaderboardEntry(
     const [updated] = await drizzleDb
       .update(leaderboardEntry)
       .set({ score: sql`${leaderboardEntry.score} + ${xpEarned}` })
-      .where(eq(leaderboardEntry.id, existing.id))
+      .where(eq(leaderboardEntry.entryId, existing.entryId))
       .returning()
     return updated ?? existing
   }
   const [created] = await drizzleDb
     .insert(leaderboardEntry)
     .values({
-      id: crypto.randomUUID(),
+      entryId: crypto.randomUUID(),
       userId,
       type,
       score: xpEarned,
@@ -139,7 +139,7 @@ export async function getLeaderboard(
     .where(and(...conditions))
     .orderBy(desc(leaderboardEntry.score))
     .limit(limit)
-  const formattedEntries = await enrichEntriesWithUser(entries)
+  const formattedEntries = await enrichEntriesWithUser(entries as any)
   let userRank: LeaderboardEntry | undefined
   if (userId) {
     const inTop = formattedEntries.find(e => e.userId === userId)
@@ -183,7 +183,7 @@ async function getUserRank(
     .from(leaderboardEntry)
     .where(and(...countConditions))
   const rank = (higher?.count ?? 0) + 1
-  const enriched = await enrichEntriesWithUser([userEntry])
+  const enriched = await enrichEntriesWithUser([userEntry] as any)
   if (enriched.length === 0) return undefined
   return { ...enriched[0], rank }
 }
@@ -243,7 +243,7 @@ export async function getLeaderboardAroundUser(
   const userRank = (rankCount[0]?.count ?? 0) + 1
   const aboveReversed = [...aboveEntries].reverse()
   const allEntries = [...aboveReversed, userEntry, ...belowEntries]
-  const enriched = await enrichEntriesWithUser(allEntries)
+  const enriched = await enrichEntriesWithUser(allEntries as any)
   return enriched.map((e, index) => ({ ...e, rank: userRank - aboveReversed.length + index + 1 }))
 }
 
@@ -298,7 +298,7 @@ export async function getUserLeaderboardStats(userId: string) {
 
 export async function initializeUserLeaderboard(userId: string) {
   await drizzleDb.insert(leaderboardEntry).values({
-    id: crypto.randomUUID(),
+    entryId: crypto.randomUUID(),
     userId,
     type: 'global',
     score: 0,

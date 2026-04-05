@@ -15,20 +15,20 @@ export const PARENT_CACHE_TTL = {
 const CACHE_TTL_PARENT = PARENT_CACHE_TTL.FAMILY
 
 export interface FamilyMemberWithUser {
-  id: string
+  familyMemberId: string
   name: string
   relation: string
   email: string | null
   userId: string | null
   user?: {
-    id: string
+    userId: string
     email: string
     profile: { name: string | null; gradeLevel?: string | null; avatarUrl?: string | null } | null
   } | null
 }
 
 export interface FamilyAccountWithMembers {
-  id: string
+  familyAccountId: string
   familyName: string
   primaryEmail: string
   defaultCurrency: string
@@ -65,20 +65,20 @@ export async function getFamilyAccountForParent(
     const [fa] = await drizzleDb
       .select()
       .from(familyAccount)
-      .where(eq(familyAccount.id, memberLink.familyAccountId))
+      .where(eq(familyAccount.familyAccountId, memberLink.familyAccountId))
       .limit(1)
     if (fa) {
       const members = await drizzleDb
         .select()
         .from(familyMember)
-        .where(eq(familyMember.familyAccountId, fa.id))
+        .where(eq(familyMember.familyAccountId, fa.familyAccountId))
       const userIds = members.map(m => m.userId).filter(Boolean) as string[]
       const users =
         userIds.length > 0
           ? await drizzleDb
-              .select({ id: user.id, email: user.email })
+              .select({ userId: user.userId, email: user.email })
               .from(user)
-              .where(inArray(user.id, userIds))
+              .where(inArray(user.userId, userIds))
           : []
       const profiles =
         userIds.length > 0
@@ -92,7 +92,7 @@ export async function getFamilyAccountForParent(
               .from(profile)
               .where(inArray(profile.userId, userIds))
           : []
-      const userMap = Object.fromEntries(users.map(u => [u.id, u]))
+      const userMap = Object.fromEntries(users.map(u => [u.userId, u]))
       const profileByUserId = Object.fromEntries(profiles.map(p => [p.userId, p]))
 
       const studentIds = members
@@ -101,7 +101,7 @@ export async function getFamilyAccountForParent(
         .filter(Boolean)
 
       const result: FamilyAccountWithMembers = {
-        id: fa.id,
+        familyAccountId: fa.familyAccountId,
         familyName: fa.familyName,
         primaryEmail: fa.primaryEmail,
         defaultCurrency: fa.defaultCurrency,
@@ -111,14 +111,14 @@ export async function getFamilyAccountForParent(
           const u = m.userId ? userMap[m.userId] : undefined
           const p = m.userId ? profileByUserId[m.userId] : undefined
           return {
-            id: m.id,
+            familyMemberId: m.familyMemberId,
             name: m.name,
             relation: m.relation,
             email: m.email,
             userId: m.userId,
             user: u
               ? {
-                  id: u.id,
+                  userId: u.userId,
                   email: u.email ?? '',
                   profile: p
                     ? { name: p.name, gradeLevel: p.gradeLevel, avatarUrl: p.avatarUrl }
@@ -132,7 +132,7 @@ export async function getFamilyAccountForParent(
 
       await cacheManager.set(cacheKey, result, {
         ttl: CACHE_TTL_PARENT,
-        tags: ['parent', 'parent:' + session.user.id, 'family:' + fa.id],
+        tags: ['parent', 'parent:' + session.user.id, 'family:' + fa.familyAccountId],
       })
       return result
     }
@@ -151,14 +151,14 @@ export async function getFamilyAccountForParent(
   const members = await drizzleDb
     .select()
     .from(familyMember)
-    .where(eq(familyMember.familyAccountId, faByEmail.id))
+    .where(eq(familyMember.familyAccountId, faByEmail.familyAccountId))
   const userIds = members.map(m => m.userId).filter(Boolean) as string[]
   const users =
     userIds.length > 0
       ? await drizzleDb
-          .select({ id: user.id, email: user.email })
+          .select({ userId: user.userId, email: user.email })
           .from(user)
-          .where(inArray(user.id, userIds))
+          .where(inArray(user.userId, userIds))
       : []
   const profiles =
     userIds.length > 0
@@ -172,7 +172,7 @@ export async function getFamilyAccountForParent(
           .from(profile)
           .where(inArray(profile.userId, userIds))
       : []
-  const userMap = Object.fromEntries(users.map(u => [u.id, u]))
+  const userMap = Object.fromEntries(users.map(u => [u.userId, u]))
   const profileByUserId = Object.fromEntries(profiles.map(p => [p.userId, p]))
 
   const studentIds = members
@@ -181,7 +181,7 @@ export async function getFamilyAccountForParent(
     .filter(Boolean)
 
   const result: FamilyAccountWithMembers = {
-    id: faByEmail.id,
+    familyAccountId: faByEmail.familyAccountId,
     familyName: faByEmail.familyName,
     primaryEmail: faByEmail.primaryEmail,
     defaultCurrency: faByEmail.defaultCurrency,
@@ -191,14 +191,14 @@ export async function getFamilyAccountForParent(
       const u = m.userId ? userMap[m.userId] : undefined
       const p = m.userId ? profileByUserId[m.userId] : undefined
       return {
-        id: m.id,
+        familyMemberId: m.familyMemberId,
         name: m.name,
         relation: m.relation,
         email: m.email,
         userId: m.userId,
         user: u
           ? {
-              id: u.id,
+              userId: u.userId,
               email: u.email ?? '',
               profile: p
                 ? { name: p.name, gradeLevel: p.gradeLevel, avatarUrl: p.avatarUrl }
@@ -212,7 +212,7 @@ export async function getFamilyAccountForParent(
 
   await cacheManager.set(cacheKey, result, {
     ttl: CACHE_TTL_PARENT,
-    tags: ['parent', 'parent:' + session.user.id, 'family:' + faByEmail.id],
+    tags: ['parent', 'parent:' + session.user.id, 'family:' + faByEmail.familyAccountId],
   })
 
   return result

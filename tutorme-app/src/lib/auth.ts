@@ -49,7 +49,7 @@ export const authOptions: NextAuthOptions = {
         const [profileRow] = await drizzleDb
           .select()
           .from(profile)
-          .where(eq(profile.userId, userRow.id))
+          .where(eq(profile.userId, userRow.userId))
           .limit(1)
 
         const isValid = await bcrypt.compare(credentials.password, userRow.password)
@@ -63,7 +63,7 @@ export const authOptions: NextAuthOptions = {
         const tosAccepted = profileRow?.tosAccepted ?? false
 
         return {
-          id: userRow.id,
+          id: userRow.userId,
           email: userRow.email,
           name: profileRow?.name ?? userRow.email,
           role: userRow.role,
