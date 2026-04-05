@@ -198,12 +198,12 @@ export const POST = withAuth(
 
       const quizData = parseQuizResponse(result.content, params)
 
-      let savedQuiz: { id: string } | null = null
+      let savedQuiz: { quizId: string } | null = null
       try {
         const [inserted] = await drizzleDb
           .insert(quiz)
           .values({
-            id: randomUUID(),
+            quizId: randomUUID(),
             tutorId,
             title: quizData.title,
             description: quizData.description,
@@ -218,7 +218,7 @@ export const POST = withAuth(
             totalPoints: quizData.totalPoints,
             tags: [],
           })
-          .returning({ id: quiz.id })
+          .returning({ quizId: quiz.quizId })
         savedQuiz = inserted ?? null
       } catch {
         // Quiz table save skipped
@@ -226,7 +226,7 @@ export const POST = withAuth(
 
       try {
         await drizzleDb.insert(aIAssistantInsight).values({
-          id: randomUUID(),
+          insightId: randomUUID(),
           sessionId: body.sessionId || 'temp',
           type: 'content_suggestion',
           title: `Generated Quiz: ${quizData.title}`,
@@ -245,7 +245,7 @@ export const POST = withAuth(
       return NextResponse.json({
         quiz: quizData,
         saved: !!savedQuiz,
-        quizId: savedQuiz?.id,
+        quizId: savedQuiz?.quizId,
         metadata: {
           provider: result.provider,
           latencyMs: result.latencyMs,
@@ -271,7 +271,7 @@ export const GET = withAuth(
     try {
       const rows = await drizzleDb
         .select({
-          id: quiz.id,
+          id: quiz.quizId,
           title: quiz.title,
           createdAt: quiz.createdAt,
         })

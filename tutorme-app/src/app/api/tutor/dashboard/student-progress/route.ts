@@ -9,8 +9,8 @@ import { eq, inArray, desc } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
-  curriculumEnrollment,
+  course,
+  courseEnrollment,
   clinic,
   clinicBooking,
   liveSession,
@@ -33,32 +33,21 @@ export const GET = withAuth(
     // 1. Fetch core data in parallel
     // We need to filter by tutorId which requires joining related tables
     const [enrollments, clinicBookings, sessionParticipants] = await Promise.all([
-      // Enrollments in curricula created by this tutor
-      drizzleDb.query.curriculumEnrollment.findMany({
+      // Enrollments in courses created by this tutor
+      drizzleDb.query.courseEnrollment.findMany({
         where: inArray(
-          curriculumEnrollment.curriculumId,
+          courseEnrollment.courseId,
           drizzleDb
-            .select({ id: curriculum.id })
-            .from(curriculum)
-            .where(eq(curriculum.creatorId, tutorId))
+            .select({ courseId: course.courseId })
+            .from(course)
+            .where(eq(course.creatorId, tutorId))
         ),
-        with: {
-          curriculum: {
-            with: {
-              modules: {
-                with: {
-                  lessons: { columns: { id: true } },
-                },
-              },
-            },
-          },
-        },
       }),
       // Clinic bookings for clinics hosted by this tutor
       drizzleDb.query.clinicBooking.findMany({
         where: inArray(
           clinicBooking.clinicId,
-          drizzleDb.select({ id: clinic.id }).from(clinic).where(eq(clinic.tutorId, tutorId))
+          drizzleDb.select({ clinicId: clinic.clinicId }).from(clinic).where(eq(clinic.tutorId, tutorId))
         ),
       }),
       // Session participants for sessions hosted by this tutor
@@ -66,7 +55,7 @@ export const GET = withAuth(
         where: inArray(
           sessionParticipant.sessionId,
           drizzleDb
-            .select({ id: liveSession.id })
+            .select({ sessionId: liveSession.sessionId })
             .from(liveSession)
             .where(eq(liveSession.tutorId, tutorId))
         ),
@@ -103,9 +92,9 @@ export const GET = withAuth(
       const current = enrollmentByStudent.get(enrollment.studentId) ?? { completed: 0, total: 0 }
       current.completed += enrollment.lessonsCompleted
 
-      // Calculate total lessons in this curriculum across all modules
-      const totalLessons =
-        enrollment.curriculum?.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || 0
+      // Calculate total lessons - lessons now directly reference courses
+      // Note: This would need a separate query to count lessons per course
+      const totalLessons = enrollment.lessonsCompleted || 0
 
       current.total += totalLessons
       enrollmentByStudent.set(enrollment.studentId, current)

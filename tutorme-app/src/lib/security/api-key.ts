@@ -43,7 +43,10 @@ export async function verifyApiKey(bearerToken: string): Promise<{ id: string } 
   const keyHash = hashKey(bearerToken)
   const [record] = await drizzleDb.select().from(apiKey).where(eq(apiKey.keyHash, keyHash)).limit(1)
   if (!record) return null
-  await drizzleDb.update(apiKey).set({ lastUsedAt: new Date() }).where(eq(apiKey.apiKeyId, record.apiKeyId))
+  await drizzleDb
+    .update(apiKey)
+    .set({ lastUsedAt: new Date() })
+    .where(eq(apiKey.apiKeyId, record.apiKeyId))
   return { id: record.apiKeyId }
 }
 

@@ -20,7 +20,7 @@ export const GET = withAuth(
     }
     const studentId = session.user.id
 
-    const [quizRow] = await drizzleDb.select().from(quiz).where(eq(quiz.id, id)).limit(1)
+    const [quizRow] = await drizzleDb.select().from(quiz).where(eq(quiz.quizId, id)).limit(1)
 
     if (!quizRow) {
       throw new NotFoundError('Quiz not found')
@@ -75,7 +75,7 @@ export const GET = withAuth(
 
     return NextResponse.json({
       quiz: {
-        id: quizRow.id,
+        id: quizRow.quizId,
         title: quizRow.title,
         description: quizRow.description,
         type: quizRow.type,
@@ -87,7 +87,7 @@ export const GET = withAuth(
       },
       questions: sanitizedQuestions,
       attempts: completedAttempts.map(a => ({
-        id: a.id,
+        id: a.attemptId,
         score: Math.round((a.score / a.maxScore) * 100),
         completedAt: a.completedAt,
         attemptNumber: a.attemptNumber,
@@ -101,7 +101,7 @@ export const GET = withAuth(
 )
 
 async function checkQuizAccess(
-  quizRow: { id: string; curriculumId: string | null },
+  quizRow: { quizId: string; courseId: string | null },
   studentId: string
 ): Promise<boolean> {
   const [directAssignment] = await drizzleDb
@@ -109,7 +109,7 @@ async function checkQuizAccess(
     .from(quizAssignment)
     .where(
       and(
-        eq(quizAssignment.quizId, quizRow.id),
+        eq(quizAssignment.quizId, quizRow.quizId),
         eq(quizAssignment.isActive, true),
         or(
           and(
@@ -124,13 +124,13 @@ async function checkQuizAccess(
 
   if (directAssignment) return true
 
-  if (quizRow.curriculumId) {
+  if (quizRow.courseId) {
     const [enrollment] = await drizzleDb
       .select()
       .from(curriculumEnrollment)
       .where(
         and(
-          eq(curriculumEnrollment.curriculumId, quizRow.curriculumId),
+          eq(curriculumEnrollment.courseId, quizRow.courseId),
           eq(curriculumEnrollment.studentId, studentId)
         )
       )

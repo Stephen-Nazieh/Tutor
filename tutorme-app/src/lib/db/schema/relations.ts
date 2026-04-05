@@ -10,7 +10,6 @@ import {
   courseEnrollment,
   studyGroup,
   studyGroupMember,
-  courseModule,
   courseLesson,
   courseLessonProgress,
   courseProgress,
@@ -139,26 +138,13 @@ export const adminRoleRelations = relations(adminRole, ({ many }) => ({
 
 export const courseRelations = relations(course, ({ many }) => ({
   enrollments: many(courseEnrollment),
-  modules: many(courseModule),
   lessons: many(courseLesson),
   shares: many(courseShare),
   progress: many(courseProgress),
   studentPerformances: many(studentPerformance),
 }))
 
-export const courseModuleRelations = relations(courseModule, ({ one, many }) => ({
-  course: one(course, {
-    fields: [courseModule.courseId],
-    references: [course.courseId],
-  }),
-  lessons: many(courseLesson),
-}))
-
 export const courseLessonRelations = relations(courseLesson, ({ one, many }) => ({
-  module: one(courseModule, {
-    fields: [courseLesson.moduleId],
-    references: [courseModule.moduleId],
-  }),
   course: one(course, {
     fields: [courseLesson.courseId],
     references: [course.courseId],

@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { generatedTask, curriculumEnrollment, notification } from '@/lib/db/schema'
+import { generatedTask, courseEnrollment, notification } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import crypto from 'crypto'
 
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   const [task] = await drizzleDb
     .select()
     .from(generatedTask)
-    .where(and(eq(generatedTask.id, taskId), eq(generatedTask.tutorId, session.user.id)))
+    .where(and(eq(generatedTask.taskId, taskId), eq(generatedTask.tutorId, session.user.id)))
   if (!task) {
     return NextResponse.json({ error: 'Task not found' }, { status: 404 })
   }
@@ -47,19 +47,14 @@ export async function POST(req: NextRequest) {
 
   let studentIds: string[] = []
 
+  // Note: batchId doesn't exist on generatedTask or enrollments
   if (Array.isArray(assignTo)) {
     studentIds = assignTo
-  } else if (assignTo === 'batch' && task.batchId) {
-    const enrollments = await drizzleDb
-      .select({ studentId: curriculumEnrollment.studentId })
-      .from(curriculumEnrollment)
-      .where(eq(curriculumEnrollment.batchId, task.batchId))
-    studentIds = enrollments.map(e => e.studentId)
   } else {
     const enrollments = await drizzleDb
-      .select({ studentId: curriculumEnrollment.studentId })
-      .from(curriculumEnrollment)
-      .where(eq(curriculumEnrollment.curriculumId, courseId))
+      .select({ studentId: courseEnrollment.studentId })
+      .from(courseEnrollment)
+      .where(eq(courseEnrollment.courseId, courseId))
     studentIds = enrollments.map(e => e.studentId)
   }
 
@@ -75,7 +70,7 @@ export async function POST(req: NextRequest) {
       assignments,
       assignedAt: new Date(),
     })
-    .where(eq(generatedTask.id, taskId))
+    .where(eq(generatedTask.taskId, taskId))
     .returning()
 
   if (!updated) {
@@ -85,14 +80,14 @@ export async function POST(req: NextRequest) {
   if (studentIds.length > 0) {
     await drizzleDb.insert(notification).values(
       studentIds.map(sid => ({
-        id: crypto.randomUUID(),
+        notificationId: crypto.randomUUID(),
         userId: sid,
         type: 'assignment',
         title: 'New Assignment',
         message: `You have a new assignment: "${task.title}"`,
         actionUrl: '/student/assignments',
         data: {
-          taskId: task.id,
+          taskId: task.taskId,
           taskTitle: task.title,
           taskType: task.type,
           dueDate: task.dueDate?.toISOString() ?? null,
@@ -105,7 +100,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     message: `Task published and assigned to ${studentIds.length} students`,
     task: {
-      id: updated.id,
+      id: updated.taskId,
       status: updated.status,
       assignedStudentCount: studentIds.length,
     },

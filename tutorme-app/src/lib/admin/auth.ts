@@ -276,7 +276,10 @@ export async function getAdminUsers(): Promise<AdminUser[]> {
           .select()
           .from(adminAssignmentTable)
           .where(
-            and(eq(adminAssignmentTable.userId, users.userId), eq(adminAssignmentTable.isActive, true))
+            and(
+              eq(adminAssignmentTable.userId, users.userId),
+              eq(adminAssignmentTable.isActive, true)
+            )
           )
       ),
     with: {

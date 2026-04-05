@@ -34,7 +34,7 @@ export const GET = withAuth(
 
     if (status) conditions.push(eq(quiz.status, status))
     if (type) conditions.push(eq(quiz.type, type))
-    if (curriculumId) conditions.push(eq(quiz.curriculumId, curriculumId))
+    if (curriculumId) conditions.push(eq(quiz.courseId, curriculumId))
 
     if (searchQuery) {
       const searchCond = or(
@@ -55,8 +55,8 @@ export const GET = withAuth(
         limit,
         offset,
         with: {
-          attempts: { columns: { id: true } },
-          assignments: { columns: { id: true } },
+          attempts: { columns: { attemptId: true } },
+          assignments: { columns: { assignmentId: true } },
         },
       }),
       drizzleDb
@@ -70,8 +70,8 @@ export const GET = withAuth(
     // Format response
     const formattedQuizzes = quizzes.map(q => ({
       ...q,
-      attemptCount: q.attempts.length,
-      assignmentCount: q.assignments.length,
+      attemptCount: q.attempts?.length || 0,
+      assignmentCount: q.assignments?.length || 0,
       attempts: undefined,
       assignments: undefined,
     }))
@@ -153,7 +153,7 @@ export const POST = withCsrf(
       const [newQuiz] = await drizzleDb
         .insert(quiz)
         .values({
-          id: crypto.randomUUID(),
+          quizId: crypto.randomUUID(),
           tutorId: session.user.id,
           title,
           description: description || null,
@@ -170,7 +170,7 @@ export const POST = withCsrf(
           tags: Array.isArray(tags) ? tags : [],
           startDate: startDate ? new Date(startDate) : null,
           dueDate: dueDate ? new Date(dueDate) : null,
-          curriculumId: curriculumId || null,
+          courseId: curriculumId || null,
           lessonId: lessonId || null,
         })
         .returning()

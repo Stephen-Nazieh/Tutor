@@ -31,8 +31,8 @@ export async function GET(req: NextRequest) {
 
     const bookings = await drizzleDb
       .select({
-        bookingId: clinicBooking.id,
-        clinicId: clinic.id,
+        bookingId: clinicBooking.bookingId,
+        clinicId: clinic.clinicId,
         title: clinic.title,
         subject: clinic.subject,
         startTime: clinic.startTime,
@@ -41,9 +41,9 @@ export async function GET(req: NextRequest) {
         avatarUrl: profile.avatarUrl,
       })
       .from(clinicBooking)
-      .innerJoin(clinic, eq(clinicBooking.clinicId, clinic.id))
-      .leftJoin(user, eq(clinic.tutorId, user.id))
-      .leftJoin(profile, eq(profile.userId, user.id))
+      .innerJoin(clinic, eq(clinicBooking.clinicId, clinic.clinicId))
+      .leftJoin(user, eq(clinic.tutorId, user.userId))
+      .leftJoin(profile, eq(profile.userId, user.userId))
       .where(
         and(
           eq(clinicBooking.studentId, session.user.id),

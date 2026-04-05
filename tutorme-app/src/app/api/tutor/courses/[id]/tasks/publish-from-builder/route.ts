@@ -14,7 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum, curriculumEnrollment, generatedTask, notification } from '@/lib/db/schema'
+import { course, courseEnrollment, generatedTask, notification } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import crypto from 'crypto'
 
@@ -30,13 +30,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const curriculumId = getCourseId(req)
+  const courseId = getCourseId(req)
 
-  const [curriculumRow] = await drizzleDb
-    .select({ id: curriculum.id })
-    .from(curriculum)
-    .where(and(eq(curriculum.id, curriculumId), eq(curriculum.creatorId, session.user.id)))
-  if (!curriculumRow) {
+  const [courseRow] = await drizzleDb
+    .select({ courseId: course.courseId })
+    .from(course)
+    .where(and(eq(course.courseId, courseId), eq(course.creatorId, session.user.id)))
+  if (!courseRow) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
@@ -51,19 +51,14 @@ export async function POST(req: NextRequest) {
 
   let studentIds: string[] = []
   if (assignTo) {
+    // Note: batchId doesn't exist on enrollments
     if (Array.isArray(assignTo)) {
       studentIds = assignTo
-    } else if (assignTo === 'batch' && batchId) {
-      const enrollments = await drizzleDb
-        .select({ studentId: curriculumEnrollment.studentId })
-        .from(curriculumEnrollment)
-        .where(eq(curriculumEnrollment.batchId, batchId))
-      studentIds = enrollments.map(e => e.studentId)
     } else {
       const enrollments = await drizzleDb
-        .select({ studentId: curriculumEnrollment.studentId })
-        .from(curriculumEnrollment)
-        .where(eq(curriculumEnrollment.curriculumId, curriculumId))
+        .select({ studentId: courseEnrollment.studentId })
+        .from(courseEnrollment)
+        .where(eq(courseEnrollment.courseId, courseId))
       studentIds = enrollments.map(e => e.studentId)
     }
   }
@@ -103,7 +98,7 @@ export async function POST(req: NextRequest) {
     const [task] = await drizzleDb
       .insert(generatedTask)
       .values({
-        id: crypto.randomUUID(),
+        taskId: crypto.randomUUID(),
         tutorId: session.user.id,
         title: item.title || 'Untitled',
         description: item.description || '',
@@ -115,7 +110,7 @@ export async function POST(req: NextRequest) {
         status: studentIds.length > 0 ? 'assigned' : 'draft',
         assignedAt: studentIds.length > 0 ? new Date() : null,
         lessonId: item.lessonId || null,
-        batchId: batchId || null,
+        // batchId field doesn't exist on generatedTask
         dueDate: item.dueDate ? new Date(item.dueDate) : null,
         maxScore,
         documentSource: typeof item.documentSource === 'string' ? item.documentSource : null,
@@ -127,7 +122,7 @@ export async function POST(req: NextRequest) {
       .returning()
 
     if (task) {
-      createdTasks.push({ id: task.id, title: task.title, type: task.type })
+      createdTasks.push({ id: task.taskId, title: task.title, type: task.type })
     }
   }
 
@@ -140,7 +135,7 @@ export async function POST(req: NextRequest) {
         : `You have ${createdTasks.length} new assignments`
     await drizzleDb.insert(notification).values(
       studentIds.map(sid => ({
-        id: crypto.randomUUID(),
+        notificationId: crypto.randomUUID(),
         userId: sid,
         type: 'assignment',
         title: notifTitle,

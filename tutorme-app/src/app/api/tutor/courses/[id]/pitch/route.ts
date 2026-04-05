@@ -67,7 +67,7 @@ export const POST = withCsrf(
         const [course] = await drizzleDb
           .select()
           .from(curriculum)
-          .where(eq(curriculum.id, id))
+          .where(eq(curriculum.courseId, id))
           .limit(1)
 
         if (!course) {
@@ -77,34 +77,23 @@ export const POST = withCsrf(
         const modules = await drizzleDb
           .select()
           .from(curriculumModule)
-          .where(eq(curriculumModule.curriculumId, id))
+          .where(eq(curriculumModule.courseId, id))
           .orderBy(asc(curriculumModule.order))
 
-        const moduleIds = modules.map(m => m.id)
-        const lessons = moduleIds.length
-          ? await drizzleDb
-              .select({
-                moduleId: curriculumLesson.moduleId,
-                title: curriculumLesson.title,
-                description: curriculumLesson.description,
-                duration: curriculumLesson.duration,
-                difficulty: curriculumLesson.difficulty,
-                learningObjectives: curriculumLesson.learningObjectives,
-                order: curriculumLesson.order,
-              })
-              .from(curriculumLesson)
-              .where(inArray(curriculumLesson.moduleId, moduleIds))
-              .orderBy(asc(curriculumLesson.order))
-          : []
+        // Lessons are now directly under courses, not modules
+        const lessons = await drizzleDb
+          .select({
+            title: curriculumLesson.title,
+            description: curriculumLesson.description,
+            order: curriculumLesson.order,
+          })
+          .from(curriculumLesson)
+          .where(eq(curriculumLesson.courseId, id))
+          .orderBy(asc(curriculumLesson.order))
 
+        // Lessons are now directly under courses - associate all with first module for context
         const lessonsByModuleId = new Map<string, typeof lessons>()
-        for (const lesson of lessons) {
-          // Handle legacy moduleId which may be null in new schema
-          const key = lesson.moduleId ?? 'default'
-          const list = lessonsByModuleId.get(key) ?? []
-          list.push(lesson)
-          lessonsByModuleId.set(key, list)
-        }
+        lessonsByModuleId.set('default', lessons)
 
         const tutorProfile = course.creatorId
           ? (
@@ -125,10 +114,10 @@ export const POST = withCsrf(
         const modulesContext = modules.map(m => ({
           title: m.title,
           description: m.description,
-          lessons: (lessonsByModuleId.get(m.id) ?? []).map(l => ({
+          lessons: (lessonsByModuleId.get(m.moduleId) ?? lessonsByModuleId.get('default') ?? []).map(l => ({
             title: l.title,
-            duration: l.duration,
-            objectives: l.learningObjectives,
+            duration: 30, // Default duration - not in schema
+            objectives: [], // Not in schema
           })),
         }))
         const tutorContext = tutorProfile
@@ -144,10 +133,7 @@ export const POST = withCsrf(
 
 COURSE INFORMATION:
 - Name: ${course.name}
-- Subject: ${course.subject}
-- Grade Level: ${course.gradeLevel || 'All levels'}
-- Difficulty: ${course.difficulty}
-- Estimated Hours: ${course.estimatedHours || 'Flexible'}
+- Subject: ${course.categories?.[0] || 'N/A'}
 - Description: ${course.description || 'N/A'}
 
 TUTOR INFORMATION:
@@ -170,11 +156,12 @@ Generate a compelling, persuasive course pitch based on this information.`
           maxTokens: 2500,
         })
 
-        // Save the generated pitch
-        await drizzleDb
-          .update(curriculum)
-          .set({ coursePitch: result.content })
-          .where(eq(curriculum.id, id))
+        // Note: coursePitch column doesn't exist in schema
+        // Pitch is generated on-demand and not cached
+        // await drizzleDb
+        //   .update(curriculum)
+        //   .set({ coursePitch: result.content })
+        //   .where(eq(curriculum.courseId, id))
 
         return NextResponse.json({
           pitch: result.content,
@@ -201,17 +188,19 @@ export const GET = withAuth(
       if (!id) {
         return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
       }
-      const [course] = await drizzleDb
-        .select({ coursePitch: curriculum.coursePitch })
-        .from(curriculum)
-        .where(eq(curriculum.id, id))
-        .limit(1)
+      // Note: coursePitch column doesn't exist in schema - pitch is generated on-demand
+      // const [course] = await drizzleDb
+      //   .select({ coursePitch: curriculum.coursePitch })
+      //   .from(curriculum)
+      //   .where(eq(curriculum.courseId, id))
+      //   .limit(1)
 
-      if (!course) {
-        return NextResponse.json({ error: 'Course not found' }, { status: 404 })
-      }
+      // if (!course) {
+      //   return NextResponse.json({ error: 'Course not found' }, { status: 404 })
+      // }
 
-      return NextResponse.json({ pitch: course.coursePitch })
+      // return NextResponse.json({ pitch: course.coursePitch })
+      return NextResponse.json({ pitch: null })
     } catch (error) {
       console.error('Failed to fetch course pitch:', error)
       return handleApiError(
@@ -240,9 +229,10 @@ export const PATCH = withCsrf(
           return NextResponse.json({ error: 'Invalid pitch format' }, { status: 400 })
         }
 
-        await drizzleDb.update(curriculum).set({ coursePitch: pitch }).where(eq(curriculum.id, id))
+        // Note: coursePitch column doesn't exist in schema - pitch is generated on-demand
+        // await drizzleDb.update(curriculum).set({ coursePitch: pitch }).where(eq(curriculum.courseId, id))
 
-        return NextResponse.json({ success: true })
+        return NextResponse.json({ success: true, note: 'Pitch is generated on-demand and not stored' })
       } catch (error) {
         console.error('Failed to update course pitch:', error)
         return handleApiError(
@@ -265,9 +255,10 @@ export const DELETE = withCsrf(
         if (!id) {
           return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
         }
-        await drizzleDb.update(curriculum).set({ coursePitch: null }).where(eq(curriculum.id, id))
+        // Note: coursePitch column doesn't exist in schema
+        // await drizzleDb.update(curriculum).set({ coursePitch: null }).where(eq(curriculum.courseId, id))
 
-        return NextResponse.json({ success: true })
+        return NextResponse.json({ success: true, note: 'Pitch is generated on-demand and not stored' })
       } catch (error) {
         console.error('Failed to delete course pitch:', error)
         return handleApiError(

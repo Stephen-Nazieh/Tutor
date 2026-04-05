@@ -301,20 +301,22 @@ export async function getCurriculum(subject: string, grade: string): Promise<Cur
     subject: curriculumRow[0].categories?.[0] ?? '',
     grade,
     learningObjectives: curriculumRow[0].categories || [],
-    modules: [{
-      id: 'default-module',
-      title: 'Course Content',
-      description: '',
-      order: 0,
-      lessons: lessons.map(lesson => ({
-        id: lesson.lessonId,
-        title: lesson.title,
-        content: lesson.description || '',
-        difficulty: 'medium' as Lesson['difficulty'],
-        estimatedTime: 30,
-        prerequisites: [],
-      })),
-    }],
+    modules: [
+      {
+        id: 'default-module',
+        title: 'Course Content',
+        description: '',
+        order: 0,
+        lessons: lessons.map(lesson => ({
+          id: lesson.lessonId,
+          title: lesson.title,
+          content: lesson.description || '',
+          difficulty: 'medium' as Lesson['difficulty'],
+          estimatedTime: 30,
+          prerequisites: [],
+        })),
+      },
+    ],
   }
 }
 

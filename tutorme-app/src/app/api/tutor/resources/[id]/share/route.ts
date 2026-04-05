@@ -26,7 +26,7 @@ export const GET = withAuth(
     const resourceRows = await drizzleDb
       .select()
       .from(resource)
-      .where(and(eq(resource.id, id), eq(resource.tutorId, tutorId)))
+      .where(and(eq(resource.resourceId, id), eq(resource.tutorId, tutorId)))
       .limit(1)
 
     const resourceRow = resourceRows[0]
@@ -42,8 +42,8 @@ export const GET = withAuth(
         recipientEmail: user.email,
       })
       .from(resourceShare)
-      .leftJoin(user, eq(resourceShare.recipientId, user.id))
-      .leftJoin(profile, eq(profile.userId, user.id))
+      .leftJoin(user, eq(resourceShare.recipientId, user.userId))
+      .leftJoin(profile, eq(profile.userId, user.userId))
       .where(eq(resourceShare.resourceId, id))
 
     const shares = shareRows.map(r => ({
@@ -70,7 +70,7 @@ export const POST = withAuth(
     const resourceRows = await drizzleDb
       .select()
       .from(resource)
-      .where(and(eq(resource.id, id), eq(resource.tutorId, tutorId)))
+      .where(and(eq(resource.resourceId, id), eq(resource.tutorId, tutorId)))
       .limit(1)
 
     if (!resourceRows[0]) {
@@ -80,7 +80,7 @@ export const POST = withAuth(
     const body = await req.json()
     const { recipientIds, curriculumId, sharedWithAll, message } = body
 
-    const shares: { id: string }[] = []
+    const shares: { shareId: string }[] = []
 
     if (sharedWithAll) {
       const existing = await drizzleDb
@@ -93,21 +93,21 @@ export const POST = withAuth(
         await drizzleDb
           .update(resourceShare)
           .set({ sharedWithAll: true })
-          .where(eq(resourceShare.id, existing[0].id))
-        shares.push({ id: existing[0].id })
+          .where(eq(resourceShare.shareId, existing[0].shareId))
+        shares.push({ shareId: existing[0].shareId })
       } else {
         const [inserted] = await drizzleDb
           .insert(resourceShare)
           .values({
-            id: randomUUID(),
+            shareId: randomUUID(),
             resourceId: id,
             sharedByTutorId: tutorId,
             sharedWithAll: true,
-            curriculumId: curriculumId ?? null,
+            courseId: curriculumId ?? null,
             message: message ?? null,
             recipientId: null,
           })
-          .returning({ id: resourceShare.id })
+          .returning({ shareId: resourceShare.shareId })
         if (inserted) shares.push(inserted)
       }
     } else if (recipientIds?.length > 0) {
@@ -124,22 +124,22 @@ export const POST = withAuth(
           if (existing[0]) {
             await drizzleDb
               .update(resourceShare)
-              .set({ curriculumId: curriculumId ?? null, message: message ?? null })
-              .where(eq(resourceShare.id, existing[0].id))
-            shares.push({ id: existing[0].id })
+              .set({ courseId: curriculumId ?? null, message: message ?? null })
+              .where(eq(resourceShare.shareId, existing[0].shareId))
+            shares.push({ shareId: existing[0].shareId })
           } else {
             const [inserted] = await drizzleDb
               .insert(resourceShare)
               .values({
-                id: randomUUID(),
+                shareId: randomUUID(),
                 resourceId: id,
                 sharedByTutorId: tutorId,
                 recipientId,
-                curriculumId: curriculumId ?? null,
+                courseId: curriculumId ?? null,
                 message: message ?? null,
                 sharedWithAll: false,
               })
-              .returning({ id: resourceShare.id })
+              .returning({ shareId: resourceShare.shareId })
             if (inserted) shares.push(inserted)
           }
         } catch {
@@ -167,7 +167,7 @@ export const DELETE = withAuth(
     const resourceRows = await drizzleDb
       .select()
       .from(resource)
-      .where(and(eq(resource.id, id), eq(resource.tutorId, tutorId)))
+      .where(and(eq(resource.resourceId, id), eq(resource.tutorId, tutorId)))
       .limit(1)
 
     if (!resourceRows[0]) {

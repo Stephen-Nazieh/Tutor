@@ -54,7 +54,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
         .where(eq(curriculum.courseId, classId))
         .limit(1)
       if (curriculumRow) {
-        classInfo = { title: curriculumRow.name, subject: curriculumRow.subject }
+        classInfo = { title: curriculumRow.name, subject: curriculumRow.subject?.[0] ?? 'General' }
       }
     }
 

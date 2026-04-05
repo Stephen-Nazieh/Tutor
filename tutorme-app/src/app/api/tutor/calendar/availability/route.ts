@@ -129,7 +129,7 @@ export const POST = withAuth(
       const [created] = await drizzleDb
         .insert(calendarAvailability)
         .values({
-          id: nanoid(),
+          availabilityId: nanoid(),
           tutorId,
           dayOfWeek: data.dayOfWeek,
           startTime: data.startTime,

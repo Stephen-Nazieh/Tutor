@@ -39,18 +39,15 @@ export const GET = withAuth(
       .where(eq(courseBatch.courseId, id))
       .orderBy(asc(courseBatch.order))
 
-    const enrollmentCounts = await drizzleDb
+    // Count total course enrollments (enrollments are at course level, not batch level)
+    const [enrollmentResult] = await drizzleDb
       .select({
-        batchId: courseEnrollment.batchId,
         count: sql<number>`count(*)::int`,
       })
       .from(courseEnrollment)
       .where(eq(courseEnrollment.courseId, id))
-      .groupBy(courseEnrollment.batchId)
 
-    const countByBatch = new Map(
-      enrollmentCounts.filter(row => row.batchId != null).map(row => [row.batchId!, row.count])
-    )
+    const totalEnrollments = enrollmentResult?.count ?? 0
 
     const batchesWithStats = batches.map(b => ({
       id: b.batchId,
@@ -59,7 +56,7 @@ export const GET = withAuth(
       order: b.order,
       difficulty: b.difficulty ?? null,
       schedule: Array.isArray(b.schedule) ? b.schedule : [],
-      enrollmentCount: countByBatch.get(b.batchId) ?? 0,
+      enrollmentCount: totalEnrollments,
       joinLink: b.meetingUrl ?? `${req.nextUrl.origin}/courses/${id}?batch=${b.batchId}`,
     }))
 

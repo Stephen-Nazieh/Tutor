@@ -71,12 +71,12 @@ export async function GET(request: NextRequest) {
     if (contentIds.length > 0) {
       const items = await drizzleDb
         .select({
-          id: contentItem.id,
+          id: contentItem.contentId,
           title: contentItem.title,
           subject: contentItem.subject,
         })
         .from(contentItem)
-        .where(inArray(contentItem.id, contentIds))
+        .where(inArray(contentItem.contentId, contentIds))
       for (const c of items) contentMap.set(c.id, c)
     }
 
@@ -120,9 +120,9 @@ export async function GET(request: NextRequest) {
     const scheduleContentMap = new Map<string, { id: string; title: string; subject: string }>()
     if (scheduleContentIds.length > 0) {
       const items = await drizzleDb
-        .select({ id: contentItem.id, title: contentItem.title, subject: contentItem.subject })
+        .select({ id: contentItem.contentId, title: contentItem.title, subject: contentItem.subject })
         .from(contentItem)
-        .where(inArray(contentItem.id, scheduleContentIds))
+        .where(inArray(contentItem.contentId, scheduleContentIds))
       for (const c of items) scheduleContentMap.set(c.id, c)
     }
 
@@ -145,7 +145,7 @@ export async function GET(request: NextRequest) {
     }> = reviewScheduleRows.map(r => {
       const c = scheduleContentMap.get(r.contentId)
       return {
-        id: r.id,
+        id: r.scheduleId,
         contentId: r.contentId,
         content: c
           ? {
@@ -386,9 +386,9 @@ export async function POST(request: NextRequest) {
       const stability = calculateStability(1, easeFactor)
       const nextReview = calculateReviewDueDate(now, stability)
       const interval = Math.round(stability / 24)
-      const id = crypto.randomUUID()
+      const scheduleId = crypto.randomUUID()
       await drizzleDb.insert(reviewSchedule).values({
-        id,
+        scheduleId,
         studentId,
         contentId,
         lastReviewed: now,
@@ -402,13 +402,13 @@ export async function POST(request: NextRequest) {
       const [schedule] = await drizzleDb
         .select()
         .from(reviewSchedule)
-        .where(eq(reviewSchedule.id, id))
+        .where(eq(reviewSchedule.scheduleId, scheduleId))
         .limit(1)
       return NextResponse.json({
         success: true,
         data: {
           schedule: schedule ?? {
-            id,
+            scheduleId,
             studentId,
             contentId,
             lastReviewed: now,
@@ -447,12 +447,12 @@ export async function POST(request: NextRequest) {
         performance: performance !== undefined ? performance : existing.performance,
         interval,
       })
-      .where(eq(reviewSchedule.id, existing.id))
+      .where(eq(reviewSchedule.scheduleId, existing.scheduleId))
 
     const [updated] = await drizzleDb
       .select()
       .from(reviewSchedule)
-      .where(eq(reviewSchedule.id, existing.id))
+      .where(eq(reviewSchedule.scheduleId, existing.scheduleId))
       .limit(1)
 
     return NextResponse.json({

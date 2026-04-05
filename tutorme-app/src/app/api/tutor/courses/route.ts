@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course as courseTable, courseModule, courseLesson } from '@/lib/db/schema'
+import { course as courseTable, courseLesson } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { CreateCurriculumSchema } from '@/lib/validation/schemas'
 import { ZodError } from 'zod'
@@ -21,8 +21,7 @@ export async function GET() {
         courseId: true,
         name: true,
         description: true,
-        subject: true,
-        difficulty: true,
+        categories: true,
         isPublished: true,
         isLiveOnline: true,
         createdAt: true,
@@ -69,14 +68,10 @@ export async function POST(req: NextRequest) {
       courseId: crypto.randomUUID(),
       name: data.title,
       description: data.description ?? null,
-      subject: data.subject ?? 'general',
-      gradeLevel: data.gradeLevel ?? null,
-      difficulty: data.difficulty ?? 'intermediate',
-      estimatedHours: data.estimatedHours ?? 0,
       isPublished: false,
       isLiveOnline: data.isLiveOnline ?? false,
       isFree: false,
-      categories: data.categories ?? [],
+      categories: data.categories ?? [data.subject ?? 'general'],
       currency: 'USD',
       schedule: Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : null,
       createdAt: now,
@@ -91,40 +86,27 @@ export async function POST(req: NextRequest) {
       .returning()
     console.log('Course created:', newCourse.courseId)
 
-    // Then create module and lesson in a transaction
+    // Then create a default lesson in a transaction
     try {
       await drizzleDb.transaction(async tx => {
-        const moduleId = crypto.randomUUID()
-        await tx.insert(courseModule).values({
-          moduleId: moduleId,
-          courseId: newCourse.courseId,
-          title: 'Lesson 1',
-          description: 'Get started',
-          order: 0,
-        })
-        console.log('Module created:', moduleId)
-
         await tx.insert(courseLesson).values({
           lessonId: crypto.randomUUID(),
-          moduleId: moduleId,
+          courseId: newCourse.courseId,
           title: 'Introduction',
           description: 'Introduction to this course.',
           order: 0,
-          duration: 30,
-          difficulty: newCurriculum.difficulty ?? 'intermediate',
-          learningObjectives: [],
-          teachingPoints: [],
-          keyConcepts: [],
-          commonMisconceptions: [],
-          prerequisiteLessonIds: [],
+          tasks: [],
+          assessments: [],
+          homework: [],
+          builderData: {},
         })
-        console.log('Lesson created for module:', moduleId)
+        console.log('Lesson created for course:', newCourse.courseId)
       })
     } catch (txError) {
-      // If module/lesson creation fails, we should ideally rollback the curriculum insert
+      // If lesson creation fails, we should ideally rollback the course insert
       // But since we already committed it, log the error
-      console.error('Failed to create module/lesson after curriculum was created:', txError)
-      // Still return the curriculum since it was created successfully
+      console.error('Failed to create lesson after course was created:', txError)
+      // Still return the course since it was created successfully
     }
 
     return NextResponse.json({
@@ -132,8 +114,7 @@ export async function POST(req: NextRequest) {
         id: newCourse.courseId,
         name: newCourse.name,
         description: newCourse.description,
-        subject: newCourse.subject,
-        difficulty: newCourse.difficulty,
+        categories: newCourse.categories,
         isPublished: newCourse.isPublished,
         isLiveOnline: newCourse.isLiveOnline,
         createdAt: newCourse.createdAt?.toISOString?.() ?? newCourse.createdAt,

@@ -300,9 +300,9 @@ export async function POST(
           })
           .where(eq(userGamification.userId, studentId))
       } else {
-        const id = crypto.randomUUID()
+        const gamificationId = crypto.randomUUID()
         await drizzleDb.insert(userGamification).values({
-          id,
+          gamificationId,
           userId: studentId,
           level: 1,
           xp: xpEarned,

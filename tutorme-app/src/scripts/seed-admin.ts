@@ -128,7 +128,10 @@ async function seedAdminSystem() {
     } else {
       adminUserId = existingAdmin.userId
       console.log(`  ℹ Admin user exists: ${adminEmail}`)
-      await drizzleDb.update(user).set({ password: hashedPassword }).where(eq(user.userId, adminUserId))
+      await drizzleDb
+        .update(user)
+        .set({ password: hashedPassword })
+        .where(eq(user.userId, adminUserId))
       console.log(`  ✓ Updated password so admin123 works for login`)
     }
 

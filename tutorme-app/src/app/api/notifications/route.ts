@@ -107,7 +107,12 @@ export const PATCH = withAuth(async (req: NextRequest, session) => {
       await drizzleDb
         .update(notification)
         .set({ read: true, readAt: new Date() })
-        .where(and(inArray(notification.notificationId, notificationIds), eq(notification.userId, userId)))
+        .where(
+          and(
+            inArray(notification.notificationId, notificationIds),
+            eq(notification.userId, userId)
+          )
+        )
 
       return NextResponse.json({ marked: notificationIds.length })
     }

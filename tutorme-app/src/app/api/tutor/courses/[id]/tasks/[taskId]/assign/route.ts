@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   const [task] = await drizzleDb
     .select()
     .from(generatedTask)
-    .where(and(eq(generatedTask.id, taskId), eq(generatedTask.tutorId, session.user.id)))
+    .where(and(eq(generatedTask.taskId, taskId), eq(generatedTask.tutorId, session.user.id)))
   if (!task) {
     return NextResponse.json({ error: 'Task not found' }, { status: 404 })
   }
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       status: task.status === 'draft' ? 'assigned' : task.status,
       assignedAt: task.assignedAt ?? new Date(),
     })
-    .where(eq(generatedTask.id, taskId))
+    .where(eq(generatedTask.taskId, taskId))
     .returning()
 
   if (!updated) {
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     message: `Assigned to ${newStudentIds.length} additional students`,
     totalAssigned: Object.keys(existing).length,
     task: {
-      id: updated.id,
+      id: updated.taskId,
       status: updated.status,
     },
   })

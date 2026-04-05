@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, NotFoundError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum, curriculumModule, curriculumLesson } from '@/lib/db/schema'
+import { course, curriculumModule, courseLesson } from '@/lib/db/schema'
 import { eq, asc, inArray } from 'drizzle-orm'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -18,26 +18,19 @@ export const POST = withCsrf(
       const id = await getParamAsync(context?.params, 'id')
       if (!id) return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
 
-      const [curriculumRow] = await drizzleDb.select().from(curriculum).where(eq(curriculum.id, id))
-      if (!curriculumRow) throw new NotFoundError('Course not found')
+      const [courseRow] = await drizzleDb.select().from(course).where(eq(course.courseId, id))
+      if (!courseRow) throw new NotFoundError('Course not found')
 
-      const modules = await drizzleDb
-        .select()
-        .from(curriculumModule)
-        .where(eq(curriculumModule.curriculumId, id))
-        .orderBy(asc(curriculumModule.order))
-      const moduleIds = modules.map(m => m.id)
-      const lessons =
-        moduleIds.length > 0
-          ? await drizzleDb
-              .select({ duration: curriculumLesson.duration })
-              .from(curriculumLesson)
-              .where(inArray(curriculumLesson.moduleId, moduleIds))
-              .orderBy(asc(curriculumLesson.order))
-          : []
+      // Lessons now directly reference courses, not modules
+      const lessons = await drizzleDb
+        .select({ lessonId: courseLesson.lessonId, title: courseLesson.title })
+        .from(courseLesson)
+        .where(eq(courseLesson.courseId, id))
+        .orderBy(asc(courseLesson.order))
 
-      const lessonsWithDuration = lessons.map(les => ({
-        duration: typeof les.duration === 'number' && les.duration > 0 ? les.duration : 45,
+      // Default duration since duration field doesn't exist on lessons
+      const lessonsWithDuration = lessons.map(() => ({
+        duration: 45,
       }))
 
       if (lessonsWithDuration.length === 0) {
@@ -63,9 +56,9 @@ export const POST = withCsrf(
       }))
 
       await drizzleDb
-        .update(curriculum)
+        .update(course)
         .set({ schedule: scheduleDistributed as object })
-        .where(eq(curriculum.id, id))
+        .where(eq(course.courseId, id))
 
       return NextResponse.json({
         schedule: scheduleDistributed,

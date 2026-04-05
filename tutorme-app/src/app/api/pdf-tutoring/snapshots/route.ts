@@ -154,7 +154,9 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     .orderBy(desc(whiteboardSnapshot.createdAt))
   const toDelete = allSnapshots.slice(MAX_SNAPSHOTS_PER_ROOM)
   for (const row of toDelete) {
-    await drizzleDb.delete(whiteboardSnapshot).where(eq(whiteboardSnapshot.snapshotId, row.snapshotId))
+    await drizzleDb
+      .delete(whiteboardSnapshot)
+      .where(eq(whiteboardSnapshot.snapshotId, row.snapshotId))
   }
 
   const [snapshot] = await drizzleDb

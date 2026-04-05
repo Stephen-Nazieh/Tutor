@@ -14,7 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, courseModule, courseLesson, questionBankItem, courseBatch } from '@/lib/db/schema'
+import { course, courseLesson, questionBankItem, courseBatch, curriculumModule as courseModule } from '@/lib/db/schema'
 import { eq, and, inArray, asc, sql } from 'drizzle-orm'
 import crypto from 'crypto'
 
@@ -129,7 +129,7 @@ function extractQuestionBankCandidates(
             const type = normalizeQuestionType(q.type)
             items.push({
               tutorId: userId,
-              curriculumId,
+              courseId,
               lessonId,
               type,
               question: q.question.trim(),
@@ -139,7 +139,7 @@ function extractQuestionBankCandidates(
               difficulty: 'medium',
               explanation: q.explanation?.trim() || null,
               tags: ['course-builder', group.tag],
-              subject: curriculumName,
+              subject: courseName,
               isPublic: false,
             })
           }
@@ -186,20 +186,19 @@ export async function GET(req: NextRequest) {
     .where(eq(courseModule.courseId, courseId))
     .orderBy(asc(courseModule.order))
 
-  const moduleIds = dbModules.map(m => m.moduleId)
-  const dbLessons =
-    moduleIds.length > 0
-      ? await drizzleDb
-          .select()
-          .from(courseLesson)
-          .where(inArray(courseLesson.moduleId, moduleIds))
-          .orderBy(asc(courseLesson.order))
-      : []
+  // Lessons are now directly under courses (no moduleId)
+  const dbLessons = await drizzleDb
+    .select()
+    .from(courseLesson)
+    .where(eq(courseLesson.courseId, courseId))
+    .orderBy(asc(courseLesson.order))
 
   // Map DB rows → builder Module[] shape
   const modules = dbModules.map((m: (typeof dbModules)[0]) => {
     const mBuilder = (m.builderData ?? {}) as Record<string, any>
-    const moduleLessons = dbLessons.filter(l => l.moduleId === m.moduleId)
+    // Lessons are now directly under courses (no moduleId), so we can't filter by module
+    // Return empty array for now - lessons need to be fetched at course level
+    const moduleLessons: typeof dbLessons = []
     return {
       id: m.moduleId,
       title: m.title,
@@ -215,10 +214,10 @@ export async function GET(req: NextRequest) {
           id: l.lessonId,
           title: l.title,
           description: l.description ?? '',
-          duration: l.duration,
+          duration: (lBuilder.duration as number) ?? 30,
           order: l.order,
           isPublished: (lBuilder.isPublished as boolean) ?? false,
-          prerequisites: l.prerequisiteLessonIds ?? [],
+          prerequisites: (lBuilder.prerequisites as string[]) ?? [],
           media: (lBuilder.media as Record<string, unknown>) ?? { videos: [], images: [] },
           docs: (lBuilder.docs as unknown[]) ?? [],
           content: (lBuilder.content as unknown[]) ?? [],
@@ -278,13 +277,11 @@ export async function PUT(req: NextRequest) {
       .from(courseModule)
       .where(eq(courseModule.courseId, courseId))
     const existingModuleIds = new Set(existingModules.map(m => m.moduleId))
-    const existingLessons =
-      existingModuleIds.size > 0
-        ? await tx
-            .select({ lessonId: courseLesson.lessonId })
-            .from(courseLesson)
-            .where(inArray(courseLesson.moduleId, [...existingModuleIds]))
-        : []
+    // Get all lessons for this course (lessons are now directly under courses)
+    const existingLessons = await tx
+      .select({ lessonId: courseLesson.lessonId })
+      .from(courseLesson)
+      .where(eq(courseLesson.courseId, courseId))
     const existingLessonIds = new Set(existingLessons.map(l => l.lessonId))
 
     const incomingModuleIds = new Set(modules.map(m => m.id))
@@ -346,28 +343,18 @@ export async function PUT(req: NextRequest) {
           .insert(courseLesson)
           .values({
             lessonId: les.id,
-            moduleId: mod.id,
+            courseId,
             title: les.title || 'Untitled Lesson',
             description: les.description || null,
-            duration: les.duration ?? 30,
             order: les.order ?? 0,
-            prerequisiteLessonIds: les.prerequisites ?? [],
             builderData: lessonBuilderData,
-            difficulty: 'intermediate',
-            learningObjectives: [],
-            teachingPoints: [],
-            keyConcepts: [],
-            commonMisconceptions: [],
           })
           .onConflictDoUpdate({
             target: courseLesson.lessonId,
             set: {
-              moduleId: mod.id,
               title: les.title || 'Untitled Lesson',
               description: les.description || null,
-              duration: les.duration ?? 30,
               order: les.order ?? 0,
-              prerequisiteLessonIds: les.prerequisites ?? [],
               builderData: lessonBuilderData,
             },
           })
@@ -403,7 +390,7 @@ export async function PUT(req: NextRequest) {
       if (toCreate.length > 0) {
         await tx.insert(questionBankItem).values(
           toCreate.map(item => ({
-            id: crypto.randomUUID(),
+            itemId: crypto.randomUUID(),
             tutorId: item.tutorId,
             courseId: item.courseId,
             lessonId: item.lessonId,

@@ -21,8 +21,8 @@ import {
   payment,
   clinic,
   clinicBooking,
-  curriculum,
-  curriculumEnrollment,
+  course,
+  courseEnrollment,
   payout,
 } from '@/lib/db/schema'
 
@@ -64,8 +64,8 @@ export const GET = withAuth(
             drizzleDb
               .select()
               .from(clinicBooking)
-              .innerJoin(clinic, eq(clinic.id, clinicBooking.clinicId))
-              .where(and(eq(clinicBooking.id, payment.bookingId), eq(clinic.tutorId, tutorId)))
+              .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
+              .where(and(eq(clinicBooking.bookingId, payment.bookingId), eq(clinic.tutorId, tutorId)))
           ),
           gte(payment.createdAt, startDate),
           lte(payment.createdAt, endDate)
@@ -74,13 +74,13 @@ export const GET = withAuth(
           booking: {
             with: {
               clinic: {
-                columns: { id: true, title: true, subject: true, startTime: true },
+                columns: { clinicId: true, title: true, subject: true, startTime: true },
               },
               student: {
                 with: {
                   profile: { columns: { name: true } },
                 },
-                columns: { id: true, email: true },
+                columns: { userId: true, email: true },
               },
             },
           },
@@ -97,12 +97,12 @@ export const GET = withAuth(
             exists(
               drizzleDb
                 .select()
-                .from(curriculumEnrollment)
-                .innerJoin(curriculum, eq(curriculum.id, curriculumEnrollment.curriculumId))
+                .from(courseEnrollment)
+                .innerJoin(course, eq(course.courseId, courseEnrollment.courseId))
                 .where(
                   and(
-                    eq(curriculumEnrollment.id, payment.enrollmentId),
-                    eq(curriculum.creatorId, tutorId)
+                    eq(courseEnrollment.enrollmentId, payment.enrollmentId),
+                    eq(course.creatorId, tutorId)
                   )
                 )
             )
@@ -123,18 +123,18 @@ export const GET = withAuth(
               drizzleDb
                 .select()
                 .from(clinicBooking)
-                .innerJoin(clinic, eq(clinic.id, clinicBooking.clinicId))
-                .where(and(eq(clinicBooking.id, payment.bookingId), eq(clinic.tutorId, tutorId)))
+                .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
+                .where(and(eq(clinicBooking.bookingId, payment.bookingId), eq(clinic.tutorId, tutorId)))
             ),
             exists(
               drizzleDb
                 .select()
-                .from(curriculumEnrollment)
-                .innerJoin(curriculum, eq(curriculum.id, curriculumEnrollment.curriculumId))
+                .from(courseEnrollment)
+                .innerJoin(course, eq(course.courseId, courseEnrollment.courseId))
                 .where(
                   and(
-                    eq(curriculumEnrollment.id, payment.enrollmentId),
-                    eq(curriculum.creatorId, tutorId)
+                    eq(courseEnrollment.enrollmentId, payment.enrollmentId),
+                    eq(course.creatorId, tutorId)
                   )
                 )
             )
@@ -151,18 +151,18 @@ export const GET = withAuth(
           lte(clinic.startTime, endDate)
         ),
         with: {
-          bookings: { columns: { id: true } },
+          bookings: { columns: { bookingId: true } },
         },
       }),
 
       // Tutor's courses for performance metrics
-      drizzleDb.query.curriculum.findMany({
-        where: eq(curriculum.creatorId, tutorId),
+      drizzleDb.query.course.findMany({
+        where: eq(course.creatorId, tutorId),
         with: {
           enrollments: {
             where: and(
-              gte(curriculumEnrollment.enrolledAt, startDate),
-              lte(curriculumEnrollment.enrolledAt, endDate)
+              gte(courseEnrollment.enrolledAt, startDate),
+              lte(courseEnrollment.enrolledAt, endDate)
             ),
           },
         },
@@ -204,18 +204,18 @@ export const GET = withAuth(
             drizzleDb
               .select()
               .from(clinicBooking)
-              .innerJoin(clinic, eq(clinic.id, clinicBooking.clinicId))
-              .where(and(eq(clinicBooking.id, payment.bookingId), eq(clinic.tutorId, tutorId)))
+              .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
+              .where(and(eq(clinicBooking.bookingId, payment.bookingId), eq(clinic.tutorId, tutorId)))
           ),
           exists(
             drizzleDb
               .select()
-              .from(curriculumEnrollment)
-              .innerJoin(curriculum, eq(curriculum.id, curriculumEnrollment.curriculumId))
+              .from(courseEnrollment)
+              .innerJoin(course, eq(course.courseId, courseEnrollment.courseId))
               .where(
                 and(
-                  eq(curriculumEnrollment.id, payment.enrollmentId),
-                  eq(curriculum.creatorId, tutorId)
+                  eq(courseEnrollment.enrollmentId, payment.enrollmentId),
+                  eq(course.creatorId, tutorId)
                 )
               )
           )
@@ -240,8 +240,8 @@ export const GET = withAuth(
             drizzleDb
               .select()
               .from(clinicBooking)
-              .innerJoin(clinic, eq(clinic.id, clinicBooking.clinicId))
-              .where(and(eq(clinicBooking.id, payment.bookingId), eq(clinic.tutorId, tutorId)))
+              .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
+              .where(and(eq(clinicBooking.bookingId, payment.bookingId), eq(clinic.tutorId, tutorId)))
           )
         )
       ),
@@ -252,7 +252,7 @@ export const GET = withAuth(
     // Format transactions
     const transactions = [
       ...clinicPayments.map((p: any) => ({
-        id: p.id,
+        paymentId: p.paymentId,
         date: p.createdAt.toISOString(),
         description: p.booking?.clinic?.title || 'Clinic Session',
         amount: p.amount,
@@ -263,14 +263,14 @@ export const GET = withAuth(
           p.booking?.student?.profile?.name ||
           p.booking?.student?.email?.split('@')[0] ||
           'Unknown',
-        clinicId: p.booking?.clinic?.id,
+        clinicId: p.booking?.clinic?.clinicId,
       })),
       ...courseEnrollments.map((p: any) => {
-        const metadata = (p.metadata as { curriculumName?: string; studentId?: string }) || {}
+        const metadata = (p.metadata as { courseName?: string; studentId?: string }) || {}
         return {
-          id: p.id,
+          paymentId: p.paymentId,
           date: p.createdAt.toISOString(),
-          description: `${metadata.curriculumName || 'Course'} Enrollment`,
+          description: `${metadata.courseName || 'Course'} Enrollment`,
           amount: p.amount,
           currency: p.currency,
           type: 'course' as const,
@@ -282,20 +282,20 @@ export const GET = withAuth(
 
     // Calculate course metrics
     const courseMetrics = tutorCourses
-      .map((course: any) => {
+      .map((c: any) => {
         // Total enrollment count is not directly available in with, we need to join or count separately for accuracy
         // But for simplicity of this migration, we'll use the fetched enrollments length if it matches active ones
-        // Actually, curriculum in my findMany with 'with' only fetched enrollments in period.
+        // Actually, course in my findMany with 'with' only fetched enrollments in period.
         // I need total enrollments too.
-        const totalEnrollments = course.enrollments.length // This is wrong if it's only period
+        const totalEnrollments = c.enrollments.length // This is wrong if it's only period
 
         return {
-          id: course.id,
-          name: course.name,
+          courseId: c.courseId,
+          name: c.name,
           enrollments: totalEnrollments,
-          periodEnrollments: course.enrollments.length,
-          estimatedRevenue: totalEnrollments * (course.price || 0),
-          currency: course.currency || preferredCurrency,
+          periodEnrollments: c.enrollments.length,
+          estimatedRevenue: totalEnrollments * (c.price || 0),
+          currency: c.currency || preferredCurrency,
           conversionRate: totalEnrollments > 0 ? Math.min(15, totalEnrollments * 2.5) : 0,
           rating:
             totalEnrollments > 0 ? Math.min(5, 3.8 + Math.min(totalEnrollments, 24) * 0.05) : null,

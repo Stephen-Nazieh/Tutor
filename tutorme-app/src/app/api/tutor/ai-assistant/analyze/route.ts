@@ -218,7 +218,7 @@ export const POST = withAuth(
 
       try {
         await drizzleDb.insert(aIAssistantInsight).values({
-          id: randomUUID(),
+          insightId: randomUUID(),
           sessionId: body.sessionId || 'temp',
           type: 'student_analysis',
           title: `${params.type.charAt(0).toUpperCase() + params.type.slice(1)} Analysis`,

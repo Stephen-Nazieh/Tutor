@@ -59,7 +59,7 @@ export const GET = withAuth(
 
     // Format response
     const formattedPayouts = payouts.map(p => ({
-      id: p.id,
+      id: p.payoutId,
       amount: p.amount,
       currency: p.currency,
       status: p.status,
@@ -70,7 +70,7 @@ export const GET = withAuth(
       transactionReference: p.transactionReference,
       paymentCount: p.payments.length,
       payments: p.payments.map(pp => ({
-        id: pp.payment.id,
+        id: pp.payment.paymentId,
         amount: pp.amount,
         description: pp.payment.booking?.clinic?.title || 'Course Payment',
         date: pp.payment.createdAt,
@@ -112,7 +112,7 @@ export const POST = withAuth(
       drizzleDb.query.payment.findMany({
         where: and(eq(payment.status, 'COMPLETED'), eq(payment.tutorId, tutorId)),
         columns: {
-          id: true,
+          paymentId: true,
           amount: true,
           currency: true,
         },
@@ -163,7 +163,7 @@ export const POST = withAuth(
       const payoutId = crypto.randomUUID()
 
       await tx.insert(payout).values({
-        id: payoutId,
+        payoutId: payoutId,
         tutorId,
         amount: payoutAmount,
         currency: targetCurrency,
@@ -176,8 +176,8 @@ export const POST = withAuth(
       if (paymentsToInclude.length > 0) {
         await tx.insert(paymentOnPayout).values(
           paymentsToInclude.map(p => ({
-            id: crypto.randomUUID(),
-            paymentId: p.id,
+            paymentOnPayoutId: crypto.randomUUID(),
+            paymentId: p.paymentId,
             payoutId: payoutId,
             amount: Number(p.amount),
             createdAt: new Date(),

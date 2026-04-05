@@ -40,10 +40,10 @@ export const GET = withAuth(
     const bookingSince = new Date(now.getTime() - MISSED_BOOKING_DAYS * 24 * 60 * 60 * 1000)
 
     const tutorSessions = await drizzleDb
-      .select({ id: liveSession.id })
+      .select({ sessionId: liveSession.sessionId })
       .from(liveSession)
       .where(eq(liveSession.tutorId, tutorId))
-    const tutorSessionIds = tutorSessions.map(s => s.id)
+    const tutorSessionIds = tutorSessions.map(s => s.sessionId)
 
     if (tutorSessionIds.length === 0) {
       return NextResponse.json({ students: [] })
@@ -84,10 +84,10 @@ export const GET = withAuth(
     }
 
     const tutorClinics = await drizzleDb
-      .select({ id: clinic.id })
+      .select({ clinicId: clinic.clinicId })
       .from(clinic)
       .where(eq(clinic.tutorId, tutorId))
-    const tutorClinicIds = tutorClinics.map(c => c.id)
+    const tutorClinicIds = tutorClinics.map(c => c.clinicId)
     const missedBookingStudentIds: string[] = []
     if (tutorClinicIds.length > 0) {
       const missed = await drizzleDb
@@ -127,19 +127,19 @@ export const GET = withAuth(
 
     const users = await drizzleDb
       .select({
-        id: user.id,
+        userId: user.userId,
         email: user.email,
         name: profile.name,
       })
       .from(user)
-      .leftJoin(profile, eq(profile.userId, user.id))
-      .where(inArray(user.id, userIds))
+      .leftJoin(profile, eq(profile.userId, user.userId))
+      .where(inArray(user.userId, userIds))
 
     const students = users.map(u => {
-      const att = needAttention.get(u.id)!
+      const att = needAttention.get(u.userId)!
       const name = getDisplayName({ email: u.email, name: u.name })
       return {
-        id: u.id,
+        userId: u.userId,
         name,
         initial: getInitial(name),
         color: att.color,

@@ -23,14 +23,14 @@ export async function GET(request: NextRequest) {
 
     const [content] = await drizzleDb
       .select({
-        id: contentItem.id,
+        id: contentItem.contentId,
         title: contentItem.title,
         subject: contentItem.subject,
         description: contentItem.description,
         transcript: contentItem.transcript,
       })
       .from(contentItem)
-      .where(eq(contentItem.id, contentId))
+      .where(eq(contentItem.contentId, contentId))
       .limit(1)
 
     if (!content) {
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        id: reviewScheduleRow?.id ?? `${studentId}-${contentId}`,
+        id: reviewScheduleRow?.scheduleId ?? `${studentId}-${contentId}`,
         contentId: content.id,
         contentTitle: content.title,
         subject: content.subject,

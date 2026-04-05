@@ -52,11 +52,7 @@ export const GET = withAuth(
         with: {
           course: {
             with: {
-              modules: {
-                with: {
-                  lessons: { columns: { lessonId: true, title: true, order: true } },
-                },
-              },
+              lessons: { columns: { lessonId: true, title: true, order: true } },
             },
           },
         },

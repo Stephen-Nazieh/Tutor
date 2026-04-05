@@ -24,8 +24,7 @@ export const GET = withAuth(
       .select({
         courseId: course.courseId,
         name: course.name,
-        subject: course.subject,
-        gradeLevel: course.gradeLevel,
+        categories: course.categories,
         isPublished: course.isPublished,
         price: course.price,
         currency: course.currency,
@@ -37,8 +36,7 @@ export const GET = withAuth(
       .groupBy(
         course.courseId,
         course.name,
-        course.subject,
-        course.gradeLevel,
+        course.categories,
         course.isPublished,
         course.price,
         course.currency
@@ -65,9 +63,11 @@ export const GET = withAuth(
       }))
     }
 
-    const coursesWithSessionCount = courses.map(course => ({
-      ...course,
-      sessionCount: sessionCounts.find(s => s.courseId === course.courseId)?.count ?? 0,
+    const coursesWithSessionCount = courses.map(c => ({
+      ...c,
+      // Map categories to subject for backward compatibility
+      subject: c.categories?.[0] ?? null,
+      sessionCount: sessionCounts.find(s => s.courseId === c.courseId)?.count ?? 0,
     }))
 
     return NextResponse.json({ courses: coursesWithSessionCount })

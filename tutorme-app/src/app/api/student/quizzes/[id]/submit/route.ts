@@ -32,7 +32,7 @@ export const POST = withCsrf(
         throw new ValidationError('answers are required')
       }
 
-      const [quizRow] = await drizzleDb.select().from(quiz).where(eq(quiz.id, id)).limit(1)
+      const [quizRow] = await drizzleDb.select().from(quiz).where(eq(quiz.quizId, id)).limit(1)
 
       if (!quizRow) {
         throw new NotFoundError('Quiz not found')
@@ -43,7 +43,7 @@ export const POST = withCsrf(
         .from(quizAttempt)
         .where(
           and(
-            eq(quizAttempt.id, attemptId),
+            eq(quizAttempt.attemptId, attemptId),
             eq(quizAttempt.quizId, id),
             eq(quizAttempt.studentId, studentId),
             eq(quizAttempt.status, 'in_progress')
@@ -82,12 +82,12 @@ export const POST = withCsrf(
           timeSpent: timeSpentSec,
           questionResults: gradingResult.results as any,
         })
-        .where(eq(quizAttempt.id, attemptId))
+        .where(eq(quizAttempt.attemptId, attemptId))
 
       const [updatedAttempt] = await drizzleDb
         .select()
         .from(quizAttempt)
-        .where(eq(quizAttempt.id, attemptId))
+        .where(eq(quizAttempt.attemptId, attemptId))
         .limit(1)
 
       try {
@@ -106,7 +106,7 @@ export const POST = withCsrf(
       return NextResponse.json({
         success: true,
         attempt: {
-          id: updatedAttempt!.id,
+          id: updatedAttempt!.attemptId,
           score: gradingResult.totalScore,
           maxScore: gradingResult.maxScore,
           percentage: gradingResult.percentage,

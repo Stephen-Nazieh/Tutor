@@ -263,7 +263,10 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
   if (backgroundColor !== undefined) updateData.backgroundColor = backgroundColor
   if (backgroundStyle !== undefined) updateData.backgroundStyle = backgroundStyle
 
-  await drizzleDb.update(whiteboard).set(updateData).where(eq(whiteboard.whiteboardId, whiteboardRow.whiteboardId))
+  await drizzleDb
+    .update(whiteboard)
+    .set(updateData)
+    .where(eq(whiteboard.whiteboardId, whiteboardRow.whiteboardId))
 
   const [updatedWhiteboard] = await drizzleDb
     .select()

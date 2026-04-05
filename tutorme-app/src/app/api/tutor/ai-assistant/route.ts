@@ -28,16 +28,16 @@ export const GET = withAuth(
     let aiSessionRow = activeSessions[0] ?? null
 
     if (!aiSessionRow) {
-      const id = randomUUID()
+      const assistantSessionId = randomUUID()
       await drizzleDb.insert(aIAssistantSession).values({
-        id,
+        assistantSessionId,
         tutorId,
         title: 'AI Teaching Assistant',
         status: 'active',
       })
       await drizzleDb.insert(aIAssistantMessage).values({
-        id: randomUUID(),
-        sessionId: id,
+        assistantMessageId: randomUUID(),
+        sessionId: assistantSessionId,
         role: 'assistant',
         content:
           "Hello! I'm your AI Teaching Assistant. I can help you with:\n\n• Lesson plan ideas\n• Explaining complex topics\n• Analyzing student performance\n• Generating practice questions\n• Teaching strategies\n\nWhat would you like help with today?",
@@ -45,12 +45,12 @@ export const GET = withAuth(
       const [created] = await drizzleDb
         .select()
         .from(aIAssistantSession)
-        .where(eq(aIAssistantSession.id, id))
+        .where(eq(aIAssistantSession.assistantSessionId, assistantSessionId))
         .limit(1)
       aiSessionRow = created!
     }
 
-    const sessionId = aiSessionRow.id
+    const sessionId = aiSessionRow.assistantSessionId
     const messages = await drizzleDb
       .select()
       .from(aIAssistantMessage)
@@ -101,15 +101,15 @@ export const POST = withAuth(
         const rows = await drizzleDb
           .select()
           .from(aIAssistantSession)
-          .where(and(eq(aIAssistantSession.id, sessionId), eq(aIAssistantSession.tutorId, tutorId)))
+          .where(and(eq(aIAssistantSession.assistantSessionId, sessionId), eq(aIAssistantSession.tutorId, tutorId)))
           .limit(1)
         aiSessionRow = rows[0] ?? null
       }
 
       if (!aiSessionRow) {
-        const id = randomUUID()
+        const assistantSessionId = randomUUID()
         await drizzleDb.insert(aIAssistantSession).values({
-          id,
+          assistantSessionId,
           tutorId,
           title: context ? `Chat about ${context}` : 'AI Teaching Assistant',
           context: context ?? null,
@@ -118,14 +118,14 @@ export const POST = withAuth(
         const [created] = await drizzleDb
           .select()
           .from(aIAssistantSession)
-          .where(eq(aIAssistantSession.id, id))
+          .where(eq(aIAssistantSession.assistantSessionId, assistantSessionId))
           .limit(1)
         aiSessionRow = created!
       }
 
       await drizzleDb.insert(aIAssistantMessage).values({
-        id: randomUUID(),
-        sessionId: aiSessionRow.id,
+        assistantMessageId: randomUUID(),
+        sessionId: aiSessionRow.assistantSessionId,
         role: 'user',
         content: safeMessage,
       })
@@ -133,7 +133,7 @@ export const POST = withAuth(
       const recentRows = await drizzleDb
         .select()
         .from(aIAssistantMessage)
-        .where(eq(aIAssistantMessage.sessionId, aiSessionRow.id))
+        .where(eq(aIAssistantMessage.sessionId, aiSessionRow.assistantSessionId))
         .orderBy(desc(aIAssistantMessage.createdAt))
         .limit(10)
       const conversation = recentRows.reverse().map(m => ({
@@ -155,8 +155,8 @@ Be concise, practical, and encouraging. Provide specific examples when possible.
       const assistantMessageRow = await drizzleDb
         .insert(aIAssistantMessage)
         .values({
-          id: randomUUID(),
-          sessionId: aiSessionRow.id,
+          assistantMessageId: randomUUID(),
+          sessionId: aiSessionRow.assistantSessionId,
           role: 'assistant',
           content: aiResponseContent,
           metadata: { model: 'fallback', timestamp: new Date().toISOString() },
@@ -167,7 +167,7 @@ Be concise, practical, and encouraging. Provide specific examples when possible.
       await drizzleDb
         .update(aIAssistantSession)
         .set({ updatedAt: new Date() })
-        .where(eq(aIAssistantSession.id, aiSessionRow.id))
+        .where(eq(aIAssistantSession.assistantSessionId, aiSessionRow.assistantSessionId))
 
       const validation = await AISecurityManager.validateAiResponse(aiResponseContent)
       if (!validation.isValid && validation.severity === 'CRITICAL') {
@@ -178,7 +178,7 @@ Be concise, practical, and encouraging. Provide specific examples when possible.
         )
       }
 
-      await generateInsights(aiSessionRow.id, tutorId, safeMessage, aiResponseContent)
+      await generateInsights(aiSessionRow.assistantSessionId, tutorId, safeMessage, aiResponseContent)
 
       return NextResponse.json({
         message: assistantMessageRow,
@@ -240,7 +240,7 @@ async function generateInsights(
       const hasRecent = existing.length > 0
       if (!hasRecent) {
         await drizzleDb.insert(aIAssistantInsight).values({
-          id: randomUUID(),
+          insightId: randomUUID(),
           sessionId,
           type: pattern.type,
           title: pattern.title,

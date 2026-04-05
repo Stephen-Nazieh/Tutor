@@ -9,7 +9,6 @@ import {
   course,
   courseLesson,
   courseLessonProgress,
-  courseModule,
   courseProgress,
   lessonSession,
 } from '@/lib/db/schema'

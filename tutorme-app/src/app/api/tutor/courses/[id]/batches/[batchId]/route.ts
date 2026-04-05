@@ -22,7 +22,7 @@ export const PATCH = withCsrf(
       const [batch] = await drizzleDb
         .select()
         .from(courseBatch)
-        .where(and(eq(courseBatch.id, batchId), eq(courseBatch.curriculumId, id)))
+        .where(and(eq(courseBatch.batchId, batchId), eq(courseBatch.courseId, id)))
       if (!batch) throw new NotFoundError('Batch not found')
       const body = await req.json().catch(() => ({}))
       const difficulty =
@@ -68,13 +68,13 @@ export const PATCH = withCsrf(
       const [updatedBatch] = await drizzleDb
         .update(courseBatch)
         .set(updateData)
-        .where(eq(courseBatch.id, batchId))
+        .where(eq(courseBatch.batchId, batchId))
         .returning()
       if (!updatedBatch) throw new NotFoundError('Batch not found')
       const scheduleArr = Array.isArray(updatedBatch.schedule) ? updatedBatch.schedule : []
       return NextResponse.json({
         batch: {
-          id: updatedBatch.id,
+          id: updatedBatch.batchId,
           name: updatedBatch.name,
           difficulty: updatedBatch.difficulty,
           schedule: scheduleArr,

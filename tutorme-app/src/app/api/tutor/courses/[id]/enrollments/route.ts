@@ -37,7 +37,7 @@ export const GET = withAuth(
       .from(courseEnrollment)
       .innerJoin(user, eq(user.userId, courseEnrollment.studentId))
       .leftJoin(profile, eq(profile.userId, user.userId))
-      .leftJoin(courseBatch, eq(courseBatch.batchId, courseEnrollment.batchId))
+      
       .where(eq(courseEnrollment.courseId, id))
       .orderBy(desc(courseEnrollment.enrolledAt))
 
@@ -46,8 +46,8 @@ export const GET = withAuth(
       studentId: row.enrollment.studentId,
       studentName: row.studentProfile?.name ?? row.studentUser.email ?? 'Unknown',
       studentEmail: row.studentUser.email,
-      batchId: row.enrollment.batchId,
-      batchName: row.batch?.name ?? null,
+      batchId: null,
+      batchName: null,
       enrolledAt: row.enrollment.enrolledAt,
       lastActivity: row.enrollment.lastActivity,
       lessonsCompleted: row.enrollment.lessonsCompleted,

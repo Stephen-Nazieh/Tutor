@@ -25,7 +25,7 @@ export const GET = withAuth(
     const [quizData] = await drizzleDb
       .select()
       .from(quiz)
-      .where(and(eq(quiz.id, id), eq(quiz.tutorId, session.user.id)))
+      .where(and(eq(quiz.quizId, id), eq(quiz.tutorId, session.user.id)))
       .limit(1)
 
     if (!quizData) {
@@ -47,16 +47,16 @@ export const GET = withAuth(
     // Get recent attempts summary
     const recentAttemptsRaw = await drizzleDb
       .select({
-        id: quizAttempt.id,
+        attemptId: quizAttempt.attemptId,
         score: quizAttempt.score,
         maxScore: quizAttempt.maxScore,
         completedAt: quizAttempt.completedAt,
         studentName: profile.name,
-        studentId: user.id,
+        studentId: user.userId,
       })
       .from(quizAttempt)
-      .innerJoin(user, eq(user.id, quizAttempt.studentId))
-      .leftJoin(profile, eq(profile.userId, user.id))
+      .innerJoin(user, eq(user.userId, quizAttempt.studentId))
+      .leftJoin(profile, eq(profile.userId, user.userId))
       .where(eq(quizAttempt.quizId, id))
       .orderBy(desc(quizAttempt.completedAt))
       .limit(5)
@@ -68,7 +68,7 @@ export const GET = withAuth(
         assignmentCount: Number(assignmentsStats?.value || 0),
       },
       recentAttempts: recentAttemptsRaw.map(a => ({
-        id: a.id,
+        id: a.attemptId,
         score: a.score,
         maxScore: a.maxScore,
         percentage: Math.round((a.score / a.maxScore) * 100),
@@ -93,7 +93,7 @@ export const PATCH = withCsrf(
       const [existing] = await drizzleDb
         .select()
         .from(quiz)
-        .where(and(eq(quiz.id, id), eq(quiz.tutorId, session.user.id)))
+        .where(and(eq(quiz.quizId, id), eq(quiz.tutorId, session.user.id)))
         .limit(1)
 
       if (!existing) {
@@ -169,7 +169,7 @@ export const PATCH = withCsrf(
       const [updatedQuiz] = await drizzleDb
         .update(quiz)
         .set(updateData)
-        .where(eq(quiz.id, id))
+        .where(eq(quiz.quizId, id))
         .returning()
 
       return NextResponse.json({
@@ -194,7 +194,7 @@ export const DELETE = withCsrf(
       const [existing] = await drizzleDb
         .select()
         .from(quiz)
-        .where(and(eq(quiz.id, id), eq(quiz.tutorId, session.user.id)))
+        .where(and(eq(quiz.quizId, id), eq(quiz.tutorId, session.user.id)))
         .limit(1)
 
       if (!existing) {
@@ -211,7 +211,7 @@ export const DELETE = withCsrf(
 
       if (attemptCount > 0) {
         // Instead of deleting, archive the quiz
-        await drizzleDb.update(quiz).set({ status: 'archived' }).where(eq(quiz.id, id))
+        await drizzleDb.update(quiz).set({ status: 'archived' }).where(eq(quiz.quizId, id))
 
         return NextResponse.json({
           success: true,
@@ -219,7 +219,7 @@ export const DELETE = withCsrf(
         })
       }
 
-      await drizzleDb.delete(quiz).where(eq(quiz.id, id))
+      await drizzleDb.delete(quiz).where(eq(quiz.quizId, id))
 
       return NextResponse.json({
         success: true,

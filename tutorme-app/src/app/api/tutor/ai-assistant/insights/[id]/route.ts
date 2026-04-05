@@ -27,8 +27,8 @@ export const PATCH = withAuth(
       const rows = await drizzleDb
         .select({ insight: aIAssistantInsight })
         .from(aIAssistantInsight)
-        .innerJoin(aIAssistantSession, eq(aIAssistantInsight.sessionId, aIAssistantSession.id))
-        .where(and(eq(aIAssistantInsight.id, insightId), eq(aIAssistantSession.tutorId, tutorId)))
+        .innerJoin(aIAssistantSession, eq(aIAssistantInsight.sessionId, aIAssistantSession.assistantSessionId))
+        .where(and(eq(aIAssistantInsight.insightId, insightId), eq(aIAssistantSession.tutorId, tutorId)))
         .limit(1)
 
       const insight = rows[0]?.insight
@@ -44,7 +44,7 @@ export const PATCH = withAuth(
       const [updatedInsight] = await drizzleDb
         .update(aIAssistantInsight)
         .set(updateData)
-        .where(eq(aIAssistantInsight.id, insightId))
+        .where(eq(aIAssistantInsight.insightId, insightId))
         .returning()
 
       return NextResponse.json({ insight: updatedInsight })
@@ -73,15 +73,15 @@ export const DELETE = withAuth(
       const rows = await drizzleDb
         .select()
         .from(aIAssistantInsight)
-        .innerJoin(aIAssistantSession, eq(aIAssistantInsight.sessionId, aIAssistantSession.id))
-        .where(and(eq(aIAssistantInsight.id, insightId), eq(aIAssistantSession.tutorId, tutorId)))
+        .innerJoin(aIAssistantSession, eq(aIAssistantInsight.sessionId, aIAssistantSession.assistantSessionId))
+        .where(and(eq(aIAssistantInsight.insightId, insightId), eq(aIAssistantSession.tutorId, tutorId)))
         .limit(1)
 
       if (rows.length === 0) {
         return NextResponse.json({ error: 'Insight not found' }, { status: 404 })
       }
 
-      await drizzleDb.delete(aIAssistantInsight).where(eq(aIAssistantInsight.id, insightId))
+      await drizzleDb.delete(aIAssistantInsight).where(eq(aIAssistantInsight.insightId, insightId))
 
       return NextResponse.json({ success: true })
     } catch (error) {

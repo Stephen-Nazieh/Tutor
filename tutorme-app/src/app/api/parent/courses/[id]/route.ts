@@ -9,13 +9,7 @@ import { asc, eq } from 'drizzle-orm'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  courseShare,
-  course,
-  curriculumModule,
-  courseLesson,
-  profile,
-} from '@/lib/db/schema'
+import { courseShare, course, curriculumModule, courseLesson, profile } from '@/lib/db/schema'
 
 export async function GET(
   req: NextRequest,

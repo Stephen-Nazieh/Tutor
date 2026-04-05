@@ -22,7 +22,7 @@ async function verifyTaskOwnership(taskId: string, userId: string) {
   const [task] = await drizzleDb
     .select()
     .from(generatedTask)
-    .where(and(eq(generatedTask.id, taskId), eq(generatedTask.tutorId, userId)))
+    .where(and(eq(generatedTask.taskId, taskId), eq(generatedTask.tutorId, userId)))
   return task ?? null
 }
 
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 
   const submissions = await drizzleDb
     .select({
-      id: taskSubmission.id,
+      submissionId: taskSubmission.submissionId,
       studentId: taskSubmission.studentId,
       score: taskSubmission.score,
       maxScore: taskSubmission.maxScore,
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     task: {
-      id: task.id,
+      id: task.taskId,
       title: task.title,
       description: task.description,
       type: task.type,
@@ -67,7 +67,6 @@ export async function GET(req: NextRequest) {
       assignments: task.assignments,
       status: task.status,
       lessonId: task.lessonId,
-      batchId: task.batchId,
       dueDate: task.dueDate?.toISOString() ?? null,
       maxScore: task.maxScore,
       documentSource: task.documentSource,
@@ -75,7 +74,7 @@ export async function GET(req: NextRequest) {
       assignedAt: task.assignedAt?.toISOString() ?? null,
     },
     submissions: submissions.map(s => ({
-      id: s.id,
+      id: s.submissionId,
       studentId: s.studentId,
       studentName: s.name ?? 'Unknown',
       score: s.score,
@@ -111,7 +110,8 @@ export async function PATCH(req: NextRequest) {
   if (body.distributionMode !== undefined) updateData.distributionMode = body.distributionMode
   if (body.status !== undefined) updateData.status = body.status
   if (body.lessonId !== undefined) updateData.lessonId = body.lessonId || null
-  if (body.batchId !== undefined) updateData.batchId = body.batchId || null
+  // Note: batchId field doesn't exist on generatedTask
+  // if (body.batchId !== undefined) updateData.batchId = body.batchId || null
   if (body.maxScore !== undefined) updateData.maxScore = body.maxScore
   if (body.dueDate !== undefined) {
     updateData.dueDate = body.dueDate ? new Date(body.dueDate) : null
@@ -120,7 +120,7 @@ export async function PATCH(req: NextRequest) {
   const [task] = await drizzleDb
     .update(generatedTask)
     .set(updateData as Record<string, unknown>)
-    .where(eq(generatedTask.id, taskId))
+    .where(eq(generatedTask.taskId, taskId))
     .returning()
 
   if (!task) {
@@ -129,7 +129,7 @@ export async function PATCH(req: NextRequest) {
 
   return NextResponse.json({
     task: {
-      id: task.id,
+      id: task.taskId,
       title: task.title,
       status: task.status,
     },
@@ -152,7 +152,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   await drizzleDb.delete(taskSubmission).where(eq(taskSubmission.taskId, taskId))
-  await drizzleDb.delete(generatedTask).where(eq(generatedTask.id, taskId))
+  await drizzleDb.delete(generatedTask).where(eq(generatedTask.taskId, taskId))
 
   return NextResponse.json({ message: 'Task deleted' })
 }

@@ -128,7 +128,6 @@ export const GET = withAuth(async (req, session) => {
       courseCategories: course.categories,
       courseDescription: course.description,
       courseIsPublished: course.isPublished,
-      courseEstimatedHours: course.estimatedHours,
       courseSchedule: course.schedule,
     })
     .from(courseEnrollment)
@@ -155,7 +154,6 @@ export const GET = withAuth(async (req, session) => {
       categories: row.courseCategories,
       description: row.courseDescription,
       isPublished: row.courseIsPublished,
-      estimatedHours: row.courseEstimatedHours,
       schedule: row.courseSchedule,
       _count: {
         lessons: lessonCountByCourse.get(row.courseId) ?? 0,

@@ -10,9 +10,9 @@ import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculum,
+  course,
   curriculumModule,
-  curriculumLesson,
+  courseLesson,
   courseBatch,
   generatedTask,
   taskSubmission,
@@ -34,46 +34,33 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const curriculumId = getCourseId(req)
+  const courseId = getCourseId(req)
 
-  const [curriculumRow] = await drizzleDb
-    .select({ id: curriculum.id })
-    .from(curriculum)
-    .where(and(eq(curriculum.id, curriculumId), eq(curriculum.creatorId, session.user.id)))
-  if (!curriculumRow) {
+  const [courseRow] = await drizzleDb
+    .select({ courseId: course.courseId })
+    .from(course)
+    .where(and(eq(course.courseId, courseId), eq(course.creatorId, session.user.id)))
+  if (!courseRow) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  const modules = await drizzleDb
-    .select({ id: curriculumModule.id })
-    .from(curriculumModule)
-    .where(eq(curriculumModule.curriculumId, curriculumId))
-  const moduleIds = modules.map(m => m.id)
-  const lessons =
-    moduleIds.length > 0
-      ? await drizzleDb
-          .select({ id: curriculumLesson.id })
-          .from(curriculumLesson)
-          .where(inArray(curriculumLesson.moduleId, moduleIds))
-      : []
-  const lessonIds = lessons.map(l => l.id)
+  // Lessons now directly reference courses, not modules
+  const lessons = await drizzleDb
+    .select({ lessonId: courseLesson.lessonId })
+    .from(courseLesson)
+    .where(eq(courseLesson.courseId, courseId))
+  const lessonIds = lessons.map(l => l.lessonId)
 
   const batches = await drizzleDb
-    .select({ id: courseBatch.id })
+    .select({ batchId: courseBatch.batchId })
     .from(courseBatch)
-    .where(eq(courseBatch.curriculumId, curriculumId))
-  const batchIds = batches.map(b => b.id)
+    .where(eq(courseBatch.courseId, courseId))
+  const batchIds = batches.map(b => b.batchId)
 
+  // Note: batchId doesn't exist on generatedTask - filtering by lesson only
   const taskFilter =
-    lessonIds.length > 0 || batchIds.length > 0
-      ? or(
-          lessonIds.length > 0
-            ? inArray(generatedTask.lessonId, lessonIds)
-            : inArray(generatedTask.lessonId, ['__none__']),
-          batchIds.length > 0
-            ? inArray(generatedTask.batchId, batchIds)
-            : inArray(generatedTask.batchId, ['__none__'])
-        )
+    lessonIds.length > 0
+      ? inArray(generatedTask.lessonId, lessonIds)
       : sql`1=0`
 
   const tasks = await drizzleDb
@@ -82,7 +69,7 @@ export async function GET(req: NextRequest) {
     .where(and(eq(generatedTask.tutorId, session.user.id), taskFilter))
     .orderBy(desc(generatedTask.createdAt))
 
-  const taskIds = tasks.map(t => t.id)
+  const taskIds = tasks.map(t => t.taskId)
   const submissionRows =
     taskIds.length > 0
       ? await drizzleDb
@@ -97,19 +84,18 @@ export async function GET(req: NextRequest) {
   const submissionMap = new Map(submissionRows.map(s => [s.taskId, s.count]))
 
   const result = tasks.map(t => ({
-    id: t.id,
+    id: t.taskId,
     title: t.title,
     description: t.description,
     type: t.type,
     difficulty: t.difficulty,
     status: t.status,
     lessonId: t.lessonId,
-    batchId: t.batchId,
     dueDate: t.dueDate?.toISOString() ?? null,
     maxScore: t.maxScore,
     questionCount: Array.isArray(t.questions) ? (t.questions as unknown[]).length : 0,
     assignmentCount: t.assignments ? Object.keys(t.assignments as object).length : 0,
-    submissionCount: submissionMap.get(t.id) ?? 0,
+    submissionCount: submissionMap.get(t.taskId) ?? 0,
     distributionMode: t.distributionMode,
     createdAt: t.createdAt.toISOString(),
     assignedAt: t.assignedAt?.toISOString() ?? null,
@@ -126,13 +112,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const curriculumId = getCourseId(req)
+  const courseId = getCourseId(req)
 
-  const [curriculumRow] = await drizzleDb
-    .select({ id: curriculum.id })
-    .from(curriculum)
-    .where(and(eq(curriculum.id, curriculumId), eq(curriculum.creatorId, session.user.id)))
-  if (!curriculumRow) {
+  const [courseRow] = await drizzleDb
+    .select({ courseId: course.courseId })
+    .from(course)
+    .where(and(eq(course.courseId, courseId), eq(course.creatorId, session.user.id)))
+  if (!courseRow) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
@@ -157,31 +143,29 @@ export async function POST(req: NextRequest) {
 
   if (lessonId) {
     const [lesson] = await drizzleDb
-      .select({ id: curriculumLesson.id })
-      .from(curriculumLesson)
-      .innerJoin(curriculumModule, eq(curriculumLesson.moduleId, curriculumModule.id))
-      .where(
-        and(eq(curriculumLesson.id, lessonId), eq(curriculumModule.curriculumId, curriculumId))
-      )
+      .select({ lessonId: courseLesson.lessonId })
+      .from(courseLesson)
+      .where(and(eq(courseLesson.lessonId, lessonId), eq(courseLesson.courseId, courseId)))
     if (!lesson) {
       return NextResponse.json({ error: 'Lesson not in this course' }, { status: 400 })
     }
   }
 
-  if (batchId) {
-    const [batch] = await drizzleDb
-      .select({ id: courseBatch.id })
-      .from(courseBatch)
-      .where(and(eq(courseBatch.id, batchId), eq(courseBatch.curriculumId, curriculumId)))
-    if (!batch) {
-      return NextResponse.json({ error: 'Batch not in this course' }, { status: 400 })
-    }
-  }
+  // Note: batchId field doesn't exist on generatedTask
+  // if (batchId) {
+  //   const [batch] = await drizzleDb
+  //     .select({ batchId: courseBatch.batchId })
+  //     .from(courseBatch)
+  //     .where(and(eq(courseBatch.batchId, batchId), eq(courseBatch.courseId, courseId)))
+  //   if (!batch) {
+  //     return NextResponse.json({ error: 'Batch not in this course' }, { status: 400 })
+  //   }
+  // }
 
   const [task] = await drizzleDb
     .insert(generatedTask)
     .values({
-      id: crypto.randomUUID(),
+      taskId: crypto.randomUUID(),
       tutorId: session.user.id,
       title,
       description: description || '',
@@ -192,7 +176,7 @@ export async function POST(req: NextRequest) {
       assignments: {},
       status,
       lessonId: lessonId || null,
-      batchId: batchId || null,
+      // batchId field doesn't exist on generatedTask
       dueDate: dueDate ? new Date(dueDate) : null,
       maxScore,
       enforceTimeLimit: false,
@@ -211,7 +195,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     task: {
-      id: task.id,
+      id: task.taskId,
       title: task.title,
       type: task.type,
       status: task.status,

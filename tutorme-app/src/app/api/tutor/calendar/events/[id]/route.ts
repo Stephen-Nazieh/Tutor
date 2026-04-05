@@ -63,18 +63,18 @@ export const GET = withAuth(
       const [row] = await drizzleDb
         .select({
           event: calendarEvent,
-          curriculumId: curriculum.id,
+          curriculumId: curriculum.courseId,
           curriculumName: curriculum.name,
-          curriculumSubject: curriculum.subject,
-          batchId: courseBatch.id,
+          curriculumCategories: curriculum.categories,
+          batchId: courseBatch.batchId,
           batchName: courseBatch.name,
         })
         .from(calendarEvent)
-        .leftJoin(curriculum, eq(calendarEvent.curriculumId, curriculum.id))
-        .leftJoin(courseBatch, eq(calendarEvent.batchId, courseBatch.id))
+        .leftJoin(curriculum, eq(calendarEvent.courseId, curriculum.courseId))
+        .leftJoin(courseBatch, eq(calendarEvent.courseId, courseBatch.batchId))
         .where(
           and(
-            eq(calendarEvent.id, id),
+            eq(calendarEvent.eventId, id),
             eq(calendarEvent.tutorId, tutorId),
             isNull(calendarEvent.deletedAt)
           )
@@ -88,7 +88,7 @@ export const GET = withAuth(
       const event = {
         ...row.event,
         curriculum: row.curriculumId
-          ? { id: row.curriculumId, name: row.curriculumName, subject: row.curriculumSubject }
+          ? { id: row.curriculumId, name: row.curriculumName, categories: row.curriculumCategories }
           : null,
         batch: row.batchId ? { id: row.batchId, name: row.batchName } : null,
       }
@@ -132,7 +132,7 @@ export const PUT = withAuth(
         .from(calendarEvent)
         .where(
           and(
-            eq(calendarEvent.id, id),
+            eq(calendarEvent.eventId, id),
             eq(calendarEvent.tutorId, tutorId),
             isNull(calendarEvent.deletedAt)
           )
@@ -153,7 +153,7 @@ export const PUT = withAuth(
           .where(
             and(
               eq(calendarEvent.tutorId, tutorId),
-              ne(calendarEvent.id, id),
+              ne(calendarEvent.eventId, id),
               isNull(calendarEvent.deletedAt),
               eq(calendarEvent.isCancelled, false),
               lt(calendarEvent.startTime, newEnd),
@@ -166,7 +166,7 @@ export const PUT = withAuth(
             {
               error: 'Schedule conflict detected',
               conflicts: conflicts.map(c => ({
-                id: c.id,
+                id: c.eventId,
                 title: c.title,
                 startTime: c.startTime,
                 endTime: c.endTime,
@@ -201,7 +201,7 @@ export const PUT = withAuth(
       const [updated] = await drizzleDb
         .update(calendarEvent)
         .set(updatePayload as typeof calendarEvent.$inferInsert)
-        .where(eq(calendarEvent.id, id))
+        .where(eq(calendarEvent.eventId, id))
         .returning()
 
       if (!updated) {
@@ -212,27 +212,20 @@ export const PUT = withAuth(
         )
       }
 
-      const [curriculumRow] = updated.curriculumId
+      const [curriculumRow] = updated.courseId
         ? await drizzleDb
-            .select({ id: curriculum.id, name: curriculum.name, subject: curriculum.subject })
+            .select({ courseId: curriculum.courseId, name: curriculum.name, categories: curriculum.categories })
             .from(curriculum)
-            .where(eq(curriculum.id, updated.curriculumId))
-            .limit(1)
-        : [null]
-      const [batchRow] = updated.batchId
-        ? await drizzleDb
-            .select({ id: courseBatch.id, name: courseBatch.name })
-            .from(courseBatch)
-            .where(eq(courseBatch.id, updated.batchId))
+            .where(eq(curriculum.courseId, updated.courseId))
             .limit(1)
         : [null]
 
       const event = {
         ...updated,
         curriculum: curriculumRow
-          ? { id: curriculumRow.id, name: curriculumRow.name, subject: curriculumRow.subject }
+          ? { id: curriculumRow.courseId, name: curriculumRow.name, categories: curriculumRow.categories }
           : null,
-        batch: batchRow ? { id: batchRow.id, name: batchRow.name } : null,
+        batch: null,
       }
 
       return NextResponse.json({ event })
@@ -264,7 +257,7 @@ export const DELETE = withAuth(
         .from(calendarEvent)
         .where(
           and(
-            eq(calendarEvent.id, id),
+            eq(calendarEvent.eventId, id),
             eq(calendarEvent.tutorId, tutorId),
             isNull(calendarEvent.deletedAt)
           )
@@ -284,7 +277,7 @@ export const DELETE = withAuth(
           .where(
             and(
               eq(calendarEvent.tutorId, tutorId),
-              or(eq(calendarEvent.id, id), eq(calendarEvent.recurringEventId, id))
+              or(eq(calendarEvent.eventId, id), eq(calendarEvent.recurringEventId, id))
             )
           )
 
@@ -297,7 +290,7 @@ export const DELETE = withAuth(
       await drizzleDb
         .update(calendarEvent)
         .set({ deletedAt: now, isCancelled: true })
-        .where(eq(calendarEvent.id, id))
+        .where(eq(calendarEvent.eventId, id))
 
       return NextResponse.json({
         message: 'Event deleted successfully',

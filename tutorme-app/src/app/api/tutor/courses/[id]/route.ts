@@ -20,7 +20,6 @@ import {
   courseEnrollment,
   courseLesson,
   courseLessonProgress,
-  courseModule,
   courseProgress,
   courseShare,
   lessonSession,
@@ -45,67 +44,38 @@ export const GET = withAuth(
     const [courseRow] = await drizzleDb.select().from(course).where(eq(course.courseId, id))
     if (!courseRow) throw new NotFoundError('Course not found')
 
-    const modules = await drizzleDb
+    const lessons = await drizzleDb
       .select()
-      .from(courseModule)
-      .where(eq(courseModule.courseId, id))
-      .orderBy(asc(courseModule.order))
-
-    const moduleIds = modules.map(m => m.moduleId)
-    const lessons =
-      moduleIds.length > 0
-        ? await drizzleDb
-            .select()
-            .from(courseLesson)
-            .where(and(inArray(courseLesson.moduleId, moduleIds)))
-            .orderBy(asc(courseLesson.order))
-        : []
+      .from(courseLesson)
+      .where(eq(courseLesson.courseId, id))
+      .orderBy(asc(courseLesson.order))
 
     const [{ count: enrollmentCount }] = await drizzleDb
       .select({ count: sql<number>`count(*)::int` })
       .from(courseEnrollment)
       .where(eq(courseEnrollment.courseId, id))
 
-    const modulesWithLessons = modules.map(m => ({
-      ...m,
-      lessons: lessons.filter(l => l.moduleId === m.moduleId),
-    }))
-
     const schedule = courseRow.schedule as Array<{
       dayOfWeek: string
       startTime: string
       durationMinutes: number
     }> | null
-    const materials = courseRow.courseMaterials as {
-      curriculumText?: string
-      notesText?: string
-      editableCurriculum?: string
-      editableNotes?: string
-      editableTopics?: string
-      outline?: { title: string; durationMinutes: number }[]
-    } | null
 
     return NextResponse.json({
       course: {
         id: courseRow.courseId,
         name: courseRow.name,
         description: courseRow.description,
-        subject: courseRow.subject,
-        gradeLevel: courseRow.gradeLevel,
-        difficulty: courseRow.difficulty,
-        estimatedHours: courseRow.estimatedHours,
+        categories: courseRow.categories,
         isPublished: courseRow.isPublished,
         isLiveOnline: courseRow.isLiveOnline,
         languageOfInstruction: courseRow.languageOfInstruction,
         price: courseRow.price,
         currency: courseRow.currency,
         isFree: courseRow.isFree,
-        curriculumSource: courseRow.curriculumSource,
-        outlineSource: courseRow.outlineSource,
         schedule: schedule ?? [],
         studentCount: enrollmentCount ?? 0,
-        modules: modulesWithLessons,
-        courseMaterials: materials ?? undefined,
+        lessons: lessons,
       },
     })
   },
@@ -126,19 +96,10 @@ export const DELETE = withCsrf(
       }
 
       await drizzleDb.transaction(async tx => {
-        const modules = await tx
-          .select({ moduleId: courseModule.moduleId })
-          .from(courseModule)
-          .where(eq(courseModule.courseId, id))
-        const moduleIds = modules.map(m => m.moduleId)
-
-        const lessons =
-          moduleIds.length > 0
-            ? await tx
-                .select({ lessonId: courseLesson.lessonId })
-                .from(courseLesson)
-                .where(inArray(courseLesson.moduleId, moduleIds))
-            : []
+        const lessons = await tx
+          .select({ lessonId: courseLesson.lessonId })
+          .from(courseLesson)
+          .where(eq(courseLesson.courseId, id))
         const lessonIds = lessons.map(l => l.lessonId)
 
         const tasks = await tx
@@ -198,9 +159,8 @@ export const DELETE = withCsrf(
         await tx.delete(liveSession).where(eq(liveSession.courseId, id))
         await tx.delete(calendarEvent).where(eq(calendarEvent.courseId, id))
 
-        if (moduleIds.length > 0) {
-          await tx.delete(courseLesson).where(inArray(courseLesson.moduleId, moduleIds))
-          await tx.delete(courseModule).where(inArray(courseModule.moduleId, moduleIds))
+        if (lessonIds.length > 0) {
+          await tx.delete(courseLesson).where(inArray(courseLesson.lessonId, lessonIds))
         }
 
         await tx.delete(course).where(eq(course.courseId, id))
@@ -221,18 +181,10 @@ export const PATCH = withCsrf(
       const [courseRow] = await drizzleDb.select().from(course).where(eq(course.courseId, id))
       if (!courseRow) throw new NotFoundError('Course not found')
 
-      const modules = await drizzleDb
+      const lessons = await drizzleDb
         .select()
-        .from(courseModule)
-        .where(eq(courseModule.courseId, id))
-      const moduleIds = modules.map(m => m.moduleId)
-      const lessons =
-        moduleIds.length > 0
-          ? await drizzleDb
-              .select()
-              .from(courseLesson)
-              .where(inArray(courseLesson.moduleId, moduleIds))
-          : []
+        .from(courseLesson)
+        .where(eq(courseLesson.courseId, id))
 
       const body = await req.json().catch(() => ({}))
       const parsed = UpdateCourseSettingsSchema.safeParse(body)
@@ -255,14 +207,10 @@ export const PATCH = withCsrf(
         if (!courseRow.name || courseRow.name.trim().length < 2) {
           validationErrors.push('Course must have a name (at least 2 characters)')
         }
-        if (!courseRow.subject) {
-          validationErrors.push('Course must have a subject selected')
+        if (!courseRow.categories || courseRow.categories.length === 0) {
+          validationErrors.push('Course must have at least one category selected')
         }
-        if (modules.length === 0) {
-          validationErrors.push('Course must have at least one module')
-        }
-        const hasLessons = modules.some(m => lessons.some(l => l.moduleId === m.moduleId))
-        if (!hasLessons) {
+        if (lessons.length === 0) {
           validationErrors.push('Course must have at least one lesson')
         }
         if (!courseRow.isFree && (courseRow.price === null || courseRow.price === undefined)) {
@@ -279,17 +227,13 @@ export const PATCH = withCsrf(
       const updatePayload: Record<string, unknown> = {}
       if (safeName !== undefined) updatePayload.name = safeName
       if (safeDescription !== undefined) updatePayload.description = safeDescription
-      if (data.gradeLevel !== undefined) updatePayload.gradeLevel = data.gradeLevel
-      if (data.difficulty !== undefined && data.difficulty !== null)
-        updatePayload.difficulty = data.difficulty
+      // Note: categories update not supported by current schema
+      // if (data.categories !== undefined) updatePayload.categories = data.categories
       if (data.languageOfInstruction !== undefined)
         updatePayload.languageOfInstruction = data.languageOfInstruction
       if (data.price !== undefined) updatePayload.price = data.price
       if (data.currency !== undefined) updatePayload.currency = data.currency
       if (data.isFree !== undefined) updatePayload.isFree = data.isFree
-      if (data.curriculumSource !== undefined)
-        updatePayload.curriculumSource = data.curriculumSource
-      if (data.outlineSource !== undefined) updatePayload.outlineSource = data.outlineSource
       if (data.schedule !== undefined) updatePayload.schedule = data.schedule
       if (data.isLiveOnline !== undefined) updatePayload.isLiveOnline = data.isLiveOnline
       if (data.isPublished !== undefined) updatePayload.isPublished = data.isPublished
@@ -313,14 +257,11 @@ export const PATCH = withCsrf(
           id: updated.courseId,
           name: updated.name,
           description: updated.description,
-          gradeLevel: updated.gradeLevel,
-          difficulty: updated.difficulty,
+          categories: updated.categories,
           languageOfInstruction: updated.languageOfInstruction,
           price: updated.price,
           currency: updated.currency,
           isFree: updated.isFree,
-          curriculumSource: updated.curriculumSource,
-          outlineSource: updated.outlineSource,
           schedule: updated.schedule,
           isLiveOnline: updated.isLiveOnline,
           isPublished: updated.isPublished,

@@ -90,7 +90,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   const pages = await drizzleDb
     .select()
     .from(whiteboardPage)
-    .where(eq(whiteboardPage.whiteboardId, whiteboardRow.id))
+    .where(eq(whiteboardPage.whiteboardId, whiteboardRow.whiteboardId))
     .orderBy(asc(whiteboardPage.order))
 
   const [profileRow] = await drizzleDb

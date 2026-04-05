@@ -142,9 +142,9 @@ export const POST = withAuth(
     }
 
     const [curriculumRow] = await drizzleDb
-      .select({ id: curriculum.id, subject: curriculum.subject, gradeLevel: curriculum.gradeLevel })
+      .select({ id: curriculum.courseId, subject: curriculum.categories })
       .from(curriculum)
-      .where(and(eq(curriculum.id, courseId), eq(curriculum.creatorId, session.user.id)))
+      .where(and(eq(curriculum.courseId, courseId), eq(curriculum.creatorId, session.user.id)))
     if (!curriculumRow) {
       throw new NotFoundError('Course not found')
     }
@@ -152,7 +152,7 @@ export const POST = withAuth(
     let references = uploadedReferences.join('\n\n').slice(0, 18000)
     if (!references.trim()) {
       const webContext = await fetchWebReference(
-        curriculumRow.subject || tutorInstruction.split(/\s+/).slice(0, 4).join(' ')
+        curriculumRow.subject?.[0] || tutorInstruction.split(/\s+/).slice(0, 4).join(' ')
       )
       references = webContext
     }
@@ -160,8 +160,8 @@ export const POST = withAuth(
     const prompt = buildPrompt({
       tutorInstruction,
       references,
-      subject: curriculumRow.subject,
-      gradeLevel: curriculumRow.gradeLevel,
+      subject: curriculumRow.subject?.[0] || '',
+      gradeLevel: '',
     })
 
     const ai = await generateWithFallback(prompt, {

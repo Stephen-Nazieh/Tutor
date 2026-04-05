@@ -164,7 +164,7 @@ Make the lesson engaging, practical, and aligned with best teaching practices. I
       if (body.sessionId && body.sessionId !== 'temp') {
         try {
           await drizzleDb.insert(aIAssistantInsight).values({
-            id: randomUUID(),
+            insightId: randomUUID(),
             sessionId: body.sessionId,
             type: 'lesson_idea',
             title: `Lesson Plan: ${lessonPlan.title}`,

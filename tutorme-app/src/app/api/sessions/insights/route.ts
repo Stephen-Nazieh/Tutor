@@ -194,7 +194,7 @@ export const POST = withAuth(
       const [report] = await drizzleDb
         .select()
         .from(postSessionReport)
-        .where(eq(postSessionReport.id, reportId))
+        .where(eq(postSessionReport.reportId, reportId))
         .limit(1)
 
       return NextResponse.json({ success: true, report: report ?? null })

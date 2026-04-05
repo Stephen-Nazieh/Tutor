@@ -103,15 +103,13 @@ export const GET = withAuth(
       const rows = await drizzleDb
         .select({
           event: calendarEvent,
-          curriculumId: curriculum.id,
+          curriculumId: curriculum.courseId,
           curriculumName: curriculum.name,
-          curriculumSubject: curriculum.subject,
-          batchId: courseBatch.id,
-          batchName: courseBatch.name,
+          curriculumCategories: curriculum.categories,
         })
         .from(calendarEvent)
-        .leftJoin(curriculum, eq(calendarEvent.curriculumId, curriculum.id))
-        .leftJoin(courseBatch, eq(calendarEvent.batchId, courseBatch.id))
+        .leftJoin(curriculum, eq(calendarEvent.courseId, curriculum.courseId))
+        
         .where(and(...whereConditions))
         .orderBy(asc(calendarEvent.startTime))
         .limit(limit)
@@ -119,9 +117,9 @@ export const GET = withAuth(
       const events = rows.map(r => ({
         ...r.event,
         curriculum: r.curriculumId
-          ? { id: r.curriculumId, name: r.curriculumName, subject: r.curriculumSubject }
+          ? { id: r.curriculumId, name: r.curriculumName, categories: r.curriculumCategories }
           : null,
-        batch: r.batchId ? { id: r.batchId, name: r.batchName } : null,
+        batch: null,
       }))
 
       const expandedEvents = expandRecurringEvents(events, startDate, endDate)
@@ -183,7 +181,7 @@ export const POST = withAuth(
             {
               error: 'Schedule conflict detected',
               conflicts: conflicts.map(c => ({
-                id: c.id,
+                id: c.eventId,
                 title: c.title,
                 startTime: c.startTime,
                 endTime: c.endTime,
@@ -197,7 +195,7 @@ export const POST = withAuth(
       const [inserted] = await drizzleDb
         .insert(calendarEvent)
         .values({
-          id: nanoid(),
+          eventId: nanoid(),
           tutorId,
           title: data.title,
           description: data.description,
@@ -210,8 +208,7 @@ export const POST = withAuth(
           location: data.location,
           meetingUrl: data.meetingUrl,
           isVirtual: data.isVirtual,
-          curriculumId: data.curriculumId,
-          batchId: data.batchId,
+          courseId: data.curriculumId,
           studentId: data.studentId,
           maxAttendees: data.maxAttendees,
           attendees: data.attendees,
@@ -224,28 +221,28 @@ export const POST = withAuth(
         })
         .returning()
 
-      const eventId = inserted!.id
+      const eventId = inserted!.eventId
       const [curriculumRow] = data.curriculumId
         ? await drizzleDb
-            .select({ id: curriculum.id, name: curriculum.name, subject: curriculum.subject })
+            .select({ courseId: curriculum.courseId, name: curriculum.name, categories: curriculum.categories })
             .from(curriculum)
-            .where(eq(curriculum.id, data.curriculumId))
+            .where(eq(curriculum.courseId, data.curriculumId))
             .limit(1)
         : [null]
-      const [batchRow] = data.batchId
-        ? await drizzleDb
-            .select({ id: courseBatch.id, name: courseBatch.name })
-            .from(courseBatch)
-            .where(eq(courseBatch.id, data.batchId))
-            .limit(1)
-        : [null]
+      // batch is no longer used
+      const batchRow = null
+      if (data.batchId)
+            {
+        // batch no longer exists - ignore
+      }
 
       const event = {
         ...inserted!,
+        id: inserted!.eventId,
         curriculum: curriculumRow
-          ? { id: curriculumRow.id, name: curriculumRow.name, subject: curriculumRow.subject }
+          ? { id: curriculumRow.courseId, name: curriculumRow.name, categories: curriculumRow.categories }
           : null,
-        batch: batchRow ? { id: batchRow.id, name: batchRow.name } : null,
+        batch: null,
       }
 
       // Create notification reminders (background task)
@@ -367,7 +364,7 @@ async function createReminderNotifications(
     const reminderTime = new Date(event.startTime.getTime() - reminder.minutes * 60000)
     if (reminderTime > new Date()) {
       await drizzleDb.insert(notification).values({
-        id: nanoid(),
+        notificationId: nanoid(),
         userId: tutorId,
         type: 'reminder',
         title: `Reminder: ${event.title}`,

@@ -56,11 +56,11 @@ export const POST = withAuth(async (req: NextRequest, session) => {
       gt(calendarEvent.endTime, start),
     ]
     if (excludeEventId) {
-      conflictConditions.push(ne(calendarEvent.id, excludeEventId))
+      conflictConditions.push(ne(calendarEvent.eventId, excludeEventId))
     }
     const conflicts = await drizzleDb
       .select({
-        id: calendarEvent.id,
+        id: calendarEvent.eventId,
         title: calendarEvent.title,
         startTime: calendarEvent.startTime,
         endTime: calendarEvent.endTime,

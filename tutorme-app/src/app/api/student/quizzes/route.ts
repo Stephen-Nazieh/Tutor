@@ -142,7 +142,7 @@ export const GET = withAuth(
 
       const questions = quizRow.questions as unknown[]
       quizzes.push({
-        quizId: quizRow.quizId,
+        id: quizRow.quizId,
         title: quizRow.title,
         description: quizRow.description ?? undefined,
         type: quizRow.type as QuizType,

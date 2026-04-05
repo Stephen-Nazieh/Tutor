@@ -114,7 +114,7 @@ export const POST = withAuth(
             isAvailable: data.isAvailable,
             reason: data.reason ?? existing.reason,
           })
-          .where(eq(calendarException.id, existing.id))
+          .where(eq(calendarException.exceptionId, existing.exceptionId))
           .returning()
         return NextResponse.json({ exception: updated })
       }
@@ -122,7 +122,7 @@ export const POST = withAuth(
       const [created] = await drizzleDb
         .insert(calendarException)
         .values({
-          id: nanoid(),
+          exceptionId: nanoid(),
           tutorId,
           date,
           isAvailable: data.isAvailable,
@@ -184,14 +184,14 @@ export const PUT = withAuth(
           const [updated] = await drizzleDb
             .update(calendarException)
             .set({ isAvailable, reason })
-            .where(eq(calendarException.id, existing.id))
+            .where(eq(calendarException.exceptionId, existing.exceptionId))
             .returning()
           if (updated) results.push(updated)
         } else {
           const [created] = await drizzleDb
             .insert(calendarException)
             .values({
-              id: nanoid(),
+              exceptionId: nanoid(),
               tutorId,
               date,
               isAvailable,

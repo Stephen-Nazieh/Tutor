@@ -30,7 +30,10 @@ async function getHandler(_req: NextRequest, session: Session) {
     const contentIds = progressRows.map(p => p.contentId)
     const contents =
       contentIds.length > 0
-        ? await drizzleDb.select().from(contentItem).where(inArray(contentItem.contentId, contentIds))
+        ? await drizzleDb
+            .select()
+            .from(contentItem)
+            .where(inArray(contentItem.contentId, contentIds))
         : []
     const contentMap = new Map(contents.map(c => [c.contentId, c]))
 

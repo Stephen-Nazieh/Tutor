@@ -47,16 +47,16 @@ export async function POST(req: NextRequest) {
 
   const sessionRows = await drizzleDb
     .select({
-      id: liveSession.id,
+      sessionId: liveSession.sessionId,
       tutorId: liveSession.tutorId,
       title: liveSession.title,
-      subject: liveSession.subject,
+      category: liveSession.category,
       recordingUrl: liveSession.recordingUrl,
       startedAt: liveSession.startedAt,
       endedAt: liveSession.endedAt,
     })
     .from(liveSession)
-    .where(and(eq(liveSession.id, liveSessionId), eq(liveSession.tutorId, session.user.id)))
+    .where(and(eq(liveSession.sessionId, liveSessionId), eq(liveSession.tutorId, session.user.id)))
     .limit(1)
 
   const liveSessionRow = sessionRows[0]
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
       .where(eq(sessionReplayArtifact.sessionId, liveSessionId))
   } else {
     await drizzleDb.insert(sessionReplayArtifact).values({
-      id: randomUUID(),
+      artifactId: randomUUID(),
       sessionId: liveSessionId,
       tutorId: session.user.id,
       recordingUrl: liveSessionRow.recordingUrl,
@@ -116,8 +116,8 @@ export async function POST(req: NextRequest) {
         userEmail: user.email,
       })
       .from(message)
-      .innerJoin(user, eq(message.userId, user.id))
-      .leftJoin(profile, eq(profile.userId, user.id))
+      .innerJoin(user, eq(message.userId, user.userId))
+      .leftJoin(profile, eq(profile.userId, user.userId))
       .where(eq(message.sessionId, liveSessionId))
       .orderBy(asc(message.timestamp))
 
@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
       ...(summaryResult.success && summaryResult.summary ? summaryResult.summary : {}),
       sessionMeta: {
         title: liveSessionRow.title,
-        subject: liveSessionRow.subject,
+        subject: liveSessionRow.category,
         participants: _count.participants,
         messages: _count.messages,
         generatedAt: new Date().toISOString(),
