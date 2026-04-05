@@ -186,7 +186,7 @@ export const PUT = withAuth(
       await drizzleDb
         .update(whiteboard)
         .set({ updatedAt: new Date() })
-        .where(eq(whiteboard.id, whiteboardId))
+        .where(eq(whiteboard.whiteboardId, whiteboardId))
 
       if (updatedRows.length === 0) {
         const [latest] = await drizzleDb

@@ -96,7 +96,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
 
   return NextResponse.json({
     results: results.map(r => ({
-      id: r.id,
+      id: r.userId,
       handle: r.handle,
       displayName: r.displayName ?? r.handle ?? 'User',
       avatarUrl: r.avatarUrl ?? null,

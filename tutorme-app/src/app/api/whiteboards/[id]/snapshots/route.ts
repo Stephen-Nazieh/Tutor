@@ -33,7 +33,7 @@ export const GET = withAuth(
         .from(whiteboard)
         .where(
           and(
-            eq(whiteboard.id, whiteboardId),
+            eq(whiteboard.whiteboardId, whiteboardId),
             eq(whiteboard.ownerId, userId),
             isNull(whiteboard.deletedAt)
           )
@@ -90,7 +90,7 @@ export const POST = withAuth(
         .from(whiteboard)
         .where(
           and(
-            eq(whiteboard.id, whiteboardId),
+            eq(whiteboard.whiteboardId, whiteboardId),
             eq(whiteboard.ownerId, userId),
             isNull(whiteboard.deletedAt)
           )
@@ -108,7 +108,7 @@ export const POST = withAuth(
         .orderBy(asc(whiteboardPage.order))
 
       const snapshotPages = pages.map(p => ({
-        id: p.id,
+        pageId: p.pageId,
         name: p.name,
         order: p.order,
         backgroundColor: p.backgroundColor,
@@ -124,7 +124,7 @@ export const POST = withAuth(
       const inserted = await drizzleDb
         .insert(whiteboardSnapshot)
         .values({
-          id: crypto.randomUUID(),
+          snapshotId: crypto.randomUUID(),
           whiteboardId,
           name: data.name,
           thumbnailUrl: data.thumbnailUrl ?? null,
