@@ -47,7 +47,11 @@ export const GET = withAuth(
         .select()
         .from(whiteboard)
         .where(
-          and(eq(whiteboard.whiteboardId, id), eq(whiteboard.ownerId, userId), isNull(whiteboard.deletedAt))
+          and(
+            eq(whiteboard.whiteboardId, id),
+            eq(whiteboard.ownerId, userId),
+            isNull(whiteboard.deletedAt)
+          )
         )
         .limit(1)
 
@@ -107,7 +111,11 @@ export const PUT = withAuth(
         .select()
         .from(whiteboard)
         .where(
-          and(eq(whiteboard.whiteboardId, id), eq(whiteboard.ownerId, userId), isNull(whiteboard.deletedAt))
+          and(
+            eq(whiteboard.whiteboardId, id),
+            eq(whiteboard.ownerId, userId),
+            isNull(whiteboard.deletedAt)
+          )
         )
         .limit(1)
 
@@ -127,7 +135,10 @@ export const PUT = withAuth(
 
       await drizzleDb.update(whiteboard).set(updateData).where(eq(whiteboard.whiteboardId, id))
 
-      const [updated] = await drizzleDb.select().from(whiteboard).where(eq(whiteboard.whiteboardId, id))
+      const [updated] = await drizzleDb
+        .select()
+        .from(whiteboard)
+        .where(eq(whiteboard.whiteboardId, id))
       const pages = await drizzleDb
         .select()
         .from(whiteboardPage)
@@ -157,7 +168,11 @@ export const DELETE = withAuth(
         .select()
         .from(whiteboard)
         .where(
-          and(eq(whiteboard.whiteboardId, id), eq(whiteboard.ownerId, userId), isNull(whiteboard.deletedAt))
+          and(
+            eq(whiteboard.whiteboardId, id),
+            eq(whiteboard.ownerId, userId),
+            isNull(whiteboard.deletedAt)
+          )
         )
         .limit(1)
 
@@ -165,7 +180,10 @@ export const DELETE = withAuth(
         return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
       }
 
-      await drizzleDb.update(whiteboard).set({ deletedAt: new Date() }).where(eq(whiteboard.whiteboardId, id))
+      await drizzleDb
+        .update(whiteboard)
+        .set({ deletedAt: new Date() })
+        .where(eq(whiteboard.whiteboardId, id))
 
       return NextResponse.json({ message: 'Whiteboard deleted' })
     } catch (error) {

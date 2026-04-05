@@ -83,13 +83,12 @@ export async function GET(_req: NextRequest) {
 
         // Lessons now directly reference courses (no modules)
         if (liveSessionRow.courseId) {
-          const lessonIds =
-            (
-              await drizzleDb
-                .select({ lessonId: curriculumLesson.lessonId })
-                .from(curriculumLesson)
-                .where(eq(curriculumLesson.courseId, liveSessionRow.courseId))
-            ).map(l => l.lessonId)
+          const lessonIds = (
+            await drizzleDb
+              .select({ lessonId: curriculumLesson.lessonId })
+              .from(curriculumLesson)
+              .where(eq(curriculumLesson.courseId, liveSessionRow.courseId))
+          ).map(l => l.lessonId)
 
           const allTaskIds: string[] = []
           if (lessonIds.length > 0) {

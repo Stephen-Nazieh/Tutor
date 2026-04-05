@@ -47,7 +47,10 @@ export const GET = withAuth(
       unreadCount: notifications.filter((n: any) => !n.isRead).length,
     }
 
-    await cacheManager.set(cacheKey, data, { ttl: CACHE_TTL, tags: [`family:${family.familyAccountId}`] })
+    await cacheManager.set(cacheKey, data, {
+      ttl: CACHE_TTL,
+      tags: [`family:${family.familyAccountId}`],
+    })
     return NextResponse.json({ success: true, data })
   },
   { role: 'PARENT' }

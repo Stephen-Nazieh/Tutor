@@ -27,8 +27,13 @@ export const PATCH = withAuth(
       const rows = await drizzleDb
         .select({ insight: aIAssistantInsight })
         .from(aIAssistantInsight)
-        .innerJoin(aIAssistantSession, eq(aIAssistantInsight.sessionId, aIAssistantSession.assistantSessionId))
-        .where(and(eq(aIAssistantInsight.insightId, insightId), eq(aIAssistantSession.tutorId, tutorId)))
+        .innerJoin(
+          aIAssistantSession,
+          eq(aIAssistantInsight.sessionId, aIAssistantSession.assistantSessionId)
+        )
+        .where(
+          and(eq(aIAssistantInsight.insightId, insightId), eq(aIAssistantSession.tutorId, tutorId))
+        )
         .limit(1)
 
       const insight = rows[0]?.insight
@@ -73,8 +78,13 @@ export const DELETE = withAuth(
       const rows = await drizzleDb
         .select()
         .from(aIAssistantInsight)
-        .innerJoin(aIAssistantSession, eq(aIAssistantInsight.sessionId, aIAssistantSession.assistantSessionId))
-        .where(and(eq(aIAssistantInsight.insightId, insightId), eq(aIAssistantSession.tutorId, tutorId)))
+        .innerJoin(
+          aIAssistantSession,
+          eq(aIAssistantInsight.sessionId, aIAssistantSession.assistantSessionId)
+        )
+        .where(
+          and(eq(aIAssistantInsight.insightId, insightId), eq(aIAssistantSession.tutorId, tutorId))
+        )
         .limit(1)
 
       if (rows.length === 0) {

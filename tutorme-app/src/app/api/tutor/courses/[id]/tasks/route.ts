@@ -58,10 +58,7 @@ export async function GET(req: NextRequest) {
   const batchIds = batches.map(b => b.batchId)
 
   // Note: batchId doesn't exist on generatedTask - filtering by lesson only
-  const taskFilter =
-    lessonIds.length > 0
-      ? inArray(generatedTask.lessonId, lessonIds)
-      : sql`1=0`
+  const taskFilter = lessonIds.length > 0 ? inArray(generatedTask.lessonId, lessonIds) : sql`1=0`
 
   const tasks = await drizzleDb
     .select()

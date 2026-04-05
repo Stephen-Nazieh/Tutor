@@ -461,7 +461,11 @@ async function identifyStudentsAtRisk(
     const quizCount = quizRow?.count ?? 0
 
     if (attendanceCount < 2 || assignmentCount < 2 || quizCount < 1) {
-      const [userRow] = await drizzleDb.select().from(user).where(eq(user.userId, studentId)).limit(1)
+      const [userRow] = await drizzleDb
+        .select()
+        .from(user)
+        .where(eq(user.userId, studentId))
+        .limit(1)
       const [profileRow] = userRow
         ? await drizzleDb
             .select({ name: profile.name })

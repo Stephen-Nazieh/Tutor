@@ -356,7 +356,10 @@ export async function getPendingFeedback(
       .orderBy(asc(feedbackWorkflow.createdAt))
       .limit(options?.limit ?? 20)
       .offset(options?.offset ?? 0),
-    drizzleDb.select({ workflowId: feedbackWorkflow.workflowId }).from(feedbackWorkflow).where(statusFilter),
+    drizzleDb
+      .select({ workflowId: feedbackWorkflow.workflowId })
+      .from(feedbackWorkflow)
+      .where(statusFilter),
   ])
 
   const total = countResult.length

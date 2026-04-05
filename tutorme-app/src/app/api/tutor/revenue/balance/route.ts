@@ -8,14 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  payment,
-  payout,
-  clinicBooking,
-  clinic,
-  courseEnrollment,
-  course,
-} from '@/lib/db/schema'
+import { payment, payout, clinicBooking, clinic, courseEnrollment, course } from '@/lib/db/schema'
 import { eq, and, inArray } from 'drizzle-orm'
 
 const COMPLETED = 'COMPLETED'
@@ -27,7 +20,10 @@ export const GET = withAuth(
     const tutorId = session.user.id
 
     const [clinicIdsResult, courseIdsResult] = await Promise.all([
-      drizzleDb.select({ clinicId: clinic.clinicId }).from(clinic).where(eq(clinic.tutorId, tutorId)),
+      drizzleDb
+        .select({ clinicId: clinic.clinicId })
+        .from(clinic)
+        .where(eq(clinic.tutorId, tutorId)),
       drizzleDb
         .select({ courseId: course.courseId })
         .from(course)

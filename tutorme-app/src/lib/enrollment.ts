@@ -6,12 +6,7 @@
 
 import { eq, and, inArray, sql } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  course,
-  courseLesson,
-  courseProgress,
-  courseEnrollment,
-} from '@/lib/db/schema'
+import { course, courseLesson, courseProgress, courseEnrollment } from '@/lib/db/schema'
 
 export async function enrollStudentInCourse(
   studentId: string,

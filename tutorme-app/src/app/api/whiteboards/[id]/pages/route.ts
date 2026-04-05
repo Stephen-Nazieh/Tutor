@@ -193,7 +193,10 @@ export const PUT = withAuth(
         .select({ pageId: whiteboardPage.pageId })
         .from(whiteboardPage)
         .where(
-          and(eq(whiteboardPage.whiteboardId, whiteboardId), inArray(whiteboardPage.pageId, pageIds))
+          and(
+            eq(whiteboardPage.whiteboardId, whiteboardId),
+            inArray(whiteboardPage.pageId, pageIds)
+          )
         )
       if (ownedPages.length !== pageOrders.length) {
         return NextResponse.json(
@@ -207,7 +210,9 @@ export const PUT = withAuth(
           await tx
             .update(whiteboardPage)
             .set({ order: po.order })
-            .where(and(eq(whiteboardPage.pageId, po.id), eq(whiteboardPage.whiteboardId, whiteboardId)))
+            .where(
+              and(eq(whiteboardPage.pageId, po.id), eq(whiteboardPage.whiteboardId, whiteboardId))
+            )
         }
       })
 

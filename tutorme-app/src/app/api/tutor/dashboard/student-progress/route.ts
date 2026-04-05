@@ -47,7 +47,10 @@ export const GET = withAuth(
       drizzleDb.query.clinicBooking.findMany({
         where: inArray(
           clinicBooking.clinicId,
-          drizzleDb.select({ clinicId: clinic.clinicId }).from(clinic).where(eq(clinic.tutorId, tutorId))
+          drizzleDb
+            .select({ clinicId: clinic.clinicId })
+            .from(clinic)
+            .where(eq(clinic.tutorId, tutorId))
         ),
       }),
       // Session participants for sessions hosted by this tutor

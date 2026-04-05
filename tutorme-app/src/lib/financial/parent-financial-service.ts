@@ -74,7 +74,10 @@ export async function fetchFamilyPayments(
             enrollmentId: payment.enrollmentId,
           })
           .from(payment)
-          .innerJoin(curriculumEnrollment, eq(payment.enrollmentId, curriculumEnrollment.enrollmentId))
+          .innerJoin(
+            curriculumEnrollment,
+            eq(payment.enrollmentId, curriculumEnrollment.enrollmentId)
+          )
           .where(
             and(
               inArray(curriculumEnrollment.studentId, filterStudentIds),

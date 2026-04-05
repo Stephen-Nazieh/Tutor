@@ -47,7 +47,7 @@ export const POST = withAuth(
           columns: { courseId: true },
         })
         const courseIdsFromBatches = batches.map(b => b.courseId)
-        
+
         // Then find enrollments for those courses
         if (courseIdsFromBatches.length > 0) {
           const groupEnrollments = await drizzleDb.query.curriculumEnrollment.findMany({

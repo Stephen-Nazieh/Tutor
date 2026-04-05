@@ -43,7 +43,11 @@ export async function GET(_request: NextRequest) {
     const generatedTasks =
       taskIds.length > 0
         ? await drizzleDb
-            .select({ taskId: generatedTask.taskId, title: generatedTask.title, type: generatedTask.type })
+            .select({
+              taskId: generatedTask.taskId,
+              title: generatedTask.title,
+              type: generatedTask.type,
+            })
             .from(generatedTask)
             .where(inArray(generatedTask.taskId, taskIds))
         : []

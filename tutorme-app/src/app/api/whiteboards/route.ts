@@ -102,7 +102,10 @@ export const GET = withAuth(
       const whiteboards = boards.map(b => ({
         ...b,
         pages: (pagesByBoard[b.whiteboardId] ?? []).sort((a, b) => a.order - b.order),
-        _count: { pages: pagesByBoard[b.whiteboardId]?.length ?? 0, snapshots: snapshotByBoard[b.whiteboardId] ?? 0 },
+        _count: {
+          pages: pagesByBoard[b.whiteboardId]?.length ?? 0,
+          snapshots: snapshotByBoard[b.whiteboardId] ?? 0,
+        },
       }))
 
       return NextResponse.json({ whiteboards })
@@ -167,7 +170,10 @@ export const POST = withAuth(
         })
       })
 
-      const [wb] = await drizzleDb.select().from(whiteboard).where(eq(whiteboard.whiteboardId, whiteboardId))
+      const [wb] = await drizzleDb
+        .select()
+        .from(whiteboard)
+        .where(eq(whiteboard.whiteboardId, whiteboardId))
       const pages = await drizzleDb
         .select()
         .from(whiteboardPage)

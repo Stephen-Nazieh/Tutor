@@ -65,7 +65,9 @@ export const GET = withAuth(
               .select()
               .from(clinicBooking)
               .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
-              .where(and(eq(clinicBooking.bookingId, payment.bookingId), eq(clinic.tutorId, tutorId)))
+              .where(
+                and(eq(clinicBooking.bookingId, payment.bookingId), eq(clinic.tutorId, tutorId))
+              )
           ),
           gte(payment.createdAt, startDate),
           lte(payment.createdAt, endDate)
@@ -124,7 +126,9 @@ export const GET = withAuth(
                 .select()
                 .from(clinicBooking)
                 .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
-                .where(and(eq(clinicBooking.bookingId, payment.bookingId), eq(clinic.tutorId, tutorId)))
+                .where(
+                  and(eq(clinicBooking.bookingId, payment.bookingId), eq(clinic.tutorId, tutorId))
+                )
             ),
             exists(
               drizzleDb
@@ -205,7 +209,9 @@ export const GET = withAuth(
               .select()
               .from(clinicBooking)
               .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
-              .where(and(eq(clinicBooking.bookingId, payment.bookingId), eq(clinic.tutorId, tutorId)))
+              .where(
+                and(eq(clinicBooking.bookingId, payment.bookingId), eq(clinic.tutorId, tutorId))
+              )
           ),
           exists(
             drizzleDb
@@ -241,7 +247,9 @@ export const GET = withAuth(
               .select()
               .from(clinicBooking)
               .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
-              .where(and(eq(clinicBooking.bookingId, payment.bookingId), eq(clinic.tutorId, tutorId)))
+              .where(
+                and(eq(clinicBooking.bookingId, payment.bookingId), eq(clinic.tutorId, tutorId))
+              )
           )
         )
       ),

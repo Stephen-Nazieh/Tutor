@@ -109,7 +109,7 @@ export const GET = withAuth(
         })
         .from(calendarEvent)
         .leftJoin(curriculum, eq(calendarEvent.courseId, curriculum.courseId))
-        
+
         .where(and(...whereConditions))
         .orderBy(asc(calendarEvent.startTime))
         .limit(limit)
@@ -224,15 +224,18 @@ export const POST = withAuth(
       const eventId = inserted!.eventId
       const [curriculumRow] = data.curriculumId
         ? await drizzleDb
-            .select({ courseId: curriculum.courseId, name: curriculum.name, categories: curriculum.categories })
+            .select({
+              courseId: curriculum.courseId,
+              name: curriculum.name,
+              categories: curriculum.categories,
+            })
             .from(curriculum)
             .where(eq(curriculum.courseId, data.curriculumId))
             .limit(1)
         : [null]
       // batch is no longer used
       const batchRow = null
-      if (data.batchId)
-            {
+      if (data.batchId) {
         // batch no longer exists - ignore
       }
 
@@ -240,7 +243,11 @@ export const POST = withAuth(
         ...inserted!,
         id: inserted!.eventId,
         curriculum: curriculumRow
-          ? { id: curriculumRow.courseId, name: curriculumRow.name, categories: curriculumRow.categories }
+          ? {
+              id: curriculumRow.courseId,
+              name: curriculumRow.name,
+              categories: curriculumRow.categories,
+            }
           : null,
         batch: null,
       }

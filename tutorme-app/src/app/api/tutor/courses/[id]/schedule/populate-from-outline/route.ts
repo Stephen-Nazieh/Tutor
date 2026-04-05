@@ -27,7 +27,10 @@ export const POST = withCsrf(
       // Note: courseMaterials column doesn't exist - outline generation needs to be reimplemented
       // For now, return an error suggesting manual schedule creation
       return NextResponse.json(
-        { error: 'Outline-based schedule population is not available. Please create schedule manually.' },
+        {
+          error:
+            'Outline-based schedule population is not available. Please create schedule manually.',
+        },
         { status: 400 }
       )
 

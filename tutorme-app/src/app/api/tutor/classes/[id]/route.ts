@@ -140,7 +140,12 @@ export const GET = withAuth(
     const tutorCourses = await drizzleDb
       .select({ id: curriculum.courseId, name: curriculum.name, updatedAt: curriculum.updatedAt })
       .from(curriculum)
-      .where(and(eq(curriculum.creatorId, tutorId), sql`${curriculum.categories} @> ARRAY[${liveSessionRow.category}]`))
+      .where(
+        and(
+          eq(curriculum.creatorId, tutorId),
+          sql`${curriculum.categories} @> ARRAY[${liveSessionRow.category}]`
+        )
+      )
       .orderBy(desc(curriculum.updatedAt))
       .limit(50)
 

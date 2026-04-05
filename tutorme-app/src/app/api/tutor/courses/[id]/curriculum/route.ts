@@ -14,7 +14,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, courseLesson, questionBankItem, courseBatch, curriculumModule as courseModule } from '@/lib/db/schema'
+import {
+  course,
+  courseLesson,
+  questionBankItem,
+  courseBatch,
+  curriculumModule as courseModule,
+} from '@/lib/db/schema'
 import { eq, and, inArray, asc, sql } from 'drizzle-orm'
 import crypto from 'crypto'
 

@@ -101,7 +101,12 @@ export const POST = withAuth(
         const rows = await drizzleDb
           .select()
           .from(aIAssistantSession)
-          .where(and(eq(aIAssistantSession.assistantSessionId, sessionId), eq(aIAssistantSession.tutorId, tutorId)))
+          .where(
+            and(
+              eq(aIAssistantSession.assistantSessionId, sessionId),
+              eq(aIAssistantSession.tutorId, tutorId)
+            )
+          )
           .limit(1)
         aiSessionRow = rows[0] ?? null
       }
@@ -178,7 +183,12 @@ Be concise, practical, and encouraging. Provide specific examples when possible.
         )
       }
 
-      await generateInsights(aiSessionRow.assistantSessionId, tutorId, safeMessage, aiResponseContent)
+      await generateInsights(
+        aiSessionRow.assistantSessionId,
+        tutorId,
+        safeMessage,
+        aiResponseContent
+      )
 
       return NextResponse.json({
         message: assistantMessageRow,

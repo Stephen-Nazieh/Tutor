@@ -75,7 +75,9 @@ export const GET = withAuth(
       const [page] = await drizzleDb
         .select()
         .from(whiteboardPage)
-        .where(and(eq(whiteboardPage.pageId, pageId), eq(whiteboardPage.whiteboardId, whiteboardId)))
+        .where(
+          and(eq(whiteboardPage.pageId, pageId), eq(whiteboardPage.whiteboardId, whiteboardId))
+        )
         .limit(1)
 
       if (!page) {
@@ -142,7 +144,9 @@ export const PUT = withAuth(
       const [pageRow] = await drizzleDb
         .select({ version: whiteboardPage.version })
         .from(whiteboardPage)
-        .where(and(eq(whiteboardPage.pageId, pageId), eq(whiteboardPage.whiteboardId, whiteboardId)))
+        .where(
+          and(eq(whiteboardPage.pageId, pageId), eq(whiteboardPage.whiteboardId, whiteboardId))
+        )
         .limit(1)
       if (!pageRow) {
         return NextResponse.json({ error: 'Page not found' }, { status: 404 })
@@ -192,7 +196,9 @@ export const PUT = withAuth(
         const [latest] = await drizzleDb
           .select({ version: whiteboardPage.version })
           .from(whiteboardPage)
-          .where(and(eq(whiteboardPage.pageId, pageId), eq(whiteboardPage.whiteboardId, whiteboardId)))
+          .where(
+            and(eq(whiteboardPage.pageId, pageId), eq(whiteboardPage.whiteboardId, whiteboardId))
+          )
           .limit(1)
         const latestVersion = latest?.version ?? expectedVersion
         return NextResponse.json(
@@ -248,7 +254,9 @@ export const DELETE = withAuth(
       const [existingPage] = await drizzleDb
         .select({ pageId: whiteboardPage.pageId })
         .from(whiteboardPage)
-        .where(and(eq(whiteboardPage.pageId, pageId), eq(whiteboardPage.whiteboardId, whiteboardId)))
+        .where(
+          and(eq(whiteboardPage.pageId, pageId), eq(whiteboardPage.whiteboardId, whiteboardId))
+        )
         .limit(1)
       if (!existingPage) {
         return NextResponse.json({ error: 'Page not found' }, { status: 404 })
@@ -265,7 +273,9 @@ export const DELETE = withAuth(
 
       await drizzleDb
         .delete(whiteboardPage)
-        .where(and(eq(whiteboardPage.pageId, pageId), eq(whiteboardPage.whiteboardId, whiteboardId)))
+        .where(
+          and(eq(whiteboardPage.pageId, pageId), eq(whiteboardPage.whiteboardId, whiteboardId))
+        )
 
       const remainingPages = await drizzleDb
         .select()

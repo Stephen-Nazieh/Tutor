@@ -114,7 +114,11 @@ export const POST = withCsrf(
         const modulesContext = modules.map(m => ({
           title: m.title,
           description: m.description,
-          lessons: (lessonsByModuleId.get(m.moduleId) ?? lessonsByModuleId.get('default') ?? []).map(l => ({
+          lessons: (
+            lessonsByModuleId.get(m.moduleId) ??
+            lessonsByModuleId.get('default') ??
+            []
+          ).map(l => ({
             title: l.title,
             duration: 30, // Default duration - not in schema
             objectives: [], // Not in schema
@@ -232,7 +236,10 @@ export const PATCH = withCsrf(
         // Note: coursePitch column doesn't exist in schema - pitch is generated on-demand
         // await drizzleDb.update(curriculum).set({ coursePitch: pitch }).where(eq(curriculum.courseId, id))
 
-        return NextResponse.json({ success: true, note: 'Pitch is generated on-demand and not stored' })
+        return NextResponse.json({
+          success: true,
+          note: 'Pitch is generated on-demand and not stored',
+        })
       } catch (error) {
         console.error('Failed to update course pitch:', error)
         return handleApiError(
@@ -258,7 +265,10 @@ export const DELETE = withCsrf(
         // Note: coursePitch column doesn't exist in schema
         // await drizzleDb.update(curriculum).set({ coursePitch: null }).where(eq(curriculum.courseId, id))
 
-        return NextResponse.json({ success: true, note: 'Pitch is generated on-demand and not stored' })
+        return NextResponse.json({
+          success: true,
+          note: 'Pitch is generated on-demand and not stored',
+        })
       } catch (error) {
         console.error('Failed to delete course pitch:', error)
         return handleApiError(

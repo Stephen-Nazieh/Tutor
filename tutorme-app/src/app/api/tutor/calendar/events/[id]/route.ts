@@ -214,7 +214,11 @@ export const PUT = withAuth(
 
       const [curriculumRow] = updated.courseId
         ? await drizzleDb
-            .select({ courseId: curriculum.courseId, name: curriculum.name, categories: curriculum.categories })
+            .select({
+              courseId: curriculum.courseId,
+              name: curriculum.name,
+              categories: curriculum.categories,
+            })
             .from(curriculum)
             .where(eq(curriculum.courseId, updated.courseId))
             .limit(1)
@@ -223,7 +227,11 @@ export const PUT = withAuth(
       const event = {
         ...updated,
         curriculum: curriculumRow
-          ? { id: curriculumRow.courseId, name: curriculumRow.name, categories: curriculumRow.categories }
+          ? {
+              id: curriculumRow.courseId,
+              name: curriculumRow.name,
+              categories: curriculumRow.categories,
+            }
           : null,
         batch: null,
       }

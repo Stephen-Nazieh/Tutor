@@ -58,10 +58,7 @@ export async function GET(req: NextRequest) {
   const batchFilter = req.nextUrl.searchParams.get('batchId')
 
   // Note: batchId doesn't exist on generatedTask
-  const taskWhere =
-    lessonIds.length > 0
-      ? inArray(generatedTask.lessonId, lessonIds)
-      : sql`1=0`
+  const taskWhere = lessonIds.length > 0 ? inArray(generatedTask.lessonId, lessonIds) : sql`1=0`
 
   const taskWhereFull = and(eq(generatedTask.tutorId, session.user.id), taskWhere)
 

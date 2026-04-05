@@ -37,7 +37,7 @@ export const GET = withAuth(
       .from(courseEnrollment)
       .innerJoin(user, eq(user.userId, courseEnrollment.studentId))
       .leftJoin(profile, eq(profile.userId, user.userId))
-      
+
       .where(eq(courseEnrollment.courseId, id))
       .orderBy(desc(courseEnrollment.enrolledAt))
 

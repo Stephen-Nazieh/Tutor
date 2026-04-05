@@ -311,7 +311,9 @@ async function deleteHandler(req: NextRequest, session: Session) {
       )
     }
 
-    await drizzleDb.delete(studyGroupMember).where(eq(studyGroupMember.membershipId, membership.membershipId))
+    await drizzleDb
+      .delete(studyGroupMember)
+      .where(eq(studyGroupMember.membershipId, membership.membershipId))
 
     return NextResponse.json({
       success: true,

@@ -120,7 +120,11 @@ export async function GET(request: NextRequest) {
     const scheduleContentMap = new Map<string, { id: string; title: string; subject: string }>()
     if (scheduleContentIds.length > 0) {
       const items = await drizzleDb
-        .select({ id: contentItem.contentId, title: contentItem.title, subject: contentItem.subject })
+        .select({
+          id: contentItem.contentId,
+          title: contentItem.title,
+          subject: contentItem.subject,
+        })
         .from(contentItem)
         .where(inArray(contentItem.contentId, scheduleContentIds))
       for (const c of items) scheduleContentMap.set(c.id, c)

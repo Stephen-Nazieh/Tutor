@@ -28,7 +28,10 @@ export const GET = withAuth(
       .select()
       .from(resource)
       .where(
-        and(eq(resource.resourceId, id), or(eq(resource.tutorId, userId), eq(resource.isPublic, true))!)
+        and(
+          eq(resource.resourceId, id),
+          or(eq(resource.tutorId, userId), eq(resource.isPublic, true))!
+        )
       )
       .limit(1)
     resourceRow = direct[0] ?? null

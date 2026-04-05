@@ -42,7 +42,10 @@ export const GET = withAuth(
         sessionContext: aIAssistantSession.context,
       })
       .from(aIAssistantInsight)
-      .innerJoin(aIAssistantSession, eq(aIAssistantInsight.sessionId, aIAssistantSession.assistantSessionId))
+      .innerJoin(
+        aIAssistantSession,
+        eq(aIAssistantInsight.sessionId, aIAssistantSession.assistantSessionId)
+      )
       .where(and(...whereParts))
       .orderBy(desc(aIAssistantInsight.createdAt))
       .limit(50)
@@ -73,7 +76,12 @@ export const POST = withAuth(
       const aiSession = await drizzleDb
         .select()
         .from(aIAssistantSession)
-        .where(and(eq(aIAssistantSession.assistantSessionId, sessionId), eq(aIAssistantSession.tutorId, tutorId)))
+        .where(
+          and(
+            eq(aIAssistantSession.assistantSessionId, sessionId),
+            eq(aIAssistantSession.tutorId, tutorId)
+          )
+        )
         .limit(1)
         .then(r => r[0] ?? null)
 

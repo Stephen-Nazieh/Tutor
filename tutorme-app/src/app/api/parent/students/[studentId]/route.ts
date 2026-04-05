@@ -31,7 +31,9 @@ export const GET = withAuth(
       return NextResponse.json({ error: '无权查看该学生' }, { status: 403 })
     }
 
-    const member = family.members.find(m => m.userId === studentId || m.familyMemberId === studentId)
+    const member = family.members.find(
+      m => m.userId === studentId || m.familyMemberId === studentId
+    )
     if (!member?.userId) {
       return NextResponse.json({ error: '学生未关联' }, { status: 404 })
     }
