@@ -46,9 +46,7 @@ export function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [respondingIds, setRespondingIds] = useState<Record<string, 'accept' | 'reject' | null>>(
-    {}
-  )
+  const [respondingIds, setRespondingIds] = useState<Record<string, 'accept' | 'reject' | null>>({})
   const dropdownRef = useRef<HTMLDivElement>(null)
   const eventSourceRef = useRef<EventSource | null>(null)
 

@@ -586,9 +586,7 @@ function TutorDashboardContent() {
             <CardHeader className="flex flex-row items-center justify-between gap-3">
               <div>
                 <CardTitle>1-on-1 Requests</CardTitle>
-                <p className="text-xs text-muted-foreground">
-                  Pending requests from students
-                </p>
+                <p className="text-xs text-muted-foreground">Pending requests from students</p>
               </div>
               <Button asChild variant="outline" size="sm">
                 <Link href={withLocalePath('/tutor/notifications')}>View all</Link>

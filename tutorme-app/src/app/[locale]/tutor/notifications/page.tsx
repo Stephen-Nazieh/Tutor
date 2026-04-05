@@ -40,9 +40,7 @@ export default function TutorNotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [unreadCount, setUnreadCount] = useState(0)
-  const [respondingIds, setRespondingIds] = useState<Record<string, 'accept' | 'reject' | null>>(
-    {}
-  )
+  const [respondingIds, setRespondingIds] = useState<Record<string, 'accept' | 'reject' | null>>({})
 
   // Fetch notifications on mount
   useEffect(() => {

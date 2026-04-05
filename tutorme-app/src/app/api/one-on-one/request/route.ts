@@ -183,9 +183,9 @@ export async function GET(request: NextRequest) {
       const [tutorRow] = await drizzleDb
         .select({
           userId: user.userId,
-          name: user.name,
           handle: user.handle,
           image: user.image,
+          name: profile.name,
           currency: profile.currency,
         })
         .from(user)
