@@ -1975,6 +1975,10 @@ export default function TutorRegistrationPage() {
       const res = await fetch(
         `/api/public/username-availability?username=${encodeURIComponent(normalized)}`
       )
+      if (!res.ok) {
+        setUsernameStatus({ status: 'invalid', message: 'Unable to verify right now' })
+        return
+      }
       const data = await res.json()
       if (data.available) {
         setUsernameStatus({ status: 'available', message: 'Username is available' })
@@ -1986,7 +1990,7 @@ export default function TutorRegistrationPage() {
         })
       }
     } catch {
-      setUsernameStatus({ status: 'taken', message: 'Unable to verify right now' })
+      setUsernameStatus({ status: 'invalid', message: 'Unable to verify right now' })
     }
   }
 
@@ -2145,10 +2149,6 @@ export default function TutorRegistrationPage() {
       toast.error(usernameStatus.message || 'Username is invalid')
       return false
     }
-    if (usernameStatus.status === 'taken') {
-      toast.error('Username is already taken')
-      return false
-    }
     if (!formData.legalName) {
       toast.error('Legal name is required')
       return false
@@ -2162,14 +2162,16 @@ export default function TutorRegistrationPage() {
     setShowUsernameCheckModal(true)
     await checkUsernameAvailability(normalized)
 
-    // Check again after API call
-    const isAvailable =
-      usernameStatus.status === 'available' ||
-      (
-        await fetch(
-          `/api/public/username-availability?username=${encodeURIComponent(normalized)}`
-        ).then(r => r.json())
-      ).available
+    const availabilityRes = await fetch(
+      `/api/public/username-availability?username=${encodeURIComponent(normalized)}`
+    )
+    if (!availabilityRes.ok) {
+      setShowUsernameCheckModal(false)
+      toast.error('Unable to verify username right now')
+      return false
+    }
+    const availabilityData = await availabilityRes.json()
+    const isAvailable = availabilityData.available === true
 
     setShowUsernameCheckModal(false)
 
