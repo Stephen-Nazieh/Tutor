@@ -1976,7 +1976,7 @@ export default function TutorRegistrationPage() {
         `/api/public/username-availability?username=${encodeURIComponent(normalized)}`
       )
       if (!res.ok) {
-        setUsernameStatus({ status: 'invalid', message: 'Unable to verify right now' })
+        setUsernameStatus({ status: 'idle' })
         return
       }
       const data = await res.json()
@@ -1990,7 +1990,7 @@ export default function TutorRegistrationPage() {
         })
       }
     } catch {
-      setUsernameStatus({ status: 'invalid', message: 'Unable to verify right now' })
+      setUsernameStatus({ status: 'idle' })
     }
   }
 
@@ -2167,8 +2167,8 @@ export default function TutorRegistrationPage() {
     )
     if (!availabilityRes.ok) {
       setShowUsernameCheckModal(false)
-      toast.error('Unable to verify username right now')
-      return false
+      toast.info('We will verify your username during signup')
+      return true
     }
     const availabilityData = await availabilityRes.json()
     const isAvailable = availabilityData.available === true

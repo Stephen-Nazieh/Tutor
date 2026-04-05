@@ -47,6 +47,8 @@ import {
   builderTask,
   builderTaskExtension,
   builderTaskFile,
+  builderTaskDmi,
+  builderTaskDmiVersion,
   builderTaskVersion,
   oneOnOneBookingRequest,
   calendarEvent,
@@ -528,6 +530,8 @@ export const builderTaskRelations = relations(builderTask, ({ one, many }) => ({
   }),
   extensions: many(builderTaskExtension),
   files: many(builderTaskFile),
+  dmi: many(builderTaskDmi),
+  dmiVersions: many(builderTaskDmiVersion),
   versions: many(builderTaskVersion),
 }))
 
@@ -548,6 +552,20 @@ export const builderTaskFileRelations = relations(builderTaskFile, ({ one }) => 
 export const builderTaskVersionRelations = relations(builderTaskVersion, ({ one }) => ({
   task: one(builderTask, {
     fields: [builderTaskVersion.taskId],
+    references: [builderTask.taskId],
+  }),
+}))
+
+export const builderTaskDmiRelations = relations(builderTaskDmi, ({ one }) => ({
+  task: one(builderTask, {
+    fields: [builderTaskDmi.taskId],
+    references: [builderTask.taskId],
+  }),
+}))
+
+export const builderTaskDmiVersionRelations = relations(builderTaskDmiVersion, ({ one }) => ({
+  task: one(builderTask, {
+    fields: [builderTaskDmiVersion.taskId],
     references: [builderTask.taskId],
   }),
 }))

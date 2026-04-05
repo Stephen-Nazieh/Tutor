@@ -9,8 +9,16 @@ import {
   message,
   user,
   profile,
+  taskDeployment,
+  taskPoll,
+  taskQuestion,
+  builderTask,
+  builderTaskExtension,
+  builderTaskDmi,
+  builderTaskDmiVersion,
+  taskSubmission,
 } from '@/lib/db/schema'
-import { eq, and, asc, sql } from 'drizzle-orm'
+import { eq, and, asc, sql, inArray } from 'drizzle-orm'
 import { generateSessionSummary } from '@/lib/chat/summary'
 import { randomUUID } from 'crypto'
 
@@ -128,6 +136,117 @@ export async function POST(req: NextRequest) {
           ? 'Transcript unavailable from chat history. Recording exists and is pending audio transcription ingestion.'
           : 'No transcript available for this session.'
 
+    const deployments = await drizzleDb
+      .select({
+        deploymentId: taskDeployment.deploymentId,
+        taskId: taskDeployment.taskId,
+        deployedAt: taskDeployment.deployedAt,
+        status: taskDeployment.status,
+        title: builderTask.title,
+        type: builderTask.type,
+        lessonId: builderTask.lessonId,
+        courseId: builderTask.courseId,
+      })
+      .from(taskDeployment)
+      .innerJoin(builderTask, eq(taskDeployment.taskId, builderTask.taskId))
+      .where(eq(taskDeployment.sessionId, liveSessionId))
+
+    const deployedTaskIds = deployments.map(d => d.taskId)
+
+    const [extensions, dmiItems, dmiVersions, polls, questions, submissions] = await Promise.all([
+      deployedTaskIds.length
+        ? drizzleDb
+            .select({
+              extensionId: builderTaskExtension.extensionId,
+              taskId: builderTaskExtension.taskId,
+              name: builderTaskExtension.name,
+              content: builderTaskExtension.content,
+              pci: builderTaskExtension.pci,
+              order: builderTaskExtension.order,
+            })
+            .from(builderTaskExtension)
+            .where(inArray(builderTaskExtension.taskId, deployedTaskIds))
+        : Promise.resolve([]),
+      deployedTaskIds.length
+        ? drizzleDb
+            .select({
+              dmiId: builderTaskDmi.dmiId,
+              taskId: builderTaskDmi.taskId,
+              type: builderTaskDmi.type,
+              items: builderTaskDmi.items,
+              updatedAt: builderTaskDmi.updatedAt,
+            })
+            .from(builderTaskDmi)
+            .where(inArray(builderTaskDmi.taskId, deployedTaskIds))
+        : Promise.resolve([]),
+      deployedTaskIds.length
+        ? drizzleDb
+            .select({
+              versionId: builderTaskDmiVersion.versionId,
+              taskId: builderTaskDmiVersion.taskId,
+              type: builderTaskDmiVersion.type,
+              versionNumber: builderTaskDmiVersion.versionNumber,
+              items: builderTaskDmiVersion.items,
+              createdAt: builderTaskDmiVersion.createdAt,
+            })
+            .from(builderTaskDmiVersion)
+            .where(inArray(builderTaskDmiVersion.taskId, deployedTaskIds))
+        : Promise.resolve([]),
+      drizzleDb
+        .select({
+          pollId: taskPoll.pollId,
+          taskId: taskPoll.taskId,
+          question: taskPoll.question,
+          options: taskPoll.options,
+          responses: taskPoll.responses,
+          isActive: taskPoll.isActive,
+          sentAt: taskPoll.sentAt,
+          closedAt: taskPoll.closedAt,
+        })
+        .from(taskPoll)
+        .where(eq(taskPoll.sessionId, liveSessionId)),
+      drizzleDb
+        .select({
+          questionId: taskQuestion.questionId,
+          taskId: taskQuestion.taskId,
+          question: taskQuestion.question,
+          answers: taskQuestion.answers,
+          sentAt: taskQuestion.sentAt,
+        })
+        .from(taskQuestion)
+        .where(eq(taskQuestion.sessionId, liveSessionId)),
+      deployedTaskIds.length
+        ? drizzleDb
+            .select({
+              submissionId: taskSubmission.submissionId,
+              taskId: taskSubmission.taskId,
+              studentId: taskSubmission.studentId,
+              answers: taskSubmission.answers,
+              timeSpent: taskSubmission.timeSpent,
+              attempts: taskSubmission.attempts,
+              questionResults: taskSubmission.questionResults,
+              score: taskSubmission.score,
+              maxScore: taskSubmission.maxScore,
+              status: taskSubmission.status,
+              submittedAt: taskSubmission.submittedAt,
+              gradedAt: taskSubmission.gradedAt,
+            })
+            .from(taskSubmission)
+            .where(inArray(taskSubmission.taskId, deployedTaskIds))
+        : Promise.resolve([]),
+    ])
+
+    const latestDmiByTask = dmiVersions.reduce(
+      (acc, version) => {
+        const current = acc[version.taskId]
+        if (!current || version.versionNumber > current.versionNumber) {
+          acc[version.taskId] = version
+        }
+        return acc
+      },
+      {} as Record<string, (typeof dmiVersions)[number]>
+    )
+
     const summaryResult = await generateSessionSummary(liveSessionId, {
       type: 'session',
       maxLength: 'detailed',
@@ -148,6 +267,15 @@ export async function POST(req: NextRequest) {
         participants: _count.participants,
         messages: _count.messages,
         generatedAt: new Date().toISOString(),
+      },
+      sessionContent: {
+        deployments,
+        extensions,
+        dmiItems,
+        latestDmiVersions: Object.values(latestDmiByTask),
+        polls,
+        questions,
+        submissions,
       },
       transcriptMeta: {
         source: messageRows.length > 0 ? 'chat_messages' : 'recording_placeholder',
