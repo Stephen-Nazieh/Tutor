@@ -29,6 +29,7 @@ interface Notification {
   readAt: string | null
   actionUrl: string | null
   createdAt: string
+  data?: Record<string, unknown> | null
 }
 
 export default function TutorNotificationsPage() {
@@ -39,6 +40,9 @@ export default function TutorNotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [respondingIds, setRespondingIds] = useState<Record<string, 'accept' | 'reject' | null>>(
+    {}
+  )
 
   // Fetch notifications on mount
   useEffect(() => {
@@ -137,6 +141,37 @@ export default function TutorNotificationsPage() {
       toast.error('Failed to clean up')
     }
   }
+
+  const respondToOneOnOne = async (
+    notificationId: string,
+    requestId: string,
+    action: 'accept' | 'reject'
+  ) => {
+    setRespondingIds(prev => ({ ...prev, [notificationId]: action }))
+    try {
+      const res = await fetch('/api/one-on-one/respond', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ requestId, action }),
+      })
+      if (res.ok) {
+        await markAsRead(notificationId)
+        toast.success(`Request ${action === 'accept' ? 'accepted' : 'rejected'}`)
+      } else {
+        const data = await res.json().catch(() => ({}))
+        toast.error(data.error || 'Unable to respond to request')
+      }
+    } catch {
+      toast.error('Unable to respond to request')
+    } finally {
+      setRespondingIds(prev => ({ ...prev, [notificationId]: null }))
+    }
+  }
+
+  const isOneOnOneRequest = (notification: Notification) =>
+    notification.data?.type === 'one-on-one-request' &&
+    typeof notification.data?.requestId === 'string'
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -265,6 +300,38 @@ export default function TutorNotificationsPage() {
                           >
                             <CheckCircle2 className="h-4 w-4 text-green-500" />
                           </Button>
+                        )}
+                        {isOneOnOneRequest(notification) && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 px-2 text-xs"
+                              disabled={!!respondingIds[notification.id]}
+                              onClick={e => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                const requestId = notification.data?.requestId as string
+                                void respondToOneOnOne(notification.id, requestId, 'accept')
+                              }}
+                            >
+                              Accept
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 px-2 text-xs text-red-600 hover:text-red-700"
+                              disabled={!!respondingIds[notification.id]}
+                              onClick={e => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                const requestId = notification.data?.requestId as string
+                                void respondToOneOnOne(notification.id, requestId, 'reject')
+                              }}
+                            >
+                              Reject
+                            </Button>
+                          </>
                         )}
                         <Button
                           variant="ghost"

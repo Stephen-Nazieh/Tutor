@@ -114,7 +114,7 @@ export async function PATCH(request: NextRequest) {
         title: '1-on-1 Request Accepted!',
         message: `Your tutor has accepted your 1-on-1 session request. Please complete payment to confirm your booking.`,
         data: { requestId: updatedRequest[0].requestId, type: 'one-on-one-accepted' },
-        actionUrl: '/student/dashboard',
+        actionUrl: `/payment?requestId=${updatedRequest[0].requestId}`,
       }).catch(console.error)
 
       return NextResponse.json({
