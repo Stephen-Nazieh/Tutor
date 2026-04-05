@@ -31,9 +31,22 @@ export default function PaymentPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [course, setCourse] = useState<{ name: string; subject: string } | null>(null)
+  const [oneOnOne, setOneOnOne] = useState<{
+    requestId: string
+    tutorName: string
+    tutorHandle?: string | null
+    date: string
+    startTime: string
+    endTime: string
+    timezone: string
+    amount: number
+    currency: string
+  } | null>(null)
+  const [oneOnOneLoading, setOneOnOneLoading] = useState(false)
   const [selectedGateway, setSelectedGateway] = useState<GatewayOption>('HITPAY')
 
   const curriculumId = searchParams.get('curriculumId')
+  const requestId = searchParams.get('requestId')
   const amount = searchParams.get('amount')
   const currency = searchParams.get('currency') || 'USD'
 
@@ -54,8 +67,40 @@ export default function PaymentPage() {
     }
   }, [curriculumId])
 
+  useEffect(() => {
+    if (!requestId) return
+    setOneOnOneLoading(true)
+    fetch(`/api/one-on-one/request?requestId=${encodeURIComponent(requestId)}`, {
+      credentials: 'include',
+    })
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (!data?.request) return
+        const req = data.request
+        const tutor = data.tutor
+        setOneOnOne({
+          requestId,
+          tutorName: tutor?.name || 'Tutor',
+          tutorHandle: tutor?.handle,
+          date: req.requestedDate,
+          startTime: req.startTime,
+          endTime: req.endTime,
+          timezone: req.timezone,
+          amount: Number(req.costPerSession || 0),
+          currency: tutor?.currency || 'USD',
+        })
+      })
+      .catch(() => {})
+      .finally(() => setOneOnOneLoading(false))
+  }, [requestId])
+
   const handlePayment = async () => {
-    if (!curriculumId || !amount) {
+    if (requestId) {
+      if (!oneOnOne?.amount) {
+        toast.error('Invalid payment details')
+        return
+      }
+    } else if (!curriculumId || !amount) {
       toast.error('Invalid payment details')
       return
     }
@@ -78,11 +123,16 @@ export default function PaymentPage() {
         },
         credentials: 'include',
         body: JSON.stringify({
-          curriculumId,
-          amount: parseFloat(amount),
-          currency,
+          curriculumId: requestId ? undefined : curriculumId,
+          oneOnOneRequestId: requestId || undefined,
+          amount: requestId ? undefined : parseFloat(amount || '0'),
+          currency: requestId ? oneOnOne?.currency : currency,
           gateway: selectedGateway,
-          description: course ? `Course: ${course.name}` : 'Course enrollment',
+          description: requestId
+            ? `1-on-1 session with ${oneOnOne?.tutorName ?? 'Tutor'}`
+            : course
+              ? `Course: ${course.name}`
+              : 'Course enrollment',
         }),
       })
 
@@ -120,7 +170,9 @@ export default function PaymentPage() {
     return `${symbol}${parseFloat(amount).toFixed(2)}`
   }
 
-  if (!curriculumId || !amount) {
+  const showInvalid = requestId ? !oneOnOne && !oneOnOneLoading : !curriculumId || !amount
+
+  if (showInvalid) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
         <Card className="w-full max-w-md">
@@ -141,6 +193,24 @@ export default function PaymentPage() {
     )
   }
 
+  if (requestId && oneOnOneLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading payment details...
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  const displayCurrency = requestId ? oneOnOne?.currency || currency : currency
+  const displayAmount = requestId ? String(oneOnOne?.amount ?? '0') : amount || '0'
+
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-12">
       <div className="mx-auto max-w-md">
@@ -155,19 +225,33 @@ export default function PaymentPage() {
             <CardDescription>Secure payment for your course enrollment</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Course Info */}
-            {course && (
+            {/* Course or Session Info */}
+            {requestId && oneOnOne ? (
+              <div className="rounded-lg bg-blue-50 p-4">
+                <p className="text-sm font-medium text-blue-600">1-on-1 Session</p>
+                <p className="text-lg font-semibold text-blue-900">{oneOnOne.tutorName}</p>
+                <p className="text-sm text-blue-700">
+                  {new Date(oneOnOne.date).toLocaleDateString()} · {oneOnOne.startTime} -{' '}
+                  {oneOnOne.endTime} ({oneOnOne.timezone})
+                </p>
+                {oneOnOne.tutorHandle && (
+                  <p className="text-xs text-blue-700">@{oneOnOne.tutorHandle}</p>
+                )}
+              </div>
+            ) : course ? (
               <div className="rounded-lg bg-blue-50 p-4">
                 <p className="text-sm font-medium text-blue-600">Course</p>
                 <p className="text-lg font-semibold text-blue-900">{course.name}</p>
                 <p className="text-sm text-blue-700">{course.subject}</p>
               </div>
-            )}
+            ) : null}
 
             {/* Amount */}
             <div className="border-y py-6 text-center">
               <p className="mb-1 text-sm text-gray-500">Total Amount</p>
-              <p className="text-4xl font-bold text-gray-900">{formatCurrency(amount, currency)}</p>
+              <p className="text-4xl font-bold text-gray-900">
+                {formatCurrency(displayAmount, displayCurrency)}
+              </p>
             </div>
 
             {/* Payment Method Selection */}
@@ -207,7 +291,7 @@ export default function PaymentPage() {
               ) : (
                 <>
                   <CreditCard className="h-4 w-4" />
-                  Pay {formatCurrency(amount, currency)}
+                  Pay {formatCurrency(displayAmount, displayCurrency)}
                 </>
               )}
             </Button>
