@@ -13,12 +13,10 @@ async function build() {
       external: [
         'next', 
         'pg', 'pg-native', 
-        'canvas', 'jsdom', 'bufferutil', 'utf-8-validate', // things that might break bundling or are native
-        'ioredis', 'bcryptjs', 'jose',
-        './src/lib/socket-server-enhanced' // Wait, I want to bundle this!
+        'canvas', 'jsdom', 'bufferutil', 'utf-8-validate',
+        'esbuild'
       ],
-      // We want to bundle our own code but keep heavy/native dependencies external
-      // Actually, Next.js 'next' MUST be external because it's huge and handled by standalone
+      // We bundle our application code but keep 'next' external as it is handled by the standalone build
     });
     console.log('Successfully built server-production.js');
   } catch (error) {
