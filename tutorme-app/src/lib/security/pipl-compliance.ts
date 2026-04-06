@@ -23,8 +23,6 @@ import {
   user,
   profile,
   account,
-  clinicBooking,
-  clinic,
   courseEnrollment,
   course,
   message,
@@ -207,23 +205,7 @@ export const PIPL_ARTICLE_15 = {
       .from(account)
       .where(eq(account.userId, userRow?.userId ?? userId))
 
-    const clinicBookingsRaw = await drizzleDb
-      .select()
-      .from(clinicBooking)
-      .where(eq(clinicBooking.studentId, userRow?.userId ?? userId))
-    const clinicIds = [...new Set(clinicBookingsRaw.map(b => b.clinicId))]
-    const clinics =
-      clinicIds.length > 0
-        ? await drizzleDb
-            .select({ clinicId: clinic.clinicId, title: clinic.title, startTime: clinic.startTime })
-            .from(clinic)
-            .where(inArray(clinic.clinicId, clinicIds))
-        : []
-    const clinicById = Object.fromEntries(clinics.map(c => [c.clinicId, c]))
-    const clinicBookings = clinicBookingsRaw.map(b => ({
-      ...b,
-      clinic: clinicById[b.clinicId] ?? null,
-    }))
+    const clinicBookings: Array<Record<string, unknown>> = []
 
     const courseEnrollmentsRaw = await drizzleDb
       .select()
@@ -281,7 +263,7 @@ export const PIPL_ARTICLE_15 = {
       .orderBy(desc(userActivityLog.createdAt))
       .limit(100)
 
-    const bookingIds = clinicBookingsRaw.map(b => b.bookingId)
+    const bookingIds: string[] = []
     const payments =
       bookingIds.length > 0
         ? await drizzleDb
@@ -309,7 +291,7 @@ export const PIPL_ARTICLE_15 = {
         ...(courseEnrollments ?? []),
         ...(aiEnrollments ?? []).map(e => ({ type: 'ai_tutor', ...e })),
       ],
-      bookings: clinicBookings ?? [],
+      bookings: clinicBookings,
       payments,
       messages: messages ?? [],
       activitySummary: {

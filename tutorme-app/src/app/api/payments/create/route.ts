@@ -1,7 +1,6 @@
 /**
  * POST /api/payments/create
  * Creates a payment and returns checkout URL.
- * - Booking: body.bookingId — for clinic booking (amount from tutor hourly rate × duration).
  * - Course: body.courseId — for course purchase (amount from course.price).
  */
 
@@ -23,8 +22,6 @@ import {
   user,
   profile,
   payment,
-  clinicBooking,
-  clinic,
   oneOnOneBookingRequest,
 } from '@/lib/db/schema'
 import { getPaymentGateway, type GatewayName } from '@/lib/payments'
@@ -305,133 +302,13 @@ export const POST = withCsrf(
     }
 
     // --- Booking payment ---
-    if (!bookingId) {
-      throw new ValidationError('bookingId or courseId is required')
-    }
-
-    const [bookingRow] = await drizzleDb
-      .select({
-        booking: clinicBooking,
-        clinic: clinic,
-        tutorId: clinic.tutorId,
-        clinicTitle: clinic.title,
-        clinicSubject: clinic.subject,
-        clinicDuration: clinic.duration,
-        studentId: clinicBooking.studentId,
-      })
-      .from(clinicBooking)
-      .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
-      .where(eq(clinicBooking.bookingId, bookingId))
-      .limit(1)
-
-    if (!bookingRow) {
-      throw new NotFoundError('Booking not found')
-    }
-
-    const booking = bookingRow.booking
-    if (booking.studentId !== payerStudentId) {
-      throw new ForbiddenError(
-        'You can only create payment for your own booking or your linked child booking'
+    if (bookingId) {
+      return NextResponse.json(
+        { error: 'Clinic bookings have been removed from the platform.', legacy: true },
+        { status: 410 }
       )
     }
 
-    // Fetch tutor profile for hourly rate and payment preference
-    const [tutorUser] = await drizzleDb
-      .select({
-        userId: user.userId,
-        hourlyRate: profile.hourlyRate,
-        currency: profile.currency,
-        paymentGatewayPreference: profile.paymentGatewayPreference,
-      })
-      .from(user)
-      .innerJoin(profile, eq(profile.userId, user.userId))
-      .where(eq(user.userId, bookingRow.tutorId))
-      .limit(1)
-
-    // Existing payment for this booking
-    const [existingPaymentRow] = await drizzleDb
-      .select()
-      .from(payment)
-      .where(eq(payment.bookingId, bookingId))
-      .limit(1)
-
-    if (existingPaymentRow) {
-      if (existingPaymentRow.status === 'COMPLETED') {
-        throw new ValidationError('This booking is already paid')
-      }
-      if (existingPaymentRow.status === 'PENDING' && existingPaymentRow.gatewayCheckoutUrl) {
-        return NextResponse.json({
-          checkoutUrl: existingPaymentRow.gatewayCheckoutUrl,
-          paymentId: existingPaymentRow.paymentId,
-        })
-      }
-    }
-
-    const tutorProfile = tutorUser
-    const hourlyRate = tutorProfile?.hourlyRate ?? 0
-    if (hourlyRate <= 0) {
-      throw new ValidationError('This class has no payment amount set')
-    }
-
-    const durationHours = bookingRow.clinicDuration / 60
-    const amount = Math.round(hourlyRate * durationHours * 100) / 100
-    const currency = (tutorProfile?.currency as string) || 'SGD'
-    const preferredGateway = tutorProfile?.paymentGatewayPreference
-    const gatewayName = (
-      preferredGateway === 'AIRWALLEX' || preferredGateway === 'HITPAY'
-        ? preferredGateway
-        : process.env.PAYMENT_DEFAULT_GATEWAY || 'HITPAY'
-    ) as GatewayName
-    const gateway = getPaymentGateway(gatewayName)
-
-    const [studentRow] = await drizzleDb
-      .select({ email: user.email })
-      .from(user)
-      .where(eq(user.userId, booking.studentId))
-      .limit(1)
-
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || ''
-    const paymentResponse = await gateway.createPayment({
-      amount,
-      currency,
-      bookingId: booking.bookingId,
-      studentEmail: studentRow?.email ?? '',
-      description: `${bookingRow.clinicTitle} - ${bookingRow.clinicSubject}`,
-      metadata: { clinicId: bookingRow.clinic.clinicId, clinicTitle: bookingRow.clinicTitle },
-      successUrl: `${baseUrl}/payment/success?type=booking`,
-      cancelUrl: `${baseUrl}/payment/cancel?type=booking`,
-    })
-
-    let paymentId: string
-    if (existingPaymentRow) {
-      await drizzleDb
-        .update(payment)
-        .set({
-          tutorId: bookingRow.tutorId,
-          gatewayPaymentId: paymentResponse.paymentId,
-          gatewayCheckoutUrl: paymentResponse.checkoutUrl,
-          status: 'PENDING',
-        })
-        .where(eq(payment.paymentId, existingPaymentRow.paymentId))
-      paymentId = existingPaymentRow.paymentId
-    } else {
-      paymentId = crypto.randomUUID()
-      await drizzleDb.insert(payment).values({
-        paymentId,
-        bookingId: booking.bookingId,
-        amount,
-        currency,
-        status: 'PENDING',
-        gateway: gatewayName,
-        tutorId: bookingRow.tutorId,
-        gatewayPaymentId: paymentResponse.paymentId,
-        gatewayCheckoutUrl: paymentResponse.checkoutUrl,
-      })
-    }
-
-    return NextResponse.json({
-      checkoutUrl: paymentResponse.checkoutUrl,
-      paymentId,
-    })
+    throw new ValidationError('courseId or oneOnOneRequestId is required')
   })
 )

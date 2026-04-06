@@ -1,146 +1,21 @@
-/**
- * Save whiteboard strokes/pages
- *
- * POST /api/sessions/[sessionId]/whiteboard/save
- * Save the current state of a whiteboard
- */
+import { legacyRemoved } from '@/lib/api/legacy'
 
-import { NextRequest, NextResponse } from 'next/server'
-import { withAuth, withRateLimit } from '@/lib/api/middleware'
-import { getParamAsync } from '@/lib/api/params'
-import { drizzleDb } from '@/lib/db/drizzle'
-import { whiteboard, whiteboardPage } from '@/lib/db/schema'
-import { eq, and, sql } from 'drizzle-orm'
-import { z } from 'zod'
-
-const MAX_ITEMS_PER_LAYER = 5000
-const MAX_PAYLOAD_BYTES = 512 * 1024
-
-const SaveWhiteboardSchema = z.object({
-  pageId: z.string().min(1).max(128),
-  strokes: z.array(z.unknown()).max(MAX_ITEMS_PER_LAYER).optional(),
-  shapes: z.array(z.unknown()).max(MAX_ITEMS_PER_LAYER).optional(),
-  texts: z.array(z.unknown()).max(MAX_ITEMS_PER_LAYER).optional(),
-  viewState: z.record(z.string(), z.unknown()).optional(),
-  version: z.number().int().positive().optional(),
-})
-
-function getExpectedVersion(req: NextRequest, fallback?: number) {
-  const ifMatch = req.headers.get('if-match')
-  if (ifMatch) {
-    const match = ifMatch.match(/v(\d+)/i) ?? ifMatch.match(/(\d+)/)
-    if (match?.[1]) return Number(match[1])
-  }
-  return fallback
+export async function GET() {
+  return legacyRemoved('Whiteboard')
 }
 
-function makeEtag(version: number) {
-  return `W/"v${version}"`
+export async function POST() {
+  return legacyRemoved('Whiteboard')
 }
 
-export const POST = withAuth(async (req: NextRequest, session, context) => {
-  const sessionId = await getParamAsync(context?.params, 'sessionId')
-  if (!sessionId) return NextResponse.json({ error: 'Session ID required' }, { status: 400 })
-  const userId = session.user.id
+export async function PATCH() {
+  return legacyRemoved('Whiteboard')
+}
 
-  const { response: rateLimitResponse } = await withRateLimit(req, 30)
-  if (rateLimitResponse) return rateLimitResponse
+export async function PUT() {
+  return legacyRemoved('Whiteboard')
+}
 
-  const body = await req.json().catch(() => null)
-  const parsed = SaveWhiteboardSchema.safeParse(body)
-  if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid whiteboard payload' }, { status: 400 })
-  }
-  const { pageId, strokes, shapes, texts, viewState, version } = parsed.data
-
-  const payloadSize = Buffer.byteLength(JSON.stringify(parsed.data), 'utf8')
-  if (payloadSize > MAX_PAYLOAD_BYTES) {
-    return NextResponse.json({ error: 'Payload too large' }, { status: 413 })
-  }
-
-  const [page] = await drizzleDb
-    .select()
-    .from(whiteboardPage)
-    .where(eq(whiteboardPage.pageId, pageId))
-    .limit(1)
-
-  if (!page) {
-    return NextResponse.json({ error: 'Page not found' }, { status: 404 })
-  }
-
-  const [wb] = await drizzleDb
-    .select()
-    .from(whiteboard)
-    .where(
-      and(
-        eq(whiteboard.whiteboardId, page.whiteboardId),
-        eq(whiteboard.sessionId, sessionId),
-        eq(whiteboard.ownerId, userId)
-      )
-    )
-    .limit(1)
-
-  if (!wb) {
-    return NextResponse.json({ error: 'Page not found' }, { status: 404 })
-  }
-
-  const expectedVersion = getExpectedVersion(req, version)
-  if (!expectedVersion) {
-    return NextResponse.json({ error: 'Missing If-Match version' }, { status: 428 })
-  }
-  if (page.version !== expectedVersion) {
-    return NextResponse.json(
-      { error: 'Whiteboard page has changed', currentVersion: page.version },
-      {
-        status: 412,
-        headers: { ETag: makeEtag(page.version) },
-      }
-    )
-  }
-
-  const updateData: Record<string, unknown> = {}
-  if (strokes !== undefined) updateData.strokes = strokes
-  if (shapes !== undefined) updateData.shapes = shapes
-  if (texts !== undefined) updateData.texts = texts
-  if (viewState !== undefined) updateData.viewState = viewState
-
-  const updatedRows = await drizzleDb
-    .update(whiteboardPage)
-    .set({
-      ...updateData,
-      version: sql<number>`${whiteboardPage.version} + 1`,
-    })
-    .where(and(eq(whiteboardPage.pageId, pageId), eq(whiteboardPage.version, expectedVersion)))
-    .returning()
-
-  if (updatedRows.length === 0) {
-    const [latest] = await drizzleDb
-      .select({ version: whiteboardPage.version })
-      .from(whiteboardPage)
-      .where(eq(whiteboardPage.pageId, pageId))
-      .limit(1)
-    const latestVersion = latest?.version ?? expectedVersion
-    return NextResponse.json(
-      { error: 'Whiteboard page has changed', currentVersion: latestVersion },
-      {
-        status: 412,
-        headers: { ETag: makeEtag(latestVersion) },
-      }
-    )
-  }
-
-  await drizzleDb
-    .update(whiteboard)
-    .set({ updatedAt: new Date() })
-    .where(eq(whiteboard.whiteboardId, wb.whiteboardId))
-
-  const updatedPage = updatedRows[0]
-
-  return NextResponse.json(
-    {
-      success: true,
-      page: updatedPage!,
-    },
-    { headers: { ETag: makeEtag(updatedPage!.version) } }
-  )
-})
+export async function DELETE() {
+  return legacyRemoved('Whiteboard')
+}

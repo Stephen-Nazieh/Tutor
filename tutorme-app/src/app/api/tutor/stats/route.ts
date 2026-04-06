@@ -9,14 +9,7 @@ import { NextResponse } from 'next/server'
 import { eq, and, or, gte, inArray, count, sql } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  profile,
-  liveSession,
-  sessionParticipant,
-  payment,
-  clinicBooking,
-  clinic,
-} from '@/lib/db/schema'
+import { profile, liveSession, sessionParticipant, payment } from '@/lib/db/schema'
 
 export const GET = withAuth(
   async (_req, session) => {
@@ -24,52 +17,41 @@ export const GET = withAuth(
     const now = new Date()
 
     try {
-      const [
-        profileData,
-        totalClassesRes,
-        sessionIdsRes,
-        upcomingCountRes,
-        directPayments,
-        clinicPaymentsRes,
-      ] = await Promise.all([
-        drizzleDb
-          .select({ currency: profile.currency })
-          .from(profile)
-          .where(eq(profile.userId, tutorId))
-          .limit(1),
+      const [profileData, totalClassesRes, sessionIdsRes, upcomingCountRes, directPayments] =
+        await Promise.all([
+          drizzleDb
+            .select({ currency: profile.currency })
+            .from(profile)
+            .where(eq(profile.userId, tutorId))
+            .limit(1),
 
-        drizzleDb
-          .select({ value: count() })
-          .from(liveSession)
-          .where(eq(liveSession.tutorId, tutorId)),
+          drizzleDb
+            .select({ value: count() })
+            .from(liveSession)
+            .where(eq(liveSession.tutorId, tutorId)),
 
-        drizzleDb
-          .select({ sessionId: liveSession.sessionId })
-          .from(liveSession)
-          .where(eq(liveSession.tutorId, tutorId)),
+          drizzleDb
+            .select({ sessionId: liveSession.sessionId })
+            .from(liveSession)
+            .where(eq(liveSession.tutorId, tutorId)),
 
-        drizzleDb
-          .select({ value: count() })
-          .from(liveSession)
-          .where(
-            and(
-              eq(liveSession.tutorId, tutorId),
-              or(gte(liveSession.scheduledAt, now), eq(liveSession.status, 'ACTIVE'))
-            )
-          ),
+          drizzleDb
+            .select({ value: count() })
+            .from(liveSession)
+            .where(
+              and(
+                eq(liveSession.tutorId, tutorId),
+                or(gte(liveSession.scheduledAt, now), eq(liveSession.status, 'ACTIVE'))
+              )
+            ),
 
-        drizzleDb
-          .select({ amount: payment.amount })
-          .from(payment)
-          .where(and(eq(payment.status, 'COMPLETED'), eq(payment.tutorId, tutorId))),
+          drizzleDb
+            .select({ amount: payment.amount })
+            .from(payment)
+            .where(and(eq(payment.status, 'COMPLETED'), eq(payment.tutorId, tutorId))),
 
-        drizzleDb
-          .select({ amount: payment.amount })
-          .from(payment)
-          .innerJoin(clinicBooking, eq(clinicBooking.bookingId, payment.bookingId))
-          .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
-          .where(and(eq(payment.status, 'COMPLETED'), eq(clinic.tutorId, tutorId))),
-      ])
+          Promise.resolve([] as { amount: number | null }[]),
+        ])
 
       const totalClasses = Number(totalClassesRes[0]?.value || 0)
       const upcomingCount = Number(upcomingCountRes[0]?.value || 0)
@@ -86,10 +68,7 @@ export const GET = withAuth(
       }
 
       const directAmount = directPayments.reduce((sum, p) => sum + (p.amount || 0), 0)
-      const clinicAmount = clinicPaymentsRes.reduce((sum, p) => sum + (p.amount || 0), 0)
-      // Maintain the original logic: earnings is the max of direct vs clinic totals
-      // (This seems like odd logic, but we preserve it to match original behavior)
-      const earnings = Math.max(directAmount, clinicAmount)
+      const earnings = directAmount
       const currency = profileData[0]?.currency ?? 'SGD'
 
       return NextResponse.json({

@@ -305,39 +305,6 @@ export const feedbackWorkflow = pgTable(
   })
 )
 
-export const generatedTask = pgTable(
-  'GeneratedTask',
-  {
-    taskId: text('taskId').primaryKey().notNull(),
-    tutorId: text('tutorId').notNull(),
-    roomId: text('roomId'),
-    title: text('title').notNull(),
-    description: text('description').notNull(),
-    type: text('type').notNull(),
-    difficulty: text('difficulty').notNull(),
-    questions: jsonb('questions').notNull(),
-    distributionMode: text('distributionMode').notNull(),
-    assignments: jsonb('assignments').notNull(),
-    documentSource: text('documentSource'),
-    status: text('status').notNull(),
-    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
-    assignedAt: timestamp('assignedAt', { withTimezone: true }),
-    lessonId: text('lessonId'),
-    dueDate: timestamp('dueDate', { withTimezone: true }),
-    maxScore: integer('maxScore').notNull(),
-    timeLimitMinutes: integer('timeLimitMinutes'),
-    enforceTimeLimit: boolean('enforceTimeLimit').notNull(),
-    enforceDueDate: boolean('enforceDueDate').notNull(),
-    maxAttempts: integer('maxAttempts').notNull(),
-  },
-  table => ({
-    GeneratedTask_tutorId_idx: index('GeneratedTask_tutorId_idx').on(table.tutorId),
-    GeneratedTask_roomId_idx: index('GeneratedTask_roomId_idx').on(table.roomId),
-    GeneratedTask_status_idx: index('GeneratedTask_status_idx').on(table.status),
-    GeneratedTask_lessonId_idx: index('GeneratedTask_lessonId_idx').on(table.lessonId),
-  })
-)
-
 // ============================================
 // LEGACY EXPORTS (for backward compatibility)
 // ============================================

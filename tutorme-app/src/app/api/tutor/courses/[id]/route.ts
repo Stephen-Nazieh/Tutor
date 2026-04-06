@@ -28,10 +28,6 @@ import {
   quizAssignment,
   quizAttempt,
   studentPerformance,
-  whiteboard,
-  whiteboardPage,
-  whiteboardSession,
-  whiteboardSnapshot,
 } from '@/lib/db/schema'
 import { eq, asc, and, inArray, sql } from 'drizzle-orm'
 import { sanitizeHtmlWithMax } from '@/lib/security/sanitize'
@@ -114,12 +110,6 @@ export const DELETE = withCsrf(
           .where(eq(quiz.courseId, id))
         const quizIds = quizzes.map(q => q.quizId)
 
-        const boards = await tx
-          .select({ whiteboardId: whiteboard.whiteboardId })
-          .from(whiteboard)
-          .where(eq(whiteboard.courseId, id))
-        const boardIds = boards.map(b => b.whiteboardId)
-
         if (lessonIds.length > 0) {
           await tx.delete(lessonSession).where(inArray(lessonSession.lessonId, lessonIds))
           await tx
@@ -138,17 +128,6 @@ export const DELETE = withCsrf(
           await tx.delete(quizAttempt).where(inArray(quizAttempt.quizId, quizIds))
           await tx.delete(quizAssignment).where(inArray(quizAssignment.quizId, quizIds))
           await tx.delete(quiz).where(inArray(quiz.quizId, quizIds))
-        }
-
-        if (boardIds.length > 0) {
-          await tx
-            .delete(whiteboardSnapshot)
-            .where(inArray(whiteboardSnapshot.whiteboardId, boardIds))
-          await tx.delete(whiteboardPage).where(inArray(whiteboardPage.whiteboardId, boardIds))
-          await tx
-            .delete(whiteboardSession)
-            .where(inArray(whiteboardSession.whiteboardId, boardIds))
-          await tx.delete(whiteboard).where(inArray(whiteboard.whiteboardId, boardIds))
         }
 
         await tx.delete(courseEnrollment).where(eq(courseEnrollment.courseId, id))

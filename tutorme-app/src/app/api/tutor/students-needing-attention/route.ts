@@ -6,19 +6,10 @@
 import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  liveSession,
-  sessionParticipant,
-  quizAttempt,
-  clinic,
-  clinicBooking,
-  user,
-  profile,
-} from '@/lib/db/schema'
+import { liveSession, sessionParticipant, quizAttempt, user, profile } from '@/lib/db/schema'
 import { eq, and, inArray, gte } from 'drizzle-orm'
 
 const QUIZ_LOOKBACK_DAYS = 30
-const MISSED_BOOKING_DAYS = 14
 const LOW_QUIZ_THRESHOLD = 0.6
 
 function getDisplayName(row: { email: string | null; name: string | null }): string {
@@ -37,8 +28,6 @@ export const GET = withAuth(
     const tutorId = session.user.id
     const now = new Date()
     const quizSince = new Date(now.getTime() - QUIZ_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
-    const bookingSince = new Date(now.getTime() - MISSED_BOOKING_DAYS * 24 * 60 * 60 * 1000)
-
     const tutorSessions = await drizzleDb
       .select({ sessionId: liveSession.sessionId })
       .from(liveSession)
@@ -83,26 +72,6 @@ export const GET = withAuth(
       }
     }
 
-    const tutorClinics = await drizzleDb
-      .select({ clinicId: clinic.clinicId })
-      .from(clinic)
-      .where(eq(clinic.tutorId, tutorId))
-    const tutorClinicIds = tutorClinics.map(c => c.clinicId)
-    const missedBookingStudentIds: string[] = []
-    if (tutorClinicIds.length > 0) {
-      const missed = await drizzleDb
-        .select({ studentId: clinicBooking.studentId })
-        .from(clinicBooking)
-        .where(
-          and(
-            inArray(clinicBooking.clinicId, tutorClinicIds),
-            eq(clinicBooking.attended, false),
-            gte(clinicBooking.bookedAt, bookingSince)
-          )
-        )
-      missed.forEach(b => missedBookingStudentIds.push(b.studentId))
-    }
-
     const needAttention = new Map<string, { issue: string; color: string }>()
 
     for (const [studentId, { count, recentPct }] of lowQuizByStudent) {
@@ -111,15 +80,6 @@ export const GET = withAuth(
         count >= 3 ? `${count} recent quiz(zes) below 60%` : `Recent quiz score below 60% (${pct}%)`
       needAttention.set(studentId, { issue, color: 'red' })
     }
-    for (const studentId of missedBookingStudentIds) {
-      const existing = needAttention.get(studentId)
-      if (!existing) {
-        needAttention.set(studentId, { issue: 'Missed scheduled clinic', color: 'yellow' })
-      } else {
-        needAttention.set(studentId, { issue: `${existing.issue}; missed clinic`, color: 'red' })
-      }
-    }
-
     const userIds = [...needAttention.keys()]
     if (userIds.length === 0) {
       return NextResponse.json({ students: [] })

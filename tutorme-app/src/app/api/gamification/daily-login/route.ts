@@ -1,30 +1,17 @@
-/**
- * Daily Login API
- *
- * POST /api/gamification/daily-login - Check daily login and award streak/XP
- */
+import { legacyRemoved } from '@/lib/api/legacy'
 
-import { NextResponse } from 'next/server'
-import { withAuth, withCsrf } from '@/lib/api/middleware'
-import { onUserLogin, checkTimeBasedBadges } from '@/lib/gamification/triggers'
+export async function GET() {
+  return legacyRemoved('Gamification')
+}
 
-export const POST = withCsrf(
-  withAuth(
-    async (req, session) => {
-      // Check daily login, streak, and award XP
-      const result = await onUserLogin(session.user.id)
+export async function POST() {
+  return legacyRemoved('Gamification')
+}
 
-      // Check for time-based badges (night owl, early bird)
-      const timeBadges = await checkTimeBasedBadges(session.user.id)
+export async function PATCH() {
+  return legacyRemoved('Gamification')
+}
 
-      return NextResponse.json({
-        success: true,
-        data: {
-          ...result,
-          timeBasedBadges: timeBadges.badgesEarned,
-        },
-      })
-    },
-    { role: 'STUDENT' }
-  )
-)
+export async function PUT() {
+  return legacyRemoved('Gamification')
+}

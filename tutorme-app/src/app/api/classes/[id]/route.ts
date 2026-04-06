@@ -1,49 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { handleApiError } from '@/lib/api/middleware'
-import { getServerSession, authOptions } from '@/lib/auth'
-import { getParamAsync } from '@/lib/api/params'
-import { drizzleDb } from '@/lib/db/drizzle'
-import { clinic } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
+import { legacyRemoved } from '@/lib/api/legacy'
 
-export async function GET(
-  req: NextRequest,
-  context: {
-    params: Promise<Record<string, string | string[]>>
-  }
-) {
-  try {
-    const session = await getServerSession(authOptions, req)
+export async function GET() {
+  return legacyRemoved('Clinics')
+}
 
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+export async function POST() {
+  return legacyRemoved('Clinics')
+}
 
-    const id = await getParamAsync(context.params, 'id')
-    if (!id) {
-      return NextResponse.json({ error: 'Class ID required' }, { status: 400 })
-    }
+export async function PATCH() {
+  return legacyRemoved('Clinics')
+}
 
-    const [classItem] = await drizzleDb
-      .select({
-        clinicId: clinic.clinicId,
-        title: clinic.title,
-        subject: clinic.subject,
-        description: clinic.description,
-        status: clinic.status,
-        tutorId: clinic.tutorId,
-      })
-      .from(clinic)
-      .where(eq(clinic.clinicId, id))
-      .limit(1)
-
-    if (!classItem) {
-      return NextResponse.json({ error: 'Class not found' }, { status: 404 })
-    }
-
-    return NextResponse.json({ class: classItem })
-  } catch (error) {
-    console.error('Failed to fetch class details:', error)
-    return handleApiError(error, 'Failed to fetch class details', 'api/classes/[id]/route.ts')
-  }
+export async function DELETE() {
+  return legacyRemoved('Clinics')
 }

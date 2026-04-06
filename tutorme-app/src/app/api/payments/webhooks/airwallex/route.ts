@@ -9,16 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  webhookEvent,
-  payment,
-  clinicBooking,
-  clinic,
-  user,
-  profile,
-  courseEnrollment,
-  course,
-} from '@/lib/db/schema'
+import { webhookEvent, payment, user, profile, courseEnrollment, course } from '@/lib/db/schema'
 import { AirwallexGateway } from '@/lib/payments'
 import {
   sendPaymentConfirmation,
@@ -170,52 +161,7 @@ export async function POST(req: NextRequest) {
           }).catch(() => {})
         }
       } else if (paymentRow.bookingId) {
-        const [bookingClinic] = await drizzleDb
-          .select({
-            clinicTitle: clinic.title,
-            clinicSubject: clinic.subject,
-            studentId: clinicBooking.studentId,
-            tutorId: clinic.tutorId,
-          })
-          .from(clinicBooking)
-          .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
-          .where(eq(clinicBooking.bookingId, paymentRow.bookingId))
-          .limit(1)
-        if (bookingClinic) {
-          const [studentRow] = await drizzleDb
-            .select({ email: user.email, name: profile.name })
-            .from(user)
-            .leftJoin(profile, eq(profile.userId, user.userId))
-            .where(eq(user.userId, bookingClinic.studentId))
-            .limit(1)
-          const [tutorRow] = await drizzleDb
-            .select({ email: user.email, name: profile.name })
-            .from(user)
-            .leftJoin(profile, eq(profile.userId, user.userId))
-            .where(eq(user.userId, bookingClinic.tutorId))
-            .limit(1)
-          const description = `${bookingClinic.clinicTitle} – ${bookingClinic.clinicSubject}`
-          if (studentRow?.email) {
-            sendPaymentConfirmation({
-              paymentId: paymentRow.paymentId,
-              studentEmail: studentRow.email,
-              studentName: studentRow.name ?? undefined,
-              amount: paymentRow.amount,
-              currency: paymentRow.currency,
-              description,
-            }).catch(() => {})
-          }
-          if (tutorRow?.email) {
-            sendTutorPaymentReceived({
-              paymentId: paymentRow.paymentId,
-              tutorEmail: tutorRow.email,
-              tutorName: tutorRow.name ?? undefined,
-              amount: paymentRow.amount,
-              currency: paymentRow.currency,
-              description,
-            }).catch(() => {})
-          }
-        }
+        // Clinics removed: no booking notifications.
       }
     }
   }

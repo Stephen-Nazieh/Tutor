@@ -8,7 +8,7 @@
 import crypto from 'crypto'
 import { desc, eq } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { generatedTask, studentPerformance, taskSubmission } from '@/lib/db/schema'
+import { studentPerformance, taskSubmission } from '@/lib/db/schema'
 import { generateWithFallback } from './orchestrator-llm'
 import { safeJsonParse } from '@/lib/ai/json'
 
@@ -327,54 +327,13 @@ export async function saveGeneratedTasks(
   }
 ): Promise<{ success: boolean; taskIds?: string[]; error?: string }> {
   try {
-    const studentIds = Array.from(tasksByStudent.keys())
-    const firstTasks = studentIds.length > 0 ? (tasksByStudent.get(studentIds[0]!) ?? []) : []
-
-    const toQuestion = (t: GeneratedTask, idx: number) => ({
-      id: t.id || `q-${Date.now()}-${idx}`,
-      type: t.type,
-      question: t.question,
-      options: t.options,
-      correctAnswer: t.correctAnswer,
-      explanation: t.explanation,
-      points: t.rubric?.[0]?.points ?? 1,
-    })
-
-    const assignments: Record<string, unknown> = {}
-    for (const sid of studentIds) {
-      const tasks = tasksByStudent.get(sid) ?? []
-      assignments[sid] = { questions: tasks.map(toQuestion) }
+    if (tasksByStudent.size === 0) {
+      return { success: false, error: 'No tasks to save' }
     }
-
-    const questions = firstTasks.map(toQuestion)
-    const maxScore = questions.reduce((s: number, q: any) => s + (q.points ?? 1), 0) || 100
-
-    const id = crypto.randomUUID()
-    await drizzleDb.insert(generatedTask).values({
-      id,
-      tutorId: meta.tutorId,
-      roomId: meta.roomId,
-      title: meta.title,
-      description: meta.description ?? '',
-      type: meta.type ?? 'assignment',
-      difficulty: 'medium',
-      questions,
-      distributionMode: meta.distributionMode,
-      assignments,
-      status: studentIds.length > 0 ? 'assigned' : 'draft',
-      assignedAt: studentIds.length > 0 ? new Date() : null,
-      lessonId: null,
-      batchId: null,
-      dueDate: null,
-      maxScore,
-      documentSource: null,
-      timeLimitMinutes: null,
-      enforceTimeLimit: false,
-      enforceDueDate: false,
-      maxAttempts: 1,
-    } as any)
-
-    return { success: true, taskIds: [id] }
+    return {
+      success: false,
+      error: 'Generated tasks have been removed from the platform.',
+    }
   } catch (e: any) {
     return { success: false, error: e?.message || 'Failed to save generated tasks' }
   }

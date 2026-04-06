@@ -1,18 +1,13 @@
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  aITutorEnrollment,
-  aITutorSubscription,
-  aIInteractionSession,
-  mission,
-} from '@/lib/db/schema'
+import { aITutorEnrollment, aITutorSubscription, aIInteractionSession } from '@/lib/db/schema'
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
 import { generateWithFallback } from './orchestrator-llm'
 import { buildCompletePrompt, type PromptConfig } from '@/lib/ai/teaching-prompts/prompt-builder'
 import { getGamificationSummary } from '@/lib/gamification/service'
 import { updateQuestProgress } from '@/lib/gamification/daily-quests'
-import { logActivity } from '@/lib/gamification/activity-log'
+import { logActivity, ACTIVITY_EVENTS } from '@/lib/gamification/activity-log'
 import { findRelevantConcepts } from '@/lib/ai/subjects'
 import { extractWhiteboardItems } from '@/lib/ai/whiteboard-extract'
 import { classifyHintType, extractNextSteps } from '@/lib/agents/tutor'
@@ -80,37 +75,6 @@ export async function runTutorChat(input: TutorChatInput): Promise<TutorChatOutp
   const selectedPersonality = (input.personality ||
     'friendly_mentor') as PromptConfig['personality']
 
-  let missionContext = undefined
-  if (input.missionId) {
-    const [missionRow] = await drizzleDb
-      .select()
-      .from(mission)
-      .where(eq(mission.missionId, input.missionId))
-      .limit(1)
-    if (missionRow) {
-      const requirement = missionRow.requirement as Record<string, unknown> | null
-      const difficulty =
-        requirement && typeof requirement.difficulty === 'string' ? requirement.difficulty : '1'
-      missionContext = {
-        worldId:
-          requirement && typeof requirement.worldId === 'string'
-            ? requirement.worldId
-            : missionRow.missionId,
-        worldName:
-          requirement && typeof requirement.worldName === 'string'
-            ? requirement.worldName
-            : 'Current mission',
-        worldEmoji:
-          requirement && typeof requirement.worldEmoji === 'string' ? requirement.worldEmoji : '🎯',
-        missionId: missionRow.missionId,
-        missionTitle: missionRow.title,
-        missionObjective: missionRow.description,
-        missionType: missionRow.type,
-        difficulty,
-      }
-    }
-  }
-
   const [subscription] = await drizzleDb
     .select()
     .from(aITutorSubscription)
@@ -128,7 +92,7 @@ export async function runTutorChat(input: TutorChatInput): Promise<TutorChatOutp
     voiceGender: input.voiceGender,
     voiceAccent: input.voiceAccent,
     gamification: gamification as PromptConfig['gamification'],
-    mission: missionContext,
+    mission: undefined,
     tier: tier as PromptConfig['tier'],
     chatHistory: safeChatHistory.map(msg => ({
       role: msg.role || 'user',
@@ -157,7 +121,7 @@ export async function runTutorChat(input: TutorChatInput): Promise<TutorChatOutp
   const whiteboardItems = extractWhiteboardItems(aiResponse.content)
 
   const studentHash = AISecurityManager.createStudentHash(input.userId)
-  await logActivity(input.userId, 'AI_CONVERSATION', {
+  await logActivity(input.userId, ACTIVITY_EVENTS.AI_CONVERSATION, {
     missionId: input.missionId,
     personality: selectedPersonality,
     teachingMode: input.teachingMode || 'socratic',
@@ -182,7 +146,7 @@ export async function runTutorChat(input: TutorChatInput): Promise<TutorChatOutp
       level: gamification.level,
       xp: gamification.xp,
       streakDays: gamification.streakDays,
-      skills: gamification.skills,
+      skills: gamification.skills ?? {},
     },
     hintType,
     relevantConcepts,

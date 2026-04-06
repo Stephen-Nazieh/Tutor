@@ -8,8 +8,6 @@ import {
   adminRole,
   course,
   courseEnrollment,
-  studyGroup,
-  studyGroupMember,
   courseLesson,
   courseLessonProgress,
   courseProgress,
@@ -17,13 +15,8 @@ import {
   courseShare,
   liveSession,
   sessionParticipant,
-  clinic,
-  clinicBooking,
   payout,
-  userGamification,
-  achievement,
   taskSubmission,
-  generatedTask,
   feedbackWorkflow,
   familyAccount,
   familyMember,
@@ -69,11 +62,6 @@ export const userRelations = relations(user, ({ one, many }) => ({
   liveSessionsAsTutor: many(liveSession),
   sessionParticipations: many(sessionParticipant),
   payouts: many(payout),
-  achievements: many(achievement),
-  gamification: one(userGamification, {
-    fields: [user.userId],
-    references: [userGamification.userId],
-  }),
   familyMemberships: many(familyMember),
   conversationsAsParticipant1: many(conversation, { relationName: 'participant1' }),
   conversationsAsParticipant2: many(conversation, { relationName: 'participant2' }),
@@ -213,21 +201,6 @@ export const courseShareRelations = relations(courseShare, ({ one }) => ({
   }),
 }))
 
-export const studyGroupRelations = relations(studyGroup, ({ many }) => ({
-  members: many(studyGroupMember),
-}))
-
-export const studyGroupMemberRelations = relations(studyGroupMember, ({ one }) => ({
-  group: one(studyGroup, {
-    fields: [studyGroupMember.groupId],
-    references: [studyGroup.groupId],
-  }),
-  user: one(user, {
-    fields: [studyGroupMember.studentId],
-    references: [user.userId],
-  }),
-}))
-
 export const liveSessionRelations = relations(liveSession, ({ one, many }) => ({
   tutor: one(user, {
     fields: [liveSession.tutorId],
@@ -243,25 +216,6 @@ export const sessionParticipantRelations = relations(sessionParticipant, ({ one 
   }),
   student: one(user, {
     fields: [sessionParticipant.studentId],
-    references: [user.userId],
-  }),
-}))
-
-export const clinicRelations = relations(clinic, ({ one, many }) => ({
-  tutor: one(user, {
-    fields: [clinic.tutorId],
-    references: [user.userId],
-  }),
-  bookings: many(clinicBooking),
-}))
-
-export const clinicBookingRelations = relations(clinicBooking, ({ one }) => ({
-  clinic: one(clinic, {
-    fields: [clinicBooking.clinicId],
-    references: [clinic.clinicId],
-  }),
-  student: one(user, {
-    fields: [clinicBooking.studentId],
     references: [user.userId],
   }),
 }))
@@ -282,20 +236,6 @@ export const paymentOnPayoutRelations = relations(paymentOnPayout, ({ one }) => 
   payment: one(payment, {
     fields: [paymentOnPayout.paymentId],
     references: [payment.paymentId],
-  }),
-}))
-
-export const achievementRelations = relations(achievement, ({ one }) => ({
-  user: one(user, {
-    fields: [achievement.userId],
-    references: [user.userId],
-  }),
-}))
-
-export const userGamificationRelations = relations(userGamification, ({ one }) => ({
-  user: one(user, {
-    fields: [userGamification.userId],
-    references: [user.userId],
   }),
 }))
 
@@ -339,10 +279,6 @@ export const parentActivityLogRelations = relations(parentActivityLog, ({ one })
 }))
 
 export const paymentRelations = relations(payment, ({ one }) => ({
-  booking: one(clinicBooking, {
-    fields: [payment.bookingId],
-    references: [clinicBooking.bookingId],
-  }),
   enrollment: one(courseEnrollment, {
     fields: [payment.enrollmentId],
     references: [courseEnrollment.enrollmentId],
@@ -434,22 +370,10 @@ export const mentionRelations = relations(mention, ({ one }) => ({
   }),
 }))
 
-export const generatedTaskRelations = relations(generatedTask, ({ one, many }) => ({
-  tutor: one(user, {
-    fields: [generatedTask.tutorId],
-    references: [user.userId],
-  }),
-  lesson: one(courseLesson, {
-    fields: [generatedTask.lessonId],
-    references: [courseLesson.lessonId],
-  }),
-  submissions: many(taskSubmission),
-}))
-
 export const taskSubmissionRelations = relations(taskSubmission, ({ one }) => ({
-  task: one(generatedTask, {
+  task: one(builderTask, {
     fields: [taskSubmission.taskId],
-    references: [generatedTask.taskId],
+    references: [builderTask.taskId],
   }),
   student: one(user, {
     fields: [taskSubmission.studentId],

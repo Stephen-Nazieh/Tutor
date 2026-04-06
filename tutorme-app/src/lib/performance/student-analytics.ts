@@ -16,8 +16,6 @@ import {
   studentPerformance,
   taskSubmission,
   user,
-  generatedTask,
-  courseBatch,
 } from '@/lib/db/schema'
 
 export type PerformanceCluster = 'advanced' | 'intermediate' | 'struggling'
@@ -481,49 +479,12 @@ export async function getStudentPerformance(
   const { strengths, weaknesses } = await analyzeSubjectPerformance(studentId)
 
   let submissions
-  if (curriculumId) {
-    const batchIds = await drizzleDb
-      .select({ batchId: courseBatch.batchId })
-      .from(courseBatch)
-      .where(eq(courseBatch.courseId, curriculumId))
-    const taskIds =
-      batchIds.length > 0
-        ? (
-            await drizzleDb
-              .select({ taskId: generatedTask.taskId })
-              .from(generatedTask)
-              .where(
-                inArray(
-                  generatedTask.lessonId,
-                  batchIds.map(b => b.batchId)
-                )
-              )
-          ).map(t => t.taskId)
-        : []
-    submissions =
-      taskIds.length > 0
-        ? await drizzleDb
-            .select()
-            .from(taskSubmission)
-            .where(
-              and(eq(taskSubmission.studentId, studentId), inArray(taskSubmission.taskId, taskIds))
-            )
-            .orderBy(desc(taskSubmission.submittedAt))
-            .limit(20)
-        : await drizzleDb
-            .select()
-            .from(taskSubmission)
-            .where(eq(taskSubmission.studentId, studentId))
-            .orderBy(desc(taskSubmission.submittedAt))
-            .limit(20)
-  } else {
-    submissions = await drizzleDb
-      .select()
-      .from(taskSubmission)
-      .where(eq(taskSubmission.studentId, studentId))
-      .orderBy(desc(taskSubmission.submittedAt))
-      .limit(20)
-  }
+  submissions = await drizzleDb
+    .select()
+    .from(taskSubmission)
+    .where(eq(taskSubmission.studentId, studentId))
+    .orderBy(desc(taskSubmission.submittedAt))
+    .limit(20)
 
   const taskHistory: TaskHistoryItem[] = submissions.map(s => {
     const answers = s.answers as any

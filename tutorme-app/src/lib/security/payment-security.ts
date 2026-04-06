@@ -5,7 +5,7 @@
  */
 
 import { drizzleDb } from '@/lib/db/drizzle'
-import { payment, clinicBooking, user as userTable } from '@/lib/db/schema'
+import { payment, user as userTable } from '@/lib/db/schema'
 import { eq, and, gte, desc, sql, inArray, or } from 'drizzle-orm'
 import { ValidationError, ForbiddenError } from '@/lib/api/middleware'
 import { securityLogger } from '@/lib/security/logging'
@@ -305,11 +305,7 @@ export class PaymentSecurityValidator {
 
     try {
       const cutoffRecent = new Date(Date.now() - this.FRAUD_THRESHOLDS.SUSPICIOUS_TIME_WINDOW)
-      const bookingRows = await drizzleDb
-        .select({ bookingId: clinicBooking.bookingId })
-        .from(clinicBooking)
-        .where(eq(clinicBooking.studentId, studentId))
-      const ids = bookingRows.map(b => b.bookingId)
+      const ids: string[] = []
       const conditions =
         ids.length > 0
           ? or(sql`(metadata->>'studentId') = ${studentId}`, inArray(payment.bookingId, ids))
@@ -401,12 +397,7 @@ export class PaymentSecurityValidator {
       }
 
       const weekCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-      const studentBookingIds = (
-        await drizzleDb
-          .select({ bookingId: clinicBooking.bookingId })
-          .from(clinicBooking)
-          .where(eq(clinicBooking.studentId, data.studentId))
-      ).map(b => b.bookingId)
+      const studentBookingIds: string[] = []
       const payCondition =
         studentBookingIds.length > 0
           ? or(

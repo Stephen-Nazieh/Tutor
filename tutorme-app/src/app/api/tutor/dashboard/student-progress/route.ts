@@ -11,8 +11,6 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import {
   course,
   courseEnrollment,
-  clinic,
-  clinicBooking,
   liveSession,
   sessionParticipant,
   quizAttempt,
@@ -32,7 +30,7 @@ export const GET = withAuth(
 
     // 1. Fetch core data in parallel
     // We need to filter by tutorId which requires joining related tables
-    const [enrollments, clinicBookings, sessionParticipants] = await Promise.all([
+    const [enrollments, sessionParticipants] = await Promise.all([
       // Enrollments in courses created by this tutor
       drizzleDb.query.courseEnrollment.findMany({
         where: inArray(
@@ -41,16 +39,6 @@ export const GET = withAuth(
             .select({ courseId: course.courseId })
             .from(course)
             .where(eq(course.creatorId, tutorId))
-        ),
-      }),
-      // Clinic bookings for clinics hosted by this tutor
-      drizzleDb.query.clinicBooking.findMany({
-        where: inArray(
-          clinicBooking.clinicId,
-          drizzleDb
-            .select({ clinicId: clinic.clinicId })
-            .from(clinic)
-            .where(eq(clinic.tutorId, tutorId))
         ),
       }),
       // Session participants for sessions hosted by this tutor
@@ -67,7 +55,6 @@ export const GET = withAuth(
 
     const studentIds = new Set<string>()
     enrollments.forEach(e => studentIds.add(e.studentId))
-    clinicBookings.forEach(b => studentIds.add(b.studentId))
     sessionParticipants.forEach(p => studentIds.add(p.studentId))
     const ids = [...studentIds]
 
@@ -101,14 +88,6 @@ export const GET = withAuth(
 
       current.total += totalLessons
       enrollmentByStudent.set(enrollment.studentId, current)
-    }
-
-    const clinicByStudent = new Map<string, { attended: number; total: number }>()
-    for (const booking of clinicBookings) {
-      const current = clinicByStudent.get(booking.studentId) ?? { attended: 0, total: 0 }
-      current.total += 1
-      if (booking.attended) current.attended += 1
-      clinicByStudent.set(booking.studentId, current)
     }
 
     const sessionByStudent = new Map<string, { quality: number; total: number }>()
@@ -156,14 +135,12 @@ export const GET = withAuth(
     // 4. Calculate Final Metrics
     const students = ids.map(studentId => {
       const enrollment = enrollmentByStudent.get(studentId)
-      const clinic = clinicByStudent.get(studentId)
       const session = sessionByStudent.get(studentId)
       const attempt = attemptsByStudent.get(studentId)
       const submission = submissionByStudent.get(studentId)
 
       const curriculumProgress =
         enrollment && enrollment.total > 0 ? (enrollment.completed / enrollment.total) * 100 : 0
-      const attendanceRate = clinic && clinic.total > 0 ? (clinic.attended / clinic.total) * 100 : 0
       const participationRate =
         session && session.total > 0 ? (session.quality / session.total) * 100 : 0
 
@@ -177,7 +154,7 @@ export const GET = withAuth(
       const assignmentCompletion =
         submission && submission.total > 0 ? (submission.submitted / submission.total) * 100 : 0
 
-      const engagementRate = clampPercent(attendanceRate * 0.4 + participationRate * 0.6)
+      const engagementRate = clampPercent(participationRate)
       const overallProgress = clampPercent(
         curriculumProgress * 0.5 + gradedScorePct * 0.3 + assignmentCompletion * 0.2
       )

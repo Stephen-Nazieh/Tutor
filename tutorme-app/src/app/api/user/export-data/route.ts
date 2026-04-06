@@ -7,14 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { eq, desc } from 'drizzle-orm'
 import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  profile,
-  curriculumEnrollment,
-  quizAttempt,
-  aIInteractionSession,
-  userGamification,
-  achievement,
-} from '@/lib/db/schema'
+import { profile, curriculumEnrollment, quizAttempt, aIInteractionSession } from '@/lib/db/schema'
 import { logPiiAccess } from '@/lib/compliance/audit'
 
 export const GET = withAuth(async (req: NextRequest, session) => {
@@ -78,17 +71,6 @@ export const GET = withAuth(async (req: NextRequest, session) => {
       .orderBy(desc(aIInteractionSession.startedAt))
       .limit(100)
 
-    const [gamification] = await drizzleDb
-      .select()
-      .from(userGamification)
-      .where(eq(userGamification.userId, userId))
-      .limit(1)
-
-    const achievements = await drizzleDb
-      .select()
-      .from(achievement)
-      .where(eq(achievement.userId, userId))
-
     const exportData = {
       exportedAt: new Date().toISOString(),
       dataSubjectId: userId,
@@ -116,21 +98,8 @@ export const GET = withAuth(async (req: NextRequest, session) => {
       })),
       quizAttempts,
       aiSessionSummaries: aiSessions,
-      gamification: gamification
-        ? {
-            level: gamification.level,
-            xp: gamification.xp,
-            streakDays: gamification.streakDays,
-            longestStreak: gamification.longestStreak,
-            totalStudyMinutes: gamification.totalStudyMinutes,
-          }
-        : null,
-      achievements: achievements.map(a => ({
-        type: a.type,
-        title: a.title,
-        description: a.description,
-        unlockedAt: a.unlockedAt,
-      })),
+      gamification: null,
+      achievements: [],
       notice:
         'This export contains your personal data held by Solocorn as required by GDPR Art.20 (Right to Data Portability). AI conversation messages are not exported to protect session integrity but summaries are included.',
     }

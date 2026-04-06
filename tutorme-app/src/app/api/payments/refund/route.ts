@@ -14,7 +14,7 @@ import {
   ForbiddenError,
 } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { payment, refund, clinicBooking, clinic, course } from '@/lib/db/schema'
+import { payment, refund, course } from '@/lib/db/schema'
 import { getPaymentGateway, type GatewayName } from '@/lib/payments'
 import { eq } from 'drizzle-orm'
 
@@ -47,21 +47,11 @@ export const POST = withCsrf(
     }
 
     const isBookingPayment = paymentRow.bookingId != null
-    let isTutorOfClinic = false
-    if (isBookingPayment && paymentRow.bookingId) {
-      const [bookingWithClinic] = await drizzleDb
-        .select({ tutorId: clinic.tutorId })
-        .from(clinicBooking)
-        .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
-        .where(eq(clinicBooking.bookingId, paymentRow.bookingId))
-        .limit(1)
-      isTutorOfClinic = bookingWithClinic?.tutorId === session.user.id
-    }
-
     if (isBookingPayment) {
-      if (role === 'TUTOR' && !isTutorOfClinic) {
-        throw new ForbiddenError('You can only refund payments for your own classes')
-      }
+      return NextResponse.json(
+        { error: 'Clinic bookings have been removed from the platform.', legacy: true },
+        { status: 410 }
+      )
     } else {
       const meta = paymentRow.metadata as { courseId?: string } | null
       const courseId = meta?.courseId

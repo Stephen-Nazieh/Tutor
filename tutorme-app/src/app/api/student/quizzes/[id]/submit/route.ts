@@ -90,19 +90,6 @@ export const POST = withCsrf(
         .where(eq(quizAttempt.attemptId, attemptId))
         .limit(1)
 
-      try {
-        const { onQuizComplete } = await import('@/lib/gamification/triggers')
-        const gamificationResult = await onQuizComplete(
-          studentId,
-          id,
-          gradingResult.percentage,
-          gradingResult.percentage === 100
-        )
-        ;(updatedAttempt as any).gamification = gamificationResult
-      } catch (error) {
-        console.error('Failed to award XP/badges:', error)
-      }
-
       return NextResponse.json({
         success: true,
         attempt: {

@@ -1,80 +1,21 @@
-/**
- * Get all visible student whiteboards for a session
- *
- * GET /api/sessions/[sessionId]/whiteboard/students
- * Returns all student whiteboards that are visible to the tutor
- */
+import { legacyRemoved } from '@/lib/api/legacy'
 
-import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
-import { getParamAsync } from '@/lib/api/params'
-import { drizzleDb } from '@/lib/db/drizzle'
-import { whiteboard, whiteboardPage, profile, liveSession } from '@/lib/db/schema'
-import { eq, and, inArray, asc, desc } from 'drizzle-orm'
+export async function GET() {
+  return legacyRemoved('Whiteboard')
+}
 
-export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const sessionId = await getParamAsync(context?.params, 'sessionId')
-  if (!sessionId) return NextResponse.json({ error: 'Session ID required' }, { status: 400 })
+export async function POST() {
+  return legacyRemoved('Whiteboard')
+}
 
-  if (session.user.role !== 'TUTOR' && session.user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+export async function PATCH() {
+  return legacyRemoved('Whiteboard')
+}
 
-  const [sessionRow] = await drizzleDb
-    .select({ tutorId: liveSession.tutorId })
-    .from(liveSession)
-    .where(eq(liveSession.sessionId, sessionId))
-    .limit(1)
-  if (!sessionRow) {
-    return NextResponse.json({ error: 'Session not found' }, { status: 404 })
-  }
-  if (session.user.role === 'TUTOR' && sessionRow.tutorId !== session.user.id) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+export async function PUT() {
+  return legacyRemoved('Whiteboard')
+}
 
-  const whiteboards = await drizzleDb
-    .select()
-    .from(whiteboard)
-    .where(
-      and(
-        eq(whiteboard.sessionId, sessionId),
-        eq(whiteboard.ownerType, 'student'),
-        inArray(whiteboard.visibility, ['tutor-only', 'public'])
-      )
-    )
-    .orderBy(desc(whiteboard.updatedAt))
-
-  const studentIds = whiteboards.map(wb => wb.ownerId)
-  if (studentIds.length === 0) {
-    return NextResponse.json({ whiteboards: [] })
-  }
-
-  const profiles = await drizzleDb
-    .select({ userId: profile.userId, name: profile.name })
-    .from(profile)
-    .where(inArray(profile.userId, studentIds))
-
-  const studentMap = new Map(profiles.map(p => [p.userId, p.name ?? 'Unknown']))
-
-  const formattedWhiteboards = await Promise.all(
-    whiteboards.map(async wb => {
-      const pages = await drizzleDb
-        .select()
-        .from(whiteboardPage)
-        .where(eq(whiteboardPage.whiteboardId, wb.whiteboardId))
-        .orderBy(asc(whiteboardPage.order))
-        .limit(1)
-      return {
-        id: wb.whiteboardId,
-        studentId: wb.ownerId,
-        studentName: studentMap.get(wb.ownerId) ?? 'Unknown',
-        visibility: wb.visibility,
-        title: wb.title,
-        pages,
-        updatedAt: wb.updatedAt,
-      }
-    })
-  )
-
-  return NextResponse.json({ whiteboards: formattedWhiteboards })
-})
+export async function DELETE() {
+  return legacyRemoved('Whiteboard')
+}

@@ -43,8 +43,6 @@ describe('shared-data', () => {
         subjectsOfInterest: ['math'],
         learningGoals: [],
       },
-      gamification: { xp: 42, streakDays: 3 },
-      achievements: [{ title: 'First Win' }],
     })
 
     mocks.dbMock.select.mockImplementation(() => ({
@@ -70,8 +68,9 @@ describe('shared-data', () => {
     expect(student).not.toBeNull()
     expect(student?.id).toBe('u1')
     expect(student?.learningStyle).toBe('visual')
-    expect(student?.xp).toBe(42)
-    expect(student?.achievements).toEqual(['First Win'])
+    // Gamification tables removed - now returns hardcoded defaults
+    expect(student?.xp).toBe(0)
+    expect(student?.achievements).toEqual([])
   })
 
   it('creates a conversation when none exists', async () => {
