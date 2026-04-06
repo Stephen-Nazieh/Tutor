@@ -39,49 +39,78 @@ const envPath = resolve(process.cwd(), '.env')
 loadEnvFile(envLocalPath)
 loadEnvFile(envPath)
 
+// Startup readiness state
+let isReady = false
+let initError: Error | null = null
+
 // Fail fast when required env vars are missing
-console.log('[Server] Validating environment...')
+console.log('[Server] Initializing...')
 validateEnv()
 
 const dev = process.env.NODE_ENV !== 'production'
 const hostname = process.env.HOSTNAME || '0.0.0.0'
 const port = parseInt(process.env.PORT || '3003', 10)
 
-console.log(`[Server] Setting up Next.js (dev: ${dev}, hostname: ${hostname}, port: ${port})...`)
+console.log(`[Server] Configuration (dev: ${dev}, hostname: ${hostname}, port: ${port})`)
 const app = next({ dev, hostname, port })
 const handle = app.getRequestHandler()
 
-console.log('[Server] Preparing Next.js application...')
-app.prepare().then(async () => {
-  console.log('[Server] Application prepared. Creating HTTP server...')
-  const server = createServer(async (req, res) => {
-    try {
-      const parsedUrl = parse(req.url!, true)
-      await handle(req, res, parsedUrl)
-    } catch (err) {
-      console.error('[Server] Request error:', err)
-      res.statusCode = 500
-      res.end('Internal Server Error')
-    }
-  })
-
-  // Initialize Socket.io server
-  console.log('[Server] Initializing Socket.io...')
+// Create the HTTP server and bind to the port IMMEDIATELY to satisfy Cloud Run health checks
+const server = createServer(async (req, res) => {
   try {
-    const io = await initEnhancedSocketServer(server)
-    console.log('✅ [Server] Socket.io server initialized')
-  } catch (err) {
-    console.error('❌ [Server] Socket.io initialization failed:', err)
-    // Continue starting the server even if Socket.io fails - might just be in-memory mode
-  }
+    // 1. Check for health check endpoint (respond early)
+    if (req.url === '/api/health') {
+      res.statusCode = isReady ? 200 : 503
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({ status: isReady ? 'up' : 'initializing', error: initError?.message }))
+      return
+    }
 
-  server
-    .once('error', (err) => {
-      console.error('❌ [Server] Fatal error encountered:', err)
-      process.exit(1)
-    })
-    .listen(port, () => {
-      console.log(`🚀 [Server] Ready on http://${hostname}:${port}`)
-      console.log(`📡 [Server] Socket.io ready on ws://${hostname}:${port}/api/socket`)
-    })
+    // 2. Until app is ready, return 503 Service Unavailable
+    if (!isReady) {
+      res.statusCode = 503
+      res.setHeader('Retry-After', '5')
+      res.end('Server is starting up...')
+      return
+    }
+
+    // 3. Normal Next.js request handling
+    const parsedUrl = parse(req.url!, true)
+    await handle(req, res, parsedUrl)
+  } catch (err) {
+    console.error('[Server] Request handling error:', err)
+    res.statusCode = 500
+    res.end('Internal Server Error')
+  }
 })
+
+// Start listening now to pass port health checks
+server
+  .once('error', (err) => {
+    console.error('❌ [Server] Fatal error binding to port:', err)
+    process.exit(1)
+  })
+  .listen(port, hostname, () => {
+    console.log(`🚀 [Server] Listener active on http://${hostname}:${port}`)
+    
+    // 4. Background initialization of Next.js and Socket.io
+    console.log('[Server] Beginning background initialization...')
+    app.prepare()
+      .then(async () => {
+        console.log('[Server] Next.js prepared. Initializing Socket.io...')
+        try {
+          await initEnhancedSocketServer(server)
+          isReady = true
+          console.log('✅ [Server] Startup sequence complete. Now handling traffic.')
+        } catch (err) {
+          console.error('⚠️ [Server] Socket.io initialization failed:', err)
+          initError = err as Error
+          isReady = true // Still set to ready so at least Next.js works
+        }
+      })
+      .catch((err) => {
+        console.error('❌ [Server] Next.js preparation failed:', err)
+        initError = err as Error
+        // Keep isReady as false if Next.js fails to prepare
+      })
+  })
