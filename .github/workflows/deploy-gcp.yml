@@ -103,6 +103,12 @@ jobs:
           docker push "$IMAGE"
           echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
 
+      - name: Run database migrations (production)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+        run: npx drizzle-kit push --force || echo 'Migration skipped (schema up to date)'
+
       - name: Deploy to Cloud Run (100% traffic)
         id: deploy-prod
         uses: google-github-actions/deploy-cloudrun@v2
@@ -118,12 +124,6 @@ jobs:
             --max-instances=10
           # Cloud Run env vars (comma-separated to avoid gcloud multiline parsing issues)
           env_vars: NODE_ENV=production,DATABASE_URL=${{ secrets.DATABASE_URL }},DIRECT_URL=${{ secrets.DIRECT_URL }},NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }},NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }},REDIS_URL=${{ secrets.REDIS_URL }}
-
-      - name: Run database migrations (production)
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
-        run: npx drizzle-kit push --force || echo 'Migration skipped (schema up to date)'
 
       - name: Route 100% traffic to latest
         run: |
