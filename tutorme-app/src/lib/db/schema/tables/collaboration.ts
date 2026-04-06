@@ -16,7 +16,6 @@ import {
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
 
-
 export const userActivityLog = pgTable(
   'UserActivityLog',
   {

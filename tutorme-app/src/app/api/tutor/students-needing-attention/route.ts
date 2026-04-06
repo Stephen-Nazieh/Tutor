@@ -6,13 +6,7 @@
 import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  liveSession,
-  sessionParticipant,
-  quizAttempt,
-  user,
-  profile,
-} from '@/lib/db/schema'
+import { liveSession, sessionParticipant, quizAttempt, user, profile } from '@/lib/db/schema'
 import { eq, and, inArray, gte } from 'drizzle-orm'
 
 const QUIZ_LOOKBACK_DAYS = 30

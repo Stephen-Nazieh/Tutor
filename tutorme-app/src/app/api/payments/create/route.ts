@@ -301,8 +301,7 @@ export const POST = withCsrf(
       })
     }
 
-    
-// --- Booking payment ---
+    // --- Booking payment ---
     if (bookingId) {
       return NextResponse.json(
         { error: 'Clinic bookings have been removed from the platform.', legacy: true },

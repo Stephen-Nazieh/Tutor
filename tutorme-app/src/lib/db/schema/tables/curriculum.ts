@@ -305,7 +305,6 @@ export const feedbackWorkflow = pgTable(
   })
 )
 
-
 // ============================================
 // LEGACY EXPORTS (for backward compatibility)
 // ============================================

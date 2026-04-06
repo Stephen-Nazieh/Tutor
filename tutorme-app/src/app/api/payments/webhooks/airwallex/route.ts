@@ -9,14 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  webhookEvent,
-  payment,
-  user,
-  profile,
-  courseEnrollment,
-  course,
-} from '@/lib/db/schema'
+import { webhookEvent, payment, user, profile, courseEnrollment, course } from '@/lib/db/schema'
 import { AirwallexGateway } from '@/lib/payments'
 import {
   sendPaymentConfirmation,

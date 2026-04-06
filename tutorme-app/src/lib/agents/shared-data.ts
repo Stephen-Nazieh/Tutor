@@ -193,8 +193,6 @@ export async function getStudent(studentId: string): Promise<Student | null> {
     where: eq(user.userId, studentId),
     with: {
       profile: true,
-      gamification: true,
-      achievements: true,
     },
   })
 
@@ -218,9 +216,9 @@ export async function getStudent(studentId: string): Promise<Student | null> {
     subjects: userRow.profile?.subjectsOfInterest || [],
     learningStyle: (learningStyle as Student['learningStyle']) || 'mixed',
     currentLevel: normalizeLearningLevel(userRow.profile?.gradeLevel),
-    xp: userRow.gamification?.xp ?? 0,
-    streak: userRow.gamification?.streakDays ?? 0,
-    achievements: (userRow.achievements || []).map(a => a.title),
+    xp: 0,
+    streak: 0,
+    achievements: [],
     lastActive: userRow.updatedAt,
   }
 }
