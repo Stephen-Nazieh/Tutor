@@ -45,7 +45,6 @@ let initError: Error | null = null
 
 // Fail fast when required env vars are missing
 console.log('[Server] Initializing...')
-validateEnv()
 
 const dev = process.env.NODE_ENV !== 'production'
 const hostname = process.env.HOSTNAME || '0.0.0.0'
@@ -93,8 +92,24 @@ server
   .listen(port, hostname, () => {
     console.log(`🚀 [Server] Listener active on http://${hostname}:${port}`)
     
-    // 4. Background initialization of Next.js and Socket.io
+    // 4. Background initialization of Environment, Next.js, and Socket.io
     console.log('[Server] Beginning background initialization...')
+
+    // Check environment first, but after we have bound the port
+    try {
+      if (process.env.NEXTAUTH_SECRET) {
+        console.log(`[Config] NEXTAUTH_SECRET length: ${process.env.NEXTAUTH_SECRET.length} (needs 32+)`)
+      } else {
+        console.warn('⚠️ [Config] NEXTAUTH_SECRET is MISSING')
+      }
+      validateEnv()
+      console.log('✅ [Config] Environment validated successfully')
+    } catch (err) {
+      console.error('❌ [Config] Environment validation failed:', err instanceof Error ? err.message : err)
+      initError = err as Error
+      // We continue with app.prepare() to at least allow health checks to stay up
+    }
+
     app.prepare()
       .then(async () => {
         console.log('[Server] Next.js prepared. Initializing Socket.io...')
