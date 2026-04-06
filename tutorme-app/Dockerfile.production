@@ -37,13 +37,17 @@ RUN adduser --system --uid 1001 nextjs
 
 # Copy necessary files
 COPY --from=builder /app/public ./public
-# Standalone output has nested structure due to monorepo layout - copy contents to root
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone/ADK_WORKSPACE/TutorMekimi/tutorme-app/ ./
+# Try nested path first (local dev), fallback to flat structure (CI)
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/drizzle-orm ./node_modules/drizzle-orm
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/pg ./node_modules/pg
+# Move server.js from nested path if it exists (local dev structure)
+RUN if [ -f "ADK_WORKSPACE/TutorMekimi/tutorme-app/server.js" ]; then \
+      cp -r ADK_WORKSPACE/TutorMekimi/tutorme-app/* . && rm -rf ADK_WORKSPACE; \
+    fi
 
 USER nextjs
 
