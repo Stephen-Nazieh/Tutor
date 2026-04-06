@@ -89,8 +89,8 @@ server
     console.error('❌ [Server] Fatal error binding to port:', err)
     process.exit(1)
   })
-  .listen(port, hostname, () => {
-    console.log(`🚀 [Server] Listener active on http://${hostname}:${port}`)
+  .listen(port, () => {
+    console.log(`🚀 [Server] Listener active on port ${port}`)
     
     // 4. Background initialization of Environment, Next.js, and Socket.io
     console.log('[Server] Beginning background initialization...')

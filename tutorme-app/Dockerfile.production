@@ -28,44 +28,34 @@ RUN node scripts/build-custom-server.js
 
 # Production image, copy all the files and run next
 FROM base AS runner
+# Ensure WORKDIR is /app (default for runner too)
+WORKDIR /app
+
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV REDIS_URL=""
 # Cloud Run typically provides PORT, but we set a default just in case
 ENV PORT=3003
-ENV HOSTNAME="0.0.0.0"
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy the standalone output
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone /tmp/standalone
+# Simple flattening: Copy standalone output and move contents to root
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 
-# Rigorous flattening of the standalone output
-# Next.js standalone output in monorepos has a nested structure:
-# .next/standalone/
-#   node_modules/
-#   ADK_WORKSPACE/TutorMekimi/tutorme-app/
-#     .next/
-#     server.js
-# We need to merge these so the app code finds the node_modules.
-RUN export SERVER_JS_PATH=$(find /tmp/standalone -name "server.js" -not -path "*/node_modules/*" | head -n 1) && \
-    if [ -z "$SERVER_JS_PATH" ]; then \
-      echo "❌ Error: Could not find server.js in standalone output"; \
-      ls -R /tmp/standalone; \
-      exit 1; \
-    fi && \
-    export SERVER_DIR=$(dirname "$SERVER_JS_PATH") && \
-    echo "Found standalone server in $SERVER_DIR" && \
-    # 1. Copy the nested app code and its .next folder to /app
-    cp -a "$SERVER_DIR/." /app/ && \
-    # 2. Copy the root node_modules to /app so they are available to the app
-    if [ -d "/tmp/standalone/node_modules" ]; then \
-      cp -a /tmp/standalone/node_modules /app/; \
-      echo "Merged root node_modules into /app"; \
-    fi && \
-    # 3. Clean up
-    rm -rf /tmp/standalone
+# In monorepos, standalone is often at e.g. ./ADK_WORKSPACE/TutorMekimi/tutorme-app/server.js
+# We move the actual app files to the root /app so it finds the root node_modules
+RUN APP_DIR=$(find . -name "server.js" -not -path "*/node_modules/*" | head -n 1 | xargs dirname) && \
+    if [ "$APP_DIR" != "." ]; then \
+      echo "Flattening nested standalone output from $APP_DIR to root..."; \
+      cp -a "$APP_DIR/." . && \
+      # Remove the now-duplicated nested directory to keep image small
+      # We find the top of the nested path to remove (e.g. ADK_WORKSPACE)
+      NESTED_ROOT=$(echo "$APP_DIR" | cut -d'/' -f2) && \
+      if [ "$NESTED_ROOT" != "." ] && [ -d "$NESTED_ROOT" ]; then \
+         rm -rf "$NESTED_ROOT"; \
+      fi \
+    fi
 
 # Copy extra files required for Socket.io
 COPY --from=builder /app/server-production.js ./server-production.js
@@ -86,5 +76,4 @@ USER nextjs
 EXPOSE 3003
 
 # Run migrations then start server
-# We use node directly on the entry script
 CMD ["node", "scripts/migrate-and-start.js"]
