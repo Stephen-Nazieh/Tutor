@@ -23,30 +23,40 @@ ENV DIRECT_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 ENV NEXTAUTH_SECRET="dummy_secret_for_build_phase_only"
 ENV ADMIN_JWT_SECRET="dummy_secret_for_build_phase_only"
 RUN npm run build
+# Build the custom server with Socket.io support
+RUN node scripts/build-custom-server.js
 
 # Production image, copy all the files and run next
 FROM base AS runner
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV REDIS_URL=""
+# Cloud Run typically provides PORT, but we set a default just in case
 ENV PORT=3003
 ENV HOSTNAME="0.0.0.0"
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy the standalone output - check both flat and nested structures
+# Copy the standalone output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone /tmp/standalone
 
-# Flatten if nested structure exists (monorepo layout), otherwise use as-is
-RUN if [ -d "/tmp/standalone/ADK_WORKSPACE" ]; then \
-      mv /tmp/standalone/ADK_WORKSPACE/TutorMekimi/tutorme-app/* /app/ 2>/dev/null || true; \
-      mv /tmp/standalone/ADK_WORKSPACE/TutorMekimi/tutorme-app/.* /app/ 2>/dev/null || true; \
+# Flatten the standalone output generically (Next.js can nest it depending on build location)
+# We find the server.js and move everything from its directory to /app
+RUN SERVER_JS_DIR=$(find /tmp/standalone -name "server.js" -not -path "*/node_modules/*" | head -n 1 | xargs dirname) && \
+    if [ -n "$SERVER_JS_DIR" ]; then \
+      cp -a $SERVER_JS_DIR/. /app/ && \
+      echo "Standalone server flattened from $SERVER_JS_DIR to /app"; \
     else \
-      mv /tmp/standalone/* /app/ 2>/dev/null || true; \
-      mv /tmp/standalone/.* /app/ 2>/dev/null || true; \
+      # Fallback: copy everything if server.js not found in expected nests
+      cp -a /tmp/standalone/. /app/ && \
+      echo "Standalone server copied without flattening (standard layout)"; \
     fi && \
     rm -rf /tmp/standalone
+
+# Copy extra files required for Socket.io
+COPY --from=builder /app/server-production.js ./server-production.js
+COPY --from=builder /app/package.json ./package.json
 
 # Copy additional required files
 COPY --from=builder /app/public ./public
@@ -59,11 +69,9 @@ RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 
+# Cloud Run uses the port defined by $PORT env var
 EXPOSE 3003
 
-# Safe Health check via curl
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3003/api/health || exit 1
-
 # Run migrations then start server
+# We use node directly on the entry script
 CMD ["node", "scripts/migrate-and-start.js"]
