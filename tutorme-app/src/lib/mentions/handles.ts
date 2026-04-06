@@ -1,4 +1,4 @@
-export const HANDLE_REGEX = /^[a-zA-Z0-9_]{3,15}$/
+export const HANDLE_REGEX = /^[a-zA-Z0-9_]{3,30}$/
 
 const RESERVED_HANDLES = new Set(['admin', 'support', 'everyone', 'staff', 'system', 'help'])
 
@@ -16,7 +16,7 @@ export function isValidHandle(value: string): boolean {
 
 export function assertValidHandle(value: string): void {
   if (!isValidHandle(value)) {
-    throw new Error('Handle must be 3-15 characters, letters/numbers/underscores only')
+    throw new Error('Handle must be at least 3 characters, letters/numbers/underscores only')
   }
   if (isReservedHandle(value)) {
     throw new Error('This handle is reserved')

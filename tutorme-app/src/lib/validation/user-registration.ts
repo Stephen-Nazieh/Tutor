@@ -47,7 +47,7 @@ export const tutorAdditionalDataSchema = z
     username: z
       .string()
       .min(3, 'Handle must be at least 3 characters')
-      .max(15, 'Handle must be at most 15 characters')
+      .max(30, 'Handle must be at most 30 characters')
       .regex(HANDLE_REGEX, 'Handle may only contain letters, numbers, and underscores')
       .refine(value => !isReservedHandle(value), 'This handle is reserved')
       .transform(value => normalizeHandle(value)),
