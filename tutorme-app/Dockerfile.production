@@ -41,17 +41,30 @@ RUN adduser --system --uid 1001 nextjs
 # Copy the standalone output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone /tmp/standalone
 
-# Flatten the standalone output generically (Next.js can nest it depending on build location)
-# We find the server.js and move everything from its directory to /app
-RUN SERVER_JS_DIR=$(find /tmp/standalone -name "server.js" -not -path "*/node_modules/*" | head -n 1 | xargs dirname) && \
-    if [ -n "$SERVER_JS_DIR" ]; then \
-      cp -a $SERVER_JS_DIR/. /app/ && \
-      echo "Standalone server flattened from $SERVER_JS_DIR to /app"; \
-    else \
-      # Fallback: copy everything if server.js not found in expected nests
-      cp -a /tmp/standalone/. /app/ && \
-      echo "Standalone server copied without flattening (standard layout)"; \
+# Rigorous flattening of the standalone output
+# Next.js standalone output in monorepos has a nested structure:
+# .next/standalone/
+#   node_modules/
+#   ADK_WORKSPACE/TutorMekimi/tutorme-app/
+#     .next/
+#     server.js
+# We need to merge these so the app code finds the node_modules.
+RUN export SERVER_JS_PATH=$(find /tmp/standalone -name "server.js" -not -path "*/node_modules/*" | head -n 1) && \
+    if [ -z "$SERVER_JS_PATH" ]; then \
+      echo "❌ Error: Could not find server.js in standalone output"; \
+      ls -R /tmp/standalone; \
+      exit 1; \
     fi && \
+    export SERVER_DIR=$(dirname "$SERVER_JS_PATH") && \
+    echo "Found standalone server in $SERVER_DIR" && \
+    # 1. Copy the nested app code and its .next folder to /app
+    cp -a "$SERVER_DIR/." /app/ && \
+    # 2. Copy the root node_modules to /app so they are available to the app
+    if [ -d "/tmp/standalone/node_modules" ]; then \
+      cp -a /tmp/standalone/node_modules /app/; \
+      echo "Merged root node_modules into /app"; \
+    fi && \
+    # 3. Clean up
     rm -rf /tmp/standalone
 
 # Copy extra files required for Socket.io

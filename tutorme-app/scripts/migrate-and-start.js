@@ -1,84 +1,128 @@
-#!/usr/bin/env node
+const { spawn } = require('child_process')
+const fs = require('fs')
+const path = require('path')
+
 /**
- * Startup script that runs migrations before starting the server
- * Ensures database schema is up to date before handling requests
+ * Robust search for server entry point in monorepo standalone structure
  */
-const path = require('node:path')
-const { spawn } = require('node:child_process')
-const fs = require('node:fs')
-
-const cwd = process.cwd()
-
-async function runMigrations() {
-  const migrationsScript = path.join(cwd, 'scripts/run-migrations.js')
-  if (!fs.existsSync(migrationsScript)) {
-    console.warn('[Startup] Warning: run-migrations.js not found, skipping migrations.')
-    return
+function findServerFile(searchDir, targetFiles, depth = 0) {
+  if (depth > 5) return null // Safety limit
+  
+  // Try direct matches in current dir first
+  for (const file of targetFiles) {
+    const fullPath = path.join(searchDir, file)
+    if (fs.existsSync(fullPath)) {
+      return fullPath
+    }
   }
 
-  const { runMigrations } = require('./run-migrations')
-  console.log('[Startup] Running database migrations...')
+  // Recursive search if not found
   try {
-    await runMigrations()
-    console.log('[Startup] Migrations completed successfully')
-  } catch (error) {
-    console.error('[Startup] Migration failed:', error)
-    // Continue startup even if migrations fail - the app has fallback handling
-    console.log('[Startup] Continuing startup despite migration failure...')
+    const items = fs.readdirSync(searchDir)
+    for (const item of items) {
+      if (item === 'node_modules' || item === '.next' || item.startsWith('.')) continue
+      
+      const fullPath = path.join(searchDir, item)
+      if (fs.statSync(fullPath).isDirectory()) {
+        const found = findServerFile(fullPath, targetFiles, depth + 1)
+        if (found) return found
+      }
+    }
+  } catch (e) {
+    // Ignore permission errors etc
   }
+  
+  return null
 }
 
-async function startServer() {
-  console.log(`[Startup] CWD: ${cwd}`)
-  console.log(`[Startup] PORT: ${process.env.PORT || '3003 (default)'}`)
-  console.log(`[Startup] HOSTNAME: ${process.env.HOSTNAME || '0.0.0.0 (default)'}`)
+async function start() {
+  const cwd = process.cwd()
+  console.log('--- [Rigorous Startup Sequence] ---')
+  console.log(`[Startup] Time: ${new Date().toISOString()}`)
+  console.log(`[Startup] Working Directory: ${cwd}`)
+  console.log(`[Startup] Target Port: ${process.env.PORT || '3003'}`)
+  console.log(`[Startup] Node Version: ${process.version}`)
 
-  // Run migrations first
-  await runMigrations()
-  
-  // Check for custom server first (Socket.io support)
-  const customServer = path.join(cwd, 'server-production.js')
-  const standaloneServer = path.join(cwd, 'server.js')
-  
-  const serverPath = fs.existsSync(customServer) ? customServer : standaloneServer
-  
-  if (fs.existsSync(serverPath)) {
-    console.log(`[Startup] Starting server: ${path.basename(serverPath)}`)
-    const child = spawn('node', [serverPath], { 
+  try {
+    // 1. Run migrations if available
+    const migrationsScript = path.join(cwd, 'scripts/run-migrations.js')
+    if (fs.existsSync(migrationsScript)) {
+      console.log('[Startup] Phase 1: Database Migrations')
+      const { runMigrations } = require('./run-migrations')
+      await runMigrations().catch(err => {
+        console.warn(`[Startup] Migration warning: ${err.message}`)
+      })
+      console.log('[Startup] Migrations handled.')
+    } else {
+      console.log('[Startup] Phase 1: Skipping migrations (no script found)')
+    }
+
+    // 2. Locate server
+    console.log('[Startup] Phase 2: Locating Server Entry Point')
+    // Prioritize our custom bundle server-production.js, then fallback to Next.js server.js
+    const serverPath = findServerFile(cwd, ['server-production.js', 'server.js'])
+
+    if (!serverPath) {
+      console.error('❌ [Startup] FATAL: Could not locate server-production.js or server.js')
+      console.log('[Startup] Debugging Filesystem Structure:')
+      const logDir = (dir, currentDepth = 0) => {
+        if (currentDepth > 2) return
+        try {
+          const items = fs.readdirSync(dir)
+          console.log(`[Startup] Contents of ${dir}: ${items.join(', ')}`)
+          for (const item of items) {
+            const p = path.join(dir, item)
+            if (fs.statSync(p).isDirectory()) logDir(p, currentDepth + 1)
+          }
+        } catch (e) {}
+      }
+      logDir(cwd)
+      process.exit(1)
+    }
+
+    const serverDir = path.dirname(serverPath)
+    const serverFile = path.basename(serverPath)
+    console.log(`[Startup] ✅ Found ${serverFile} at ${serverPath}`)
+    
+    // 3. Start Server
+    console.log(`[Startup] Phase 3: Launching '${serverFile}' from ${serverDir}`)
+    const child = spawn('node', [serverPath], {
       stdio: 'inherit',
-      env: { ...process.env, NEXT_TELEMETRY_DISABLED: '1' }
+      cwd: serverDir, // Run from the directory where the server file is located
+      env: {
+        ...process.env,
+        NEXT_TELEMETRY_DISABLED: '1',
+        NODE_PATH: `${cwd}:${cwd}/node_modules:${process.env.NODE_PATH || ''}`
+      }
     })
-    
-    process.on('SIGTERM', () => {
-      console.log('[Startup] SIGTERM received, shutting down child...')
-      child.kill('SIGTERM')
-    })
-    process.on('SIGINT', () => {
-      console.log('[Startup] SIGINT received, shutting down child...')
-      child.kill('SIGINT')
-    })
-    
-    child.on('exit', (code) => {
-      console.log(`[Startup] Server exited with code ${code}`)
-      process.exit(code ?? 0)
-    })
-    
+
     child.on('error', (err) => {
-      console.error('[Startup] Failed to start child process:', err)
+      console.error('❌ [Startup] Failed to start server process:', err)
       process.exit(1)
     })
-  } else {
-    console.error(`[Startup] Error: No server found at ${customServer} or ${standaloneServer}!`)
-    // List directory contents to help debugging
-    try {
-      const files = fs.readdirSync(cwd)
-      console.log(`[Startup] Directory contents: ${files.join(', ')}`)
-    } catch (e) {}
+
+    child.on('exit', (code) => {
+      if (code !== 0 && code !== null) {
+        console.error(`❌ [Startup] Server process exited with code: ${code}`)
+      } else {
+        console.log(`[Startup] Server process exited gracefully (code: ${code})`)
+      }
+      process.exit(code || 0)
+    })
+
+    // Handle termination signals
+    const signals = ['SIGTERM', 'SIGINT', 'SIGQUIT']
+    signals.forEach(sig => {
+      process.on(sig, () => {
+        console.log(`[Startup] ${sig} received, propagating to server...`)
+        child.kill(sig)
+      })
+    })
+
+  } catch (err) {
+    console.error('❌ [Startup] Unhandled error during startup:', err)
     process.exit(1)
   }
 }
 
-startServer().catch((error) => {
-  console.error('[Startup] Fatal error during startup:', error)
-  process.exit(1)
-})
+start()
