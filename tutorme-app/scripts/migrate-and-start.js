@@ -3,126 +3,108 @@ const fs = require('fs')
 const path = require('path')
 
 /**
- * Robust search for server entry point in monorepo standalone structure
+ * PRODUCTION SURVIVOR ENTRY POINT
+ * This script is designed to stay alive NO MATTER WHAT, enabling diagnostics.
  */
-function findServerFile(searchDir, targetFiles, depth = 0) {
-  if (depth > 5) return null // Safety limit
-  
-  // Try direct matches in current dir first
-  for (const file of targetFiles) {
-    const fullPath = path.join(searchDir, file)
-    if (fs.existsSync(fullPath)) {
-      return fullPath
-    }
-  }
-
-  // Recursive search if not found
-  try {
-    const items = fs.readdirSync(searchDir)
-    for (const item of items) {
-      if (item === 'node_modules' || item === '.next' || item.startsWith('.')) continue
-      
-      const fullPath = path.join(searchDir, item)
-      if (fs.statSync(fullPath).isDirectory()) {
-        const found = findServerFile(fullPath, targetFiles, depth + 1)
-        if (found) return found
-      }
-    }
-  } catch (e) {
-    // Ignore permission errors etc
-  }
-  
-  return null
-}
 
 async function start() {
   const cwd = process.cwd()
-  console.log('--- [Rigorous Startup Sequence] ---')
-  console.log(`[Startup] Time: ${new Date().toISOString()}`)
-  console.log(`[Startup] Working Directory: ${cwd}`)
-  console.log(`[Startup] Target Port: ${process.env.PORT || '3003'}`)
-  console.log(`[Startup] Node Version: ${process.version}`)
-
+  console.log('--- [Survivor Startup Sequence] ---')
+  console.log(`[Startup] CWD: ${cwd}`)
+  console.log(`[Startup] PORT: ${process.env.PORT || '3003'}`)
+  
+  // 1. Diagnostics: List all files at start to be 100% sure where we are
   try {
-    // 1. Run migrations if available
-    const migrationsScript = path.join(cwd, 'scripts/run-migrations.js')
-    if (fs.existsSync(migrationsScript)) {
-      console.log('[Startup] Phase 1: Database Migrations')
-      const { runMigrations } = require('./run-migrations')
-      await runMigrations().catch(err => {
-        console.warn(`[Startup] Migration warning: ${err.message}`)
-      })
-      console.log('[Startup] Migrations handled.')
-    } else {
-      console.log('[Startup] Phase 1: Skipping migrations (no script found)')
+    const listDir = (dir, depth = 0) => {
+      if (depth > 1) return
+      const items = fs.readdirSync(dir)
+      console.log(`[Startup] dir(${dir}): ${items.join(', ')}`)
     }
+    listDir(cwd)
+  } catch (e) {}
 
-    // 2. Locate server
-    console.log('[Startup] Phase 2: Locating Server Entry Point')
-    // Prioritize our custom bundle server-production.js, then fallback to Next.js server.js
-    const serverPath = findServerFile(cwd, ['server-production.js', 'server.js'])
-
-    if (!serverPath) {
-      console.error('❌ [Startup] FATAL: Could not locate server-production.js or server.js')
-      console.log('[Startup] Debugging Filesystem Structure:')
-      const logDir = (dir, currentDepth = 0) => {
-        if (currentDepth > 2) return
-        try {
-          const items = fs.readdirSync(dir)
-          console.log(`[Startup] Contents of ${dir}: ${items.join(', ')}`)
-          for (const item of items) {
-            const p = path.join(dir, item)
-            if (fs.statSync(p).isDirectory()) logDir(p, currentDepth + 1)
-          }
-        } catch (e) {}
-      }
-      logDir(cwd)
-      process.exit(1)
-    }
-
-    const serverDir = path.dirname(serverPath)
-    const serverFile = path.basename(serverPath)
-    console.log(`[Startup] ✅ Found ${serverFile} at ${serverPath}`)
-    
-    // 3. Start Server
-    console.log(`[Startup] Phase 3: Launching '${serverFile}' from ${serverDir}`)
-    const child = spawn('node', [serverPath], {
+  // 2. Start migrations in BACKGROUND (Don't block the server listen check)
+  const migrationsScript = path.join(cwd, 'scripts/run-migrations.js')
+  if (fs.existsSync(migrationsScript)) {
+    console.log('[Startup] Backgrounding migrations...')
+    // We spawning a separate process for migrations to avoid blocking the loop
+    const migrator = spawn('node', [migrationsScript], {
       stdio: 'inherit',
-      cwd: serverDir, // Run from the directory where the server file is located
-      env: {
-        ...process.env,
-        NEXT_TELEMETRY_DISABLED: '1',
-        NODE_PATH: `${cwd}:${cwd}/node_modules:${process.env.NODE_PATH || ''}`
-      }
+      env: process.env
     })
-
-    child.on('error', (err) => {
-      console.error('❌ [Startup] Failed to start server process:', err)
-      process.exit(1)
+    migrator.on('close', (code) => {
+      console.log(`[Startup] Background transitions exited with code ${code}`)
     })
-
-    child.on('exit', (code) => {
-      if (code !== 0 && code !== null) {
-        console.error(`❌ [Startup] Server process exited with code: ${code}`)
-      } else {
-        console.log(`[Startup] Server process exited gracefully (code: ${code})`)
-      }
-      process.exit(code || 0)
-    })
-
-    // Handle termination signals
-    const signals = ['SIGTERM', 'SIGINT', 'SIGQUIT']
-    signals.forEach(sig => {
-      process.on(sig, () => {
-        console.log(`[Startup] ${sig} received, propagating to server...`)
-        child.kill(sig)
-      })
-    })
-
-  } catch (err) {
-    console.error('❌ [Startup] Unhandled error during startup:', err)
-    process.exit(1)
   }
+
+  // 3. Locate and Launch Server
+  // We prioritize server-production.js then server.js
+  const potentialServers = [
+    path.join(cwd, 'server-production.js'),
+    path.join(cwd, 'server.js'),
+    path.join(cwd, '.next/standalone/server.js')
+  ]
+  
+  let serverPath = null
+  for (const p of potentialServers) {
+    if (fs.existsSync(p)) {
+      serverPath = p
+      break
+    }
+  }
+
+  if (!serverPath) {
+    // Robust recursive fallback
+    const findIn = (dir, depth = 0) => {
+      if (depth > 3) return null
+      const items = fs.readdirSync(dir)
+      for (const item of items) {
+        if (item === 'node_modules' || item === '.next') continue
+        const full = path.join(dir, item)
+        if (item === 'server-production.js' || item === 'server.js') return full
+        if (fs.statSync(full).isDirectory()) {
+          const found = findIn(full, depth + 1)
+          if (found) return found
+        }
+      }
+      return null
+    }
+    serverPath = findIn(cwd)
+  }
+
+  if (!serverPath) {
+    console.error('❌ [Startup] FATAL: Server entry point not found!')
+    // We stay alive for a bit anyway so logs can be collected
+    setTimeout(() => process.exit(1), 10000)
+    return
+  }
+
+  console.log(`[Startup] Launching node ${serverPath}`)
+  const child = spawn('node', [serverPath], {
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      // Aggressive memory limit for node if env tells us
+      NODE_OPTIONS: process.env.NODE_OPTIONS || '--max-old-space-size=768'
+    }
+  })
+
+  child.on('error', (err) => {
+    console.error('❌ [Startup] Child process error:', err)
+  })
+
+  child.on('exit', (code) => {
+    console.log(`[Startup] Server process exited with code ${code}`)
+    // If it crashes, we wait a bit before exiting the parent so Cloud Run logs it
+    setTimeout(() => process.exit(code || 0), 5000)
+  })
 }
 
-start()
+// Global survivors
+process.on('uncaughtException', (err) => console.error('🔥 [Startup] Uncaught Exception:', err))
+process.on('unhandledRejection', (reason) => console.error('🔥 [Startup] Unhandled Rejection:', reason))
+
+start().catch(err => {
+  console.error('🔥 [Startup] Fatal Error:', err)
+  setTimeout(() => process.exit(1), 10000)
+})
