@@ -35,19 +35,21 @@ ENV HOSTNAME="0.0.0.0"
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy necessary files
-COPY --from=builder /app/public ./public
-# Try nested path first (local dev), fallback to flat structure (CI)
+# Copy necessary files from standalone (handles both flat and nested structures)
+# First copy the entire standalone output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+# If standalone has nested structure (ADK_WORKSPACE/TutorMekimi/tutorme-app/), move files to root
+RUN if [ -d "ADK_WORKSPACE" ]; then \
+      mv ADK_WORKSPACE/TutorMekimi/tutorme-app/* . 2>/dev/null || true; \
+      mv ADK_WORKSPACE/TutorMekimi/tutorme-app/.* . 2>/dev/null || true; \
+      rm -rf ADK_WORKSPACE; \
+    fi
+
+# Copy additional files not in standalone
+COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/drizzle-orm ./node_modules/drizzle-orm
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/pg ./node_modules/pg
-# Move server.js from nested path if it exists (local dev structure)
-RUN if [ -f "ADK_WORKSPACE/TutorMekimi/tutorme-app/server.js" ]; then \
-      cp -r ADK_WORKSPACE/TutorMekimi/tutorme-app/* . && rm -rf ADK_WORKSPACE; \
-    fi
 
 USER nextjs
 
