@@ -40,38 +40,48 @@ loadEnvFile(envLocalPath)
 loadEnvFile(envPath)
 
 // Fail fast when required env vars are missing
+console.log('[Server] Validating environment...')
 validateEnv()
 
 const dev = process.env.NODE_ENV !== 'production'
 const hostname = process.env.HOSTNAME || '0.0.0.0'
 const port = parseInt(process.env.PORT || '3003', 10)
 
+console.log(`[Server] Setting up Next.js (dev: ${dev}, hostname: ${hostname}, port: ${port})...`)
 const app = next({ dev, hostname, port })
 const handle = app.getRequestHandler()
 
+console.log('[Server] Preparing Next.js application...')
 app.prepare().then(async () => {
+  console.log('[Server] Application prepared. Creating HTTP server...')
   const server = createServer(async (req, res) => {
     try {
       const parsedUrl = parse(req.url!, true)
       await handle(req, res, parsedUrl)
     } catch (err) {
-      console.error('Error handling request:', err)
+      console.error('[Server] Request error:', err)
       res.statusCode = 500
       res.end('Internal Server Error')
     }
   })
 
   // Initialize Socket.io server
-  const io = await initEnhancedSocketServer(server)
-  console.log('✅ Socket.io server initialized')
+  console.log('[Server] Initializing Socket.io...')
+  try {
+    const io = await initEnhancedSocketServer(server)
+    console.log('✅ [Server] Socket.io server initialized')
+  } catch (err) {
+    console.error('❌ [Server] Socket.io initialization failed:', err)
+    // Continue starting the server even if Socket.io fails - might just be in-memory mode
+  }
 
   server
     .once('error', (err) => {
-      console.error('Server error:', err)
+      console.error('❌ [Server] Fatal error encountered:', err)
       process.exit(1)
     })
     .listen(port, () => {
-      console.log(`> Ready on http://${hostname}:${port}`)
-      console.log(`> Socket.io ready on ws://${hostname}:${port}/api/socket`)
+      console.log(`🚀 [Server] Ready on http://${hostname}:${port}`)
+      console.log(`📡 [Server] Socket.io ready on ws://${hostname}:${port}/api/socket`)
     })
 })

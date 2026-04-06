@@ -439,40 +439,50 @@ function rateLimitMiddleware(socket: Socket, next: (err?: Error) => void) {
 }
 
 // Initialize Redis clients
+/**
+ * Initialize Redis clients with a timeout to prevent hanging the entire server startup.
+ */
 async function initRedis() {
   try {
     if (!process.env.REDIS_URL) {
-      console.warn('REDIS_URL not set - Redis features disabled')
+      console.warn('⚠️ [Redis] REDIS_URL not set - proceeding with in-memory mode')
       return
     }
 
     const url = process.env.REDIS_URL
-    redisClient = new Redis(url, {
-      retryStrategy: times => Math.min(times * 50, 2000),
+    const redisOptions: any = {
+      retryStrategy: (times: number) => Math.min(times * 100, 3000),
       maxRetriesPerRequest: 3,
-      lazyConnect: true,
+      lazyConnect: true, // Don't connect immediately
+      connectTimeout: 5000, // 5 seconds timeout for connection attempts
+    }
+
+    console.log('[Redis] Initializing clients...')
+    redisClient = new Redis(url, redisOptions)
+    redisPubClient = new Redis(url, redisOptions)
+    redisSubClient = new Redis(url, redisOptions)
+
+    // Handle errors globally to prevent process crash
+    const errorHandler = (name: string) => (err: Error) => {
+      console.error(`❌ [Redis] ${name} error:`, err.message)
+    }
+    redisClient.on('error', errorHandler('Client'))
+    redisPubClient.on('error', errorHandler('Pub'))
+    redisSubClient.on('error', errorHandler('Sub'))
+
+    // Attempt to connect in the background, don't wait for it to block startup
+    console.log('[Redis] Connecting in background...')
+    Promise.all([
+      redisClient.connect().catch(() => {}),
+      redisPubClient.connect().catch(() => {}),
+      redisSubClient.connect().catch(() => {}),
+    ]).then(() => {
+      if (redisClient?.status === 'ready') {
+        console.log('✅ [Redis] Connection successful')
+      }
     })
-    redisClient.on('error', () => {})
-
-    redisPubClient = new Redis(url, {
-      retryStrategy: times => Math.min(times * 50, 2000),
-      maxRetriesPerRequest: 3,
-      lazyConnect: true,
-    })
-    redisPubClient.on('error', () => {})
-
-    redisSubClient = new Redis(url, {
-      retryStrategy: times => Math.min(times * 50, 2000),
-      maxRetriesPerRequest: 3,
-      lazyConnect: true,
-    })
-    redisSubClient.on('error', () => {})
-
-    await Promise.all([redisClient.connect(), redisPubClient.connect(), redisSubClient.connect()])
-
-    console.log('Redis clients initialized successfully')
   } catch (error) {
-    console.error('Failed to initialize Redis:', error)
+    console.error('❌ [Redis] Failed to initialize Redis config:', error)
     redisClient = null
     redisPubClient = null
     redisSubClient = null
@@ -481,8 +491,10 @@ async function initRedis() {
 
 // Enhanced socket server initialization
 export async function initEnhancedSocketServer(server: NetServer) {
+  console.log('[Socket] Initializing enhanced server...')
   validateEnv()
-  await initRedis()
+  // Run Redis initialization in background, don't await to avoid blocking server readiness
+  void initRedis()
   const intervalHandles: Array<ReturnType<typeof setInterval>> = []
 
   const io = new SocketIOServer(server, {
