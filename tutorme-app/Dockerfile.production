@@ -37,7 +37,8 @@ RUN adduser --system --uid 1001 nextjs
 
 # Copy necessary files
 COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+# Standalone output has nested structure due to monorepo layout - copy contents to root
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone/ADK_WORKSPACE/TutorMekimi/tutorme-app/ ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
