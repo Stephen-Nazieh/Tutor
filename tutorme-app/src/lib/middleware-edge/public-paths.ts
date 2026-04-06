@@ -1,5 +1,5 @@
 /** Paths that do not require an authenticated session (normalized, no locale prefix). */
-export const PUBLIC_EXACT_PATHS = ['/'] as const
+export const PUBLIC_EXACT_PATHS = ['/', '/register'] as const
 
 export const PUBLIC_PREFIX_PATHS = [
   '/api/auth',
@@ -14,7 +14,7 @@ export const PUBLIC_PREFIX_PATHS = [
   '/api/admin/auth',
   '/login',
   '/forgot-password',
-  '/register',
+  '/register/',
 ] as const
 
 export function isPublicNormalizedPath(normalizedPath: string): boolean {

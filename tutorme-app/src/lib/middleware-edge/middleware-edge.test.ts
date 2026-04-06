@@ -24,6 +24,15 @@ describe('middleware-edge helpers', () => {
     expect(isPublicNormalizedPath('/student/dashboard')).toBe(false)
   })
 
+  it('isPublicNormalizedPath matches register paths including subpaths', () => {
+    expect(isPublicNormalizedPath('/register')).toBe(true)
+    expect(isPublicNormalizedPath('/register/')).toBe(true)
+    expect(isPublicNormalizedPath('/register/tutor')).toBe(true)
+    expect(isPublicNormalizedPath('/register/student')).toBe(true)
+    expect(isPublicNormalizedPath('/register/parent')).toBe(true)
+    expect(isPublicNormalizedPath('/register/admin')).toBe(true)
+  })
+
   it('getCspHeader includes default-src and object-src none', () => {
     const csp = getCspHeader()
     expect(csp).toContain("default-src 'self'")
