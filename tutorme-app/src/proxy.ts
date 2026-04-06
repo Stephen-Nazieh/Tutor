@@ -39,7 +39,7 @@ export default withAuth(
       asJwt(await fetchJwtWithCookieFallbacks(req as never, normalizedPath))
 
     const method = req.method ?? 'GET'
-    const handleMatch = normalizedPath.match(/^\/@([a-zA-Z0-9_]{3,15})$/)
+    const handleMatch = normalizedPath.match(/^\/@([a-zA-Z0-9_]{3,30})$/)
 
     if (handleMatch) {
       const username = handleMatch[1].toLowerCase()

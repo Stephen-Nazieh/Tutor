@@ -352,7 +352,35 @@ export async function performRegistration(
         serviceDescription: tutorData.serviceDescription,
       }
 
-      await tx.insert(tutorApplication).values(tutorApplicationValues)
+      try {
+        await tx.insert(tutorApplication).values(tutorApplicationValues)
+      } catch (error) {
+        // Check if error is about missing userId column
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        if (errorMessage.includes('userId') && errorMessage.includes('does not exist')) {
+          console.error(
+            '[Registration] TutorApplication.userId column missing. Running migration...'
+          )
+          // Try to add the column dynamically
+          try {
+            await tx.execute(
+              'ALTER TABLE "TutorApplication" ADD COLUMN IF NOT EXISTS "userId" text;'
+            )
+            await tx.execute(
+              'UPDATE "TutorApplication" SET "userId" = NULL WHERE "userId" IS NULL;'
+            )
+            // Retry the insert
+            await tx.insert(tutorApplication).values(tutorApplicationValues)
+          } catch (migrationError) {
+            console.error('[Registration] Failed to add userId column:', migrationError)
+            throw new Error(
+              'Database schema issue: TutorApplication.userId column missing. Please contact support.'
+            )
+          }
+        } else {
+          throw error
+        }
+      }
     }
 
     if (role === 'PARENT') {

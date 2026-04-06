@@ -35,21 +35,27 @@ ENV HOSTNAME="0.0.0.0"
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy necessary files from standalone (handles both flat and nested structures)
-# First copy the entire standalone output
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-# If standalone has nested structure (ADK_WORKSPACE/TutorMekimi/tutorme-app/), move files to root
-RUN if [ -d "ADK_WORKSPACE" ]; then \
-      mv ADK_WORKSPACE/TutorMekimi/tutorme-app/* . 2>/dev/null || true; \
-      mv ADK_WORKSPACE/TutorMekimi/tutorme-app/.* . 2>/dev/null || true; \
-      rm -rf ADK_WORKSPACE; \
-    fi
+# Copy the standalone output - check both flat and nested structures
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone /tmp/standalone
 
-# Copy additional files not in standalone
+# Flatten if nested structure exists (monorepo layout), otherwise use as-is
+RUN if [ -d "/tmp/standalone/ADK_WORKSPACE" ]; then \
+      mv /tmp/standalone/ADK_WORKSPACE/TutorMekimi/tutorme-app/* /app/ 2>/dev/null || true; \
+      mv /tmp/standalone/ADK_WORKSPACE/TutorMekimi/tutorme-app/.* /app/ 2>/dev/null || true; \
+    else \
+      mv /tmp/standalone/* /app/ 2>/dev/null || true; \
+      mv /tmp/standalone/.* /app/ 2>/dev/null || true; \
+    fi && \
+    rm -rf /tmp/standalone
+
+# Copy additional required files
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
+
+# Ensure correct permissions
+RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 
@@ -59,4 +65,5 @@ EXPOSE 3003
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3003/api/health || exit 1
 
-CMD ["node", "scripts/start-prod.js"]
+# Run migrations then start server
+CMD ["node", "scripts/migrate-and-start.js"]

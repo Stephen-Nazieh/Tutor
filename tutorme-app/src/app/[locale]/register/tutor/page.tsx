@@ -1962,7 +1962,7 @@ export default function TutorRegistrationPage() {
     if (!HANDLE_REGEX.test(normalized)) {
       setUsernameStatus({
         status: 'invalid',
-        message: 'Username must be 3-15 characters (letters, numbers, underscores)',
+        message: 'Username must be 3-30 characters (letters, numbers, underscores)',
       })
       return
     }
@@ -2052,7 +2052,7 @@ export default function TutorRegistrationPage() {
     if (!HANDLE_REGEX.test(normalized)) {
       setUsernameStatus({
         status: 'invalid',
-        message: 'Username must be 3-15 characters (letters, numbers, underscores)',
+        message: 'Username must be 3-30 characters (letters, numbers, underscores)',
       })
       return
     }
@@ -2138,7 +2138,7 @@ export default function TutorRegistrationPage() {
     }
     const normalized = normalizeUsernameInput(formData.username)
     if (!HANDLE_REGEX.test(normalized)) {
-      toast.error('Username must be 3-15 characters (letters, numbers, underscores)')
+      toast.error('Username must be 3-30 characters (letters, numbers, underscores)')
       return false
     }
     if (isReservedHandle(normalized)) {
