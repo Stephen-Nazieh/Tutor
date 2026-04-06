@@ -14,8 +14,6 @@ import {
   liveSession,
   sessionParticipant,
   payment,
-  clinicBooking,
-  clinic,
 } from '@/lib/db/schema'
 
 export const GET = withAuth(
@@ -30,7 +28,6 @@ export const GET = withAuth(
         sessionIdsRes,
         upcomingCountRes,
         directPayments,
-        clinicPaymentsRes,
       ] = await Promise.all([
         drizzleDb
           .select({ currency: profile.currency })
@@ -63,12 +60,7 @@ export const GET = withAuth(
           .from(payment)
           .where(and(eq(payment.status, 'COMPLETED'), eq(payment.tutorId, tutorId))),
 
-        drizzleDb
-          .select({ amount: payment.amount })
-          .from(payment)
-          .innerJoin(clinicBooking, eq(clinicBooking.bookingId, payment.bookingId))
-          .innerJoin(clinic, eq(clinic.clinicId, clinicBooking.clinicId))
-          .where(and(eq(payment.status, 'COMPLETED'), eq(clinic.tutorId, tutorId))),
+        Promise.resolve([] as { amount: number | null }[]),
       ])
 
       const totalClasses = Number(totalClassesRes[0]?.value || 0)
@@ -86,10 +78,7 @@ export const GET = withAuth(
       }
 
       const directAmount = directPayments.reduce((sum, p) => sum + (p.amount || 0), 0)
-      const clinicAmount = clinicPaymentsRes.reduce((sum, p) => sum + (p.amount || 0), 0)
-      // Maintain the original logic: earnings is the max of direct vs clinic totals
-      // (This seems like odd logic, but we preserve it to match original behavior)
-      const earnings = Math.max(directAmount, clinicAmount)
+      const earnings = directAmount
       const currency = profileData[0]?.currency ?? 'SGD'
 
       return NextResponse.json({

@@ -13,7 +13,6 @@ import {
   curriculumLesson,
   curriculumLessonProgress,
   quizAttempt,
-  userGamification,
 } from '@/lib/db/schema'
 import { eq, and, desc, inArray, sql } from 'drizzle-orm'
 
@@ -75,12 +74,6 @@ export const GET = withAuth(
       .orderBy(desc(quizAttempt.completedAt))
       .limit(20)
 
-    const [gamification] = await drizzleDb
-      .select()
-      .from(userGamification)
-      .where(eq(userGamification.userId, session.user.id))
-      .limit(1)
-
     const totalLessons = lessons.length
     const completedLessons = lessons.filter(
       l => progressByLessonId.get(l.lessonId)?.status === 'COMPLETED'
@@ -117,9 +110,9 @@ export const GET = withAuth(
         completedLessons,
         totalLessons,
         confidence: Math.round(avgScore),
-        xp: gamification?.xp ?? 0,
-        level: gamification?.level ?? 1,
-        streakDays: gamification?.streakDays ?? 0,
+        xp: 0,
+        level: 1,
+        streakDays: 0,
         skills,
         conceptMastery,
         recentLessons,

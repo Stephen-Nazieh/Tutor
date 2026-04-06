@@ -7,7 +7,6 @@ import {
   sessionParticipant,
   sessionReplayArtifact,
   profile,
-  generatedTask,
   taskSubmission,
   curriculumLesson,
 } from '@/lib/db/schema'
@@ -90,29 +89,13 @@ export async function GET(_req: NextRequest) {
               .where(eq(curriculumLesson.courseId, liveSessionRow.courseId))
           ).map(l => l.lessonId)
 
-          const allTaskIds: string[] = []
           if (lessonIds.length > 0) {
-            const byLesson = await drizzleDb
-              .select({ taskId: generatedTask.taskId })
-              .from(generatedTask)
-              .where(
-                and(
-                  eq(generatedTask.tutorId, liveSessionRow.tutorId),
-                  inArray(generatedTask.lessonId, lessonIds)
-                )
-              )
-            allTaskIds.push(...byLesson.map(t => t.taskId))
-          }
-          const uniqueTaskIds = [...new Set(allTaskIds)]
-          taskCount = uniqueTaskIds.length
-          if (uniqueTaskIds.length > 0) {
             const submitted = await drizzleDb
               .select()
               .from(taskSubmission)
               .where(
                 and(
                   eq(taskSubmission.studentId, studentId),
-                  inArray(taskSubmission.taskId, uniqueTaskIds),
                   inArray(taskSubmission.status, ['submitted', 'graded'])
                 )
               )

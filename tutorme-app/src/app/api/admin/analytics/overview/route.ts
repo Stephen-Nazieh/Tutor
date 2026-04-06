@@ -16,7 +16,6 @@ import {
   videoWatchEvent,
   curriculumLessonProgress,
   poll,
-  whiteboardSession,
 } from '@/lib/db/schema'
 import { eq, gte, lt, and, desc, sql } from 'drizzle-orm'
 import { requireAdmin } from '@/lib/admin/auth'
@@ -180,14 +179,7 @@ export async function GET(req: NextRequest) {
         })
         .from(poll)
         .where(gte(poll.createdAt, startDate)),
-      drizzleDb
-        .select({
-          id: whiteboardSession.whiteboardSessionId,
-          roomId: whiteboardSession.roomId,
-          startedAt: whiteboardSession.startedAt,
-        })
-        .from(whiteboardSession)
-        .where(gte(whiteboardSession.startedAt, startDate)),
+      Promise.resolve([] as { id: string; roomId: string; startedAt: Date }[]),
     ])
 
     const totalUsers = totalUsersRows[0]?.count ?? 0

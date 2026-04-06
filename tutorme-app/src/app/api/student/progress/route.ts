@@ -23,8 +23,6 @@ import {
   courseLesson,
   courseLessonProgress,
   studentPerformance,
-  userGamification,
-  achievement,
   taskSubmission,
 } from '@/lib/db/schema'
 import { eq, desc, inArray } from 'drizzle-orm'
@@ -87,25 +85,12 @@ export async function GET(req: NextRequest) {
           .from(studentPerformance)
           .where(eq(studentPerformance.studentId, studentId))
 
-        const [gamification] = await drizzleDb
-          .select()
-          .from(userGamification)
-          .where(eq(userGamification.userId, studentId))
-          .limit(1)
-
-        const achievements = await drizzleDb
-          .select()
-          .from(achievement)
-          .where(eq(achievement.userId, studentId))
-          .orderBy(desc(achievement.unlockedAt))
-          .limit(10)
-
         const [{ count: submissionCount }] = await drizzleDb
           .select({ count: sql<number>`count(*)::int` })
           .from(taskSubmission)
           .where(eq(taskSubmission.studentId, studentId))
 
-        const totalStudyMinutes = gamification?.totalStudyMinutes ?? 0
+        const totalStudyMinutes = 0
 
         const lessonsByCourse = new Map<string, typeof lessons>()
         for (const l of lessons) {
@@ -172,24 +157,17 @@ export async function GET(req: NextRequest) {
             totalLessons,
             studyHours: Math.round((totalStudyMinutes / 60) * 10) / 10,
             averageScore: overallAvg,
-            achievementCount: achievements.length,
+            achievementCount: 0,
             submissionCount: submissionCount ?? 0,
-            level: gamification?.level ?? 1,
-            xp: gamification?.xp ?? 0,
-            streakDays: gamification?.streakDays ?? 0,
+            level: 1,
+            xp: 0,
+            streakDays: 0,
           },
           courses,
           strengths: strengthCounts.slice(0, 5),
           weaknesses: weaknessCounts.slice(0, 5),
           scoreTrend,
-          achievements: achievements.map(a => ({
-            achievementId: a.achievementId,
-            type: a.type,
-            title: a.title,
-            description: a.description,
-            unlockedAt: a.unlockedAt,
-            xpAwarded: a.xpAwarded,
-          })),
+          achievements: [],
           skillBreakdown: (performances[0]?.skillBreakdown as Record<string, unknown>) ?? {},
         }
       },

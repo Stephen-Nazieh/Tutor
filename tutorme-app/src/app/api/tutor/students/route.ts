@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
 import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { courseEnrollment, clinicBooking, course, clinic } from '@/lib/db/schema'
+import { courseEnrollment, course } from '@/lib/db/schema'
 
 export const GET = withAuth(
   async (req, session) => {
@@ -35,30 +35,6 @@ export const GET = withAuth(
           },
           course: {
             columns: { courseId: true, name: true },
-          },
-        },
-      })
-
-      // Students who booked this tutor's clinics
-      const bookings = await drizzleDb.query.clinicBooking.findMany({
-        where: (cb, { exists, and }) =>
-          exists(
-            drizzleDb
-              .select()
-              .from(clinic)
-              .where(and(eq(clinic.clinicId, cb.clinicId), eq(clinic.tutorId, tutorId)))
-          ),
-        with: {
-          student: {
-            with: {
-              profile: {
-                columns: { name: true },
-              },
-            },
-            columns: { userId: true, email: true },
-          },
-          clinic: {
-            columns: { clinicId: true, title: true, startTime: true },
           },
         },
       })
@@ -94,25 +70,6 @@ export const GET = withAuth(
           courseId: e.course.courseId,
           courseName: e.course.name,
           enrolledAt: e.enrolledAt,
-        })
-      }
-
-      for (const b of bookings) {
-        const sid = b.student.userId
-        const name = b.student.profile?.name ?? b.student.email ?? 'Unknown'
-        if (!byStudentId.has(sid)) {
-          byStudentId.set(sid, {
-            id: sid,
-            name,
-            email: b.student.email,
-            courses: [],
-            classes: [],
-          })
-        }
-        byStudentId.get(sid)!.classes.push({
-          clinicId: b.clinic.clinicId,
-          clinicTitle: b.clinic.title,
-          startTime: b.clinic.startTime,
         })
       }
 

@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError, withRateLimitPreset } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, courseEnrollment, courseLesson, userGamification } from '@/lib/db/schema'
+import { course, courseEnrollment, courseLesson } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 const subjectCourseMap: Record<string, { name: string; description: string }> = {
@@ -135,36 +135,6 @@ export const POST = withCsrf(
         lessonsCompleted: 0,
         enrollmentSource: 'browse',
       })
-
-      const [existingGamification] = await drizzleDb
-        .select()
-        .from(userGamification)
-        .where(eq(userGamification.userId, session.user.id))
-        .limit(1)
-
-      if (existingGamification) {
-        await drizzleDb
-          .update(userGamification)
-          .set({ xp: existingGamification.xp + 50 })
-          .where(eq(userGamification.userId, session.user.id))
-      } else {
-        await drizzleDb.insert(userGamification).values({
-          gamificationId: crypto.randomUUID(),
-          userId: session.user.id,
-          level: 1,
-          xp: 50,
-          streakDays: 0,
-          longestStreak: 0,
-          totalStudyMinutes: 0,
-          grammarScore: 0,
-          vocabularyScore: 0,
-          speakingScore: 0,
-          listeningScore: 0,
-          confidenceScore: 0,
-          fluencyScore: 0,
-          unlockedWorlds: [],
-        })
-      }
 
       const [enrollment] = await drizzleDb
         .select()

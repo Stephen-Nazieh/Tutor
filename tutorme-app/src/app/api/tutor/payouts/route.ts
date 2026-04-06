@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { eq, and, desc, inArray, sql } from 'drizzle-orm'
 import { withAuth, ValidationError, parseBoundedInt } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { payout, payment, paymentOnPayout, clinicBooking, clinic } from '@/lib/db/schema'
+import { payout, payment, paymentOnPayout } from '@/lib/db/schema'
 import crypto from 'crypto'
 
 // GET - List all payouts for the tutor
@@ -28,23 +28,6 @@ export const GET = withAuth(
     const [payouts, totalCountResult] = await Promise.all([
       drizzleDb.query.payout.findMany({
         where: and(...whereConditions),
-        with: {
-          payments: {
-            with: {
-              payment: {
-                with: {
-                  booking: {
-                    with: {
-                      clinic: {
-                        columns: { title: true },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
         orderBy: [desc(payout.requestedAt)],
         limit,
         offset,
@@ -57,7 +40,6 @@ export const GET = withAuth(
 
     const totalCount = Number(totalCountResult[0]?.count || 0)
 
-    // Format response
     const formattedPayouts = payouts.map(p => ({
       id: p.payoutId,
       amount: p.amount,
@@ -68,13 +50,8 @@ export const GET = withAuth(
       processedAt: p.processedAt,
       completedAt: p.completedAt,
       transactionReference: p.transactionReference,
-      paymentCount: p.payments.length,
-      payments: p.payments.map(pp => ({
-        id: pp.payment.paymentId,
-        amount: pp.amount,
-        description: pp.payment.booking?.clinic?.title || 'Course Payment',
-        date: pp.payment.createdAt,
-      })),
+      paymentCount: 0,
+      payments: [],
     }))
 
     return NextResponse.json({

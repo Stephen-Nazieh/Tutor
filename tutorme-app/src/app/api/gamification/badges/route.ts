@@ -1,33 +1,17 @@
-/**
- * GET /api/gamification/badges
- * Get all badges for the current user
- */
+import { legacyRemoved } from '@/lib/api/legacy'
 
-import { NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
-import { getAllBadgesWithProgress, getBadgeStats } from '@/lib/gamification/badges'
+export async function GET() {
+  return legacyRemoved('Gamification')
+}
 
-export const GET = withAuth(
-  async (req, session) => {
-    try {
-      const userId = session.user.id
+export async function POST() {
+  return legacyRemoved('Gamification')
+}
 
-      const [badges, stats] = await Promise.all([
-        getAllBadgesWithProgress(userId),
-        getBadgeStats(userId),
-      ])
+export async function PATCH() {
+  return legacyRemoved('Gamification')
+}
 
-      return NextResponse.json({
-        success: true,
-        data: {
-          badges,
-          stats,
-        },
-      })
-    } catch (error) {
-      console.error('Error fetching badges:', error)
-      return NextResponse.json({ success: false, error: 'Failed to fetch badges' }, { status: 500 })
-    }
-  },
-  { role: 'STUDENT' }
-)
+export async function PUT() {
+  return legacyRemoved('Gamification')
+}

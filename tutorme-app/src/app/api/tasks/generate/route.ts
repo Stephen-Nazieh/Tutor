@@ -1,115 +1,21 @@
-/**
- * POST /api/tasks/generate
- * Generate personalized tasks with various distribution modes
- */
+import { legacyRemoved } from '@/lib/api/legacy'
 
-import { NextRequest, NextResponse } from 'next/server'
-import { and, eq } from 'drizzle-orm'
-import { getServerSession, authOptions } from '@/lib/auth'
-import {
-  generateAndDistributeTasks,
-  saveGeneratedTasks,
-  TaskConfiguration,
-  DistributionMode,
-} from '@/lib/agents/task-generator'
-import { drizzleDb } from '@/lib/db/drizzle'
-import { liveSession } from '@/lib/db/schema'
-import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
-import { z } from 'zod'
+export async function GET() {
+  return legacyRemoved('Generated tasks')
+}
 
-const GenerateTasksSchema = z.object({
-  mode: z.string().min(1).max(32),
-  config: z.record(z.string(), z.unknown()),
-  targetStudentIds: z.array(z.string().min(1).max(128)).max(100).optional(),
-  roomId: z.string().min(1).max(128),
-  title: z.string().min(1).max(200),
-  description: z.string().max(2000).optional(),
-  type: z.string().max(50).default('assignment'),
-})
+export async function POST() {
+  return legacyRemoved('Generated tasks')
+}
 
-export async function POST(request: NextRequest) {
-  try {
-    const { response: rateLimitResponse } = await withRateLimitPreset(request, 'aiGenerate')
-    if (rateLimitResponse) return rateLimitResponse
+export async function PATCH() {
+  return legacyRemoved('Generated tasks')
+}
 
-    const session = await getServerSession(authOptions, request)
-    if (!session?.user) {
-      return NextResponse.json({ error: '未授权' }, { status: 401 })
-    }
+export async function PUT() {
+  return legacyRemoved('Generated tasks')
+}
 
-    // Only tutors and admins can generate tasks
-    if (session.user.role !== 'TUTOR' && session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: '无权生成任务' }, { status: 403 })
-    }
-
-    const body = await request.json().catch(() => null)
-    const parsed = GenerateTasksSchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json({ error: '请求参数无效' }, { status: 400 })
-    }
-    const { mode, config, targetStudentIds, roomId, title, description, type } = parsed.data
-
-    if (!mode || !config || !roomId) {
-      return NextResponse.json({ error: '缺少必要参数: mode, config, roomId' }, { status: 400 })
-    }
-
-    // Verify tutor owns the room
-    const [room] = await drizzleDb
-      .select()
-      .from(liveSession)
-      .where(and(eq(liveSession.sessionId, roomId), eq(liveSession.tutorId, session.user.id)))
-      .limit(1)
-
-    if (!room) {
-      return NextResponse.json({ error: '无权访问该教室' }, { status: 403 })
-    }
-
-    // Generate tasks
-    const result = await generateAndDistributeTasks(
-      mode as DistributionMode,
-      config as unknown as TaskConfiguration,
-      {
-        studentIds: targetStudentIds,
-        targetStudentId: targetStudentIds?.[0],
-      }
-    )
-
-    if (!result.success || !result.tasks) {
-      return handleApiError(
-        new Error(result.error || '任务生成失败'),
-        result.error || '任务生成失败',
-        'api/tasks/generate/route.ts'
-      )
-    }
-
-    // Save generated tasks to database
-    const saveResult = await saveGeneratedTasks(result.tasks, {
-      roomId,
-      tutorId: session.user.id,
-      distributionMode: mode as DistributionMode,
-      title,
-      description,
-      type,
-    })
-
-    if (!saveResult.success) {
-      return handleApiError(
-        new Error(saveResult.error || '保存任务失败'),
-        saveResult.error || '保存任务失败',
-        'api/tasks/generate/route.ts'
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        taskIds: saveResult.taskIds,
-        studentCount: result.tasks.size,
-        mode,
-      },
-    })
-  } catch (error) {
-    console.error('Failed to generate tasks:', error)
-    return handleApiError(error, '生成任务失败', 'api/tasks/generate/route.ts')
-  }
+export async function DELETE() {
+  return legacyRemoved('Generated tasks')
 }

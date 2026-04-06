@@ -16,43 +16,6 @@ import {
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
 
-export const studyGroup = pgTable(
-  'StudyGroup',
-  {
-    groupId: text('groupId').primaryKey().notNull(),
-    name: text('name').notNull(),
-    subject: text('subject').notNull(),
-    description: text('description'),
-    maxMembers: integer('maxMembers').notNull(),
-    createdBy: text('createdBy').notNull(),
-    isActive: boolean('isActive').notNull(),
-    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updatedAt', { withTimezone: true })
-      .notNull()
-      .$onUpdate(() => new Date()),
-  },
-  table => ({
-    StudyGroup_subject_idx: index('StudyGroup_subject_idx').on(table.subject),
-    StudyGroup_isActive_idx: index('StudyGroup_isActive_idx').on(table.isActive),
-  })
-)
-
-export const studyGroupMember = pgTable(
-  'StudyGroupMember',
-  {
-    membershipId: text('membershipId').primaryKey().notNull(),
-    groupId: text('groupId').notNull(),
-    studentId: text('studentId').notNull(),
-    joinedAt: timestamp('joinedAt', { withTimezone: true }).notNull().defaultNow(),
-    role: text('role').notNull(),
-  },
-  table => ({
-    StudyGroupMember_studentId_idx: index('StudyGroupMember_studentId_idx').on(table.studentId),
-    StudyGroupMember_groupId_studentId_key: uniqueIndex(
-      'StudyGroupMember_groupId_studentId_key'
-    ).on(table.groupId, table.studentId),
-  })
-)
 
 export const userActivityLog = pgTable(
   'UserActivityLog',

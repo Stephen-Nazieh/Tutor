@@ -9,7 +9,7 @@ import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { user, courseEnrollment, userGamification } from '@/lib/db/schema'
+import { user, courseEnrollment } from '@/lib/db/schema'
 import cacheManager from '@/lib/cache-manager'
 
 const CACHE_TTL = parseInt(process.env.CACHE_TTL_STUDENT_ANALYTICS || '45', 10)
@@ -47,7 +47,7 @@ export const GET = withAuth(
       return res
     }
 
-    const [userData, enrollments, gamificationData] = await Promise.all([
+    const [userData, enrollments] = await Promise.all([
       drizzleDb.query.user.findFirst({
         where: eq(user.userId, studentId),
         with: {
@@ -63,9 +63,6 @@ export const GET = withAuth(
         with: {
           course: { columns: { courseId: true, name: true } },
         },
-      }),
-      drizzleDb.query.userGamification.findFirst({
-        where: eq(userGamification.userId, studentId),
       }),
     ])
 
@@ -83,8 +80,8 @@ export const GET = withAuth(
         courseName: e.course.name,
         enrolledAt: e.enrolledAt,
       })),
-      level: gamificationData?.level ?? null,
-      xp: gamificationData?.xp ?? null,
+      level: null,
+      xp: null,
     }
 
     await cacheManager.set(cacheKey, data, {

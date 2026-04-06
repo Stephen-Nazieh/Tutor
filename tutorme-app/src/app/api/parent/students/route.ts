@@ -8,7 +8,7 @@ import { inArray } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { courseEnrollment, courseProgress, userGamification } from '@/lib/db/schema'
+import { courseEnrollment, courseProgress } from '@/lib/db/schema'
 import cacheManager from '@/lib/cache-manager'
 
 const CACHE_TTL = 180
@@ -45,7 +45,7 @@ export const GET = withAuth(
       return NextResponse.json({ success: true, data })
     }
 
-    const [enrollments, progressRecords, gamification] = await Promise.all([
+    const [enrollments, progressRecords] = await Promise.all([
       drizzleDb.query.courseEnrollment.findMany({
         where: inArray(courseEnrollment.studentId, family.studentIds),
         with: {
@@ -55,16 +55,12 @@ export const GET = withAuth(
       drizzleDb.query.courseProgress.findMany({
         where: inArray(courseProgress.studentId, family.studentIds),
       }),
-      drizzleDb.query.userGamification.findMany({
-        where: inArray(userGamification.userId, family.studentIds),
-      }),
     ])
 
     const data = children.map((m: any) => {
       const uid = m.userId
       const enrolls = uid ? enrollments.filter((e: any) => e.studentId === uid) : []
       const prog = uid ? progressRecords.find((p: any) => p.studentId === uid) : null
-      const gam = uid ? gamification.find((g: any) => g.userId === uid) : null
       return {
         id: uid || m.id,
         name: m.user?.profile?.name || m.name,
@@ -84,8 +80,8 @@ export const GET = withAuth(
               isCompleted: prog.isCompleted,
             }
           : null,
-        level: gam?.level ?? null,
-        xp: gam?.xp ?? null,
+        level: null,
+        xp: null,
       }
     })
 
