@@ -201,16 +201,18 @@ async function insertTutorApplication(
     if (errorMessage.includes('userId') && errorMessage.includes('does not exist')) {
       console.error('[Registration] Attempting raw SQL insert via transaction...')
 
-      // Use Drizzle's execute within the same transaction
-      // This ensures we're using the same connection
-      const sql = `
+      // Use raw SQL with UNQUOTED column names
+      // PostgreSQL folds unquoted identifiers to lowercase, which matches
+      // how the column likely exists in production (as 'userid' not 'userId')
+      const { sql } = await import('drizzle-orm')
+      await tx.execute(sql`
         INSERT INTO "TutorApplication" (
-          "applicationId", "userId", "firstName", "middleName", "lastName",
-          "legalName", "countryOfResidence", "phoneCountryCode", "phoneNumber",
-          "educationLevel", "hasTeachingCertificate", "certificateName", "certificateSubjects",
-          "tutoringExperienceRange", "globalExams", "tutoringCountries",
-          "countrySubjectSelections", "categories", "username", "socialLinks", "serviceDescription",
-          "createdAt", "updatedAt"
+          applicationId, userid, firstName, middleName, lastName,
+          legalName, countryOfResidence, phoneCountryCode, phoneNumber,
+          educationLevel, hasTeachingCertificate, certificateName, certificateSubjects,
+          tutoringExperienceRange, globalExams, tutoringCountries,
+          countrySubjectSelections, categories, username, socialLinks, serviceDescription,
+          createdAt, updatedAt
         ) VALUES (
           ${values.applicationId},
           ${values.userId},
@@ -235,10 +237,7 @@ async function insertTutorApplication(
           ${values.serviceDescription},
           NOW(), NOW()
         )
-      `
-
-      // Execute raw SQL within the transaction
-      await tx.execute(sql)
+      `)
     } else {
       throw error
     }
