@@ -2163,14 +2163,6 @@ export default function TutorRegistrationPage() {
       toast.error(usernameStatus.message || 'Username is invalid')
       return false
     }
-    if (!formData.legalName) {
-      toast.error('Legal name is required')
-      return false
-    }
-    if (!formData.serviceDescription || formData.serviceDescription.length < 10) {
-      toast.error('Please describe your service (min 10 characters)')
-      return false
-    }
 
     // If already checked and available, proceed immediately
     if (usernameStatus.status === 'available') {
@@ -2229,7 +2221,7 @@ export default function TutorRegistrationPage() {
         role: 'TUTOR',
         email: formData.email,
         password: formData.password,
-        name: formData.legalName || `${formData.firstName} ${formData.lastName}`,
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
         tosAccepted: formData.agreeToTerms,
         profileData: {
           timezone: formData.timezone,
@@ -3014,15 +3006,6 @@ export default function TutorRegistrationPage() {
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Legal Name</Label>
-                  <Input
-                    value={formData.legalName}
-                    onChange={e => setFormData({ ...formData, legalName: e.target.value })}
-                    placeholder="Enter your full legal name"
-                  />
-                </div>
-
                 <div className="space-y-3">
                   <Label>Social Media Accounts</Label>
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -3069,18 +3052,6 @@ export default function TutorRegistrationPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Describe Your Service</Label>
-                  <Textarea
-                    value={formData.serviceDescription}
-                    onChange={e =>
-                      setFormData({ ...formData, serviceDescription: e.target.value.slice(0, 500) })
-                    }
-                    placeholder="Describe your tutoring service (500 characters max)"
-                  />
-                  <p className="text-xs text-gray-500">{formData.serviceDescription.length}/500</p>
-                </div>
-
                 <div className="flex gap-3">
                   <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>
                     Back
@@ -3107,13 +3078,10 @@ export default function TutorRegistrationPage() {
                       Profile Overview
                     </h4>
                     <p className="text-sm">
-                      <strong>Legal Name:</strong> {formData.legalName || 'Not provided'}
+                      <strong>Name:</strong> {formData.firstName} {formData.lastName}
                     </p>
                     <p className="text-sm">
                       <strong>Username:</strong> {formData.username}
-                    </p>
-                    <p className="text-sm">
-                      <strong>Service:</strong> {formData.serviceDescription || 'Not provided'}
                     </p>
                   </div>
 

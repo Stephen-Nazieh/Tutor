@@ -19,7 +19,7 @@ import * as enums from '../enums'
 export const user = pgTable(
   'User',
   {
-    userId: text('userId').primaryKey().notNull(),
+    userId: text('id').primaryKey().notNull(),
     email: text('email').notNull().unique(),
     password: text('password'),
     handle: text('handle'),
@@ -39,7 +39,7 @@ export const user = pgTable(
 export const account = pgTable(
   'Account',
   {
-    accountId: text('accountId').primaryKey().notNull(),
+    accountId: text('id').primaryKey().notNull(),
     userId: text('userId').notNull(),
     type: text('type').notNull(),
     provider: text('provider').notNull(),
@@ -61,7 +61,7 @@ export const account = pgTable(
 )
 
 export const profile = pgTable('Profile', {
-  profileId: text('profileId').primaryKey().notNull(),
+  profileId: text('id').primaryKey().notNull(),
   userId: text('userId').notNull().unique(),
   name: text('name'),
   username: text('username').unique(),
@@ -97,13 +97,13 @@ export const profile = pgTable('Profile', {
 export const tutorApplication = pgTable(
   'TutorApplication',
   {
-    applicationId: text('applicationId').primaryKey().notNull(),
+    applicationId: text('id').primaryKey().notNull(),
     // Must match the actual production DB column: "userId" (camelCase, quoted)
     userId: text('userId').notNull().unique(),
     firstName: text('firstName').notNull(),
     middleName: text('middleName'),
     lastName: text('lastName').notNull(),
-    legalName: text('legalName').notNull(),
+    legalName: text('legalName'),
     countryOfResidence: text('countryOfResidence').notNull(),
     phoneCountryCode: text('phoneCountryCode').notNull(),
     phoneNumber: text('phoneNumber').notNull(),
@@ -118,7 +118,7 @@ export const tutorApplication = pgTable(
     categories: text('categories').array().notNull(),
     username: text('username').notNull(),
     socialLinks: jsonb('socialLinks'),
-    serviceDescription: text('serviceDescription').notNull(),
+    serviceDescription: text('serviceDescription'),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()

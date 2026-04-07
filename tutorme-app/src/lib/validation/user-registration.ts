@@ -18,7 +18,7 @@ export const tutorAdditionalDataSchema = z
     firstName: z.string().min(1, 'First name is required').max(50),
     middleName: z.string().max(50).optional(),
     lastName: z.string().min(1, 'Last name is required').max(50),
-    legalName: z.string().min(2, 'Legal name is required').max(120),
+    legalName: z.string().max(120).optional(),
     countryOfResidence: z.string().min(2, 'Country of residence is required').max(100),
     phoneCountryCode: z.string().min(1, 'Phone country code is required').max(10),
     phoneNumber: z.string().regex(phoneRegex, 'Valid phone number required'),
@@ -59,7 +59,7 @@ export const tutorAdditionalDataSchema = z
         facebook: z.string().max(100).optional(),
       })
       .optional(),
-    serviceDescription: z.string().min(10, 'Describe your service').max(500),
+    serviceDescription: z.string().max(500).optional().default(''),
     hourlyRate: z.number().min(0).max(10000).optional(),
   })
   .superRefine((data, ctx) => {

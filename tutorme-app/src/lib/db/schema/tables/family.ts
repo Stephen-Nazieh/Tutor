@@ -19,7 +19,7 @@ import * as enums from '../enums'
 export const familyAccount = pgTable(
   'FamilyAccount',
   {
-    familyAccountId: text('familyAccountId').primaryKey().notNull(),
+    familyAccountId: text('id').primaryKey().notNull(),
     familyName: text('familyName').notNull(),
     familyType: text('familyType').notNull(),
     primaryEmail: text('primaryEmail').notNull().unique(),
@@ -61,7 +61,7 @@ export const familyAccount = pgTable(
 export const familyMember = pgTable(
   'FamilyMember',
   {
-    familyMemberId: text('familyMemberId').primaryKey().notNull(),
+    familyMemberId: text('id').primaryKey().notNull(),
     familyAccountId: text('familyAccountId').notNull(),
     userId: text('userId'),
     name: text('name').notNull(),
@@ -203,7 +203,7 @@ export const familyNotification = pgTable(
 export const emergencyContact = pgTable(
   'EmergencyContact',
   {
-    contactId: text('contactId').primaryKey().notNull(),
+    contactId: text('id').primaryKey().notNull(),
     parentId: text('parentId').notNull(),
     name: text('name').notNull(),
     relation: text('relation').notNull(),
