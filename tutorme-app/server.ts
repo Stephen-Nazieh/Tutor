@@ -56,54 +56,15 @@ setInterval(() => {
   console.log(`[Server] Memory Usage: RSS=${rss}MB, Heap=${heap}MB, Ready=${isReady}`)
 }, 15000).unref() // Unref so it doesn't block process exit if needed
 
+// 4. Initialization (NEXT.JS + SOCKET.IO)
 const dev = process.env.NODE_ENV !== 'production'
 const hostname = process.env.HOSTNAME || '0.0.0.0'
 const port = parseInt(process.env.PORT || '3003', 10)
 
-// Standard Next.js server for dev, or optimized Standalone renderer for production
-let handle: any
-let app: any
+const app = next({ dev, hostname, port })
+const handle = app.getRequestHandler()
 
-if (dev) {
-  console.log('[Server] Initializing Next.js in DEVELOPMENT mode...')
-  app = next({ dev, hostname, port })
-  handle = app.getRequestHandler()
-} else {
-  console.log('[Server] Initializing Next.js in STANDALONE PRODUCTION mode...')
-  try {
-    // In standalone mode, we can use the NextServer class directly for instant readiness
-    const NextServer = require('next/dist/server/next-server').default
-    app = new NextServer({
-      hostname,
-      port,
-      dir: process.cwd(),
-      dev: false,
-      conf: {
-        env: {},
-        webpack: null,
-        eslint: { ignoreDuringBuilds: true },
-        typescript: { ignoreBuildErrors: true },
-        distDir: '.next',
-        cleanDistDir: false,
-        configOrigin: 'next.config.mjs',
-        useFileSystemPublicRoutes: true,
-        generateEtags: true,
-        pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
-        poweredByHeader: true,
-        staticPageGenerationTimeout: 60,
-        swcMinify: true,
-        output: 'standalone',
-      } as any,
-    })
-    handle = app.getRequestHandler()
-  } catch (err) {
-    console.error('⚠️ [Server] Failed to load standalone renderer, falling back to standard next():', err)
-    app = next({ dev: false, hostname, port })
-    handle = app.getRequestHandler()
-  }
-}
-
-console.log(`[Server] Binding port ${port} immediately...`)
+console.log(`[Server] Configuration: port=${port}, dev=${dev}`)
 
 // Create the HTTP server and bind to the port IMMEDIATELY
 const server = createServer(async (req, res) => {
@@ -112,71 +73,69 @@ const server = createServer(async (req, res) => {
     if (req.url === '/api/health' || req.url === '/health') {
       res.statusCode = isReady ? 200 : 503
       res.setHeader('Content-Type', 'application/json')
-      res.end(JSON.stringify({ status: isReady ? 'up' : 'initializing', error: initError?.message }))
+      res.end(JSON.stringify({ 
+        status: isReady ? 'up' : 'initializing', 
+        error: initError?.message,
+        timestamp: new Date().toISOString()
+      }))
       return
     }
 
-    // 2. Until app is ready, return 503 Service Unavailable
+    // 2. Ensure everything is ready before handling requests
     if (!isReady) {
       res.statusCode = 503
       res.setHeader('Retry-After', '2')
-      res.end('Server is starting up (renderer warming up)...')
+      res.end('Server warming up... (Next.js renderer preparing)')
       return
     }
 
     // 3. Normal request handling
     const parsedUrl = parse(req.url!, true)
     await handle(req, res, parsedUrl)
-  } catch (err) {
-    console.error('❌ [Server] Request handling crash:', err)
+  } catch (err: any) {
+    console.error('❌ [Server] Request Handling Fatal Error:', {
+      message: err?.message,
+      stack: err?.stack,
+      url: req.url,
+      isReady
+    })
     res.statusCode = 500
-    res.end('Internal Server Error (Server Survivor Block)')
+    res.end(`Internal Server Error (Diagnostics: ${err?.message || 'Unknown'})`)
   }
 })
 
-// BIND PORT IMMEDIATELY - Passed health checks start now!
+// BIND PORT IMMEDIATELY - Critical for Cloud Run health checks
 server
   .once('error', (err) => {
-    console.error('❌ [Server] Fatal error binding to port:', err)
+    console.error('❌ [Server] FATAL PORT BINDING ERROR:', err)
     process.exit(1)
   })
   .listen(port, () => {
-    console.log(`✅ [Server] Port ${port} is now EXPOSED and listening.`)
+    console.log(`✅ [Server] Listener active on port ${port}. Environment: ${process.env.NODE_ENV}`)
     
     // 4. Background initialization
-    console.log('[Server] Beginning background registration...')
-
-    // Env Validation in background
-    try {
-      validateEnv()
-      console.log('✅ [Config] Environment validated successfully')
-    } catch (err) {
-      console.error('⚠️ [Config] Environment validation warned:', err instanceof Error ? err.message : err)
-      initError = err as Error
-    }
-
-    // Initialize Socket.io and Next (if needed)
     const initialize = async () => {
       try {
-        if (dev || !app.prepare) {
-          // If standalone, we don't need app.prepare()
-          if (app.prepare) await app.prepare()
-          console.log('[Server] Initializing Socket.io...')
-          await initEnhancedSocketServer(server)
-          isReady = true
-          console.log('🎉 [Server] FULLY OPERATIONAL.')
-        } else {
-          console.log('[Server] Preparing Next.js renderer...')
-          await app.prepare()
-          console.log('[Server] Initializing Socket.io...')
-          await initEnhancedSocketServer(server)
-          isReady = true
-          console.log('🎉 [Server] FULLY OPERATIONAL.')
-        }
+        console.log('[Server] Step 1: Validating Environment...')
+        validateEnv()
+        
+        console.log('[Server] Step 2: Preparing Next.js App (Renderer)...')
+        await app.prepare()
+        console.log('[Server] ✅ Next.js renderer is now ready')
+
+        console.log('[Server] Step 3: Initializing Socket.io Interface...')
+        await initEnhancedSocketServer(server)
+        
+        console.log('🎉 [Server] FULLY OPERATIONAL.')
+        isReady = true
       } catch (err: any) {
-        console.error('❌ [Server] Background initialization failed:', err)
+        console.error('❌ [Server] Background Initialization CRASH:', err)
         initError = err
-        isReady = true // Set to true anyway to allow Next.js traffic if possible
+        // If it's a dev error or something that doesn't block rendering, we can still try to mark as ready
+        if (app) {
+           console.log('[Server] ⚠️ Attempting to continue with broken background status...')
+           isReady = true 
+        }
       }
     }
 
