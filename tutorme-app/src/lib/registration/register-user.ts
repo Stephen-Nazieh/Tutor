@@ -1,6 +1,4 @@
 import crypto from 'crypto'
-import path from 'path'
-import { mkdir } from 'fs/promises'
 import bcrypt from 'bcryptjs'
 import { nanoid } from 'nanoid'
 import { eq } from 'drizzle-orm'
@@ -21,7 +19,8 @@ import {
 import { ValidationError } from '@/lib/api/middleware'
 import { sanitizeHtml } from '@/lib/security/sanitize'
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_PRESETS } from '@/lib/security/rate-limit'
-import { verifyAllChildren, isStudentAlreadyLinked } from '@/lib/security/parent-child-queries'
+import { verifyAllChildren, isStudentAlreadyLinked, type VerifiedStudent } from '@/lib/security/parent-child-queries'
+import type { StudentLinkingInput } from '@/lib/validation/parent-child-security'
 import {
   HANDLE_REGEX,
   assertValidHandle,
@@ -38,8 +37,8 @@ function normalizeHandleSeed(seed: string): string {
     .replace(/[^a-z0-9_]/g, '')
     .replace(/_+/g, '_')
     .replace(/^_+|_+$/g, '')
-  if (cleaned.length >= 3) return cleaned.slice(0, 15)
-  return `user${nanoid(6).toLowerCase()}`.slice(0, 15)
+  if (cleaned.length >= 3) return cleaned.slice(0, 30)
+  return `user${nanoid(6).toLowerCase()}`.slice(0, 30)
 }
 
 async function generateUniqueHandle(
@@ -49,12 +48,12 @@ async function generateUniqueHandle(
   const base = normalizeHandleSeed(preferred)
   for (let attempt = 0; attempt < 30; attempt += 1) {
     const suffix = attempt === 0 ? '' : String(Math.floor(Math.random() * 9000) + 1000)
-    const candidate = `${base}${suffix}`.slice(0, 15)
+    const candidate = `${base}${suffix}`.slice(0, 30)
     if (!HANDLE_REGEX.test(candidate) || isReservedHandle(candidate)) continue
     const exists = await checkExists(candidate)
     if (!exists) return candidate
   }
-  return `user${nanoid(8).toLowerCase()}`.slice(0, 15)
+  return `user${nanoid(8).toLowerCase()}`.slice(0, 30)
 }
 
 export async function saveAvatar(userId: string, avatarFile: File): Promise<string> {
@@ -121,6 +120,9 @@ export async function saveAvatar(userId: string, avatarFile: File): Promise<stri
     throw new ValidationError('Profile photo failed moderation checks')
   }
 
+  // Save avatar to file system
+  const path = await import('path')
+  const { mkdir } = await import('fs/promises')
   const timestamp = Date.now()
   const relativeDir = path.join('uploads', 'avatars', userId)
   const absoluteDir = path.join(process.cwd(), 'public', relativeDir)
@@ -161,6 +163,91 @@ export interface RegistrationResult {
   headers?: Record<string, string>
 }
 
+// Helper to insert tutor application with robust column handling
+async function insertTutorApplication(
+  tx: typeof drizzleDb,
+  values: {
+    applicationId: string
+    userId: string
+    firstName: string
+    middleName: string | null
+    lastName: string
+    legalName: string
+    countryOfResidence: string
+    phoneCountryCode: string
+    phoneNumber: string
+    educationLevel: string
+    hasTeachingCertificate: boolean
+    certificateName: string | null
+    certificateSubjects: string | null
+    tutoringExperienceRange: string
+    globalExams: unknown
+    tutoringCountries: string[]
+    countrySubjectSelections: unknown
+    categories: string[]
+    username: string
+    socialLinks: unknown
+    serviceDescription: string
+  }
+) {
+  try {
+    // Try Drizzle ORM insert first
+    await tx.insert(tutorApplication).values(values)
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error('[Registration] TutorApplication insert error:', errorMessage)
+
+    // If column doesn't exist error, use raw SQL with explicit column names
+    if (errorMessage.includes('userId') && errorMessage.includes('does not exist')) {
+      console.error('[Registration] Attempting raw SQL insert...')
+
+      // Use raw SQL insert which handles case-insensitive column matching
+      const sql = `
+        INSERT INTO "TutorApplication" (
+          "applicationId", "userId", "firstName", "middleName", "lastName",
+          "legalName", "countryOfResidence", "phoneCountryCode", "phoneNumber",
+          "educationLevel", "hasTeachingCertificate", "certificateName", "certificateSubjects",
+          "tutoringExperienceRange", "globalExams", "tutoringCountries",
+          "countrySubjectSelections", "categories", "username", "socialLinks", "serviceDescription",
+          "createdAt", "updatedAt"
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21,
+          NOW(), NOW()
+        )
+      `
+
+      // Use pg driver directly for raw SQL with parameters
+      const { Pool } = await import('pg')
+      const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+      await pool.query(sql, [
+        values.applicationId,
+        values.userId,
+        values.firstName,
+        values.middleName,
+        values.lastName,
+        values.legalName,
+        values.countryOfResidence,
+        values.phoneCountryCode,
+        values.phoneNumber,
+        values.educationLevel,
+        values.hasTeachingCertificate,
+        values.certificateName,
+        values.certificateSubjects,
+        values.tutoringExperienceRange,
+        JSON.stringify(values.globalExams),
+        values.tutoringCountries,
+        JSON.stringify(values.countrySubjectSelections),
+        values.categories,
+        values.username,
+        values.socialLinks ? JSON.stringify(values.socialLinks) : null,
+        values.serviceDescription,
+      ])
+    } else {
+      throw error
+    }
+  }
+}
+
 export async function performRegistration(
   request: NextRequest,
   payload: RegisterUserInput,
@@ -168,9 +255,7 @@ export async function performRegistration(
 ): Promise<RegistrationResult> {
   const parsed = RegisterUserSchema.safeParse(payload)
   if (!parsed.success) {
-    const messages = parsed.error.issues
-      .map(issue => `${issue.path.join('.')}: ${issue.message}`)
-      .join(', ')
+    const messages = parsed.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', ')
     return { status: 400, body: { error: messages } }
   }
 
@@ -202,9 +287,7 @@ export async function performRegistration(
     }
   }
 
-  let verifiedStudents:
-    | Map<number, import('@/lib/security/parent-child-queries').VerifiedStudent>
-    | undefined
+  let verifiedStudents: Map<number, VerifiedStudent> | undefined
 
   const [existingUser] = await drizzleDb
     .select()
@@ -218,7 +301,7 @@ export async function performRegistration(
   if (role === 'PARENT') {
     const additionalData = data.additionalData as
       | {
-          students?: import('@/lib/validation/parent-child-security').StudentLinkingInput[]
+          students?: StudentLinkingInput[]
           emergencyContacts?: Array<{ name: string; relationship: string; phone: string }>
         }
       | undefined
@@ -352,35 +435,8 @@ export async function performRegistration(
         serviceDescription: tutorData.serviceDescription,
       }
 
-      try {
-        await tx.insert(tutorApplication).values(tutorApplicationValues)
-      } catch (error) {
-        // Check if error is about missing userId column
-        const errorMessage = error instanceof Error ? error.message : String(error)
-        if (errorMessage.includes('userId') && errorMessage.includes('does not exist')) {
-          console.error(
-            '[Registration] TutorApplication.userId column missing. Running migration...'
-          )
-          // Try to add the column dynamically
-          try {
-            await tx.execute(
-              'ALTER TABLE "TutorApplication" ADD COLUMN IF NOT EXISTS "userId" text;'
-            )
-            await tx.execute(
-              'UPDATE "TutorApplication" SET "userId" = NULL WHERE "userId" IS NULL;'
-            )
-            // Retry the insert
-            await tx.insert(tutorApplication).values(tutorApplicationValues)
-          } catch (migrationError) {
-            console.error('[Registration] Failed to add userId column:', migrationError)
-            throw new Error(
-              'Database schema issue: TutorApplication.userId column missing. Please contact support.'
-            )
-          }
-        } else {
-          throw error
-        }
-      }
+      // Use robust insert helper
+      await insertTutorApplication(tx, tutorApplicationValues)
     }
 
     if (role === 'PARENT') {
