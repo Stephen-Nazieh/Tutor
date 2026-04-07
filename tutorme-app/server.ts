@@ -146,7 +146,7 @@ server
         console.error('❌ [Server] Background Initialization Failed:', err)
         initError = err
         // We only mark as ready if Next.js preparation succeeded
-        if (initError.message.includes('prepare()')) {
+        if (initError && initError.message && initError.message.includes('prepare()')) {
            isReady = false
         } else if (app) {
            console.log('⚠️ [Server] Proceeding with partial readiness (Next.js renderer OK)')
