@@ -77,6 +77,15 @@ export async function POST(req: NextRequest) {
       createdAt: now,
       updatedAt: now,
       creatorId: userId,
+      // Deprecated columns kept for backward compatibility with production DB
+      subject: data.subject ?? 'general',
+      gradeLevel: data.gradeLevel ?? null,
+      difficulty: data.difficulty ?? null,
+      estimatedHours: data.estimatedHours ?? 0,
+      curriculumSource: 'PLATFORM',
+      outlineSource: 'SELF',
+      courseMaterials: null,
+      coursePitch: null,
     }
 
     // Insert course first (outside transaction to handle column errors)
