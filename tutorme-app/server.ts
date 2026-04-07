@@ -61,31 +61,69 @@ const dev = process.env.NODE_ENV !== 'production'
 const hostname = process.env.HOSTNAME || '0.0.0.0'
 const port = parseInt(process.env.PORT || '3003', 10)
 
-const app = next({ dev, hostname, port })
-const handle = app.getRequestHandler()
+let app: any
+let handle: any
 
-console.log(`[Server] Configuration: port=${port}, dev=${dev}`)
+console.log(`[Server] Environment: ${process.env.NODE_ENV || 'development'}, port: ${port}`)
+
+if (dev) {
+  app = next({ dev, hostname, port })
+  handle = app.getRequestHandler()
+} else {
+  try {
+    // RIGOROUS STANDALONE RENDERER:
+    // We load the official config generated during build to avoid 'prepare()' timeouts.
+    console.log('[Server] Loading standalone configuration...')
+    const serverFilesPath = resolve(process.cwd(), '.next/required-server-files.json')
+    const NextServer = require('next/dist/server/next-server').default
+    
+    let config = {}
+    if (existsSync(serverFilesPath)) {
+      const serverFiles = JSON.parse(readFileSync(serverFilesPath, 'utf-8'))
+      config = serverFiles.config
+      console.log('[Server] ✅ Build configuration loaded successfully')
+    } else {
+      console.warn('⚠️ [Server] .next/required-server-files.json not found, using default config')
+    }
+
+    app = new NextServer({
+      hostname,
+      port,
+      dir: process.cwd(),
+      dev: false,
+      conf: config as any,
+    })
+    handle = app.getRequestHandler()
+  } catch (err: any) {
+    console.error('❌ [Server] Failed to initialize Standalone renderer:', err)
+    // Fallback to standard next() which requires prepare()
+    app = next({ dev: false, hostname, port })
+    handle = app.getRequestHandler()
+  }
+}
 
 // Create the HTTP server and bind to the port IMMEDIATELY
 const server = createServer(async (req, res) => {
   try {
     // 1. Check for health check endpoint
     if (req.url === '/api/health' || req.url === '/health') {
-      res.statusCode = isReady ? 200 : 503
+      const status = isReady ? 200 : 503
+      res.statusCode = status
       res.setHeader('Content-Type', 'application/json')
       res.end(JSON.stringify({ 
         status: isReady ? 'up' : 'initializing', 
         error: initError?.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        node: process.version
       }))
       return
     }
 
-    // 2. Ensure everything is ready before handling requests
+    // 2. Ensure readiness
     if (!isReady) {
       res.statusCode = 503
       res.setHeader('Retry-After', '2')
-      res.end('Server warming up... (Next.js renderer preparing)')
+      res.end('Server is initializing... (Finalizing build assets)')
       return
     }
 
@@ -93,48 +131,51 @@ const server = createServer(async (req, res) => {
     const parsedUrl = parse(req.url!, true)
     await handle(req, res, parsedUrl)
   } catch (err: any) {
-    console.error('❌ [Server] Request Handling Fatal Error:', {
+    console.error('❌ [Server] Request Handling Error:', {
       message: err?.message,
       stack: err?.stack,
-      url: req.url,
-      isReady
+      url: req.url
     })
     res.statusCode = 500
     res.end(`Internal Server Error (Diagnostics: ${err?.message || 'Unknown'})`)
   }
 })
 
-// BIND PORT IMMEDIATELY - Critical for Cloud Run health checks
+// BIND PORT IMMEDIATELY
 server
   .once('error', (err) => {
-    console.error('❌ [Server] FATAL PORT BINDING ERROR:', err)
+    console.error('❌ [Server] Fatal port binding error:', err)
     process.exit(1)
   })
   .listen(port, () => {
-    console.log(`✅ [Server] Listener active on port ${port}. Environment: ${process.env.NODE_ENV}`)
+    console.log(`✅ [Server] Listener active on port ${port}`)
     
-    // 4. Background initialization
     const initialize = async () => {
       try {
         console.log('[Server] Step 1: Validating Environment...')
         validateEnv()
         
-        console.log('[Server] Step 2: Preparing Next.js App (Renderer)...')
-        await app.prepare()
-        console.log('[Server] ✅ Next.js renderer is now ready')
+        // In production with NextServer, we don't need app.prepare()
+        if (dev || (app && app.prepare && typeof app.prepare === 'function' && !app.constructor.name.includes('NextNodeServer'))) {
+          console.log('[Server] Step 2: Preparing Next.js App (Background)...')
+          await app.prepare()
+          console.log('[Server] ✅ Next.js renderer ready')
+        } else {
+          console.log('[Server] Step 2: Skipping prepare() for Standalone Renderer')
+        }
 
-        console.log('[Server] Step 3: Initializing Socket.io Interface...')
+        console.log('[Server] Step 3: Initializing Socket.io...')
         await initEnhancedSocketServer(server)
         
         console.log('🎉 [Server] FULLY OPERATIONAL.')
         isReady = true
       } catch (err: any) {
-        console.error('❌ [Server] Background Initialization CRASH:', err)
+        console.error('❌ [Server] Background Initialization Failed:', err)
         initError = err
-        // If it's a dev error or something that doesn't block rendering, we can still try to mark as ready
-        if (app) {
-           console.log('[Server] ⚠️ Attempting to continue with broken background status...')
-           isReady = true 
+        // CRITICAL: We only mark as ready if we actually have a working handle
+        if (handle) {
+          console.log('⚠️ [Server] Proceeding with Next.js only (Socket.io might be impaired)')
+          isReady = true
         }
       }
     }
