@@ -169,6 +169,13 @@
       "when": 1775515800000,
       "tag": "0023_fix_tutor_application_userid_robust",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1775602200000,
+      "tag": "0024_fix_userid_case_permanent",
+      "breakpoints": true
     }
   ]
 }
