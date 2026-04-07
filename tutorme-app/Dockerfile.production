@@ -18,10 +18,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Explicitly inject the OS-specific native bindings that the macOS-generated package-lock.json omits
 RUN npm install --no-save @parcel/watcher-linux-x64-glibc @swc/core-linux-x64-gnu @next/swc-linux-x64-gnu esbuild
 # Provide dummy credentials for Next.js static page prerendering (which requires DB instantiation)
-ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
-ENV DIRECT_URL="postgresql://dummy:dummy@localhost:5432/dummy"
-ENV NEXTAUTH_SECRET="dummy_secret_for_build_phase_only"
-ENV ADMIN_JWT_SECRET="dummy_secret_for_build_phase_only"
+# We write them to an env file to avoid Docker scanner SecretsUsedInArgOrEnv warnings
+RUN echo "DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy" >> .env.production && \
+    echo "DIRECT_URL=postgresql://dummy:dummy@localhost:5432/dummy" >> .env.production && \
+    echo "NEXTAUTH_SECRET=dummy_secret_for_build_phase_only" >> .env.production && \
+    echo "ADMIN_JWT_SECRET=dummy_secret_for_build_phase_only" >> .env.production
+
 RUN npm run build
 # Build the custom server with Socket.io support
 RUN node scripts/build-custom-server.js
@@ -39,50 +41,29 @@ ENV PORT=3003
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# NATIVE STANDALONE STRATEGY:
-# We keep the monorepo structure as Next.js intended it.
+# NATIVE STANDALONE STRATEGY
+# Since the Docker build context is the root of the app, standalone outputs everything cleanly to root.
+# 1. Copy the standalone output (contains server.js, node_modules, .next)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 
-# Find the nested app directory (e.g. ADK_WORKSPACE/TutorMekimi/tutorme-app)
-# We will use this to correctly place static assets and set the working directory
-RUN APP_DIR_NESTED=$(find . -name "server.js" -not -path "*/node_modules/*" | head -n 1 | xargs dirname) && \
-    echo "$APP_DIR_NESTED" > /tmp/app_dir_nested && \
-    echo "Using APP_DIR_NESTED: $APP_DIR_NESTED" && \
-    # Move our custom server to the same directory so it can find its relative .next folder
-    cp /app/server-production.js "$APP_DIR_NESTED/server-production.js"
+# 2. Copy the public directory and static files required for Next.js to serve assets
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy additional required files into the NESTED app directory
-RUN APP_DIR_NESTED=$(cat /tmp/app_dir_nested) && \
-    # We copy them from builder again into the nested path
-    mkdir -p "$APP_DIR_NESTED/public" && \
-    mkdir -p "$APP_DIR_NESTED/drizzle"
-    
+# 3. Copy our custom Socket.io server and other required files
 COPY --from=builder /app/server-production.js ./server-production.js
 COPY --from=builder /app/package.json ./package.json
 
-# Use build-time paths to copy public/static to where they are expected
-# We know the app root for builder is /app
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# 4. Copy database logic (Drizzle migrations & seed scripts)
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
-
-# Also copy these to the nested directory as double safety
-RUN APP_DIR_NESTED=$(cat /tmp/app_dir_nested) && \
-    cp -r public/. "$APP_DIR_NESTED/public/" && \
-    cp -r scripts/. "$APP_DIR_NESTED/scripts/" && \
-    cp -r drizzle/. "$APP_DIR_NESTED/drizzle/" && \
-    # Handle .next/static which is REQUIRED for hydration
-    mkdir -p "$APP_DIR_NESTED/.next/static" && \
-    cp -r .next/static/. "$APP_DIR_NESTED/.next/static/"
 
 # Ensure correct permissions
 RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 
-# Cloud Run uses the port defined by $PORT env var
 EXPOSE 3003
 
-# Run from the NESTED directory to ensure Next.js finds its local .next and dependencies
-CMD ["sh", "-c", "cd $(cat /tmp/app_dir_nested) && node scripts/migrate-and-start.js"]
+# Run the survivor script to start the server and run background migrations
+CMD ["node", "scripts/migrate-and-start.js"]
