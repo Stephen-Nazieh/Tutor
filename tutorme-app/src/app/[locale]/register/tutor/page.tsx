@@ -1937,7 +1937,7 @@ export default function TutorRegistrationPage() {
       .replace(/[^a-z0-9_]/g, '')
       .replace(/_+/g, '_')
       .replace(/^_+|_+$/g, '')
-      .slice(0, 15)
+      .slice(0, 30)
 
   // Generate username suggestion from first and last name
   const generateUsernameSuggestion = () => {
@@ -1953,44 +1953,59 @@ export default function TutorRegistrationPage() {
     return ''
   }
 
-  const checkUsernameAvailability = async (value: string) => {
+  const checkUsernameAvailability = async (value: string): Promise<boolean> => {
     const normalized = normalizeUsernameInput(value)
     if (!normalized.trim()) {
       setUsernameStatus({ status: 'idle' })
-      return
+      return false
     }
     if (!HANDLE_REGEX.test(normalized)) {
       setUsernameStatus({
         status: 'invalid',
         message: 'Username must be 3-30 characters (letters, numbers, underscores)',
       })
-      return
+      return false
     }
     if (isReservedHandle(normalized)) {
       setUsernameStatus({ status: 'invalid', message: 'This username is reserved' })
-      return
+      return false
     }
     setUsernameStatus({ status: 'checking' })
     try {
+      // Add timeout to prevent hanging
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+
       const res = await fetch(
-        `/api/public/username-availability?username=${encodeURIComponent(normalized)}`
+        `/api/public/username-availability?username=${encodeURIComponent(normalized)}`,
+        { signal: controller.signal }
       )
+      clearTimeout(timeoutId)
+
       if (!res.ok) {
         setUsernameStatus({ status: 'idle' })
-        return
+        return false
       }
       const data = await res.json()
       if (data.available) {
         setUsernameStatus({ status: 'available', message: 'Username is available' })
+        return true
       } else {
         setUsernameStatus({
           status: 'taken',
           message: 'Username is taken',
           suggestion: data.suggestion,
         })
+        return false
       }
-    } catch {
-      setUsernameStatus({ status: 'idle' })
+    } catch (err) {
+      // Handle timeout or network errors gracefully
+      if (err instanceof Error && err.name === 'AbortError') {
+        setUsernameStatus({ status: 'idle', message: 'Check timed out, please try again' })
+      } else {
+        setUsernameStatus({ status: 'idle' })
+      }
+      return false
     }
   }
 
@@ -2071,11 +2086,10 @@ export default function TutorRegistrationPage() {
     if (step === 3 && !formData.username && formData.firstName && formData.lastName) {
       const suggestion = generateUsernameSuggestion()
       if (suggestion) {
+        // Set username and immediately check availability
         setFormData(prev => ({ ...prev, username: suggestion }))
-        // Auto-check availability
-        setTimeout(() => {
-          void checkUsernameAvailability(suggestion)
-        }, 100)
+        // Don't wait for setFormData to propagate, check immediately
+        checkUsernameAvailability(suggestion)
       }
     }
   }, [step])
@@ -2158,28 +2172,31 @@ export default function TutorRegistrationPage() {
       return false
     }
 
-    // Show checking modal and verify username
-    setShowUsernameCheckModal(true)
-    await checkUsernameAvailability(normalized)
-
-    const availabilityRes = await fetch(
-      `/api/public/username-availability?username=${encodeURIComponent(normalized)}`
-    )
-    if (!availabilityRes.ok) {
-      setShowUsernameCheckModal(false)
-      toast.info('We will verify your username during signup')
+    // If already checked and available, proceed immediately
+    if (usernameStatus.status === 'available') {
       return true
     }
-    const availabilityData = await availabilityRes.json()
-    const isAvailable = availabilityData.available === true
+
+    // Show checking modal and verify username
+    setShowUsernameCheckModal(true)
+
+    // Check availability and get result directly
+    const isAvailable = await checkUsernameAvailability(normalized)
 
     setShowUsernameCheckModal(false)
 
-    if (!isAvailable) {
+    if (isAvailable) {
+      return true
+    }
+
+    // Check failed or username is taken
+    if (usernameStatus.status === 'taken') {
       toast.error('Username is already taken')
       return false
     }
 
+    // Timeout or error - allow proceeding with server-side verification
+    toast.info('We will verify your username during signup')
     return true
   }
 
