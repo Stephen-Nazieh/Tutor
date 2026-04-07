@@ -129,12 +129,22 @@ server
     console.log(`✅ [Server] Listener active on port ${port}`)
     
     const initialize = async () => {
+      // Step 1: Validate Environment (Non-blocking for renderer)
       try {
         console.log('[Server] Step 1: Validating Environment...')
         validateEnv()
-        
+      } catch (envErr: any) {
+        console.error('⚠️ [Server] Environment Validation Warning:', envErr?.message)
+        // We log it but do not crash the initialization sequence!
+        initError = envErr
+      }
+
+      // Step 2 & 3: Prepare Next.js and Socket.io
+      let isNextPrepared = false
+      try {
         console.log('[Server] Step 2: Preparing Next.js renderer...')
         await app.prepare()
+        isNextPrepared = true
         console.log('[Server] ✅ Next.js renderer ready.')
 
         console.log('[Server] Step 3: Initializing Socket.io...')
@@ -145,12 +155,14 @@ server
       } catch (err: any) {
         console.error('❌ [Server] Background Initialization Failed:', err)
         initError = err
-        // We only mark as ready if Next.js preparation succeeded
-        if (initError && initError.message && initError.message.includes('prepare()')) {
-           isReady = false
-        } else if (app) {
-           console.log('⚠️ [Server] Proceeding with partial readiness (Next.js renderer OK)')
+        
+        // CRITICAL FIX: Only set isReady=true if app.prepare() actually finished
+        if (isNextPrepared) {
+           console.log('⚠️ [Server] Next.js is prepared. Proceeding with partial readiness (Socket.io or Env may be degraded)')
            isReady = true 
+        } else {
+           console.error('❌ [Server] Next.js failed to prepare. Cannot serve UI traffic.')
+           isReady = false
         }
       }
     }
