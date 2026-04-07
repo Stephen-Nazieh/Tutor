@@ -183,6 +183,13 @@
       "when": 1775688600000,
       "tag": "0025_force_userid_lowercase",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1775775000000,
+      "tag": "0026_make_service_description_optional",
+      "breakpoints": true
     }
   ]
 }
