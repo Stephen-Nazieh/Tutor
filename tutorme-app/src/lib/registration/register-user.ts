@@ -199,9 +199,10 @@ async function insertTutorApplication(
 
     // If column doesn't exist error, use raw SQL with explicit column names
     if (errorMessage.includes('userId') && errorMessage.includes('does not exist')) {
-      console.error('[Registration] Attempting raw SQL insert...')
+      console.error('[Registration] Attempting raw SQL insert via transaction...')
 
-      // Use raw SQL insert which handles case-insensitive column matching
+      // Use Drizzle's execute within the same transaction
+      // This ensures we're using the same connection
       const sql = `
         INSERT INTO "TutorApplication" (
           "applicationId", "userId", "firstName", "middleName", "lastName",
@@ -211,37 +212,33 @@ async function insertTutorApplication(
           "countrySubjectSelections", "categories", "username", "socialLinks", "serviceDescription",
           "createdAt", "updatedAt"
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21,
+          ${values.applicationId},
+          ${values.userId},
+          ${values.firstName},
+          ${values.middleName ?? null},
+          ${values.lastName},
+          ${values.legalName},
+          ${values.countryOfResidence},
+          ${values.phoneCountryCode},
+          ${values.phoneNumber},
+          ${values.educationLevel},
+          ${values.hasTeachingCertificate},
+          ${values.certificateName ?? null},
+          ${values.certificateSubjects ?? null},
+          ${values.tutoringExperienceRange},
+          ${JSON.stringify(values.globalExams)},
+          ${values.tutoringCountries},
+          ${JSON.stringify(values.countrySubjectSelections)},
+          ${values.categories},
+          ${values.username},
+          ${values.socialLinks ? JSON.stringify(values.socialLinks) : null},
+          ${values.serviceDescription},
           NOW(), NOW()
         )
       `
 
-      // Use pg driver directly for raw SQL with parameters
-      const { Pool } = await import('pg')
-      const pool = new Pool({ connectionString: process.env.DATABASE_URL })
-      await pool.query(sql, [
-        values.applicationId,
-        values.userId,
-        values.firstName,
-        values.middleName,
-        values.lastName,
-        values.legalName,
-        values.countryOfResidence,
-        values.phoneCountryCode,
-        values.phoneNumber,
-        values.educationLevel,
-        values.hasTeachingCertificate,
-        values.certificateName,
-        values.certificateSubjects,
-        values.tutoringExperienceRange,
-        JSON.stringify(values.globalExams),
-        values.tutoringCountries,
-        JSON.stringify(values.countrySubjectSelections),
-        values.categories,
-        values.username,
-        values.socialLinks ? JSON.stringify(values.socialLinks) : null,
-        values.serviceDescription,
-      ])
+      // Execute raw SQL within the transaction
+      await tx.execute(sql)
     } else {
       throw error
     }
