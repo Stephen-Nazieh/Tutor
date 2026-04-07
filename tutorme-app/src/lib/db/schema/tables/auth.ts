@@ -98,7 +98,9 @@ export const tutorApplication = pgTable(
   'TutorApplication',
   {
     applicationId: text('applicationId').primaryKey().notNull(),
-    userId: text('userId').notNull().unique(),
+    // Using lowercase 'userid' to match PostgreSQL's case-folding behavior
+    // The column is created as lowercase in production
+    userId: text('userid').notNull().unique(),
     firstName: text('firstName').notNull(),
     middleName: text('middleName'),
     lastName: text('lastName').notNull(),
@@ -125,7 +127,7 @@ export const tutorApplication = pgTable(
       .$onUpdate(() => new Date()),
   },
   table => ({
-    TutorApplication_userId_idx: index('TutorApplication_userId_idx').on(table.userId),
+    TutorApplication_userId_idx: index('TutorApplication_userid_idx').on(table.userId),
     TutorApplication_username_idx: index('TutorApplication_username_idx').on(table.username),
   })
 )

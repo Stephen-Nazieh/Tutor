@@ -176,6 +176,13 @@
       "when": 1775602200000,
       "tag": "0024_fix_userid_case_permanent",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1775688600000,
+      "tag": "0025_force_userid_lowercase",
+      "breakpoints": true
     }
   ]
 }
