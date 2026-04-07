@@ -163,7 +163,7 @@ export interface RegistrationResult {
   headers?: Record<string, string>
 }
 
-// Helper to insert tutor application with robust column handling
+// Helper to insert tutor application
 async function insertTutorApplication(
   tx: typeof drizzleDb,
   values: {
@@ -190,58 +190,7 @@ async function insertTutorApplication(
     serviceDescription: string
   }
 ) {
-  try {
-    // Try Drizzle ORM insert first
-    await tx.insert(tutorApplication).values(values)
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    console.error('[Registration] TutorApplication insert error:', errorMessage)
-
-    // If column doesn't exist error, use raw SQL with explicit column names
-    if (errorMessage.includes('userId') && errorMessage.includes('does not exist')) {
-      console.error('[Registration] Attempting raw SQL insert via transaction...')
-
-      // Use raw SQL with UNQUOTED column names
-      // PostgreSQL folds unquoted identifiers to lowercase, which matches
-      // how the column likely exists in production (as 'userid' not 'userId')
-      const { sql } = await import('drizzle-orm')
-      await tx.execute(sql`
-        INSERT INTO "TutorApplication" (
-          applicationId, userid, firstName, middleName, lastName,
-          legalName, countryOfResidence, phoneCountryCode, phoneNumber,
-          educationLevel, hasTeachingCertificate, certificateName, certificateSubjects,
-          tutoringExperienceRange, globalExams, tutoringCountries,
-          countrySubjectSelections, categories, username, socialLinks, serviceDescription,
-          createdAt, updatedAt
-        ) VALUES (
-          ${values.applicationId},
-          ${values.userId},
-          ${values.firstName},
-          ${values.middleName ?? null},
-          ${values.lastName},
-          ${values.legalName},
-          ${values.countryOfResidence},
-          ${values.phoneCountryCode},
-          ${values.phoneNumber},
-          ${values.educationLevel},
-          ${values.hasTeachingCertificate},
-          ${values.certificateName ?? null},
-          ${values.certificateSubjects ?? null},
-          ${values.tutoringExperienceRange},
-          ${JSON.stringify(values.globalExams)},
-          ${values.tutoringCountries},
-          ${JSON.stringify(values.countrySubjectSelections)},
-          ${values.categories},
-          ${values.username},
-          ${values.socialLinks ? JSON.stringify(values.socialLinks) : null},
-          ${values.serviceDescription},
-          NOW(), NOW()
-        )
-      `)
-    } else {
-      throw error
-    }
-  }
+  await tx.insert(tutorApplication).values(values)
 }
 
 export async function performRegistration(
