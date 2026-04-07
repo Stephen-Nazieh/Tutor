@@ -19,7 +19,7 @@ import * as enums from '../enums'
 export const contentItem = pgTable(
   'ContentItem',
   {
-    contentId: text('contentId').primaryKey().notNull(),
+    contentId: text('id').primaryKey().notNull(),
     title: text('title').notNull(),
     description: text('description'),
     subject: text('subject').notNull(),
@@ -46,7 +46,7 @@ export const contentItem = pgTable(
 export const videoWatchEvent = pgTable(
   'VideoWatchEvent',
   {
-    eventId: text('eventId').primaryKey().notNull(),
+    eventId: text('id').primaryKey().notNull(),
     contentId: text('contentId').notNull(),
     studentId: text('studentId').notNull(),
     eventType: text('eventType').notNull(),
@@ -67,7 +67,7 @@ export const videoWatchEvent = pgTable(
 export const contentQuizCheckpoint = pgTable(
   'ContentQuizCheckpoint',
   {
-    checkpointId: text('checkpointId').primaryKey().notNull(),
+    checkpointId: text('id').primaryKey().notNull(),
     contentId: text('contentId').notNull(),
     videoTimestampSec: integer('videoTimestampSec').notNull(),
     title: text('title'),
@@ -90,7 +90,7 @@ export const contentQuizCheckpoint = pgTable(
 export const contentProgress = pgTable(
   'ContentProgress',
   {
-    progressId: text('progressId').primaryKey().notNull(),
+    progressId: text('id').primaryKey().notNull(),
     contentId: text('contentId').notNull(),
     studentId: text('studentId').notNull(),
     progress: integer('progress').notNull(),
@@ -111,7 +111,7 @@ export const contentProgress = pgTable(
 export const reviewSchedule = pgTable(
   'ReviewSchedule',
   {
-    scheduleId: text('scheduleId').primaryKey().notNull(),
+    scheduleId: text('id').primaryKey().notNull(),
     studentId: text('studentId').notNull(),
     contentId: text('contentId').notNull(),
     lastReviewed: timestamp('lastReviewed', { withTimezone: true }).notNull().defaultNow(),
@@ -138,7 +138,7 @@ export const reviewSchedule = pgTable(
 export const quizAttempt = pgTable(
   'QuizAttempt',
   {
-    attemptId: text('attemptId').primaryKey().notNull(),
+    attemptId: text('id').primaryKey().notNull(),
     studentId: text('studentId').notNull(),
     quizId: text('quizId').notNull(),
     assignmentId: text('assignmentId'),
@@ -167,7 +167,7 @@ export const quizAttempt = pgTable(
 export const questionBankItem = pgTable(
   'QuestionBankItem',
   {
-    itemId: text('itemId').primaryKey().notNull(),
+    itemId: text('id').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     type: text('type').notNull(),
     question: text('question').notNull(),
@@ -200,7 +200,7 @@ export const questionBankItem = pgTable(
 export const quiz = pgTable(
   'Quiz',
   {
-    quizId: text('quizId').primaryKey().notNull(),
+    quizId: text('id').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     title: text('title').notNull(),
     description: text('description'),
@@ -236,7 +236,7 @@ export const quiz = pgTable(
 export const quizAssignment = pgTable(
   'QuizAssignment',
   {
-    assignmentId: text('assignmentId').primaryKey().notNull(),
+    assignmentId: text('id').primaryKey().notNull(),
     quizId: text('quizId').notNull(),
     assignedByTutorId: text('assignedByTutorId').notNull(),
     assignedToType: text('assignedToType').notNull(),
@@ -261,7 +261,7 @@ export const quizAssignment = pgTable(
 export const note = pgTable(
   'Note',
   {
-    noteId: text('noteId').primaryKey().notNull(),
+    noteId: text('id').primaryKey().notNull(),
     contentId: text('contentId').notNull(),
     studentId: text('studentId').notNull(),
     content: text('content').notNull(),
@@ -277,7 +277,7 @@ export const note = pgTable(
 export const bookmark = pgTable(
   'Bookmark',
   {
-    bookmarkId: text('bookmarkId').primaryKey().notNull(),
+    bookmarkId: text('id').primaryKey().notNull(),
     contentId: text('contentId').notNull(),
     studentId: text('studentId').notNull(),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),

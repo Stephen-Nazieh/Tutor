@@ -19,7 +19,7 @@ import * as enums from '../enums'
 export const breakoutSession = pgTable(
   'BreakoutSession',
   {
-    breakoutSessionId: text('breakoutSessionId').primaryKey().notNull(),
+    breakoutSessionId: text('id').primaryKey().notNull(),
     mainRoomId: text('mainRoomId').notNull(),
     tutorId: text('tutorId').notNull(),
     roomCount: integer('roomCount').notNull(),
@@ -42,7 +42,7 @@ export const breakoutSession = pgTable(
 export const breakoutRoom = pgTable(
   'BreakoutRoom',
   {
-    roomId: text('roomId').primaryKey().notNull(),
+    roomId: text('id').primaryKey().notNull(),
     sessionId: text('sessionId').notNull(),
     name: text('name').notNull(),
     aiEnabled: boolean('aiEnabled').notNull(),
@@ -63,7 +63,7 @@ export const breakoutRoom = pgTable(
 export const breakoutRoomAssignment = pgTable(
   'BreakoutRoomAssignment',
   {
-    assignmentId: text('assignmentId').primaryKey().notNull(),
+    assignmentId: text('id').primaryKey().notNull(),
     roomId: text('roomId').notNull(),
     studentId: text('studentId').notNull(),
     joinedAt: timestamp('joinedAt', { withTimezone: true }).notNull().defaultNow(),
@@ -82,7 +82,7 @@ export const breakoutRoomAssignment = pgTable(
 export const aITutorEnrollment = pgTable(
   'AITutorEnrollment',
   {
-    enrollmentId: text('enrollmentId').primaryKey().notNull(),
+    enrollmentId: text('id').primaryKey().notNull(),
     studentId: text('studentId').notNull(),
     subjectCode: text('subjectCode').notNull(),
     enrolledAt: timestamp('enrolledAt', { withTimezone: true }).notNull().defaultNow(),
@@ -102,7 +102,7 @@ export const aITutorEnrollment = pgTable(
 export const aIInteractionSession = pgTable(
   'AIInteractionSession',
   {
-    interactionId: text('interactionId').primaryKey().notNull(),
+    interactionId: text('id').primaryKey().notNull(),
     studentId: text('studentId').notNull(),
     subjectCode: text('subjectCode').notNull(),
     startedAt: timestamp('startedAt', { withTimezone: true }).notNull().defaultNow(),
@@ -126,7 +126,7 @@ export const aIInteractionSession = pgTable(
 export const studentMemoryProfile = pgTable(
   'StudentMemoryProfile',
   {
-    studentId: text('studentId').primaryKey().notNull(),
+    studentId: text('id').primaryKey().notNull(),
     profile: jsonb('profile').notNull(),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
@@ -143,7 +143,7 @@ export const studentMemoryProfile = pgTable(
 export const studentLearningState = pgTable(
   'StudentLearningState',
   {
-    studentId: text('studentId').primaryKey().notNull(),
+    studentId: text('id').primaryKey().notNull(),
     state: jsonb('state').notNull(),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
@@ -178,7 +178,7 @@ export const studentAgentSignal = pgTable(
 export const aITutorDailyUsage = pgTable(
   'AITutorDailyUsage',
   {
-    usageId: text('usageId').primaryKey().notNull(),
+    usageId: text('id').primaryKey().notNull(),
     userId: text('userId').notNull(),
     date: timestamp('date', { withTimezone: true }).notNull().defaultNow(),
     sessionCount: integer('sessionCount').notNull(),
@@ -195,7 +195,7 @@ export const aITutorDailyUsage = pgTable(
 )
 
 export const aITutorSubscription = pgTable('AITutorSubscription', {
-  subscriptionId: text('subscriptionId').primaryKey().notNull(),
+  subscriptionId: text('id').primaryKey().notNull(),
   userId: text('userId').notNull().unique(),
   tier: enums.tierEnum('tier').notNull(),
   dailySessions: integer('dailySessions').notNull(),

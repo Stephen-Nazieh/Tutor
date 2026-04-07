@@ -19,7 +19,7 @@ import * as enums from '../enums'
 export const userActivityLog = pgTable(
   'UserActivityLog',
   {
-    activityId: text('activityId').primaryKey().notNull(),
+    activityId: text('id').primaryKey().notNull(),
     userId: text('userId').notNull(),
     action: text('action').notNull(),
     metadata: jsonb('metadata'),
@@ -38,7 +38,7 @@ export const userActivityLog = pgTable(
 export const apiKey = pgTable(
   'ApiKey',
   {
-    apiKeyId: text('apiKeyId').primaryKey().notNull(),
+    apiKeyId: text('id').primaryKey().notNull(),
     name: text('name').notNull(),
     keyHash: text('keyHash').notNull(),
     createdById: text('createdById'),
@@ -53,7 +53,7 @@ export const apiKey = pgTable(
 export const securityEvent = pgTable(
   'SecurityEvent',
   {
-    eventId: text('eventId').primaryKey().notNull(),
+    eventId: text('id').primaryKey().notNull(),
     eventType: text('eventType').notNull(),
     ip: text('ip'),
     metadata: jsonb('metadata'),

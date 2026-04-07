@@ -92,7 +92,7 @@ export const familyMember = pgTable(
 export const familyBudget = pgTable(
   'FamilyBudget',
   {
-    budgetId: text('budgetId').primaryKey().notNull(),
+    budgetId: text('id').primaryKey().notNull(),
     parentId: text('parentId').notNull(),
     month: integer('month').notNull(),
     year: integer('year').notNull(),
@@ -121,7 +121,7 @@ export const familyBudget = pgTable(
 export const familyPayment = pgTable(
   'FamilyPayment',
   {
-    familyPaymentId: text('familyPaymentId').primaryKey().notNull(),
+    familyPaymentId: text('id').primaryKey().notNull(),
     parentId: text('parentId').notNull(),
     amount: doublePrecision('amount').notNull(),
     method: text('method').notNull(),
@@ -148,7 +148,7 @@ export const familyPayment = pgTable(
 export const budgetAlert = pgTable(
   'BudgetAlert',
   {
-    alertId: text('alertId').primaryKey().notNull(),
+    alertId: text('id').primaryKey().notNull(),
     parentId: text('parentId').notNull(),
     type: text('type').notNull(),
     message: text('message').notNull(),
@@ -163,7 +163,7 @@ export const budgetAlert = pgTable(
 export const parentActivityLog = pgTable(
   'ParentActivityLog',
   {
-    activityLogId: text('activityLogId').primaryKey().notNull(),
+    activityLogId: text('id').primaryKey().notNull(),
     parentId: text('parentId').notNull(),
     action: text('action').notNull(),
     details: text('details'),
@@ -181,7 +181,7 @@ export const parentActivityLog = pgTable(
 export const familyNotification = pgTable(
   'FamilyNotification',
   {
-    notificationId: text('notificationId').primaryKey().notNull(),
+    notificationId: text('id').primaryKey().notNull(),
     parentId: text('parentId').notNull(),
     title: text('title').notNull(),
     message: text('message').notNull(),
@@ -227,7 +227,7 @@ export const emergencyContact = pgTable(
 export const studentProgressSnapshot = pgTable(
   'StudentProgressSnapshot',
   {
-    snapshotId: text('snapshotId').primaryKey().notNull(),
+    snapshotId: text('id').primaryKey().notNull(),
     parentId: text('parentId').notNull(),
     studentId: text('studentId').notNull(),
     data: jsonb('data').notNull(),
@@ -254,7 +254,7 @@ export const studentProgressSnapshot = pgTable(
 export const parentPaymentAuthorization = pgTable(
   'ParentPaymentAuthorization',
   {
-    authorizationId: text('authorizationId').primaryKey().notNull(),
+    authorizationId: text('id').primaryKey().notNull(),
     parentId: text('parentId').notNull().unique(),
     level: text('level').notNull(),
     maxAmount: doublePrecision('maxAmount'),
@@ -275,7 +275,7 @@ export const parentPaymentAuthorization = pgTable(
 export const parentSpendingLimit = pgTable(
   'ParentSpendingLimit',
   {
-    spendingLimitId: text('spendingLimitId').primaryKey().notNull(),
+    spendingLimitId: text('id').primaryKey().notNull(),
     parentId: text('parentId').notNull(),
     category: text('category').notNull(),
     limit: doublePrecision('limit').notNull(),

@@ -19,7 +19,7 @@ import * as enums from '../enums'
 export const calendarConnection = pgTable(
   'CalendarConnection',
   {
-    connectionId: text('connectionId').primaryKey().notNull(),
+    connectionId: text('id').primaryKey().notNull(),
     userId: text('userId').notNull(),
     provider: text('provider').notNull(),
     providerAccountId: text('providerAccountId'),
@@ -46,7 +46,7 @@ export const calendarConnection = pgTable(
 export const calendarEvent = pgTable(
   'CalendarEvent',
   {
-    eventId: text('eventId').primaryKey().notNull(),
+    eventId: text('id').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     title: text('title').notNull(),
     description: text('description'),
@@ -96,7 +96,7 @@ export const calendarEvent = pgTable(
 export const calendarAvailability = pgTable(
   'CalendarAvailability',
   {
-    availabilityId: text('availabilityId').primaryKey().notNull(),
+    availabilityId: text('id').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     dayOfWeek: integer('dayOfWeek').notNull(),
     startTime: text('startTime').notNull(),
@@ -124,7 +124,7 @@ export const calendarAvailability = pgTable(
 export const calendarException = pgTable(
   'CalendarException',
   {
-    exceptionId: text('exceptionId').primaryKey().notNull(),
+    exceptionId: text('id').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     date: timestamp('date', { withTimezone: true }).notNull(),
     isAvailable: boolean('isAvailable').notNull(),
@@ -146,7 +146,7 @@ export const calendarException = pgTable(
 export const oneOnOneBookingRequest = pgTable(
   'OneOnOneBookingRequest',
   {
-    requestId: text('requestId').primaryKey().notNull(),
+    requestId: text('id').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     studentId: text('studentId').notNull(),
     requestedDate: timestamp('requestedDate', { withTimezone: true }).notNull(),

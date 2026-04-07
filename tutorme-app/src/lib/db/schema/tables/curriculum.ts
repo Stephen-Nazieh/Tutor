@@ -23,7 +23,7 @@ import * as enums from '../enums'
 export const course = pgTable(
   'Course',
   {
-    courseId: text('courseId').primaryKey().notNull(),
+    courseId: text('id').primaryKey().notNull(),
     name: text('name').notNull(),
     description: text('description'),
     categories: text('categories').array(),
@@ -53,7 +53,7 @@ export const course = pgTable(
 export const courseCatalog = pgTable(
   'CourseCatalog',
   {
-    catalogId: text('catalogId').primaryKey().notNull(),
+    catalogId: text('id').primaryKey().notNull(),
     category: text('category').notNull(),
     name: text('name').notNull(),
     code: text('code'),
@@ -71,7 +71,7 @@ export const courseCatalog = pgTable(
 export const courseShare = pgTable(
   'CourseShare',
   {
-    shareId: text('shareId').primaryKey().notNull(),
+    shareId: text('id').primaryKey().notNull(),
     courseId: text('courseId').notNull(),
     sharedByTutorId: text('sharedByTutorId').notNull(),
     recipientId: text('recipientId').notNull(),
@@ -95,7 +95,7 @@ export const courseShare = pgTable(
 export const courseLesson = pgTable(
   'CourseLesson',
   {
-    lessonId: text('lessonId').primaryKey().notNull(),
+    lessonId: text('id').primaryKey().notNull(),
     courseId: text('courseId'),
     title: text('title').notNull(),
     description: text('description'),
@@ -119,7 +119,7 @@ export const courseLesson = pgTable(
 export const lessonSession = pgTable(
   'LessonSession',
   {
-    sessionId: text('sessionId').primaryKey().notNull(),
+    sessionId: text('id').primaryKey().notNull(),
     studentId: text('studentId').notNull(),
     lessonId: text('lessonId').notNull(),
     status: text('status').notNull(),
@@ -147,7 +147,7 @@ export const lessonSession = pgTable(
 export const courseLessonProgress = pgTable(
   'CourseLessonProgress',
   {
-    progressId: text('progressId').primaryKey().notNull(),
+    progressId: text('id').primaryKey().notNull(),
     lessonId: text('lessonId').notNull(),
     studentId: text('studentId').notNull(),
     status: text('status').notNull(),
@@ -171,7 +171,7 @@ export const courseLessonProgress = pgTable(
 export const courseEnrollment = pgTable(
   'CourseEnrollment',
   {
-    enrollmentId: text('enrollmentId').primaryKey().notNull(),
+    enrollmentId: text('id').primaryKey().notNull(),
     studentId: text('studentId').notNull(),
     courseId: text('courseId').notNull(),
     enrolledAt: timestamp('enrolledAt', { withTimezone: true }).notNull().defaultNow(),
@@ -192,7 +192,7 @@ export const courseEnrollment = pgTable(
 export const courseProgress = pgTable(
   'CourseProgress',
   {
-    progressId: text('progressId').primaryKey().notNull(),
+    progressId: text('id').primaryKey().notNull(),
     studentId: text('studentId').notNull(),
     courseId: text('courseId').notNull(),
     lessonsCompleted: integer('lessonsCompleted').notNull(),
@@ -215,7 +215,7 @@ export const courseProgress = pgTable(
 export const studentPerformance = pgTable(
   'StudentPerformance',
   {
-    performanceId: text('performanceId').primaryKey().notNull(),
+    performanceId: text('id').primaryKey().notNull(),
     studentId: text('studentId').notNull(),
     courseId: text('courseId'),
     averageScore: doublePrecision('averageScore').notNull(),
@@ -250,7 +250,7 @@ export const studentPerformance = pgTable(
 export const taskSubmission = pgTable(
   'TaskSubmission',
   {
-    submissionId: text('submissionId').primaryKey().notNull(),
+    submissionId: text('id').primaryKey().notNull(),
     taskId: text('taskId').notNull(),
     studentId: text('studentId').notNull(),
     answers: jsonb('answers').notNull(),
@@ -279,7 +279,7 @@ export const taskSubmission = pgTable(
 export const feedbackWorkflow = pgTable(
   'FeedbackWorkflow',
   {
-    workflowId: text('workflowId').primaryKey().notNull(),
+    workflowId: text('id').primaryKey().notNull(),
     submissionId: text('submissionId').notNull().unique(),
     studentId: text('studentId').notNull(),
     aiScore: doublePrecision('aiScore'),
@@ -328,7 +328,7 @@ export const curriculumProgress = courseProgress
 export const courseBatch = pgTable(
   'CourseBatch',
   {
-    batchId: text('batchId').primaryKey().notNull(),
+    batchId: text('id').primaryKey().notNull(),
     courseId: text('courseId').notNull(),
     name: text('name').notNull(),
     startDate: timestamp('startDate', { withTimezone: true }),
@@ -351,7 +351,7 @@ export const courseBatch = pgTable(
 export const curriculumModule = pgTable(
   'CurriculumModule',
   {
-    moduleId: text('moduleId').primaryKey().notNull(),
+    moduleId: text('id').primaryKey().notNull(),
     courseId: text('courseId').notNull(),
     title: text('title').notNull(),
     description: text('description'),

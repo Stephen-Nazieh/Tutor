@@ -19,7 +19,7 @@ import * as enums from '../enums'
 export const builderTask = pgTable(
   'BuilderTask',
   {
-    taskId: text('taskId').primaryKey().notNull(),
+    taskId: text('id').primaryKey().notNull(),
     courseId: text('courseId').notNull(),
     lessonId: text('lessonId').notNull(),
     tutorId: text('tutorId').notNull(),
@@ -53,7 +53,7 @@ export const builderTask = pgTable(
 export const builderTaskExtension = pgTable(
   'BuilderTaskExtension',
   {
-    extensionId: text('extensionId').primaryKey().notNull(),
+    extensionId: text('id').primaryKey().notNull(),
     taskId: text('taskId').notNull(),
     name: text('name').notNull(), // Extension 1, Extension 2, etc.
     content: text('content').notNull(), // Extension content
@@ -78,7 +78,7 @@ export const builderTaskExtension = pgTable(
 export const builderTaskFile = pgTable(
   'BuilderTaskFile',
   {
-    fileId: text('fileId').primaryKey().notNull(),
+    fileId: text('id').primaryKey().notNull(),
     taskId: text('taskId').notNull(),
     name: text('name').notNull(),
     url: text('url').notNull(),
@@ -95,7 +95,7 @@ export const builderTaskFile = pgTable(
 export const builderTaskVersion = pgTable(
   'BuilderTaskVersion',
   {
-    versionId: text('versionId').primaryKey().notNull(),
+    versionId: text('id').primaryKey().notNull(),
     taskId: text('taskId').notNull(),
     version: integer('version').notNull(),
     content: text('content').notNull(),
@@ -116,7 +116,7 @@ export const builderTaskVersion = pgTable(
 export const builderTaskDmi = pgTable(
   'BuilderTaskDmi',
   {
-    dmiId: text('dmiId').primaryKey().notNull(),
+    dmiId: text('id').primaryKey().notNull(),
     taskId: text('taskId').notNull(),
     type: text('type').notNull().default('assessment'),
     items: jsonb('items').notNull(),
@@ -137,7 +137,7 @@ export const builderTaskDmi = pgTable(
 export const builderTaskDmiVersion = pgTable(
   'BuilderTaskDmiVersion',
   {
-    versionId: text('versionId').primaryKey().notNull(),
+    versionId: text('id').primaryKey().notNull(),
     taskId: text('taskId').notNull(),
     type: text('type').notNull().default('assessment'),
     versionNumber: integer('versionNumber').notNull(),
@@ -161,7 +161,7 @@ export const builderTaskDmiVersion = pgTable(
 export const taskPoll = pgTable(
   'TaskPoll',
   {
-    pollId: text('pollId').primaryKey().notNull(),
+    pollId: text('id').primaryKey().notNull(),
     taskId: text('taskId').notNull(),
     tutorId: text('tutorId').notNull(),
     sessionId: text('sessionId').notNull(), // Live session this poll belongs to
@@ -184,7 +184,7 @@ export const taskPoll = pgTable(
 export const taskQuestion = pgTable(
   'TaskQuestion',
   {
-    questionId: text('questionId').primaryKey().notNull(),
+    questionId: text('id').primaryKey().notNull(),
     taskId: text('taskId').notNull(),
     tutorId: text('tutorId').notNull(),
     sessionId: text('sessionId').notNull(), // Live session this question belongs to
@@ -206,7 +206,7 @@ export const taskQuestion = pgTable(
 export const taskDeployment = pgTable(
   'TaskDeployment',
   {
-    deploymentId: text('deploymentId').primaryKey().notNull(),
+    deploymentId: text('id').primaryKey().notNull(),
     taskId: text('taskId').notNull(),
     tutorId: text('tutorId').notNull(),
     sessionId: text('sessionId').notNull(),
@@ -230,7 +230,7 @@ export const taskDeployment = pgTable(
 export const tutorAsset = pgTable(
   'TutorAsset',
   {
-    assetId: text('assetId').primaryKey().notNull(),
+    assetId: text('id').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     name: text('name').notNull(),
     content: text('content'), // Extracted text content

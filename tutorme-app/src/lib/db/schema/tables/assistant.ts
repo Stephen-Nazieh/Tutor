@@ -19,7 +19,7 @@ import * as enums from '../enums'
 export const aIAssistantSession = pgTable(
   'AIAssistantSession',
   {
-    assistantSessionId: text('assistantSessionId').primaryKey().notNull(),
+    assistantSessionId: text('id').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     title: text('title').notNull(),
     context: text('context'),
@@ -39,7 +39,7 @@ export const aIAssistantSession = pgTable(
 export const aIAssistantMessage = pgTable(
   'AIAssistantMessage',
   {
-    assistantMessageId: text('assistantMessageId').primaryKey().notNull(),
+    assistantMessageId: text('id').primaryKey().notNull(),
     sessionId: text('sessionId').notNull(),
     role: text('role').notNull(),
     content: text('content').notNull(),
@@ -55,7 +55,7 @@ export const aIAssistantMessage = pgTable(
 export const aIAssistantInsight = pgTable(
   'AIAssistantInsight',
   {
-    insightId: text('insightId').primaryKey().notNull(),
+    insightId: text('id').primaryKey().notNull(),
     sessionId: text('sessionId').notNull(),
     type: text('type').notNull(),
     title: text('title').notNull(),

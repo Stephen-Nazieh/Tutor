@@ -19,7 +19,7 @@ import * as enums from '../enums'
 export const performanceMetric = pgTable(
   'PerformanceMetric',
   {
-    metricId: text('metricId').primaryKey().notNull(),
+    metricId: text('id').primaryKey().notNull(),
     name: text('name').notNull(),
     metricValue: doublePrecision('metric_value').notNull(),
     unit: text('unit').notNull(),
@@ -38,7 +38,7 @@ export const performanceMetric = pgTable(
 export const performanceAlert = pgTable(
   'PerformanceAlert',
   {
-    alertId: text('alertId').primaryKey().notNull(),
+    alertId: text('id').primaryKey().notNull(),
     type: text('type').notNull(),
     severity: text('severity').notNull(),
     message: text('message').notNull(),
@@ -62,7 +62,7 @@ export const performanceAlert = pgTable(
 export const engagementSnapshot = pgTable(
   'EngagementSnapshot',
   {
-    snapshotId: text('snapshotId').primaryKey().notNull(),
+    snapshotId: text('id').primaryKey().notNull(),
     sessionId: text('sessionId').notNull(),
     studentId: text('studentId').notNull(),
     engagementScore: doublePrecision('engagementScore').notNull(),
@@ -81,7 +81,7 @@ export const engagementSnapshot = pgTable(
 )
 
 export const sessionEngagementSummary = pgTable('SessionEngagementSummary', {
-  summarySessionId: text('summarySessionId').primaryKey().notNull(),
+  summarySessionId: text('id').primaryKey().notNull(),
   averageEngagement: doublePrecision('averageEngagement'),
   peakEngagement: doublePrecision('peakEngagement'),
   lowEngagement: doublePrecision('lowEngagement'),
@@ -94,7 +94,7 @@ export const sessionEngagementSummary = pgTable('SessionEngagementSummary', {
 export const postSessionReport = pgTable(
   'PostSessionReport',
   {
-    reportId: text('reportId').primaryKey().notNull(),
+    reportId: text('id').primaryKey().notNull(),
     sessionId: text('sessionId').notNull(),
     tutorId: text('tutorId').notNull(),
     status: text('status').notNull(),
@@ -120,7 +120,7 @@ export const postSessionReport = pgTable(
 export const studentSessionInsight = pgTable(
   'StudentSessionInsight',
   {
-    insightId: text('insightId').primaryKey().notNull(),
+    insightId: text('id').primaryKey().notNull(),
     sessionId: text('sessionId').notNull(),
     studentId: text('studentId').notNull(),
     engagement: doublePrecision('engagement').notNull(),
@@ -141,7 +141,7 @@ export const studentSessionInsight = pgTable(
 export const sessionBookmark = pgTable(
   'SessionBookmark',
   {
-    bookmarkId: text('bookmarkId').primaryKey().notNull(),
+    bookmarkId: text('id').primaryKey().notNull(),
     sessionId: text('sessionId').notNull(),
     timestampSeconds: integer('timestampSeconds').notNull(),
     label: text('label'),
@@ -156,7 +156,7 @@ export const sessionBookmark = pgTable(
 export const resource = pgTable(
   'Resource',
   {
-    resourceId: text('resourceId').primaryKey().notNull(),
+    resourceId: text('id').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     name: text('name').notNull(),
     description: text('description'),
@@ -184,7 +184,7 @@ export const resource = pgTable(
 export const resourceShare = pgTable(
   'ResourceShare',
   {
-    shareId: text('shareId').primaryKey().notNull(),
+    shareId: text('id').primaryKey().notNull(),
     resourceId: text('resourceId').notNull(),
     sharedByTutorId: text('sharedByTutorId').notNull(),
     recipientId: text('recipientId'),
@@ -211,7 +211,7 @@ export const resourceShare = pgTable(
 export const libraryTask = pgTable(
   'LibraryTask',
   {
-    libraryTaskId: text('libraryTaskId').primaryKey().notNull(),
+    libraryTaskId: text('id').primaryKey().notNull(),
     userId: text('userId').notNull(),
     question: text('question').notNull(),
     type: text('type').notNull(),

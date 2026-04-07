@@ -17,7 +17,7 @@ import {
 import * as enums from '../enums'
 
 export const adminRole = pgTable('AdminRole', {
-  roleId: text('roleId').primaryKey().notNull(),
+  roleId: text('id').primaryKey().notNull(),
   name: text('name').notNull().unique(),
   description: text('description'),
   permissions: jsonb('permissions').notNull(),
@@ -30,7 +30,7 @@ export const adminRole = pgTable('AdminRole', {
 export const adminAssignment = pgTable(
   'AdminAssignment',
   {
-    assignmentId: text('assignmentId').primaryKey().notNull(),
+    assignmentId: text('id').primaryKey().notNull(),
     userId: text('userId').notNull(),
     roleId: text('roleId').notNull(),
     assignedBy: text('assignedBy'),
@@ -51,7 +51,7 @@ export const adminAssignment = pgTable(
 export const featureFlag = pgTable(
   'FeatureFlag',
   {
-    flagId: text('flagId').primaryKey().notNull(),
+    flagId: text('id').primaryKey().notNull(),
     key: text('key').notNull().unique(),
     name: text('name').notNull(),
     description: text('description'),
@@ -77,7 +77,7 @@ export const featureFlag = pgTable(
 export const featureFlagChange = pgTable(
   'FeatureFlagChange',
   {
-    changeId: text('changeId').primaryKey().notNull(),
+    changeId: text('id').primaryKey().notNull(),
     flagId: text('flagId').notNull(),
     changedBy: text('changedBy').notNull(),
     previousValue: jsonb('previousValue'),
@@ -93,7 +93,7 @@ export const featureFlagChange = pgTable(
 )
 
 export const llmProvider = pgTable('LlmProvider', {
-  providerId: text('providerId').primaryKey().notNull(),
+  providerId: text('id').primaryKey().notNull(),
   name: text('name').notNull(),
   providerType: text('providerType').notNull(),
   apiKeyEncrypted: text('apiKeyEncrypted'),
@@ -113,7 +113,7 @@ export const llmProvider = pgTable('LlmProvider', {
 export const llmModel = pgTable(
   'LlmModel',
   {
-    modelId: text('modelId').primaryKey().notNull(),
+    modelId: text('id').primaryKey().notNull(),
     providerId: text('providerId').notNull(),
     modelKey: text('modelKey').notNull(),
     name: text('name'),
@@ -138,7 +138,7 @@ export const llmModel = pgTable(
 export const llmRoutingRule = pgTable(
   'LlmRoutingRule',
   {
-    ruleId: text('ruleId').primaryKey().notNull(),
+    ruleId: text('id').primaryKey().notNull(),
     name: text('name'),
     description: text('description'),
     priority: integer('priority').notNull(),
@@ -161,7 +161,7 @@ export const llmRoutingRule = pgTable(
 export const systemSetting = pgTable(
   'SystemSetting',
   {
-    settingId: text('settingId').primaryKey().notNull(),
+    settingId: text('id').primaryKey().notNull(),
     category: text('category').notNull(),
     key: text('key').notNull(),
     settingValue: jsonb('setting_value').notNull(),
@@ -188,7 +188,7 @@ export const systemSetting = pgTable(
 export const adminAuditLog = pgTable(
   'AdminAuditLog',
   {
-    auditLogId: text('auditLogId').primaryKey().notNull(),
+    auditLogId: text('id').primaryKey().notNull(),
     adminId: text('adminId').notNull(),
     action: text('action').notNull(),
     resourceType: text('resourceType'),
@@ -211,7 +211,7 @@ export const adminAuditLog = pgTable(
 export const adminSession = pgTable(
   'AdminSession',
   {
-    sessionId: text('sessionId').primaryKey().notNull(),
+    sessionId: text('id').primaryKey().notNull(),
     adminId: text('adminId').notNull(),
     token: text('token').notNull().unique(),
     ipAddress: text('ipAddress'),
@@ -231,7 +231,7 @@ export const adminSession = pgTable(
 export const ipWhitelist = pgTable(
   'IpWhitelist',
   {
-    whitelistId: text('whitelistId').primaryKey().notNull(),
+    whitelistId: text('id').primaryKey().notNull(),
     ipAddress: text('ipAddress').notNull().unique(),
     description: text('description'),
     isActive: boolean('isActive').notNull(),

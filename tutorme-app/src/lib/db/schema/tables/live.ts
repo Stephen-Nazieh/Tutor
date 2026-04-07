@@ -19,7 +19,7 @@ import * as enums from '../enums'
 export const liveSession = pgTable(
   'LiveSession',
   {
-    sessionId: text('sessionId').primaryKey().notNull(),
+    sessionId: text('id').primaryKey().notNull(),
     tutorId: text('tutorId').notNull(),
     courseId: text('courseId'),
     title: text('title').notNull(),
@@ -47,7 +47,7 @@ export const liveSession = pgTable(
 export const sessionReplayArtifact = pgTable(
   'SessionReplayArtifact',
   {
-    artifactId: text('artifactId').primaryKey().notNull(),
+    artifactId: text('id').primaryKey().notNull(),
     sessionId: text('sessionId').notNull().unique(),
     tutorId: text('tutorId').notNull(),
     recordingUrl: text('recordingUrl'),
@@ -75,7 +75,7 @@ export const sessionReplayArtifact = pgTable(
 export const sessionParticipant = pgTable(
   'SessionParticipant',
   {
-    participantId: text('participantId').primaryKey().notNull(),
+    participantId: text('id').primaryKey().notNull(),
     sessionId: text('sessionId').notNull(),
     studentId: text('studentId').notNull(),
     joinedAt: timestamp('joinedAt', { withTimezone: true }).notNull().defaultNow(),
@@ -92,7 +92,7 @@ export const sessionParticipant = pgTable(
 export const poll = pgTable(
   'Poll',
   {
-    pollId: text('pollId').primaryKey().notNull(),
+    pollId: text('id').primaryKey().notNull(),
     sessionId: text('sessionId').notNull(),
     tutorId: text('tutorId').notNull(),
     question: text('question').notNull(),
@@ -122,7 +122,7 @@ export const poll = pgTable(
 export const pollOption = pgTable(
   'PollOption',
   {
-    optionId: text('optionId').primaryKey().notNull(),
+    optionId: text('id').primaryKey().notNull(),
     pollId: text('pollId').notNull(),
     label: text('label').notNull(),
     text: text('text').notNull(),
@@ -138,7 +138,7 @@ export const pollOption = pgTable(
 export const pollResponse = pgTable(
   'PollResponse',
   {
-    responseId: text('responseId').primaryKey().notNull(),
+    responseId: text('id').primaryKey().notNull(),
     pollId: text('pollId').notNull(),
     respondentHash: text('respondentHash'),
     optionIds: text('optionIds').array().notNull(),
@@ -159,7 +159,7 @@ export const pollResponse = pgTable(
 export const message = pgTable(
   'Message',
   {
-    messageId: text('messageId').primaryKey().notNull(),
+    messageId: text('id').primaryKey().notNull(),
     sessionId: text('sessionId').notNull(),
     userId: text('userId').notNull(),
     content: text('content').notNull(),
@@ -176,7 +176,7 @@ export const message = pgTable(
 export const conversation = pgTable(
   'Conversation',
   {
-    conversationId: text('conversationId').primaryKey().notNull(),
+    conversationId: text('id').primaryKey().notNull(),
     participant1Id: text('participant1Id').notNull(),
     participant2Id: text('participant2Id').notNull(),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
@@ -201,7 +201,7 @@ export const conversation = pgTable(
 export const directMessage = pgTable(
   'DirectMessage',
   {
-    directMessageId: text('directMessageId').primaryKey().notNull(),
+    directMessageId: text('id').primaryKey().notNull(),
     conversationId: text('conversationId').notNull(),
     senderId: text('senderId').notNull(),
     content: text('content').notNull(),
@@ -257,7 +257,7 @@ export const tutorFollow = pgTable(
 export const notification = pgTable(
   'Notification',
   {
-    notificationId: text('notificationId').primaryKey().notNull(),
+    notificationId: text('id').primaryKey().notNull(),
     userId: text('userId').notNull(),
     type: text('type').notNull(),
     title: text('title').notNull(),
@@ -287,7 +287,7 @@ export const notification = pgTable(
 )
 
 export const notificationPreference = pgTable('NotificationPreference', {
-  preferenceId: text('preferenceId').primaryKey().notNull(),
+  preferenceId: text('id').primaryKey().notNull(),
   userId: text('userId').notNull().unique(),
   emailEnabled: boolean('emailEnabled').notNull(),
   pushEnabled: boolean('pushEnabled').notNull(),
