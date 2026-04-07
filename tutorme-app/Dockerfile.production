@@ -1,69 +1,52 @@
-# Multi-stage build for production (switched to Debian slim to avoid Alpine musl binding errors natively)
+# Multi-stage build for production
 FROM node:20-slim AS base
 WORKDIR /app
-# We install certificates and openssl just in case
 RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies only when needed
+# Dependencies
 FROM base AS deps
 COPY package.json package-lock.json* ./
-# We force install the precise platform bindings using standard npm ci
 RUN npm ci
 
-# Rebuild the source code only when needed
+# Build
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-# Explicitly inject the OS-specific native bindings that the macOS-generated package-lock.json omits
 RUN npm install --no-save @parcel/watcher-linux-x64-glibc @swc/core-linux-x64-gnu @next/swc-linux-x64-gnu esbuild
-# Provide dummy credentials for Next.js static page prerendering (which requires DB instantiation)
-# We write them to an env file to avoid Docker scanner SecretsUsedInArgOrEnv warnings
+
+# Dummy env for build
 RUN echo "DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy" >> .env.production && \
     echo "DIRECT_URL=postgresql://dummy:dummy@localhost:5432/dummy" >> .env.production && \
-    echo "NEXTAUTH_SECRET=dummy_secret_for_build_phase_only" >> .env.production && \
-    echo "ADMIN_JWT_SECRET=dummy_secret_for_build_phase_only" >> .env.production
+    echo "NEXTAUTH_SECRET=dummy" >> .env.production
 
 RUN npm run build
-# Build the custom server with Socket.io support
-RUN node scripts/build-custom-server.js
 
-# Production image, copy all the files and run next
+# Production
 FROM base AS runner
 WORKDIR /app
-
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV REDIS_URL=""
-# Cloud Run typically provides PORT, but we set a default just in case
 ENV PORT=3003
+ENV HOSTNAME=0.0.0.0
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
-# NATIVE STANDALONE STRATEGY
-# Since the Docker build context is the root of the app, standalone outputs everything cleanly to root.
-# 1. Copy the standalone output (contains server.js, node_modules, .next)
+# Copy standalone output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-
-# 2. Copy the public directory and static files required for Next.js to serve assets
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# 3. Copy our custom Socket.io server and other required files
-COPY --from=builder /app/server-production.js ./server-production.js
-COPY --from=builder /app/package.json ./package.json
-
-# 4. Copy database logic (Drizzle migrations & seed scripts)
+# Copy drizzle migrations
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
-COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
-
-# Ensure correct permissions
-RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 
 EXPOSE 3003
 
-# Run the survivor script to start the server and run background migrations
-CMD ["node", "scripts/migrate-and-start.js"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:3003/api/health || exit 1
+
+# Start the standalone Next.js server directly
+CMD ["node", "server.js"]
