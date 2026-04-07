@@ -60,8 +60,48 @@ const dev = process.env.NODE_ENV !== 'production'
 const hostname = process.env.HOSTNAME || '0.0.0.0'
 const port = parseInt(process.env.PORT || '3003', 10)
 
-const app = next({ dev, hostname, port })
-const handle = app.getRequestHandler()
+// Standard Next.js server for dev, or optimized Standalone renderer for production
+let handle: any
+let app: any
+
+if (dev) {
+  console.log('[Server] Initializing Next.js in DEVELOPMENT mode...')
+  app = next({ dev, hostname, port })
+  handle = app.getRequestHandler()
+} else {
+  console.log('[Server] Initializing Next.js in STANDALONE PRODUCTION mode...')
+  try {
+    // In standalone mode, we can use the NextServer class directly for instant readiness
+    const NextServer = require('next/dist/server/next-server').default
+    app = new NextServer({
+      hostname,
+      port,
+      dir: process.cwd(),
+      dev: false,
+      conf: {
+        env: {},
+        webpack: null,
+        eslint: { ignoreDuringBuilds: true },
+        typescript: { ignoreBuildErrors: true },
+        distDir: '.next',
+        cleanDistDir: false,
+        configOrigin: 'next.config.mjs',
+        useFileSystemPublicRoutes: true,
+        generateEtags: true,
+        pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+        poweredByHeader: true,
+        staticPageGenerationTimeout: 60,
+        swcMinify: true,
+        output: 'standalone',
+      } as any,
+    })
+    handle = app.getRequestHandler()
+  } catch (err) {
+    console.error('⚠️ [Server] Failed to load standalone renderer, falling back to standard next():', err)
+    app = next({ dev: false, hostname, port })
+    handle = app.getRequestHandler()
+  }
+}
 
 console.log(`[Server] Binding port ${port} immediately...`)
 
@@ -79,7 +119,7 @@ const server = createServer(async (req, res) => {
     // 2. Until app is ready, return 503 Service Unavailable
     if (!isReady) {
       res.statusCode = 503
-      res.setHeader('Retry-After', '5')
+      res.setHeader('Retry-After', '2')
       res.end('Server is starting up (renderer warming up)...')
       return
     }
@@ -103,14 +143,11 @@ server
   .listen(port, () => {
     console.log(`✅ [Server] Port ${port} is now EXPOSED and listening.`)
     
-    // 4. Background initialization (NEXT.JS + SOCKET.IO)
-    console.log('[Server] Beginning background initialization (Non-blocking)...')
+    // 4. Background initialization
+    console.log('[Server] Beginning background registration...')
 
     // Env Validation in background
     try {
-      if (process.env.NEXTAUTH_SECRET) {
-        console.log(`[Config] NEXTAUTH_SECRET length: ${process.env.NEXTAUTH_SECRET.length} (needs 32+)`)
-      }
       validateEnv()
       console.log('✅ [Config] Environment validated successfully')
     } catch (err) {
@@ -118,24 +155,30 @@ server
       initError = err as Error
     }
 
-    // Next.js Preparation in background
-    console.log('[Server] Preparing Next.js (Renderer)...')
-    app.prepare()
-      .then(async () => {
-        console.log('✅ [Server] Next.js ready. Initializing Socket.io...')
-        try {
+    // Initialize Socket.io and Next (if needed)
+    const initialize = async () => {
+      try {
+        if (dev || !app.prepare) {
+          // If standalone, we don't need app.prepare()
+          if (app.prepare) await app.prepare()
+          console.log('[Server] Initializing Socket.io...')
           await initEnhancedSocketServer(server)
           isReady = true
-          console.log('🎉 [Server] FULLY OPERATIONAL. All background tasks complete.')
-        } catch (err) {
-          console.error('⚠️ [Server] Socket.io failed during background initialization:', err)
-          initError = err as Error
-          isReady = true // At least renderer works
+          console.log('🎉 [Server] FULLY OPERATIONAL.')
+        } else {
+          console.log('[Server] Preparing Next.js renderer...')
+          await app.prepare()
+          console.log('[Server] Initializing Socket.io...')
+          await initEnhancedSocketServer(server)
+          isReady = true
+          console.log('🎉 [Server] FULLY OPERATIONAL.')
         }
-      })
-      .catch((err: any) => {
-        console.error('❌ [Server] Next.js FATAL error during preparation:', err)
-        initError = err as Error
-        // Keep isReady = false, but the listener STAYS OPEN so logs aren't lost
-      })
+      } catch (err: any) {
+        console.error('❌ [Server] Background initialization failed:', err)
+        initError = err
+        isReady = true // Set to true anyway to allow Next.js traffic if possible
+      }
+    }
+
+    initialize()
   })
