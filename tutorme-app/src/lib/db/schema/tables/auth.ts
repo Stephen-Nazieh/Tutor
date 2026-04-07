@@ -118,7 +118,6 @@ export const tutorApplication = pgTable(
     categories: text('categories').array().notNull(),
     username: text('username').notNull(),
     socialLinks: jsonb('socialLinks'),
-    serviceDescription: text('serviceDescription'),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()

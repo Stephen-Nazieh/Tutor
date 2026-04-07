@@ -1805,7 +1805,6 @@ export default function TutorRegistrationPage() {
     tutoringCountries: [] as string[],
     countrySubjectSelections: {} as Record<string, string[]>,
     username: '',
-    serviceDescription: '',
     socialLinks: {
       instagram: '',
       tiktok: '',
@@ -2244,7 +2243,6 @@ export default function TutorRegistrationPage() {
           categories: selectedCategories,
           username: formData.username,
           socialLinks: formData.socialLinks,
-          serviceDescription: formData.serviceDescription,
         },
       }
 

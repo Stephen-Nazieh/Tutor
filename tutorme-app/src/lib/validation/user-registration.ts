@@ -59,7 +59,6 @@ export const tutorAdditionalDataSchema = z
         facebook: z.string().max(100).optional(),
       })
       .optional(),
-    serviceDescription: z.string().max(500).optional().default(''),
     hourlyRate: z.number().min(0).max(10000).optional(),
   })
   .superRefine((data, ctx) => {

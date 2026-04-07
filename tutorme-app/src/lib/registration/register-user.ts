@@ -187,7 +187,6 @@ async function insertTutorApplication(
     categories: string[]
     username: string
     socialLinks: unknown
-    serviceDescription: string | null
   }
 ) {
   await tx.insert(tutorApplication).values(values)
@@ -349,7 +348,6 @@ export async function performRegistration(
         .update(profile)
         .set({
           credentials: credentialParts.join(' | ').slice(0, 2000) || null,
-          bio: (tutorData.serviceDescription || '').slice(0, 2000),
           specialties: tutorData.categories,
           hourlyRate: typeof tutorData.hourlyRate === 'number' ? tutorData.hourlyRate : null,
           isOnboarded: false,
@@ -377,10 +375,9 @@ export async function performRegistration(
         categories: tutorData.categories,
         username: finalHandle,
         socialLinks: tutorData.socialLinks ?? null,
-        serviceDescription: tutorData.serviceDescription || null,
       }
 
-      // Use robust insert helper
+      // Use insert helper
       await insertTutorApplication(tx, tutorApplicationValues)
     }
 
