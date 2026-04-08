@@ -504,8 +504,15 @@ export async function PUT(req: NextRequest) {
       console.error('[Curriculum PUT] Error details:', txError.message)
       console.error('[Curriculum PUT] Error stack:', txError.stack)
     }
+    // Return more detailed error for debugging
+    const errorMessage = txError instanceof Error ? txError.message : 'Unknown error'
+    const errorDetails = JSON.stringify(txError, Object.getOwnPropertyNames(txError))
     return NextResponse.json(
-      { error: 'Failed to save curriculum', details: txError instanceof Error ? txError.message : 'Unknown error' },
+      { 
+        error: 'Failed to save curriculum', 
+        details: errorMessage,
+        debug: errorDetails.slice(0, 1000) // Limit size
+      },
       { status: 500 }
     )
   }
