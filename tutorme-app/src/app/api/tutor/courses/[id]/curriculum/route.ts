@@ -251,17 +251,24 @@ export async function PUT(req: NextRequest) {
   const courseId = getCourseId(req)
   const userId = session.user.id
 
+  console.log('[Curriculum PUT] Starting save for courseId:', courseId, 'userId:', userId)
+
   // Verify ownership
   const [courseRow] = await drizzleDb
     .select({ courseId: course.courseId, name: course.name })
     .from(course)
     .where(and(eq(course.courseId, courseId), eq(course.creatorId, userId)))
   if (!courseRow) {
+    console.error('[Curriculum PUT] Course not found or not owned by user')
     return NextResponse.json({ error: 'Not found or not yours' }, { status: 404 })
   }
 
+  console.log('[Curriculum PUT] Course found:', courseRow.name)
+
   const body = await req.json()
   const modules: any[] = body.modules
+  console.log('[Curriculum PUT] Received modules count:', modules?.length)
+
   const developmentMode = body.developmentMode === 'multi' ? 'multi' : 'single'
   const previewDifficulty =
     body.previewDifficulty === 'beginner' ||
@@ -276,6 +283,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: '`modules` array required' }, { status: 400 })
   }
 
+  try {
   await drizzleDb.transaction(async tx => {
     // 1. Get existing module & lesson IDs
     const existingModules = await tx
@@ -381,7 +389,7 @@ export async function PUT(req: NextRequest) {
           question: questionBankItem.question,
         })
         .from(questionBankItem)
-        .where(and(eq(questionBankItem.tutorId, userId), eq(questionBankItem.courseId, courseId)))
+        .where(and(eq(questionBankItem.tutorId, userId), eq(questionBankItem.curriculumId, courseId)))
       const signatures = new Set(
         existingItems.map(item =>
           toQuestionSignature(item.type, item.question, item.lessonId ?? null)
@@ -398,7 +406,7 @@ export async function PUT(req: NextRequest) {
           toCreate.map(item => ({
             itemId: crypto.randomUUID(),
             tutorId: item.tutorId,
-            courseId: item.courseId,
+            curriculumId: item.courseId, // Note: column is curriculumId in production
             lessonId: item.lessonId,
             type: item.type,
             question: item.question,
@@ -490,7 +498,19 @@ export async function PUT(req: NextRequest) {
       }
     }
   })
+  } catch (txError) {
+    console.error('[Curriculum PUT] Transaction failed:', txError)
+    if (txError instanceof Error) {
+      console.error('[Curriculum PUT] Error details:', txError.message)
+      console.error('[Curriculum PUT] Error stack:', txError.stack)
+    }
+    return NextResponse.json(
+      { error: 'Failed to save curriculum', details: txError instanceof Error ? txError.message : 'Unknown error' },
+      { status: 500 }
+    )
+  }
 
+  console.log('[Curriculum PUT] Save successful')
   return NextResponse.json({
     message: 'Curriculum saved',
     moduleCount: modules.length,

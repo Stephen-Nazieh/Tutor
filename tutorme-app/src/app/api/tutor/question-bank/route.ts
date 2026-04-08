@@ -35,7 +35,7 @@ export const GET = withAuth(
     if (type) conditions.push(eq(questionBankItem.type, type))
     if (difficulty) conditions.push(eq(questionBankItem.difficulty, difficulty))
     if (subject) conditions.push(sql`lower(${questionBankItem.subject}) = lower(${subject})`)
-    if (courseId) conditions.push(eq(questionBankItem.courseId, courseId))
+    if (courseId) conditions.push(eq(questionBankItem.curriculumId, courseId))
     if (lessonId) conditions.push(eq(questionBankItem.lessonId, lessonId))
     if (isPublic !== null && isPublic !== '')
       conditions.push(eq(questionBankItem.isPublic, isPublic === 'true'))
@@ -138,7 +138,7 @@ export const POST = withCsrf(
           difficulty,
           tags: tags ?? [],
           subject: subject ?? null,
-          courseId: curriculumId ?? null,
+          curriculumId: curriculumId ?? null,
           lessonId: lessonId ?? null,
           isPublic,
           usageCount: 0,

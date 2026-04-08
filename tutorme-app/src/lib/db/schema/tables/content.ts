@@ -179,7 +179,7 @@ export const questionBankItem = pgTable(
     difficulty: text('difficulty').notNull(),
     tags: text('tags').array().notNull(),
     subject: text('subject'),
-    courseId: text('courseId'),
+    curriculumId: text('curriculumId'), // Note: production uses curriculumId, not courseId
     lessonId: text('lessonId'),
     isPublic: boolean('isPublic').notNull(),
     usageCount: integer('usageCount').notNull(),
