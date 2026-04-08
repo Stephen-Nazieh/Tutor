@@ -14,7 +14,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const courses = await drizzleDb.query.course.findMany({
+    const coursesData = await drizzleDb.query.course.findMany({
       where: (course, { eq }) => eq(course.creatorId, session.user.id),
       orderBy: (course, { desc }) => [desc(course.createdAt)],
       columns: {
@@ -26,8 +26,24 @@ export async function GET() {
         isLiveOnline: true,
         createdAt: true,
         updatedAt: true,
+        subject: true,
+        gradeLevel: true,
       },
     })
+
+    // Map courseId to id for frontend compatibility
+    const courses = coursesData.map(c => ({
+      id: c.courseId,
+      name: c.name,
+      description: c.description,
+      categories: c.categories,
+      isPublished: c.isPublished,
+      isLiveOnline: c.isLiveOnline,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+      subject: c.subject,
+      gradeLevel: c.gradeLevel,
+    }))
 
     return NextResponse.json({ courses })
   } catch (error) {
