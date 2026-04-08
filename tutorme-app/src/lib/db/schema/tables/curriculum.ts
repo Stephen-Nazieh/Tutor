@@ -105,9 +105,20 @@ export const courseLesson = pgTable(
   'CourseLesson',
   {
     lessonId: text('id').primaryKey().notNull(),
+    moduleId: text('moduleId'), // Legacy column, nullable
     courseId: text('courseId'),
     title: text('title').notNull(),
     description: text('description'),
+    // Legacy columns with defaults for backward compatibility
+    duration: integer('duration').notNull().default(60),
+    difficulty: text('difficulty'),
+    learningObjectives: text('learningObjectives').array(),
+    teachingPoints: text('teachingPoints').array(),
+    keyConcepts: text('keyConcepts').array(),
+    examples: jsonb('examples'),
+    practiceProblems: jsonb('practiceProblems'),
+    commonMisconceptions: text('commonMisconceptions').array(),
+    prerequisiteLessonIds: text('prerequisiteLessonIds').array(),
     order: integer('order').notNull(),
     // New fields for tasks/assessments/homework structure
     tasks: jsonb('tasks'), // Array of task objects
