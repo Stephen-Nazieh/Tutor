@@ -44,12 +44,12 @@ export async function GET(
   const modules = await drizzleDb
     .select()
     .from(curriculumModule)
-    .where(eq(curriculumModule.courseId, courseId))
+    .where(eq(curriculumModule.curriculumId, courseId))
 
   const [modulesCountRow] = await drizzleDb
     .select({ count: sql<number>`count(*)::int` })
     .from(curriculumModule)
-    .where(eq(curriculumModule.courseId, courseId))
+    .where(eq(curriculumModule.curriculumId, courseId))
 
   const [enrollmentsCountRow] = await drizzleDb
     .select({ count: sql<number>`count(*)::int` })

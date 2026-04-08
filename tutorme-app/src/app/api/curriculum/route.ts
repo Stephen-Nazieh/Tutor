@@ -134,12 +134,12 @@ export const GET = withAuth(async (req, session) => {
       // 2. Fetch module counts
       const modulesRaw = await drizzleDb
         .select({
-          courseId: curriculumModule.courseId,
+          courseId: curriculumModule.curriculumId,
           moduleCount: sql<number>`count(${curriculumModule.moduleId})::int`,
         })
         .from(curriculumModule)
-        .where(inArray(curriculumModule.courseId, courseIds))
-        .groupBy(curriculumModule.courseId)
+        .where(inArray(curriculumModule.curriculumId, courseIds))
+        .groupBy(curriculumModule.curriculumId)
 
       const modulesMap = new Map<string, number>(modulesRaw.map(m => [m.courseId, m.moduleCount]))
 
@@ -157,9 +157,9 @@ export const GET = withAuth(async (req, session) => {
 
       // 4. Lessons now stored in builderData JSON field, can't query count directly
       const allModules = await drizzleDb
-        .select({ moduleId: curriculumModule.moduleId, courseId: curriculumModule.courseId })
+        .select({ moduleId: curriculumModule.moduleId, courseId: curriculumModule.curriculumId })
         .from(curriculumModule)
-        .where(inArray(curriculumModule.courseId, courseIds))
+        .where(inArray(curriculumModule.curriculumId, courseIds))
 
       const lessonsMap = new Map<string, number>()
       // Lessons count not available with new schema (stored in JSON)

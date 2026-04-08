@@ -77,7 +77,7 @@ export const POST = withCsrf(
         const modules = await drizzleDb
           .select()
           .from(curriculumModule)
-          .where(eq(curriculumModule.courseId, id))
+          .where(eq(curriculumModule.curriculumId, id))
           .orderBy(asc(curriculumModule.order))
 
         // Lessons are now directly under courses, not modules

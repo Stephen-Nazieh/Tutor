@@ -150,9 +150,9 @@ export async function GET(req: NextRequest) {
 
   if (courseIds.length > 0) {
     modules = await drizzleDb
-      .select({ courseId: curriculumModule.courseId, moduleId: curriculumModule.moduleId })
+      .select({ courseId: curriculumModule.curriculumId, moduleId: curriculumModule.moduleId })
       .from(curriculumModule)
-      .where(inArray(curriculumModule.courseId, courseIds))
+      .where(inArray(curriculumModule.curriculumId, courseIds))
     const enrollments = await drizzleDb
       .select({ courseId: courseEnrollment.courseId })
       .from(courseEnrollment)

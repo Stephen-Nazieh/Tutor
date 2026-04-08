@@ -189,7 +189,7 @@ export async function GET(req: NextRequest) {
   const dbModules = await drizzleDb
     .select()
     .from(courseModule)
-    .where(eq(courseModule.courseId, courseId))
+    .where(eq(courseModule.curriculumId, courseId))
     .orderBy(asc(courseModule.order))
 
   // Lessons are now directly under courses (no moduleId)
@@ -281,7 +281,7 @@ export async function PUT(req: NextRequest) {
     const existingModules = await tx
       .select({ moduleId: courseModule.moduleId })
       .from(courseModule)
-      .where(eq(courseModule.courseId, courseId))
+      .where(eq(courseModule.curriculumId, courseId))
     const existingModuleIds = new Set(existingModules.map(m => m.moduleId))
     // Get all lessons for this course (lessons are now directly under courses)
     const existingLessons = await tx
@@ -316,7 +316,7 @@ export async function PUT(req: NextRequest) {
         .insert(courseModule)
         .values({
           moduleId: mod.id,
-          courseId,
+          curriculumId: courseId, // Note: CurriculumModule uses curriculumId, not courseId
           title: mod.title || 'Untitled Module',
           description: mod.description || null,
           order: mod.order ?? 0,

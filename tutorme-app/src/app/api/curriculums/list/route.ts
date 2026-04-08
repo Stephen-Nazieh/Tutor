@@ -55,12 +55,12 @@ export async function GET(req: NextRequest) {
     const [modulesRaw, enrollmentsRaw, lessonsRaw] = await Promise.all([
       drizzleDb
         .select({
-          courseId: curriculumModule.courseId,
+          courseId: curriculumModule.curriculumId,
           count: sql<number>`count(${curriculumModule.moduleId})::int`,
         })
         .from(curriculumModule)
-        .where(inArray(curriculumModule.courseId, courseIds))
-        .groupBy(curriculumModule.courseId),
+        .where(inArray(curriculumModule.curriculumId, courseIds))
+        .groupBy(curriculumModule.curriculumId),
 
       drizzleDb
         .select({

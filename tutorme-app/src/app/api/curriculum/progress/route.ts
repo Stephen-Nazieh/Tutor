@@ -35,7 +35,7 @@ export const GET = withAuth(
     const modules = await drizzleDb
       .select()
       .from(curriculumModule)
-      .where(eq(curriculumModule.courseId, courseId))
+      .where(eq(curriculumModule.curriculumId, courseId))
       .orderBy(asc(curriculumModule.order))
 
     // Lessons and progress are now stored differently in new schema

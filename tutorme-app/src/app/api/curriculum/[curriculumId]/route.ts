@@ -56,7 +56,7 @@ export const GET = withAuth(
     const modules = await drizzleDb
       .select()
       .from(curriculumModule)
-      .where(eq(curriculumModule.courseId, courseId))
+      .where(eq(curriculumModule.curriculumId, courseId))
       .orderBy(asc(curriculumModule.order))
 
     // Lessons are now stored in builderData JSON field

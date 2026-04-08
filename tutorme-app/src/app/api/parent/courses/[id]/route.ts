@@ -70,7 +70,7 @@ export async function GET(
   const modulesList = await drizzleDb
     .select()
     .from(curriculumModule)
-    .where(eq(curriculumModule.courseId, courseRow.courseId))
+    .where(eq(curriculumModule.curriculumId, courseRow.courseId))
     .orderBy(asc(curriculumModule.order))
 
   const modulesWithLessons = await Promise.all(

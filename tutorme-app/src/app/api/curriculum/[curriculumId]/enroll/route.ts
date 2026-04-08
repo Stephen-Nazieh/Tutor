@@ -62,7 +62,7 @@ export const POST = withCsrf(
       const moduleRows = await drizzleDb
         .select({ moduleId: curriculumModule.moduleId })
         .from(curriculumModule)
-        .where(eq(curriculumModule.courseId, courseId))
+        .where(eq(curriculumModule.curriculumId, courseId))
       const moduleIds = moduleRows.map(m => m.moduleId)
       // Lessons are now stored in builderData JSON field, count is not directly queryable
       // We'll set totalLessons to 0 and let it be updated as student progresses

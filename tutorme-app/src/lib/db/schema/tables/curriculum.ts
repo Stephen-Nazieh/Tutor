@@ -356,19 +356,19 @@ export const courseBatch = pgTable(
   })
 )
 
-/** @deprecated CurriculumModule table removed - lessons are directly under courses */
+/** @deprecated CurriculumModule table uses legacy curriculumId column name */
 export const curriculumModule = pgTable(
   'CurriculumModule',
   {
     moduleId: text('id').primaryKey().notNull(),
-    courseId: text('courseId').notNull(),
+    curriculumId: text('curriculumId').notNull(), // Note: uses curriculumId, not courseId
     title: text('title').notNull(),
     description: text('description'),
     order: integer('order').notNull(),
     builderData: jsonb('builderData'),
   },
   table => ({
-    CurriculumModule_courseId_idx: index('CurriculumModule_courseId_idx').on(table.courseId),
+    CurriculumModule_curriculumId_idx: index('CurriculumModule_curriculumId_idx').on(table.curriculumId),
     CurriculumModule_order_idx: index('CurriculumModule_order_idx').on(table.order),
   })
 )

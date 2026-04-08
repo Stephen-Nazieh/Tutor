@@ -98,9 +98,9 @@ export async function GET(request: NextRequest) {
   let modules: { courseId: string; moduleId: string }[] = []
   if (courseIds.length > 0) {
     modules = await drizzleDb
-      .select({ courseId: curriculumModule.courseId, moduleId: curriculumModule.moduleId })
+      .select({ courseId: curriculumModule.curriculumId, moduleId: curriculumModule.moduleId })
       .from(curriculumModule)
-      .where(inArray(curriculumModule.courseId, courseIds))
+      .where(inArray(curriculumModule.curriculumId, courseIds))
     for (const m of modules) {
       moduleCounts.set(m.courseId, (moduleCounts.get(m.courseId) ?? 0) + 1)
     }
