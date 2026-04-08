@@ -518,3 +518,6 @@ export async function PUT(req: NextRequest) {
     variants: variantJoinLinks,
   })
 }
+
+// Alias POST to PUT for frontend compatibility
+export { PUT as POST }
