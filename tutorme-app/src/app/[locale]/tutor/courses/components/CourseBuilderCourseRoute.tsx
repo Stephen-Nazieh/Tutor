@@ -6,7 +6,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -276,6 +276,10 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
   )
 
   const router = useRouter()
+  const pathname = usePathname()
+  
+  // Extract locale from pathname (e.g., /en/tutor/courses/123 -> en)
+  const locale = pathname?.split('/')[1] || 'en'
 
   const selectedTheme = DASHBOARD_THEMES.find(t => t.id === themeId) ?? DASHBOARD_THEMES[0]
   const themeStyle = selectedTheme.tokens
@@ -493,7 +497,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
             </Button>
             {currentCourse?.id ? (
               <Button variant="outline" className="gap-2" asChild>
-                <Link href={`/tutor/courses/${currentCourse.id}`}>
+                <Link href={`/${locale}/tutor/courses/${currentCourse.id}`}>
                   Next
                   <ChevronRight className="h-4 w-4" />
                 </Link>
