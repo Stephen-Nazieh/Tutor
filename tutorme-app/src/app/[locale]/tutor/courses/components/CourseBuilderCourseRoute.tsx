@@ -288,12 +288,14 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
 
   // Auto-create a course if none exists
   const [isAutoCreating, setIsAutoCreating] = useState(false)
+  const [autoCreateError, setAutoCreateError] = useState<string | null>(null)
   
   useEffect(() => {
-    if (!currentCourse && !loading && !isAutoCreating && courses.length === 0) {
+    if (!currentCourse && !loading && !isAutoCreating && courses.length === 0 && !autoCreateError) {
       setIsAutoCreating(true)
       const createCourse = async () => {
         try {
+          console.log('[CourseBuilder] Auto-creating course...')
           const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
           const csrfData = await csrfRes.json().catch(() => ({}))
           const csrfToken = csrfData?.token ?? null
@@ -316,6 +318,8 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
           })
 
           const data = await res.json().catch(() => ({}))
+          console.log('[CourseBuilder] Create course response:', { ok: res.ok, data })
+          
           if (res.ok && data.course?.id) {
             toast.success('Created new course!')
             // Add the new course to the list and set it as current
@@ -331,17 +335,23 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
             // Update URL
             window.history.replaceState({}, '', `/tutor/courses/${newCourse.id}/builder`)
           } else {
-            toast.error(data.error || 'Failed to create course')
+            const errorMsg = data.error || `Failed to create course (status: ${res.status})`
+            console.error('[CourseBuilder] Create course failed:', errorMsg)
+            setAutoCreateError(errorMsg)
+            toast.error(errorMsg)
           }
-        } catch {
-          toast.error('Failed to create course')
+        } catch (err) {
+          const errorMsg = err instanceof Error ? err.message : 'Failed to create course'
+          console.error('[CourseBuilder] Create course error:', err)
+          setAutoCreateError(errorMsg)
+          toast.error(errorMsg)
         } finally {
           setIsAutoCreating(false)
         }
       }
       void createCourse()
     }
-  }, [currentCourse, loading, isAutoCreating, courses.length])
+  }, [currentCourse, loading, isAutoCreating, courses.length, autoCreateError])
 
   if (!currentCourse && !loading) {
     return (
@@ -358,11 +368,42 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
             <CardDescription>
               {isAutoCreating 
                 ? 'Creating your course...' 
-                : 'Getting course builder ready...'}
+                : autoCreateError 
+                  ? 'Failed to create course automatically'
+                  : 'Getting course builder ready...'}
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center py-4">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <CardContent className="space-y-4">
+            {isAutoCreating ? (
+              <div className="flex justify-center py-4">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+              </div>
+            ) : autoCreateError ? (
+              <div className="space-y-3">
+                <p className="text-sm text-red-600">{autoCreateError}</p>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => {
+                      setAutoCreateError(null)
+                      setIsAutoCreating(false)
+                    }} 
+                    className="flex-1"
+                  >
+                    Try Again
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => router.push('/tutor/dashboard')}
+                  >
+                    Go Back
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-center py-4">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
