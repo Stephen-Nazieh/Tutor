@@ -435,7 +435,7 @@ export async function PUT(req: NextRequest) {
         .from(courseBatch)
         .where(
           and(
-            eq(courseBatch.courseId, courseId),
+            eq(courseBatch.curriculumId, courseId),
             inArray(courseBatch.difficulty, [...ADAPTIVE_DIFFICULTIES])
           )
         )
@@ -458,7 +458,7 @@ export async function PUT(req: NextRequest) {
       const [{ maxOrder }] = await tx
         .select({ maxOrder: sql<number>`coalesce(max(${courseBatch.order}), -1)` })
         .from(courseBatch)
-        .where(eq(courseBatch.courseId, courseId))
+        .where(eq(courseBatch.curriculumId, courseId))
       let nextOrder = (Number(maxOrder) ?? -1) + 1
 
       for (const difficulty of ADAPTIVE_DIFFICULTIES) {
@@ -467,7 +467,7 @@ export async function PUT(req: NextRequest) {
           const batchId = crypto.randomUUID()
           await tx.insert(courseBatch).values({
             batchId: batchId,
-            courseId,
+            curriculumId: courseId,
             name: `Adaptive ${difficulty[0].toUpperCase()}${difficulty.slice(1)}`,
             difficulty,
             order: nextOrder,

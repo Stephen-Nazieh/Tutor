@@ -36,7 +36,7 @@ export const GET = withAuth(
     const batches = await drizzleDb
       .select()
       .from(courseBatch)
-      .where(eq(courseBatch.courseId, id))
+      .where(eq(courseBatch.curriculumId, id))
       .orderBy(asc(courseBatch.order))
 
     // Count total course enrollments (enrollments are at course level, not batch level)
@@ -95,7 +95,7 @@ export const POST = withCsrf(
       const [result] = await drizzleDb
         .select({ maxValue: sql<number>`coalesce(max(${courseBatch.order}), -1)::int` })
         .from(courseBatch)
-        .where(eq(courseBatch.courseId, id))
+        .where(eq(courseBatch.curriculumId, id))
 
       const maxOrder = Number(result?.maxValue ?? -1)
 
@@ -103,7 +103,7 @@ export const POST = withCsrf(
         .insert(courseBatch)
         .values({
           batchId: crypto.randomUUID(),
-          courseId: id,
+          curriculumId: id,
           name,
           startDate,
           order: maxOrder + 1,

@@ -338,7 +338,7 @@ export const courseBatch = pgTable(
   'CourseBatch',
   {
     batchId: text('id').primaryKey().notNull(),
-    courseId: text('courseId').notNull(),
+    curriculumId: text('curriculumId').notNull(), // Note: production uses curriculumId, not courseId
     name: text('name').notNull(),
     startDate: timestamp('startDate', { withTimezone: true }),
     order: integer('order').notNull(),
@@ -352,7 +352,7 @@ export const courseBatch = pgTable(
     maxStudents: integer('maxStudents').notNull(),
   },
   table => ({
-    CourseBatch_courseId_idx: index('CourseBatch_courseId_idx').on(table.courseId),
+    CourseBatch_curriculumId_idx: index('CourseBatch_curriculumId_idx').on(table.curriculumId),
   })
 )
 

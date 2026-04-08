@@ -22,7 +22,7 @@ export const PATCH = withCsrf(
       const [batch] = await drizzleDb
         .select()
         .from(courseBatch)
-        .where(and(eq(courseBatch.batchId, batchId), eq(courseBatch.courseId, id)))
+        .where(and(eq(courseBatch.batchId, batchId), eq(courseBatch.curriculumId, id)))
       if (!batch) throw new NotFoundError('Batch not found')
       const body = await req.json().catch(() => ({}))
       const difficulty =

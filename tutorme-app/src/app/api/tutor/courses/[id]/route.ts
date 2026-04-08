@@ -134,7 +134,7 @@ export const DELETE = withCsrf(
         await tx.delete(courseProgress).where(eq(courseProgress.courseId, id))
         await tx.delete(studentPerformance).where(eq(studentPerformance.courseId, id))
         await tx.delete(courseShare).where(eq(courseShare.courseId, id))
-        await tx.delete(courseBatch).where(eq(courseBatch.courseId, id))
+        await tx.delete(courseBatch).where(eq(courseBatch.curriculumId, id))
         await tx.delete(liveSession).where(eq(liveSession.courseId, id))
         await tx.delete(calendarEvent).where(eq(calendarEvent.courseId, id))
 

@@ -51,7 +51,7 @@ export const POST = withCsrf(
         const [batch] = await drizzleDb
           .select({ batchId: courseBatch.batchId })
           .from(courseBatch)
-          .where(and(eq(courseBatch.batchId, requestedBatchId), eq(courseBatch.courseId, courseId)))
+          .where(and(eq(courseBatch.batchId, requestedBatchId), eq(courseBatch.curriculumId, courseId)))
           .limit(1)
         if (!batch) {
           throw new NotFoundError('Course variant not found')

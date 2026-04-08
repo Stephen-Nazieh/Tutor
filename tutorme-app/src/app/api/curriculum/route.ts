@@ -146,12 +146,12 @@ export const GET = withAuth(async (req, session) => {
       // 3. Fetch batch counts
       const batchesRaw = await drizzleDb
         .select({
-          courseId: courseBatch.courseId,
+          courseId: courseBatch.curriculumId,
           batchCount: sql<number>`count(${courseBatch.batchId})::int`,
         })
         .from(courseBatch)
-        .where(inArray(courseBatch.courseId, courseIds))
-        .groupBy(courseBatch.courseId)
+        .where(inArray(courseBatch.curriculumId, courseIds))
+        .groupBy(courseBatch.curriculumId)
 
       const batchesMap = new Map<string, number>(batchesRaw.map(b => [b.courseId, b.batchCount]))
 
