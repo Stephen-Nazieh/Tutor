@@ -286,6 +286,63 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
       }
     : {}
 
+  // Auto-create a course if none exists
+  const [isAutoCreating, setIsAutoCreating] = useState(false)
+  
+  useEffect(() => {
+    if (!currentCourse && !loading && !isAutoCreating && courses.length === 0) {
+      setIsAutoCreating(true)
+      const createCourse = async () => {
+        try {
+          const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+          const csrfData = await csrfRes.json().catch(() => ({}))
+          const csrfToken = csrfData?.token ?? null
+
+          const res = await fetch('/api/tutor/courses', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              title: 'Untitled Course',
+              description: undefined,
+              subject: 'general',
+              categories: [],
+              schedule: [],
+              isLiveOnline: false,
+            }),
+          })
+
+          const data = await res.json().catch(() => ({}))
+          if (res.ok && data.course?.id) {
+            toast.success('Created new course!')
+            // Add the new course to the list and set it as current
+            const newCourse = { 
+              id: data.course.id, 
+              name: data.course.name,
+              subject: data.course.subject,
+              gradeLevel: data.course.gradeLevel,
+            }
+            setCourses([newCourse])
+            setCurrentCourse(newCourse)
+            setCourseName(newCourse.name)
+            // Update URL
+            window.history.replaceState({}, '', `/tutor/courses/${newCourse.id}/builder`)
+          } else {
+            toast.error(data.error || 'Failed to create course')
+          }
+        } catch {
+          toast.error('Failed to create course')
+        } finally {
+          setIsAutoCreating(false)
+        }
+      }
+      void createCourse()
+    }
+  }, [currentCourse, loading, isAutoCreating, courses.length])
+
   if (!currentCourse && !loading) {
     return (
       <div
@@ -299,14 +356,13 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
               Course Builder
             </CardTitle>
             <CardDescription>
-              You don&apos;t have any courses yet. Create a course to start building your
-              curriculum.
+              {isAutoCreating 
+                ? 'Creating your course...' 
+                : 'Getting course builder ready...'}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button onClick={() => setIsCreateDialogOpen(true)} className="w-full">
-              Create Your First Course
-            </Button>
+          <CardContent className="flex justify-center py-4">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
           </CardContent>
         </Card>
       </div>
