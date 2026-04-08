@@ -33,6 +33,9 @@ ts_errors.log
 
 # local env files
 .env*.local
+.env
+.env.*
+!.env.example
 
 # vercel
 .vercel

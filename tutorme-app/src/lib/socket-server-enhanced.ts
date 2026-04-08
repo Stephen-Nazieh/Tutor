@@ -8,6 +8,7 @@ import { Server as SocketIOServer, Socket } from 'socket.io'
 import { jwtVerify } from 'jose'
 import Redis from 'ioredis'
 import { promisify } from 'util'
+import * as Sentry from '@sentry/nextjs'
 import {
   registerLiveClassWhiteboardHandlers,
   cleanupLcwbPresence,
@@ -465,6 +466,13 @@ async function initRedis() {
     // Handle errors globally to prevent process crash
     const errorHandler = (name: string) => (err: Error) => {
       console.error(`❌ [Redis] ${name} error:`, err.message)
+      if (process.env.NODE_ENV === 'production') {
+        Sentry.captureException(err, {
+          tags: { service: 'redis', client: name },
+          level: 'fatal',
+          extra: { message: 'Redis connection failed in production, multi-node socket sync will be broken' }
+        })
+      }
     }
     redisClient.on('error', errorHandler('Client'))
     redisPubClient.on('error', errorHandler('Pub'))

@@ -3,7 +3,7 @@
  * Legacy clinic/gamification loaders removed.
  */
 
-import { inArray } from 'drizzle-orm'
+import { inArray, and } from 'drizzle-orm'
 import { drizzleDb } from './drizzle'
 import { cache } from './index'
 import { user, profile, contentProgress, aITutorEnrollment } from '@/lib/db/schema'
@@ -78,9 +78,13 @@ export async function batchLoadContentProgress(keys: { userId: string; contentId
       const progress = await drizzleDb
         .select()
         .from(contentProgress)
-        .where(inArray(contentProgress.studentId, userIds))
-      const progressFiltered = progress.filter(p => contentIds.includes(p.contentId))
-      const map = new Map(progressFiltered.map(p => [`${p.studentId}:${p.contentId}`, p]))
+        .where(
+          and(
+            inArray(contentProgress.studentId, userIds),
+            inArray(contentProgress.contentId, contentIds)
+          )
+        )
+      const map = new Map(progress.map(p => [`${p.studentId}:${p.contentId}`, p]))
       return keys.map(key => map.get(`${key.userId}:${key.contentId}`) ?? null)
     },
     60

@@ -14,6 +14,7 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import { user } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { randomBytes } from 'crypto'
+import { getAllowedOrigins } from '@/lib/middleware-edge/cors'
 
 interface ForgotPasswordRequest {
   email: string
@@ -22,6 +23,18 @@ interface ForgotPasswordRequest {
 interface ForgotPasswordResponse {
   success: boolean
   message: string
+}
+
+function buildCorsHeaders(origin: string | null): Record<string, string> {
+  if (!origin) return {}
+  if (!getAllowedOrigins().includes(origin)) return {}
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Credentials': 'true',
+    Vary: 'Origin',
+  }
 }
 
 /**
@@ -36,18 +49,30 @@ function generateResetToken(): string {
  */
 export async function POST(req: NextRequest): Promise<NextResponse<ForgotPasswordResponse>> {
   try {
+    const origin = req.headers.get('origin')
+    if (origin && !getAllowedOrigins().includes(origin)) {
+      return NextResponse.json({ success: false, message: 'CORS not allowed' }, { status: 403 })
+    }
+    const corsHeaders = buildCorsHeaders(origin)
+
     // Parse request body
     const body = (await req.json()) as ForgotPasswordRequest
     const { email } = body
 
     // Validate email format
     if (!email || typeof email !== 'string') {
-      return NextResponse.json({ success: false, message: 'Email is required' }, { status: 400 })
+      return NextResponse.json(
+        { success: false, message: 'Email is required' },
+        { status: 400, headers: corsHeaders }
+      )
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      return NextResponse.json({ success: false, message: 'Invalid email format' }, { status: 400 })
+      return NextResponse.json(
+        { success: false, message: 'Invalid email format' },
+        { status: 400, headers: corsHeaders }
+      )
     }
 
     // Normalize email
@@ -70,7 +95,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ForgotPasswor
           success: true,
           message: 'If an account exists with this email, you will receive a password reset link.',
         },
-        { status: 200 }
+        { status: 200, headers: corsHeaders }
       )
     }
 
@@ -110,7 +135,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ForgotPasswor
         success: true,
         message: 'If an account exists with this email, you will receive a password reset link.',
       },
-      { status: 200 }
+      { status: 200, headers: corsHeaders }
     )
   } catch (error) {
     console.error('[Forgot Password] Error:', error)
@@ -129,13 +154,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<ForgotPasswor
 /**
  * OPTIONS handler for CORS preflight
  */
-export async function OPTIONS() {
+export async function OPTIONS(req: NextRequest) {
+  const origin = req.headers.get('origin')
+  if (origin && !getAllowedOrigins().includes(origin)) {
+    return NextResponse.json({ success: false, message: 'CORS not allowed' }, { status: 403 })
+  }
   return new NextResponse(null, {
     status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
+    headers: buildCorsHeaders(origin),
   })
 }

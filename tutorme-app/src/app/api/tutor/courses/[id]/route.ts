@@ -183,19 +183,25 @@ export const PATCH = withCsrf(
 
       if (data.isPublished === true && !courseRow.isPublished) {
         const validationErrors: string[] = []
-        if (!courseRow.name || courseRow.name.trim().length < 2) {
+        const checkName = data.name !== undefined ? safeName : courseRow.name
+        const checkCategories = data.categories !== undefined ? data.categories : courseRow.categories
+        const checkPrice = data.price !== undefined ? data.price : courseRow.price
+        const checkIsFree = data.isFree !== undefined ? data.isFree : courseRow.isFree
+        const checkCurrency = data.currency !== undefined ? data.currency : courseRow.currency
+
+        if (!checkName || checkName.trim().length < 2) {
           validationErrors.push('Course must have a name (at least 2 characters)')
         }
-        if (!courseRow.categories || courseRow.categories.length === 0) {
+        if (!checkCategories || checkCategories.length === 0) {
           validationErrors.push('Course must have at least one category selected')
         }
         if (lessons.length === 0) {
           validationErrors.push('Course must have at least one lesson')
         }
-        if (!courseRow.isFree && (courseRow.price === null || courseRow.price === undefined)) {
+        if (!checkIsFree && (checkPrice === null || checkPrice === undefined)) {
           validationErrors.push('Course must have a price set (use free toggle for free courses)')
         }
-        if (!courseRow.isFree && (courseRow.price ?? 0) > 0 && !courseRow.currency) {
+        if (!checkIsFree && (checkPrice ?? 0) > 0 && !checkCurrency) {
           validationErrors.push('Currency must be set for paid courses')
         }
         if (validationErrors.length > 0) {
@@ -206,8 +212,7 @@ export const PATCH = withCsrf(
       const updatePayload: Record<string, unknown> = {}
       if (safeName !== undefined) updatePayload.name = safeName
       if (safeDescription !== undefined) updatePayload.description = safeDescription
-      // Note: categories update not supported by current schema
-      // if (data.categories !== undefined) updatePayload.categories = data.categories
+      if (data.categories !== undefined) updatePayload.categories = data.categories
       if (data.languageOfInstruction !== undefined)
         updatePayload.languageOfInstruction = data.languageOfInstruction
       if (data.price !== undefined) updatePayload.price = data.price

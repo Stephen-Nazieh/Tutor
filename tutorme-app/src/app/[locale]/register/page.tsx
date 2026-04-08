@@ -36,7 +36,9 @@ const roles = [
   },
 ]
 
-export default function RoleSelectionPage() {
+export default function RoleSelectionPage({ params }: { params: { locale?: string } }) {
+  const localePrefix = params?.locale ? `/${params.locale}` : ''
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-white p-4">
       <div className="w-full max-w-5xl">
@@ -49,7 +51,7 @@ export default function RoleSelectionPage() {
         {/* Role Cards */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {roles.map(role => (
-            <Link key={role.id} href={role.href}>
+            <Link key={role.id} href={`${localePrefix}${role.href}`}>
               <Card className="h-full cursor-pointer border-2 border-transparent transition-shadow hover:border-[#4FD1C5] hover:shadow-lg">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
@@ -75,7 +77,7 @@ export default function RoleSelectionPage() {
         <div className="mt-12 text-center">
           <p className="text-gray-600">
             Already have an account?{' '}
-            <Link href="/login" className="font-medium text-[#1D4ED8] hover:underline">
+            <Link href={`${localePrefix}/login`} className="font-medium text-[#1D4ED8] hover:underline">
               Sign in
             </Link>
           </p>
