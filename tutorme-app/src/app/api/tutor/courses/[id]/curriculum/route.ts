@@ -96,7 +96,7 @@ function extractQuestionBankCandidates(
     for (const quiz of moduleQuizzes) {
       const questions = Array.isArray(quiz?.questions) ? quiz.questions : []
       for (const q of questions as BuilderQuestion[]) {
-        if (!q?.question || !q.question.trim()) continue
+        if (typeof q?.question !== 'string' || !q.question.trim()) continue
         const type = normalizeQuestionType(q.type)
         items.push({
           tutorId: userId,
@@ -108,7 +108,7 @@ function extractQuestionBankCandidates(
           correctAnswer: normalizeCorrectAnswer(q),
           points: Math.max(1, q.points ?? 1),
           difficulty: 'medium',
-          explanation: q.explanation?.trim() || null,
+          explanation: typeof q.explanation === 'string' ? q.explanation.trim() : null,
           tags: ['course-builder', 'module-quiz'],
           subject: courseName,
           isPublic: false,
@@ -131,7 +131,7 @@ function extractQuestionBankCandidates(
         for (const item of itemsInGroup) {
           const questions = Array.isArray(item?.questions) ? item.questions : []
           for (const q of questions as BuilderQuestion[]) {
-            if (!q?.question || !q.question.trim()) continue
+            if (typeof q?.question !== 'string' || !q.question.trim()) continue
             const type = normalizeQuestionType(q.type)
             items.push({
               tutorId: userId,
@@ -143,7 +143,7 @@ function extractQuestionBankCandidates(
               correctAnswer: normalizeCorrectAnswer(q),
               points: Math.max(1, q.points ?? 1),
               difficulty: 'medium',
-              explanation: q.explanation?.trim() || null,
+              explanation: typeof q.explanation === 'string' ? q.explanation.trim() : null,
               tags: ['course-builder', group.tag],
               subject: courseName,
               isPublic: false,
@@ -202,9 +202,8 @@ export async function GET(req: NextRequest) {
   // Map DB rows → builder Module[] shape
   const modules = dbModules.map((m: (typeof dbModules)[0]) => {
     const mBuilder = (m.builderData ?? {}) as Record<string, any>
-    // Lessons are now directly under courses (no moduleId), so we can't filter by module
-    // Return empty array for now - lessons need to be fetched at course level
-    const moduleLessons: typeof dbLessons = []
+    // Return lessons that belong to this module using the legacy moduleId column
+    const moduleLessons = dbLessons.filter(l => l.moduleId === m.moduleId)
     return {
       id: m.moduleId,
       title: m.title,
@@ -230,6 +229,7 @@ export async function GET(req: NextRequest) {
           tasks: (lBuilder.tasks as unknown[]) ?? [],
           homework: (lBuilder.homework as unknown[]) ?? [],
           quizzes: (lBuilder.quizzes as unknown[]) ?? [],
+          worksheets: (lBuilder.worksheets as unknown[]) ?? [],
           difficultyMode: (lBuilder.difficultyMode as string) ?? 'all',
           variants: (lBuilder.variants as Record<string, unknown>) ?? {},
         }
@@ -281,6 +281,15 @@ export async function PUT(req: NextRequest) {
   const variantJoinLinks: VariantJoinLink[] = []
   if (!Array.isArray(modules)) {
     return NextResponse.json({ error: '`modules` array required' }, { status: 400 })
+  }
+
+  // Ensure all modules and lessons have IDs before processing
+  for (const mod of modules) {
+    if (!mod.id) mod.id = crypto.randomUUID()
+    const lessons = Array.isArray(mod.lessons) ? mod.lessons : []
+    for (const les of lessons) {
+      if (!les.id) les.id = crypto.randomUUID()
+    }
   }
 
   try {
@@ -344,6 +353,8 @@ export async function PUT(req: NextRequest) {
         for (const les of lessons) {
           const lessonBuilderData = {
             isPublished: les.isPublished ?? false,
+            prerequisites: les.prerequisites ?? [],
+            duration: les.duration ?? 30,
             difficultyMode: les.difficultyMode ?? 'all',
             variants: les.variants ?? {},
             media: les.media ?? { videos: [], images: [] },
@@ -352,22 +363,27 @@ export async function PUT(req: NextRequest) {
             tasks: les.tasks ?? [],
             homework: les.homework ?? [],
             quizzes: les.quizzes ?? [],
+            worksheets: les.worksheets ?? [],
           }
           await tx
             .insert(courseLesson)
             .values({
               lessonId: les.id,
               courseId,
+              moduleId: mod.id,
               title: les.title || 'Untitled Lesson',
               description: les.description || null,
+              duration: les.duration ?? 60,
               order: les.order ?? 0,
               builderData: lessonBuilderData,
             })
             .onConflictDoUpdate({
               target: courseLesson.lessonId,
               set: {
+                moduleId: mod.id,
                 title: les.title || 'Untitled Lesson',
                 description: les.description || null,
+                duration: les.duration ?? 60,
                 order: les.order ?? 0,
                 builderData: lessonBuilderData,
               },
