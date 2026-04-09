@@ -387,6 +387,7 @@ export default function TutorCoursePage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
+  const locale = (params.locale as string) || 'en'
 
   const [course, setCourse] = useState<CourseData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -497,15 +498,15 @@ export default function TutorCoursePage() {
         setCourse(data.course)
       } else {
         toast.error('Course not found')
-        router.push('/curriculum')
+        router.push(`/${locale}/tutor/courses`)
       }
     } catch {
       toast.error('Failed to load course')
-      router.push('/curriculum')
+      router.push(`/${locale}/tutor/courses`)
     } finally {
       setLoading(false)
     }
-  }, [id, router])
+  }, [id, router, locale])
 
   useEffect(() => {
     loadCourse()
