@@ -1,15 +1,19 @@
 import { NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { sql } from 'drizzle-orm'
+import { migrate } from 'drizzle-orm/node-postgres/migrator'
+import path from 'path'
 
 export async function GET() {
   try {
-    await drizzleDb.execute(sql`ALTER TABLE "CourseLesson" ADD COLUMN IF NOT EXISTS "tasks" jsonb;`)
-    await drizzleDb.execute(sql`ALTER TABLE "CourseLesson" ADD COLUMN IF NOT EXISTS "assessments" jsonb;`)
-    await drizzleDb.execute(sql`ALTER TABLE "CourseLesson" ADD COLUMN IF NOT EXISTS "homework" jsonb;`)
-    await drizzleDb.execute(sql`ALTER TABLE "CourseLesson" ADD COLUMN IF NOT EXISTS "builderData" jsonb;`)
-    return NextResponse.json({ success: true, message: "Columns added successfully" })
+    const migrationsFolder = path.join(process.cwd(), 'drizzle')
+    console.log('Running Drizzle migrations from', migrationsFolder)
+    
+    // Apply all pending SQL migrations to the database
+    await migrate(drizzleDb as any, { migrationsFolder })
+    
+    return NextResponse.json({ success: true, message: "All migrations completed successfully!" })
   } catch (error) {
+    console.error("Migration failed:", error)
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 })
   }
 }
