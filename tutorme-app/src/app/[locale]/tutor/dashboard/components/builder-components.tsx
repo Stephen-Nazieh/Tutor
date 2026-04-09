@@ -205,7 +205,7 @@ export function ResourceImportPanel<
     <div className="space-y-2 rounded-lg border border-dashed p-3">
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="outline" size="sm" disabled={extracting} asChild>
-          <label className="cursor-pointer">
+          <label className="cursor-pointer" title="Supports .pdf, .docx, .pptx, images">
             {extracting ? (
               <Loader2 className="mr-1 h-3 w-3 animate-spin" />
             ) : (
@@ -215,7 +215,7 @@ export function ResourceImportPanel<
             <input
               type="file"
               className="hidden"
-              accept=".pdf,.txt,.md,.doc,.docx,image/*"
+              accept=".pdf,.txt,.md,.doc,.docx,.ppt,.pptx,image/*"
               onChange={(e: any) => {
                 handleImport(e.target.files)
                 e.currentTarget.value = ''

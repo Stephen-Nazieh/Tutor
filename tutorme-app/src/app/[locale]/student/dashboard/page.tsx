@@ -17,8 +17,6 @@ import {
 import { toast } from 'sonner'
 import { Settings, AlertCircle } from 'lucide-react'
 
-import { XpAnimation, LevelUpAnimation } from '@/components/gamification/xp-animation'
-
 import {
   // ContinueLearning,  // Moved to DashboardCalendar tabs
   // UpcomingClasses,   // Moved to DashboardCalendar tabs
@@ -35,9 +33,6 @@ export default function StudentDashboard() {
   const { status } = useSession()
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<DashboardData | null>(null)
-  const [showXpAnimation, setShowXpAnimation] = useState(false)
-  const [xpGain, setXpGain] = useState<{ amount: number; reason: string } | null>(null)
-  const [showLevelUp, setShowLevelUp] = useState(false)
   const [bookingClassId, setBookingClassId] = useState<string | null>(null)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [themeId, setThemeId] = useState('current')
@@ -57,16 +52,6 @@ export default function StudentDashboard() {
           ok: true,
           status: 200,
           json: () => Promise.resolve({ contents: [] }),
-        })),
-        fetch('/api/gamification').catch(() => ({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve({ success: false }),
-        })),
-        fetch('/api/gamification/worlds').catch(() => ({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve({ success: false, data: [] }),
         })),
         fetch('/api/recommendations').catch(() => ({
           ok: true,
@@ -93,14 +78,14 @@ export default function StudentDashboard() {
         return
       }
 
-      const [contentData, gamificationData, worldsData, recsData, classesData, subjectsData] =
+      const [contentData, recsData, classesData, subjectsData] =
         await Promise.all(responses.map(r => r.json()))
 
       const subjects = subjectsData?.subjects ?? []
       setData({
         contents: contentData?.contents ?? [],
-        gamification: gamificationData?.data ?? null,
-        worlds: worldsData?.data ?? [],
+        gamification: null,
+        worlds: [],
         dailyQuests: [],
         recommendations: recsData?.recommendations ?? [],
         classes: classesData?.classes ?? [],
@@ -157,23 +142,6 @@ export default function StudentDashboard() {
     if (status !== 'authenticated') return
     fetchDashboardData()
   }, [status, fetchDashboardData])
-
-  // Daily login check
-  useEffect(() => {
-    if (status !== 'authenticated' || !data?.gamification) return
-
-    fetch('/api/gamification/daily-login', { method: 'POST' })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.data.firstLoginToday) {
-          setXpGain({ amount: data.data.xpEarned, reason: 'Daily Login' })
-          setShowXpAnimation(true)
-          if (data.data.leveledUp) {
-            setTimeout(() => setShowLevelUp(true), 2000)
-          }
-        }
-      })
-  }, [status, data?.gamification])
 
   if (status === 'loading' || loading) {
     return (
@@ -241,21 +209,6 @@ export default function StudentDashboard() {
 
   return (
     <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
-      {/* Animations */}
-      {showXpAnimation && xpGain && (
-        <XpAnimation
-          amount={xpGain.amount}
-          reason={xpGain.reason}
-          onComplete={() => setShowXpAnimation(false)}
-        />
-      )}
-      {showLevelUp && data?.gamification && (
-        <LevelUpAnimation
-          level={data.gamification.level}
-          onComplete={() => setShowLevelUp(false)}
-        />
-      )}
-
       {/* Navigation */}
       <nav className="safe-top sticky top-0 z-50 border-b border-border bg-secondary">
         <div className="w-full px-4 sm:px-6 lg:px-8">

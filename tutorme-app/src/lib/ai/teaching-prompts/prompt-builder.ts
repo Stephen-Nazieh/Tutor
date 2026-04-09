@@ -20,24 +20,6 @@ export interface PromptConfig {
   teachingAge?: number
   voiceGender?: string
   voiceAccent?: string
-  gamification: {
-    level: number
-    xp: number
-    streakDays: number
-    skills: Record<string, number>
-  }
-  mission?: {
-    worldId: string
-    worldName: string
-    worldEmoji: string
-    missionId: string
-    missionTitle: string
-    missionObjective: string
-    missionType: string
-    vocabulary?: string[]
-    grammarFocus?: string
-    difficulty: string
-  }
   tier: 'FREE' | 'BASIC' | 'PREMIUM'
   chatHistory: Array<{ role: string; content: string }>
   userMessage: string
@@ -100,31 +82,6 @@ export function buildCompletePrompt(config: PromptConfig): string {
     if (typeof config.teachingAge === 'number') parts.push(`Teaching age: ${config.teachingAge}`)
     if (config.voiceGender) parts.push(`Voice gender: ${config.voiceGender}`)
     if (config.voiceAccent) parts.push(`Voice accent: ${config.voiceAccent}`)
-  }
-
-  // 4. Gamification Context
-  parts.push(`\n## Student Progress`)
-  parts.push(`- Level: ${config.gamification.level}`)
-  parts.push(`- XP: ${config.gamification.xp}`)
-  parts.push(`- Streak: ${config.gamification.streakDays} days`)
-  if (Object.keys(config.gamification.skills).length > 0) {
-    parts.push(`- Skills: ${JSON.stringify(config.gamification.skills)}`)
-  }
-
-  // 5. Mission Context (if provided)
-  if (config.mission) {
-    parts.push(`\n## Current Mission`)
-    parts.push(`World: ${config.mission.worldEmoji} ${config.mission.worldName}`)
-    parts.push(`Mission: ${config.mission.missionTitle}`)
-    parts.push(`Objective: ${config.mission.missionObjective}`)
-    parts.push(`Type: ${config.mission.missionType}`)
-    parts.push(`Difficulty: ${config.mission.difficulty}`)
-    if (config.mission.vocabulary?.length) {
-      parts.push(`Vocabulary focus: ${config.mission.vocabulary.join(', ')}`)
-    }
-    if (config.mission.grammarFocus) {
-      parts.push(`Grammar focus: ${config.mission.grammarFocus}`)
-    }
   }
 
   // 6. Tier Controls

@@ -184,7 +184,14 @@ export const PATCH = withCsrf(
       if (data.isPublished === true && !courseRow.isPublished) {
         const validationErrors: string[] = []
         const checkName = data.name !== undefined ? safeName : courseRow.name
-        const checkCategories = data.categories !== undefined ? data.categories : courseRow.categories
+        const checkCategories =
+          data.categories !== undefined && Array.isArray(data.categories)
+            ? data.categories
+            : Array.isArray(courseRow.categories)
+              ? courseRow.categories
+              : courseRow.categories
+                ? [courseRow.categories]
+                : []
         const checkPrice = data.price !== undefined ? data.price : courseRow.price
         const checkIsFree = data.isFree !== undefined ? data.isFree : courseRow.isFree
         const checkCurrency = data.currency !== undefined ? data.currency : courseRow.currency

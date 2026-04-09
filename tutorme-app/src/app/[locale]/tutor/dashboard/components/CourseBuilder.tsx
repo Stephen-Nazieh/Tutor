@@ -314,6 +314,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const lastInitialModulesKeyRef = useRef<string | null>(null)
     const [modules, setModules] = useState<Module[]>([])
     const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
+    const [searchQuery, setSearchQuery] = useState('')
     const [selectedItem, setSelectedItem] = useState<{ type: string; id: string } | null>(null)
     const [outlineModalOpen, setOutlineModalOpen] = useState(false)
     const [aiPanelOpen, setAiPanelOpen] = useState(false)
@@ -2582,6 +2583,7 @@ FEEDBACK: [your explanation]`
               <input
                 type="file"
                 multiple
+                accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.rtf,.csv,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.mp4,.mov,.webm"
                 className="hidden"
                 onChange={async (e: any) => {
                   const files = Array.from(e.target.files || [])
@@ -2606,7 +2608,7 @@ FEEDBACK: [your explanation]`
                   e.target.value = ''
                 }}
               />
-              <span className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700">
+              <span className="flex items-center gap-1 text-[10px] font-medium text-blue-600 hover:text-blue-700" title="Supports .pdf, .docx, .pptx, images, video">
                 <Upload className="h-3 w-3" /> Upload Asset
               </span>
             </label>
@@ -2926,6 +2928,67 @@ FEEDBACK: [your explanation]`
       }
     }, [leftPanelResizing])
 
+    // Auto-save curriculum edits (debounced)
+    useEffect(() => {
+      if (insightsProps) return
+      if (!onSave) return
+      
+      const timeoutId = setTimeout(() => {
+        onSave(modules, {
+          developmentMode: devMode,
+          previewDifficulty,
+          courseName: coursePropsModal.name || courseName,
+          courseDescription: coursePropsModal.description,
+          isAutoSave: true,
+        })
+      }, 2000)
+
+      return () => clearTimeout(timeoutId)
+    }, [modules, devMode, previewDifficulty, coursePropsModal.name, coursePropsModal.description, courseName, onSave, insightsProps])
+
+    const filteredModules = useMemo(() => {
+      if (!searchQuery.trim()) return modules;
+      const lowerQuery = searchQuery.toLowerCase();
+      
+      return modules.map(module => {
+        const moduleMatch = module.title.toLowerCase().includes(lowerQuery);
+        
+        const filteredLessons = module.lessons.map(lesson => {
+          const lessonMatch = lesson.title.toLowerCase().includes(lowerQuery);
+          
+          const filteredTasks = (lesson.tasks || []).filter(task => 
+            task.title?.toLowerCase().includes(lowerQuery) ||
+            task.description?.toLowerCase().includes(lowerQuery) ||
+            task.extensions?.some(ext => ext.name?.toLowerCase().includes(lowerQuery) || ext.content?.toLowerCase().includes(lowerQuery))
+          );
+          
+          const filteredHomework = (lesson.homework || []).filter(hw => 
+            hw.title?.toLowerCase().includes(lowerQuery) ||
+            hw.description?.toLowerCase().includes(lowerQuery)
+          );
+
+          const hasMatchingContent = filteredTasks.length > 0 || filteredHomework.length > 0;
+          
+          if (lessonMatch || moduleMatch || hasMatchingContent) {
+            return {
+              ...lesson,
+              tasks: (lessonMatch || moduleMatch) ? lesson.tasks : filteredTasks,
+              homework: (lessonMatch || moduleMatch) ? lesson.homework : filteredHomework
+            };
+          }
+          return null;
+        }).filter(Boolean) as typeof module.lessons;
+
+        if (moduleMatch || filteredLessons.length > 0) {
+          return {
+            ...module,
+            lessons: filteredLessons
+          };
+        }
+        return null;
+      }).filter(Boolean) as typeof modules;
+    }, [modules, searchQuery]);
+
     return (
       <div
         className={cn(
@@ -3000,6 +3063,15 @@ FEEDBACK: [your explanation]`
                       </div>
                     </div>
 
+                    <div className="mb-3">
+                      <Input
+                        placeholder="Search curriculum..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+
                     <ScrollArea className="min-h-0 flex-1">
                       <DndContext
                         sensors={sensors}
@@ -3010,10 +3082,10 @@ FEEDBACK: [your explanation]`
                         <div className="space-y-1">
                           {/* Lessons (formerly modules) - with drag sorting */}
                           <SortableContext
-                            items={modules.map(m => m.id)}
+                            items={filteredModules.map(m => m.id)}
                             strategy={verticalListSortingStrategy}
                           >
-                            {modules.map((module, moduleIdx) => {
+                            {filteredModules.map((module, moduleIdx) => {
                               const primaryLesson = module.lessons[0] ?? DEFAULT_LESSON(0)
                               const taskCount = primaryLesson.tasks?.length || 0
                               const assessments = (primaryLesson.homework || []).filter(

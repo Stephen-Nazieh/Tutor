@@ -215,9 +215,6 @@ export const DefaultFeatureFlags = {
   CONTENT_TRANSCRIPTS: 'content_transcripts',
   CONTENT_BOOKMARKS: 'content_bookmarks',
   CONTENT_NOTES: 'content_notes',
-  GAMIFICATION_ENABLED: 'gamification_enabled',
-  GAMIFICATION_ACHIEVEMENTS: 'gamification_achievements',
-  GAMIFICATION_LEADERBOARD: 'gamification_leaderboard',
   STUDY_GROUPS: 'study_groups',
   PEER_COLLABORATION: 'peer_collaboration',
   TUTOR_REVIEWS: 'tutor_reviews',
@@ -264,12 +261,6 @@ export async function initializeDefaultFeatureFlags(adminId: string): Promise<vo
       key: DefaultFeatureFlags.CONTENT_QUIZZES,
       name: 'Content Quizzes',
       description: 'Enable quizzes in video content',
-      enabled: true,
-    },
-    {
-      key: DefaultFeatureFlags.GAMIFICATION_ENABLED,
-      name: 'Gamification',
-      description: 'Enable gamification features',
       enabled: true,
     },
     {

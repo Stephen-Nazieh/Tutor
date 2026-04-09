@@ -5,9 +5,6 @@ import { aITutorEnrollment, aITutorSubscription, aIInteractionSession } from '@/
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
 import { generateWithFallback } from './orchestrator-llm'
 import { buildCompletePrompt, type PromptConfig } from '@/lib/ai/teaching-prompts/prompt-builder'
-import { getGamificationSummary } from '@/lib/gamification/service'
-import { updateQuestProgress } from '@/lib/gamification/daily-quests'
-import { logActivity, ACTIVITY_EVENTS } from '@/lib/gamification/activity-log'
 import { findRelevantConcepts } from '@/lib/ai/subjects'
 import { extractWhiteboardItems } from '@/lib/ai/whiteboard-extract'
 import { classifyHintType, extractNextSteps } from '@/lib/agents/tutor'
@@ -21,22 +18,14 @@ export interface TutorChatInput {
   teachingAge?: number
   voiceGender?: string
   voiceAccent?: string
-  personality?: string
-  missionId?: string
-  worldId?: string
   chatHistory?: Array<{ role?: string; content?: string }>
 }
 
 export interface TutorChatOutput {
+
   response: string
   provider: string
   latencyMs: number
-  gamification?: {
-    level: number
-    xp: number
-    streakDays: number
-    skills: Record<string, number>
-  }
   hintType?: 'socratic' | 'direct' | 'encouragement' | 'clarification'
   relevantConcepts?: string[]
   suggestedNextSteps?: string[]
@@ -65,15 +54,11 @@ export async function runTutorChat(input: TutorChatInput): Promise<TutorChatOutp
 
   const safeChatHistory = sanitizeChatHistory(input.chatHistory)
 
-  const gamification = await getGamificationSummary(input.userId)
   await drizzleDb
     .select()
     .from(aITutorEnrollment)
     .where(eq(aITutorEnrollment.studentId, input.userId))
     .limit(1)
-
-  const selectedPersonality = (input.personality ||
-    'friendly_mentor') as PromptConfig['personality']
 
   const [subscription] = await drizzleDb
     .select()
@@ -83,16 +68,15 @@ export async function runTutorChat(input: TutorChatInput): Promise<TutorChatOutp
   const tier = (subscription?.tier as string) ?? 'FREE'
 
   const promptConfig: PromptConfig = {
+
     language: 'en',
     teachingMode: input.teachingMode || 'socratic',
-    personality: selectedPersonality,
+    personality: 'friendly_mentor',
     subject: input.subject,
     topic: input.topic,
     teachingAge: input.teachingAge,
     voiceGender: input.voiceGender,
     voiceAccent: input.voiceAccent,
-    gamification: gamification as PromptConfig['gamification'],
-    mission: undefined,
     tier: tier as PromptConfig['tier'],
     chatHistory: safeChatHistory.map(msg => ({
       role: msg.role || 'user',
@@ -121,14 +105,6 @@ export async function runTutorChat(input: TutorChatInput): Promise<TutorChatOutp
   const whiteboardItems = extractWhiteboardItems(aiResponse.content)
 
   const studentHash = AISecurityManager.createStudentHash(input.userId)
-  await logActivity(input.userId, ACTIVITY_EVENTS.AI_CONVERSATION, {
-    missionId: input.missionId,
-    personality: selectedPersonality,
-    teachingMode: input.teachingMode || 'socratic',
-    studentHash,
-  })
-
-  await updateQuestProgress(input.userId, 'speaking', 1)
 
   await drizzleDb.insert(aIInteractionSession).values({
     interactionId: crypto.randomUUID(),
@@ -142,12 +118,6 @@ export async function runTutorChat(input: TutorChatInput): Promise<TutorChatOutp
     response: aiResponse.content,
     provider: aiResponse.provider,
     latencyMs: aiResponse.latencyMs,
-    gamification: {
-      level: gamification.level,
-      xp: gamification.xp,
-      streakDays: gamification.streakDays,
-      skills: gamification.skills ?? {},
-    },
     hintType,
     relevantConcepts,
     suggestedNextSteps,

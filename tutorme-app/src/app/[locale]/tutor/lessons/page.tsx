@@ -170,8 +170,8 @@ export default function LessonBankPage() {
   }, [currentCourseId, savedCourses.length])
 
   const handleSave = useCallback(
-    (nextModules: Module[]) => {
-      setSaving(true)
+    (nextModules: Module[], options?: any) => {
+      if (!options?.isAutoSave) setSaving(true)
       try {
         setModules(nextModules)
         setSavedCourses(prev => {
@@ -183,9 +183,9 @@ export default function LessonBankPage() {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
           return updated
         })
-        toast.success('Course saved successfully')
+        if (!options?.isAutoSave) toast.success('Course saved successfully')
       } finally {
-        setSaving(false)
+        if (!options?.isAutoSave) setSaving(false)
       }
     },
     [currentCourseId]

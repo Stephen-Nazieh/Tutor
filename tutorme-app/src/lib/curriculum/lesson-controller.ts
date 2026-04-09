@@ -486,13 +486,6 @@ export async function completeLesson(sessionId: string): Promise<void> {
       })
     }
   })
-
-  try {
-    const { onLessonComplete } = await import('@/lib/gamification/triggers')
-    await onLessonComplete(sessionRow.studentId, sessionRow.lessonId)
-  } catch (error) {
-    console.error('Failed to award lesson completion XP:', error)
-  }
 }
 
 /**

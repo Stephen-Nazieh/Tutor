@@ -16,9 +16,54 @@ import {
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
-import { BookOpen, Eye, EyeOff } from 'lucide-react'
+import { BookOpen, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
 import { REGIONS } from '@/lib/tutoring/categories-new'
 import { BackButton } from '@/components/navigation'
+
+const STEPS = [
+  { num: 1, title: 'Account' },
+  { num: 2, title: 'Security' },
+  { num: 3, title: 'Profile' },
+  { num: 4, title: 'Terms' },
+]
+
+function Stepper({ currentStep }: { currentStep: number }) {
+  return (
+    <div className="mb-8">
+      <div className="flex items-center justify-between">
+        {STEPS.map((s, i) => (
+          <div key={s.num} className="flex flex-col items-center relative z-10">
+            <div
+              className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors duration-200 ${
+                currentStep > s.num
+                  ? 'border-[#4FD1C5] bg-[#4FD1C5] text-white'
+                  : currentStep === s.num
+                  ? 'border-[#4FD1C5] bg-white text-[#4FD1C5]'
+                  : 'border-gray-200 bg-white text-gray-400'
+              }`}
+            >
+              {currentStep > s.num ? <CheckCircle2 className="h-5 w-5" /> : <span className="text-sm font-medium">{s.num}</span>}
+            </div>
+            <span
+              className={`mt-2 text-xs font-medium transition-colors duration-200 ${
+                currentStep >= s.num ? 'text-slate-900' : 'text-gray-400'
+              }`}
+            >
+              {s.title}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="relative mt-[-2rem] mb-8">
+        <div className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 bg-gray-200" />
+        <div
+          className="absolute left-0 top-1/2 h-[2px] -translate-y-1/2 bg-[#4FD1C5] transition-all duration-300 ease-in-out"
+          style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
+        />
+      </div>
+    </div>
+  )
+}
 
 export default function StudentRegistrationPage() {
   const router = useRouter()
@@ -159,21 +204,13 @@ export default function StudentRegistrationPage() {
           <h1 className="text-3xl font-bold text-[#1F2933]">Student Registration</h1>
         </div>
 
+        <Stepper currentStep={step} />
+
         <Card>
           <CardHeader>
             <CardTitle className="text-[#1F2933]">Create Your Account</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex items-center justify-between text-sm text-gray-500">
-              <span>Step {step} of 4</span>
-              <span>
-                {step === 1 && 'Account details'}
-                {step === 2 && 'Security'}
-                {step === 3 && 'Preferences'}
-                {step === 4 && 'Terms & Confirm'}
-              </span>
-            </div>
-
             {step === 1 && (
               <>
                 <div className="grid grid-cols-2 gap-4">

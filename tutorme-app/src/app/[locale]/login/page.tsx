@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import { AlertCircle, Info, Loader2, Eye, EyeOff } from 'lucide-react'
 
 function LoginForm() {
@@ -27,6 +28,7 @@ function LoginForm() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -40,6 +42,7 @@ function LoginForm() {
       const result = await signIn('credentials', {
         email,
         password,
+        rememberMe,
         redirect: false,
       })
 
@@ -150,6 +153,18 @@ function LoginForm() {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="remember" 
+              checked={rememberMe}
+              onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+              disabled={isLoading}
+            />
+            <Label htmlFor="remember" className="text-sm font-normal text-gray-600">
+              Remember me
+            </Label>
           </div>
 
           <Button

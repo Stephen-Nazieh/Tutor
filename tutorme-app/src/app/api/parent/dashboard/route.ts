@@ -35,7 +35,6 @@ export const GET = withAuth(
             progress: 0,
             lastActive: '—',
             subjects: [],
-            recentAchievement: null,
           }))
 
         return {

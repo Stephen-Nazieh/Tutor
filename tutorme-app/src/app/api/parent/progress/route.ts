@@ -30,9 +30,6 @@ export const GET = withAuth(
         overallProgress: null,
         strengths: [],
         weaknesses: [],
-        level: null,
-        xp: null,
-        achievements: [],
       }))
 
     const data = {

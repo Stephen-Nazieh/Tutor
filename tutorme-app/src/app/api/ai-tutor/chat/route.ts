@@ -51,9 +51,6 @@ export const POST = withCsrf(
         teachingAge,
         voiceGender,
         voiceAccent,
-        personality,
-        missionId,
-        worldId,
         chatHistory: Array.isArray(chatHistory) ? chatHistory : [],
       })
 
@@ -67,8 +64,6 @@ export const POST = withCsrf(
           relevantConcepts: aiResponse.relevantConcepts,
           suggestedNextSteps: aiResponse.suggestedNextSteps,
           whiteboardItems: aiResponse.whiteboardItems,
-          personality,
-          gamification: aiResponse.gamification,
         },
       })
     },

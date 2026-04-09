@@ -232,6 +232,7 @@ export const UpdateCourseSettingsSchema = z.object({
   schedule: z.array(ScheduleItemSchema).optional().nullable(),
   isLiveOnline: z.boolean().optional().nullable(),
   isPublished: z.boolean().optional().nullable(),
+  categories: z.array(z.string()).optional().nullable(),
 })
 
 export const UpdateProgressSchema = z.object({

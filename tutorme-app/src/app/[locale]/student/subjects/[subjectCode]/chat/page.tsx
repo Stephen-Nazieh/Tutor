@@ -54,10 +54,6 @@ import { AIAvatarPlaceholder } from '@/components/ai-tutor/ai-avatar'
 const AIAvatar = dynamic(() => import('@/components/ai-tutor/ai-avatar').then(m => m.AIAvatar), {
   ssr: false,
 })
-import { PersonalitySelector } from '@/components/gamification/personality-selector'
-import { XpAnimation, LevelUpAnimation } from '@/components/gamification/xp-animation'
-import { ConfidenceMeter } from '@/components/gamification/confidence-meter'
-import type { AvatarPersonality } from '@/lib/gamification/constants'
 import {
   Select,
   SelectContent,
@@ -907,11 +903,6 @@ export default function SubjectChatPage() {
   const [teachingMode, setTeachingMode] = useState<TeachingMode>('socratic')
   const [conversationId, setConversationId] = useState<string | null>(null)
 
-  // Gamification state
-  const [personality, setPersonality] = useState<AvatarPersonality>('friendly_mentor')
-  const [confidenceScore, setConfidenceScore] = useState(72)
-  const [showXpAnimation, setShowXpAnimation] = useState(false)
-
   // Background color theme
   const [backgroundColor, setBackgroundColor] = useState('light')
 
@@ -1122,9 +1113,6 @@ export default function SubjectChatPage() {
                 </SelectContent>
               </Select>
 
-              {/* Personality Selector */}
-              <PersonalitySelector currentPersonality={personality} onSelect={setPersonality} />
-
               {/* Settings */}
               <Sheet open={showPreferences} onOpenChange={setShowPreferences}>
                 <SheetTrigger asChild>
@@ -1232,12 +1220,6 @@ export default function SubjectChatPage() {
                     {config.preferences.voiceGender} {config.preferences.voiceAccent} voice.
                   </p>
                 </div>
-                {/* Confidence Meter for language subjects */}
-                {config.isLanguage && (
-                  <div className="mt-4">
-                    <ConfidenceMeter confidenceScore={confidenceScore} isListening={isRecording} />
-                  </div>
-                )}
               </div>
             </Card>
 
@@ -1387,17 +1369,6 @@ export default function SubjectChatPage() {
           </SheetContent>
         </Sheet>
       </div>
-
-      {/* Animations */}
-      {showXpAnimation && (
-        <XpAnimation
-          amount={xpGain.amount}
-          reason={xpGain.reason}
-          onComplete={() => setShowXpAnimation(false)}
-        />
-      )}
-
-      {showLevelUp && <LevelUpAnimation level={5} onComplete={() => setShowLevelUp(false)} />}
     </div>
   )
 }

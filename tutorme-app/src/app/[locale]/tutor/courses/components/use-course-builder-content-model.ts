@@ -159,6 +159,7 @@ export function useCourseBuilderContentModel({
       previewDifficulty: 'all' | 'beginner' | 'intermediate' | 'advanced'
       courseName?: string
       courseDescription?: string
+      isAutoSave?: boolean
     }
   ) => {
     const isDetached = dataMode === 'detached'
@@ -176,13 +177,13 @@ export function useCourseBuilderContentModel({
             },
           })
         )
-        toast.success('Insights draft saved')
+        if (!options?.isAutoSave) toast.success('Insights draft saved')
       } catch {
-        toast.error('Failed to save Insights draft')
+        if (!options?.isAutoSave) toast.error('Failed to save Insights draft')
       }
       return
     }
-    setSaving(true)
+    if (!options?.isAutoSave) setSaving(true)
     try {
       const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
       const csrfData = await csrfRes.json().catch(() => ({}))
@@ -230,22 +231,22 @@ export function useCourseBuilderContentModel({
 
       if (res.ok) {
         const data = await res.json()
-        toast.success('Course Saved')
+        if (!options?.isAutoSave) toast.success('Course Saved')
         const ordered = normalizeVariantLinks(data.variants)
         if (ordered.length > 0) {
           setSavedVariants(ordered)
-          toast.success(`Adaptive variants ready: ${ordered.map(v => v.difficulty).join(', ')}`)
+          if (!options?.isAutoSave) toast.success(`Adaptive variants ready: ${ordered.map(v => v.difficulty).join(', ')}`)
         } else {
           setSavedVariants([])
         }
       } else {
         const err = await res.json().catch(() => ({}))
-        toast.error(err.error ?? 'Failed to save curriculum')
+        if (!options?.isAutoSave) toast.error(err.error ?? 'Failed to save curriculum')
       }
     } catch {
-      toast.error('Failed to save curriculum')
+      if (!options?.isAutoSave) toast.error('Failed to save curriculum')
     } finally {
-      setSaving(false)
+      if (!options?.isAutoSave) setSaving(false)
     }
   }
 

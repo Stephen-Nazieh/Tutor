@@ -1,4 +1,3 @@
-export { StatsOverview } from './StatsOverview'
 export { ContinueLearning } from './ContinueLearning'
 export { UpcomingClasses } from './UpcomingClasses'
 export { SkillRadar } from './SkillRadar'

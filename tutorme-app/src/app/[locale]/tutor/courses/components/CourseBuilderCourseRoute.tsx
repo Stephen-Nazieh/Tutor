@@ -244,7 +244,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
   const handleSave = useCallback(
     async (modules: any[], options?: any) => {
       if (!currentCourse?.id) return
-      setSaving(true)
+      if (!options?.isAutoSave) setSaving(true)
       try {
         const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
         const csrfData = await csrfRes.json().catch(() => ({}))
@@ -262,14 +262,14 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}))
-          toast.error(data.error || 'Failed to save curriculum')
+          if (!options?.isAutoSave) toast.error(data.error || 'Failed to save curriculum')
         } else {
-          toast.success('Course saved successfully')
+          if (!options?.isAutoSave) toast.success('Course saved successfully')
         }
       } catch {
-        toast.error('Failed to save course')
+        if (!options?.isAutoSave) toast.error('Failed to save course')
       } finally {
-        setSaving(false)
+        if (!options?.isAutoSave) setSaving(false)
       }
     },
     [currentCourse?.id]

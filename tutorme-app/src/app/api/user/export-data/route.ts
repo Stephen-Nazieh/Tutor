@@ -98,8 +98,6 @@ export const GET = withAuth(async (req: NextRequest, session) => {
       })),
       quizAttempts,
       aiSessionSummaries: aiSessions,
-      gamification: null,
-      achievements: [],
       notice:
         'This export contains your personal data held by Solocorn as required by GDPR Art.20 (Right to Data Portability). AI conversation messages are not exported to protect session integrity but summaries are included.',
     }

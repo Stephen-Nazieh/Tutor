@@ -337,6 +337,7 @@ export interface CourseBuilderProps {
       previewDifficulty: 'all' | 'beginner' | 'intermediate' | 'advanced'
       courseName?: string
       courseDescription?: string
+      isAutoSave?: boolean
     }
   ) => void
   insightsProps?: CourseBuilderInsightsProps

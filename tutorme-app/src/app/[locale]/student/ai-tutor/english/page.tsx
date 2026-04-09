@@ -43,12 +43,6 @@ import { CurriculumSidebar, CurriculumMiniCard } from '@/components/ai-tutor/cur
 import { AIActivityArea } from '@/components/ai-tutor/ai-activity-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
-import { PersonalitySelector } from '@/components/gamification/personality-selector'
-import { MissionModeToggle } from '@/components/gamification/mission-mode-toggle'
-import { WorldsSidebar } from '@/components/gamification/worlds-sidebar'
-import { ConfidenceMeter } from '@/components/gamification/confidence-meter'
-import { XpAnimation, LevelUpAnimation } from '@/components/gamification/xp-animation'
-import type { AvatarPersonality } from '@/lib/gamification/constants'
 
 interface Message {
   id: string
@@ -107,17 +101,6 @@ export default function EnglishTutorPage() {
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [showCurriculum, setShowCurriculum] = useState(false)
 
-  // GAMIFICATION STATE
-  const [personality, setPersonality] = useState<AvatarPersonality>('friendly_mentor')
-  const [mode, setMode] = useState<'free' | 'mission'>('free')
-  const [currentMission, setCurrentMission] = useState<any>(null)
-  const [worlds, setWorlds] = useState<any[]>([])
-  const [gamification, setGamification] = useState<any>(null)
-  const [confidenceScore, setConfidenceScore] = useState(72)
-  const [showXpAnimation, setShowXpAnimation] = useState(false)
-  const [showLevelUp, setShowLevelUp] = useState(false)
-  const [xpGain, setXpGain] = useState({ amount: 0, reason: '' })
-
   useEffect(() => {
     loadEnrollment()
   }, [])
@@ -141,38 +124,9 @@ export default function EnglishTutorPage() {
 
       setEnrollment(englishEnroll)
 
-      // Set personality from enrollment
-      if (englishEnroll.avatarPersonality) {
-        setPersonality(englishEnroll.avatarPersonality)
-      }
-
       // Load curriculum if assigned
       if (englishEnroll.curriculumId) {
         await loadCurriculum()
-      }
-
-      // Load gamification data
-      const [usageRes, gamificationRes, worldsRes] = await Promise.all([
-        fetch('/api/ai-tutor/usage'),
-        fetch('/api/gamification'),
-        fetch('/api/gamification/worlds'),
-      ])
-
-      const usageData = await usageRes.json()
-      setUsage({
-        remaining: usageData.remainingMessages,
-        total: usageData.remainingMessages + (usageData.messagesSent || 0),
-      })
-
-      const gamificationData = await gamificationRes.json()
-      if (gamificationData.success) {
-        setGamification(gamificationData.data)
-        setConfidenceScore(gamificationData.data.skills.confidence)
-      }
-
-      const worldsData = await worldsRes.json()
-      if (worldsData.success) {
-        setWorlds(worldsData.data)
       }
 
       // Load session messages
@@ -224,9 +178,7 @@ export default function EnglishTutorPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: input,
-          personality,
-          missionId: currentMission?.id,
-          teachingMode: mode === 'mission' ? 'socratic' : 'standard',
+          teachingMode: 'standard',
           chatHistory: messages.slice(-5).map(m => ({
             role: m.role,
             content: m.content,
@@ -253,23 +205,6 @@ export default function EnglishTutorPage() {
       }
 
       setMessages(prev => [...prev, assistantMessage])
-
-      // Show XP animation if XP was earned
-      if (data.data.xpEarned) {
-        setXpGain({ amount: data.data.xpEarned, reason: 'AI Conversation' })
-        setShowXpAnimation(true)
-      }
-
-      // Show level up animation
-      if (data.data.leveledUp) {
-        setTimeout(() => setShowLevelUp(true), 2000)
-      }
-
-      // Update gamification data
-      if (data.data.gamification) {
-        setGamification(data.data.gamification)
-        setConfidenceScore(data.data.gamification.skills.confidence)
-      }
 
       setUsage(prev => ({ ...prev, remaining: prev.remaining - 1 }))
 
@@ -421,39 +356,6 @@ export default function EnglishTutorPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Gamification Stats */}
-            {gamification && (
-              <div className="hidden items-center gap-3 md:flex">
-                {/* Level Badge */}
-                <div className="flex items-center gap-1 rounded-lg bg-blue-50 px-2 py-1">
-                  <Zap className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm font-medium text-blue-700">
-                    Level {gamification.level}
-                  </span>
-                </div>
-
-                {/* Streak */}
-                {gamification.streakDays > 0 && (
-                  <div className="flex items-center gap-1 rounded-lg bg-orange-50 px-2 py-1">
-                    <Flame className="h-4 w-4 text-orange-500" />
-                    <span className="text-sm font-medium text-orange-700">
-                      {gamification.streakDays}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Personality Selector */}
-            <PersonalitySelector currentPersonality={personality} onSelect={setPersonality} />
-
-            {/* Confidence Meter */}
-            <ConfidenceMeter
-              isListening={isRecording}
-              confidenceScore={confidenceScore}
-              className="hidden lg:flex"
-            />
-
             {/* Usage Badge */}
             <div className="hidden text-right sm:block">
               <p className="text-xs text-gray-500">
@@ -488,41 +390,6 @@ export default function EnglishTutorPage() {
         </div>
       </header>
 
-      {/* Mission Mode Toggle Bar */}
-      <div className="mx-auto w-full max-w-7xl px-4 pb-2">
-        <div className="flex items-center justify-between rounded-lg border bg-white p-2">
-          <MissionModeToggle
-            currentMode={mode}
-            currentMission={
-              currentMission
-                ? {
-                    id: currentMission.id,
-                    title: currentMission.title,
-                    worldName: currentMission.worldName,
-                    emoji: currentMission.emoji,
-                  }
-                : undefined
-            }
-            onModeChange={setMode}
-          />
-
-          {mode === 'mission' && currentMission && (
-            <Badge variant="outline" className="bg-blue-50 text-blue-700">
-              <Target className="mr-1 h-3 w-3" />
-              Mission Mode
-            </Badge>
-          )}
-
-          <Link href="/student/worlds">
-            <Button variant="outline" size="sm">
-              <Globe className="mr-1 h-4 w-4" />
-              Browse Worlds
-              <ChevronRight className="ml-1 h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 gap-4 p-4 lg:grid-cols-4">
         {/* Left Sidebar - Worlds & Missions */}
@@ -532,23 +399,7 @@ export default function EnglishTutorPage() {
             sidebarCollapsed ? 'lg:w-16' : 'lg:col-span-1'
           )}
         >
-          {mode === 'mission' && worlds.length > 0 ? (
-            <WorldsSidebar
-              worlds={worlds}
-              currentWorldId={currentMission?.worldId}
-              currentMissionId={currentMission?.id}
-              onSelectMission={(worldId, mission) => {
-                setCurrentMission({
-                  ...mission,
-                  worldId,
-                  worldName: worlds.find((w: any) => w.id === worldId)?.name,
-                  emoji: worlds.find((w: any) => w.id === worldId)?.emoji,
-                })
-                setInput(`I'd like to start the mission: ${mission.title}`)
-              }}
-              className="h-full"
-            />
-          ) : curriculum ? (
+          {curriculum ? (
             <Card className="flex h-full flex-col">
               <Tabs defaultValue="curriculum" className="flex flex-1 flex-col">
                 <TabsList
@@ -753,7 +604,7 @@ export default function EnglishTutorPage() {
           </div>
 
           {/* Skills Section */}
-          <SkillRadar skills={gamification?.skills || null} />
+          <SkillRadar skills={null} />
 
           {/* AI Learning Space (Bottom) - Independent Collapse */}
           <div
@@ -772,20 +623,6 @@ export default function EnglishTutorPage() {
           </div>
         </div>
       </div>
-
-      {/* XP Animation */}
-      {showXpAnimation && (
-        <XpAnimation
-          amount={xpGain.amount}
-          reason={xpGain.reason}
-          onComplete={() => setShowXpAnimation(false)}
-        />
-      )}
-
-      {/* Level Up Animation */}
-      {showLevelUp && gamification && (
-        <LevelUpAnimation level={gamification.level} onComplete={() => setShowLevelUp(false)} />
-      )}
     </div>
   )
 }
