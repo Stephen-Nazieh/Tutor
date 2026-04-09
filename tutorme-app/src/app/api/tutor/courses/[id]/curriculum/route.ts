@@ -284,220 +284,222 @@ export async function PUT(req: NextRequest) {
   }
 
   try {
-  await drizzleDb.transaction(async tx => {
-    // 1. Get existing module & lesson IDs
-    const existingModules = await tx
-      .select({ moduleId: courseModule.moduleId })
-      .from(courseModule)
-      .where(eq(courseModule.curriculumId, courseId))
-    const existingModuleIds = new Set(existingModules.map(m => m.moduleId))
-    // Get all lessons for this course (lessons are now directly under courses)
-    const existingLessons = await tx
-      .select({ lessonId: courseLesson.lessonId })
-      .from(courseLesson)
-      .where(eq(courseLesson.courseId, courseId))
-    const existingLessonIds = new Set(existingLessons.map(l => l.lessonId))
+    await drizzleDb.transaction(async tx => {
+      // 1. Get existing module & lesson IDs
+      const existingModules = await tx
+        .select({ moduleId: courseModule.moduleId })
+        .from(courseModule)
+        .where(eq(courseModule.curriculumId, courseId))
+      const existingModuleIds = new Set(existingModules.map(m => m.moduleId))
+      // Get all lessons for this course (lessons are now directly under courses)
+      const existingLessons = await tx
+        .select({ lessonId: courseLesson.lessonId })
+        .from(courseLesson)
+        .where(eq(courseLesson.courseId, courseId))
+      const existingLessonIds = new Set(existingLessons.map(l => l.lessonId))
 
-    const incomingModuleIds = new Set(modules.map(m => m.id))
-    const incomingLessonIds = new Set(
-      modules.flatMap((m: any) => (m.lessons ?? []).map((l: any) => l.id))
-    )
+      const incomingModuleIds = new Set(modules.map(m => m.id))
+      const incomingLessonIds = new Set(
+        modules.flatMap((m: any) => (m.lessons ?? []).map((l: any) => l.id))
+      )
 
-    const removedLessonIds = [...existingLessonIds].filter(id => !incomingLessonIds.has(id))
-    if (removedLessonIds.length > 0) {
-      await tx.delete(courseLesson).where(inArray(courseLesson.lessonId, removedLessonIds))
-    }
-
-    const removedModuleIds = [...existingModuleIds].filter(id => !incomingModuleIds.has(id))
-    if (removedModuleIds.length > 0) {
-      await tx.delete(courseModule).where(inArray(courseModule.moduleId, removedModuleIds))
-    }
-
-    for (const mod of modules) {
-      const moduleBuilderData = {
-        isPublished: mod.isPublished ?? false,
-        difficultyMode: mod.difficultyMode ?? 'all',
-        variants: mod.variants ?? {},
-        moduleQuizzes: mod.moduleQuizzes ?? [],
+      const removedLessonIds = [...existingLessonIds].filter(id => !incomingLessonIds.has(id))
+      if (removedLessonIds.length > 0) {
+        await tx.delete(courseLesson).where(inArray(courseLesson.lessonId, removedLessonIds))
       }
-      await tx
-        .insert(courseModule)
-        .values({
-          moduleId: mod.id,
-          curriculumId: courseId, // Note: CurriculumModule uses curriculumId, not courseId
-          title: mod.title || 'Untitled Module',
-          description: mod.description || null,
-          order: mod.order ?? 0,
-          builderData: moduleBuilderData,
-        })
-        .onConflictDoUpdate({
-          target: courseModule.moduleId,
-          set: {
+
+      const removedModuleIds = [...existingModuleIds].filter(id => !incomingModuleIds.has(id))
+      if (removedModuleIds.length > 0) {
+        await tx.delete(courseModule).where(inArray(courseModule.moduleId, removedModuleIds))
+      }
+
+      for (const mod of modules) {
+        const moduleBuilderData = {
+          isPublished: mod.isPublished ?? false,
+          difficultyMode: mod.difficultyMode ?? 'all',
+          variants: mod.variants ?? {},
+          moduleQuizzes: mod.moduleQuizzes ?? [],
+        }
+        await tx
+          .insert(courseModule)
+          .values({
+            moduleId: mod.id,
+            curriculumId: courseId, // Note: CurriculumModule uses curriculumId, not courseId
             title: mod.title || 'Untitled Module',
             description: mod.description || null,
             order: mod.order ?? 0,
             builderData: moduleBuilderData,
-          },
-        })
-
-      const lessons: any[] = mod.lessons ?? []
-      for (const les of lessons) {
-        const lessonBuilderData = {
-          isPublished: les.isPublished ?? false,
-          difficultyMode: les.difficultyMode ?? 'all',
-          variants: les.variants ?? {},
-          media: les.media ?? { videos: [], images: [] },
-          docs: les.docs ?? [],
-          content: les.content ?? [],
-          tasks: les.tasks ?? [],
-          homework: les.homework ?? [],
-          quizzes: les.quizzes ?? [],
-        }
-        await tx
-          .insert(courseLesson)
-          .values({
-            lessonId: les.id,
-            courseId,
-            title: les.title || 'Untitled Lesson',
-            description: les.description || null,
-            order: les.order ?? 0,
-            builderData: lessonBuilderData,
           })
           .onConflictDoUpdate({
-            target: courseLesson.lessonId,
+            target: courseModule.moduleId,
             set: {
+              title: mod.title || 'Untitled Module',
+              description: mod.description || null,
+              order: mod.order ?? 0,
+              builderData: moduleBuilderData,
+            },
+          })
+
+        const lessons: any[] = mod.lessons ?? []
+        for (const les of lessons) {
+          const lessonBuilderData = {
+            isPublished: les.isPublished ?? false,
+            difficultyMode: les.difficultyMode ?? 'all',
+            variants: les.variants ?? {},
+            media: les.media ?? { videos: [], images: [] },
+            docs: les.docs ?? [],
+            content: les.content ?? [],
+            tasks: les.tasks ?? [],
+            homework: les.homework ?? [],
+            quizzes: les.quizzes ?? [],
+          }
+          await tx
+            .insert(courseLesson)
+            .values({
+              lessonId: les.id,
+              courseId,
               title: les.title || 'Untitled Lesson',
               description: les.description || null,
               order: les.order ?? 0,
               builderData: lessonBuilderData,
-            },
-          })
+            })
+            .onConflictDoUpdate({
+              target: courseLesson.lessonId,
+              set: {
+                title: les.title || 'Untitled Lesson',
+                description: les.description || null,
+                order: les.order ?? 0,
+                builderData: lessonBuilderData,
+              },
+            })
+        }
       }
-    }
 
-    const questionCandidates = extractQuestionBankCandidates(
-      modules,
-      userId,
-      courseId,
-      courseRow.name
-    )
-    if (questionCandidates.length > 0) {
-      const existingItems = await tx
-        .select({
-          lessonId: questionBankItem.lessonId,
-          type: questionBankItem.type,
-          question: questionBankItem.question,
-        })
-        .from(questionBankItem)
-        .where(and(eq(questionBankItem.tutorId, userId), eq(questionBankItem.curriculumId, courseId)))
-      const signatures = new Set(
-        existingItems.map(item =>
-          toQuestionSignature(item.type, item.question, item.lessonId ?? null)
-        )
+      const questionCandidates = extractQuestionBankCandidates(
+        modules,
+        userId,
+        courseId,
+        courseRow.name
       )
-      const toCreate = questionCandidates.filter(item => {
-        const signature = toQuestionSignature(item.type, item.question, item.lessonId)
-        if (signatures.has(signature)) return false
-        signatures.add(signature)
-        return true
-      })
-      if (toCreate.length > 0) {
-        await tx.insert(questionBankItem).values(
-          toCreate.map(item => ({
-            itemId: crypto.randomUUID(),
-            tutorId: item.tutorId,
-            curriculumId: item.courseId, // Note: column is curriculumId in production
-            lessonId: item.lessonId,
-            type: item.type,
-            question: item.question,
-            options: item.options,
-            correctAnswer: item.correctAnswer,
-            points: item.points,
-            difficulty: item.difficulty,
-            explanation: item.explanation,
-            tags: item.tags,
-            subject: item.subject,
-            isPublic: item.isPublic,
-            usageCount: 0,
-          }))
-        )
-      }
-    }
-
-    if (shouldAutoCreateAdaptiveVariants) {
-      const existingVariantBatches = await tx
-        .select({
-          batchId: courseBatch.batchId,
-          name: courseBatch.name,
-          difficulty: courseBatch.difficulty,
-          order: courseBatch.order,
-        })
-        .from(courseBatch)
-        .where(
-          and(
-            eq(courseBatch.curriculumId, courseId),
-            inArray(courseBatch.difficulty, [...ADAPTIVE_DIFFICULTIES])
+      if (questionCandidates.length > 0) {
+        const existingItems = await tx
+          .select({
+            lessonId: questionBankItem.lessonId,
+            type: questionBankItem.type,
+            question: questionBankItem.question,
+          })
+          .from(questionBankItem)
+          .where(
+            and(eq(questionBankItem.tutorId, userId), eq(questionBankItem.curriculumId, courseId))
+          )
+        const signatures = new Set(
+          existingItems.map(item =>
+            toQuestionSignature(item.type, item.question, item.lessonId ?? null)
           )
         )
-        .orderBy(asc(courseBatch.order))
-
-      const selectedByDifficulty = new Map<
-        AdaptiveDifficulty,
-        { batchId: string; name: string; order: number }
-      >()
-      for (const batch of existingVariantBatches) {
-        const difficulty = batch.difficulty as AdaptiveDifficulty | null
-        if (!difficulty || selectedByDifficulty.has(difficulty)) continue
-        selectedByDifficulty.set(difficulty, {
-          batchId: batch.batchId,
-          name: batch.name,
-          order: batch.order,
+        const toCreate = questionCandidates.filter(item => {
+          const signature = toQuestionSignature(item.type, item.question, item.lessonId)
+          if (signatures.has(signature)) return false
+          signatures.add(signature)
+          return true
         })
-      }
-
-      const [{ maxOrder }] = await tx
-        .select({ maxOrder: sql<number>`coalesce(max(${courseBatch.order}), -1)` })
-        .from(courseBatch)
-        .where(eq(courseBatch.curriculumId, courseId))
-      let nextOrder = (Number(maxOrder) ?? -1) + 1
-
-      for (const difficulty of ADAPTIVE_DIFFICULTIES) {
-        let batch = selectedByDifficulty.get(difficulty)
-        if (!batch) {
-          const batchId = crypto.randomUUID()
-          await tx.insert(courseBatch).values({
-            batchId: batchId,
-            curriculumId: courseId,
-            name: `Adaptive ${difficulty[0].toUpperCase()}${difficulty.slice(1)}`,
-            difficulty,
-            order: nextOrder,
-            isLive: false,
-            maxStudents: 50,
-          })
-          batch = {
-            batchId: batchId,
-            name: `Adaptive ${difficulty[0].toUpperCase()}${difficulty.slice(1)}`,
-            order: nextOrder,
-          }
-          selectedByDifficulty.set(difficulty, batch)
-          nextOrder += 1
+        if (toCreate.length > 0) {
+          await tx.insert(questionBankItem).values(
+            toCreate.map(item => ({
+              itemId: crypto.randomUUID(),
+              tutorId: item.tutorId,
+              curriculumId: item.courseId, // Note: column is curriculumId in production
+              lessonId: item.lessonId,
+              type: item.type,
+              question: item.question,
+              options: item.options,
+              correctAnswer: item.correctAnswer,
+              points: item.points,
+              difficulty: item.difficulty,
+              explanation: item.explanation,
+              tags: item.tags,
+              subject: item.subject,
+              isPublic: item.isPublic,
+              usageCount: 0,
+            }))
+          )
         }
-        if (!batch) continue
-
-        const joinLink = `${req.nextUrl.origin}/curriculum/${courseId}?batch=${batch.batchId}`
-        await tx
-          .update(courseBatch)
-          .set({ meetingUrl: joinLink })
-          .where(eq(courseBatch.batchId, batch.batchId))
-        variantJoinLinks.push({
-          difficulty,
-          batchId: batch.batchId,
-          batchName: batch.name,
-          joinLink,
-        })
       }
-    }
-  })
+
+      if (shouldAutoCreateAdaptiveVariants) {
+        const existingVariantBatches = await tx
+          .select({
+            batchId: courseBatch.batchId,
+            name: courseBatch.name,
+            difficulty: courseBatch.difficulty,
+            order: courseBatch.order,
+          })
+          .from(courseBatch)
+          .where(
+            and(
+              eq(courseBatch.curriculumId, courseId),
+              inArray(courseBatch.difficulty, [...ADAPTIVE_DIFFICULTIES])
+            )
+          )
+          .orderBy(asc(courseBatch.order))
+
+        const selectedByDifficulty = new Map<
+          AdaptiveDifficulty,
+          { batchId: string; name: string; order: number }
+        >()
+        for (const batch of existingVariantBatches) {
+          const difficulty = batch.difficulty as AdaptiveDifficulty | null
+          if (!difficulty || selectedByDifficulty.has(difficulty)) continue
+          selectedByDifficulty.set(difficulty, {
+            batchId: batch.batchId,
+            name: batch.name,
+            order: batch.order,
+          })
+        }
+
+        const [{ maxOrder }] = await tx
+          .select({ maxOrder: sql<number>`coalesce(max(${courseBatch.order}), -1)` })
+          .from(courseBatch)
+          .where(eq(courseBatch.curriculumId, courseId))
+        let nextOrder = (Number(maxOrder) ?? -1) + 1
+
+        for (const difficulty of ADAPTIVE_DIFFICULTIES) {
+          let batch = selectedByDifficulty.get(difficulty)
+          if (!batch) {
+            const batchId = crypto.randomUUID()
+            await tx.insert(courseBatch).values({
+              batchId: batchId,
+              curriculumId: courseId,
+              name: `Adaptive ${difficulty[0].toUpperCase()}${difficulty.slice(1)}`,
+              difficulty,
+              order: nextOrder,
+              isLive: false,
+              maxStudents: 50,
+            })
+            batch = {
+              batchId: batchId,
+              name: `Adaptive ${difficulty[0].toUpperCase()}${difficulty.slice(1)}`,
+              order: nextOrder,
+            }
+            selectedByDifficulty.set(difficulty, batch)
+            nextOrder += 1
+          }
+          if (!batch) continue
+
+          const joinLink = `${req.nextUrl.origin}/curriculum/${courseId}?batch=${batch.batchId}`
+          await tx
+            .update(courseBatch)
+            .set({ meetingUrl: joinLink })
+            .where(eq(courseBatch.batchId, batch.batchId))
+          variantJoinLinks.push({
+            difficulty,
+            batchId: batch.batchId,
+            batchName: batch.name,
+            joinLink,
+          })
+        }
+      }
+    })
   } catch (txError) {
     console.error('[Curriculum PUT] Transaction failed:', txError)
     if (txError instanceof Error) {
@@ -508,10 +510,10 @@ export async function PUT(req: NextRequest) {
     const errorMessage = txError instanceof Error ? txError.message : 'Unknown error'
     const errorDetails = JSON.stringify(txError, Object.getOwnPropertyNames(txError))
     return NextResponse.json(
-      { 
-        error: 'Failed to save curriculum', 
+      {
+        error: 'Failed to save curriculum',
         details: errorMessage,
-        debug: errorDetails.slice(0, 1000) // Limit size
+        debug: errorDetails.slice(0, 1000), // Limit size
       },
       { status: 500 }
     )

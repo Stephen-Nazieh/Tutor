@@ -470,7 +470,9 @@ async function initRedis() {
         Sentry.captureException(err, {
           tags: { service: 'redis', client: name },
           level: 'fatal',
-          extra: { message: 'Redis connection failed in production, multi-node socket sync will be broken' }
+          extra: {
+            message: 'Redis connection failed in production, multi-node socket sync will be broken',
+          },
         })
       }
     }

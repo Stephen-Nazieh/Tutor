@@ -3,7 +3,7 @@
  */
 
 export async function generateMissions() {
-  console.log('Missions generation disabled');
+  console.log('Missions generation disabled')
 }
 
 if (require.main === module) {

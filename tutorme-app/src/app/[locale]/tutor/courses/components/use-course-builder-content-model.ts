@@ -235,7 +235,8 @@ export function useCourseBuilderContentModel({
         const ordered = normalizeVariantLinks(data.variants)
         if (ordered.length > 0) {
           setSavedVariants(ordered)
-          if (!options?.isAutoSave) toast.success(`Adaptive variants ready: ${ordered.map(v => v.difficulty).join(', ')}`)
+          if (!options?.isAutoSave)
+            toast.success(`Adaptive variants ready: ${ordered.map(v => v.difficulty).join(', ')}`)
         } else {
           setSavedVariants([])
         }

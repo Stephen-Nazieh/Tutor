@@ -156,10 +156,10 @@ function LoginForm() {
           </div>
 
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="remember" 
+            <Checkbox
+              id="remember"
               checked={rememberMe}
-              onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+              onCheckedChange={checked => setRememberMe(checked as boolean)}
               disabled={isLoading}
             />
             <Label htmlFor="remember" className="text-sm font-normal text-gray-600">

@@ -19,7 +19,11 @@ import {
 import { ValidationError } from '@/lib/api/middleware'
 import { sanitizeHtml } from '@/lib/security/sanitize'
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_PRESETS } from '@/lib/security/rate-limit'
-import { verifyAllChildren, isStudentAlreadyLinked, type VerifiedStudent } from '@/lib/security/parent-child-queries'
+import {
+  verifyAllChildren,
+  isStudentAlreadyLinked,
+  type VerifiedStudent,
+} from '@/lib/security/parent-child-queries'
 import type { StudentLinkingInput } from '@/lib/validation/parent-child-security'
 import {
   HANDLE_REGEX,
@@ -199,7 +203,9 @@ export async function performRegistration(
 ): Promise<RegistrationResult> {
   const parsed = RegisterUserSchema.safeParse(payload)
   if (!parsed.success) {
-    const messages = parsed.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', ')
+    const messages = parsed.error.issues
+      .map(issue => `${issue.path.join('.')}: ${issue.message}`)
+      .join(', ')
     return { status: 400, body: { error: messages } }
   }
 

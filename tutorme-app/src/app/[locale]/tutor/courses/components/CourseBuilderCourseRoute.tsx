@@ -277,7 +277,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
 
   const router = useRouter()
   const pathname = usePathname()
-  
+
   // Extract locale from pathname (e.g., /en/tutor/courses/123 -> en)
   const locale = pathname?.split('/')[1] || 'en'
 
@@ -293,7 +293,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
   // Auto-create a course if none exists
   const [isAutoCreating, setIsAutoCreating] = useState(false)
   const [autoCreateError, setAutoCreateError] = useState<string | null>(null)
-  
+
   useEffect(() => {
     if (!currentCourse && !loading && !isAutoCreating && courses.length === 0 && !autoCreateError) {
       setIsAutoCreating(true)
@@ -323,12 +323,12 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
 
           const data = await res.json().catch(() => ({}))
           console.log('[CourseBuilder] Create course response:', { ok: res.ok, data })
-          
+
           if (res.ok && data.course?.id) {
             toast.success('Created new course!')
             // Add the new course to the list and set it as current
-            const newCourse = { 
-              id: data.course.id, 
+            const newCourse = {
+              id: data.course.id,
               name: data.course.name,
               subject: data.course.subject,
               gradeLevel: data.course.gradeLevel,
@@ -370,9 +370,9 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
               Course Builder
             </CardTitle>
             <CardDescription>
-              {isAutoCreating 
-                ? 'Creating your course...' 
-                : autoCreateError 
+              {isAutoCreating
+                ? 'Creating your course...'
+                : autoCreateError
                   ? 'Failed to create course automatically'
                   : 'Getting course builder ready...'}
             </CardDescription>
@@ -386,19 +386,16 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
               <div className="space-y-3">
                 <p className="text-sm text-red-600">{autoCreateError}</p>
                 <div className="flex gap-2">
-                  <Button 
+                  <Button
                     onClick={() => {
                       setAutoCreateError(null)
                       setIsAutoCreating(false)
-                    }} 
+                    }}
                     className="flex-1"
                   >
                     Try Again
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => router.push('/tutor/dashboard')}
-                  >
+                  <Button variant="outline" onClick={() => router.push('/tutor/dashboard')}>
                     Go Back
                   </Button>
                 </div>

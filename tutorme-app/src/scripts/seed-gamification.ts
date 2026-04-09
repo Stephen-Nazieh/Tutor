@@ -3,7 +3,7 @@
  */
 
 export async function seedGamification() {
-  console.log('Gamification seeding disabled');
+  console.log('Gamification seeding disabled')
 }
 
 if (require.main === module) {

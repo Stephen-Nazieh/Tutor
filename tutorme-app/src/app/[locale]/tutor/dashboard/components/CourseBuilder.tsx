@@ -2608,7 +2608,10 @@ FEEDBACK: [your explanation]`
                   e.target.value = ''
                 }}
               />
-              <span className="flex items-center gap-1 text-[10px] font-medium text-blue-600 hover:text-blue-700" title="Supports .pdf, .docx, .pptx, images, video">
+              <span
+                className="flex items-center gap-1 text-[10px] font-medium text-blue-600 hover:text-blue-700"
+                title="Supports .pdf, .docx, .pptx, images, video"
+              >
                 <Upload className="h-3 w-3" /> Upload Asset
               </span>
             </label>
@@ -2932,7 +2935,7 @@ FEEDBACK: [your explanation]`
     useEffect(() => {
       if (insightsProps) return
       if (!onSave) return
-      
+
       const timeoutId = setTimeout(() => {
         onSave(modules, {
           developmentMode: devMode,
@@ -2944,50 +2947,69 @@ FEEDBACK: [your explanation]`
       }, 2000)
 
       return () => clearTimeout(timeoutId)
-    }, [modules, devMode, previewDifficulty, coursePropsModal.name, coursePropsModal.description, courseName, onSave, insightsProps])
+    }, [
+      modules,
+      devMode,
+      previewDifficulty,
+      coursePropsModal.name,
+      coursePropsModal.description,
+      courseName,
+      onSave,
+      insightsProps,
+    ])
 
     const filteredModules = useMemo(() => {
-      if (!searchQuery.trim()) return modules;
-      const lowerQuery = searchQuery.toLowerCase();
-      
-      return modules.map(module => {
-        const moduleMatch = module.title.toLowerCase().includes(lowerQuery);
-        
-        const filteredLessons = module.lessons.map(lesson => {
-          const lessonMatch = lesson.title.toLowerCase().includes(lowerQuery);
-          
-          const filteredTasks = (lesson.tasks || []).filter(task => 
-            task.title?.toLowerCase().includes(lowerQuery) ||
-            task.description?.toLowerCase().includes(lowerQuery) ||
-            task.extensions?.some(ext => ext.name?.toLowerCase().includes(lowerQuery) || ext.content?.toLowerCase().includes(lowerQuery))
-          );
-          
-          const filteredHomework = (lesson.homework || []).filter(hw => 
-            hw.title?.toLowerCase().includes(lowerQuery) ||
-            hw.description?.toLowerCase().includes(lowerQuery)
-          );
+      if (!searchQuery.trim()) return modules
+      const lowerQuery = searchQuery.toLowerCase()
 
-          const hasMatchingContent = filteredTasks.length > 0 || filteredHomework.length > 0;
-          
-          if (lessonMatch || moduleMatch || hasMatchingContent) {
+      return modules
+        .map(module => {
+          const moduleMatch = module.title.toLowerCase().includes(lowerQuery)
+
+          const filteredLessons = module.lessons
+            .map(lesson => {
+              const lessonMatch = lesson.title.toLowerCase().includes(lowerQuery)
+
+              const filteredTasks = (lesson.tasks || []).filter(
+                task =>
+                  task.title?.toLowerCase().includes(lowerQuery) ||
+                  task.description?.toLowerCase().includes(lowerQuery) ||
+                  task.extensions?.some(
+                    ext =>
+                      ext.name?.toLowerCase().includes(lowerQuery) ||
+                      ext.content?.toLowerCase().includes(lowerQuery)
+                  )
+              )
+
+              const filteredHomework = (lesson.homework || []).filter(
+                hw =>
+                  hw.title?.toLowerCase().includes(lowerQuery) ||
+                  hw.description?.toLowerCase().includes(lowerQuery)
+              )
+
+              const hasMatchingContent = filteredTasks.length > 0 || filteredHomework.length > 0
+
+              if (lessonMatch || moduleMatch || hasMatchingContent) {
+                return {
+                  ...lesson,
+                  tasks: lessonMatch || moduleMatch ? lesson.tasks : filteredTasks,
+                  homework: lessonMatch || moduleMatch ? lesson.homework : filteredHomework,
+                }
+              }
+              return null
+            })
+            .filter(Boolean) as typeof module.lessons
+
+          if (moduleMatch || filteredLessons.length > 0) {
             return {
-              ...lesson,
-              tasks: (lessonMatch || moduleMatch) ? lesson.tasks : filteredTasks,
-              homework: (lessonMatch || moduleMatch) ? lesson.homework : filteredHomework
-            };
+              ...module,
+              lessons: filteredLessons,
+            }
           }
-          return null;
-        }).filter(Boolean) as typeof module.lessons;
-
-        if (moduleMatch || filteredLessons.length > 0) {
-          return {
-            ...module,
-            lessons: filteredLessons
-          };
-        }
-        return null;
-      }).filter(Boolean) as typeof modules;
-    }, [modules, searchQuery]);
+          return null
+        })
+        .filter(Boolean) as typeof modules
+    }, [modules, searchQuery])
 
     return (
       <div

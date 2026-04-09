@@ -379,7 +379,9 @@ export const curriculumModule = pgTable(
     builderData: jsonb('builderData'),
   },
   table => ({
-    CurriculumModule_curriculumId_idx: index('CurriculumModule_curriculumId_idx').on(table.curriculumId),
+    CurriculumModule_curriculumId_idx: index('CurriculumModule_curriculumId_idx').on(
+      table.curriculumId
+    ),
     CurriculumModule_order_idx: index('CurriculumModule_order_idx').on(table.order),
   })
 )

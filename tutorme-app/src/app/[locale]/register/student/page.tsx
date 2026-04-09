@@ -32,17 +32,21 @@ function Stepper({ currentStep }: { currentStep: number }) {
     <div className="mb-8">
       <div className="flex items-center justify-between">
         {STEPS.map((s, i) => (
-          <div key={s.num} className="flex flex-col items-center relative z-10">
+          <div key={s.num} className="relative z-10 flex flex-col items-center">
             <div
               className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors duration-200 ${
                 currentStep > s.num
                   ? 'border-[#4FD1C5] bg-[#4FD1C5] text-white'
                   : currentStep === s.num
-                  ? 'border-[#4FD1C5] bg-white text-[#4FD1C5]'
-                  : 'border-gray-200 bg-white text-gray-400'
+                    ? 'border-[#4FD1C5] bg-white text-[#4FD1C5]'
+                    : 'border-gray-200 bg-white text-gray-400'
               }`}
             >
-              {currentStep > s.num ? <CheckCircle2 className="h-5 w-5" /> : <span className="text-sm font-medium">{s.num}</span>}
+              {currentStep > s.num ? (
+                <CheckCircle2 className="h-5 w-5" />
+              ) : (
+                <span className="text-sm font-medium">{s.num}</span>
+              )}
             </div>
             <span
               className={`mt-2 text-xs font-medium transition-colors duration-200 ${
@@ -54,7 +58,7 @@ function Stepper({ currentStep }: { currentStep: number }) {
           </div>
         ))}
       </div>
-      <div className="relative mt-[-2rem] mb-8">
+      <div className="relative mb-8 mt-[-2rem]">
         <div className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 bg-gray-200" />
         <div
           className="absolute left-0 top-1/2 h-[2px] -translate-y-1/2 bg-[#4FD1C5] transition-all duration-300 ease-in-out"

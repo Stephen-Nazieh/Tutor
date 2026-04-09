@@ -78,8 +78,9 @@ export default function StudentDashboard() {
         return
       }
 
-      const [contentData, recsData, classesData, subjectsData] =
-        await Promise.all(responses.map(r => r.json()))
+      const [contentData, recsData, classesData, subjectsData] = await Promise.all(
+        responses.map(r => r.json())
+      )
 
       const subjects = subjectsData?.subjects ?? []
       setData({

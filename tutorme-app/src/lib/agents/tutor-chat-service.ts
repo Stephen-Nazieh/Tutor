@@ -22,7 +22,6 @@ export interface TutorChatInput {
 }
 
 export interface TutorChatOutput {
-
   response: string
   provider: string
   latencyMs: number
@@ -68,7 +67,6 @@ export async function runTutorChat(input: TutorChatInput): Promise<TutorChatOutp
   const tier = (subscription?.tier as string) ?? 'FREE'
 
   const promptConfig: PromptConfig = {
-
     language: 'en',
     teachingMode: input.teachingMode || 'socratic',
     personality: 'friendly_mentor',
