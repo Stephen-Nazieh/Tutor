@@ -260,7 +260,7 @@ export default function LessonBankPage() {
           ref={builderRef}
           courseId={currentCourseId}
           courseName={currentCourseName}
-          initialModules={modules}
+          initialLessons={modules}
           lessonBankMode
           onSave={handleSave}
         />

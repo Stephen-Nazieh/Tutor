@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Layers } from 'lucide-react'
-import type { Module } from './builder-types'
+import type { Lesson } from './builder-types'
 
 interface LessonSelectorDialogProps {
   isOpen: boolean

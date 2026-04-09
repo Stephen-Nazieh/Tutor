@@ -69,7 +69,7 @@ import type {
   Assessment,
   Worksheet,
   Quiz,
-  ModuleQuiz,
+  CourseBuilderNodeQuiz,
   Lesson,
   Module,
   VisibleDocumentPayload,
@@ -325,7 +325,7 @@ export function PreviewCard({
     | Assessment
     | Worksheet
     | Quiz
-    | ModuleQuiz
+    | CourseBuilderNodeQuiz
     | Lesson
     | Module
   ) & {

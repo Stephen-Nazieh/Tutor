@@ -55,11 +55,11 @@ import {
   type QuizQuestion,
   type Task,
   type Assessment,
-  type Module,
+  type CourseBuilderNode,
   type Lesson,
   type Worksheet,
   type Quiz,
-  type ModuleQuiz,
+  type CourseBuilderNodeQuiz,
   type Content,
 } from './builder-types'
 
@@ -309,19 +309,19 @@ export const DEFAULT_QUIZ = (order: number): Quiz => ({
   answerKeyProtected: true,
 })
 
-export const DEFAULT_MODULE_QUIZ = (order: number): ModuleQuiz => ({
+export const DEFAULT_NODE_QUIZ = (order: number): CourseBuilderNodeQuiz => ({
   ...DEFAULT_QUIZ(order),
   coverage: 'all_lessons',
 })
 
-export const DEFAULT_MODULE = (order: number): Module => ({
+export const DEFAULT_NODE = (order: number): CourseBuilderNode => ({
   id: `module-${generateId()}`,
   title: `Lesson ${order + 1}`,
   description: '',
   order,
   isPublished: false,
   lessons: [DEFAULT_LESSON(0)],
-  moduleQuizzes: [],
+  quizzes: [],
   difficultyMode: 'all',
   variants: {},
 })
@@ -504,47 +504,47 @@ export function generateQuestionPaperPDF(
 
 export function resolveSelectedItem(
   selectedItem: { type: string; id: string } | null,
-  modules: Module[]
+  nodes: CourseBuilderNode[]
 ): {
-  item: Task | Assessment | Worksheet | ModuleQuiz | Lesson | Module
-  moduleId: string
+  item: Task | Assessment | Worksheet | CourseBuilderNodeQuiz | Lesson | CourseBuilderNode
+  nodeId: string
   lessonId?: string
 } | null {
   if (!selectedItem) return null
-  for (const mod of modules) {
+  for (const mod of nodes) {
     if (selectedItem.type === 'module' && mod.id === selectedItem.id) {
-      return { item: mod, moduleId: mod.id }
+      return { item: mod, nodeId: mod.id }
     }
     if (selectedItem.type === 'moduleQuiz') {
-      const quiz = mod.moduleQuizzes?.find(q => q.id === selectedItem.id)
-      if (quiz) return { item: quiz, moduleId: mod.id }
+      const quiz = mod.quizzes?.find(q => q.id === selectedItem.id)
+      if (quiz) return { item: quiz, nodeId: mod.id }
     }
     for (const lesson of mod.lessons) {
       if (selectedItem.type === 'lesson' && lesson.id === selectedItem.id) {
-        return { item: lesson, moduleId: mod.id, lessonId: lesson.id }
+        return { item: lesson, nodeId: mod.id, lessonId: lesson.id }
       }
       if (selectedItem.type === 'task') {
         const task = lesson.tasks?.find(t => t.id === selectedItem.id)
-        if (task) return { item: task, moduleId: mod.id, lessonId: lesson.id }
+        if (task) return { item: task, nodeId: mod.id, lessonId: lesson.id }
       }
       if (selectedItem.type === 'homework') {
         const hw = lesson.homework?.find(h => h.id === selectedItem.id)
-        if (hw) return { item: hw, moduleId: mod.id, lessonId: lesson.id }
+        if (hw) return { item: hw, nodeId: mod.id, lessonId: lesson.id }
       }
       if (selectedItem.type === 'worksheet') {
         const worksheet = lesson.worksheets?.find(w => w.id === selectedItem.id)
-        if (worksheet) return { item: worksheet, moduleId: mod.id, lessonId: lesson.id }
+        if (worksheet) return { item: worksheet, nodeId: mod.id, lessonId: lesson.id }
       }
     }
   }
   return null
 }
 
-export function normalizeModulesForAssessments(rawModules: Module[]): Module[] {
-  return rawModules.map(module => ({
+export function normalizeCourseBuilderNodesForAssessments(rawCourseBuilderNodes: CourseBuilderNode[]): CourseBuilderNode[] {
+  return rawCourseBuilderNodes.map(module => ({
     ...module,
-    lessons: (module.lessons && module.lessons.length > 0
-      ? module.lessons
+    lessons: (node.lessons && node.lessons.length > 0
+      ? node.lessons
       : [DEFAULT_LESSON(0)]
     ).map(lesson => {
       const existingAssessments = lesson.homework || []
@@ -569,17 +569,17 @@ export function normalizeGeneratedQuestionType(rawType: unknown): QuizQuestion['
   return 'essay'
 }
 
-export function mapGeneratedModulesToBuilder(rawModules: unknown[]): Module[] {
-  if (!Array.isArray(rawModules)) return []
+export function mapGeneratedCourseBuilderNodesToBuilder(rawCourseBuilderNodes: unknown[]): CourseBuilderNode[] {
+  if (!Array.isArray(rawCourseBuilderNodes)) return []
 
-  return rawModules.map((rawModule, moduleIdx) => {
-    const moduleObj = (rawModule ?? {}) as Record<string, any>
+  return rawCourseBuilderNodes.map((rawCourseBuilderNode, nodeIdx) => {
+    const moduleObj = (rawCourseBuilderNode ?? {}) as Record<string, any>
     const rawLessons = Array.isArray(moduleObj.lessons) ? moduleObj.lessons : []
     const rawExam = moduleObj.exam && typeof moduleObj.exam === 'object' ? moduleObj.exam : null
 
     return {
-      ...DEFAULT_MODULE(moduleIdx),
-      title: String(moduleObj.title || `Lesson ${moduleIdx + 1}`),
+      ...DEFAULT_NODE(nodeIdx),
+      title: String(moduleObj.title || `Lesson ${nodeIdx + 1}`),
       description: String(moduleObj.description || ''),
       lessons: rawLessons.map((rawLesson: Record<string, any>, lessonIdx: number) => {
         const tasks = Array.isArray(rawLesson.tasks) ? rawLesson.tasks : []
@@ -653,11 +653,11 @@ export function mapGeneratedModulesToBuilder(rawModules: unknown[]): Module[] {
           })),
         }
       }),
-      moduleQuizzes: rawExam
+      quizzes: rawExam
         ? [
             {
-              ...DEFAULT_MODULE_QUIZ(0),
-              title: String(rawExam.title || `Lesson ${moduleIdx + 1} Exam`),
+              ...DEFAULT_NODE_QUIZ(0),
+              title: String(rawExam.title || `Lesson ${nodeIdx + 1} Exam`),
               description: String(rawExam.description || ''),
               questions: (Array.isArray(rawExam.questions) ? rawExam.questions : []).map(
                 (rawQuestion: unknown, questionIdx: number) => {

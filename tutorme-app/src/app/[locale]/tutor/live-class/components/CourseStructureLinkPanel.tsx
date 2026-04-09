@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select'
 import { BookOpen, RefreshCw, Loader2 } from 'lucide-react'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
-import type { Module as CourseBuilderModule } from '../../dashboard/components/CourseBuilder'
+import type { Lesson as CourseBuilderLesson } from '../../dashboard/components/CourseBuilder'
 import type { VisibleDocumentPayload } from '../../dashboard/components/CourseBuilder'
 import { toast } from 'sonner'
 
@@ -285,7 +285,7 @@ export function CourseStructureLinkPanel({
                       courseId={selectedCourseId}
                       courseName={selectedCourse?.name}
                       panelMode="live-class"
-                      initialModules={modules}
+                      initialLessons={modules}
                       onSave={handleSave}
                       onMakeVisibleToStudents={payload => {
                         setOpen(false)

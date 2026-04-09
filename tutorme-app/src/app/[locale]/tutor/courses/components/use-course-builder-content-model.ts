@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
 import type {
   CourseBuilderRef,
-  Module as CourseBuilderModule,
+  Lesson as CourseBuilderLesson,
 } from '../../dashboard/components/CourseBuilder'
 import type { CourseBuilderInsightsProps } from './course-builder-types'
 
@@ -72,7 +72,7 @@ export function useCourseBuilderContentModel({
   const [course, setCourse] = useState<CourseData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [loadedModules, setLoadedModules] = useState<CourseBuilderModule[] | null>(null)
+  const [loadedLessons, setLoadedLessons] = useState<CourseBuilderLesson[] | null>(null)
   const [savedVariants, setSavedVariants] = useState<AdaptiveVariantLink[]>([])
   const courseBuilderRef = useRef<CourseBuilderRef>(null)
   const router = useRouter()
@@ -109,14 +109,14 @@ export function useCourseBuilderContentModel({
         })
         const stored = localStorage.getItem(storageKey)
         if (stored) {
-          const parsed = JSON.parse(stored) as { modules?: CourseBuilderModule[] }
-          if (Array.isArray(parsed.modules) && parsed.modules.length > 0) {
-            setLoadedModules(parsed.modules)
+          const parsed = JSON.parse(stored) as { lessons?: CourseBuilderLesson[] }
+          if (Array.isArray(parsed.lessons) && parsed.lessons.length > 0) {
+            setLoadedLessons(parsed.lessons)
           } else {
-            setLoadedModules(null)
+            setLoadedLessons(null)
           }
         } else {
-          setLoadedModules(null)
+          setLoadedLessons(null)
         }
         return
       }
@@ -131,10 +131,10 @@ export function useCourseBuilderContentModel({
       })
       if (currRes.ok) {
         const currData = await currRes.json()
-        if (Array.isArray(currData.modules) && currData.modules.length > 0) {
-          setLoadedModules(currData.modules)
+        if (Array.isArray(currData.lessons) && currData.lessons.length > 0) {
+          setLoadedLessons(currData.lessons)
         } else {
-          setLoadedModules(null)
+          setLoadedLessons(null)
         }
       }
     } catch {
@@ -153,7 +153,7 @@ export function useCourseBuilderContentModel({
   }, [loadCourse, shouldShowCoursePickerEmpty])
 
   const handleSave = async (
-    modules: CourseBuilderModule[],
+    lessons: CourseBuilderLesson[],
     options?: {
       developmentMode: 'single' | 'multi'
       previewDifficulty: 'all' | 'beginner' | 'intermediate' | 'advanced'
@@ -169,7 +169,7 @@ export function useCourseBuilderContentModel({
         localStorage.setItem(
           storageKey,
           JSON.stringify({
-            modules,
+            lessons,
             savedAt: new Date().toISOString(),
             options: {
               developmentMode: options?.developmentMode ?? 'single',
@@ -223,7 +223,7 @@ export function useCourseBuilderContentModel({
         },
         credentials: 'include',
         body: JSON.stringify({
-          modules,
+          lessons,
           developmentMode: options?.developmentMode ?? 'single',
           previewDifficulty: options?.previewDifficulty ?? 'all',
         }),
@@ -255,7 +255,7 @@ export function useCourseBuilderContentModel({
     course,
     loading,
     saving,
-    loadedModules,
+    loadedLessons,
     savedVariants,
     courseBuilderRef,
     router,

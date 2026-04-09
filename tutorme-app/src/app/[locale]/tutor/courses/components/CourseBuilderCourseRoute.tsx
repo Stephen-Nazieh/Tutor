@@ -44,7 +44,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
   const [courseName, setCourseName] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [loadedModules, setLoadedModules] = useState<any[] | null>(null)
+  const [loadedLessons, setLoadedLessons] = useState<any[] | null>(null)
   const [themeId, setThemeId] = useState('current')
   const [savedVariants, setSavedVariants] = useState<any[]>([])
   const courseBuilderRef = useRef<any>(null)
@@ -97,7 +97,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
         })
         if (res.ok) {
           const data = await res.json()
-          setLoadedModules(data.modules || [])
+          setLoadedLessons(data.lessons || [])
         }
       } catch (error) {
         toast.error('Failed to load curriculum')
@@ -188,7 +188,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
         setCourses(prev => [...prev, newCourse])
         setCurrentCourse(newCourse)
         setCourseName(newCourse.name)
-        setLoadedModules([])
+        setLoadedLessons([])
         setNewCourseName('')
         setIsCreateDialogOpen(false)
         toast.success(`Created course "${newCourse.name}"`)
@@ -242,7 +242,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
   }, [currentCourse, courses])
 
   const handleSave = useCallback(
-    async (modules: any[], options?: any) => {
+    async (lessons: any[], options?: any) => {
       if (!currentCourse?.id) return
       if (!options?.isAutoSave) setSaving(true)
       try {
@@ -257,7 +257,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
             ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
           },
           credentials: 'include',
-          body: JSON.stringify({ modules }),
+          body: JSON.stringify({ lessons }),
         })
 
         if (!res.ok) {
@@ -518,7 +518,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
             ref={courseBuilderRef}
             courseId={currentCourse?.id ?? ''}
             courseName={courseName}
-            initialModules={loadedModules ?? undefined}
+            initialLessons={loadedLessons ?? undefined}
             onSave={handleSave}
             hideCourseNameInTabs
           />

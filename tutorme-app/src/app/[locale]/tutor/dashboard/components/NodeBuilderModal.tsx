@@ -15,19 +15,19 @@ import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { Switch } from '@/components/ui/switch'
 import { Layers } from 'lucide-react'
 
-interface ModuleBuilderModalProps {
+interface NodeBuilderModalProps {
   isOpen: boolean
   onClose: () => void
   onSave: (data: any) => void
   initialData?: any
 }
 
-export function ModuleBuilderModal({
+export function NodeBuilderModal({
   isOpen,
   onClose,
   onSave,
   initialData,
-}: ModuleBuilderModalProps) {
+}: NodeBuilderModalProps) {
   const [data, setData] = useState(
     initialData || { title: '', description: '', isPublished: false }
   )
@@ -47,7 +47,7 @@ export function ModuleBuilderModal({
             <Input
               value={data.title}
               onChange={(e: any) => setData({ ...data, title: e.target.value })}
-              placeholder="Enter module title"
+              placeholder="Enter node title"
             />
           </div>
           <div className="space-y-2">
@@ -55,7 +55,7 @@ export function ModuleBuilderModal({
             <AutoTextarea
               value={data.description}
               onChange={(e: any) => setData({ ...data, description: e.target.value })}
-              placeholder="What will students learn in this module?"
+              placeholder="What will students learn in this node?"
               rows={3}
             />
           </div>

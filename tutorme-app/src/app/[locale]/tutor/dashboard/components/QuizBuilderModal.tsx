@@ -25,11 +25,11 @@ import {
 } from '@/components/ui/select'
 import { FileQuestion, Plus, X, BookOpen, Shield, CheckCircle } from 'lucide-react'
 import { toast } from 'sonner'
-import type { Quiz, ModuleQuiz, QuizQuestion, BuilderModalProps } from './builder-types'
+import type { Quiz, CourseBuilderNodeQuiz, QuizQuestion, BuilderModalProps } from './builder-types'
 import { ResourceImportPanel, MatchingPairsEditor, QuestionsPreview } from './builder-components'
 import {
   DEFAULT_QUIZ,
-  DEFAULT_MODULE_QUIZ,
+  DEFAULT_NODE_QUIZ,
   generateId,
   mapQuestionBankToBuilderQuestion,
 } from './builder-utils'
@@ -43,10 +43,10 @@ export function QuizBuilderModal({
   onClose,
   onSave,
   initialData,
-  isModuleQuiz = false,
-}: BuilderModalProps & { isModuleQuiz?: boolean }) {
-  const [data, setData] = useState<Quiz | ModuleQuiz>(
-    initialData || (isModuleQuiz ? DEFAULT_MODULE_QUIZ(0) : DEFAULT_QUIZ(0))
+  isCourseBuilderNodeQuiz = false,
+}: BuilderModalProps & { isCourseBuilderNodeQuiz?: boolean }) {
+  const [data, setData] = useState<Quiz | CourseBuilderNodeQuiz>(
+    initialData || (isCourseBuilderNodeQuiz ? DEFAULT_NODE_QUIZ(0) : DEFAULT_QUIZ(0))
   )
   const [showQuestionBankModal, setShowQuestionBankModal] = useState(false)
 
@@ -113,7 +113,7 @@ export function QuizBuilderModal({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileQuestion className="h-5 w-5 text-red-500" />
-              {isModuleQuiz ? 'Exam Builder (Summative)' : 'Assessment Builder'}
+              {isCourseBuilderNodeQuiz ? 'Exam Builder (Summative)' : 'Assessment Builder'}
             </DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
@@ -137,12 +137,12 @@ export function QuizBuilderModal({
             >
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label>{isModuleQuiz ? 'Exam Title *' : 'Assessment Title *'}</Label>
+                  <Label>{isCourseBuilderNodeQuiz ? 'Exam Title *' : 'Assessment Title *'}</Label>
                   <Input
                     value={data.title}
                     onChange={(e: any) => setData({ ...data, title: e.target.value })}
                     placeholder={
-                      isModuleQuiz
+                      isCourseBuilderNodeQuiz
                         ? 'e.g., Lesson 1 Comprehensive Exam'
                         : 'e.g., Lesson 1 Assessment'
                     }
@@ -191,11 +191,11 @@ export function QuizBuilderModal({
                   </div>
                 </div>
 
-                {isModuleQuiz && (
+                {isCourseBuilderNodeQuiz && (
                   <div className="space-y-2 rounded-lg border bg-blue-50 p-4">
                     <Label>Coverage</Label>
                     <Select
-                      value={(data as ModuleQuiz).coverage}
+                      value={(data as CourseBuilderNodeQuiz).coverage}
                       onValueChange={v =>
                         setData({ ...data, coverage: v as 'all_lessons' | 'selected_lessons' })
                       }

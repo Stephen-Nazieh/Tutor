@@ -185,7 +185,7 @@ export function CourseBuilderInsightsRoute({
             ref={model.courseBuilderRef}
             courseId={courseId ?? ''}
             courseName={model.course?.name}
-            initialModules={model.loadedModules ?? undefined}
+            initialLessons={model.loadedModules ?? undefined}
             onSave={model.handleSave}
             insightsProps={insightsProps}
             isCollapsed={!isBuilderVisible}

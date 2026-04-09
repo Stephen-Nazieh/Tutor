@@ -84,77 +84,68 @@ function toQuestionSignature(type: string, question: string, lessonId: string | 
 }
 
 function extractQuestionBankCandidates(
-  modules: any[],
-  userId: string,
+  lessons: any[],
+  tutorId: string,
   courseId: string,
   courseName: string
 ): QuestionBankCreateInput[] {
-  const items: QuestionBankCreateInput[] = []
+  const candidates: QuestionBankCreateInput[] = []
+  if (!Array.isArray(lessons)) return candidates
 
-  for (const mod of modules) {
-    const moduleQuizzes = Array.isArray(mod?.moduleQuizzes) ? mod.moduleQuizzes : []
-    for (const quiz of moduleQuizzes) {
-      const questions = Array.isArray(quiz?.questions) ? quiz.questions : []
-      for (const q of questions as BuilderQuestion[]) {
-        if (typeof q?.question !== 'string' || !q.question.trim()) continue
-        const type = normalizeQuestionType(q.type)
-        items.push({
-          tutorId: userId,
-          courseId,
-          lessonId: null,
-          type,
-          question: q.question.trim(),
-          options: Array.isArray(q.options) ? q.options : null,
-          correctAnswer: normalizeCorrectAnswer(q),
-          points: Math.max(1, q.points ?? 1),
-          difficulty: 'medium',
-          explanation: typeof q.explanation === 'string' ? q.explanation.trim() : null,
-          tags: ['course-builder', 'module-quiz'],
-          subject: courseName,
-          isPublic: false,
-        })
-      }
-    }
-
-    const lessons = Array.isArray(mod?.lessons) ? mod.lessons : []
-    for (const lesson of lessons) {
-      const lessonId = typeof lesson?.id === 'string' ? lesson.id : null
-      const groups = [
-        { source: lesson?.tasks, tag: 'task' },
-        { source: lesson?.homework, tag: 'homework' },
-        { source: lesson?.worksheets, tag: 'worksheet' },
-        { source: lesson?.quizzes, tag: 'lesson-quiz' },
-      ]
-
-      for (const group of groups) {
-        const itemsInGroup = Array.isArray(group.source) ? group.source : []
-        for (const item of itemsInGroup) {
-          const questions = Array.isArray(item?.questions) ? item.questions : []
-          for (const q of questions as BuilderQuestion[]) {
-            if (typeof q?.question !== 'string' || !q.question.trim()) continue
-            const type = normalizeQuestionType(q.type)
-            items.push({
-              tutorId: userId,
-              courseId,
-              lessonId,
-              type,
-              question: q.question.trim(),
-              options: Array.isArray(q.options) ? q.options : null,
-              correctAnswer: normalizeCorrectAnswer(q),
-              points: Math.max(1, q.points ?? 1),
-              difficulty: 'medium',
-              explanation: typeof q.explanation === 'string' ? q.explanation.trim() : null,
-              tags: ['course-builder', group.tag],
-              subject: courseName,
-              isPublic: false,
-            })
-          }
-        }
-      }
+  const processQuestions = (
+    questions: any[],
+    subject: string,
+    lessonId: string,
+    difficulty: 'beginner' | 'intermediate' | 'advanced' = 'intermediate'
+  ) => {
+    for (const q of questions) {
+      if (typeof q?.question !== 'string' || !q.question.trim()) continue
+      const type = normalizeQuestionType(q.type)
+      if (type === 'unknown') continue
+      candidates.push({
+        tutorId,
+        courseId,
+        lessonId,
+        type,
+        question: q.question.trim(),
+        options: Array.isArray(q.options) ? q.options : [],
+        correctAnswer: normalizeCorrectAnswer(q),
+        points: Number(q.points) || 1,
+        difficulty,
+        explanation: typeof q.explanation === 'string' ? q.explanation.trim() : null,
+        tags: [courseName],
+        subject,
+        isPublic: false,
+      })
     }
   }
 
-  return items
+  for (const les of lessons) {
+    const lessonId = les.id
+
+    // 1. Process tasks
+    const tasks = Array.isArray(les?.tasks) ? les.tasks : []
+    for (const task of tasks) {
+      const questions = Array.isArray(task?.questions) ? task.questions : []
+      processQuestions(questions, 'Task', lessonId)
+    }
+
+    // 2. Process homework / assessments
+    const homework = Array.isArray(les?.homework) ? les.homework : []
+    for (const hw of homework) {
+      const questions = Array.isArray(hw?.questions) ? hw.questions : []
+      processQuestions(questions, 'Homework', lessonId)
+    }
+
+    // 3. Process quizzes
+    const lessonQuizzes = Array.isArray(les?.quizzes) ? les.quizzes : []
+    for (const quiz of lessonQuizzes) {
+      const questions = Array.isArray(quiz?.questions) ? quiz.questions : []
+      processQuestions(questions, 'Quiz', lessonId)
+    }
+  }
+
+  return candidates
 }
 
 /** Extract the course (curriculum) ID from the URL path. */
@@ -185,59 +176,35 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Not found or not yours' }, { status: 404 })
   }
 
-  // Load modules + lessons ordered
-  const dbModules = await drizzleDb
-    .select()
-    .from(courseModule)
-    .where(eq(courseModule.curriculumId, courseId))
-    .orderBy(asc(courseModule.order))
-
-  // Lessons are now directly under courses (no moduleId)
+  // Load lessons directly from CourseLesson table
   const dbLessons = await drizzleDb
     .select()
     .from(courseLesson)
     .where(eq(courseLesson.courseId, courseId))
     .orderBy(asc(courseLesson.order))
 
-  // Map DB rows → builder Module[] shape
-  const modules = dbModules.map((m: (typeof dbModules)[0]) => {
-    const mBuilder = (m.builderData ?? {}) as Record<string, any>
-    // Return lessons that belong to this module using the legacy moduleId column
-    const moduleLessons = dbLessons.filter(l => l.moduleId === m.moduleId)
+  // Return all lessons sorted by order
+  const lessons = dbLessons.map(l => {
+    const bData = (l.builderData || {}) as any
     return {
-      id: m.moduleId,
-      title: m.title,
-      description: m.description ?? '',
-      order: m.order,
-      isPublished: mBuilder.isPublished ?? false,
-      difficultyMode: mBuilder.difficultyMode ?? 'all',
-      variants: mBuilder.variants ?? {},
-      moduleQuizzes: mBuilder.moduleQuizzes ?? [],
-      lessons: moduleLessons.map(l => {
-        const lBuilder = (l.builderData ?? {}) as Record<string, unknown>
-        return {
-          id: l.lessonId,
-          title: l.title,
-          description: l.description ?? '',
-          duration: (lBuilder.duration as number) ?? 30,
-          order: l.order,
-          isPublished: (lBuilder.isPublished as boolean) ?? false,
-          prerequisites: (lBuilder.prerequisites as string[]) ?? [],
-          media: (lBuilder.media as Record<string, unknown>) ?? { videos: [], images: [] },
-          docs: (lBuilder.docs as unknown[]) ?? [],
-          content: (lBuilder.content as unknown[]) ?? [],
-          tasks: (lBuilder.tasks as unknown[]) ?? [],
-          homework: (lBuilder.homework as unknown[]) ?? [],
-          quizzes: (lBuilder.quizzes as unknown[]) ?? [],
-          worksheets: (lBuilder.worksheets as unknown[]) ?? [],
-          difficultyMode: (lBuilder.difficultyMode as string) ?? 'all',
-          variants: (lBuilder.variants as Record<string, unknown>) ?? {},
-        }
-      }),
+      id: l.lessonId,
+      title: l.title,
+      description: l.description || '',
+      order: l.order || 0,
+      isPublished: bData.isPublished || false,
+      duration: l.duration || bData.duration || 45,
+      media: bData.media || { videos: [], images: [] },
+      docs: bData.docs || [],
+      content: bData.content || [],
+      tasks: bData.tasks || [],
+      homework: bData.homework || [],
+      quizzes: bData.quizzes || [],
+      difficultyMode: bData.difficultyMode || 'all',
+      variants: bData.variants || {},
     }
   })
 
-  return NextResponse.json({ modules })
+  return NextResponse.json({ lessons })
 }
 
 // ---- PUT — Save builder tree to DB (upsert) ----
@@ -266,8 +233,8 @@ export async function PUT(req: NextRequest) {
   console.log('[Curriculum PUT] Course found:', courseRow.name)
 
   const body = await req.json()
-  const modules: any[] = body.modules
-  console.log('[Curriculum PUT] Received modules count:', modules?.length)
+  const lessons: any[] = body.lessons
+  console.log('[Curriculum PUT] Received lessons count:', lessons?.length)
 
   const developmentMode = body.developmentMode === 'multi' ? 'multi' : 'single'
   const previewDifficulty =
@@ -279,120 +246,71 @@ export async function PUT(req: NextRequest) {
   const shouldAutoCreateAdaptiveVariants =
     developmentMode === 'multi' && previewDifficulty === 'all'
   const variantJoinLinks: VariantJoinLink[] = []
-  if (!Array.isArray(modules)) {
-    return NextResponse.json({ error: '`modules` array required' }, { status: 400 })
+  if (!Array.isArray(lessons)) {
+    return NextResponse.json({ error: '\`lessons\` array required' }, { status: 400 })
   }
 
-  // Ensure all modules and lessons have IDs before processing
-  for (const mod of modules) {
-    if (!mod.id) mod.id = crypto.randomUUID()
-    const lessons = Array.isArray(mod.lessons) ? mod.lessons : []
-    for (const les of lessons) {
-      if (!les.id) les.id = crypto.randomUUID()
-    }
+  // Ensure all lessons have IDs before processing
+  for (const les of lessons) {
+    if (!les.id) les.id = crypto.randomUUID()
   }
 
   try {
     await drizzleDb.transaction(async tx => {
-      // 1. Get existing module & lesson IDs
-      const existingModules = await tx
-        .select({ moduleId: courseModule.moduleId })
-        .from(courseModule)
-        .where(eq(courseModule.curriculumId, courseId))
-      const existingModuleIds = new Set(existingModules.map(m => m.moduleId))
-      // Get all lessons for this course (lessons are now directly under courses)
+      // 1. Get existing lesson IDs
       const existingLessons = await tx
         .select({ lessonId: courseLesson.lessonId })
         .from(courseLesson)
         .where(eq(courseLesson.courseId, courseId))
       const existingLessonIds = new Set(existingLessons.map(l => l.lessonId))
 
-      const incomingModuleIds = new Set(modules.map(m => m.id))
-      const incomingLessonIds = new Set(
-        modules.flatMap((m: any) => (m.lessons ?? []).map((l: any) => l.id))
-      )
+      const incomingLessonIds = new Set(lessons.map(l => l.id))
 
       const removedLessonIds = [...existingLessonIds].filter(id => !incomingLessonIds.has(id))
       if (removedLessonIds.length > 0) {
         await tx.delete(courseLesson).where(inArray(courseLesson.lessonId, removedLessonIds))
       }
 
-      const removedModuleIds = [...existingModuleIds].filter(id => !incomingModuleIds.has(id))
-      if (removedModuleIds.length > 0) {
-        await tx.delete(courseModule).where(inArray(courseModule.moduleId, removedModuleIds))
-      }
-
-      for (const mod of modules) {
-        const moduleBuilderData = {
-          isPublished: mod.isPublished ?? false,
-          difficultyMode: mod.difficultyMode ?? 'all',
-          variants: mod.variants ?? {},
-          moduleQuizzes: mod.moduleQuizzes ?? [],
+      for (const les of lessons) {
+        const lessonBuilderData = {
+          isPublished: les.isPublished ?? false,
+          duration: les.duration ?? 45,
+          difficultyMode: les.difficultyMode ?? 'all',
+          variants: les.variants ?? {},
+          media: les.media ?? { videos: [], images: [] },
+          docs: les.docs ?? [],
+          content: les.content ?? [],
+          tasks: les.tasks ?? [],
+          homework: les.homework ?? [],
+          quizzes: les.quizzes ?? [],
         }
         await tx
-          .insert(courseModule)
+          .insert(courseLesson)
           .values({
-            moduleId: mod.id,
-            curriculumId: courseId, // Note: CurriculumModule uses curriculumId, not courseId
-            title: mod.title || 'Untitled Module',
-            description: mod.description || null,
-            order: mod.order ?? 0,
-            builderData: moduleBuilderData,
+            lessonId: les.id,
+            courseId,
+            moduleId: null, // Legacy column
+            title: les.title || 'Untitled Lesson',
+            description: les.description || null,
+            duration: les.duration ?? 60,
+            order: les.order ?? 0,
+            builderData: lessonBuilderData,
           })
           .onConflictDoUpdate({
-            target: courseModule.moduleId,
+            target: courseLesson.lessonId,
             set: {
-              title: mod.title || 'Untitled Module',
-              description: mod.description || null,
-              order: mod.order ?? 0,
-              builderData: moduleBuilderData,
-            },
-          })
-
-        const lessons: any[] = mod.lessons ?? []
-        for (const les of lessons) {
-          const lessonBuilderData = {
-            isPublished: les.isPublished ?? false,
-            prerequisites: les.prerequisites ?? [],
-            duration: les.duration ?? 30,
-            difficultyMode: les.difficultyMode ?? 'all',
-            variants: les.variants ?? {},
-            media: les.media ?? { videos: [], images: [] },
-            docs: les.docs ?? [],
-            content: les.content ?? [],
-            tasks: les.tasks ?? [],
-            homework: les.homework ?? [],
-            quizzes: les.quizzes ?? [],
-            worksheets: les.worksheets ?? [],
-          }
-          await tx
-            .insert(courseLesson)
-            .values({
-              lessonId: les.id,
-              courseId,
-              moduleId: mod.id,
+              moduleId: null,
               title: les.title || 'Untitled Lesson',
               description: les.description || null,
               duration: les.duration ?? 60,
               order: les.order ?? 0,
               builderData: lessonBuilderData,
-            })
-            .onConflictDoUpdate({
-              target: courseLesson.lessonId,
-              set: {
-                moduleId: mod.id,
-                title: les.title || 'Untitled Lesson',
-                description: les.description || null,
-                duration: les.duration ?? 60,
-                order: les.order ?? 0,
-                builderData: lessonBuilderData,
-              },
-            })
-        }
+            },
+          })
       }
 
       const questionCandidates = extractQuestionBankCandidates(
-        modules,
+        lessons,
         userId,
         courseId,
         courseRow.name
@@ -538,8 +456,7 @@ export async function PUT(req: NextRequest) {
   console.log('[Curriculum PUT] Save successful')
   return NextResponse.json({
     message: 'Curriculum saved',
-    moduleCount: modules.length,
-    lessonCount: modules.reduce((sum: number, m: any) => sum + (m.lessons?.length ?? 0), 0),
+    lessonCount: lessons.length,
     variants: variantJoinLinks,
   })
 }

@@ -40,8 +40,8 @@ export interface VisibleDocumentPayload {
   title: string
   description?: string
   content?: string
-  itemType: 'task' | 'homework' | 'worksheet' | 'moduleQuiz' | 'lesson' | 'module'
-  type?: 'task' | 'homework' | 'worksheet' | 'moduleQuiz' | 'lesson' | 'module'
+  itemType: 'task' | 'homework' | 'worksheet' | 'nodeQuiz' | 'lesson' | 'node'
+  type?: 'task' | 'homework' | 'worksheet' | 'nodeQuiz' | 'lesson' | 'node'
   sourceDocument?: ImportedLearningResource
   questions?: QuizQuestion[]
 }
@@ -219,29 +219,6 @@ export interface WithDifficultyVariants {
   }
 }
 
-export interface Worksheet extends WithDifficultyVariants {
-  id: string
-  title: string
-  description: string
-  instructions: string
-  estimatedMinutes: number
-  points: number
-  questions: QuizQuestion[]
-  randomizeQuestions: boolean
-  timeLimit?: number
-  passingScore?: number
-  allowMultipleAttempts: boolean
-  maxAttempts?: number
-  showCorrectAnswers: boolean
-  /** @protected Instructor-only answer key */
-  answerKey?: string
-  /** @protected Whether answer key is encrypted/protected */
-  answerKeyProtected?: boolean
-  /** When false, not visible to students (draft) */
-  isPublished?: boolean
-  sourceDocument?: ImportedLearningResource
-}
-
 export interface Lesson extends WithDifficultyVariants {
   id: string
   title: string
@@ -253,7 +230,6 @@ export interface Lesson extends WithDifficultyVariants {
   duration: number
   order: number
   isPublished: boolean
-  prerequisites?: string[]
   media: {
     videos: Video[]
     images: Image[]
@@ -266,32 +242,23 @@ export interface Lesson extends WithDifficultyVariants {
   assessments: Assessment[]
   /** Homework folder - contains homework items */
   homework: Assessment[]
-  worksheets: Worksheet[]
   /** @deprecated legacy lesson quiz items are migrated into `homework` (Assessment) */
   quizzes?: Quiz[]
 }
 
-/**
- * @deprecated Modules are no longer used. Lessons are now directly under courses.
- * This interface is kept for backward compatibility during migration.
- */
-export interface ModuleQuiz extends Quiz, WithDifficultyVariants {
+export interface CourseBuilderNodeQuiz extends Quiz, WithDifficultyVariants {
   coverage: 'all_lessons' | 'selected_lessons'
   coveredLessonIds?: string[]
 }
 
-/**
- * @deprecated Modules are no longer used. Lessons are now directly under courses.
- * This interface is kept for backward compatibility during migration.
- */
-export interface Module extends WithDifficultyVariants {
+export interface CourseBuilderNode extends WithDifficultyVariants {
   id: string
   title: string
   description?: string
   order: number
   isPublished: boolean
   lessons: Lesson[]
-  moduleQuizzes: ModuleQuiz[]
+  quizzes: CourseBuilderNodeQuiz[]
 }
 
 // ============================================
@@ -326,12 +293,12 @@ export interface CourseBuilderProps {
   courseId: string | null
   courseName?: string
   panelMode?: 'default' | 'live-class'
-  initialModules?: Module[]
+  initialLessons?: Lesson[]
   lessonBankMode?: boolean
   hideCourseNameInTabs?: boolean
   onMakeVisibleToStudents?: (payload: VisibleDocumentPayload) => void
   onSave?: (
-    modules: Module[],
+    lessons: Lesson[],
     options?: {
       developmentMode: 'single' | 'multi'
       previewDifficulty: 'all' | 'beginner' | 'intermediate' | 'advanced'
