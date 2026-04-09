@@ -36,8 +36,13 @@ const roles = [
   },
 ]
 
-export default function RoleSelectionPage({ params }: { params: { locale?: string } }) {
-  const localePrefix = params?.locale ? `/${params.locale}` : ''
+export default async function RoleSelectionPage({
+  params,
+}: {
+  params: Promise<{ locale?: string }>
+}) {
+  const { locale } = await params
+  const localePrefix = locale ? `/${locale}` : ''
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-white p-4">
@@ -77,7 +82,10 @@ export default function RoleSelectionPage({ params }: { params: { locale?: strin
         <div className="mt-12 text-center">
           <p className="text-gray-600">
             Already have an account?{' '}
-            <Link href={`${localePrefix}/login`} className="font-medium text-[#1D4ED8] hover:underline">
+            <Link
+              href={`${localePrefix}/login`}
+              className="font-medium text-[#1D4ED8] hover:underline"
+            >
               Sign in
             </Link>
           </p>
