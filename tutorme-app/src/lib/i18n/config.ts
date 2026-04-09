@@ -76,7 +76,6 @@ export const NAMESPACES = [
   'parent',
   'tutor',
   'ai-tutor',
-  'gamification',
   'payments',
   'notifications',
   'errors',

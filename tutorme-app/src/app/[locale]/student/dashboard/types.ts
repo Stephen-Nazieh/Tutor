@@ -99,8 +99,6 @@ export interface EnrolledCourse {
 
 export interface DashboardData {
   contents: DashboardContent[]
-  gamification: GamificationData | null
-  worlds: World[]
   dailyQuests: DailyQuestWithCompletion[]
   recommendations: Recommendation[]
   classes: DashboardClass[]

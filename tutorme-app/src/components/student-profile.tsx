@@ -20,38 +20,15 @@ import {
 import {
   User,
   Settings,
-  Award,
   Target,
-  Flame,
-  Zap,
   BookOpen,
   Clock,
   TrendingUp,
   GraduationCap,
-  Mail,
   Edit3,
   Save,
   X,
 } from 'lucide-react'
-
-interface GamificationData {
-  level: number
-  xp: number
-  nextLevelXp: number
-  currentLevelXp: number
-  progress: number
-  xpToNextLevel: number
-  streakDays: number
-  longestStreak: number
-  skills: {
-    grammar: number
-    vocabulary: number
-    speaking: number
-    listening: number
-    confidence: number
-    fluency: number
-  }
-}
 
 interface UserProfile {
   id: string
@@ -79,7 +56,6 @@ interface StudyStats {
 export function StudentProfile() {
   const { data: session } = useSession()
   const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [gamification, setGamification] = useState<GamificationData | null>(null)
   const [stats, setStats] = useState<StudyStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
@@ -96,13 +72,8 @@ export function StudentProfile() {
 
   const loadProfileData = async () => {
     try {
-      const [profileRes, gamificationRes] = await Promise.all([
-        fetch('/api/user/profile'),
-        fetch('/api/gamification'),
-      ])
-
+      const profileRes = await fetch('/api/user/profile')
       const profileData = await profileRes.json()
-      const gamificationData = await gamificationRes.json()
 
       if (profileData.profile) {
         setProfile(profileData.profile)
@@ -112,10 +83,6 @@ export function StudentProfile() {
           school: profileData.profile.school || '',
           bio: profileData.profile.bio || '',
         })
-      }
-
-      if (gamificationData.success) {
-        setGamification(gamificationData.data)
       }
 
       // Mock stats for now - can be fetched from a real API
@@ -208,12 +175,6 @@ export function StudentProfile() {
                           <GraduationCap className="mr-1 h-3 w-3" />
                           Grade {profile?.profile?.gradeLevel || 'N/A'}
                         </Badge>
-                        {gamification && (
-                          <Badge variant="secondary" className="text-xs">
-                            <Zap className="mr-1 h-3 w-3" />
-                            Level {gamification.level}
-                          </Badge>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -275,49 +236,11 @@ export function StudentProfile() {
                         <span className="text-gray-500">Bio:</span> {profile.profile.bio}
                       </p>
                     )}
-                    {gamification && (
-                      <div className="mt-4">
-                        <div className="mb-1 flex items-center justify-between text-sm">
-                          <span className="text-gray-500">XP Progress</span>
-                          <span className="font-medium">
-                            {gamification.xp} / {gamification.nextLevelXp} XP
-                          </span>
-                        </div>
-                        <Progress value={gamification.progress} className="h-2" />
-                      </div>
-                    )}
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Gamification Stats */}
-            {gamification && (
-              <div className="grid grid-cols-2 gap-3">
-                <Card>
-                  <CardContent className="pt-4">
-                    <div className="flex items-center gap-2">
-                      <Flame className="h-5 w-5 text-orange-500" />
-                      <div>
-                        <p className="text-2xl font-bold">{gamification.streakDays}</p>
-                        <p className="text-xs text-gray-500">Day Streak</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-4">
-                    <div className="flex items-center gap-2">
-                      <Award className="h-5 w-5 text-yellow-500" />
-                      <div>
-                        <p className="text-2xl font-bold">{gamification.level}</p>
-                        <p className="text-xs text-gray-500">Current Level</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
           </TabsContent>
 
           {/* Statistics Tab */}
@@ -370,28 +293,6 @@ export function StudentProfile() {
                     </CardContent>
                   </Card>
                 </div>
-
-                {/* Skills Radar Placeholder */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">Skill Progress</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {gamification?.skills && (
-                      <div className="space-y-3">
-                        {Object.entries(gamification.skills).map(([skill, score]) => (
-                          <div key={skill}>
-                            <div className="mb-1 flex items-center justify-between text-sm">
-                              <span className="capitalize">{skill}</span>
-                              <span className="font-medium">{score}%</span>
-                            </div>
-                            <Progress value={score} className="h-1.5" />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
               </>
             )}
           </TabsContent>

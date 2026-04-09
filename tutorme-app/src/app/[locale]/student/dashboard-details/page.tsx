@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { UserNav } from '@/components/user-nav'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { toast } from 'sonner'
-import { Flame, Settings, AlertCircle } from 'lucide-react'
+import { Settings, AlertCircle } from 'lucide-react'
 
 import {
   DashboardSkeleton,
@@ -51,16 +51,6 @@ export default function StudentDashboardDetails() {
           status: 200,
           json: () => Promise.resolve({ contents: [] }),
         })),
-        fetch('/api/gamification').catch(() => ({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve({ success: false }),
-        })),
-        fetch('/api/gamification/worlds').catch(() => ({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve({ success: false, data: [] }),
-        })),
         fetch('/api/recommendations').catch(() => ({
           ok: true,
           status: 200,
@@ -91,8 +81,6 @@ export default function StudentDashboardDetails() {
 
       const [
         contentData,
-        gamificationData,
-        worldsData,
         recsData,
         classesData,
         subjectsData,
@@ -102,8 +90,6 @@ export default function StudentDashboardDetails() {
       const subjects = subjectsData?.subjects ?? []
       setData({
         contents: contentData?.contents ?? [],
-        gamification: gamificationData?.data ?? null,
-        worlds: worldsData?.data ?? [],
         dailyQuests: [],
         recommendations: recsData?.recommendations ?? [],
         classes: classesData?.classes ?? [],
@@ -233,14 +219,6 @@ export default function StudentDashboardDetails() {
               </Link>
             </div>
             <div className="flex items-center gap-4">
-              {data?.gamification && (
-                <div className="flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1">
-                  <Flame className="h-4 w-4 text-orange-500" />
-                  <span className="text-sm font-medium">
-                    {data.gamification.streakDays} day streak
-                  </span>
-                </div>
-              )}
               <NotificationBell />
               <Link href="/student/settings">
                 <Button variant="ghost" size="icon">

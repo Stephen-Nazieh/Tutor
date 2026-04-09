@@ -85,8 +85,6 @@ export default function StudentDashboard() {
       const subjects = subjectsData?.subjects ?? []
       setData({
         contents: contentData?.contents ?? [],
-        gamification: null,
-        worlds: [],
         dailyQuests: [],
         recommendations: recsData?.recommendations ?? [],
         classes: classesData?.classes ?? [],
