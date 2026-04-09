@@ -42,7 +42,7 @@ function LoginForm() {
       const result = await signIn('credentials', {
         email,
         password,
-        rememberMe,
+        rememberMe: rememberMe ? 'true' : 'false',
         redirect: false,
       })
 
