@@ -30,7 +30,8 @@ function getJwtSecret(): Uint8Array {
   const configuredSecret = process.env.ADMIN_JWT_SECRET || process.env.NEXTAUTH_SECRET || ''
   if (
     process.env.NODE_ENV === 'production' &&
-    (!configuredSecret || configuredSecret === 'default-secret')
+    (!configuredSecret || configuredSecret === 'default-secret') &&
+    process.env.NEXT_PHASE !== 'phase-production-build'
   ) {
     throw new Error('Missing secure ADMIN_JWT_SECRET or NEXTAUTH_SECRET in production')
   }

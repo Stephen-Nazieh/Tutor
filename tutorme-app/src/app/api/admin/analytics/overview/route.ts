@@ -350,10 +350,9 @@ export async function GET(req: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching analytics:', error)
-    return handleApiError(
-      error,
-      'Failed to fetch analytics',
-      'api/admin/analytics/overview/route.ts'
+    return NextResponse.json(
+      { error: 'Failed to fetch analytics', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
     )
   }
 }

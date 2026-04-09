@@ -83,7 +83,7 @@ export function handleApiError(
   const errorId = createErrorId()
   logApiError(errorId, logLabel, error)
   const message = error instanceof Error ? error.message : defaultMessage
-  const isDev = process.env.NODE_ENV === 'development'
+  const isDev = process.env.NODE_ENV !== 'production'
   return NextResponse.json({ error: isDev ? message : defaultMessage, errorId }, { status: 500 })
 }
 
@@ -183,7 +183,7 @@ export function withAuth(handler: Handler, options?: WithAuthOptions) {
       })
 
       // Don't expose internal errors in production
-      const isDev = process.env.NODE_ENV === 'development'
+      const isDev = process.env.NODE_ENV !== 'production'
       return NextResponse.json(
         {
           error: isDev
