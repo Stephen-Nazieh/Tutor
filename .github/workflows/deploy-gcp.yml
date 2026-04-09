@@ -133,3 +133,8 @@ jobs:
 
       - name: Show production URL
         run: echo "Production URL -> ${{ steps.deploy-prod.outputs.url }}"
+
+      - name: Run Database Migration Script
+        run: |
+          echo "Running database schema updates..."
+          curl -sS "${{ steps.deploy-prod.outputs.url }}/api/tutor/courses/migrate"

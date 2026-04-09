@@ -38,7 +38,7 @@ function getPool(): Pool {
   return pool
 }
 
-function getDrizzleDb(): NodePgDatabase<typeof schema> {
+export function getDrizzleDb(): NodePgDatabase<typeof schema> {
   if (!globalForDrizzle.drizzleDb) {
     globalForDrizzle.drizzleDb = drizzle(getPool(), { schema })
   }

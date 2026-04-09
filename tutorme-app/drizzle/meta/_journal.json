@@ -218,6 +218,13 @@
       "when": 1744039260000,
       "tag": "0030_add_deprecated_course_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1775740733410,
+      "tag": "0031_course_lesson_builder",
+      "breakpoints": true
     }
   ]
 }
