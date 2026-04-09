@@ -6,14 +6,14 @@ RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib
 # Dependencies
 FROM base AS deps
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Build
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm install --no-save @parcel/watcher-linux-x64-glibc @swc/core-linux-x64-gnu @next/swc-linux-x64-gnu esbuild
+RUN npm install --no-save --legacy-peer-deps @parcel/watcher-linux-x64-glibc @swc/core-linux-x64-gnu @next/swc-linux-x64-gnu esbuild
 
 # Dummy env for build
 RUN echo "DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy" >> .env.production && \
