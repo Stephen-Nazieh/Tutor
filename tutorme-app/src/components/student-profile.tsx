@@ -240,7 +240,6 @@ export function StudentProfile() {
                 )}
               </CardContent>
             </Card>
-
           </TabsContent>
 
           {/* Statistics Tab */}
