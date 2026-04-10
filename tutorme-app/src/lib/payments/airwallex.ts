@@ -41,7 +41,7 @@ async function getAccessToken(): Promise<string> {
   if (!clientId || !apiKey) {
     throw new Error('Airwallex: AIRWALLEX_CLIENT_ID and AIRWALLEX_API_KEY are required')
   }
-  
+
   // Store validated values to avoid non-null assertions
   const validatedClientId = clientId
   const validatedApiKey = apiKey
@@ -97,7 +97,7 @@ export class AirwallexGateway implements PaymentGateway {
     if (!clientId) {
       throw new Error('Airwallex: AIRWALLEX_CLIENT_ID is required')
     }
-    
+
     const token = await getAccessToken()
     const base = getBaseUrl()
     const requestId = `req_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
@@ -213,7 +213,7 @@ export class AirwallexGateway implements PaymentGateway {
     if (!clientId) {
       throw new Error('Airwallex: AIRWALLEX_CLIENT_ID is required')
     }
-    
+
     const token = await getAccessToken()
     const base = getBaseUrl()
     const requestId = `refund_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`

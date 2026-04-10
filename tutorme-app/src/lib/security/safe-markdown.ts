@@ -1,6 +1,6 @@
 /**
  * Safe Markdown Renderer
- * 
+ *
  * Combines markdown rendering with HTML sanitization to prevent XSS attacks.
  * Use this for all user-generated content that needs markdown formatting.
  */
@@ -13,7 +13,7 @@ import { sanitizeHtml } from './sanitize'
  */
 export function renderSafeMarkdown(text: string): string {
   if (!text || typeof text !== 'string') return ''
-  
+
   const html = renderMarkdown(text)
   return sanitizeHtml(html)
 }

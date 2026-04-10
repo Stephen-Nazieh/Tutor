@@ -397,20 +397,18 @@ export const MAX_DESCRIPTION_LENGTH = 500_000
  */
 export function validateTextInput(
   input: string | null | undefined,
-  options: { 
+  options: {
     maxLength?: number
     fieldName?: string
     allowEmpty?: boolean
   } = {}
 ): { valid: true; value: string } | { valid: false; error: string } {
-  const { 
-    maxLength = MAX_TEXT_LENGTH,
-    fieldName = 'Input',
-    allowEmpty = false
-  } = options
+  const { maxLength = MAX_TEXT_LENGTH, fieldName = 'Input', allowEmpty = false } = options
 
   if (input === null || input === undefined) {
-    return allowEmpty ? { valid: true, value: '' } : { valid: false, error: `${fieldName} is required` }
+    return allowEmpty
+      ? { valid: true, value: '' }
+      : { valid: false, error: `${fieldName} is required` }
   }
 
   if (typeof input !== 'string') {
@@ -419,9 +417,9 @@ export function validateTextInput(
 
   // Check for extremely long inputs (potential DoS)
   if (input.length > maxLength) {
-    return { 
-      valid: false, 
-      error: `${fieldName} exceeds maximum length of ${maxLength} characters` 
+    return {
+      valid: false,
+      error: `${fieldName} exceeds maximum length of ${maxLength} characters`,
     }
   }
 
@@ -439,7 +437,12 @@ export function validateTextInput(
  */
 export function withInputValidation<T extends Record<string, unknown>>(
   schema: { [K in keyof T]: { maxLength?: number; required?: boolean } },
-  handler: (req: NextRequest, validated: T, session: Session, context: RouteContext) => Promise<Response>
+  handler: (
+    req: NextRequest,
+    validated: T,
+    session: Session,
+    context: RouteContext
+  ) => Promise<Response>
 ): Handler {
   return async (req: NextRequest, session: Session, context: RouteContext) => {
     let body: unknown
@@ -454,10 +457,10 @@ export function withInputValidation<T extends Record<string, unknown>>(
     }
 
     const validated: Record<string, unknown> = {}
-    
+
     for (const [key, config] of Object.entries(schema)) {
       const value = (body as Record<string, unknown>)[key]
-      
+
       if (config.required && (value === undefined || value === null)) {
         return NextResponse.json({ error: `${key} is required` }, { status: 400 })
       }
@@ -469,7 +472,9 @@ export function withInputValidation<T extends Record<string, unknown>>(
 
         if (value.length > (config.maxLength ?? MAX_TEXT_LENGTH)) {
           return NextResponse.json(
-            { error: `${key} exceeds maximum length of ${config.maxLength ?? MAX_TEXT_LENGTH} characters` },
+            {
+              error: `${key} exceeds maximum length of ${config.maxLength ?? MAX_TEXT_LENGTH} characters`,
+            },
             { status: 400 }
           )
         }

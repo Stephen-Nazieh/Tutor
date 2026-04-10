@@ -11,9 +11,32 @@ import path from 'path'
 
 // Dangerous file extensions that should never be allowed
 const DANGEROUS_EXTENSIONS = [
-  'exe', 'dll', 'bat', 'cmd', 'sh', 'php', 'jsp', 'asp', 'aspx',
-  'jar', 'war', 'ear', 'py', 'rb', 'pl', 'cgi', 'com', 'scr',
-  'pif', 'vbs', 'js', 'wsf', 'hta', 'ps1', 'psm1', 'msh',
+  'exe',
+  'dll',
+  'bat',
+  'cmd',
+  'sh',
+  'php',
+  'jsp',
+  'asp',
+  'aspx',
+  'jar',
+  'war',
+  'ear',
+  'py',
+  'rb',
+  'pl',
+  'cgi',
+  'com',
+  'scr',
+  'pif',
+  'vbs',
+  'js',
+  'wsf',
+  'hta',
+  'ps1',
+  'psm1',
+  'msh',
 ]
 
 // Characters not allowed in filenames
@@ -69,9 +92,7 @@ export function validateFileUpload(
   const baseName = path.basename(fileName, path.extname(fileName))
   const sanitizedBase = baseName.replace(/[^a-zA-Z0-9\-_]/g, '_').slice(0, 100)
   const sanitizedExt = ext.slice(0, 20)
-  const sanitizedName = sanitizedExt
-    ? `${sanitizedBase}.${sanitizedExt}`
-    : sanitizedBase
+  const sanitizedName = sanitizedExt ? `${sanitizedBase}.${sanitizedExt}` : sanitizedBase
 
   return { valid: true, sanitizedName }
 }
@@ -86,10 +107,7 @@ export function validateFileUpload(
  * @param expectedMimeType - Expected MIME type
  * @returns Whether the file content matches the expected type
  */
-export function validateFileContent(
-  buffer: Buffer,
-  expectedMimeType: string
-): boolean {
+export function validateFileContent(buffer: Buffer, expectedMimeType: string): boolean {
   // Magic bytes for common file types
   const magicBytes: Record<string, number[]> = {
     'application/pdf': [0x25, 0x50, 0x44, 0x46], // %PDF

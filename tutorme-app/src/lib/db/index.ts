@@ -33,7 +33,9 @@ import type { Redis as RedisType } from 'ioredis'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import type * as schema from './schema'
 
-let db: NodePgDatabase<typeof schema> | { $connect: () => Promise<void>; $disconnect: () => Promise<void> }
+let db:
+  | NodePgDatabase<typeof schema>
+  | { $connect: () => Promise<void>; $disconnect: () => Promise<void> }
 let redis: RedisType | null = null
 let queryCache: Map<string, { data: unknown; expires: number }> | null = null
 let redisInitialized = false
