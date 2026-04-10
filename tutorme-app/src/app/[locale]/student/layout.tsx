@@ -50,7 +50,6 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       icon: Video,
     },
     { href: '/student/assignments', label: 'Visible Tasks', icon: ClipboardList },
-    { href: '/student/pdf-tutoring', label: 'PDF Tutoring', icon: FileText },
     { href: '/student/dashboard', label: 'Leave Class', icon: ArrowLeft },
   ]
 

@@ -29,10 +29,14 @@ export function PWAInstallPrompt() {
       navigator.serviceWorker
         .register('/sw.js', { scope: '/', updateViaCache: 'none' })
         .then(registration => {
-          registration.update().catch(() => {})
+          registration.update().catch(() => {
+              // Service worker update check failed - non-critical
+            })
           registration.waiting?.postMessage({ type: 'SKIP-WAITING' })
         })
-        .catch(() => {})
+        .catch(() => {
+          // Service worker registration failed - PWA features unavailable
+        })
     }
 
     // Trigger offline sync when coming back online

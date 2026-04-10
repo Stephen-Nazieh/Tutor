@@ -524,7 +524,7 @@ export default function TutorCoursePage() {
           }
         }
       })
-      .catch(() => {})
+      .catch(err => console.error('[Course Page] Failed to load profile:', err))
   }, [])
 
   useEffect(() => {

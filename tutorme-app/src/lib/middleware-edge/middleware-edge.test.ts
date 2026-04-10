@@ -38,4 +38,25 @@ describe('middleware-edge helpers', () => {
     expect(csp).toContain("default-src 'self'")
     expect(csp).toContain("object-src 'none'")
   })
+
+  it('getCspHeader removes unsafe-eval in production', () => {
+    const originalEnv = process.env.NODE_ENV
+    process.env.NODE_ENV = 'production'
+    const csp = getCspHeader()
+    expect(csp).not.toContain("'unsafe-eval'")
+    process.env.NODE_ENV = originalEnv
+  })
+
+  it('getCspHeader includes unsafe-eval in development', () => {
+    const originalEnv = process.env.NODE_ENV
+    process.env.NODE_ENV = 'development'
+    const csp = getCspHeader()
+    expect(csp).toContain("'unsafe-eval'")
+    process.env.NODE_ENV = originalEnv
+  })
+
+  it('getCspHeader includes report-uri', () => {
+    const csp = getCspHeader()
+    expect(csp).toContain('report-uri /api/csp-report')
+  })
 })

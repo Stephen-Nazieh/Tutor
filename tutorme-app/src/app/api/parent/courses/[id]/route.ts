@@ -73,27 +73,32 @@ export async function GET(
     .where(eq(curriculumModule.curriculumId, courseRow.courseId))
     .orderBy(asc(curriculumModule.order))
 
-  const modulesWithLessons = await Promise.all(
-    modulesList.map(async m => {
-      const lessons = await drizzleDb
-        .select({
-          lessonId: courseLesson.lessonId,
-          title: courseLesson.title,
-          description: courseLesson.description,
-          order: courseLesson.order,
-        })
-        .from(courseLesson)
-        .where(eq(courseLesson.courseId, courseRow.courseId))
-        .orderBy(asc(courseLesson.order))
-      return {
-        moduleId: m.moduleId,
-        title: m.title,
-        description: m.description,
-        order: m.order,
-        lessons,
-      }
+  // Batch fetch all lessons for the course to avoid N+1
+  const allLessons = await drizzleDb
+    .select({
+      lessonId: courseLesson.lessonId,
+      title: courseLesson.title,
+      description: courseLesson.description,
+      order: courseLesson.order,
     })
-  )
+    .from(courseLesson)
+    .where(eq(courseLesson.courseId, courseRow.courseId))
+    .orderBy(asc(courseLesson.order))
+
+  const lessonsByModuleId = new Map<string, typeof allLessons>()
+  for (const lesson of allLessons) {
+    const moduleLessons = lessonsByModuleId.get(courseRow.courseId) ?? []
+    moduleLessons.push(lesson)
+    lessonsByModuleId.set(courseRow.courseId, moduleLessons)
+  }
+
+  const modulesWithLessons = modulesList.map(m => ({
+    moduleId: m.moduleId,
+    title: m.title,
+    description: m.description,
+    order: m.order,
+    lessons: lessonsByModuleId.get(courseRow.courseId) ?? [],
+  }))
 
   const courseData = {
     shareId: shareRecord.shareId,

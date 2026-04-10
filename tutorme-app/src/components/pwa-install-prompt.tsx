@@ -14,7 +14,9 @@ export function PWAInstallPrompt() {
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
-    navigator.serviceWorker.register('/sw.js').catch(() => {})
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // Service worker registration failed - PWA features unavailable
+    })
   }, [])
 
   useEffect(() => {

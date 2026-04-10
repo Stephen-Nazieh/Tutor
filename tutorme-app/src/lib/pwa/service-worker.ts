@@ -276,7 +276,9 @@ async function handleStaticRequest(event: any): Promise<Response> {
       .then(r => {
         if (r.ok) caches.open(CACHE_NAMES.STATIC).then(c => c.put(event.request, r))
       })
-      .catch(() => {})
+      .catch(() => {
+        // Background cache update failed - will try again on next request
+      })
     return cached
   }
 

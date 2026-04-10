@@ -23,14 +23,14 @@ export function handleGlobalError(error: Error, context?: GlobalErrorContext) {
       action: context.action,
       ip: context.ip,
       userAgent: context.userAgent,
-    }).catch(() => {})
+    }).catch((err) => console.error('[Audit Log] Failed to log security event:', err))
   }
   if (context?.userId && context?.action?.includes?.('data')) {
     logComplianceAudit('error_during_data_access', {
       userId: context.userId,
       action: context.action,
       errorType: error.name,
-    }).catch(() => {})
+    }).catch((err) => console.error('[Audit Log] Failed to log compliance event:', err))
   }
 }
 

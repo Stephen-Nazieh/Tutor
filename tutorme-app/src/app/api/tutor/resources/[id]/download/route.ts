@@ -60,7 +60,9 @@ export const GET = withAuth(
       .set({ downloadCount: resourceRow.downloadCount + 1 })
       .where(eq(resource.resourceId, id))
       .then(() => {})
-      .catch(() => {})
+      .catch(() => {
+        // Failed to update download count - non-critical
+      })
 
     if (isGcsConfigured() && resourceRow.key) {
       const downloadUrl = await createPresignedDownloadUrl(resourceRow.key, 3600, resourceRow.name)

@@ -387,21 +387,6 @@ export default function StudentAssignmentsPage() {
                     <div className="ml-4 flex items-center gap-3">
                       {parseDocumentSource(assignment.documentSource)?.fileUrl && (
                         <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => {
-                            const doc = parseDocumentSource(assignment.documentSource)
-                            if (!doc?.fileUrl) return
-                            const room = `assignment-doc-${assignment.id}`
-                            const url = `/student/pdf-tutoring?room=${encodeURIComponent(room)}&doc=${encodeURIComponent(doc.fileUrl)}`
-                            window.open(url, '_blank', 'noopener,noreferrer')
-                          }}
-                        >
-                          Work on Document
-                        </Button>
-                      )}
-                      {parseDocumentSource(assignment.documentSource)?.fileUrl && (
-                        <Button
                           variant="outline"
                           size="sm"
                           onClick={() =>

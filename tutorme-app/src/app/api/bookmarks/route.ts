@@ -10,29 +10,28 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import { bookmark as bookmarkTable, contentItem } from '@/lib/db/schema'
 
 async function getHandler(_req: NextRequest, session: Session) {
-  const rows = await drizzleDb
-    .select()
+  // Use join to avoid N+1 query
+  const bookmarks = await drizzleDb
+    .select({
+      bookmark: bookmarkTable,
+      content: {
+        id: contentItem.contentId,
+        title: contentItem.title,
+        subject: contentItem.subject,
+        type: contentItem.type,
+        duration: contentItem.duration,
+      },
+    })
     .from(bookmarkTable)
+    .leftJoin(contentItem, eq(bookmarkTable.contentId, contentItem.contentId))
     .where(eq(bookmarkTable.studentId, session.user.id))
     .orderBy(desc(bookmarkTable.createdAt))
 
-  const bookmarks = await Promise.all(
-    rows.map(async b => {
-      const [content] = await drizzleDb
-        .select({
-          id: contentItem.contentId,
-          title: contentItem.title,
-          subject: contentItem.subject,
-          type: contentItem.type,
-          duration: contentItem.duration,
-        })
-        .from(contentItem)
-        .where(eq(contentItem.contentId, b.contentId))
-        .limit(1)
-      return { ...b, content: content ?? null }
-    })
-  )
-  return NextResponse.json({ bookmarks })
+  const formattedBookmarks = bookmarks.map(b => ({
+    ...b.bookmark,
+    content: b.content ?? null,
+  }))
+  return NextResponse.json({ bookmarks: formattedBookmarks })
 }
 
 async function postHandler(req: NextRequest, session: Session) {

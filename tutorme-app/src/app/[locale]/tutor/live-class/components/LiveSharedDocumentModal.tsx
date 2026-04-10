@@ -14,7 +14,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { PDFCollaborativeViewer } from '@/components/pdf-tutoring/PDFCollaborativeViewer'
 import {
   Eye,
   EyeOff,
@@ -673,31 +672,9 @@ export function LiveSharedDocumentModal({
                 )}
               </div>
             ) : isPdf ? (
-              <PDFCollaborativeViewer
-                roomId={share.pdfRoomId}
-                role={viewerRole}
-                initialPdfUrl={share.fileUrl}
-                forceLocked={isReadOnly}
-                showLockControl={canManageShare}
-                showCollabStatus={viewerRole === 'tutor'}
-                showAiActions={viewerRole === 'tutor'}
-                capabilities={{
-                  draw:
-                    canManageShare ||
-                    (share.allowCollaborativeWrite && collaborationPolicy.allowDrawing),
-                  erase:
-                    canManageShare ||
-                    (share.allowCollaborativeWrite && collaborationPolicy.allowDrawing),
-                  text:
-                    canManageShare ||
-                    (share.allowCollaborativeWrite && collaborationPolicy.allowTyping),
-                  shapes:
-                    canManageShare ||
-                    (share.allowCollaborativeWrite && collaborationPolicy.allowShapes),
-                  select: canManageShare || share.allowCollaborativeWrite,
-                  clear: canManageShare || share.allowCollaborativeWrite,
-                }}
-              />
+              <div className="flex h-full items-center justify-center text-muted-foreground">
+                PDF tutoring feature has been deprecated
+              </div>
             ) : (
               <div className="m-4 rounded-lg border bg-muted/20 p-4 text-sm">
                 <p className="font-medium">This file is not a PDF.</p>

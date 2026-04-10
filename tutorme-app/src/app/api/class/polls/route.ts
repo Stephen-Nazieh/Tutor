@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { poll, pollOption, pollResponse } from '@/lib/db/schema'
-import { eq, desc, asc } from 'drizzle-orm'
+import { eq, desc, asc, inArray } from 'drizzle-orm'
 import { sanitizeHtmlWithMax } from '@/lib/security/sanitize'
 import { z } from 'zod'
 import crypto from 'crypto'
@@ -52,31 +52,53 @@ export const GET = withAuth(
         .where(eq(poll.sessionId, roomId))
         .orderBy(desc(poll.createdAt))
 
-      const result = await Promise.all(
-        polls.map(async p => {
-          const options = await drizzleDb
-            .select()
-            .from(pollOption)
-            .where(eq(pollOption.pollId, p.pollId))
-            .orderBy(asc(pollOption.label))
-          const responses = await drizzleDb
-            .select({
-              responseId: pollResponse.responseId,
-              studentId: pollResponse.studentId,
-              optionIds: pollResponse.optionIds,
-              rating: pollResponse.rating,
-              textAnswer: pollResponse.textAnswer,
-              createdAt: pollResponse.createdAt,
-            })
-            .from(pollResponse)
-            .where(eq(pollResponse.pollId, p.pollId))
-          return {
-            ...p,
-            responses,
-            _count: { responses: responses.length },
-          }
-        })
-      )
+      // Batch fetch options and responses to avoid N+1
+      const pollIds = polls.map(p => p.pollId)
+      const [allOptions, allResponses] = await Promise.all([
+        pollIds.length > 0
+          ? drizzleDb
+              .select()
+              .from(pollOption)
+              .where(inArray(pollOption.pollId, pollIds))
+              .orderBy(asc(pollOption.label))
+          : [],
+        pollIds.length > 0
+          ? drizzleDb
+              .select({
+                responseId: pollResponse.responseId,
+                pollId: pollResponse.pollId,
+                studentId: pollResponse.studentId,
+                optionIds: pollResponse.optionIds,
+                rating: pollResponse.rating,
+                textAnswer: pollResponse.textAnswer,
+                createdAt: pollResponse.createdAt,
+              })
+              .from(pollResponse)
+              .where(inArray(pollResponse.pollId, pollIds))
+          : [],
+      ])
+
+      // Group options and responses by pollId
+      const optionsByPollId = new Map<string, typeof allOptions>()
+      for (const opt of allOptions) {
+        const arr = optionsByPollId.get(opt.pollId) ?? []
+        arr.push(opt)
+        optionsByPollId.set(opt.pollId, arr)
+      }
+
+      const responsesByPollId = new Map<string, typeof allResponses>()
+      for (const resp of allResponses) {
+        const arr = responsesByPollId.get(resp.pollId) ?? []
+        arr.push(resp)
+        responsesByPollId.set(resp.pollId, arr)
+      }
+
+      const result = polls.map(p => ({
+        ...p,
+        options: optionsByPollId.get(p.pollId) ?? [],
+        responses: responsesByPollId.get(p.pollId) ?? [],
+        _count: { responses: (responsesByPollId.get(p.pollId) ?? []).length },
+      }))
 
       return NextResponse.json({ polls: result })
     } catch (error) {

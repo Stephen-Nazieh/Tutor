@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dialog'
 import { ArrowLeft, Loader2, BookOpen, Save, Plus, Trash2 } from 'lucide-react'
 import { CourseBuilder } from '../dashboard/components/CourseBuilder'
-import type { CourseBuilderRef, Module } from '../dashboard/components/CourseBuilder'
+import type { CourseBuilderRef } from '../dashboard/components/CourseBuilder'; import type { Lesson } from '../dashboard/components/builder-types';
 import { toast } from 'sonner'
 
 const STORAGE_KEY = 'lesson-bank-courses-v1'
@@ -29,7 +29,7 @@ const STORAGE_KEY = 'lesson-bank-courses-v1'
 interface SavedCourse {
   id: string
   name: string
-  modules: Module[]
+  modules: Lesson[]
   updatedAt: string
 }
 
@@ -38,7 +38,7 @@ export default function LessonBankPage() {
   const [savedCourses, setSavedCourses] = useState<SavedCourse[]>([])
   const [currentCourseId, setCurrentCourseId] = useState<string>('')
   const [currentCourseName, setCurrentCourseName] = useState<string>('Untitled Course')
-  const [modules, setModules] = useState<Module[]>([])
+  const [modules, setModules] = useState<Lesson[]>([])
   const [saving, setSaving] = useState(false)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [newCourseName, setNewCourseName] = useState('')
@@ -170,7 +170,7 @@ export default function LessonBankPage() {
   }, [currentCourseId, savedCourses.length])
 
   const handleSave = useCallback(
-    (nextModules: Module[], options?: any) => {
+    (nextModules: Lesson[], options?: any) => {
       if (!options?.isAutoSave) setSaving(true)
       try {
         setModules(nextModules)

@@ -483,9 +483,9 @@ async function initRedis() {
     // Attempt to connect in the background, don't wait for it to block startup
     console.log('[Redis] Connecting in background...')
     Promise.all([
-      redisClient.connect().catch(() => {}),
-      redisPubClient.connect().catch(() => {}),
-      redisSubClient.connect().catch(() => {}),
+      redisClient.connect().catch((err) => console.error('[Redis] Client connection failed:', err)),
+      redisPubClient.connect().catch((err) => console.error('[Redis] Pub client connection failed:', err)),
+      redisSubClient.connect().catch((err) => console.error('[Redis] Sub client connection failed:', err)),
     ]).then(() => {
       if (redisClient?.status === 'ready') {
         console.log('✅ [Redis] Connection successful')

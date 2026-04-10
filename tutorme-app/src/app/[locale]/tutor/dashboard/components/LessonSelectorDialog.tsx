@@ -18,13 +18,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Layers } from 'lucide-react'
-import type { Lesson } from './builder-types'
+import type { Lesson, CourseBuilderNode } from './builder-types'
 
-interface LessonSelectorDialogProps {
+export interface LessonSelectorDialogProps {
   isOpen: boolean
   onClose: () => void
   onConfirm: (moduleId: string, lessonId: string) => void
-  modules: Module[]
+  nodes: CourseBuilderNode[]
   itemType?: string
 }
 
@@ -32,30 +32,30 @@ export function LessonSelectorDialog({
   isOpen,
   onClose,
   onConfirm,
-  modules,
+  nodes,
   itemType = 'item',
 }: LessonSelectorDialogProps) {
-  const [selectedModuleId, setSelectedModuleId] = useState<string>('')
+  const [selectedCourseBuilderNodeId, setSelectedCourseBuilderNodeId] = useState<string>('')
   const [selectedLessonId, setSelectedLessonId] = useState<string>('')
 
-  const selectedModule = modules.find(m => m.id === selectedModuleId)
-  const lessons = selectedModule?.lessons || []
+  const selectedCourseBuilderNode = nodes.find(m => m.id === selectedCourseBuilderNodeId)
+  const lessons = selectedCourseBuilderNode?.lessons || []
 
   useEffect(() => {
     if (isOpen) {
       // Auto-select first module and lesson if available
-      if (modules.length > 0 && !selectedModuleId) {
-        setSelectedModuleId(modules[0].id)
-        if (modules[0].lessons.length > 0) {
-          setSelectedLessonId(modules[0].lessons[0].id)
+      if (nodes.length > 0 && !selectedCourseBuilderNodeId) {
+        setSelectedCourseBuilderNodeId(nodes[0].id)
+        if (nodes[0].lessons.length > 0) {
+          setSelectedLessonId(nodes[0].lessons[0].id)
         }
       }
     }
-  }, [isOpen, modules, selectedModuleId])
+  }, [isOpen, nodes, selectedCourseBuilderNodeId])
 
   const handleConfirm = () => {
-    if (selectedModuleId && selectedLessonId) {
-      onConfirm(selectedModuleId, selectedLessonId)
+    if (selectedCourseBuilderNodeId && selectedLessonId) {
+      onConfirm(selectedCourseBuilderNodeId, selectedLessonId)
       onClose()
     }
   }
@@ -77,10 +77,10 @@ export function LessonSelectorDialog({
           <div className="space-y-2">
             <Label>Lesson</Label>
             <Select
-              value={selectedModuleId}
+              value={selectedCourseBuilderNodeId}
               onValueChange={value => {
-                setSelectedModuleId(value)
-                const selectedMod = modules.find(m => m.id === value)
+                setSelectedCourseBuilderNodeId(value)
+                const selectedMod = nodes.find(m => m.id === value)
                 if (selectedMod && selectedMod.lessons.length > 0) {
                   setSelectedLessonId(selectedMod.lessons[0].id)
                 }
@@ -90,7 +90,7 @@ export function LessonSelectorDialog({
                 <SelectValue placeholder="Select a lesson" />
               </SelectTrigger>
               <SelectContent>
-                {modules.map(module => (
+                {nodes.map(module => (
                   <SelectItem key={module.id} value={module.id}>
                     {module.title}
                   </SelectItem>
@@ -121,7 +121,7 @@ export function LessonSelectorDialog({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleConfirm} disabled={!selectedModuleId || !selectedLessonId}>
+          <Button onClick={handleConfirm} disabled={!selectedCourseBuilderNodeId || !selectedLessonId}>
             Save to Selected Lesson
           </Button>
         </DialogFooter>

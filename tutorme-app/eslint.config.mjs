@@ -35,7 +35,7 @@ const config = [
   prettier,
   {
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',
@@ -61,10 +61,10 @@ const config = [
       'react-hooks/static-components': 'off',
       'jsx-a11y/alt-text': 'off',
       '@typescript-eslint/no-unused-expressions': 'off',
-      'no-console': 'off',
-      'prefer-const': 'off',
-      'no-var': 'off',
-      '@typescript-eslint/ban-ts-comment': 'off',
+      'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+      'prefer-const': 'error',
+      'no-var': 'error',
+      '@typescript-eslint/ban-ts-comment': 'warn',
       'no-implied-eval': 'error',
       'no-new-func': 'error',
       'no-script-url': 'error',

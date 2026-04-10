@@ -23,6 +23,12 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
   const callRef = useRef<DailyCall | null>(globalCallInstance)
   const instanceId = useRef(++instanceCount)
 
+  // Use refs for callbacks to avoid stale closures
+  const optionsRef = useRef(options)
+  useEffect(() => {
+    optionsRef.current = options
+  }, [options])
+
   const [state, setState] = useState<VideoCallState>({
     isJoined: false,
     isAudioEnabled: false,
@@ -31,6 +37,17 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     participants: [],
     error: null,
   })
+
+  // Define updateParticipants before useEffect
+  const updateParticipants = useCallback(() => {
+    const call = callRef.current
+    if (!call) return
+
+    const participantsMap = call.participants()
+    const participants = Object.values(participantsMap).map(mapDailyParticipant)
+
+    setState(prev => ({ ...prev, participants }))
+  }, [])
 
   // Initialize Daily call object
   useEffect(() => {
@@ -54,7 +71,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     // Listen for participant events
     call.on('participant-joined', event => {
       const participant = mapDailyParticipant(event.participant)
-      options.onParticipantJoined?.(participant)
+      optionsRef.current.onParticipantJoined?.(participant)
       updateParticipants()
     })
 
@@ -64,37 +81,27 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
 
     call.on('participant-left', event => {
       const participant = mapDailyParticipant(event.participant)
-      options.onParticipantLeft?.(participant)
+      optionsRef.current.onParticipantLeft?.(participant)
       updateParticipants()
     })
 
     call.on('error', event => {
       setState(prev => ({ ...prev, error: event.errorMsg }))
-      options.onError?.(new Error(event.errorMsg))
+      optionsRef.current.onError?.(new Error(event.errorMsg))
     })
 
     call.on('recording-started', () => {
-      options.onRecordingStarted?.()
+      optionsRef.current.onRecordingStarted?.()
     })
 
     call.on('recording-stopped', () => {
-      options.onRecordingStopped?.()
+      optionsRef.current.onRecordingStopped?.()
     })
 
     // Note: We don't destroy the call object on unmount
     // because we want it to persist for the session.
     // It's destroyed when the user explicitly leaves the call.
-  }, [])
-
-  const updateParticipants = useCallback(() => {
-    const call = callRef.current
-    if (!call) return
-
-    const participantsMap = call.participants()
-    const participants = Object.values(participantsMap).map(mapDailyParticipant)
-
-    setState(prev => ({ ...prev, participants }))
-  }, [])
+  }, [updateParticipants])
 
   const join = useCallback(async (url: string, token?: string) => {
     // Check if this is a mock URL (for development without Daily API key)

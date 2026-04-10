@@ -124,7 +124,7 @@
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
     "sonner": "^2.0.7",
-    "swagger-ui-react": "^5.31.2",
+    "swagger-ui-react": "^5.32.2",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
     "tesseract.js": "^7.0.0",
@@ -170,7 +170,9 @@
   "overrides": {
     "three-mesh-bvh": "^0.8.0",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "axios": "^1.15.0",
+    "esbuild": "^0.25.0"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

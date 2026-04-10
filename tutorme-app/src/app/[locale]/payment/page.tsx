@@ -63,7 +63,7 @@ export default function PaymentPage() {
             })
           }
         })
-        .catch(() => {})
+        .catch(err => console.error('[Payment] Failed to load curriculum:', err))
     }
   }, [curriculumId])
 
@@ -90,7 +90,7 @@ export default function PaymentPage() {
           currency: tutor?.currency || 'USD',
         })
       })
-      .catch(() => {})
+      .catch(err => console.error('[Payment] Failed to load 1-on-1 request:', err))
       .finally(() => setOneOnOneLoading(false))
   }, [requestId])
 

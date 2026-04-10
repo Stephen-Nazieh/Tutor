@@ -39,6 +39,11 @@ export async function POST(
     return NextResponse.json({ error: 'Task ID required' }, { status: 400 })
   }
 
+  // Validate taskId format to prevent path traversal (should be UUID-like)
+  if (!/^[a-zA-Z0-9\-_]+$/.test(taskId) || taskId.length > 100) {
+    return NextResponse.json({ error: 'Invalid task ID' }, { status: 400 })
+  }
+
   try {
     const formData = await request.formData()
     const file = formData.get('file') as File | null

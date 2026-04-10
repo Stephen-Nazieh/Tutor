@@ -41,6 +41,10 @@ async function getAccessToken(): Promise<string> {
   if (!clientId || !apiKey) {
     throw new Error('Airwallex: AIRWALLEX_CLIENT_ID and AIRWALLEX_API_KEY are required')
   }
+  
+  // Store validated values to avoid non-null assertions
+  const validatedClientId = clientId
+  const validatedApiKey = apiKey
 
   const base = getBaseUrl()
   const res = await fetch(`${base}/api/v1/authentication/login`, {
@@ -89,6 +93,11 @@ function getRawBodyAndTimestamp(payload: unknown): { rawBody: string; timestamp:
 
 export class AirwallexGateway implements PaymentGateway {
   async createPayment(request: CreatePaymentRequest): Promise<PaymentResponse> {
+    const clientId = process.env.AIRWALLEX_CLIENT_ID
+    if (!clientId) {
+      throw new Error('Airwallex: AIRWALLEX_CLIENT_ID is required')
+    }
+    
     const token = await getAccessToken()
     const base = getBaseUrl()
     const requestId = `req_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
@@ -110,14 +119,14 @@ export class AirwallexGateway implements PaymentGateway {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
-        'x-client-id': process.env.AIRWALLEX_CLIENT_ID!,
+        'x-client-id': clientId,
       },
       body: JSON.stringify(body),
     })
 
     if (!res.ok) {
       const text = await res.text()
-      throw new Error(`Airwallex create payment intent failed: ${res.status} ${text}`)
+      throw new Error(`Airwallex create payment failed: ${res.status} ${text}`)
     }
 
     const data = (await res.json()) as {
@@ -200,6 +209,11 @@ export class AirwallexGateway implements PaymentGateway {
   }
 
   async refundPayment(paymentId: string, amount?: number): Promise<RefundResponse> {
+    const clientId = process.env.AIRWALLEX_CLIENT_ID
+    if (!clientId) {
+      throw new Error('Airwallex: AIRWALLEX_CLIENT_ID is required')
+    }
+    
     const token = await getAccessToken()
     const base = getBaseUrl()
     const requestId = `refund_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
@@ -218,7 +232,7 @@ export class AirwallexGateway implements PaymentGateway {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
-        'x-client-id': process.env.AIRWALLEX_CLIENT_ID!,
+        'x-client-id': clientId,
       },
       body: JSON.stringify(body),
     })

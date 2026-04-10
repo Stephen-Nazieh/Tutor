@@ -67,11 +67,10 @@ import type {
   DifficultyMode,
   Task,
   Assessment,
-  Worksheet,
   Quiz,
   CourseBuilderNodeQuiz,
   Lesson,
-  Module,
+  CourseBuilderNode,
   VisibleDocumentPayload,
 } from './builder-types'
 import {
@@ -279,11 +278,11 @@ export function ResourceImportPanel<
   )
 }
 
-export type PreviewUpdatePayload = Partial<Task> | Partial<Assessment> | Partial<Worksheet>
+export type PreviewUpdatePayload = Partial<Task> | Partial<Assessment>
 
 export interface PreviewCardProps {
-  type: 'task' | 'homework' | 'worksheet' | 'moduleQuiz' | 'lesson' | 'module'
-  item: Task | Assessment | Worksheet | Quiz | Lesson | Module
+  type: 'task' | 'homework' | 'nodeQuiz' | 'lesson' | 'node'
+  item: Task | Assessment | Quiz | Lesson | CourseBuilderNode
   onEdit: () => void
   onDuplicate: () => void
   onRemove: () => void
@@ -323,11 +322,10 @@ export function PreviewCard({
   const normalizedItem = item as (
     | Task
     | Assessment
-    | Worksheet
     | Quiz
     | CourseBuilderNodeQuiz
     | Lesson
-    | Module
+    | CourseBuilderNode
   ) & {
     description?: string
     instructions?: string
@@ -380,7 +378,7 @@ export function PreviewCard({
 
   const getIcon = () => {
     switch (type) {
-      case 'module':
+      case 'node':
         return <Layers className="h-4 w-4 text-blue-500" />
       case 'lesson':
         return <BookOpen className="h-4 w-4 text-indigo-500" />
@@ -388,9 +386,7 @@ export function PreviewCard({
         return <ListTodo className="h-4 w-4 text-orange-500" />
       case 'homework':
         return <GraduationCap className="h-4 w-4 text-emerald-500" />
-      case 'worksheet':
-        return <FileText className="h-4 w-4 text-cyan-500" />
-      case 'moduleQuiz':
+      case 'nodeQuiz':
         return <FileQuestion className="h-4 w-4 text-red-500" />
       default:
         return <FileText className="h-4 w-4 text-slate-400" />
@@ -436,7 +432,7 @@ export function PreviewCard({
               <Copy className="mr-2 h-4 w-4" /> Duplicate
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            {type !== 'module' && type !== 'lesson' && (
+            {type !== 'lesson' && (
               <>
                 <DropdownMenuItem onClick={() => setStudentPreviewOpen(true)}>
                   <Eye className="mr-2 h-4 w-4" /> Student Preview
@@ -738,17 +734,17 @@ export function TreeItem({ children, depth, isLast }: TreeItemProps) {
 }
 
 export function DroppableHomeworkZone({
-  moduleId,
+  nodeId,
   lessonId,
   children,
   className,
 }: {
-  moduleId: string
+  nodeId: string
   lessonId: string
   children: React.ReactNode
   className?: string
 }) {
-  const id = `drop-hw-${moduleId}::${lessonId}`
+  const id = `drop-hw-${nodeId}::${lessonId}`
   const { setNodeRef, isOver } = useDroppable({ id })
   return (
     <div
@@ -761,17 +757,17 @@ export function DroppableHomeworkZone({
 }
 
 export function DroppableTaskZone({
-  moduleId,
+  nodeId,
   lessonId,
   children,
   className,
 }: {
-  moduleId: string
+  nodeId: string
   lessonId: string
   children: React.ReactNode
   className?: string
 }) {
-  const id = `drop-task-${moduleId}::${lessonId}`
+  const id = `drop-task-${nodeId}::${lessonId}`
   const { setNodeRef, isOver } = useDroppable({ id })
   return (
     <div
@@ -784,17 +780,17 @@ export function DroppableTaskZone({
 }
 
 export function DroppableAssessmentZone({
-  moduleId,
+  nodeId,
   lessonId,
   children,
   className,
 }: {
-  moduleId: string
+  nodeId: string
   lessonId: string
   children: React.ReactNode
   className?: string
 }) {
-  const id = `drop-assessment-${moduleId}::${lessonId}`
+  const id = `drop-assessment-${nodeId}::${lessonId}`
   const { setNodeRef, isOver } = useDroppable({ id })
   return (
     <div

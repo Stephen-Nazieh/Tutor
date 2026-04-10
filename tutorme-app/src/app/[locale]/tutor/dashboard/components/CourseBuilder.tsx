@@ -118,6 +118,7 @@ export type {
   Lesson,
   CourseBuilderNodeQuiz,
   CourseBuilderNode,
+  Module,
   InsightsSessionOption,
   CourseBuilderInsightsProps,
   CourseBuilderProps,
@@ -149,11 +150,10 @@ import {
   HomeworkBuilderModal,
   AssessmentBuilderModalWithSelector,
 } from './AssessmentBuilderModal'
-import { WorksheetBuilderModal } from './WorksheetBuilderModal'
 import { QuizBuilderModal } from './QuizBuilderModal'
 import { ContentBuilderModal } from './ContentBuilderModal'
 import { AIAssistAgent } from './AIAssistAgent'
-import { CourseBuilderNodeBuilderModal } from './CourseBuilderNodeBuilderModal'
+import { NodeBuilderModal } from './NodeBuilderModal'
 import { LessonBuilderModal } from './LessonBuilderModal'
 import {
   generateId as utilsGenerateId,
@@ -162,7 +162,6 @@ import {
   DEFAULT_TASK,
   DEFAULT_HOMEWORK,
   DEFAULT_LESSON,
-  DEFAULT_WORKSHEET,
   DEFAULT_QUIZ,
   DEFAULT_NODE_QUIZ,
   DEFAULT_NODE,
@@ -249,11 +248,11 @@ import { ChevronLeft as ChevronLeftIcon } from 'lucide-react'
 // BuilderModalWithCourseBuilderNodesProps Removed
 
 // Types and payload definitions
-type PreviewUpdatePayload = Partial<Task> | Partial<Assessment> | Partial<Worksheet>
+type PreviewUpdatePayload = Partial<Task> | Partial<Assessment>
 
 interface PreviewCardProps {
-  type: 'task' | 'homework' | 'worksheet' | 'nodeQuiz' | 'lesson' | 'node'
-  item: Task | Assessment | Worksheet | Quiz | Lesson | CourseBuilderNode
+  type: 'task' | 'homework' | 'nodeQuiz' | 'lesson' | 'node'
+  item: Task | Assessment | Quiz | Lesson | CourseBuilderNode
   onEdit: () => void
   onDuplicate: () => void
   onRemove: () => void
@@ -845,12 +844,15 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         }
 
         if (onSave) {
-          onSave(nodes, {
-            developmentMode: devMode,
-            previewDifficulty,
-            courseName: coursePropsModal.name || courseName,
-            courseDescription: coursePropsModal.description,
-          })
+          onSave(
+            nodes.map(n => n.lessons[0] || ({} as any)),
+            {
+              developmentMode: devMode,
+              previewDifficulty,
+              courseName: coursePropsModal.name || courseName,
+              courseDescription: coursePropsModal.description,
+            }
+          )
         }
       },
     }))
@@ -1025,7 +1027,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       order,
       tasks: (lesson.tasks || []).map(cloneTask),
       homework: (lesson.homework || []).map(cloneAssessment),
-      worksheets: (lesson.worksheets || []).map(w => ({ ...w, id: `worksheet-${generateId()}` })),
       quizzes: (lesson.quizzes || []).map(q => ({ ...q, id: `quiz-${generateId()}` })),
     })
 
@@ -1462,12 +1463,12 @@ FEEDBACK: [your explanation]`
 
     // Modal states
     const [activeModal, setActiveModal] = useState<{
-      type: 'node' | 'lesson' | 'task' | 'homework' | 'worksheet' | 'nodeQuiz' | 'content'
-      isOpen: boolean
-      nodeId?: string
-      lessonId?: string
-      itemId?: string
-    }>({ type: 'node', isOpen: false })
+    type: 'node' | 'lesson' | 'task' | 'homework' | 'nodeQuiz' | 'content'
+    isOpen: boolean
+    nodeId?: string
+    lessonId?: string
+    itemId?: string
+  }>({ type: 'node', isOpen: false })
 
     const [editingData, setEditingData] = useState<any>(null)
     const [activeDragId, setActiveDragId] = useState<string | null>(null)
@@ -2194,30 +2195,6 @@ FEEDBACK: [your explanation]`
       toast.success(data.category === 'homework' ? 'Homework saved' : 'Assessment saved')
     }
 
-    const handleSaveWorksheet = (data: Worksheet) => {
-      const nodeIndex = nodes.findIndex(m => m.id === activeModal.nodeId)
-      const lessonIndex = nodes[nodeIndex]?.lessons.findIndex(
-        l => l.id === activeModal.lessonId
-      )
-      if (nodeIndex === -1 || lessonIndex === -1) return
-
-      const newCourseBuilderNodes = [...nodes]
-      if (!newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].worksheets) {
-        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].worksheets = []
-      }
-      const worksheetIndex = newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].worksheets.findIndex(
-        w => w.id === editingData.id
-      )
-      if (worksheetIndex !== -1) {
-        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].worksheets[worksheetIndex] = data
-      } else {
-        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].worksheets.push(data)
-      }
-      setCourseBuilderNodes(newCourseBuilderNodes)
-      setActiveModal({ type: 'worksheet', isOpen: false })
-      toast.success('Worksheet saved')
-    }
-
     const handleSaveCourseBuilderNodeQuiz = (data: any) => {
       const nodeIndex = nodes.findIndex(m => m.id === activeModal.nodeId)
       if (nodeIndex === -1) return
@@ -2359,49 +2336,6 @@ FEEDBACK: [your explanation]`
       toast.success('Exam duplicated')
     }
 
-    const deleteWorksheet = (nodeId: string, lessonId: string, worksheetId: string) => {
-      setCourseBuilderNodes(
-        nodes.map(m =>
-          m.id === nodeId
-            ? {
-                ...m,
-                lessons: m.lessons.map(l =>
-                  l.id === lessonId
-                    ? { ...l, worksheets: (l.worksheets || []).filter(w => w.id !== worksheetId) }
-                    : l
-                ),
-              }
-            : m
-        )
-      )
-      setSelectedItem(null)
-      toast.success('Worksheet removed')
-    }
-
-    const duplicateWorksheet = (nodeId: string, lessonId: string, worksheet: Worksheet) => {
-      const copy: Worksheet = {
-        ...worksheet,
-        id: `worksheet-${generateId()}`,
-        title: `${worksheet.title} (copy)`,
-        questions: worksheet.questions?.map(q => ({ ...q, id: `q-${generateId()}` })),
-      }
-      const nodeIndex = nodes.findIndex(m => m.id === nodeId)
-      if (nodeIndex === -1) return
-      const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
-      if (lessonIndex === -1) return
-      const newCourseBuilderNodes = [...nodes]
-      if (!newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].worksheets) {
-        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].worksheets = []
-      }
-      newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].worksheets = [
-        ...newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].worksheets,
-        copy,
-      ]
-      setCourseBuilderNodes(newCourseBuilderNodes)
-      setSelectedItem({ type: 'worksheet', id: copy.id })
-      toast.success('Worksheet duplicated')
-    }
-
     const getAllLessons = () => {
       return nodes.flatMap(m => m.lessons)
     }
@@ -2488,9 +2422,9 @@ FEEDBACK: [your explanation]`
       const { nodeId, lessonId } = ensureFirstLessonContext()
       setCourseBuilderNodes(prev =>
         prev.map(node => {
-          if (node.id !== nodeId) return module
+          if (node.id !== nodeId) return node
           return {
-            ...module,
+            ...node,
             lessons: node.lessons.map(lesson => {
               if (lesson.id !== lessonId) return lesson
               return {
@@ -2517,9 +2451,9 @@ FEEDBACK: [your explanation]`
       const { nodeId, lessonId } = ensureFirstLessonContext()
       setCourseBuilderNodes(prev =>
         prev.map(node => {
-          if (node.id !== nodeId) return module
+          if (node.id !== nodeId) return node
           return {
-            ...module,
+            ...node,
             lessons: node.lessons.map(lesson => {
               if (lesson.id !== lessonId) return lesson
               return {
@@ -2874,15 +2808,6 @@ FEEDBACK: [your explanation]`
                   ),
                 }
               }
-              if (selectedItem.type === 'worksheet') {
-                const worksheetUpdates = updates as Partial<Worksheet>
-                return {
-                  ...lesson,
-                  worksheets: (lesson.worksheets || []).map(ws =>
-                    ws.id === selectedItem.id ? { ...ws, ...worksheetUpdates } : ws
-                  ),
-                }
-              }
               return lesson
             }),
           }
@@ -2908,7 +2833,7 @@ FEEDBACK: [your explanation]`
 
     const handleSaveAll = () => {
       if (!onSave) return
-      onSave(nodes, { developmentMode: devMode, previewDifficulty })
+      onSave(nodes.map(n => n.lessons[0] || ({} as any)), { developmentMode: devMode, previewDifficulty })
     }
 
     const isExtensionsCollapsed = (taskId: string) => collapsedTaskExtensions.has(taskId)
@@ -2946,7 +2871,7 @@ FEEDBACK: [your explanation]`
       if (!onSave) return
 
       const timeoutId = setTimeout(() => {
-        onSave(nodes, {
+        onSave(nodes.map(n => n.lessons[0] || ({} as any)), {
           developmentMode: devMode,
           previewDifficulty,
           courseName: coursePropsModal.name || courseName,
@@ -3011,7 +2936,7 @@ FEEDBACK: [your explanation]`
 
           if (nodeMatch || filteredLessons.length > 0) {
             return {
-              ...module,
+              ...node,
               lessons: filteredLessons,
             }
           }
@@ -3113,10 +3038,10 @@ FEEDBACK: [your explanation]`
                         <div className="space-y-1">
                           {/* Lessons (formerly nodes) - with drag sorting */}
                           <SortableContext
-                            items={filteredCourseBuilderNodes.map(m => m.id)}
+                            items={filteredCourseBuilderNodes.map(node => node.id)}
                             strategy={verticalListSortingStrategy}
                           >
-                            {filteredCourseBuilderNodes.map((module, nodeIdx) => {
+                            {filteredCourseBuilderNodes.map((node, nodeIdx) => {
                               const primaryLesson = node.lessons[0] ?? DEFAULT_LESSON(0)
                               const taskCount = primaryLesson.tasks?.length || 0
                               const assessments = (primaryLesson.homework || []).filter(
@@ -3248,9 +3173,9 @@ FEEDBACK: [your explanation]`
                                                         // Auto-save current assessment if switching from one
                                                         if (loadedAssessmentId) {
                                                           setCourseBuilderNodes(prev =>
-                                                            prev.map(mod => ({
-                                                              ...mod,
-                                                              lessons: mod.lessons.map(lesson => ({
+                                                            prev.map(node => ({
+                                                              ...node,
+                                                              lessons: node.lessons.map(lesson => ({
                                                                 ...lesson,
                                                                 homework: lesson.homework.map(hw =>
                                                                   hw.id === loadedAssessmentId
@@ -3279,9 +3204,9 @@ FEEDBACK: [your explanation]`
                                                           loadedTaskId !== task.id
                                                         ) {
                                                           setCourseBuilderNodes(prev =>
-                                                            prev.map(mod => ({
-                                                              ...mod,
-                                                              lessons: mod.lessons.map(lesson => ({
+                                                            prev.map(node => ({
+                                                              ...node,
+                                                              lessons: node.lessons.map(lesson => ({
                                                                 ...lesson,
                                                                 tasks: lesson.tasks.map(t =>
                                                                   t.id === loadedTaskId
@@ -5120,7 +5045,7 @@ FEEDBACK: [your explanation]`
           </div>
 
           {/* Modals */}
-          <CourseBuilderNodeBuilderModal
+          <NodeBuilderModal
             isOpen={activeModal.type === 'node' && activeModal.isOpen}
             onClose={() => setActiveModal({ type: 'node', isOpen: false })}
             onSave={handleSaveCourseBuilderNode}
@@ -5133,13 +5058,6 @@ FEEDBACK: [your explanation]`
             onSave={handleSaveAssessment}
             initialData={editingData}
             nodes={nodes}
-          />
-
-          <WorksheetBuilderModal
-            isOpen={activeModal.type === 'worksheet' && activeModal.isOpen}
-            onClose={() => setActiveModal({ type: 'worksheet', isOpen: false })}
-            onSave={handleSaveWorksheet}
-            initialData={editingData}
           />
 
           <QuizBuilderModal
@@ -5804,7 +5722,7 @@ FEEDBACK: [your explanation]`
                   onClick={() => {
                     setCoursePropsModal(prev => ({ ...prev, isOpen: false }))
                     if (onSave) {
-                      onSave(nodes, {
+                      onSave(nodes.map(n => n.lessons[0] || ({} as any)), {
                         developmentMode: devMode,
                         previewDifficulty,
                         courseName: coursePropsModal.name,

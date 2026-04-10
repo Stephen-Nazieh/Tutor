@@ -40,8 +40,8 @@ export interface VisibleDocumentPayload {
   title: string
   description?: string
   content?: string
-  itemType: 'task' | 'homework' | 'worksheet' | 'nodeQuiz' | 'lesson' | 'node'
-  type?: 'task' | 'homework' | 'worksheet' | 'nodeQuiz' | 'lesson' | 'node'
+  itemType: 'task' | 'homework' | 'nodeQuiz' | 'lesson' | 'node'
+  type?: 'task' | 'homework' | 'nodeQuiz' | 'lesson' | 'node'
   sourceDocument?: ImportedLearningResource
   questions?: QuizQuestion[]
 }
@@ -51,6 +51,10 @@ export interface BuilderModalProps {
   onClose: () => void
   onSave: (data: any) => void
   initialData?: any
+}
+
+export interface BuilderModalWithNodesProps extends BuilderModalProps {
+  nodes?: CourseBuilderNode[]
 }
 
 export interface DMIQuestion {
@@ -242,6 +246,7 @@ export interface Lesson extends WithDifficultyVariants {
   assessments: Assessment[]
   /** Homework folder - contains homework items */
   homework: Assessment[]
+  worksheets?: any[]
   /** @deprecated legacy lesson quiz items are migrated into `homework` (Assessment) */
   quizzes?: Quiz[]
 }
@@ -259,6 +264,21 @@ export interface CourseBuilderNode extends WithDifficultyVariants {
   isPublished: boolean
   lessons: Lesson[]
   quizzes: CourseBuilderNodeQuiz[]
+}
+
+/** @deprecated Use CourseBuilderNode instead - kept for backward compatibility */
+export type Module = CourseBuilderNode
+
+/** @deprecated Use CourseBuilderNode instead - kept for backward compatibility */
+export type CourseBuilderModule = CourseBuilderNode
+
+/** Worksheet type for legacy compatibility */
+export interface Worksheet {
+  id: string
+  title: string
+  description?: string
+  questions: QuizQuestion[]
+  isPublished?: boolean
 }
 
 // ============================================

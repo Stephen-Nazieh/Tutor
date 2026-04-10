@@ -57,7 +57,6 @@ import {
   type Assessment,
   type CourseBuilderNode,
   type Lesson,
-  type Worksheet,
   type Quiz,
   type CourseBuilderNodeQuiz,
   type Content,
@@ -207,7 +206,6 @@ export const DEFAULT_LESSON = (order: number): Lesson => ({
   duration: 45,
   order,
   isPublished: false,
-  prerequisites: [],
   media: { videos: [], images: [] },
   docs: [],
   content: [],
@@ -218,27 +216,6 @@ export const DEFAULT_LESSON = (order: number): Lesson => ({
   quizzes: [],
   difficultyMode: 'all',
   variants: {},
-})
-
-export const DEFAULT_WORKSHEET = (order: number): Worksheet => ({
-  id: `worksheet-${generateId()}`,
-  title: `Worksheet ${order + 1}`,
-  description: '',
-  instructions: '',
-  estimatedMinutes: 20,
-  points: 15,
-  questions: [],
-  randomizeQuestions: false,
-  timeLimit: undefined,
-  passingScore: 70,
-  allowMultipleAttempts: true,
-  maxAttempts: 3,
-  showCorrectAnswers: true,
-  answerKey: '',
-  answerKeyProtected: true,
-  difficultyMode: 'all',
-  variants: {},
-  isPublished: false,
 })
 
 export const DEFAULT_TASK = (order: number): Task => ({
@@ -506,16 +483,16 @@ export function resolveSelectedItem(
   selectedItem: { type: string; id: string } | null,
   nodes: CourseBuilderNode[]
 ): {
-  item: Task | Assessment | Worksheet | CourseBuilderNodeQuiz | Lesson | CourseBuilderNode
+  item: Task | Assessment | CourseBuilderNodeQuiz | Lesson | CourseBuilderNode
   nodeId: string
   lessonId?: string
 } | null {
   if (!selectedItem) return null
   for (const mod of nodes) {
-    if (selectedItem.type === 'module' && mod.id === selectedItem.id) {
+    if (selectedItem.type === 'node' && mod.id === selectedItem.id) {
       return { item: mod, nodeId: mod.id }
     }
-    if (selectedItem.type === 'moduleQuiz') {
+    if (selectedItem.type === 'nodeQuiz') {
       const quiz = mod.quizzes?.find(q => q.id === selectedItem.id)
       if (quiz) return { item: quiz, nodeId: mod.id }
     }
@@ -531,20 +508,16 @@ export function resolveSelectedItem(
         const hw = lesson.homework?.find(h => h.id === selectedItem.id)
         if (hw) return { item: hw, nodeId: mod.id, lessonId: lesson.id }
       }
-      if (selectedItem.type === 'worksheet') {
-        const worksheet = lesson.worksheets?.find(w => w.id === selectedItem.id)
-        if (worksheet) return { item: worksheet, nodeId: mod.id, lessonId: lesson.id }
-      }
     }
   }
   return null
 }
 
 export function normalizeCourseBuilderNodesForAssessments(rawCourseBuilderNodes: CourseBuilderNode[]): CourseBuilderNode[] {
-  return rawCourseBuilderNodes.map(module => ({
-    ...module,
-    lessons: (node.lessons && node.lessons.length > 0
-      ? node.lessons
+  return rawCourseBuilderNodes.map(mod => ({
+    ...mod,
+    lessons: (mod.lessons && mod.lessons.length > 0
+      ? mod.lessons
       : [DEFAULT_LESSON(0)]
     ).map(lesson => {
       const existingAssessments = lesson.homework || []
@@ -584,8 +557,6 @@ export function mapGeneratedCourseBuilderNodesToBuilder(rawCourseBuilderNodes: u
       lessons: rawLessons.map((rawLesson: Record<string, any>, lessonIdx: number) => {
         const tasks = Array.isArray(rawLesson.tasks) ? rawLesson.tasks : []
         const assessments = Array.isArray(rawLesson.assessments) ? rawLesson.assessments : []
-        const worksheets = Array.isArray(rawLesson.worksheets) ? rawLesson.worksheets : []
-
         const mapQuestions = (rawQuestions: unknown[]): QuizQuestion[] =>
           (Array.isArray(rawQuestions) ? rawQuestions : []).map(
             (rawQuestion: unknown, questionIdx: number) => {
@@ -641,15 +612,6 @@ export function mapGeneratedCourseBuilderNodesToBuilder(rawCourseBuilderNodes: u
             questions: mapQuestions(
               Array.isArray(assessment.questions) ? assessment.questions : []
             ),
-          })),
-          worksheets: worksheets.map((worksheet: Record<string, any>, worksheetIdx: number) => ({
-            ...DEFAULT_WORKSHEET(worksheetIdx),
-            title: String(worksheet.title || `Worksheet ${worksheetIdx + 1}`),
-            description: String(worksheet.description || ''),
-            instructions: String(worksheet.instructions || ''),
-            estimatedMinutes: Math.max(10, Number(worksheet.estimatedMinutes) || 20),
-            points: Math.max(1, Number(worksheet.points) || 15),
-            questions: mapQuestions(Array.isArray(worksheet.questions) ? worksheet.questions : []),
           })),
         }
       }),

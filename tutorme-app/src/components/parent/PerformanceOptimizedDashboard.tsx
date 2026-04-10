@@ -404,7 +404,9 @@ function useNetworkQuality() {
 
         // Measure latency
         const start = performance.now()
-        await fetch('/api/health', { method: 'HEAD', cache: 'no-cache' }).catch(() => {})
+        await fetch('/api/health', { method: 'HEAD', cache: 'no-cache' }).catch(() => {
+          // Latency check failed - use default
+        })
         const measuredLatency = performance.now() - start
         setLatency(measuredLatency)
 

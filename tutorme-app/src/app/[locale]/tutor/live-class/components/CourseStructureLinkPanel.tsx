@@ -14,6 +14,7 @@ import { BookOpen, RefreshCw, Loader2 } from 'lucide-react'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
 import type { Lesson as CourseBuilderLesson } from '../../dashboard/components/CourseBuilder'
 import type { VisibleDocumentPayload } from '../../dashboard/components/CourseBuilder'
+import type { Lesson } from '../../dashboard/components/builder-types'
 import { toast } from 'sonner'
 
 interface CourseSummary {
@@ -41,7 +42,7 @@ export function CourseStructureLinkPanel({
   const [loadingCourses, setLoadingCourses] = useState(false)
   const [loadingBuilder, setLoadingBuilder] = useState(false)
   const [savingBuilder, setSavingBuilder] = useState(false)
-  const [modules, setModules] = useState<CourseBuilderModule[] | null>(null)
+  const [lessons, setLessons] = useState<Lesson[] | null>(null)
   const [builderVersion, setBuilderVersion] = useState(0)
   const [panelWidth, setPanelWidth] = useState(720)
   const isResizingRef = useRef(false)
@@ -85,10 +86,10 @@ export function CourseStructureLinkPanel({
       })
       if (!res.ok) throw new Error('Failed to load course builder data')
       const data = await res.json()
-      setModules(Array.isArray(data.modules) ? (data.modules as CourseBuilderModule[]) : [])
+      setLessons(Array.isArray(data.lessons) ? (data.lessons as Lesson[]) : [])
       setBuilderVersion(prev => prev + 1)
     } catch {
-      setModules([])
+      setLessons([])
       toast.error('Failed to load course content')
     } finally {
       setLoadingBuilder(false)
@@ -105,7 +106,7 @@ export function CourseStructureLinkPanel({
   }, [open, selectedCourseId, loadBuilderTree])
 
   const handleSave = async (
-    nextModules: CourseBuilderModule[],
+    nextLessons: Lesson[],
     options?: {
       developmentMode: 'single' | 'multi'
       previewDifficulty: 'all' | 'beginner' | 'intermediate' | 'advanced'
@@ -119,14 +120,14 @@ export function CourseStructureLinkPanel({
       const csrfToken = csrfData?.token ?? null
 
       const res = await fetch(`/api/tutor/courses/${selectedCourseId}/curriculum`, {
-        method: 'PUT',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
         },
         credentials: 'include',
         body: JSON.stringify({
-          modules: nextModules,
+          lessons: nextLessons,
           developmentMode: options?.developmentMode ?? 'single',
           previewDifficulty: options?.previewDifficulty ?? 'all',
         }),
@@ -138,7 +139,7 @@ export function CourseStructureLinkPanel({
         return
       }
 
-      setModules(nextModules)
+      setLessons(nextLessons)
       toast.success('Course Saved')
     } catch {
       toast.error('Failed to save curriculum')
@@ -274,7 +275,7 @@ export function CourseStructureLinkPanel({
                   <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                     Select a course to open the builder.
                   </div>
-                ) : loadingBuilder || modules === null ? (
+                ) : loadingBuilder || lessons === null ? (
                   <div className="flex h-full items-center justify-center">
                     <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
                   </div>
@@ -285,7 +286,7 @@ export function CourseStructureLinkPanel({
                       courseId={selectedCourseId}
                       courseName={selectedCourse?.name}
                       panelMode="live-class"
-                      initialLessons={modules}
+                      initialLessons={lessons}
                       onSave={handleSave}
                       onMakeVisibleToStudents={payload => {
                         setOpen(false)

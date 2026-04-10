@@ -133,7 +133,10 @@ async function putHandler(req: NextRequest, session: Session) {
       .where(eq(profile.userId, session.user.id))
       .limit(1)
 
-    return NextResponse.json({ profile: profileRow! })
+    if (!profileRow) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+    }
+    return NextResponse.json({ profile: profileRow })
   } catch (error) {
     console.error('Profile update error:', error)
     return handleApiError(error, 'Failed to update profile', 'api/user/profile/route.ts')

@@ -67,7 +67,9 @@ export default function LearnPage() {
       headers: { 'Content-Type': 'application/json', ...(token && { 'X-CSRF-Token': token }) },
       body: JSON.stringify({ events }),
       credentials: 'include',
-    }).catch(() => {})
+    }).catch(() => {
+      // Failed to send watch events - non-critical
+    })
   }, [contentId, getCsrf])
 
   const saveProgress = useCallback(
@@ -84,7 +86,9 @@ export default function LearnPage() {
           completed: progress >= 99,
         }),
         credentials: 'include',
-      }).catch(() => {})
+      }).catch(() => {
+        // Failed to save progress - will retry on next update
+      })
     },
     [contentId, getCsrf]
   )
@@ -129,7 +133,7 @@ export default function LearnPage() {
         )
         setIsBookmarked(bookmarked)
       })
-      .catch(() => {})
+      .catch(err => console.error('[Learn] Failed to check bookmarks:', err))
   }, [contentId])
 
   useEffect(() => {
@@ -147,7 +151,9 @@ export default function LearnPage() {
         headers: { 'Content-Type': 'application/json', ...(token && { 'X-CSRF-Token': token }) },
         body: JSON.stringify({ videoTimestampSeconds: timestamp, note }),
         credentials: 'include',
-      }).catch(() => {})
+      }).catch(() => {
+        // Failed to record quiz skip - non-critical
+      })
     },
     [contentId, getCsrf]
   )

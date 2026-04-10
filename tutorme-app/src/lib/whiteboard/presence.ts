@@ -326,14 +326,17 @@ export class PresenceManager {
 
     return Array.from(this.users.values())
       .filter(user => user.userId !== this.currentUserId && user.cursor)
-      .map(user => ({
-        userId: user.userId,
-        name: user.name,
-        color: user.color,
-        x: user.cursor!.x,
-        y: user.cursor!.y,
-        isIdle: now - user.lastActivity > idleThreshold,
-      }))
+      .map(user => {
+        const cursor = user.cursor!
+        return {
+          userId: user.userId,
+          name: user.name,
+          color: user.color,
+          x: cursor.x,
+          y: cursor.y,
+          isIdle: now - user.lastActivity > idleThreshold,
+        }
+      })
   }
 
   /**

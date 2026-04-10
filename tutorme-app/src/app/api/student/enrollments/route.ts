@@ -135,16 +135,19 @@ export const GET = withAuth(async (req, session) => {
     .where(eq(courseEnrollment.studentId, session.user.id))
     .orderBy(desc(courseEnrollment.enrolledAt))
 
-  const lessonCounts = await Promise.all(
-    enrollmentsRows.map(async row => {
-      const [{ count }] = await drizzleDb
-        .select({ count: sql<number>`count(*)::int` })
+  // Batch query lesson counts to avoid N+1
+  const courseIds = enrollmentsRows.map(row => row.courseId)
+  const lessonCounts = courseIds.length > 0 
+    ? await drizzleDb
+        .select({
+          courseId: courseLesson.courseId,
+          count: sql<number>`count(*)::int`,
+        })
         .from(courseLesson)
-        .where(eq(courseLesson.courseId, row.courseId))
-      return { courseId: row.courseId, lessonCount: count ?? 0 }
-    })
-  )
-  const lessonCountByCourse = new Map(lessonCounts.map(m => [m.courseId, m.lessonCount]))
+        .where(inArray(courseLesson.courseId, courseIds))
+        .groupBy(courseLesson.courseId)
+    : []
+  const lessonCountByCourse = new Map(lessonCounts.map(m => [m.courseId, m.count ?? 0]))
 
   const enrollments = enrollmentsRows.map(row => ({
     ...row.enrollment,

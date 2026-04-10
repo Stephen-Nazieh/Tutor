@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select'
 import { ListTodo, Home, FileQuestion, Plus, X, Shield, Unlock, Lock, BookOpen } from 'lucide-react'
 import { toast } from 'sonner'
-import type { Task, Assessment, QuizQuestion, Module } from './builder-types'
+import type { Task, Assessment, QuizQuestion } from './builder-types'
 import { DEFAULT_TASK, DEFAULT_HOMEWORK } from './builder-utils'
 import {
   ResourceImportPanel,
@@ -44,12 +44,12 @@ interface BuilderModalProps {
   initialData?: any
 }
 
-interface BuilderModalWithModulesProps {
+export interface BuilderModalWithModulesProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (data: any, moduleId?: string, lessonId?: string) => void
+  onSave: (data: any, nodeId?: string, lessonId?: string) => void
   initialData?: any
-  modules: Module[]
+  nodes: any[]
 }
 
 export function AssessmentBuilderModal({
@@ -640,7 +640,7 @@ export function TaskBuilderModal({
   onClose,
   onSave,
   initialData,
-  modules,
+  nodes,
 }: BuilderModalWithModulesProps) {
   const [showLessonSelector, setShowLessonSelector] = useState(false)
   const [pendingData, setPendingData] = useState<any>(null)
@@ -650,9 +650,9 @@ export function TaskBuilderModal({
     setShowLessonSelector(true)
   }
 
-  const handleConfirmLesson = (moduleId: string, lessonId: string) => {
+  const handleConfirmLesson = (nodeId: string, lessonId: string) => {
     if (pendingData) {
-      onSave(pendingData, moduleId, lessonId)
+      onSave(pendingData, nodeId, lessonId)
     }
     setPendingData(null)
   }
@@ -670,7 +670,7 @@ export function TaskBuilderModal({
         isOpen={showLessonSelector}
         onClose={() => setShowLessonSelector(false)}
         onConfirm={handleConfirmLesson}
-        modules={modules}
+        nodes={nodes}
         itemType="task"
       />
     </>
@@ -682,7 +682,7 @@ export function HomeworkBuilderModal({
   onClose,
   onSave,
   initialData,
-  modules,
+  nodes,
 }: BuilderModalWithModulesProps) {
   const [showLessonSelector, setShowLessonSelector] = useState(false)
   const [pendingData, setPendingData] = useState<any>(null)
@@ -692,9 +692,9 @@ export function HomeworkBuilderModal({
     setShowLessonSelector(true)
   }
 
-  const handleConfirmLesson = (moduleId: string, lessonId: string) => {
+  const handleConfirmLesson = (nodeId: string, lessonId: string) => {
     if (pendingData) {
-      onSave(pendingData, moduleId, lessonId)
+      onSave(pendingData, nodeId, lessonId)
     }
     setPendingData(null)
   }
@@ -712,7 +712,7 @@ export function HomeworkBuilderModal({
         isOpen={showLessonSelector}
         onClose={() => setShowLessonSelector(false)}
         onConfirm={handleConfirmLesson}
-        modules={modules}
+        nodes={nodes}
         itemType="homework"
       />
     </>
@@ -724,7 +724,7 @@ export function AssessmentBuilderModalWithSelector({
   onClose,
   onSave,
   initialData,
-  modules,
+  nodes,
 }: BuilderModalWithModulesProps) {
   const [showLessonSelector, setShowLessonSelector] = useState(false)
   const [pendingData, setPendingData] = useState<any>(null)
@@ -734,9 +734,9 @@ export function AssessmentBuilderModalWithSelector({
     setShowLessonSelector(true)
   }
 
-  const handleConfirmLesson = (moduleId: string, lessonId: string) => {
+  const handleConfirmLesson = (nodeId: string, lessonId: string) => {
     if (pendingData) {
-      onSave(pendingData, moduleId, lessonId)
+      onSave(pendingData, nodeId, lessonId)
     }
     setPendingData(null)
   }
@@ -754,7 +754,7 @@ export function AssessmentBuilderModalWithSelector({
         isOpen={showLessonSelector}
         onClose={() => setShowLessonSelector(false)}
         onConfirm={handleConfirmLesson}
-        modules={modules}
+        nodes={nodes}
         itemType="assessment"
       />
     </>

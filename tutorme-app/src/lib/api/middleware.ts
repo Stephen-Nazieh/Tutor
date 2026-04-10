@@ -384,3 +384,100 @@ export function parseBoundedInt(
   if (parsed > options.max) return options.max
   return parsed
 }
+
+/** Maximum allowed length for text inputs (100KB) */
+export const MAX_TEXT_LENGTH = 100_000
+
+/** Maximum allowed length for description fields (500KB) */
+export const MAX_DESCRIPTION_LENGTH = 500_000
+
+/**
+ * Validate and truncate text input to safe length.
+ * Returns { valid: false, error: string } if input is too long or contains invalid content.
+ */
+export function validateTextInput(
+  input: string | null | undefined,
+  options: { 
+    maxLength?: number
+    fieldName?: string
+    allowEmpty?: boolean
+  } = {}
+): { valid: true; value: string } | { valid: false; error: string } {
+  const { 
+    maxLength = MAX_TEXT_LENGTH,
+    fieldName = 'Input',
+    allowEmpty = false
+  } = options
+
+  if (input === null || input === undefined) {
+    return allowEmpty ? { valid: true, value: '' } : { valid: false, error: `${fieldName} is required` }
+  }
+
+  if (typeof input !== 'string') {
+    return { valid: false, error: `${fieldName} must be a string` }
+  }
+
+  // Check for extremely long inputs (potential DoS)
+  if (input.length > maxLength) {
+    return { 
+      valid: false, 
+      error: `${fieldName} exceeds maximum length of ${maxLength} characters` 
+    }
+  }
+
+  // Check for null bytes (potential injection)
+  if (input.includes('\x00')) {
+    return { valid: false, error: `${fieldName} contains invalid characters` }
+  }
+
+  return { valid: true, value: input }
+}
+
+/**
+ * Middleware wrapper that validates text inputs in the request body.
+ * Use for POST/PUT/PATCH endpoints that accept user-generated content.
+ */
+export function withInputValidation<T extends Record<string, unknown>>(
+  schema: { [K in keyof T]: { maxLength?: number; required?: boolean } },
+  handler: (req: NextRequest, validated: T, session: Session, context: RouteContext) => Promise<Response>
+): Handler {
+  return async (req: NextRequest, session: Session, context: RouteContext) => {
+    let body: unknown
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
+
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json({ error: 'Request body must be an object' }, { status: 400 })
+    }
+
+    const validated: Record<string, unknown> = {}
+    
+    for (const [key, config] of Object.entries(schema)) {
+      const value = (body as Record<string, unknown>)[key]
+      
+      if (config.required && (value === undefined || value === null)) {
+        return NextResponse.json({ error: `${key} is required` }, { status: 400 })
+      }
+
+      if (value !== undefined && value !== null) {
+        if (typeof value !== 'string') {
+          return NextResponse.json({ error: `${key} must be a string` }, { status: 400 })
+        }
+
+        if (value.length > (config.maxLength ?? MAX_TEXT_LENGTH)) {
+          return NextResponse.json(
+            { error: `${key} exceeds maximum length of ${config.maxLength ?? MAX_TEXT_LENGTH} characters` },
+            { status: 400 }
+          )
+        }
+
+        validated[key] = value
+      }
+    }
+
+    return handler(req, validated as T, session, context)
+  }
+}

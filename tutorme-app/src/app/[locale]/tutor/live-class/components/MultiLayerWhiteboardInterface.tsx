@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Layers } from 'lucide-react'
 import { TutorWhiteboardManager } from './TutorWhiteboardManager'
 import { StudentLiveWhiteboard } from '@/app/[locale]/student/live/components/StudentLiveWhiteboard'
-import { PDFCollaborativeViewer } from '@/components/pdf-tutoring/PDFCollaborativeViewer'
 import { useSimpleSocket } from '@/hooks/use-simple-socket'
 import {
   LiveSharedDocumentModal,
@@ -344,7 +343,9 @@ export function MultiLayerWhiteboardInterface({
               />
             </TabsContent>
             <TabsContent value="student-pdf" className="m-0 h-[calc(100%-40px)] overflow-auto">
-              <PDFCollaborativeViewer roomId={`${roomId}:pdf`} role="student" />
+              <div className="flex h-full items-center justify-center text-muted-foreground">
+                PDF tutoring feature has been deprecated
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>

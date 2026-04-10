@@ -8,7 +8,7 @@ import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { poll, pollOption, pollResponse } from '@/lib/db/schema'
-import { eq, asc, desc } from 'drizzle-orm'
+import { eq, asc, desc, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 
 const CreatePollSchema = z.object({
@@ -56,33 +56,57 @@ export async function GET(request: NextRequest) {
       .where(eq(poll.sessionId, sessionId))
       .orderBy(desc(poll.createdAt))
 
-    const formattedPolls = await Promise.all(
-      polls.map(async pollRow => {
-        const options = await drizzleDb
-          .select()
-          .from(pollOption)
-          .where(eq(pollOption.pollId, pollRow.pollId))
-          .orderBy(asc(pollOption.label))
-        const responses = await drizzleDb
-          .select({
-            id: pollResponse.responseId,
-            optionIds: pollResponse.optionIds,
-            rating: pollResponse.rating,
-            textAnswer: pollResponse.textAnswer,
-            createdAt: pollResponse.createdAt,
-          })
-          .from(pollResponse)
-          .where(eq(pollResponse.pollId, pollRow.pollId))
-        return {
-          ...pollRow,
-          options,
-          responses: pollRow.isAnonymous
-            ? responses.map(r => ({ ...r, studentId: undefined }))
-            : responses,
-          totalResponses: responses.length,
-        }
-      })
-    )
+    // Batch fetch options and responses to avoid N+1
+    const pollIds = polls.map(p => p.pollId)
+    const [allOptions, allResponses] = await Promise.all([
+      pollIds.length > 0
+        ? drizzleDb
+            .select()
+            .from(pollOption)
+            .where(inArray(pollOption.pollId, pollIds))
+            .orderBy(asc(pollOption.label))
+        : [],
+      pollIds.length > 0
+        ? drizzleDb
+            .select({
+              id: pollResponse.responseId,
+              pollId: pollResponse.pollId,
+              optionIds: pollResponse.optionIds,
+              rating: pollResponse.rating,
+              textAnswer: pollResponse.textAnswer,
+              createdAt: pollResponse.createdAt,
+            })
+            .from(pollResponse)
+            .where(inArray(pollResponse.pollId, pollIds))
+        : [],
+    ])
+
+    // Group options and responses by pollId
+    const optionsByPollId = new Map<string, typeof allOptions>()
+    for (const opt of allOptions) {
+      const arr = optionsByPollId.get(opt.pollId) ?? []
+      arr.push(opt)
+      optionsByPollId.set(opt.pollId, arr)
+    }
+
+    const responsesByPollId = new Map<string, typeof allResponses>()
+    for (const resp of allResponses) {
+      const arr = responsesByPollId.get(resp.pollId) ?? []
+      arr.push(resp)
+      responsesByPollId.set(resp.pollId, arr)
+    }
+
+    const formattedPolls = polls.map(pollRow => {
+      const responses = responsesByPollId.get(pollRow.pollId) ?? []
+      return {
+        ...pollRow,
+        options: optionsByPollId.get(pollRow.pollId) ?? [],
+        responses: pollRow.isAnonymous
+          ? responses.map(r => ({ ...r, studentId: undefined }))
+          : responses,
+        totalResponses: responses.length,
+      }
+    })
 
     return NextResponse.json({ polls: formattedPolls })
   } catch (error) {

@@ -21,9 +21,18 @@ async function getHandler(_req: NextRequest, session: Session) {
       .orderBy(desc(quizAttempt.completedAt))
       .limit(5)
 
-    const inProgressRows = await drizzleDb
-      .select()
+    // Use join to avoid N+1 query
+    const inProgressContent = await drizzleDb
+      .select({
+        progress: contentProgress,
+        content: {
+          contentId: contentItem.contentId,
+          title: contentItem.title,
+          subject: contentItem.subject,
+        },
+      })
       .from(contentProgress)
+      .innerJoin(contentItem, eq(contentProgress.contentId, contentItem.contentId))
       .where(
         and(
           eq(contentProgress.studentId, userId),
@@ -32,21 +41,6 @@ async function getHandler(_req: NextRequest, session: Session) {
         )
       )
       .limit(3)
-
-    const inProgressContent = await Promise.all(
-      inProgressRows.map(async p => {
-        const [content] = await drizzleDb
-          .select({
-            contentId: contentItem.contentId,
-            title: contentItem.title,
-            subject: contentItem.subject,
-          })
-          .from(contentItem)
-          .where(eq(contentItem.contentId, p.contentId))
-          .limit(1)
-        return { ...p, content: content ?? null }
-      })
-    )
 
     const weakQuizIds = weakAreas.map(a => a.quizId)
     const inProgressSubjects = inProgressContent.map(p => p.content?.subject).filter(Boolean)

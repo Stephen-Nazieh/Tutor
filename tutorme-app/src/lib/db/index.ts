@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-require-imports */
 
 /**
@@ -30,15 +29,19 @@ const CACHE_CONFIG = {
   prefix: 'tutorme:query:', // Cache key prefix
 }
 
-let db: any
-let redis: any | null = null
-let queryCache: Map<string, { data: any; expires: number }> | null = null
+import type { Redis as RedisType } from 'ioredis'
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
+import type * as schema from './schema'
+
+let db: NodePgDatabase<typeof schema> | { $connect: () => Promise<void>; $disconnect: () => Promise<void> }
+let redis: RedisType | null = null
+let queryCache: Map<string, { data: unknown; expires: number }> | null = null
 let redisInitialized = false
 
 // Safe check for server-side environment (not Edge Runtime)
 // Edge Runtime (used by Next.js middleware) doesn't support node-postgres
 const isEdgeRuntime =
-  typeof (globalThis as any).EdgeRuntime !== 'undefined' ||
+  typeof (globalThis as { EdgeRuntime?: string }).EdgeRuntime !== 'undefined' ||
   (typeof process !== 'undefined' && process.env.NEXT_RUNTIME === 'edge')
 const isServer = typeof window === 'undefined' && !isEdgeRuntime
 
@@ -71,7 +74,7 @@ async function initRedis() {
       maxRetriesPerRequest: 3,
     })
 
-    redis.on('error', (err: any) => {
+    redis.on('error', (err: Error) => {
       console.error('[Redis] Connection error:', err)
       redis = null
     })
@@ -97,13 +100,13 @@ if (isServer) {
     db = {
       $connect: async () => {},
       $disconnect: async () => {},
-    } as any
+    }
   }
 } else {
   db = {
     $connect: async () => {},
     $disconnect: async () => {},
-  } as any
+  }
 }
 
 /**
@@ -113,7 +116,7 @@ export const cache = {
   /**
    * Scan Redis keys safely (avoids KEYS in production).
    */
-  async scanKeys(client: any, pattern: string, count = 500): Promise<string[]> {
+  async scanKeys(client: RedisType, pattern: string, count = 500): Promise<string[]> {
     const keys: string[] = []
     let cursor = '0'
     do {
@@ -163,7 +166,7 @@ export const cache = {
 
     const cached = cache.get(fullKey)
     if (cached && cached.expires > Date.now()) {
-      return cached.data
+      return cached.data as T
     }
 
     cache.delete(fullKey)

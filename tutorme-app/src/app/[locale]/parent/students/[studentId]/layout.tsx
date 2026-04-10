@@ -73,7 +73,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       .then(json => {
         if (!cancelled && json?.success && json.data) setStudent(json.data)
       })
-      .catch(() => {})
+      .catch(err => console.error('[Parent Layout] Failed to load student:', err))
       .finally(() => {
         if (!cancelled) setLoading(false)
       })

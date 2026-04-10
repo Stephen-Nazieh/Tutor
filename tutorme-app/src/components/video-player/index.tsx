@@ -132,7 +132,9 @@ export function VideoPlayer({
         setLowBattery(b.level < 0.2)
         b.addEventListener?.('levelchange', () => setLowBattery(b.level < 0.2))
       })
-      .catch(() => {})
+      .catch(() => {
+        // Battery API not supported or permission denied - ignore silently
+      })
   }, [])
 
   useEffect(() => {

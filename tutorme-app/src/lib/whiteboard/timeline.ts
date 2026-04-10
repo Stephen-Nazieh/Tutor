@@ -200,8 +200,9 @@ export class TimelinePlayer {
    */
   stepForward(): void {
     if (!this.session) return
+    const session = this.session
 
-    const nextEvent = this.events.find(e => e.seq > this.session!.currentSeq)
+    const nextEvent = this.events.find(e => e.seq > session.currentSeq)
     if (nextEvent) {
       this.applyEvent(nextEvent)
       this.session.currentSeq = nextEvent.seq
@@ -213,10 +214,11 @@ export class TimelinePlayer {
    */
   stepBackward(): void {
     if (!this.session) return
+    const session = this.session
 
     // Find previous event in filtered list
     const filtered = this.getFilteredEvents()
-    const currentIndex = filtered.findIndex(e => e.seq >= this.session!.currentSeq)
+    const currentIndex = filtered.findIndex(e => e.seq >= session.currentSeq)
 
     if (currentIndex > 0) {
       const prevEvent = filtered[currentIndex - 1]
@@ -248,7 +250,8 @@ export class TimelinePlayer {
    */
   getCurrentEvent(): TimelineEvent | null {
     if (!this.session) return null
-    return this.events.find(e => e.seq === this.session!.currentSeq) || null
+    const session = this.session
+    return this.events.find(e => e.seq === session.currentSeq) || null
   }
 
   /**
@@ -323,7 +326,7 @@ export class TimelinePlayer {
       this.stepForward()
 
       // Check if we've reached the end
-      if (this.session!.currentSeq >= this.session!.endSeq) {
+      if (this.session && this.session.currentSeq >= this.session.endSeq) {
         this.pause()
       }
     }, interval)

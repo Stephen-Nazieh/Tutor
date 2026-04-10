@@ -80,7 +80,7 @@ export default function StudentDetailPage() {
           setStudent(json.data)
         }
       })
-      .catch(() => {})
+      .catch(err => console.error('[Parent] Failed to load student data:', err))
       .finally(() => {
         if (!cancelled) setLoading(false)
       })

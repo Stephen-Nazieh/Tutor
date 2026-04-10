@@ -239,37 +239,6 @@ export function LessonBuilderModal({
               </div>
             </div>
           </div>
-          {allLessons.length > 0 && (
-            <div className="space-y-2">
-              <Label>Prerequisites (optional)</Label>
-              <p className="text-xs text-muted-foreground">
-                Students must complete selected lessons before accessing this one
-              </p>
-              <div className="max-h-40 space-y-2 overflow-y-auto rounded-lg border p-3">
-                {allLessons.map(lesson => (
-                  <label key={lesson.id} className="flex cursor-pointer items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={data.prerequisites?.includes(lesson.id)}
-                      onChange={(e: any) => {
-                        const prereqs = data.prerequisites || []
-                        if (e.target.checked) {
-                          setData({ ...data, prerequisites: [...prereqs, lesson.id] })
-                        } else {
-                          setData({
-                            ...data,
-                            prerequisites: prereqs.filter((id: string) => id !== lesson.id),
-                          })
-                        }
-                      }}
-                      className="rounded"
-                    />
-                    <span className="text-sm">{lesson.title}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
