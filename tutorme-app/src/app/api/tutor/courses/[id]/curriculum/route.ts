@@ -141,7 +141,7 @@ export async function PUT(req: NextRequest) {
           homework: les.homework ?? [],
           quizzes: les.quizzes ?? [],
         }
-        
+
         // Simplified insert - only use columns that exist in the table
         await tx
           .insert(courseLesson)

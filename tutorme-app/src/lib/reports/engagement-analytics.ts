@@ -19,7 +19,10 @@ export async function calculateEngagementMetrics() {
   }
 }
 
-export async function calculateClassEngagement(classId: string, _options?: EngagementCalculationOptions) {
+export async function calculateClassEngagement(
+  classId: string,
+  _options?: EngagementCalculationOptions
+) {
   return {
     classId,
     engagement: 0,

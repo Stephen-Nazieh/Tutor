@@ -37,10 +37,11 @@ export async function getStudentAnalytics(studentId: string) {
     submissions,
     summary: {
       totalSubmissions: submissions.length,
-      averageScore: submissions.length > 0 
-        ? submissions.reduce((acc, s) => acc + (s.score || 0), 0) / submissions.length 
-        : 0,
-    }
+      averageScore:
+        submissions.length > 0
+          ? submissions.reduce((acc, s) => acc + (s.score || 0), 0) / submissions.length
+          : 0,
+    },
   }
 }
 

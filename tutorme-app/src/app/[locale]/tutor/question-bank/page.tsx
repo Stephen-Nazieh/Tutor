@@ -633,10 +633,7 @@ export default function QuestionBankPage() {
                 />
               </div>
             </div>
-            <Select
-              value={selectedType}
-              onValueChange={v => setSelectedType(v as string | 'all')}
-            >
+            <Select value={selectedType} onValueChange={v => setSelectedType(v as string | 'all')}>
               <SelectTrigger className="w-[180px]">
                 <Filter className="mr-2 h-4 w-4" />
                 <SelectValue placeholder="All Types" />
