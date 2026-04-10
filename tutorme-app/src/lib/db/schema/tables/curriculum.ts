@@ -106,27 +106,14 @@ export const courseLesson = pgTable(
   'CourseLesson',
   {
     lessonId: text('id').primaryKey().notNull(),
-    moduleId: text('moduleId'), // Legacy column, nullable
     courseId: text('courseId')
       .notNull()
       .references(() => course.courseId, { onDelete: 'cascade' }),
     title: text('title').notNull(),
     description: text('description'),
-    // Legacy columns with defaults for backward compatibility
     duration: integer('duration').notNull().default(60),
-    difficulty: text('difficulty'),
-    learningObjectives: text('learningObjectives').array(),
-    teachingPoints: text('teachingPoints').array(),
-    keyConcepts: text('keyConcepts').array(),
-    examples: jsonb('examples').default({}),
-    practiceProblems: jsonb('practiceProblems').default({}),
-    commonMisconceptions: text('commonMisconceptions').array(),
-    prerequisiteLessonIds: text('prerequisiteLessonIds').array(),
     order: integer('order').notNull(),
-    // New fields for tasks/assessments/homework structure
-    tasks: jsonb('tasks').default([]), // Array of task objects
-    assessments: jsonb('assessments').default([]), // Array of assessment objects
-    homework: jsonb('homework').default([]), // Array of homework objects
+    // Builder data contains all lesson content (tasks, assessments, homework, media, etc.)
     builderData: jsonb('builderData').default({}),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
@@ -356,45 +343,3 @@ export const curriculumLessonProgress = courseLessonProgress
 export const curriculumEnrollment = courseEnrollment
 /** @deprecated Use 'courseProgress' instead */
 export const curriculumProgress = courseProgress
-
-/** @deprecated CourseBatch table removed - use course directly */
-export const courseBatch = pgTable(
-  'CourseBatch',
-  {
-    batchId: text('id').primaryKey().notNull(),
-    curriculumId: text('curriculumId').notNull(), // Note: production uses curriculumId, not courseId
-    name: text('name').notNull(),
-    startDate: timestamp('startDate', { withTimezone: true }),
-    order: integer('order').notNull(),
-    difficulty: text('difficulty'),
-    schedule: jsonb('schedule'),
-    price: doublePrecision('price'),
-    currency: text('currency'),
-    languageOfInstruction: text('languageOfInstruction'),
-    isLive: boolean('isLive').notNull(),
-    meetingUrl: text('meetingUrl'),
-    maxStudents: integer('maxStudents').notNull(),
-  },
-  table => ({
-    CourseBatch_curriculumId_idx: index('CourseBatch_curriculumId_idx').on(table.curriculumId),
-  })
-)
-
-/** @deprecated CurriculumModule table uses legacy curriculumId column name */
-export const curriculumModule = pgTable(
-  'CurriculumModule',
-  {
-    moduleId: text('id').primaryKey().notNull(),
-    curriculumId: text('curriculumId').notNull(), // Note: uses curriculumId, not courseId
-    title: text('title').notNull(),
-    description: text('description'),
-    order: integer('order').notNull(),
-    builderData: jsonb('builderData'),
-  },
-  table => ({
-    CurriculumModule_curriculumId_idx: index('CurriculumModule_curriculumId_idx').on(
-      table.curriculumId
-    ),
-    CurriculumModule_order_idx: index('CurriculumModule_order_idx').on(table.order),
-  })
-)
