@@ -16,7 +16,7 @@ import { eq, and } from 'drizzle-orm'
 export const GET = withAuth(
   async (req: NextRequest, session, context) => {
     const params = await context.params
-    const { id } = params
+    const id = Array.isArray(params.id) ? params.id[0] : params.id
 
     const rows = await drizzleDb
       .select()
@@ -39,7 +39,7 @@ export const PATCH = withCsrf(
   withAuth(
     async (req: NextRequest, session, context) => {
       const params = await context.params
-      const { id } = params
+      const id = Array.isArray(params.id) ? params.id[0] : params.id
 
       const existingRows = await drizzleDb
         .select()
@@ -111,7 +111,7 @@ export const DELETE = withCsrf(
   withAuth(
     async (req: NextRequest, session, context) => {
       const params = await context.params
-      const { id } = params
+      const id = Array.isArray(params.id) ? params.id[0] : params.id
 
       const existingRows = await drizzleDb
         .select()

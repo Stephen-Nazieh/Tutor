@@ -19,7 +19,7 @@ import type {
 export const GET = withAuth(
   async (req: NextRequest, session, context) => {
     const params = await context.params
-    const { id } = params
+    const id = Array.isArray(params.id) ? params.id[0] : params.id
 
     const quizRows = await drizzleDb
       .select()
