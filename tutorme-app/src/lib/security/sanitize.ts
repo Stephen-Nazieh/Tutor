@@ -1,6 +1,6 @@
 /**
  * XSS prevention: sanitize user input before rendering or storing.
- * Use for display and for any user-generated content that may be shown as HTML.
+ * Use for display and for any user-generated content that may may be shown as HTML.
  */
 
 import { JSDOM } from 'jsdom'
@@ -12,11 +12,41 @@ const purify = DOMPurify(jsdomWindow)
 
 // Default allowed tags for basic sanitization
 const DEFAULT_ALLOWED_TAGS = [
-  'b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li',
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'div'
+  'b',
+  'i',
+  'em',
+  'strong',
+  'a',
+  'p',
+  'br',
+  'ul',
+  'ol',
+  'li',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'span',
+  'div',
 ]
 
 const DEFAULT_ALLOWED_ATTR = ['href', 'target', 'rel', 'class']
+
+// Regex to detect javascript: protocol (case insensitive)
+const JS_PROTOCOL_REGEX = /javascript:/gi
+
+/**
+ * Hook to sanitize URI attributes and remove javascript: protocol
+ */
+purify.addHook('uponSanitizeAttribute', (node, data) => {
+  if (data.attrName === 'href' || data.attrName === 'src' || data.attrName === 'action') {
+    if (typeof data.attrValue === 'string' && JS_PROTOCOL_REGEX.test(data.attrValue)) {
+      data.attrValue = ''
+    }
+  }
+})
 
 /**
  * Sanitize HTML using DOMPurify (more secure than regex-based sanitization).
@@ -24,7 +54,12 @@ const DEFAULT_ALLOWED_ATTR = ['href', 'target', 'rel', 'class']
  */
 export function sanitizeHtml(input: string): string {
   if (typeof input !== 'string') return ''
-  return purify.sanitize(input, {
+
+  // First, strip javascript: protocol from plain text (not in HTML attributes)
+  // This handles cases where the input is just "javascript:alert(1)" without HTML tags
+  const sanitized = input.replace(JS_PROTOCOL_REGEX, '')
+
+  return purify.sanitize(sanitized, {
     ALLOWED_TAGS: DEFAULT_ALLOWED_TAGS,
     ALLOWED_ATTR: DEFAULT_ALLOWED_ATTR,
   }) as string
