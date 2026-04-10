@@ -34,7 +34,7 @@ export default withAuth(
     const path = req.nextUrl.pathname
     const normalizedPath = path.startsWith('/api') ? path : stripLocalePrefix(path)
 
-    let token =
+    const token =
       asJwt(req.nextauth.token) ??
       asJwt(await fetchJwtWithCookieFallbacks(req as never, normalizedPath))
 

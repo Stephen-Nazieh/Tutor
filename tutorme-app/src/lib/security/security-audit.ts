@@ -181,7 +181,7 @@ export async function generateWeeklySecurityReport(): Promise<WeeklySecurityRepo
     .where(gte(securityEvent.createdAt, weekAgo))
 
   const byType: Record<string, number> = {}
-  let criticalIncidents = 0
+  const criticalIncidents = 0
   let roleViolations = 0
   let paymentAlerts = 0
   let accessDenials = 0

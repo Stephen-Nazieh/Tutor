@@ -218,7 +218,7 @@ function extractTextFromXml(xml: string): string {
   // Group by paragraphs: detect paragraph breaks from <a:p> boundaries
   // We'll do a simpler approach: extract the raw text and clean it up
   const paragraphs: string[] = []
-  let currentParagraph: string[] = []
+  const currentParagraph: string[] = []
 
   const paragraphXml = xml.split(/<a:p[ >]/)
 

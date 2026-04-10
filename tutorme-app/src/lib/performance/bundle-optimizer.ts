@@ -313,7 +313,7 @@ export async function compressData(
 // Web Vitals Monitoring
 // ============================================================================
 
-let webVitals: WebVitals = {
+const webVitals: WebVitals = {
   fcp: null,
   lcp: null,
   fid: null,

@@ -87,7 +87,7 @@ async function getChannelDecision(
 
   if (!prefs) return { inApp: true, email: true, push: true }
 
-  let decision: ChannelDecision = {
+  const decision: ChannelDecision = {
     inApp: prefs.inAppEnabled,
     email: prefs.emailEnabled,
     push: prefs.pushEnabled,

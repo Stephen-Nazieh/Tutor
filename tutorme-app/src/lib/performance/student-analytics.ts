@@ -478,8 +478,7 @@ export async function getStudentPerformance(
   // Get subject analysis
   const { strengths, weaknesses } = await analyzeSubjectPerformance(studentId)
 
-  let submissions
-  submissions = await drizzleDb
+  const submissions = await drizzleDb
     .select()
     .from(taskSubmission)
     .where(eq(taskSubmission.studentId, studentId))

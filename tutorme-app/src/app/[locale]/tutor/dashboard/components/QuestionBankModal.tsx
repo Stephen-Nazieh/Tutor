@@ -97,7 +97,7 @@ export function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankMod
       if (Array.isArray(q.correctAnswer)) {
         answerStr = q.correctAnswer.join(', ')
       }
-      let pciText = `${idx + 1}. ${answerStr || '[Answer goes here]'}`
+      const pciText = `${idx + 1}. ${answerStr || '[Answer goes here]'}`
       return { questionText: qText, pciText }
     })
 

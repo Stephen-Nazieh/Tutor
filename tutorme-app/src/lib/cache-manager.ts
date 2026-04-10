@@ -561,7 +561,7 @@ class CacheManager {
       }
 
       // Serialize entry
-      let serialized = await this.serializeEntry(entry, options)
+      const serialized = await this.serializeEntry(entry, options)
 
       // Store in L1 cache
       this.memoryCache.set(fullKey, entry, ttl)
@@ -797,7 +797,7 @@ class CacheManager {
    */
   private async serializeEntry<T>(entry: CacheEntry<T>, options: CacheOptions<T>): Promise<string> {
     // First serialize the entry to JSON
-    let serialized = JSON.stringify(entry)
+    const serialized = JSON.stringify(entry)
 
     // Compression
     const shouldCompress =
