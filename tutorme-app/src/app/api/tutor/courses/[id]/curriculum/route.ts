@@ -257,20 +257,24 @@ export async function PUT(req: NextRequest) {
 
   try {
     await drizzleDb.transaction(async tx => {
+      console.log('[Curriculum PUT] Step 1: Getting existing lessons...')
       // 1. Get existing lesson IDs
       const existingLessons = await tx
         .select({ lessonId: courseLesson.lessonId })
         .from(courseLesson)
         .where(eq(courseLesson.courseId, courseId))
       const existingLessonIds = new Set(existingLessons.map(l => l.lessonId))
+      console.log('[Curriculum PUT] Found existing lessons:', existingLessonIds.size)
 
       const incomingLessonIds = new Set(lessons.map(l => l.id))
 
       const removedLessonIds = [...existingLessonIds].filter(id => !incomingLessonIds.has(id))
+      console.log('[Curriculum PUT] Step 2: Removed lesson IDs:', removedLessonIds.length)
       if (removedLessonIds.length > 0) {
         await tx.delete(courseLesson).where(inArray(courseLesson.lessonId, removedLessonIds))
       }
 
+      console.log('[Curriculum PUT] Step 3: Upserting lessons...')
       for (const les of lessons) {
         const lessonBuilderData = {
           isPublished: les.isPublished ?? false,
@@ -309,12 +313,14 @@ export async function PUT(req: NextRequest) {
           })
       }
 
+      console.log('[Curriculum PUT] Step 4: Processing question bank...')
       const questionCandidates = extractQuestionBankCandidates(
         lessons,
         userId,
         courseId,
         courseRow.name
       )
+      console.log('[Curriculum PUT] Question candidates:', questionCandidates.length)
       if (questionCandidates.length > 0) {
         const existingItems = await tx
           .select({
@@ -361,6 +367,7 @@ export async function PUT(req: NextRequest) {
       }
 
       if (shouldAutoCreateAdaptiveVariants) {
+        console.log('[Curriculum PUT] Step 5: Creating adaptive variants...')
         const existingVariantBatches = await tx
           .select({
             batchId: courseBatch.batchId,
