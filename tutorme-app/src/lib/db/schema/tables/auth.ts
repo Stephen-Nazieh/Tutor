@@ -12,7 +12,6 @@ import {
   doublePrecision,
   uniqueIndex,
   index,
-  uuid,
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
 
