@@ -14,6 +14,7 @@ import type {
   QuestionAnalytics,
   StudentQuizPerformance,
   ScoreDistribution,
+  QuestionType,
 } from '@/types/quiz'
 
 export const GET = withAuth(
@@ -172,7 +173,7 @@ export const GET = withAuth(
         questionId: stats.questionId,
         questionText:
           stats.questionText.substring(0, 100) + (stats.questionText.length > 100 ? '...' : ''),
-        type: stats.type,
+        type: stats.type as QuestionType,
         points: stats.points,
         correctCount: stats.correctCount,
         incorrectCount: stats.incorrectCount,
