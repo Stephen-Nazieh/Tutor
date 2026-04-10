@@ -309,8 +309,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         difficultyMode: lesson.difficultyMode || 'all',
         variants: lesson.variants || {},
         lessons: [lesson],
-        quizzes: []
-      }));
+        quizzes: [],
+      }))
     }, [initialLessons])
     const initialCourseBuilderNodesKey = useMemo(() => {
       try {
@@ -321,7 +321,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     }, [resolvedInitialCourseBuilderNodes])
     const lastInitialCourseBuilderNodesKeyRef = useRef<string | null>(null)
     const [nodes, setCourseBuilderNodes] = useState<CourseBuilderNode[]>([])
-    const [expandedCourseBuilderNodes, setExpandedCourseBuilderNodes] = useState<Set<string>>(new Set())
+    const [expandedCourseBuilderNodes, setExpandedCourseBuilderNodes] = useState<Set<string>>(
+      new Set()
+    )
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedItem, setSelectedItem] = useState<{ type: string; id: string } | null>(null)
     const [outlineModalOpen, setOutlineModalOpen] = useState(false)
@@ -331,7 +333,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     )
     const [lessonBankImportOpen, setLessonBankImportOpen] = useState(false)
     const [importLessonSelectorOpen, setImportLessonSelectorOpen] = useState(false)
-    const [lessonBankCourseBuilderNodes, setLessonBankCourseBuilderNodes] = useState<CourseBuilderNode[]>([])
+    const [lessonBankCourseBuilderNodes, setLessonBankCourseBuilderNodes] = useState<
+      CourseBuilderNode[]
+    >([])
     const [lessonBankLessonKey, setLessonBankLessonKey] = useState<string>('')
     const [courseAssets, setCourseAssets] = useState<
       { id: string; name: string; content?: string }[]
@@ -938,12 +942,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     )
 
     const moveToHomework = useCallback(
-      (
-        nodeId: string,
-        lessonId: string,
-        type: 'task' | 'assessment',
-        item: Task | Assessment
-      ) => {
+      (nodeId: string, lessonId: string, type: 'task' | 'assessment', item: Task | Assessment) => {
         const base = DEFAULT_HOMEWORK(
           nodes.flatMap(m => m.lessons.flatMap(l => l.homework || [])).length,
           'homework'
@@ -1463,12 +1462,12 @@ FEEDBACK: [your explanation]`
 
     // Modal states
     const [activeModal, setActiveModal] = useState<{
-    type: 'node' | 'lesson' | 'task' | 'homework' | 'nodeQuiz' | 'content'
-    isOpen: boolean
-    nodeId?: string
-    lessonId?: string
-    itemId?: string
-  }>({ type: 'node', isOpen: false })
+      type: 'node' | 'lesson' | 'task' | 'homework' | 'nodeQuiz' | 'content'
+      isOpen: boolean
+      nodeId?: string
+      lessonId?: string
+      itemId?: string
+    }>({ type: 'node', isOpen: false })
 
     const [editingData, setEditingData] = useState<any>(null)
     const [activeDragId, setActiveDragId] = useState<string | null>(null)
@@ -1476,7 +1475,9 @@ FEEDBACK: [your explanation]`
     useEffect(() => {
       if (lastInitialCourseBuilderNodesKeyRef.current === initialCourseBuilderNodesKey) return
       lastInitialCourseBuilderNodesKeyRef.current = initialCourseBuilderNodesKey
-      setCourseBuilderNodes(normalizeCourseBuilderNodesForAssessments(resolvedInitialCourseBuilderNodes))
+      setCourseBuilderNodes(
+        normalizeCourseBuilderNodesForAssessments(resolvedInitialCourseBuilderNodes)
+      )
     }, [initialCourseBuilderNodesKey, resolvedInitialCourseBuilderNodes])
 
     // Helper to get effective value based on difficulty mode and preview
@@ -1536,10 +1537,7 @@ FEEDBACK: [your explanation]`
     const isSectionCollapsed = (nodeId: string, section: 'task' | 'assessment' | 'homework') =>
       collapsedSections.has(`${nodeId}:${section}`)
 
-    const ensureSectionExpanded = (
-      nodeId: string,
-      section: 'task' | 'assessment' | 'homework'
-    ) => {
+    const ensureSectionExpanded = (nodeId: string, section: 'task' | 'assessment' | 'homework') => {
       setExpandedCourseBuilderNodes(prev => {
         const next = new Set(prev)
         next.add(nodeId)
@@ -1562,7 +1560,9 @@ FEEDBACK: [your explanation]`
       newCourseBuilderNode.lessons[0].title = `Lesson ${newOrder + 1}`
 
       setCourseBuilderNodes([...nodes, newCourseBuilderNode])
-      setExpandedCourseBuilderNodes(new Set([...expandedCourseBuilderNodes, newCourseBuilderNode.id]))
+      setExpandedCourseBuilderNodes(
+        new Set([...expandedCourseBuilderNodes, newCourseBuilderNode.id])
+      )
       // Do NOT open modal - just create directly
     }
 
@@ -1594,9 +1594,7 @@ FEEDBACK: [your explanation]`
       const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
       if (lessonIndex === -1) return
 
-      const newContent = DEFAULT_CONTENT(
-        nodes[nodeIndex].lessons[lessonIndex].content?.length || 0
-      )
+      const newContent = DEFAULT_CONTENT(nodes[nodeIndex].lessons[lessonIndex].content?.length || 0)
       const newCourseBuilderNodes = [...nodes]
       if (!newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].content) {
         newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].content = []
@@ -1646,7 +1644,12 @@ FEEDBACK: [your explanation]`
         quizzes: [...(lastCourseBuilderNode.quizzes || []), newExam],
       }
       setCourseBuilderNodes(workingCourseBuilderNodes)
-      setExpandedCourseBuilderNodes(new Set([...expandedCourseBuilderNodes, workingCourseBuilderNodes[lastCourseBuilderNodeIndex].id]))
+      setExpandedCourseBuilderNodes(
+        new Set([
+          ...expandedCourseBuilderNodes,
+          workingCourseBuilderNodes[lastCourseBuilderNodeIndex].id,
+        ])
+      )
       setEditingData(newExam)
       setActiveModal({
         type: 'nodeQuiz',
@@ -1668,7 +1671,9 @@ FEEDBACK: [your explanation]`
         }
       }
       setCourseBuilderNodes(nextCourseBuilderNodes)
-      setExpandedCourseBuilderNodes(new Set([...expandedCourseBuilderNodes, nextCourseBuilderNodes[0].id]))
+      setExpandedCourseBuilderNodes(
+        new Set([...expandedCourseBuilderNodes, nextCourseBuilderNodes[0].id])
+      )
       return {
         nodeId: nextCourseBuilderNodes[0].id,
         lessonId: nextCourseBuilderNodes[0].lessons[0].id,
@@ -1961,7 +1966,11 @@ FEEDBACK: [your explanation]`
       const overCourseBuilderNodeIndex = nodes.findIndex(m => m.id === overId)
 
       if (activeCourseBuilderNodeIndex !== -1 && overCourseBuilderNodeIndex !== -1) {
-        const movedCourseBuilderNodes = arrayMove(nodes, activeCourseBuilderNodeIndex, overCourseBuilderNodeIndex)
+        const movedCourseBuilderNodes = arrayMove(
+          nodes,
+          activeCourseBuilderNodeIndex,
+          overCourseBuilderNodeIndex
+        )
         setCourseBuilderNodes(renumberCourseBuilderNodes(movedCourseBuilderNodes))
         return
       }
@@ -2043,7 +2052,8 @@ FEEDBACK: [your explanation]`
           const newCourseBuilderNodes = [...nodes]
           const sourceTasks = newCourseBuilderNodes[taskSource.nIdx].lessons[taskSource.lIdx].tasks
           const [movedTask] = sourceTasks.splice(taskSource.taskIndex, 1)
-          const targetTasks = newCourseBuilderNodes[targetLesson.nIdx].lessons[targetLesson.lIdx].tasks
+          const targetTasks =
+            newCourseBuilderNodes[targetLesson.nIdx].lessons[targetLesson.lIdx].tasks
           const insertIndex = targetTaskLocation
             ? targetTasks.findIndex(t => t.id === overId)
             : targetTasks.length
@@ -2085,9 +2095,11 @@ FEEDBACK: [your explanation]`
           (hwSource.nIdx !== targetLesson.nIdx || hwSource.lIdx !== targetLesson.lIdx)
         ) {
           const newCourseBuilderNodes = [...nodes]
-          const sourceHomework = newCourseBuilderNodes[hwSource.nIdx].lessons[hwSource.lIdx].homework
+          const sourceHomework =
+            newCourseBuilderNodes[hwSource.nIdx].lessons[hwSource.lIdx].homework
           const [movedHw] = sourceHomework.splice(hwSource.hwIndex, 1)
-          const targetHomework = newCourseBuilderNodes[targetLesson.nIdx].lessons[targetLesson.lIdx].homework
+          const targetHomework =
+            newCourseBuilderNodes[targetLesson.nIdx].lessons[targetLesson.lIdx].homework
           const insertIndex = targetHwLocation
             ? targetHomework.findIndex(h => h.id === overId)
             : targetHomework.length
@@ -2118,7 +2130,9 @@ FEEDBACK: [your explanation]`
       if (nodeIndex === -1) return
 
       const newCourseBuilderNodes = [...nodes]
-      const lessonIndex = newCourseBuilderNodes[nodeIndex].lessons.findIndex(l => l.id === editingData.id)
+      const lessonIndex = newCourseBuilderNodes[nodeIndex].lessons.findIndex(
+        l => l.id === editingData.id
+      )
       if (lessonIndex !== -1) {
         newCourseBuilderNodes[nodeIndex].lessons[lessonIndex] = {
           ...newCourseBuilderNodes[nodeIndex].lessons[lessonIndex],
@@ -2130,7 +2144,11 @@ FEEDBACK: [your explanation]`
       toast.success('Lesson saved')
     }
 
-    const handleSaveTask = (data: any, targetCourseBuilderNodeId?: string, targetLessonId?: string) => {
+    const handleSaveTask = (
+      data: any,
+      targetCourseBuilderNodeId?: string,
+      targetLessonId?: string
+    ) => {
       const nodeId = targetCourseBuilderNodeId || activeModal.nodeId
       const lessonId = targetLessonId || activeModal.lessonId
       const nodeIndex = nodes.findIndex(m => m.id === nodeId)
@@ -2154,9 +2172,7 @@ FEEDBACK: [your explanation]`
 
     const handleSaveContent = (data: Content) => {
       const nodeIndex = nodes.findIndex(m => m.id === activeModal.nodeId)
-      const lessonIndex = nodes[nodeIndex]?.lessons.findIndex(
-        l => l.id === activeModal.lessonId
-      )
+      const lessonIndex = nodes[nodeIndex]?.lessons.findIndex(l => l.id === activeModal.lessonId)
       if (nodeIndex === -1 || lessonIndex === -1) return
 
       const newCourseBuilderNodes = [...nodes]
@@ -2173,7 +2189,11 @@ FEEDBACK: [your explanation]`
       toast.success('Content saved')
     }
 
-    const handleSaveAssessment = (data: any, targetCourseBuilderNodeId?: string, targetLessonId?: string) => {
+    const handleSaveAssessment = (
+      data: any,
+      targetCourseBuilderNodeId?: string,
+      targetLessonId?: string
+    ) => {
       const nodeId = targetCourseBuilderNodeId || activeModal.nodeId
       const lessonId = targetLessonId || activeModal.lessonId
       const nodeIndex = nodes.findIndex(m => m.id === nodeId)
@@ -2266,9 +2286,7 @@ FEEDBACK: [your explanation]`
     const deleteCourseBuilderNodeQuiz = (nodeId: string, quizId: string) => {
       setCourseBuilderNodes(
         nodes.map(m =>
-          m.id === nodeId
-            ? { ...m, quizzes: (m.quizzes || []).filter(q => q.id !== quizId) }
-            : m
+          m.id === nodeId ? { ...m, quizzes: (m.quizzes || []).filter(q => q.id !== quizId) } : m
         )
       )
       setSelectedItem(null)
@@ -2639,9 +2657,7 @@ FEEDBACK: [your explanation]`
                   const { nodeId, lessonId } = ensureFirstLessonContext()
                   const nodeIndex = nodes.findIndex(m => m.id === nodeId)
                   const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
-                  const newTask = DEFAULT_TASK(
-                    nodes[nodeIndex].lessons[lessonIndex].tasks.length
-                  )
+                  const newTask = DEFAULT_TASK(nodes[nodeIndex].lessons[lessonIndex].tasks.length)
                   const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
 
                   newTask.description = textToInsert
@@ -2833,7 +2849,10 @@ FEEDBACK: [your explanation]`
 
     const handleSaveAll = () => {
       if (!onSave) return
-      onSave(nodes.map(n => n.lessons[0] || ({} as any)), { developmentMode: devMode, previewDifficulty })
+      onSave(
+        nodes.map(n => n.lessons[0] || ({} as any)),
+        { developmentMode: devMode, previewDifficulty }
+      )
     }
 
     const isExtensionsCollapsed = (taskId: string) => collapsedTaskExtensions.has(taskId)
@@ -2871,13 +2890,16 @@ FEEDBACK: [your explanation]`
       if (!onSave) return
 
       const timeoutId = setTimeout(() => {
-        onSave(nodes.map(n => n.lessons[0] || ({} as any)), {
-          developmentMode: devMode,
-          previewDifficulty,
-          courseName: coursePropsModal.name || courseName,
-          courseDescription: coursePropsModal.description,
-          isAutoSave: true,
-        })
+        onSave(
+          nodes.map(n => n.lessons[0] || ({} as any)),
+          {
+            developmentMode: devMode,
+            previewDifficulty,
+            courseName: coursePropsModal.name || courseName,
+            courseDescription: coursePropsModal.description,
+            isAutoSave: true,
+          }
+        )
       }, 2000)
 
       return () => clearTimeout(timeoutId)
@@ -2992,7 +3014,9 @@ FEEDBACK: [your explanation]`
                               setLessonBankCourseBuilderNodes(bankCourseBuilderNodes)
                               const firstLesson = bankCourseBuilderNodes[0]?.lessons?.[0]
                               if (firstLesson) {
-                                setLessonBankLessonKey(`${bankCourseBuilderNodes[0].id}:${firstLesson.id}`)
+                                setLessonBankLessonKey(
+                                  `${bankCourseBuilderNodes[0].id}:${firstLesson.id}`
+                                )
                               } else {
                                 setLessonBankLessonKey('')
                               }
@@ -3012,7 +3036,11 @@ FEEDBACK: [your explanation]`
                             Import
                           </Button>
                         )}
-                        <Button size="sm" onClick={addCourseBuilderNode} className="h-7 gap-1 px-2 text-xs">
+                        <Button
+                          size="sm"
+                          onClick={addCourseBuilderNode}
+                          className="h-7 gap-1 px-2 text-xs"
+                        >
                           <Plus className="h-3 w-3" />
                           Lesson
                         </Button>
@@ -3414,35 +3442,36 @@ FEEDBACK: [your explanation]`
                                                                             : prev.activeExtensionId,
                                                                       }))
                                                                       if (loadedTaskId) {
-                                                                        setCourseBuilderNodes(prev =>
-                                                                          prev.map(mod => ({
-                                                                            ...mod,
-                                                                            lessons:
-                                                                              mod.lessons.map(
-                                                                                lesson => ({
-                                                                                  ...lesson,
-                                                                                  tasks:
-                                                                                    lesson.tasks.map(
-                                                                                      t =>
-                                                                                        t.id ===
-                                                                                        loadedTaskId
-                                                                                          ? {
-                                                                                              ...t,
-                                                                                              extensions:
-                                                                                                (
-                                                                                                  t.extensions ||
-                                                                                                  []
-                                                                                                ).filter(
-                                                                                                  e =>
-                                                                                                    e.id !==
-                                                                                                    ext.id
-                                                                                                ),
-                                                                                            }
-                                                                                          : t
-                                                                                    ),
-                                                                                })
-                                                                              ),
-                                                                          }))
+                                                                        setCourseBuilderNodes(
+                                                                          prev =>
+                                                                            prev.map(mod => ({
+                                                                              ...mod,
+                                                                              lessons:
+                                                                                mod.lessons.map(
+                                                                                  lesson => ({
+                                                                                    ...lesson,
+                                                                                    tasks:
+                                                                                      lesson.tasks.map(
+                                                                                        t =>
+                                                                                          t.id ===
+                                                                                          loadedTaskId
+                                                                                            ? {
+                                                                                                ...t,
+                                                                                                extensions:
+                                                                                                  (
+                                                                                                    t.extensions ||
+                                                                                                    []
+                                                                                                  ).filter(
+                                                                                                    e =>
+                                                                                                      e.id !==
+                                                                                                      ext.id
+                                                                                                  ),
+                                                                                              }
+                                                                                            : t
+                                                                                      ),
+                                                                                  })
+                                                                                ),
+                                                                            }))
                                                                         )
                                                                       }
                                                                     }}
@@ -3769,9 +3798,7 @@ FEEDBACK: [your explanation]`
                                           <TreeItem
                                             key={quiz.id}
                                             depth={2}
-                                            isLast={
-                                              quizIdx === (node.quizzes?.length || 0) - 1
-                                            }
+                                            isLast={quizIdx === (node.quizzes?.length || 0) - 1}
                                           >
                                             <div
                                               className="group flex cursor-pointer items-center gap-1.5 rounded border border-red-300 bg-red-100 px-2 py-1 hover:bg-red-200"
@@ -5542,8 +5569,12 @@ FEEDBACK: [your explanation]`
                       onClick={() => {
                         if (!lessonBankLessonKey) return
                         const [nodeId, lessonId] = lessonBankLessonKey.split(':')
-                        const bankCourseBuilderNode = lessonBankCourseBuilderNodes.find(m => m.id === nodeId)
-                        const bankLesson = bankCourseBuilderNode?.lessons.find(l => l.id === lessonId)
+                        const bankCourseBuilderNode = lessonBankCourseBuilderNodes.find(
+                          m => m.id === nodeId
+                        )
+                        const bankLesson = bankCourseBuilderNode?.lessons.find(
+                          l => l.id === lessonId
+                        )
                         if (!bankLesson) return
 
                         // If no importTarget (no existing lessons), create a new module with the lesson
@@ -5578,8 +5609,12 @@ FEEDBACK: [your explanation]`
                       onClick={() => {
                         if (!lessonBankLessonKey) return
                         const [nodeId, lessonId] = lessonBankLessonKey.split(':')
-                        const bankCourseBuilderNode = lessonBankCourseBuilderNodes.find(m => m.id === nodeId)
-                        const bankLesson = bankCourseBuilderNode?.lessons.find(l => l.id === lessonId)
+                        const bankCourseBuilderNode = lessonBankCourseBuilderNodes.find(
+                          m => m.id === nodeId
+                        )
+                        const bankLesson = bankCourseBuilderNode?.lessons.find(
+                          l => l.id === lessonId
+                        )
                         if (!bankLesson) return
 
                         // If no importTarget (no existing lessons), auto-create a lesson first
@@ -5618,8 +5653,12 @@ FEEDBACK: [your explanation]`
                       onClick={() => {
                         if (!lessonBankLessonKey) return
                         const [nodeId, lessonId] = lessonBankLessonKey.split(':')
-                        const bankCourseBuilderNode = lessonBankCourseBuilderNodes.find(m => m.id === nodeId)
-                        const bankLesson = bankCourseBuilderNode?.lessons.find(l => l.id === lessonId)
+                        const bankCourseBuilderNode = lessonBankCourseBuilderNodes.find(
+                          m => m.id === nodeId
+                        )
+                        const bankLesson = bankCourseBuilderNode?.lessons.find(
+                          l => l.id === lessonId
+                        )
                         if (!bankLesson) return
                         const assessments = (bankLesson.homework || []).filter(
                           h => h.category !== 'homework'
@@ -5628,7 +5667,8 @@ FEEDBACK: [your explanation]`
                         // If no importTarget (no existing lessons), auto-create a lesson first
                         if (!importTarget) {
                           const newCourseBuilderNode = DEFAULT_NODE(nodes.length)
-                          newCourseBuilderNode.lessons[0].homework = assessments.map(cloneAssessment)
+                          newCourseBuilderNode.lessons[0].homework =
+                            assessments.map(cloneAssessment)
                           setCourseBuilderNodes(prev => [...prev, newCourseBuilderNode])
                         } else {
                           // Import into existing lesson
@@ -5722,12 +5762,15 @@ FEEDBACK: [your explanation]`
                   onClick={() => {
                     setCoursePropsModal(prev => ({ ...prev, isOpen: false }))
                     if (onSave) {
-                      onSave(nodes.map(n => n.lessons[0] || ({} as any)), {
-                        developmentMode: devMode,
-                        previewDifficulty,
-                        courseName: coursePropsModal.name,
-                        courseDescription: coursePropsModal.description,
-                      })
+                      onSave(
+                        nodes.map(n => n.lessons[0] || ({} as any)),
+                        {
+                          developmentMode: devMode,
+                          previewDifficulty,
+                          courseName: coursePropsModal.name,
+                          courseDescription: coursePropsModal.description,
+                        }
+                      )
                     }
                   }}
                 >

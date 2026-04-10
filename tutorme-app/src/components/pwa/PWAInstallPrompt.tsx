@@ -30,8 +30,8 @@ export function PWAInstallPrompt() {
         .register('/sw.js', { scope: '/', updateViaCache: 'none' })
         .then(registration => {
           registration.update().catch(() => {
-              // Service worker update check failed - non-critical
-            })
+            // Service worker update check failed - non-critical
+          })
           registration.waiting?.postMessage({ type: 'SKIP-WAITING' })
         })
         .catch(() => {

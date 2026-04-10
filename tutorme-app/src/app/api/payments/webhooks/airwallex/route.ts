@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
                 .where(eq(payment.paymentId, paymentRow.paymentId))
             }
           })
-          .catch((err) => console.error('[Airwallex Webhook] Enrollment failed:', err))
+          .catch(err => console.error('[Airwallex Webhook] Enrollment failed:', err))
         const [userRow] = await drizzleDb
           .select({
             email: user.email,
@@ -158,7 +158,9 @@ export async function POST(req: NextRequest) {
             amount: paymentRow.amount,
             currency: paymentRow.currency,
             description,
-          }).catch((err) => console.error('[Airwallex Webhook] Failed to send confirmation email:', err))
+          }).catch(err =>
+            console.error('[Airwallex Webhook] Failed to send confirmation email:', err)
+          )
         }
       } else if (paymentRow.bookingId) {
         // Clinics removed: no booking notifications.

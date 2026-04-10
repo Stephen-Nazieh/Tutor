@@ -21,7 +21,8 @@ import {
 } from '@/components/ui/dialog'
 import { ArrowLeft, Loader2, BookOpen, Save, Plus, Trash2 } from 'lucide-react'
 import { CourseBuilder } from '../dashboard/components/CourseBuilder'
-import type { CourseBuilderRef } from '../dashboard/components/CourseBuilder'; import type { Lesson } from '../dashboard/components/builder-types';
+import type { CourseBuilderRef } from '../dashboard/components/CourseBuilder'
+import type { Lesson } from '../dashboard/components/builder-types'
 import { toast } from 'sonner'
 
 const STORAGE_KEY = 'lesson-bank-courses-v1'

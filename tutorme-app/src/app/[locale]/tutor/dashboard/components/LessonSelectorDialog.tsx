@@ -121,7 +121,10 @@ export function LessonSelectorDialog({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleConfirm} disabled={!selectedCourseBuilderNodeId || !selectedLessonId}>
+          <Button
+            onClick={handleConfirm}
+            disabled={!selectedCourseBuilderNodeId || !selectedLessonId}
+          >
             Save to Selected Lesson
           </Button>
         </DialogFooter>

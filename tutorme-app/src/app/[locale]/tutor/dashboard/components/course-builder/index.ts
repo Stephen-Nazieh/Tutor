@@ -1,10 +1,10 @@
 /**
  * Course Builder Components
- * 
+ *
  * This module contains all components related to the course builder functionality.
  * The main CourseBuilder component is a complex feature-rich interface for creating
  * and editing course content including lessons, tasks, assessments, and homework.
- * 
+ *
  * Due to the complexity of the course builder (supporting drag-drop, AI assistance,
  * real-time collaboration, whiteboard integration, etc.), the main component remains
  * large. Future refactoring should extract:

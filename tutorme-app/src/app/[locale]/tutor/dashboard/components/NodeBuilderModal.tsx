@@ -22,12 +22,7 @@ interface NodeBuilderModalProps {
   initialData?: any
 }
 
-export function NodeBuilderModal({
-  isOpen,
-  onClose,
-  onSave,
-  initialData,
-}: NodeBuilderModalProps) {
+export function NodeBuilderModal({ isOpen, onClose, onSave, initialData }: NodeBuilderModalProps) {
   const [data, setData] = useState(
     initialData || { title: '', description: '', isPublished: false }
   )

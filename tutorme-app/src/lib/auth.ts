@@ -62,7 +62,7 @@ export const authOptions: NextAuthOptions = {
 
         const onboardingComplete = checkOnboardingComplete({ profile: profileRow ?? undefined })
         const tosAccepted = profileRow?.tosAccepted ?? false
-        
+
         // Pass rememberMe flag through the user object
         const rememberMe = credentials.rememberMe === 'true'
 
@@ -94,14 +94,14 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id
         token.onboardingComplete = user.onboardingComplete
         token.tosAccepted = user.tosAccepted
-        
+
         // Use user.rememberMe to adjust the token expiry if not checked
-        // Note: next-auth doesn't easily support dynamic maxAge inside jwt callback, 
+        // Note: next-auth doesn't easily support dynamic maxAge inside jwt callback,
         // but we can set an explicit exp claim
         if ((user as any).rememberMe === false) {
           // Session cookie length (typically ends when browser closes)
           // We set an explicit expiration to 24 hours just in case
-          token.exp = Math.floor(Date.now() / 1000) + (24 * 60 * 60)
+          token.exp = Math.floor(Date.now() / 1000) + 24 * 60 * 60
         }
       }
 

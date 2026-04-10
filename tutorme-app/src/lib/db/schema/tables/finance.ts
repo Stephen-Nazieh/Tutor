@@ -36,10 +36,10 @@ export const payment = pgTable(
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
       .$onUpdate(() => new Date()),
-    enrollmentId: text('enrollmentId')
-      .references(() => courseEnrollment.enrollmentId, { onDelete: 'set null' }),
-    tutorId: text('tutorId')
-      .references(() => user.userId, { onDelete: 'set null' }),
+    enrollmentId: text('enrollmentId').references(() => courseEnrollment.enrollmentId, {
+      onDelete: 'set null',
+    }),
+    tutorId: text('tutorId').references(() => user.userId, { onDelete: 'set null' }),
   },
   table => ({
     Payment_status_idx: index('Payment_status_idx').on(table.status),

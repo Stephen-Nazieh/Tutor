@@ -228,8 +228,9 @@ export const courseProgress = pgTable(
       .references(() => course.courseId, { onDelete: 'cascade' }),
     lessonsCompleted: integer('lessonsCompleted').notNull().default(0),
     totalLessons: integer('totalLessons').notNull().default(0),
-    currentLessonId: text('currentLessonId')
-      .references(() => courseLesson.lessonId, { onDelete: 'set null' }),
+    currentLessonId: text('currentLessonId').references(() => courseLesson.lessonId, {
+      onDelete: 'set null',
+    }),
     averageScore: doublePrecision('averageScore'),
     isCompleted: boolean('isCompleted').notNull().default(false),
     startedAt: timestamp('startedAt', { withTimezone: true }).notNull().defaultNow(),

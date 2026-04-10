@@ -137,16 +137,17 @@ export const GET = withAuth(async (req, session) => {
 
   // Batch query lesson counts to avoid N+1
   const courseIds = enrollmentsRows.map(row => row.courseId)
-  const lessonCounts = courseIds.length > 0 
-    ? await drizzleDb
-        .select({
-          courseId: courseLesson.courseId,
-          count: sql<number>`count(*)::int`,
-        })
-        .from(courseLesson)
-        .where(inArray(courseLesson.courseId, courseIds))
-        .groupBy(courseLesson.courseId)
-    : []
+  const lessonCounts =
+    courseIds.length > 0
+      ? await drizzleDb
+          .select({
+            courseId: courseLesson.courseId,
+            count: sql<number>`count(*)::int`,
+          })
+          .from(courseLesson)
+          .where(inArray(courseLesson.courseId, courseIds))
+          .groupBy(courseLesson.courseId)
+      : []
   const lessonCountByCourse = new Map(lessonCounts.map(m => [m.courseId, m.count ?? 0]))
 
   const enrollments = enrollmentsRows.map(row => ({

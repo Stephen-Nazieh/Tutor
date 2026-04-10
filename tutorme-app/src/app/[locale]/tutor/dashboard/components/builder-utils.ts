@@ -513,21 +513,22 @@ export function resolveSelectedItem(
   return null
 }
 
-export function normalizeCourseBuilderNodesForAssessments(rawCourseBuilderNodes: CourseBuilderNode[]): CourseBuilderNode[] {
+export function normalizeCourseBuilderNodesForAssessments(
+  rawCourseBuilderNodes: CourseBuilderNode[]
+): CourseBuilderNode[] {
   return rawCourseBuilderNodes.map(mod => ({
     ...mod,
-    lessons: (mod.lessons && mod.lessons.length > 0
-      ? mod.lessons
-      : [DEFAULT_LESSON(0)]
-    ).map(lesson => {
-      const existingAssessments = lesson.homework || []
-      const migratedAssessments = (lesson.quizzes || []).map(convertQuizToAssessment)
-      return {
-        ...lesson,
-        homework: [...existingAssessments, ...migratedAssessments],
-        quizzes: [],
+    lessons: (mod.lessons && mod.lessons.length > 0 ? mod.lessons : [DEFAULT_LESSON(0)]).map(
+      lesson => {
+        const existingAssessments = lesson.homework || []
+        const migratedAssessments = (lesson.quizzes || []).map(convertQuizToAssessment)
+        return {
+          ...lesson,
+          homework: [...existingAssessments, ...migratedAssessments],
+          quizzes: [],
+        }
       }
-    }),
+    ),
   }))
 }
 
@@ -542,7 +543,9 @@ export function normalizeGeneratedQuestionType(rawType: unknown): QuizQuestion['
   return 'essay'
 }
 
-export function mapGeneratedCourseBuilderNodesToBuilder(rawCourseBuilderNodes: unknown[]): CourseBuilderNode[] {
+export function mapGeneratedCourseBuilderNodesToBuilder(
+  rawCourseBuilderNodes: unknown[]
+): CourseBuilderNode[] {
   if (!Array.isArray(rawCourseBuilderNodes)) return []
 
   return rawCourseBuilderNodes.map((rawCourseBuilderNode, nodeIdx) => {

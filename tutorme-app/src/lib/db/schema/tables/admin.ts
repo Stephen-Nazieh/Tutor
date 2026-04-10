@@ -157,7 +157,9 @@ export const llmRoutingRule = pgTable(
     targetModelId: text('targetModelId')
       .notNull()
       .references(() => llmModel.modelId, { onDelete: 'cascade' }),
-    fallbackModelId: text('fallbackModelId').references(() => llmModel.modelId, { onDelete: 'set null' }),
+    fallbackModelId: text('fallbackModelId').references(() => llmModel.modelId, {
+      onDelete: 'set null',
+    }),
     isActive: boolean('isActive').notNull(),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     providerId: text('providerId')

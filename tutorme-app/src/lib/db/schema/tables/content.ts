@@ -152,7 +152,9 @@ export const quizAttempt = pgTable(
     quizId: text('quizId')
       .notNull()
       .references(() => quiz.quizId, { onDelete: 'cascade' }),
-    assignmentId: text('assignmentId').references(() => quizAssignment.assignmentId, { onDelete: 'set null' }),
+    assignmentId: text('assignmentId').references(() => quizAssignment.assignmentId, {
+      onDelete: 'set null',
+    }),
     answers: jsonb('answers').notNull(),
     score: integer('score').notNull(),
     maxScore: integer('maxScore').notNull(),
