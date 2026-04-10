@@ -34,15 +34,17 @@ describe('GET /api/reports/students/[studentId]', () => {
     expect(await res.json()).toEqual({ error: 'Unauthorized - Please log in' })
   })
 
-  it('returns 400 when studentId param is missing', async () => {
+  it('returns 410 when studentId param is missing (legacy feature removed)', async () => {
     mocks.getServerSession.mockResolvedValue({
-      user: { id: 'tutor-1', role: 'TUTOR' },
+      user: { id: 'parent-1', role: 'PARENT' },
     })
     const req = new Request('http://localhost/api/reports/students')
 
     const res = await GET(req as NextRequest, { params: Promise.resolve({}) } as any)
 
-    expect(res.status).toBe(400)
-    expect(await res.json()).toEqual({ error: 'Student ID required' })
+    expect(res.status).toBe(410)
+    const json = await res.json()
+    expect(json.error).toBe('Legacy feature removed')
+    expect(json.message).toContain('redesigned')
   })
 })

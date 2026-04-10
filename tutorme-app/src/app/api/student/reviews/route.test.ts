@@ -28,9 +28,6 @@ describe('GET /api/student/reviews', () => {
     const res = await GET(req as NextRequest)
 
     expect(res.status).toBe(401)
-    expect(await res.json()).toEqual({
-      success: false,
-      error: 'Unauthorized',
-    })
+    expect(await res.json()).toEqual({ error: 'Unauthorized - Please log in' })
   })
 })

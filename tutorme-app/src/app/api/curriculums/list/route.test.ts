@@ -1,84 +1,21 @@
 /**
- * Unit tests for GET /api/curriculums/list (public catalogue, rate limited).
+ * Unit tests for GET /api/curriculums/list (legacy stub).
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { NextRequest } from 'next/server'
 
 const mocks = vi.hoisted(() => ({
-  withRateLimit: vi.fn(),
-  handleApiError: vi.fn((error: unknown) => {
-    throw error
-  }),
-  selectCall: 0,
-  curriculums: [] as Array<{
-    courseId: string
-    name: string
-    categories: string[] | null
-    description: string | null
-    price: number | null
-    currency: string | null
-    isFree: boolean
-    isPublished: boolean
-    createdAt: Date
-    updatedAt: Date
-  }>,
-  modulesRaw: [] as Array<{ courseId: string; count: number }>,
-  enrollmentsRaw: [] as Array<{ courseId: string; count: number }>,
-  lessonsRaw: [] as Array<{ courseId: string; count: number }>,
+  getServerSession: vi.fn(),
 }))
 
-vi.mock('@/lib/api/middleware', () => ({
-  withRateLimit: mocks.withRateLimit,
-  handleApiError: mocks.handleApiError,
+vi.mock('@/lib/auth', () => ({
+  getServerSession: mocks.getServerSession,
+  authOptions: {},
 }))
 
 vi.mock('@/lib/db/drizzle', () => ({
-  drizzleDb: {
-    select: vi.fn().mockImplementation(() => {
-      mocks.selectCall += 1
-      switch (mocks.selectCall) {
-        case 1:
-          return {
-            from: () => ({
-              where: () => ({
-                orderBy: () => Promise.resolve(mocks.curriculums),
-              }),
-            }),
-          }
-        case 2:
-          return {
-            from: () => ({
-              where: () => ({
-                groupBy: () => Promise.resolve(mocks.modulesRaw),
-              }),
-            }),
-          }
-        case 3:
-          return {
-            from: () => ({
-              where: () => ({
-                groupBy: () => Promise.resolve(mocks.enrollmentsRaw),
-              }),
-            }),
-          }
-        case 4:
-          return {
-            from: () => ({
-              where: () => ({
-                groupBy: () => Promise.resolve(mocks.lessonsRaw),
-              }),
-            }),
-          }
-        default:
-          return {
-            from: () => ({
-              where: () => Promise.resolve([]),
-            }),
-          }
-      }
-    }),
-  },
+  drizzleDb: {},
 }))
 
 import { GET } from './route'
@@ -86,62 +23,27 @@ import { GET } from './route'
 describe('GET /api/curriculums/list', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mocks.selectCall = 0
-    mocks.withRateLimit.mockResolvedValue({ response: null })
-    mocks.curriculums = [
-      {
-        courseId: 'c1',
-        name: 'Math 101',
-        categories: ['math'],
-        description: null,
-        price: 100,
-        currency: 'USD',
-        isFree: false,
-        isPublished: true,
-        createdAt: new Date('2026-01-01'),
-        updatedAt: new Date('2026-01-01'),
-      },
-    ]
-    mocks.modulesRaw = [{ courseId: 'c1', count: 2 }]
-    mocks.enrollmentsRaw = [{ courseId: 'c1', count: 5 }]
-    mocks.lessonsRaw = [{ courseId: 'c1', count: 5 }]
   })
 
-  it('returns 200 and list of enriched published curriculums', async () => {
+  it('returns 401 when unauthenticated', async () => {
+    mocks.getServerSession.mockResolvedValue(null)
     const req = new Request('http://localhost/api/curriculums/list')
     const res = await GET(req as NextRequest)
 
-    expect(res.status).toBe(200)
-    const data = await res.json()
-    expect(Array.isArray(data.curriculums)).toBe(true)
-    expect(data.curriculums).toHaveLength(1)
-    expect(data.curriculums[0]).toMatchObject({
-      id: 'c1',
-      name: 'Math 101',
-      subject: 'math',
-      modulesCount: 2,
-      lessonsCount: 5,
-      studentCount: 5,
+    expect(res.status).toBe(401)
+    expect(await res.json()).toEqual({ error: 'Unauthorized - Please log in' })
+  })
+
+  it('returns 410 when authenticated (legacy feature removed)', async () => {
+    mocks.getServerSession.mockResolvedValue({
+      user: { id: 'user-1', role: 'STUDENT' },
     })
-  })
-
-  it('normalizes subject aliases and still returns data', async () => {
-    const req = new Request('http://localhost/api/curriculums/list?subject=mathematics')
-    const res = await GET(req as NextRequest)
-
-    expect(res.status).toBe(200)
-    const data = await res.json()
-    expect(data.curriculums).toHaveLength(1)
-    expect(mocks.withRateLimit).toHaveBeenCalled()
-  })
-
-  it('returns empty list when no curriculum is found', async () => {
-    mocks.curriculums = []
     const req = new Request('http://localhost/api/curriculums/list')
     const res = await GET(req as NextRequest)
 
-    expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ curriculums: [] })
-    expect(mocks.selectCall).toBe(1)
+    expect(res.status).toBe(410)
+    const json = await res.json()
+    expect(json.error).toBe('Legacy feature removed')
+    expect(json.message).toContain('redesigned')
   })
 })

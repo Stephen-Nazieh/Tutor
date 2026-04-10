@@ -31,7 +31,7 @@ describe('GET /api/reports/class/[classId]', () => {
     expect(await res.json()).toEqual({ error: 'Unauthorized - Please log in' })
   })
 
-  it('returns 400 when classId param is missing', async () => {
+  it('returns 410 when classId param is missing (legacy feature removed)', async () => {
     mocks.getServerSession.mockResolvedValue({
       user: { id: 'tutor-1', role: 'TUTOR' },
     })
@@ -39,7 +39,9 @@ describe('GET /api/reports/class/[classId]', () => {
 
     const res = await GET(req as NextRequest, { params: Promise.resolve({}) } as any)
 
-    expect(res.status).toBe(400)
-    expect(await res.json()).toEqual({ error: 'Class ID required' })
+    expect(res.status).toBe(410)
+    const json = await res.json()
+    expect(json.error).toBe('Legacy feature removed')
+    expect(json.message).toContain('redesigned')
   })
 })
