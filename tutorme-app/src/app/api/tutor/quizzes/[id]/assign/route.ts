@@ -90,7 +90,7 @@ export const POST = withCsrf(
             dueDate: dueDate ? new Date(dueDate) : null,
             assignedAt: new Date(),
           })
-          .where(eq(quizAssignment.id, existingAssignment.id))
+          .where(eq(quizAssignment.assignmentId, existingAssignment.assignmentId))
           .returning()
         return NextResponse.json({
           success: true,
@@ -102,7 +102,7 @@ export const POST = withCsrf(
       const [assignment] = await drizzleDb
         .insert(quizAssignment)
         .values({
-          id: randomUUID(),
+          assignmentId: randomUUID(),
           quizId: id,
           assignedByTutorId: session.user.id,
           assignedToType,
@@ -168,7 +168,7 @@ export const DELETE = withCsrf(
       await drizzleDb
         .update(quizAssignment)
         .set({ isActive: false })
-        .where(eq(quizAssignment.id, assignmentId))
+        .where(eq(quizAssignment.assignmentId, assignmentId))
 
       return NextResponse.json({
         success: true,
