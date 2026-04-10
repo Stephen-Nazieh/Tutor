@@ -5,7 +5,6 @@
 import {
   pgTable,
   text,
-  integer,
   boolean,
   timestamp,
   jsonb,

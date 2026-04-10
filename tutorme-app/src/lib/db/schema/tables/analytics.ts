@@ -13,7 +13,6 @@ import {
   uniqueIndex,
   index,
 } from 'drizzle-orm/pg-core'
-import * as enums from '../enums'
 import { user } from './auth'
 import { liveSession } from './live'
 

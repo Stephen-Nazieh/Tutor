@@ -13,10 +13,8 @@ import {
   uniqueIndex,
   index,
 } from 'drizzle-orm/pg-core'
-import * as enums from '../enums'
 import { user } from './auth'
 import { course, courseLesson } from './curriculum'
-import { liveSession } from './live'
 
 export const contentItem = pgTable(
   'ContentItem',
