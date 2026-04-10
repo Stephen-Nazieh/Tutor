@@ -235,6 +235,21 @@ export async function PUT(req: NextRequest) {
   const body = await req.json()
   const lessons: any[] = body.lessons
   console.log('[Curriculum PUT] Received lessons count:', lessons?.length)
+  
+  // Validate lessons data
+  if (!Array.isArray(lessons)) {
+    console.error('[Curriculum PUT] Invalid lessons data:', typeof lessons)
+    return NextResponse.json({ error: '`lessons` must be an array' }, { status: 400 })
+  }
+  
+  // Check for lessons without IDs
+  const lessonsWithoutIds = lessons.filter((les, idx) => {
+    const hasId = les && typeof les === 'object' && les.id && typeof les.id === 'string'
+    if (!hasId) {
+      console.warn(`[Curriculum PUT] Lesson at index ${idx} missing ID, will generate one`)
+    }
+    return !hasId
+  })
 
   const developmentMode = body.developmentMode === 'multi' ? 'multi' : 'single'
   const previewDifficulty =
