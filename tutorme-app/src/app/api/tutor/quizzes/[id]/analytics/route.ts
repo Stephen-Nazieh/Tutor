@@ -11,10 +11,8 @@ import { quiz, quizAttempt, quizAssignment, user, profile } from '@/lib/db/schem
 import { eq, and, sql } from 'drizzle-orm'
 import type {
   QuizAnalytics,
-  QuestionAnalytics,
   StudentQuizPerformance,
   ScoreDistribution,
-  QuestionType,
 } from '@/types/quiz'
 
 export const GET = withAuth(
@@ -160,7 +158,7 @@ export const GET = withAuth(
       })
     })
 
-    const questionAnalytics: QuestionAnalytics[] = Object.values(questionStats).map(stats => {
+    const questionAnalytics = Object.values(questionStats).map(stats => {
       const totalResponses = stats.correctCount + stats.incorrectCount + stats.partialCount
       const avgScore = totalResponses > 0 ? stats.totalScore / totalResponses : 0
       const avgTimeSpent = totalResponses > 0 ? stats.totalTimeSpent / totalResponses : 0
@@ -173,7 +171,7 @@ export const GET = withAuth(
         questionId: stats.questionId,
         questionText:
           stats.questionText.substring(0, 100) + (stats.questionText.length > 100 ? '...' : ''),
-        type: stats.type as QuestionType,
+        type: stats.type,
         points: stats.points,
         correctCount: stats.correctCount,
         incorrectCount: stats.incorrectCount,

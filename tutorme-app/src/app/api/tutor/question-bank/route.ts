@@ -11,14 +11,14 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import { questionBankItem } from '@/lib/db/schema'
 import { eq, and, or, desc, ilike, sql } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
-import type { QuestionType, QuestionDifficulty } from '@/types/quiz'
+import type { QuestionDifficulty } from '@/types/quiz'
 
 // GET /api/tutor/question-bank - List questions with filtering
 export const GET = withAuth(
   async (req: NextRequest, session) => {
     const { searchParams } = new URL(req.url)
 
-    const type = searchParams.get('type') as QuestionType | null
+    const type = searchParams.get('type')
     const difficulty = searchParams.get('difficulty') as QuestionDifficulty | null
     const subject = searchParams.get('subject')
     const tagsParam = searchParams.get('tags')?.split(',').filter(Boolean) as string[] | undefined

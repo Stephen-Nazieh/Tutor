@@ -37,11 +37,11 @@ import {
   ChevronDown,
   ChevronRight,
 } from 'lucide-react'
-import { Quiz, QuizQuestion, QuizType, QuestionType } from '@/types/quiz'
+import { Quiz, QuizQuestion, QuizType } from '@/types/quiz'
 import { QuestionEditor } from '@/components/course-builder/QuestionEditor'
 import { BackButton } from '@/components/navigation'
 
-const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
+const QUESTION_TYPES: { value: string; label: string }[] = [
   { value: 'multiple_choice', label: 'Multiple Choice' },
   { value: 'true_false', label: 'True / False' },
   { value: 'short_answer', label: 'Short Answer' },

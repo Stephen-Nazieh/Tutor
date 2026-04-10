@@ -7,24 +7,15 @@
 // Question Bank Types
 // ============================================
 
-export type QuestionType =
-  | 'multiple_choice'
-  | 'true_false'
-  | 'short_answer'
-  | 'essay'
-  | 'matching'
-  | 'fill_in_blank'
-  | 'multi_select'
-  | 'task'
-  | 'assessment'
-  | 'homework'
+// QuestionType is deprecated - use string instead
+export type QuestionType = string
 
 export type QuestionDifficulty = 'easy' | 'medium' | 'hard'
 
 export interface QuestionBankItem {
   id: string
   tutorId: string
-  type: QuestionType
+  type: string
   question: string
   options?: string[]
   correctAnswer?: string | string[]
@@ -43,7 +34,7 @@ export interface QuestionBankItem {
 }
 
 export interface CreateQuestionBankItemInput {
-  type: QuestionType
+  type: string
   question: string
   options?: string[]
   correctAnswer?: string | string[]
@@ -93,7 +84,7 @@ export interface QuizQuestion {
   id: string
   quizId?: string
   bankItemId?: string // Reference to question bank item
-  type: QuestionType
+  type: string
   question: string
   options?: string[]
   correctAnswer?: string | string[]
@@ -240,7 +231,7 @@ export interface QuizAnalytics {
   averageScore: number
   averageTimeSpent: number // seconds
   scoreDistribution: ScoreDistribution
-  questionAnalytics: QuestionAnalytics[]
+  questionAnalytics: Record<string, unknown>[]
   studentPerformance: StudentQuizPerformance[]
 }
 
@@ -252,20 +243,8 @@ export interface ScoreDistribution {
   'below-60': number
 }
 
-export interface QuestionAnalytics {
-  questionId: string
-  questionText: string
-  type: QuestionType
-  points: number
-  correctCount: number
-  incorrectCount: number
-  partialCount: number
-  averageScore: number
-  averageTimeSpent: number
-  difficultyIndex: number // 0-1, higher = easier
-  discriminationIndex: number // -1 to 1, higher = better discriminator
-  commonWrongAnswers?: { answer: string; count: number }[]
-}
+// QuestionAnalytics is deprecated - use Record<string, unknown> instead
+export type QuestionAnalytics = Record<string, unknown>
 
 export interface StudentQuizPerformance {
   studentId: string
@@ -315,7 +294,7 @@ export interface AIGradingInput {
   studentAnswer: string
   correctAnswer?: string
   maxScore: number
-  questionType: QuestionType
+  questionType: string
 }
 
 export interface AIGradingOutput {
@@ -338,7 +317,7 @@ export interface ManualGradingInput {
 // ============================================
 
 export interface QuestionBankFilters {
-  type?: QuestionType
+  type?: string
   difficulty?: QuestionDifficulty
   subject?: string
   tags?: string[]

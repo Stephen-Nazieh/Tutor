@@ -41,9 +41,9 @@ import {
   Sparkles,
   Loader2,
 } from 'lucide-react'
-import { QuestionBankItem, QuestionType, QuestionDifficulty } from '@/types/quiz'
+import { QuestionBankItem, QuestionDifficulty } from '@/types/quiz'
 
-const QUESTION_TYPES: { value: QuestionType; label: string; icon: string }[] = [
+const QUESTION_TYPES: { value: string; label: string; icon: string }[] = [
   { value: 'multiple_choice', label: 'Multiple Choice', icon: '◎' },
   { value: 'true_false', label: 'True / False', icon: '☑' },
   { value: 'short_answer', label: 'Short Answer', icon: '✎' },
@@ -79,7 +79,7 @@ export default function QuestionBankPage() {
   const [questions, setQuestions] = useState<QuestionBankItem[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedType, setSelectedType] = useState<QuestionType | 'all'>('all')
+  const [selectedType, setSelectedType] = useState<string | 'all'>('all')
   const [selectedDifficulty, setSelectedDifficulty] = useState<QuestionDifficulty | 'all'>('all')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [editingQuestion, setEditingQuestion] = useState<QuestionBankItem | null>(null)
@@ -88,7 +88,7 @@ export default function QuestionBankPage() {
 
   // Form state
   const [formData, setFormData] = useState({
-    type: 'multiple_choice' as QuestionType,
+    type: 'multiple_choice',
     question: '',
     options: ['', '', '', ''],
     correctAnswer: '',
@@ -163,7 +163,7 @@ export default function QuestionBankPage() {
     setEditingQuestion(question)
     setCustomSubject('')
     setFormData({
-      type: question.type as QuestionType,
+      type: question.type,
       question: question.question,
       options: (question.options as string[]) || ['', '', '', ''],
       correctAnswer: String(question.correctAnswer || ''),
@@ -398,7 +398,7 @@ export default function QuestionBankPage() {
                   <Label>Type</Label>
                   <Select
                     value={formData.type}
-                    onValueChange={v => setFormData(prev => ({ ...prev, type: v as QuestionType }))}
+                    onValueChange={v => setFormData(prev => ({ ...prev, type: v }))}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -635,7 +635,7 @@ export default function QuestionBankPage() {
             </div>
             <Select
               value={selectedType}
-              onValueChange={v => setSelectedType(v as QuestionType | 'all')}
+              onValueChange={v => setSelectedType(v as string | 'all')}
             >
               <SelectTrigger className="w-[180px]">
                 <Filter className="mr-2 h-4 w-4" />
