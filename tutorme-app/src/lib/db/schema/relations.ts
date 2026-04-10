@@ -25,9 +25,6 @@ import {
   parentActivityLog,
   payment,
   paymentOnPayout,
-  quiz,
-  quizAttempt,
-  quizAssignment,
   conversation,
   directMessage,
   mention,
@@ -285,49 +282,6 @@ export const paymentRelations = relations(payment, ({ one }) => ({
   }),
 }))
 
-export const quizRelations = relations(quiz, ({ one, many }) => ({
-  tutor: one(user, {
-    fields: [quiz.tutorId],
-    references: [user.userId],
-  }),
-  course: one(course, {
-    fields: [quiz.courseId],
-    references: [course.courseId],
-  }),
-  lesson: one(courseLesson, {
-    fields: [quiz.lessonId],
-    references: [courseLesson.lessonId],
-  }),
-  attempts: many(quizAttempt),
-  assignments: many(quizAssignment),
-}))
-
-export const quizAttemptRelations = relations(quizAttempt, ({ one }) => ({
-  quiz: one(quiz, {
-    fields: [quizAttempt.quizId],
-    references: [quiz.quizId],
-  }),
-  student: one(user, {
-    fields: [quizAttempt.studentId],
-    references: [user.userId],
-  }),
-  assignment: one(quizAssignment, {
-    fields: [quizAttempt.assignmentId],
-    references: [quizAssignment.assignmentId],
-  }),
-}))
-
-export const quizAssignmentRelations = relations(quizAssignment, ({ one, many }) => ({
-  quiz: one(quiz, {
-    fields: [quizAssignment.quizId],
-    references: [quiz.quizId],
-  }),
-  tutor: one(user, {
-    fields: [quizAssignment.assignedByTutorId],
-    references: [user.userId],
-  }),
-  attempts: many(quizAttempt),
-}))
 export const conversationRelations = relations(conversation, ({ one, many }) => ({
   participant1: one(user, {
     fields: [conversation.participant1Id],
