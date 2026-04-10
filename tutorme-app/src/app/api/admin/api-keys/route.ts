@@ -4,6 +4,8 @@
  * POST: create key (body: { name }) - returns { id, name, key } once; key is not stored in full
  */
 
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdminIp } from '@/lib/api/middleware'
 import { createApiKey, listApiKeys } from '@/lib/security/api-key'

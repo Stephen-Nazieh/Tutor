@@ -64,6 +64,12 @@ const nextConfig = {
       }
     }
 
+    // Ignore optional native dependencies that cause build warnings
+    config.externals.push(
+      'fast-crc32c',
+      'request'
+    )
+
     return config
   },
   // Security headers (CSP, X-Frame-Options, etc.) are set by proxy.ts

@@ -9,7 +9,6 @@
  *   GCP_SA_KEY (JSON string)
  */
 
-import { Storage } from '@google-cloud/storage'
 import { randomUUID } from 'crypto'
 import path from 'path'
 
@@ -20,10 +19,16 @@ const PROJECT_ID = process.env.GCP_PROJECT_ID || ''
 const SA_KEY = process.env.GCP_SA_KEY || ''
 const MAX_UPLOAD_BYTES = 100 * 1024 * 1024 // 100 MB
 
-let cachedStorage: Storage | null = null
+// Dynamically import @google-cloud/storage to avoid build issues
+let Storage: typeof import('@google-cloud/storage').Storage | null = null
+let cachedStorage: import('@google-cloud/storage').Storage | null = null
 
-function getStorage(): Storage {
+async function getStorage() {
   if (cachedStorage) return cachedStorage
+  if (!Storage) {
+    const gcs = await import('@google-cloud/storage')
+    Storage = gcs.Storage
+  }
   if (!SA_KEY) {
     throw new Error('GCP_SA_KEY is not configured')
   }
@@ -67,7 +72,7 @@ export async function createPresignedUploadUrl(
   mimeType: string,
   isPublic: boolean = false
 ): Promise<PresignedUploadResult> {
-  const storage = getStorage()
+  const storage = await getStorage()
   const file = storage.bucket(BUCKET).file(key)
 
   const uploadHeaders = isPublic ? { 'x-goog-acl': 'public-read' } : undefined
@@ -96,7 +101,7 @@ export async function createPresignedDownloadUrl(
   expiresInSeconds: number = 3600,
   filename?: string
 ): Promise<string> {
-  const storage = getStorage()
+  const storage = await getStorage()
   const file = storage.bucket(BUCKET).file(key)
 
   const [downloadUrl] = await file.getSignedUrl({
@@ -119,7 +124,7 @@ export async function createPresignedDownloadUrl(
  * Delete an object from GCS.
  */
 export async function deleteObject(key: string): Promise<void> {
-  const storage = getStorage()
+  const storage = await getStorage()
   await storage.bucket(BUCKET).file(key).delete({ ignoreNotFound: true })
 }
 
