@@ -72,7 +72,9 @@ export const contentQuizCheckpoint = pgTable(
   'ContentQuizCheckpoint',
   {
     checkpointId: text('id').primaryKey().notNull(),
-    contentId: text('contentId').notNull(),
+    contentId: text('contentId')
+      .notNull()
+      .references(() => contentItem.contentId, { onDelete: 'cascade' }),
     videoTimestampSec: integer('videoTimestampSec').notNull(),
     title: text('title'),
     questions: jsonb('questions').notNull(),
@@ -95,8 +97,12 @@ export const contentProgress = pgTable(
   'ContentProgress',
   {
     progressId: text('id').primaryKey().notNull(),
-    contentId: text('contentId').notNull(),
-    studentId: text('studentId').notNull(),
+    contentId: text('contentId')
+      .notNull()
+      .references(() => contentItem.contentId, { onDelete: 'cascade' }),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     progress: integer('progress').notNull(),
     completed: boolean('completed').notNull(),
     lastPosition: integer('lastPosition'),
@@ -116,8 +122,12 @@ export const reviewSchedule = pgTable(
   'ReviewSchedule',
   {
     scheduleId: text('id').primaryKey().notNull(),
-    studentId: text('studentId').notNull(),
-    contentId: text('contentId').notNull(),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    contentId: text('contentId')
+      .notNull()
+      .references(() => contentItem.contentId, { onDelete: 'cascade' }),
     lastReviewed: timestamp('lastReviewed', { withTimezone: true }).notNull().defaultNow(),
     nextReview: timestamp('nextReview', { withTimezone: true }).notNull(),
     interval: integer('interval').notNull(),

@@ -13,6 +13,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import { user } from './auth'
 import { course, courseLesson } from './curriculum'
+import { liveSession } from './live'
 
 export const builderTask = pgTable(
   'BuilderTask',
@@ -129,7 +130,9 @@ export const builderTaskDmi = pgTable(
   'BuilderTaskDmi',
   {
     dmiId: text('id').primaryKey().notNull(),
-    taskId: text('taskId').notNull(),
+    taskId: text('taskId')
+      .notNull()
+      .references(() => builderTask.taskId, { onDelete: 'cascade' }),
     type: text('type').notNull().default('assessment'),
     items: jsonb('items').notNull(),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
@@ -150,11 +153,15 @@ export const builderTaskDmiVersion = pgTable(
   'BuilderTaskDmiVersion',
   {
     versionId: text('id').primaryKey().notNull(),
-    taskId: text('taskId').notNull(),
+    taskId: text('taskId')
+      .notNull()
+      .references(() => builderTask.taskId, { onDelete: 'cascade' }),
     type: text('type').notNull().default('assessment'),
     versionNumber: integer('versionNumber').notNull(),
     items: jsonb('items').notNull(),
-    createdBy: text('createdBy').notNull(),
+    createdBy: text('createdBy')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
   },
   table => ({
@@ -174,9 +181,15 @@ export const taskPoll = pgTable(
   'TaskPoll',
   {
     pollId: text('id').primaryKey().notNull(),
-    taskId: text('taskId').notNull(),
-    tutorId: text('tutorId').notNull(),
-    sessionId: text('sessionId').notNull(), // Live session this poll belongs to
+    taskId: text('taskId')
+      .notNull()
+      .references(() => builderTask.taskId, { onDelete: 'cascade' }),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    sessionId: text('sessionId')
+      .notNull()
+      .references(() => liveSession.sessionId, { onDelete: 'cascade' }),
     question: text('question').notNull(),
     options: jsonb('options').notNull().$type<number[]>(), // [1, 2, 3, 4, 5]
     responses: jsonb('responses').notNull().default({}).$type<Record<string, number>>(), // studentId -> option
@@ -219,9 +232,15 @@ export const taskDeployment = pgTable(
   'TaskDeployment',
   {
     deploymentId: text('id').primaryKey().notNull(),
-    taskId: text('taskId').notNull(),
-    tutorId: text('tutorId').notNull(),
-    sessionId: text('sessionId').notNull(),
+    taskId: text('taskId')
+      .notNull()
+      .references(() => builderTask.taskId, { onDelete: 'cascade' }),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    sessionId: text('sessionId')
+      .notNull()
+      .references(() => liveSession.sessionId, { onDelete: 'cascade' }),
     studentIds: jsonb('studentIds').notNull().$type<string[]>(), // Target students
     deployedAt: timestamp('deployedAt', { withTimezone: true }).notNull().defaultNow(),
     status: text('status').notNull().default('active'), // 'active', 'closed'

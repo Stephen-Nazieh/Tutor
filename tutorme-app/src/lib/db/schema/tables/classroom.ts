@@ -114,7 +114,9 @@ export const aIInteractionSession = pgTable(
   'AIInteractionSession',
   {
     interactionId: text('id').primaryKey().notNull(),
-    studentId: text('studentId').notNull(),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     subjectCode: text('subjectCode').notNull(),
     startedAt: timestamp('startedAt', { withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp('endedAt', { withTimezone: true }),
@@ -178,7 +180,9 @@ export const studentAgentSignal = pgTable(
   'StudentAgentSignal',
   {
     signalId: uuid('signalId').primaryKey().notNull().defaultRandom(),
-    studentId: text('studentId').notNull(),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     source: text('source').notNull(),
     type: text('type').notNull(),
     content: text('content').notNull(),
