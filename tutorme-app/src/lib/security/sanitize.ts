@@ -10,6 +10,14 @@ import DOMPurify from 'dompurify'
 const jsdomWindow = new JSDOM('').window
 const purify = DOMPurify(jsdomWindow)
 
+// Default allowed tags for basic sanitization
+const DEFAULT_ALLOWED_TAGS = [
+  'b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'div'
+]
+
+const DEFAULT_ALLOWED_ATTR = ['href', 'target', 'rel', 'class']
+
 /**
  * Sanitize HTML using DOMPurify (more secure than regex-based sanitization).
  * Safe for inserting into text content or plain HTML contexts.
@@ -17,8 +25,8 @@ const purify = DOMPurify(jsdomWindow)
 export function sanitizeHtml(input: string): string {
   if (typeof input !== 'string') return ''
   return purify.sanitize(input, {
-    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li'],
-    ALLOWED_ATTR: ['href', 'target', 'rel'],
+    ALLOWED_TAGS: DEFAULT_ALLOWED_TAGS,
+    ALLOWED_ATTR: DEFAULT_ALLOWED_ATTR,
   }) as string
 }
 
