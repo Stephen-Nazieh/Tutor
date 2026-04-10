@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
     }))
 
     // Get existing review schedules
-    let reviewScheduleRows = await drizzleDb
+    const reviewScheduleRows = await drizzleDb
       .select()
       .from(reviewSchedule)
       .where(eq(reviewSchedule.studentId, studentId))

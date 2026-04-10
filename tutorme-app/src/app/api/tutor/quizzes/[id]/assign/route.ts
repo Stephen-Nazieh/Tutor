@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Quiz Assignment API
  *
@@ -22,7 +21,7 @@ export const GET = withAuth(
     const quizRows = await drizzleDb
       .select()
       .from(quiz)
-      .where(and(eq(quiz.id, id), eq(quiz.tutorId, session.user.id)))
+      .where(and(eq(quiz.quizId, id), eq(quiz.tutorId, session.user.id)))
       .limit(1)
 
     if (!quizRows[0]) {
@@ -50,7 +49,7 @@ export const POST = withCsrf(
       const quizRows = await drizzleDb
         .select()
         .from(quiz)
-        .where(and(eq(quiz.id, id), eq(quiz.tutorId, session.user.id)))
+        .where(and(eq(quiz.quizId, id), eq(quiz.tutorId, session.user.id)))
         .limit(1)
 
       const quizRow = quizRows[0]
@@ -115,7 +114,7 @@ export const POST = withCsrf(
         .returning()
 
       if (quizRow.status === 'draft') {
-        await drizzleDb.update(quiz).set({ status: 'published' }).where(eq(quiz.id, id))
+        await drizzleDb.update(quiz).set({ status: 'published' }).where(eq(quiz.quizId, id))
       }
 
       return NextResponse.json(
@@ -141,7 +140,7 @@ export const DELETE = withCsrf(
       const quizRows = await drizzleDb
         .select()
         .from(quiz)
-        .where(and(eq(quiz.id, id), eq(quiz.tutorId, session.user.id)))
+        .where(and(eq(quiz.quizId, id), eq(quiz.tutorId, session.user.id)))
         .limit(1)
 
       if (!quizRows[0]) {
@@ -158,7 +157,7 @@ export const DELETE = withCsrf(
       const assignmentRows = await drizzleDb
         .select()
         .from(quizAssignment)
-        .where(and(eq(quizAssignment.id, assignmentId), eq(quizAssignment.quizId, id)))
+        .where(and(eq(quizAssignment.assignmentId, assignmentId), eq(quizAssignment.quizId, id)))
         .limit(1)
 
       const assignment = assignmentRows[0]

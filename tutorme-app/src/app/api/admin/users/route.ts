@@ -37,15 +37,23 @@ export async function GET(req: NextRequest) {
     }
 
     if (search) {
+      // Validate search input to prevent expensive queries
+      const sanitizedSearch = search.trim().slice(0, 100)
+      if (sanitizedSearch.length < 2) {
+        return NextResponse.json(
+          { error: 'Search term must be at least 2 characters' },
+          { status: 400 }
+        )
+      }
       const [emailRows, nameRows] = await Promise.all([
         drizzleDb
           .select({ id: user.userId })
           .from(user)
-          .where(ilike(user.email, `%${search}%`)),
+          .where(ilike(user.email, `%${sanitizedSearch}%`)),
         drizzleDb
           .select({ userId: profile.userId })
           .from(profile)
-          .where(ilike(profile.name, `%${search}%`)),
+          .where(ilike(profile.name, `%${sanitizedSearch}%`)),
       ])
       const searchIds = [...new Set([...emailRows.map(r => r.id), ...nameRows.map(r => r.userId)])]
       if (searchIds.length === 0) {

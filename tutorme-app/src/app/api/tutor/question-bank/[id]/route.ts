@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Individual Question Bank Item API Routes
  *
@@ -22,7 +21,7 @@ export const GET = withAuth(
     const rows = await drizzleDb
       .select()
       .from(questionBankItem)
-      .where(and(eq(questionBankItem.id, id), eq(questionBankItem.tutorId, session.user.id)))
+      .where(and(eq(questionBankItem.itemId, id), eq(questionBankItem.tutorId, session.user.id)))
       .limit(1)
 
     const question = rows[0]
@@ -45,7 +44,7 @@ export const PATCH = withCsrf(
       const existingRows = await drizzleDb
         .select()
         .from(questionBankItem)
-        .where(and(eq(questionBankItem.id, id), eq(questionBankItem.tutorId, session.user.id)))
+        .where(and(eq(questionBankItem.itemId, id), eq(questionBankItem.tutorId, session.user.id)))
         .limit(1)
 
       const existing = existingRows[0]
@@ -95,7 +94,7 @@ export const PATCH = withCsrf(
       const [updatedQuestion] = await drizzleDb
         .update(questionBankItem)
         .set(updateData)
-        .where(eq(questionBankItem.id, id))
+        .where(eq(questionBankItem.itemId, id))
         .returning()
 
       return NextResponse.json({
@@ -117,14 +116,14 @@ export const DELETE = withCsrf(
       const existingRows = await drizzleDb
         .select()
         .from(questionBankItem)
-        .where(and(eq(questionBankItem.id, id), eq(questionBankItem.tutorId, session.user.id)))
+        .where(and(eq(questionBankItem.itemId, id), eq(questionBankItem.tutorId, session.user.id)))
         .limit(1)
 
       if (!existingRows[0]) {
         throw new NotFoundError('Question not found')
       }
 
-      await drizzleDb.delete(questionBankItem).where(eq(questionBankItem.id, id))
+      await drizzleDb.delete(questionBankItem).where(eq(questionBankItem.itemId, id))
 
       return NextResponse.json({
         success: true,

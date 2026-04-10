@@ -77,7 +77,7 @@ export async function GET(_req: NextRequest) {
 
     const data = await Promise.all(
       endedSessions.map(async liveSessionRow => {
-        let taskCount = 0
+        const taskCount = 0
         let submittedCount = 0
 
         // Lessons now directly reference courses (no modules)

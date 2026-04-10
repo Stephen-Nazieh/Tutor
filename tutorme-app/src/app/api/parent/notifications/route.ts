@@ -70,7 +70,7 @@ export const PATCH = withAuth(
       return NextResponse.json({ error: '无效请求' }, { status: 400 })
     }
 
-    let conditions: any[] = [eq(familyNotification.parentId, family.familyAccountId)]
+    const conditions: any[] = [eq(familyNotification.parentId, family.familyAccountId)]
 
     if (body.all === true) {
       conditions.push(eq(familyNotification.isRead, false))

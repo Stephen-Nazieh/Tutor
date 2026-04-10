@@ -10,7 +10,7 @@ import { initEnhancedSocketServer } from '@/lib/socket-server-enhanced'
 export const dynamic = 'force-dynamic'
 
 // Global variable to store the Socket.io server instance
-let io: ReturnType<typeof initEnhancedSocketServer> | null = null
+const io: ReturnType<typeof initEnhancedSocketServer> | null = null
 
 export async function GET() {
   // The actual Socket.io server is initialized in the custom server

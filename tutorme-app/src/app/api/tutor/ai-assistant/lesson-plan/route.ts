@@ -158,7 +158,7 @@ Make the lesson engaging, practical, and aligned with best teaching practices. I
         }
       }
 
-      let savedPlan: unknown = null
+      const savedPlan: unknown = null
       // LessonPlan table not in Drizzle schema; skip save
 
       if (body.sessionId && body.sessionId !== 'temp') {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Quiz Analytics API
  *
@@ -25,7 +24,7 @@ export const GET = withAuth(
     const quizRows = await drizzleDb
       .select()
       .from(quiz)
-      .where(and(eq(quiz.id, id), eq(quiz.tutorId, session.user.id)))
+      .where(and(eq(quiz.quizId, id), eq(quiz.tutorId, session.user.id)))
       .limit(1)
 
     const quizRow = quizRows[0]
@@ -45,8 +44,8 @@ export const GET = withAuth(
         profileName: profile.name,
       })
       .from(quizAttempt)
-      .leftJoin(user, eq(quizAttempt.studentId, user.id))
-      .leftJoin(profile, eq(profile.userId, user.id))
+      .leftJoin(user, eq(quizAttempt.studentId, user.userId))
+      .leftJoin(profile, eq(profile.userId, user.userId))
       .where(eq(quizAttempt.quizId, id))
 
     const totalStudentsResult = await drizzleDb

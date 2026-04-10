@@ -3,25 +3,18 @@
  * Use for display and for any user-generated content that may be shown as HTML.
  */
 
-const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi
-const ON_EVENT_REGEX = /\s*on\w+\s*=\s*["'][^"']*["']/gi
-const JAVASCRIPT_URL_REGEX = /javascript\s*:/gi
-const DATA_URL_REGEX = /data\s*:\s*[^,]*\s*,/gi
-// Strip dangerous tags (iframe, object, embed, form, meta with refresh, link with import)
-const DANGEROUS_TAGS_REGEX = /<(?:iframe|object|embed|form|meta|link)\b[^>]*>/gi
+import DOMPurify from 'isomorphic-dompurify'
 
 /**
- * Strip script tags, event handlers, javascript: URLs, data: URLs, and dangerous tags.
+ * Sanitize HTML using DOMPurify (more secure than regex-based sanitization).
  * Safe for inserting into text content or plain HTML contexts.
  */
 export function sanitizeHtml(input: string): string {
   if (typeof input !== 'string') return ''
-  return input
-    .replace(SCRIPT_REGEX, '')
-    .replace(DANGEROUS_TAGS_REGEX, '')
-    .replace(ON_EVENT_REGEX, '')
-    .replace(JAVASCRIPT_URL_REGEX, '')
-    .replace(DATA_URL_REGEX, '')
+  return DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li'],
+    ALLOWED_ATTR: ['href', 'target', 'rel'],
+  })
 }
 
 /**

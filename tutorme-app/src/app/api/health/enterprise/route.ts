@@ -63,7 +63,7 @@ export async function GET(_req: NextRequest) {
       },
     }
 
-    let status = baseHealth.status
+    const status = baseHealth.status
     if (securityStats.criticalCount > 10) {
       recommendations.push('High critical security events - review security dashboard')
     }

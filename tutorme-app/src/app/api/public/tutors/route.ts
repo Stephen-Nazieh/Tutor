@@ -92,9 +92,9 @@ export async function GET(request: NextRequest) {
     coursesByCreator.set(c.creatorId, list)
   }
 
-  let moduleCounts = new Map<string, number>()
-  let enrollmentCounts = new Map<string, number>()
-  let lessonCountsByCourse = new Map<string, number>()
+  const moduleCounts = new Map<string, number>()
+  const enrollmentCounts = new Map<string, number>()
+  const lessonCountsByCourse = new Map<string, number>()
   let modules: { courseId: string; moduleId: string }[] = []
   if (courseIds.length > 0) {
     modules = await drizzleDb
