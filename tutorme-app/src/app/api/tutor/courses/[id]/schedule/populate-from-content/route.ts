@@ -1,70 +1,17 @@
-/**
- * POST /api/tutor/courses/[id]/schedule/populate-from-content
- * Fill class schedule from existing modules/lessons (one slot per lesson). Tutor-only.
- */
+import { NextRequest, NextResponse } from 'next/server'
+import { withAuth } from '@/lib/api/middleware'
 
-import { NextResponse } from 'next/server'
-import { withAuth, withCsrf, NotFoundError } from '@/lib/api/middleware'
-import { getParamAsync } from '@/lib/api/params'
-import { drizzleDb } from '@/lib/db/drizzle'
-import { course, curriculumModule, courseLesson } from '@/lib/db/schema'
-import { eq, asc, inArray } from 'drizzle-orm'
+export const GET = withAuth(async () => {
+  return NextResponse.json({ 
+    error: 'Legacy feature removed',
+    message: 'This feature has been redesigned. Please use the new course builder.'
+  }, { status: 410 })
+})
 
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+export const POST = withAuth(async () => {
+  return NextResponse.json({ 
+    error: 'Legacy feature removed',
+    message: 'This feature has been redesigned. Please use the new course builder.'
+  }, { status: 410 })
+})
 
-export const POST = withCsrf(
-  withAuth(
-    async (req, session, context) => {
-      const id = await getParamAsync(context?.params, 'id')
-      if (!id) return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
-
-      const [courseRow] = await drizzleDb.select().from(course).where(eq(course.courseId, id))
-      if (!courseRow) throw new NotFoundError('Course not found')
-
-      // Lessons now directly reference courses, not modules
-      const lessons = await drizzleDb
-        .select({ lessonId: courseLesson.lessonId, title: courseLesson.title })
-        .from(courseLesson)
-        .where(eq(courseLesson.courseId, id))
-        .orderBy(asc(courseLesson.order))
-
-      // Default duration since duration field doesn't exist on lessons
-      const lessonsWithDuration = lessons.map(() => ({
-        duration: 45,
-      }))
-
-      if (lessonsWithDuration.length === 0) {
-        return NextResponse.json(
-          { error: 'Add at least one lesson to the course content first.' },
-          { status: 400 }
-        )
-      }
-
-      const body = await req.json().catch(() => ({}))
-      const firstDay =
-        typeof body.firstDay === 'string' && DAYS.includes(body.firstDay) ? body.firstDay : DAYS[0]
-      const startTime =
-        typeof body.startTime === 'string' && /^\d{1,2}:\d{2}$/.test(body.startTime)
-          ? body.startTime
-          : '09:00'
-
-      const firstDayIndex = DAYS.indexOf(firstDay)
-      const scheduleDistributed = lessonsWithDuration.map((les, i) => ({
-        dayOfWeek: DAYS[(firstDayIndex + i) % DAYS.length],
-        startTime,
-        durationMinutes: les.duration,
-      }))
-
-      await drizzleDb
-        .update(course)
-        .set({ schedule: scheduleDistributed as object })
-        .where(eq(course.courseId, id))
-
-      return NextResponse.json({
-        schedule: scheduleDistributed,
-        message: `Schedule populated with ${scheduleDistributed.length} class slots from course content.`,
-      })
-    },
-    { role: 'TUTOR' }
-  )
-)

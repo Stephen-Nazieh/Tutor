@@ -119,11 +119,20 @@ export async function POST(req: NextRequest) {
           courseId: newCourse.courseId,
           title: 'Introduction',
           description: 'Introduction to this course.',
+          duration: 60,
           order: 0,
-          tasks: [],
-          assessments: [],
-          homework: [],
-          builderData: {},
+          builderData: {
+            isPublished: false,
+            duration: 60,
+            difficultyMode: 'all',
+            variants: {},
+            media: { videos: [], images: [] },
+            docs: [],
+            content: [],
+            tasks: [],
+            homework: [],
+            quizzes: [],
+          },
         })
         console.log('Lesson created for course:', newCourse.courseId)
       })

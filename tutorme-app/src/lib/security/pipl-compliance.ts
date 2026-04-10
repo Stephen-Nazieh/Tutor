@@ -27,7 +27,6 @@ import {
   course,
   message,
   aITutorEnrollment,
-  quizAttempt,
   payment,
 } from '@/lib/db/schema'
 import { eq, and, inArray, desc } from 'drizzle-orm'
@@ -246,15 +245,8 @@ export const PIPL_ARTICLE_15 = {
       .from(aITutorEnrollment)
       .where(eq(aITutorEnrollment.studentId, userRow?.userId ?? userId))
 
-    const quizAttempts = await drizzleDb
-      .select({
-        attemptId: quizAttempt.attemptId,
-        score: quizAttempt.score,
-        completedAt: quizAttempt.completedAt,
-      })
-      .from(quizAttempt)
-      .where(eq(quizAttempt.studentId, userRow?.userId ?? userId))
-      .limit(200)
+    // Quiz attempts removed - now using task submissions
+    const quizAttempts: { attemptId: string; score: number; completedAt: Date }[] = []
 
     const activityLogs = await drizzleDb
       .select({ action: userActivityLog.action, createdAt: userActivityLog.createdAt })

@@ -1,114 +1,17 @@
-/**
- * GDPR Art.20 — Right to Data Portability.
- * GET /api/user/export-data — Returns all user data as structured JSON.
- * This includes: profile, courses enrolled, quiz attempts, AI session summaries (NOT full chat).
- */
 import { NextRequest, NextResponse } from 'next/server'
-import { eq, desc } from 'drizzle-orm'
-import { withAuth, handleApiError } from '@/lib/api/middleware'
-import { drizzleDb } from '@/lib/db/drizzle'
-import { profile, curriculumEnrollment, aIInteractionSession } from '@/lib/db/schema'
-import { logPiiAccess } from '@/lib/compliance/audit'
+import { withAuth } from '@/lib/api/middleware'
 
-export const GET = withAuth(async (req: NextRequest, session) => {
-  const userId = session?.user?.id
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  try {
-    // Audit log: user is exporting their own data
-    await logPiiAccess({
-      accessorId: userId,
-      accessorRole: session.user.role ?? 'STUDENT',
-      targetUserId: userId,
-      resourceType: 'data_export',
-      action: 'export',
-      endpoint: '/api/user/export-data',
-      req,
-      legalBasis: 'contract',
-    })
-
-    const [userProfile] = await drizzleDb
-      .select()
-      .from(profile)
-      .where(eq(profile.userId, userId))
-      .limit(1)
-
-    const enrollments = await drizzleDb
-      .select()
-      .from(curriculumEnrollment)
-      .where(eq(curriculumEnrollment.studentId, userId))
-
-    const quizAttempts = await drizzleDb
-      .select({
-        attemptId: quizAttempt.attemptId,
-        quizId: quizAttempt.quizId,
-        score: quizAttempt.score,
-        maxScore: quizAttempt.maxScore,
-        completedAt: quizAttempt.completedAt,
-        status: quizAttempt.status,
-      })
-      .from(quizAttempt)
-      .where(eq(quizAttempt.studentId, userId))
-      .orderBy(desc(quizAttempt.completedAt))
-      .limit(100)
-
-    // AI session summaries ONLY — not full chat content
-    const aiSessions = await drizzleDb
-      .select({
-        interactionId: aIInteractionSession.interactionId,
-        subjectCode: aIInteractionSession.subjectCode,
-        startedAt: aIInteractionSession.startedAt,
-        endedAt: aIInteractionSession.endedAt,
-        messageCount: aIInteractionSession.messageCount,
-        topicsCovered: aIInteractionSession.topicsCovered,
-        summary: aIInteractionSession.summary,
-        // NOTE: we intentionally DO NOT export full message content
-      })
-      .from(aIInteractionSession)
-      .where(eq(aIInteractionSession.studentId, userId))
-      .orderBy(desc(aIInteractionSession.startedAt))
-      .limit(100)
-
-    const exportData = {
-      exportedAt: new Date().toISOString(),
-      dataSubjectId: userId,
-      profile: userProfile
-        ? {
-            name: userProfile.name,
-            username: userProfile.username,
-            bio: userProfile.bio,
-            country: null, // not stored in profile directly
-            timezone: userProfile.timezone,
-            gradeLevel: userProfile.gradeLevel,
-            subjectsOfInterest: userProfile.subjectsOfInterest,
-            preferredLanguages: userProfile.preferredLanguages,
-            learningGoals: userProfile.learningGoals,
-            tosAcceptedAt: userProfile.tosAcceptedAt,
-            createdAt: userProfile.createdAt,
-            updatedAt: userProfile.updatedAt,
-          }
-        : null,
-      courseEnrollments: enrollments.map(e => ({
-        courseId: e.courseId,
-        enrolledAt: e.enrolledAt,
-        completedAt: e.completedAt,
-        lessonsCompleted: e.lessonsCompleted,
-      })),
-      quizAttempts,
-      aiSessionSummaries: aiSessions,
-      notice:
-        'This export contains your personal data held by Solocorn as required by GDPR Art.20 (Right to Data Portability). AI conversation messages are not exported to protect session integrity but summaries are included.',
-    }
-
-    return NextResponse.json(exportData, {
-      headers: {
-        'Content-Disposition': `attachment; filename="solocorn-data-export-${userId.slice(0, 8)}.json"`,
-        'Content-Type': 'application/json',
-      },
-    })
-  } catch (error) {
-    return handleApiError(error, 'Failed to export user data', 'api/user/export-data')
-  }
+export const GET = withAuth(async () => {
+  return NextResponse.json({ 
+    error: 'Legacy feature removed',
+    message: 'This feature has been redesigned. Please use the new course builder.'
+  }, { status: 410 })
 })
+
+export const POST = withAuth(async () => {
+  return NextResponse.json({ 
+    error: 'Legacy feature removed',
+    message: 'This feature has been redesigned. Please use the new course builder.'
+  }, { status: 410 })
+})
+
