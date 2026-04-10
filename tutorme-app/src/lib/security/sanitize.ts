@@ -3,7 +3,12 @@
  * Use for display and for any user-generated content that may be shown as HTML.
  */
 
-import DOMPurify from 'isomorphic-dompurify'
+import { JSDOM } from 'jsdom'
+import DOMPurify from 'dompurify'
+
+// Initialize DOMPurify with a JSDOM window for server-side use
+const jsdomWindow = new JSDOM('').window
+const purify = DOMPurify(jsdomWindow)
 
 /**
  * Sanitize HTML using DOMPurify (more secure than regex-based sanitization).
@@ -11,10 +16,10 @@ import DOMPurify from 'isomorphic-dompurify'
  */
 export function sanitizeHtml(input: string): string {
   if (typeof input !== 'string') return ''
-  return DOMPurify.sanitize(input, {
+  return purify.sanitize(input, {
     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li'],
     ALLOWED_ATTR: ['href', 'target', 'rel'],
-  })
+  }) as string
 }
 
 /**
