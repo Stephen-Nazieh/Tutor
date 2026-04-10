@@ -262,7 +262,11 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}))
-          if (!options?.isAutoSave) toast.error(data.error || 'Failed to save curriculum')
+          console.error('[CourseBuilder] Save failed:', data)
+          if (!options?.isAutoSave) {
+            const errorMsg = data.details || data.error || 'Failed to save curriculum'
+            toast.error(errorMsg)
+          }
         } else {
           if (!options?.isAutoSave) toast.success('Course saved successfully')
         }
