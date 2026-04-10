@@ -9,7 +9,7 @@ import { withAuth, withCsrf, NotFoundError, ValidationError } from '@/lib/api/mi
 import { getParamAsync } from '@/lib/api/params'
 import { startLesson, getLessonContent, getNextLesson } from '@/lib/curriculum/lesson-controller'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { courseLesson, curriculumModule } from '@/lib/db/schema'
+import { courseLesson } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 
 export const GET = withAuth(

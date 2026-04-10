@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withRateLimit, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, curriculumModule, courseLesson, courseEnrollment } from '@/lib/db/schema'
+import { course, courseLesson, courseEnrollment } from '@/lib/db/schema'
 import { eq, and, inArray, desc, sql } from 'drizzle-orm'
 
 const LIST_RATE_LIMIT_MAX = 60 // per minute per IP

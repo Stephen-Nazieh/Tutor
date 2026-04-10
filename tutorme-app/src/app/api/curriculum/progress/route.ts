@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, ValidationError, NotFoundError } from '@/lib/api/middleware'
 // getStudentProgress function removed - no longer needed with new schema
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, curriculumModule, courseLesson, curriculumLessonProgress } from '@/lib/db/schema'
+import { course, courseLesson, curriculumLessonProgress } from '@/lib/db/schema'
 import { eq, asc } from 'drizzle-orm'
 
 export const GET = withAuth(

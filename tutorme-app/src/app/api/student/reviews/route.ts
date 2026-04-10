@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { contentProgress, contentItem, reviewSchedule, quizAttempt } from '@/lib/db/schema'
+import { contentProgress, contentItem, reviewSchedule } from '@/lib/db/schema'
 import { eq, and, inArray } from 'drizzle-orm'
 import crypto from 'crypto'
 

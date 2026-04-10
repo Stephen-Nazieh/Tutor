@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { eq, desc } from 'drizzle-orm'
 import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { profile, curriculumEnrollment, quizAttempt, aIInteractionSession } from '@/lib/db/schema'
+import { profile, curriculumEnrollment, aIInteractionSession } from '@/lib/db/schema'
 import { logPiiAccess } from '@/lib/compliance/audit'
 
 export const GET = withAuth(async (req: NextRequest, session) => {

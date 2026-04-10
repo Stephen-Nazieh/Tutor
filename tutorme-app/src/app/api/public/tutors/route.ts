@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { user, profile, course, curriculumModule, courseLesson, courseEnrollment } from '@/lib/db/schema'
+import { user, profile, course, courseLesson, courseEnrollment } from '@/lib/db/schema'
 import { MOCK_TUTORS, shouldUseMockPublicTutors } from '@/lib/public/mock-tutors'
 
 interface PublicCourseSummary {
