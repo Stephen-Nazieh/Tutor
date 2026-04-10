@@ -15,12 +15,15 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
+import { user } from './auth'
 
 export const aIAssistantSession = pgTable(
   'AIAssistantSession',
   {
     assistantSessionId: text('id').primaryKey().notNull(),
-    tutorId: text('tutorId').notNull(),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     title: text('title').notNull(),
     context: text('context'),
     status: text('status').notNull(),
@@ -40,7 +43,9 @@ export const aIAssistantMessage = pgTable(
   'AIAssistantMessage',
   {
     assistantMessageId: text('id').primaryKey().notNull(),
-    sessionId: text('sessionId').notNull(),
+    sessionId: text('sessionId')
+      .notNull()
+      .references(() => aIAssistantSession.assistantSessionId, { onDelete: 'cascade' }),
     role: text('role').notNull(),
     content: text('content').notNull(),
     metadata: jsonb('metadata'),
@@ -56,7 +61,9 @@ export const aIAssistantInsight = pgTable(
   'AIAssistantInsight',
   {
     insightId: text('id').primaryKey().notNull(),
-    sessionId: text('sessionId').notNull(),
+    sessionId: text('sessionId')
+      .notNull()
+      .references(() => aIAssistantSession.assistantSessionId, { onDelete: 'cascade' }),
     type: text('type').notNull(),
     title: text('title').notNull(),
     content: text('content').notNull(),

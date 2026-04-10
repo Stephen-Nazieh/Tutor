@@ -15,6 +15,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
+import { user } from './auth'
 
 // ============================================
 // COURSE TABLES
@@ -106,7 +107,9 @@ export const courseLesson = pgTable(
   {
     lessonId: text('id').primaryKey().notNull(),
     moduleId: text('moduleId'), // Legacy column, nullable
-    courseId: text('courseId'),
+    courseId: text('courseId')
+      .notNull()
+      .references(() => course.courseId, { onDelete: 'cascade' }),
     title: text('title').notNull(),
     description: text('description'),
     // Legacy columns with defaults for backward compatibility
@@ -115,16 +118,16 @@ export const courseLesson = pgTable(
     learningObjectives: text('learningObjectives').array(),
     teachingPoints: text('teachingPoints').array(),
     keyConcepts: text('keyConcepts').array(),
-    examples: jsonb('examples'),
-    practiceProblems: jsonb('practiceProblems'),
+    examples: jsonb('examples').default({}),
+    practiceProblems: jsonb('practiceProblems').default({}),
     commonMisconceptions: text('commonMisconceptions').array(),
     prerequisiteLessonIds: text('prerequisiteLessonIds').array(),
     order: integer('order').notNull(),
     // New fields for tasks/assessments/homework structure
-    tasks: jsonb('tasks'), // Array of task objects
-    assessments: jsonb('assessments'), // Array of assessment objects
-    homework: jsonb('homework'), // Array of homework objects
-    builderData: jsonb('builderData'),
+    tasks: jsonb('tasks').default([]), // Array of task objects
+    assessments: jsonb('assessments').default([]), // Array of assessment objects
+    homework: jsonb('homework').default([]), // Array of homework objects
+    builderData: jsonb('builderData').default({}),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
@@ -192,13 +195,17 @@ export const courseEnrollment = pgTable(
   'CourseEnrollment',
   {
     enrollmentId: text('id').primaryKey().notNull(),
-    studentId: text('studentId').notNull(),
-    courseId: text('courseId').notNull(),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    courseId: text('courseId')
+      .notNull()
+      .references(() => course.courseId, { onDelete: 'cascade' }),
     enrolledAt: timestamp('enrolledAt', { withTimezone: true }).notNull().defaultNow(),
     startDate: timestamp('startDate', { withTimezone: true }),
     completedAt: timestamp('completedAt', { withTimezone: true }),
     lastActivity: timestamp('lastActivity', { withTimezone: true }).notNull().defaultNow(),
-    lessonsCompleted: integer('lessonsCompleted').notNull(),
+    lessonsCompleted: integer('lessonsCompleted').notNull().default(0),
     enrollmentSource: text('enrollmentSource'),
   },
   table => ({
@@ -213,13 +220,18 @@ export const courseProgress = pgTable(
   'CourseProgress',
   {
     progressId: text('id').primaryKey().notNull(),
-    studentId: text('studentId').notNull(),
-    courseId: text('courseId').notNull(),
-    lessonsCompleted: integer('lessonsCompleted').notNull(),
-    totalLessons: integer('totalLessons').notNull(),
-    currentLessonId: text('currentLessonId'),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    courseId: text('courseId')
+      .notNull()
+      .references(() => course.courseId, { onDelete: 'cascade' }),
+    lessonsCompleted: integer('lessonsCompleted').notNull().default(0),
+    totalLessons: integer('totalLessons').notNull().default(0),
+    currentLessonId: text('currentLessonId')
+      .references(() => courseLesson.lessonId, { onDelete: 'set null' }),
     averageScore: doublePrecision('averageScore'),
-    isCompleted: boolean('isCompleted').notNull(),
+    isCompleted: boolean('isCompleted').notNull().default(false),
     startedAt: timestamp('startedAt', { withTimezone: true }).notNull().defaultNow(),
     completedAt: timestamp('completedAt', { withTimezone: true }),
   },

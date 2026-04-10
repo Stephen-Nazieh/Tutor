@@ -15,13 +15,17 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
+import { user } from './auth'
+import { course } from './curriculum'
 
 export const liveSession = pgTable(
   'LiveSession',
   {
     sessionId: text('id').primaryKey().notNull(),
-    tutorId: text('tutorId').notNull(),
-    courseId: text('courseId'),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    courseId: text('courseId').references(() => course.courseId, { onDelete: 'set null' }),
     title: text('title').notNull(),
     category: text('category').notNull(),
     description: text('description'),
@@ -48,8 +52,13 @@ export const sessionReplayArtifact = pgTable(
   'SessionReplayArtifact',
   {
     artifactId: text('id').primaryKey().notNull(),
-    sessionId: text('sessionId').notNull().unique(),
-    tutorId: text('tutorId').notNull(),
+    sessionId: text('sessionId')
+      .notNull()
+      .unique()
+      .references(() => liveSession.sessionId, { onDelete: 'cascade' }),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     recordingUrl: text('recordingUrl'),
     transcript: text('transcript'),
     summary: text('summary'),
@@ -76,8 +85,12 @@ export const sessionParticipant = pgTable(
   'SessionParticipant',
   {
     participantId: text('id').primaryKey().notNull(),
-    sessionId: text('sessionId').notNull(),
-    studentId: text('studentId').notNull(),
+    sessionId: text('sessionId')
+      .notNull()
+      .references(() => liveSession.sessionId, { onDelete: 'cascade' }),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     joinedAt: timestamp('joinedAt', { withTimezone: true }).notNull().defaultNow(),
     leftAt: timestamp('leftAt', { withTimezone: true }),
   },
@@ -93,8 +106,12 @@ export const poll = pgTable(
   'Poll',
   {
     pollId: text('id').primaryKey().notNull(),
-    sessionId: text('sessionId').notNull(),
-    tutorId: text('tutorId').notNull(),
+    sessionId: text('sessionId')
+      .notNull()
+      .references(() => liveSession.sessionId, { onDelete: 'cascade' }),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     question: text('question').notNull(),
     type: enums.pollTypeEnum('type').notNull(),
     isAnonymous: boolean('isAnonymous').notNull(),
@@ -123,7 +140,9 @@ export const pollOption = pgTable(
   'PollOption',
   {
     optionId: text('id').primaryKey().notNull(),
-    pollId: text('pollId').notNull(),
+    pollId: text('pollId')
+      .notNull()
+      .references(() => poll.pollId, { onDelete: 'cascade' }),
     label: text('label').notNull(),
     text: text('text').notNull(),
     color: text('color'),
@@ -139,7 +158,9 @@ export const pollResponse = pgTable(
   'PollResponse',
   {
     responseId: text('id').primaryKey().notNull(),
-    pollId: text('pollId').notNull(),
+    pollId: text('pollId')
+      .notNull()
+      .references(() => poll.pollId, { onDelete: 'cascade' }),
     respondentHash: text('respondentHash'),
     optionIds: text('optionIds').array().notNull(),
     rating: integer('rating'),
@@ -160,8 +181,12 @@ export const message = pgTable(
   'Message',
   {
     messageId: text('id').primaryKey().notNull(),
-    sessionId: text('sessionId').notNull(),
-    userId: text('userId').notNull(),
+    sessionId: text('sessionId')
+      .notNull()
+      .references(() => liveSession.sessionId, { onDelete: 'cascade' }),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     content: text('content').notNull(),
     type: text('type').notNull(),
     source: enums.messageSourceEnum('source').notNull(),
@@ -177,8 +202,12 @@ export const conversation = pgTable(
   'Conversation',
   {
     conversationId: text('id').primaryKey().notNull(),
-    participant1Id: text('participant1Id').notNull(),
-    participant2Id: text('participant2Id').notNull(),
+    participant1Id: text('participant1Id')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    participant2Id: text('participant2Id')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
@@ -202,8 +231,12 @@ export const directMessage = pgTable(
   'DirectMessage',
   {
     directMessageId: text('id').primaryKey().notNull(),
-    conversationId: text('conversationId').notNull(),
-    senderId: text('senderId').notNull(),
+    conversationId: text('conversationId')
+      .notNull()
+      .references(() => conversation.conversationId, { onDelete: 'cascade' }),
+    senderId: text('senderId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     content: text('content').notNull(),
     type: text('type').notNull(),
     attachmentUrl: text('attachmentUrl'),
@@ -224,9 +257,15 @@ export const mention = pgTable(
   'Mention',
   {
     mentionId: uuid('mentionId').primaryKey().notNull().defaultRandom(),
-    messageId: text('messageId').notNull(),
-    mentionerId: text('mentionerId').notNull(),
-    mentioneeId: text('mentioneeId').notNull(),
+    messageId: text('messageId')
+      .notNull()
+      .references(() => message.messageId, { onDelete: 'cascade' }),
+    mentionerId: text('mentionerId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    mentioneeId: text('mentioneeId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
   },
   table => ({
@@ -240,8 +279,12 @@ export const tutorFollow = pgTable(
   'TutorFollow',
   {
     followId: uuid('followId').primaryKey().notNull().defaultRandom(),
-    followerId: text('followerId').notNull(),
-    tutorId: text('tutorId').notNull(),
+    followerId: text('followerId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
   },
   table => ({
@@ -258,7 +301,9 @@ export const notification = pgTable(
   'Notification',
   {
     notificationId: text('id').primaryKey().notNull(),
-    userId: text('userId').notNull(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     type: text('type').notNull(),
     title: text('title').notNull(),
     message: text('message').notNull(),

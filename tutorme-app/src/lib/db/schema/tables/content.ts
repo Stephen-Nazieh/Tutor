@@ -15,6 +15,9 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
+import { user } from './auth'
+import { course, courseLesson } from './curriculum'
+import { liveSession } from './live'
 
 export const contentItem = pgTable(
   'ContentItem',
@@ -47,8 +50,12 @@ export const videoWatchEvent = pgTable(
   'VideoWatchEvent',
   {
     eventId: text('id').primaryKey().notNull(),
-    contentId: text('contentId').notNull(),
-    studentId: text('studentId').notNull(),
+    contentId: text('contentId')
+      .notNull()
+      .references(() => contentItem.contentId, { onDelete: 'cascade' }),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     eventType: text('eventType').notNull(),
     videoSeconds: doublePrecision('videoSeconds').notNull(),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
@@ -139,9 +146,13 @@ export const quizAttempt = pgTable(
   'QuizAttempt',
   {
     attemptId: text('id').primaryKey().notNull(),
-    studentId: text('studentId').notNull(),
-    quizId: text('quizId').notNull(),
-    assignmentId: text('assignmentId'),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    quizId: text('quizId')
+      .notNull()
+      .references(() => quiz.quizId, { onDelete: 'cascade' }),
+    assignmentId: text('assignmentId').references(() => quizAssignment.assignmentId, { onDelete: 'set null' }),
     answers: jsonb('answers').notNull(),
     score: integer('score').notNull(),
     maxScore: integer('maxScore').notNull(),
@@ -168,7 +179,9 @@ export const questionBankItem = pgTable(
   'QuestionBankItem',
   {
     itemId: text('id').primaryKey().notNull(),
-    tutorId: text('tutorId').notNull(),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     type: text('type').notNull(),
     question: text('question').notNull(),
     options: jsonb('options'),
@@ -201,7 +214,9 @@ export const quiz = pgTable(
   'Quiz',
   {
     quizId: text('id').primaryKey().notNull(),
-    tutorId: text('tutorId').notNull(),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     title: text('title').notNull(),
     description: text('description'),
     type: text('type').notNull(),
@@ -217,8 +232,8 @@ export const quiz = pgTable(
     tags: text('tags').array().notNull(),
     startDate: timestamp('startDate', { withTimezone: true }),
     dueDate: timestamp('dueDate', { withTimezone: true }),
-    courseId: text('courseId'),
-    lessonId: text('lessonId'),
+    courseId: text('courseId').references(() => course.courseId, { onDelete: 'set null' }),
+    lessonId: text('lessonId').references(() => courseLesson.lessonId, { onDelete: 'set null' }),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
@@ -237,8 +252,12 @@ export const quizAssignment = pgTable(
   'QuizAssignment',
   {
     assignmentId: text('id').primaryKey().notNull(),
-    quizId: text('quizId').notNull(),
-    assignedByTutorId: text('assignedByTutorId').notNull(),
+    quizId: text('quizId')
+      .notNull()
+      .references(() => quiz.quizId, { onDelete: 'cascade' }),
+    assignedByTutorId: text('assignedByTutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     assignedToType: text('assignedToType').notNull(),
     assignedToId: text('assignedToId'),
     assignedToAll: boolean('assignedToAll').notNull(),
@@ -262,8 +281,12 @@ export const note = pgTable(
   'Note',
   {
     noteId: text('id').primaryKey().notNull(),
-    contentId: text('contentId').notNull(),
-    studentId: text('studentId').notNull(),
+    contentId: text('contentId')
+      .notNull()
+      .references(() => contentItem.contentId, { onDelete: 'cascade' }),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     content: text('content').notNull(),
     timestamp: integer('timestamp').notNull(),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
@@ -278,8 +301,12 @@ export const bookmark = pgTable(
   'Bookmark',
   {
     bookmarkId: text('id').primaryKey().notNull(),
-    contentId: text('contentId').notNull(),
-    studentId: text('studentId').notNull(),
+    contentId: text('contentId')
+      .notNull()
+      .references(() => contentItem.contentId, { onDelete: 'cascade' }),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
   },
   table => ({

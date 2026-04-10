@@ -15,12 +15,15 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
+import { user } from './auth'
 
 export const userActivityLog = pgTable(
   'UserActivityLog',
   {
     activityId: text('id').primaryKey().notNull(),
-    userId: text('userId').notNull(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     action: text('action').notNull(),
     metadata: jsonb('metadata'),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
@@ -41,7 +44,7 @@ export const apiKey = pgTable(
     apiKeyId: text('id').primaryKey().notNull(),
     name: text('name').notNull(),
     keyHash: text('keyHash').notNull(),
-    createdById: text('createdById'),
+    createdById: text('createdById').references(() => user.userId, { onDelete: 'set null' }),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     lastUsedAt: timestamp('lastUsedAt', { withTimezone: true }),
   },
@@ -59,8 +62,8 @@ export const securityEvent = pgTable(
     metadata: jsonb('metadata'),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     action: text('action'),
-    userId: text('userId'),
-    actorId: text('actorId'),
+    userId: text('userId').references(() => user.userId, { onDelete: 'set null' }),
+    actorId: text('actorId').references(() => user.userId, { onDelete: 'set null' }),
     targetType: text('targetType'),
     targetId: text('targetId'),
     severity: text('severity'),

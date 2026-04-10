@@ -15,6 +15,8 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
+import { user } from './auth'
+import { courseEnrollment } from './curriculum'
 
 export const payment = pgTable(
   'Payment',
@@ -29,13 +31,15 @@ export const payment = pgTable(
     gatewayCheckoutUrl: text('gatewayCheckoutUrl'),
     paidAt: timestamp('paidAt', { withTimezone: true }),
     refundedAt: timestamp('refundedAt', { withTimezone: true }),
-    metadata: jsonb('metadata'),
+    metadata: jsonb('metadata').default({}),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
       .$onUpdate(() => new Date()),
-    enrollmentId: text('enrollmentId'),
-    tutorId: text('tutorId'),
+    enrollmentId: text('enrollmentId')
+      .references(() => courseEnrollment.enrollmentId, { onDelete: 'set null' }),
+    tutorId: text('tutorId')
+      .references(() => user.userId, { onDelete: 'set null' }),
   },
   table => ({
     Payment_status_idx: index('Payment_status_idx').on(table.status),
@@ -58,7 +62,9 @@ export const refund = pgTable(
   'Refund',
   {
     refundId: text('id').primaryKey().notNull(),
-    paymentId: text('paymentId').notNull(),
+    paymentId: text('paymentId')
+      .notNull()
+      .references(() => payment.paymentId, { onDelete: 'cascade' }),
     amount: doublePrecision('amount').notNull(),
     reason: text('reason'),
     status: enums.refundStatusEnum('status').notNull(),
@@ -78,7 +84,7 @@ export const webhookEvent = pgTable(
   'WebhookEvent',
   {
     eventId: text('id').primaryKey().notNull(),
-    paymentId: text('paymentId'),
+    paymentId: text('paymentId').references(() => payment.paymentId, { onDelete: 'set null' }),
     gateway: enums.paymentGatewayEnum('gateway').notNull(),
     eventType: text('eventType').notNull(),
     payload: jsonb('payload').notNull(),
@@ -99,7 +105,9 @@ export const payout = pgTable(
   'Payout',
   {
     payoutId: text('id').primaryKey().notNull(),
-    tutorId: text('tutorId').notNull(),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     amount: doublePrecision('amount').notNull(),
     currency: text('currency').notNull(),
     status: text('status').notNull(),
@@ -122,8 +130,12 @@ export const paymentOnPayout = pgTable(
   'PaymentOnPayout',
   {
     paymentOnPayoutId: text('id').primaryKey().notNull(),
-    paymentId: text('paymentId').notNull(),
-    payoutId: text('payoutId').notNull(),
+    paymentId: text('paymentId')
+      .notNull()
+      .references(() => payment.paymentId, { onDelete: 'cascade' }),
+    payoutId: text('payoutId')
+      .notNull()
+      .references(() => payout.payoutId, { onDelete: 'cascade' }),
     amount: doublePrecision('amount').notNull(),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -140,7 +152,9 @@ export const platformRevenue = pgTable(
   'PlatformRevenue',
   {
     revenueId: text('id').primaryKey().notNull(),
-    paymentId: text('paymentId').notNull(),
+    paymentId: text('paymentId')
+      .notNull()
+      .references(() => payment.paymentId, { onDelete: 'cascade' }),
     amount: doublePrecision('amount').notNull(),
     month: text('month').notNull(),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),

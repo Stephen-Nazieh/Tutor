@@ -15,13 +15,20 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
+import { user } from './auth'
+import { course, courseLesson } from './curriculum'
+import { liveSession } from './live'
 
 export const breakoutSession = pgTable(
   'BreakoutSession',
   {
     breakoutSessionId: text('id').primaryKey().notNull(),
-    mainRoomId: text('mainRoomId').notNull(),
-    tutorId: text('tutorId').notNull(),
+    mainRoomId: text('mainRoomId')
+      .notNull()
+      .references(() => liveSession.sessionId, { onDelete: 'cascade' }),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     roomCount: integer('roomCount').notNull(),
     participantsPerRoom: integer('participantsPerRoom').notNull(),
     distributionMode: text('distributionMode').notNull(),
@@ -43,7 +50,9 @@ export const breakoutRoom = pgTable(
   'BreakoutRoom',
   {
     roomId: text('id').primaryKey().notNull(),
-    sessionId: text('sessionId').notNull(),
+    sessionId: text('sessionId')
+      .notNull()
+      .references(() => breakoutSession.breakoutSessionId, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     aiEnabled: boolean('aiEnabled').notNull(),
     aiMode: text('aiMode').notNull(),
@@ -64,8 +73,12 @@ export const breakoutRoomAssignment = pgTable(
   'BreakoutRoomAssignment',
   {
     assignmentId: text('id').primaryKey().notNull(),
-    roomId: text('roomId').notNull(),
-    studentId: text('studentId').notNull(),
+    roomId: text('roomId')
+      .notNull()
+      .references(() => breakoutRoom.roomId, { onDelete: 'cascade' }),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     joinedAt: timestamp('joinedAt', { withTimezone: true }).notNull().defaultNow(),
     leftAt: timestamp('leftAt', { withTimezone: true }),
   },
@@ -83,7 +96,9 @@ export const aITutorEnrollment = pgTable(
   'AITutorEnrollment',
   {
     enrollmentId: text('id').primaryKey().notNull(),
-    studentId: text('studentId').notNull(),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     subjectCode: text('subjectCode').notNull(),
     enrolledAt: timestamp('enrolledAt', { withTimezone: true }).notNull().defaultNow(),
     lastSessionAt: timestamp('lastSessionAt', { withTimezone: true }),
@@ -126,7 +141,10 @@ export const aIInteractionSession = pgTable(
 export const studentMemoryProfile = pgTable(
   'StudentMemoryProfile',
   {
-    studentId: text('id').primaryKey().notNull(),
+    studentId: text('id')
+      .primaryKey()
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     profile: jsonb('profile').notNull(),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
@@ -143,7 +161,10 @@ export const studentMemoryProfile = pgTable(
 export const studentLearningState = pgTable(
   'StudentLearningState',
   {
-    studentId: text('id').primaryKey().notNull(),
+    studentId: text('id')
+      .primaryKey()
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     state: jsonb('state').notNull(),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
@@ -179,7 +200,9 @@ export const aITutorDailyUsage = pgTable(
   'AITutorDailyUsage',
   {
     usageId: text('id').primaryKey().notNull(),
-    userId: text('userId').notNull(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     date: timestamp('date', { withTimezone: true }).notNull().defaultNow(),
     sessionCount: integer('sessionCount').notNull(),
     messageCount: integer('messageCount').notNull(),

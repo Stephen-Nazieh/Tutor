@@ -15,14 +15,22 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
+import { user } from './auth'
+import { course, courseLesson } from './curriculum'
 
 export const builderTask = pgTable(
   'BuilderTask',
   {
     taskId: text('id').primaryKey().notNull(),
-    courseId: text('courseId').notNull(),
-    lessonId: text('lessonId').notNull(),
-    tutorId: text('tutorId').notNull(),
+    courseId: text('courseId')
+      .notNull()
+      .references(() => course.courseId, { onDelete: 'cascade' }),
+    lessonId: text('lessonId')
+      .notNull()
+      .references(() => courseLesson.lessonId, { onDelete: 'cascade' }),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     title: text('title').notNull(),
     content: text('content').notNull(), // Content tab content
     pci: text('pci').notNull(), // PCI tab content (instructions)
@@ -54,7 +62,9 @@ export const builderTaskExtension = pgTable(
   'BuilderTaskExtension',
   {
     extensionId: text('id').primaryKey().notNull(),
-    taskId: text('taskId').notNull(),
+    taskId: text('taskId')
+      .notNull()
+      .references(() => builderTask.taskId, { onDelete: 'cascade' }),
     name: text('name').notNull(), // Extension 1, Extension 2, etc.
     content: text('content').notNull(), // Extension content
     pci: text('pci').notNull(), // Extension PCI
@@ -79,7 +89,9 @@ export const builderTaskFile = pgTable(
   'BuilderTaskFile',
   {
     fileId: text('id').primaryKey().notNull(),
-    taskId: text('taskId').notNull(),
+    taskId: text('taskId')
+      .notNull()
+      .references(() => builderTask.taskId, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     url: text('url').notNull(),
     mimeType: text('mimeType'),
@@ -96,12 +108,16 @@ export const builderTaskVersion = pgTable(
   'BuilderTaskVersion',
   {
     versionId: text('id').primaryKey().notNull(),
-    taskId: text('taskId').notNull(),
+    taskId: text('taskId')
+      .notNull()
+      .references(() => builderTask.taskId, { onDelete: 'cascade' }),
     version: integer('version').notNull(),
     content: text('content').notNull(),
     pci: text('pci').notNull(),
     changeDescription: text('changeDescription'),
-    createdBy: text('createdBy').notNull(),
+    createdBy: text('createdBy')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
   },
   table => ({

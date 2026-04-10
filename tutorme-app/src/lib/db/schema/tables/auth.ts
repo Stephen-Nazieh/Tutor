@@ -40,7 +40,9 @@ export const account = pgTable(
   'Account',
   {
     accountId: text('id').primaryKey().notNull(),
-    userId: text('userId').notNull(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     type: text('type').notNull(),
     provider: text('provider').notNull(),
     providerAccountId: text('providerAccountId').notNull(),
@@ -62,30 +64,33 @@ export const account = pgTable(
 
 export const profile = pgTable('Profile', {
   profileId: text('id').primaryKey().notNull(),
-  userId: text('userId').notNull().unique(),
+  userId: text('userId')
+    .notNull()
+    .unique()
+    .references(() => user.userId, { onDelete: 'cascade' }),
   name: text('name'),
   username: text('username').unique(),
   bio: text('bio'),
   avatarUrl: text('avatarUrl'),
   dateOfBirth: timestamp('dateOfBirth', { withTimezone: true }),
-  timezone: text('timezone').notNull(),
-  emailNotifications: boolean('emailNotifications').notNull(),
-  smsNotifications: boolean('smsNotifications').notNull(),
+  timezone: text('timezone').notNull().default('UTC'),
+  emailNotifications: boolean('emailNotifications').notNull().default(true),
+  smsNotifications: boolean('smsNotifications').notNull().default(false),
   gradeLevel: text('gradeLevel'),
   studentUniqueId: text('studentUniqueId').unique(),
-  subjectsOfInterest: text('subjectsOfInterest').array().notNull(),
-  preferredLanguages: text('preferredLanguages').array().notNull(),
-  learningGoals: text('learningGoals').array().notNull(),
-  tosAccepted: boolean('tosAccepted').notNull(),
+  subjectsOfInterest: text('subjectsOfInterest').array().notNull().default([]),
+  preferredLanguages: text('preferredLanguages').array().notNull().default([]),
+  learningGoals: text('learningGoals').array().notNull().default([]),
+  tosAccepted: boolean('tosAccepted').notNull().default(false),
   tosAcceptedAt: timestamp('tosAcceptedAt', { withTimezone: true }),
   organizationName: text('organizationName'),
-  isOnboarded: boolean('isOnboarded').notNull(),
+  isOnboarded: boolean('isOnboarded').notNull().default(false),
   hourlyRate: doublePrecision('hourlyRate'),
   oneOnOneEnabled: boolean('oneOnOneEnabled'),
-  specialties: text('specialties').array().notNull(),
+  specialties: text('specialties').array().notNull().default([]),
   credentials: text('credentials'),
-  availability: jsonb('availability'),
-  paidClassesEnabled: boolean('paidClassesEnabled').notNull(),
+  availability: jsonb('availability').default({}),
+  paidClassesEnabled: boolean('paidClassesEnabled').notNull().default(false),
   paymentGatewayPreference: text('paymentGatewayPreference'),
   currency: text('currency'),
   createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
@@ -98,8 +103,10 @@ export const tutorApplication = pgTable(
   'TutorApplication',
   {
     applicationId: text('id').primaryKey().notNull(),
-    // Must match the actual production DB column: "userId" (camelCase, quoted)
-    userId: text('userId').notNull().unique(),
+    userId: text('userId')
+      .notNull()
+      .unique()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     firstName: text('firstName').notNull(),
     middleName: text('middleName'),
     lastName: text('lastName').notNull(),
@@ -112,12 +119,12 @@ export const tutorApplication = pgTable(
     certificateName: text('certificateName'),
     certificateSubjects: text('certificateSubjects'),
     tutoringExperienceRange: text('tutoringExperienceRange').notNull(),
-    globalExams: jsonb('globalExams').notNull(),
-    tutoringCountries: text('tutoringCountries').array().notNull(),
-    countrySubjectSelections: jsonb('countrySubjectSelections').notNull(),
-    categories: text('categories').array().notNull(),
+    globalExams: jsonb('globalExams').notNull().default([]),
+    tutoringCountries: text('tutoringCountries').array().notNull().default([]),
+    countrySubjectSelections: jsonb('countrySubjectSelections').notNull().default({}),
+    categories: text('categories').array().notNull().default([]),
     username: text('username').notNull(),
-    socialLinks: jsonb('socialLinks'),
+    socialLinks: jsonb('socialLinks').default({}),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()

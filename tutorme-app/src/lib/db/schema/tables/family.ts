@@ -15,6 +15,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
+import { user } from './auth'
 
 export const familyAccount = pgTable(
   'FamilyAccount',
@@ -62,8 +63,10 @@ export const familyMember = pgTable(
   'FamilyMember',
   {
     familyMemberId: text('id').primaryKey().notNull(),
-    familyAccountId: text('familyAccountId').notNull(),
-    userId: text('userId'),
+    familyAccountId: text('familyAccountId')
+      .notNull()
+      .references(() => familyAccount.familyAccountId, { onDelete: 'cascade' }),
+    userId: text('userId').references(() => user.userId, { onDelete: 'set null' }),
     name: text('name').notNull(),
     relation: text('relation').notNull(),
     email: text('email'),
@@ -93,7 +96,9 @@ export const familyBudget = pgTable(
   'FamilyBudget',
   {
     budgetId: text('id').primaryKey().notNull(),
-    parentId: text('parentId').notNull(),
+    parentId: text('parentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     month: integer('month').notNull(),
     year: integer('year').notNull(),
     amount: doublePrecision('amount').notNull(),
@@ -122,7 +127,9 @@ export const familyPayment = pgTable(
   'FamilyPayment',
   {
     familyPaymentId: text('id').primaryKey().notNull(),
-    parentId: text('parentId').notNull(),
+    parentId: text('parentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     amount: doublePrecision('amount').notNull(),
     method: text('method').notNull(),
     status: text('status').notNull(),
@@ -149,7 +156,9 @@ export const budgetAlert = pgTable(
   'BudgetAlert',
   {
     alertId: text('id').primaryKey().notNull(),
-    parentId: text('parentId').notNull(),
+    parentId: text('parentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     type: text('type').notNull(),
     message: text('message').notNull(),
     isRead: boolean('isRead').notNull(),
@@ -164,7 +173,9 @@ export const parentActivityLog = pgTable(
   'ParentActivityLog',
   {
     activityLogId: text('id').primaryKey().notNull(),
-    parentId: text('parentId').notNull(),
+    parentId: text('parentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     action: text('action').notNull(),
     details: text('details'),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
@@ -182,7 +193,9 @@ export const familyNotification = pgTable(
   'FamilyNotification',
   {
     notificationId: text('id').primaryKey().notNull(),
-    parentId: text('parentId').notNull(),
+    parentId: text('parentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     title: text('title').notNull(),
     message: text('message').notNull(),
     isRead: boolean('isRead').notNull(),
@@ -204,7 +217,9 @@ export const emergencyContact = pgTable(
   'EmergencyContact',
   {
     contactId: text('id').primaryKey().notNull(),
-    parentId: text('parentId').notNull(),
+    parentId: text('parentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     relation: text('relation').notNull(),
     phone: text('phone').notNull(),
@@ -228,7 +243,9 @@ export const studentProgressSnapshot = pgTable(
   'StudentProgressSnapshot',
   {
     snapshotId: text('id').primaryKey().notNull(),
-    parentId: text('parentId').notNull(),
+    parentId: text('parentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     studentId: text('studentId').notNull(),
     data: jsonb('data').notNull(),
     capturedAt: timestamp('capturedAt', { withTimezone: true }).notNull().defaultNow(),
@@ -255,7 +272,10 @@ export const parentPaymentAuthorization = pgTable(
   'ParentPaymentAuthorization',
   {
     authorizationId: text('id').primaryKey().notNull(),
-    parentId: text('parentId').notNull().unique(),
+    parentId: text('parentId')
+      .notNull()
+      .unique()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     level: text('level').notNull(),
     maxAmount: doublePrecision('maxAmount'),
     methods: text('methods').array().notNull(),
@@ -276,7 +296,9 @@ export const parentSpendingLimit = pgTable(
   'ParentSpendingLimit',
   {
     spendingLimitId: text('id').primaryKey().notNull(),
-    parentId: text('parentId').notNull(),
+    parentId: text('parentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     category: text('category').notNull(),
     limit: doublePrecision('limit').notNull(),
     period: text('period').notNull(),

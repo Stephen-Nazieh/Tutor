@@ -15,6 +15,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
+import { user } from './auth'
 
 export const adminRole = pgTable('AdminRole', {
   roleId: text('id').primaryKey().notNull(),
@@ -31,9 +32,13 @@ export const adminAssignment = pgTable(
   'AdminAssignment',
   {
     assignmentId: text('id').primaryKey().notNull(),
-    userId: text('userId').notNull(),
-    roleId: text('roleId').notNull(),
-    assignedBy: text('assignedBy'),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    roleId: text('roleId')
+      .notNull()
+      .references(() => adminRole.roleId, { onDelete: 'cascade' }),
+    assignedBy: text('assignedBy').references(() => user.userId, { onDelete: 'set null' }),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     expiresAt: timestamp('expiresAt', { withTimezone: true }),
     isActive: boolean('isActive').notNull(),
@@ -59,8 +64,8 @@ export const featureFlag = pgTable(
     scope: text('scope').notNull(),
     targetValue: jsonb('targetValue'),
     config: jsonb('config').notNull(),
-    createdBy: text('createdBy'),
-    updatedBy: text('updatedBy'),
+    createdBy: text('createdBy').references(() => user.userId, { onDelete: 'set null' }),
+    updatedBy: text('updatedBy').references(() => user.userId, { onDelete: 'set null' }),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
@@ -78,8 +83,12 @@ export const featureFlagChange = pgTable(
   'FeatureFlagChange',
   {
     changeId: text('id').primaryKey().notNull(),
-    flagId: text('flagId').notNull(),
-    changedBy: text('changedBy').notNull(),
+    flagId: text('flagId')
+      .notNull()
+      .references(() => featureFlag.flagId, { onDelete: 'cascade' }),
+    changedBy: text('changedBy')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     previousValue: jsonb('previousValue'),
     newValue: jsonb('newValue'),
     changeReason: text('changeReason'),
@@ -114,7 +123,9 @@ export const llmModel = pgTable(
   'LlmModel',
   {
     modelId: text('id').primaryKey().notNull(),
-    providerId: text('providerId').notNull(),
+    providerId: text('providerId')
+      .notNull()
+      .references(() => llmProvider.providerId, { onDelete: 'cascade' }),
     modelKey: text('modelKey').notNull(),
     name: text('name'),
     description: text('description'),
@@ -143,11 +154,15 @@ export const llmRoutingRule = pgTable(
     description: text('description'),
     priority: integer('priority').notNull(),
     conditions: jsonb('conditions').notNull(),
-    targetModelId: text('targetModelId').notNull(),
-    fallbackModelId: text('fallbackModelId'),
+    targetModelId: text('targetModelId')
+      .notNull()
+      .references(() => llmModel.modelId, { onDelete: 'cascade' }),
+    fallbackModelId: text('fallbackModelId').references(() => llmModel.modelId, { onDelete: 'set null' }),
     isActive: boolean('isActive').notNull(),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
-    providerId: text('providerId').notNull(),
+    providerId: text('providerId')
+      .notNull()
+      .references(() => llmProvider.providerId, { onDelete: 'cascade' }),
   },
   table => ({
     LlmRoutingRule_targetModelId_idx: index('LlmRoutingRule_targetModelId_idx').on(

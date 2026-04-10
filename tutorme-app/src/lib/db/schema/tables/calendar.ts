@@ -15,12 +15,16 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
+import { user } from './auth'
+import { course } from './curriculum'
 
 export const calendarConnection = pgTable(
   'CalendarConnection',
   {
     connectionId: text('id').primaryKey().notNull(),
-    userId: text('userId').notNull(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     provider: text('provider').notNull(),
     providerAccountId: text('providerAccountId'),
     accessToken: text('accessToken'),
@@ -47,7 +51,9 @@ export const calendarEvent = pgTable(
   'CalendarEvent',
   {
     eventId: text('id').primaryKey().notNull(),
-    tutorId: text('tutorId').notNull(),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     title: text('title').notNull(),
     description: text('description'),
     type: enums.eventTypeEnum('type').notNull(),
@@ -62,8 +68,8 @@ export const calendarEvent = pgTable(
     location: text('location'),
     meetingUrl: text('meetingUrl'),
     isVirtual: boolean('isVirtual').notNull(),
-    courseId: text('courseId'),
-    studentId: text('studentId'),
+    courseId: text('courseId').references(() => course.courseId, { onDelete: 'set null' }),
+    studentId: text('studentId').references(() => user.userId, { onDelete: 'set null' }),
     attendees: jsonb('attendees'),
     maxAttendees: integer('maxAttendees').notNull(),
     reminders: jsonb('reminders'),
@@ -72,7 +78,9 @@ export const calendarEvent = pgTable(
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
       .$onUpdate(() => new Date()),
-    createdBy: text('createdBy').notNull(),
+    createdBy: text('createdBy')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     externalId: text('externalId'),
     deletedAt: timestamp('deletedAt', { withTimezone: true }),
     isCancelled: boolean('isCancelled').notNull(),
@@ -97,7 +105,9 @@ export const calendarAvailability = pgTable(
   'CalendarAvailability',
   {
     availabilityId: text('id').primaryKey().notNull(),
-    tutorId: text('tutorId').notNull(),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     dayOfWeek: integer('dayOfWeek').notNull(),
     startTime: text('startTime').notNull(),
     endTime: text('endTime').notNull(),
@@ -125,7 +135,9 @@ export const calendarException = pgTable(
   'CalendarException',
   {
     exceptionId: text('id').primaryKey().notNull(),
-    tutorId: text('tutorId').notNull(),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     date: timestamp('date', { withTimezone: true }).notNull(),
     isAvailable: boolean('isAvailable').notNull(),
     startTime: text('startTime'),
@@ -147,7 +159,9 @@ export const oneOnOneBookingRequest = pgTable(
   'OneOnOneBookingRequest',
   {
     requestId: text('id').primaryKey().notNull(),
-    tutorId: text('tutorId').notNull(),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     studentId: text('studentId').notNull(),
     requestedDate: timestamp('requestedDate', { withTimezone: true }).notNull(),
     startTime: text('startTime').notNull(),

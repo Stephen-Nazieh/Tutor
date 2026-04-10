@@ -15,6 +15,8 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
+import { user } from './auth'
+import { liveSession } from './live'
 
 export const performanceMetric = pgTable(
   'PerformanceMetric',
@@ -24,7 +26,7 @@ export const performanceMetric = pgTable(
     metricValue: doublePrecision('metric_value').notNull(),
     unit: text('unit').notNull(),
     tags: jsonb('tags'),
-    userId: text('userId'),
+    userId: text('userId').references(() => user.userId, { onDelete: 'set null' }),
     sessionId: text('sessionId'),
     timestamp: timestamp('timestamp', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -63,8 +65,12 @@ export const engagementSnapshot = pgTable(
   'EngagementSnapshot',
   {
     snapshotId: text('id').primaryKey().notNull(),
-    sessionId: text('sessionId').notNull(),
-    studentId: text('studentId').notNull(),
+    sessionId: text('sessionId')
+      .notNull()
+      .references(() => liveSession.sessionId, { onDelete: 'cascade' }),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     engagementScore: doublePrecision('engagementScore').notNull(),
     attentionLevel: text('attentionLevel').notNull(),
     comprehensionEstimate: doublePrecision('comprehensionEstimate'),
@@ -95,8 +101,12 @@ export const postSessionReport = pgTable(
   'PostSessionReport',
   {
     reportId: text('id').primaryKey().notNull(),
-    sessionId: text('sessionId').notNull(),
-    tutorId: text('tutorId').notNull(),
+    sessionId: text('sessionId')
+      .notNull()
+      .references(() => liveSession.sessionId, { onDelete: 'cascade' }),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     status: text('status').notNull(),
     keyConcepts: jsonb('keyConcepts').notNull(),
     mainTopics: jsonb('mainTopics').notNull(),
@@ -121,8 +131,12 @@ export const studentSessionInsight = pgTable(
   'StudentSessionInsight',
   {
     insightId: text('id').primaryKey().notNull(),
-    sessionId: text('sessionId').notNull(),
-    studentId: text('studentId').notNull(),
+    sessionId: text('sessionId')
+      .notNull()
+      .references(() => liveSession.sessionId, { onDelete: 'cascade' }),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     engagement: doublePrecision('engagement').notNull(),
     participation: integer('participation').notNull(),
     questionsAsked: integer('questionsAsked').notNull(),
