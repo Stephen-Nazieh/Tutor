@@ -2,15 +2,8 @@
  * Drizzle table definitions (domain slice).
  * Aggregated via ./index.ts — keep enums in ../enums.ts.
  */
-import {
-  pgTable,
-  text,
-  integer,
-  boolean,
-  timestamp,
-  jsonb,
-  index,
-} from 'drizzle-orm/pg-core'
+import { pgTable, text, integer, boolean, timestamp, jsonb, index } from 'drizzle-orm/pg-core'
+import * as enums from '../enums'
 import { user } from './auth'
 import { course, courseLesson } from './curriculum'
 import { liveSession } from './live'

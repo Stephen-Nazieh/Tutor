@@ -2,14 +2,8 @@
  * Drizzle table definitions (domain slice).
  * Aggregated via ./index.ts — keep enums in ../enums.ts.
  */
-import {
-  pgTable,
-  text,
-  boolean,
-  timestamp,
-  jsonb,
-  index,
-} from 'drizzle-orm/pg-core'
+import { pgTable, text, boolean, timestamp, jsonb, index } from 'drizzle-orm/pg-core'
+import * as enums from '../enums'
 import { user } from './auth'
 
 export const aIAssistantSession = pgTable(

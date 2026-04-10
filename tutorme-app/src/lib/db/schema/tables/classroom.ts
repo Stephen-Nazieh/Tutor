@@ -11,7 +11,9 @@ import {
   jsonb,
   uniqueIndex,
   index,
+  uuid,
 } from 'drizzle-orm/pg-core'
+import * as enums from '../enums'
 import { user } from './auth'
 import { liveSession } from './live'
 
