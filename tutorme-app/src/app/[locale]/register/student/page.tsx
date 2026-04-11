@@ -384,7 +384,7 @@ export default function StudentRegistrationPage() {
                   />
                   <div className="space-y-1">
                     <Label htmlFor="isSixteen" className="cursor-pointer font-medium">
-                      Are you 16 years of age or older?
+                      I am 16 years of age or older
                     </Label>
                   </div>
                 </div>

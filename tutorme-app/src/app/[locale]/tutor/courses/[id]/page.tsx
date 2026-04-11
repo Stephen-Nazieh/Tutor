@@ -678,33 +678,47 @@ export default function TutorCoursePage() {
     }
   }
 
-  const handleSaveAll = async () => {
+  const handleSaveAll = async (): Promise<boolean> => {
+    if (!id) {
+      toast.error('Course ID is missing')
+      return false
+    }
+
     setSaving(true)
     try {
       const csrf = await getCsrf()
+
+      // Build payload, excluding null name (name is required)
+      const payload: Record<string, unknown> = {
+        description: description.trim() || null,
+        gradeLevel: gradeLevel || null,
+        difficulty: difficulty || null,
+        languageOfInstruction: languageOfInstruction || null,
+        price: isFree ? 0 : price === '' ? null : Number(price),
+        currency: 'USD',
+        isFree,
+        categories: selectedCategories,
+        curriculumSource,
+        outlineSource: curriculumSource === 'UPLOADED' ? outlineSource : null,
+        schedule: schedule.length ? schedule : null,
+      }
+
+      // Only include name if it has a value (required field)
+      const trimmedName = courseName.trim()
+      if (trimmedName) {
+        payload.name = trimmedName
+      }
+
       const res = await fetch(`/api/tutor/courses/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...(csrf && { 'X-CSRF-Token': csrf }) },
         credentials: 'include',
-        body: JSON.stringify({
-          name: courseName.trim() || null,
-          description: description.trim() || null,
-          gradeLevel: gradeLevel || null,
-          difficulty: difficulty || null,
-          languageOfInstruction: languageOfInstruction || null,
-          price: isFree ? 0 : price === '' ? null : Number(price),
-          currency: 'USD',
-          isFree,
-          categories: selectedCategories,
-          curriculumSource,
-          outlineSource: curriculumSource === 'UPLOADED' ? outlineSource : null,
-          schedule: schedule.length ? schedule : null,
-        }),
+        body: JSON.stringify(payload),
       })
       const data = await res.json()
       if (!res.ok) {
         toast.error(data.error ?? 'Failed to save')
-        return
+        return false
       }
       setCourse(prev =>
         prev
@@ -743,8 +757,11 @@ export default function TutorCoursePage() {
       }
       toast.success('All changes saved')
       loadCourse()
-    } catch {
+      return true
+    } catch (err) {
+      console.error('[SaveAll] Error:', err)
       toast.error('Failed to save')
+      return false
     } finally {
       setSaving(false)
     }
@@ -1953,7 +1970,10 @@ export default function TutorCoursePage() {
           <Button
             size="sm"
             onClick={async () => {
-              await handleSaveAll()
+              // Save first, then publish
+              const saveSuccess = await handleSaveAll()
+              if (!saveSuccess) return
+
               // Publish the course (toggle isPublished via PATCH)
               try {
                 const csrf = await getCsrf()
@@ -1974,11 +1994,12 @@ export default function TutorCoursePage() {
                   const data = await res.json().catch(() => null)
                   toast.error(data?.error || 'Failed to publish course')
                 }
-              } catch {
+              } catch (err) {
+                console.error('[Publish] Error:', err)
                 toast.error('Failed to publish course')
               }
             }}
-            disabled={saving}
+            disabled={saving || !id}
             className="bg-[#F17623] hover:bg-[#e06613]"
           >
             Publish

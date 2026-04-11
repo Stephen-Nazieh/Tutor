@@ -133,7 +133,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     // Build update object with only provided fields
     const updateData: Record<string, unknown> = {}
 
-    if (body.name !== undefined) updateData.name = body.name
+    // Name is required - don't allow null/empty
+    if (body.name !== undefined && body.name !== null && body.name.trim() !== '') {
+      updateData.name = body.name.trim()
+    }
     if (body.description !== undefined) updateData.description = body.description
     if (body.gradeLevel !== undefined) updateData.gradeLevel = body.gradeLevel
     if (body.difficulty !== undefined) updateData.difficulty = body.difficulty
