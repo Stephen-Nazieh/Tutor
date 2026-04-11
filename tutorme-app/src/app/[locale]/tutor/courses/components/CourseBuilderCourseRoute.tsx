@@ -498,7 +498,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
             </Button>
             {currentCourse?.id ? (
               <Button variant="outline" className="gap-2" asChild>
-                <Link href={`/${locale}/tutor/courses/${currentCourse.id}`}>
+                <Link href={`/tutor/courses/${currentCourse.id}`}>
                   Next
                   <ChevronRight className="h-4 w-4" />
                 </Link>
