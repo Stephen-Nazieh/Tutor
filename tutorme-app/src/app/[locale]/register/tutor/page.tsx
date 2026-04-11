@@ -2261,7 +2261,6 @@ export default function TutorRegistrationPage() {
           lastName: formData.lastName,
           legalName: formData.legalName,
           nationality: formData.nationality,
-          countryOfResidence: formData.countryOfResidence,
           phoneCountryCode: '+1',
           phoneNumber: '0000000000',
           educationLevel: 'Bachelor',
