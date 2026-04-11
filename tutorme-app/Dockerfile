@@ -14,8 +14,6 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-COPY prisma ./prisma/
-RUN npx prisma generate
 RUN npm run build
 
 # Production image (full .next + custom server with Socket.io)
@@ -30,7 +28,7 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/server.ts ./
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/prisma ./prisma
+# Drizzle migrations are in drizzle folder
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/drizzle ./drizzle
 COPY --from=builder /app/scripts ./scripts
