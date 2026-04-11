@@ -22,7 +22,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { BookOpen, Compass, ExternalLink, Search, Sparkles, Users, Star, Heart } from 'lucide-react'
+import {
+  BookOpen,
+  Compass,
+  ExternalLink,
+  Search,
+  Sparkles,
+  Users,
+  Star,
+  Heart,
+  Video,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
 import { cn } from '@/lib/utils'
@@ -441,6 +451,20 @@ export default function StudentTutorDirectoryPage() {
                     <p className="font-semibold text-foreground">{tutor.totalEnrollments}</p>
                   </div>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2 border-blue-500 text-blue-600 hover:bg-blue-50"
+                  asChild
+                >
+                  <Link
+                    href={`/${locale}/u/${tutor.username}?book=1`}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <Video className="h-4 w-4" />
+                    Book 1 on 1
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           ))
