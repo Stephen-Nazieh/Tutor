@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course, user, profile } from '@/lib/db/schema'
-import { eq, and, ilike, sql, desc, asc } from 'drizzle-orm'
+import { eq, and, inArray } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
         isFree: course.isFree,
         updatedAt: course.updatedAt,
         creatorId: course.creatorId,
+        categories: course.categories,
       })
       .from(course)
       .where(eq(course.isPublished, true))
@@ -41,10 +42,13 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Get unique tutor IDs from published courses
-    const tutorIds = [...new Set(publishedCourses.map(c => c.creatorId).filter(Boolean))]
+    // Get unique tutor IDs from published courses (filter out nulls)
+    const tutorIds = publishedCourses
+      .map(c => c.creatorId)
+      .filter((id): id is string => id !== null && id !== undefined)
+    const uniqueTutorIds = [...new Set(tutorIds)]
 
-    if (tutorIds.length === 0) {
+    if (uniqueTutorIds.length === 0) {
       return NextResponse.json({
         tutors: [],
         availableSubjects: [],
@@ -59,7 +63,7 @@ export async function GET(request: NextRequest) {
         email: user.email,
       })
       .from(user)
-      .where(and(eq(user.role, 'TUTOR'), sql`${user.userId} IN (${sql.join(tutorIds, sql`, `)})`))
+      .where(and(eq(user.role, 'TUTOR'), inArray(user.userId, uniqueTutorIds)))
 
     const validTutorIds = tutorUsers.map(u => u.userId)
 
@@ -82,7 +86,7 @@ export async function GET(request: NextRequest) {
         specialties: profile.specialties,
       })
       .from(profile)
-      .where(sql`${profile.userId} IN (${sql.join(validTutorIds, sql`, `)})`)
+      .where(inArray(profile.userId, validTutorIds))
 
     // Build tutor map with their courses
     const tutorMap = new Map()
@@ -93,8 +97,9 @@ export async function GET(request: NextRequest) {
       // Apply subject filter if specified
       if (subjectFilter && subjectFilter !== 'all') {
         const hasMatchingSubject = tutorCourses.some(
-          c => c.subject?.toLowerCase().includes(subjectFilter) ||
-               c.categories?.some(cat => cat.toLowerCase().includes(subjectFilter))
+          c =>
+            c.subject?.toLowerCase().includes(subjectFilter) ||
+            c.categories?.some((cat: string) => cat.toLowerCase().includes(subjectFilter))
         )
         if (!hasMatchingSubject) continue
       }
@@ -108,7 +113,7 @@ export async function GET(request: NextRequest) {
             c =>
               c.name?.toLowerCase().includes(searchQuery) ||
               c.subject?.toLowerCase().includes(searchQuery) ||
-              c.categories?.some(cat => cat.toLowerCase().includes(searchQuery))
+              c.categories?.some((cat: string) => cat.toLowerCase().includes(searchQuery))
           )
         if (!matchesSearch) continue
       }
@@ -130,9 +135,12 @@ export async function GET(request: NextRequest) {
         courseCount: tutorCourses.length,
         totalEnrollments,
         subjects,
-        latestCourseUpdatedAt: tutorCourses.length > 0 
-          ? tutorCourses.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0].updatedAt?.toISOString()
-          : null,
+        latestCourseUpdatedAt:
+          tutorCourses.length > 0
+            ? tutorCourses.sort(
+                (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+              )[0].updatedAt?.toISOString()
+            : null,
         coursePreview: tutorCourses.map(c => ({
           id: c.courseId,
           name: c.name,
