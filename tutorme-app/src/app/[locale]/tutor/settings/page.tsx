@@ -77,6 +77,179 @@ interface BillingRecord {
   invoiceUrl?: string
 }
 
+// One-on-One Settings Card Component
+function OneOnOneSettingsCard() {
+  const [settings, setSettings] = useState({
+    oneOnOneEnabled: true,
+    hourlyRate: 50,
+    sessionDuration: 60,
+  })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    loadSettings()
+  }, [])
+
+  const loadSettings = async () => {
+    try {
+      const res = await fetch('/api/one-on-one/settings', {
+        credentials: 'include',
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setSettings({
+          oneOnOneEnabled: data.oneOnOneEnabled ?? true,
+          hourlyRate: data.hourlyRate ?? 50,
+          sessionDuration: data.sessionDuration ?? 60,
+        })
+      }
+    } catch (error) {
+      console.error('Failed to load one-on-one settings:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/one-on-one/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          oneOnOneEnabled: settings.oneOnOneEnabled,
+          hourlyRate: settings.hourlyRate,
+        }),
+      })
+      if (res.ok) {
+        toast.success('One-on-one settings saved')
+      } else {
+        toast.error('Failed to save settings')
+      }
+    } catch (error) {
+      toast.error('Failed to save settings')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>One-on-One Booking</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>One-on-One Booking</CardTitle>
+        <CardDescription>Allow students to book private sessions with you</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Enable/Disable Toggle */}
+        <div className="flex items-center justify-between rounded-lg border p-4">
+          <div>
+            <p className="font-medium">Enable One-on-One Booking</p>
+            <p className="text-sm text-gray-500">
+              Allow students to request private tutoring sessions
+            </p>
+          </div>
+          <Switch
+            checked={settings.oneOnOneEnabled}
+            onCheckedChange={checked =>
+              setSettings(prev => ({ ...prev, oneOnOneEnabled: checked }))
+            }
+          />
+        </div>
+
+        {settings.oneOnOneEnabled && (
+          <>
+            <Separator />
+
+            {/* Hourly Rate */}
+            <div className="space-y-2">
+              <Label htmlFor="hourlyRate">Hourly Rate (USD)</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-lg text-gray-500">$</span>
+                <Input
+                  id="hourlyRate"
+                  type="number"
+                  min={1}
+                  max={1000}
+                  value={settings.hourlyRate}
+                  onChange={e =>
+                    setSettings(prev => ({
+                      ...prev,
+                      hourlyRate: parseInt(e.target.value) || 0,
+                    }))
+                  }
+                  className="w-32"
+                />
+                <span className="text-sm text-gray-500">per hour</span>
+              </div>
+              <p className="text-xs text-gray-500">
+                Students will see this rate when booking a session
+              </p>
+            </div>
+
+            {/* Session Duration */}
+            <div className="space-y-2">
+              <Label htmlFor="sessionDuration">Session Duration</Label>
+              <Select
+                value={settings.sessionDuration.toString()}
+                onValueChange={value =>
+                  setSettings(prev => ({
+                    ...prev,
+                    sessionDuration: parseInt(value),
+                  }))
+                }
+              >
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 minutes</SelectItem>
+                  <SelectItem value="45">45 minutes</SelectItem>
+                  <SelectItem value="60">1 hour</SelectItem>
+                  <SelectItem value="90">1.5 hours</SelectItem>
+                  <SelectItem value="120">2 hours</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        )}
+
+        <div className="flex justify-end">
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Save Settings
+              </>
+            )}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function TutorSettings() {
   const { data: session } = useSession()
   const [loading, setLoading] = useState(false)
@@ -689,6 +862,9 @@ export default function TutorSettings() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* One-on-One Booking Settings */}
+            <OneOnOneSettingsCard />
           </TabsContent>
 
           {/* Billing & Payment */}

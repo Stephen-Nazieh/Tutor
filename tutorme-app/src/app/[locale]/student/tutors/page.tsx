@@ -40,9 +40,7 @@ import { cn } from '@/lib/utils'
 interface TutorCoursePreview {
   id: string
   name: string
-  subject: string
-  gradeLevel: string | null
-  difficulty: string | null
+  categories: string[]
   enrollmentCount: number
   moduleCount: number
   lessonCount: number
@@ -63,14 +61,14 @@ interface TutorDirectoryItem {
   hourlyRate: number | null
   courseCount: number
   totalEnrollments: number
-  subjects: string[]
+  categories: string[]
   latestCourseUpdatedAt: string | null
   coursePreview: TutorCoursePreview[]
   averageRating?: number
   totalReviewCount?: number
 }
 
-interface SubjectInfo {
+interface CategoryInfo {
   name: string
   courses: TutorCoursePreview[]
   averageRate: number
@@ -103,9 +101,9 @@ export default function StudentTutorDirectoryPage() {
 
   const [loading, setLoading] = useState(true)
   const [tutors, setTutors] = useState<TutorDirectoryItem[]>([])
-  const [subjects, setSubjects] = useState<string[]>([])
+  const [categories, setCategories] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
-  const [subjectFilter, setSubjectFilter] = useState('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
   const [sortBy, setSortBy] = useState<'popular' | 'newest' | 'courses' | 'rate'>('popular')
   const [activeTutor, setActiveTutor] = useState<TutorDirectoryItem | null>(null)
   const [dataSource, setDataSource] = useState<'db' | 'mock'>('db')
@@ -190,7 +188,7 @@ export default function StudentTutorDirectoryPage() {
       try {
         const qs = new URLSearchParams()
         if (searchQuery.trim()) qs.set('q', searchQuery.trim())
-        if (subjectFilter !== 'all') qs.set('subject', subjectFilter)
+        if (categoryFilter !== 'all') qs.set('subject', categoryFilter)
         qs.set('sort', sortBy)
 
         const res = await fetch(`/api/public/tutors?${qs.toString()}`, {
@@ -205,7 +203,7 @@ export default function StudentTutorDirectoryPage() {
         const enrichedTutors = Array.isArray(data?.tutors) ? data.tutors : []
 
         setTutors(enrichedTutors)
-        setSubjects(Array.isArray(data?.availableSubjects) ? data.availableSubjects : [])
+        setCategories(Array.isArray(data?.availableCategories) ? data.availableCategories : [])
         setDataSource(data?.source === 'mock' ? 'mock' : 'db')
       } catch {
         if (!active) return
@@ -220,7 +218,7 @@ export default function StudentTutorDirectoryPage() {
     return () => {
       active = false
     }
-  }, [searchQuery, subjectFilter, sortBy])
+  }, [searchQuery, categoryFilter, sortBy])
 
   const headlineMetrics = useMemo(() => {
     const totalCourses = tutors.reduce((sum, tutor) => sum + tutor.courseCount, 0)
@@ -232,13 +230,15 @@ export default function StudentTutorDirectoryPage() {
     }
   }, [tutors])
 
-  // Group courses by subject for the modal
-  const getSubjectGroups = (tutor: TutorDirectoryItem): SubjectInfo[] => {
+  // Group courses by category for the modal
+  const getCategoryGroups = (tutor: TutorDirectoryItem): CategoryInfo[] => {
     const groups = new Map<string, TutorCoursePreview[]>()
     tutor.coursePreview.forEach(course => {
-      const existing = groups.get(course.subject) || []
-      existing.push(course)
-      groups.set(course.subject, existing)
+      course.categories.forEach(category => {
+        const existing = groups.get(category) || []
+        existing.push(course)
+        groups.set(category, existing)
+      })
     })
 
     return Array.from(groups.entries()).map(([name, courses]) => ({
@@ -332,15 +332,15 @@ export default function StudentTutorDirectoryPage() {
               className="pl-9"
             />
           </div>
-          <Select value={subjectFilter} onValueChange={setSubjectFilter}>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
             <SelectTrigger>
-              <SelectValue placeholder="Filter by subject" />
+              <SelectValue placeholder="Filter by category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Subjects</SelectItem>
-              {subjects.map(subject => (
-                <SelectItem key={subject} value={subject.toLowerCase()}>
-                  {subject}
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories.map(category => (
+                <SelectItem key={category} value={category.toLowerCase()}>
+                  {category}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -430,14 +430,14 @@ export default function StudentTutorDirectoryPage() {
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {tutor.subjects.slice(0, 3).map(subject => (
-                    <Badge key={`${tutor.id}:${subject}`} variant="secondary" className="bg-muted">
-                      {subject}
+                  {tutor.categories.slice(0, 3).map(category => (
+                    <Badge key={`${tutor.id}:${category}`} variant="secondary" className="bg-muted">
+                      {category}
                     </Badge>
                   ))}
-                  {tutor.subjects.length > 3 ? (
+                  {tutor.categories.length > 3 ? (
                     <Badge variant="outline" className="border-border">
-                      +{tutor.subjects.length - 3}
+                      +{tutor.categories.length - 3}
                     </Badge>
                   ) : null}
                 </div>
@@ -548,30 +548,33 @@ export default function StudentTutorDirectoryPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-sm font-medium text-foreground">Subjects & Courses</p>
-                  {getSubjectGroups(activeTutor).map(subject => (
+                  <p className="text-sm font-medium text-foreground">Categories & Courses</p>
+                  {getCategoryGroups(activeTutor).map(category => (
                     <div
-                      key={subject.name}
+                      key={category.name}
                       className="rounded-lg border border-border bg-muted/10 p-3"
                     >
                       <div className="mb-2 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Badge variant="secondary" className="bg-muted">
-                            {subject.name}
+                            {category.name}
                           </Badge>
                           <span className="text-xs text-muted-foreground">
-                            {subject.courses.length} courses
+                            {category.courses.length} courses
                           </span>
                         </div>
                         <div className="flex items-center gap-3 text-sm">
-                          <StarRating rating={subject.averageRating} count={subject.totalReviews} />
+                          <StarRating
+                            rating={category.averageRating}
+                            count={category.totalReviews}
+                          />
                           <span className="font-medium text-foreground">
-                            ${subject.averageRate.toFixed(0)}/course
+                            ${category.averageRate.toFixed(0)}/course
                           </span>
                         </div>
                       </div>
                       <div className="space-y-2">
-                        {subject.courses.slice(0, 3).map(course => (
+                        {category.courses.slice(0, 3).map(course => (
                           <div
                             key={course.id}
                             className="flex items-center justify-between text-sm"
@@ -586,9 +589,9 @@ export default function StudentTutorDirectoryPage() {
                             </div>
                           </div>
                         ))}
-                        {subject.courses.length > 3 && (
+                        {category.courses.length > 3 && (
                           <p className="text-xs text-muted-foreground">
-                            +{subject.courses.length - 3} more courses
+                            +{category.courses.length - 3} more courses
                           </p>
                         )}
                       </div>

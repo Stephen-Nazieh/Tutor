@@ -29,6 +29,9 @@ export async function GET(
         bio: profile.bio,
         avatarUrl: profile.avatarUrl,
         specialties: profile.specialties,
+        hourlyRate: profile.hourlyRate,
+        oneOnOneEnabled: profile.oneOnOneEnabled,
+        credentials: profile.credentials,
       })
       .from(profile)
       .where(eq(profile.username, normalizedUsername))
@@ -45,6 +48,9 @@ export async function GET(
           bio: profile.bio,
           avatarUrl: profile.avatarUrl,
           specialties: profile.specialties,
+          hourlyRate: profile.hourlyRate,
+          oneOnOneEnabled: profile.oneOnOneEnabled,
+          credentials: profile.credentials,
         })
         .from(profile)
         .where(eq(profile.userId, normalizedUsername))
@@ -79,14 +85,12 @@ export async function GET(
         courseId: course.courseId,
         name: course.name,
         description: course.description,
-        subject: course.subject,
-        gradeLevel: course.gradeLevel,
-        difficulty: course.difficulty,
         price: course.price,
         currency: course.currency,
         isFree: course.isFree,
         estimatedHours: course.estimatedHours,
         updatedAt: course.updatedAt,
+        categories: course.categories,
       })
       .from(course)
       .where(and(eq(course.creatorId, tutorId), eq(course.isPublished, true)))
@@ -99,8 +103,9 @@ export async function GET(
       bio: profileData.bio || 'Experienced tutor ready to help you improve quickly.',
       avatarUrl: profileData.avatarUrl,
       specialties: profileData.specialties || [],
-      credentials: '',
-      hourlyRate: null, // Will be populated from tutor settings if available
+      credentials: profileData.credentials || '',
+      hourlyRate: profileData.hourlyRate,
+      oneOnOneEnabled: profileData.oneOnOneEnabled ?? true, // Default to true
       tutorSince: tutorUser[0].createdAt?.toISOString() || null,
       country: null,
       activeCourses: publishedCourses.length,
@@ -117,9 +122,7 @@ export async function GET(
       id: c.courseId,
       name: c.name,
       description: c.description,
-      subject: c.subject || 'General',
-      gradeLevel: c.gradeLevel,
-      difficulty: c.difficulty,
+      categories: c.categories || [],
       estimatedHours: c.estimatedHours || 0,
       enrollmentCount: 0, // Placeholder
       lessonCount: 1, // Simplified

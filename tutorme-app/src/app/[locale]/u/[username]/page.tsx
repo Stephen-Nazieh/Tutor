@@ -65,9 +65,7 @@ interface PublicTutorResponse {
     id: string
     name: string
     description?: string | null
-    subject: string
-    gradeLevel?: string | null
-    difficulty?: string | null
+    categories: string[]
     estimatedHours?: number | null
     enrollmentCount: number
     lessonCount: number
@@ -628,8 +626,7 @@ export default function PublicTutorPage() {
         body: JSON.stringify({
           curriculumId: course.id,
           title: course.name,
-          subject: course.subject,
-          gradeLevel: course.gradeLevel || undefined,
+          subject: course.categories[0] || 'General',
           description: course.description || undefined,
           maxStudents: 50,
           durationMinutes: 60,
@@ -810,17 +807,15 @@ export default function PublicTutorPage() {
               >
                 {followState.isFollowing ? 'Following' : 'Follow'}
               </Button>
-              {tutor.hourlyRate && (
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="gap-2 border-blue-500 text-blue-600 hover:bg-blue-50"
-                  onClick={() => setBookDialogOpen(true)}
-                >
-                  <Video className="h-4 w-4" />
-                  Book 1 on 1
-                </Button>
-              )}
+              <Button
+                size="lg"
+                variant="outline"
+                className="gap-2 border-blue-500 text-blue-600 hover:bg-blue-50"
+                onClick={() => setBookDialogOpen(true)}
+              >
+                <Video className="h-4 w-4" />
+                Book 1 on 1
+              </Button>
             </div>
 
             <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-2 lg:items-stretch">
@@ -1037,7 +1032,7 @@ export default function PublicTutorPage() {
                             {course.name}
                           </h3>
                           <Badge variant="secondary" className="shrink-0 text-[10px] sm:text-xs">
-                            {course.subject}
+                            {course.categories[0] || 'General'}
                           </Badge>
                         </div>
                         <p className="mt-0.5 text-xs font-medium text-slate-500">

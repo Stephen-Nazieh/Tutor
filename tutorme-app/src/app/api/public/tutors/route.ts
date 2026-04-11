@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const searchQuery = searchParams.get('q')?.toLowerCase() || ''
-    const subjectFilter = searchParams.get('subject')?.toLowerCase() || ''
+    const categoryFilter = searchParams.get('subject')?.toLowerCase() || ''
     const sortBy = searchParams.get('sort') || 'popular'
 
     // Get all published courses with their creators
@@ -21,9 +21,6 @@ export async function GET(request: NextRequest) {
         courseId: course.courseId,
         name: course.name,
         description: course.description,
-        subject: course.subject,
-        gradeLevel: course.gradeLevel,
-        difficulty: course.difficulty,
         price: course.price,
         currency: course.currency,
         isFree: course.isFree,
@@ -37,7 +34,7 @@ export async function GET(request: NextRequest) {
     if (publishedCourses.length === 0) {
       return NextResponse.json({
         tutors: [],
-        availableSubjects: [],
+        availableCategories: [],
         source: 'db',
       })
     }
@@ -51,7 +48,7 @@ export async function GET(request: NextRequest) {
     if (uniqueTutorIds.length === 0) {
       return NextResponse.json({
         tutors: [],
-        availableSubjects: [],
+        availableCategories: [],
         source: 'db',
       })
     }
@@ -70,7 +67,7 @@ export async function GET(request: NextRequest) {
     if (validTutorIds.length === 0) {
       return NextResponse.json({
         tutors: [],
-        availableSubjects: [],
+        availableCategories: [],
         source: 'db',
       })
     }
@@ -84,6 +81,8 @@ export async function GET(request: NextRequest) {
         bio: profile.bio,
         avatarUrl: profile.avatarUrl,
         specialties: profile.specialties,
+        hourlyRate: profile.hourlyRate,
+        oneOnOneEnabled: profile.oneOnOneEnabled,
       })
       .from(profile)
       .where(inArray(profile.userId, validTutorIds))
@@ -94,14 +93,12 @@ export async function GET(request: NextRequest) {
     for (const profileData of tutorProfiles) {
       const tutorCourses = publishedCourses.filter(c => c.creatorId === profileData.userId)
 
-      // Apply subject filter if specified
-      if (subjectFilter && subjectFilter !== 'all') {
-        const hasMatchingSubject = tutorCourses.some(
-          c =>
-            c.subject?.toLowerCase().includes(subjectFilter) ||
-            c.categories?.some((cat: string) => cat.toLowerCase().includes(subjectFilter))
+      // Apply category filter if specified
+      if (categoryFilter && categoryFilter !== 'all') {
+        const hasMatchingCategory = tutorCourses.some(
+          c => c.categories?.some((cat: string) => cat.toLowerCase().includes(categoryFilter))
         )
-        if (!hasMatchingSubject) continue
+        if (!hasMatchingCategory) continue
       }
 
       // Apply search filter if specified
@@ -112,14 +109,14 @@ export async function GET(request: NextRequest) {
           tutorCourses.some(
             c =>
               c.name?.toLowerCase().includes(searchQuery) ||
-              c.subject?.toLowerCase().includes(searchQuery) ||
               c.categories?.some((cat: string) => cat.toLowerCase().includes(searchQuery))
           )
         if (!matchesSearch) continue
       }
 
-      // Get unique subjects from courses
-      const subjects = [...new Set(tutorCourses.map(c => c.subject).filter(Boolean))]
+      // Get unique categories from courses (flatten all categories arrays)
+      const allCategories = tutorCourses.flatMap(c => c.categories || [])
+      const categories = [...new Set(allCategories)]
 
       // Calculate total enrollments (placeholder - would come from actual enrollment data)
       const totalEnrollments = 0
@@ -131,10 +128,11 @@ export async function GET(request: NextRequest) {
         bio: profileData.bio || 'Experienced tutor ready to help you improve quickly.',
         avatarUrl: profileData.avatarUrl,
         specialties: profileData.specialties || [],
-        hourlyRate: null,
+        hourlyRate: profileData.hourlyRate,
+        oneOnOneEnabled: profileData.oneOnOneEnabled ?? true, // Default to true if not set
         courseCount: tutorCourses.length,
         totalEnrollments,
-        subjects,
+        categories,
         latestCourseUpdatedAt:
           tutorCourses.length > 0
             ? tutorCourses.sort(
@@ -144,9 +142,7 @@ export async function GET(request: NextRequest) {
         coursePreview: tutorCourses.map(c => ({
           id: c.courseId,
           name: c.name,
-          subject: c.subject || 'General',
-          gradeLevel: c.gradeLevel,
-          difficulty: c.difficulty,
+          categories: c.categories || [],
           enrollmentCount: 0, // Placeholder
           moduleCount: 1, // Simplified
           lessonCount: 1, // Would need to fetch from courseLesson
@@ -184,18 +180,20 @@ export async function GET(request: NextRequest) {
         break
     }
 
-    // Get all unique subjects for filter dropdown
-    const allSubjects = [...new Set(publishedCourses.map(c => c.subject).filter(Boolean))]
+    // Get all unique categories for filter dropdown
+    const allCategories = [
+      ...new Set(publishedCourses.flatMap(c => c.categories || [])),
+    ].filter(Boolean)
 
     return NextResponse.json({
       tutors,
-      availableSubjects: allSubjects,
+      availableCategories: allCategories,
       source: 'db',
     })
   } catch (error) {
     console.error('[GET /api/public/tutors] Error:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch tutors', tutors: [], availableSubjects: [] },
+      { error: 'Failed to fetch tutors', tutors: [], availableCategories: [] },
       { status: 500 }
     )
   }
