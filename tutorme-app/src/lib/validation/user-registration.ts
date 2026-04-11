@@ -20,7 +20,7 @@ export const tutorAdditionalDataSchema = z
     lastName: z.string().min(1, 'Last name is required').max(50),
     legalName: z.string().max(120).optional(),
     nationality: z.string().min(2, 'Nationality is required').max(100).optional(),
-    countryOfResidence: z.string().min(2, 'Country of residence is required').max(100).optional(),
+    countryOfResidence: z.string().max(100).optional().or(z.literal('')),
     phoneCountryCode: z.string().min(1, 'Phone country code is required').max(10),
     phoneNumber: z.string().regex(phoneRegex, 'Valid phone number required'),
     educationLevel: z.enum(['High School Diploma', 'Bachelor', 'Masters', 'PhD']),

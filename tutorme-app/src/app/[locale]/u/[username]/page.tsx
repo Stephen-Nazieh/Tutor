@@ -1054,7 +1054,7 @@ export default function PublicTutorPage() {
                         >
                           <div className="flex gap-1">
                             <dt className="font-medium text-slate-500">Sessions</dt>
-                            <dd className="text-slate-800">{course.lessonCount} in curriculum</dd>
+                            <dd className="text-slate-800">{course.lessonCount} lessons</dd>
                           </div>
                           <div className="flex items-start gap-1">
                             <dt className="flex shrink-0 items-center gap-0.5 font-medium text-slate-500">

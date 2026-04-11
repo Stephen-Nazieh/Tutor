@@ -54,7 +54,7 @@ export default function CoursesPage() {
             <BookOpen className="h-6 w-6" />
             Course Catalogue
           </h1>
-          <p className="text-muted-foreground">Manage your courses and curriculum</p>
+          <p className="text-muted-foreground">Manage your courses and lessons</p>
         </div>
       </div>
 
