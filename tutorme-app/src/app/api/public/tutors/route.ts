@@ -161,7 +161,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    let tutors = Array.from(tutorMap.values())
+    const tutors = Array.from(tutorMap.values())
 
     // Apply sorting
     switch (sortBy) {
