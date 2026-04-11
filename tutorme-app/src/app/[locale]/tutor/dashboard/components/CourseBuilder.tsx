@@ -4745,9 +4745,9 @@ FEEDBACK: [your explanation]`
                                 </TabsContent>
                                 <TabsContent
                                   value="pci"
-                                  className="mt-2 flex flex-1 flex-col overflow-hidden"
+                                  className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden"
                                 >
-                                  <div className="flex h-full flex-col rounded-lg border bg-white">
+                                  <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
                                     <div className="flex-1 space-y-3 overflow-y-auto p-3">
                                       {activeTaskPciMessages.length === 0 && (
                                         <p className="text-xs text-muted-foreground">
@@ -5026,9 +5026,9 @@ FEEDBACK: [your explanation]`
                                 </TabsContent>
                                 <TabsContent
                                   value="pci"
-                                  className="mt-2 flex flex-1 flex-col overflow-hidden"
+                                  className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden"
                                 >
-                                  <div className="flex h-full flex-col rounded-lg border bg-white">
+                                  <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
                                     <div className="flex-1 space-y-3 overflow-y-auto p-3">
                                       {assessmentPciMessages.length === 0 && (
                                         <p className="text-xs text-muted-foreground">

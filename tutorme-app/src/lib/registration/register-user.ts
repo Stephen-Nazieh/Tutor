@@ -337,6 +337,7 @@ export async function performRegistration(
       specialties: [],
       paidClassesEnabled: false,
       nationality: profileData?.nationality ?? null,
+      countryOfResidence: null,
       tutorNationalities: profileData?.tutorNationalities ?? [],
       categoryNationalityCombinations: profileData?.categoryNationalityCombinations ?? [],
       ...(role === 'STUDENT' && { studentUniqueId: `STU-${nanoid(12)}` }),
