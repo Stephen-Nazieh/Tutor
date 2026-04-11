@@ -228,6 +228,9 @@ function TutorDashboardContent() {
       if (studentsRes.status === 'fulfilled' && studentsRes.value.ok) {
         const d = await studentsRes.value.json()
         setStudents(d.students ?? [])
+      } else if (studentsRes.status === 'fulfilled' && studentsRes.value.status === 410) {
+        // Legacy feature removed - ignore this error silently
+        setStudents([])
       } else {
         failures.push('students-needing-attention')
       }

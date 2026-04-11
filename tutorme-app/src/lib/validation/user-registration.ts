@@ -19,7 +19,8 @@ export const tutorAdditionalDataSchema = z
     middleName: z.string().max(50).optional(),
     lastName: z.string().min(1, 'Last name is required').max(50),
     legalName: z.string().max(120).optional(),
-    countryOfResidence: z.string().min(2, 'Country of residence is required').max(100),
+    nationality: z.string().min(2, 'Nationality is required').max(100).optional(),
+    countryOfResidence: z.string().min(2, 'Country of residence is required').max(100).optional(),
     phoneCountryCode: z.string().min(1, 'Phone country code is required').max(10),
     phoneNumber: z.string().regex(phoneRegex, 'Valid phone number required'),
     educationLevel: z.enum(['High School Diploma', 'Bachelor', 'Masters', 'PhD']),
@@ -77,6 +78,9 @@ export const tutorProfileDataSchema = z.object({
     .enum(['en', 'zh-CN', 'es', 'fr', 'de', 'ja', 'ko', 'pt', 'ru', 'ar'])
     .default('en'),
   bio: z.string().max(2000, 'Bio must be less than 2000 characters').optional(),
+  nationality: z.string().optional(),
+  tutorNationalities: z.array(z.string()).optional().default([]),
+  categoryNationalityCombinations: z.array(z.string()).optional().default([]),
 })
 
 // Legacy student schema (for backward compatibility in non-parent flows)

@@ -26,8 +26,6 @@ export async function GET() {
         isLiveOnline: true,
         createdAt: true,
         updatedAt: true,
-        subject: true,
-        gradeLevel: true,
       },
     })
 
@@ -41,8 +39,6 @@ export async function GET() {
       isLiveOnline: c.isLiveOnline,
       createdAt: c.createdAt,
       updatedAt: c.updatedAt,
-      subject: c.subject,
-      gradeLevel: c.gradeLevel,
     }))
 
     return NextResponse.json({ courses })
@@ -79,7 +75,7 @@ export async function POST(req: NextRequest) {
     const userId = session.user.id
     const now = new Date()
 
-    // Build insert values
+    // Build insert values - only use current schema fields
     const courseValues: Record<string, unknown> = {
       courseId: crypto.randomUUID(),
       name: data.title,
@@ -93,15 +89,6 @@ export async function POST(req: NextRequest) {
       createdAt: now,
       updatedAt: now,
       creatorId: userId,
-      // Deprecated columns kept for backward compatibility with production DB
-      subject: data.subject ?? 'general',
-      gradeLevel: data.gradeLevel ?? null,
-      difficulty: data.difficulty ?? null,
-      estimatedHours: data.estimatedHours ?? 0,
-      curriculumSource: 'PLATFORM',
-      outlineSource: 'SELF',
-      courseMaterials: null,
-      coursePitch: null,
     }
 
     // Insert course first (outside transaction to handle column errors)
@@ -193,10 +180,6 @@ export async function PUT(req: NextRequest) {
 
     if (updates.title !== undefined) updateData.name = updates.title
     if (updates.description !== undefined) updateData.description = updates.description
-    if (updates.subject !== undefined) updateData.subject = updates.subject
-    if (updates.gradeLevel !== undefined) updateData.gradeLevel = updates.gradeLevel
-    if (updates.difficulty !== undefined) updateData.difficulty = updates.difficulty
-    if (updates.estimatedHours !== undefined) updateData.estimatedHours = updates.estimatedHours
     if (updates.isPublished !== undefined) updateData.isPublished = updates.isPublished
     if (updates.isLiveOnline !== undefined) updateData.isLiveOnline = updates.isLiveOnline
     if (updates.categories !== undefined) updateData.categories = updates.categories

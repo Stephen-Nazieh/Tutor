@@ -88,7 +88,7 @@ export async function GET(
         price: course.price,
         currency: course.currency,
         isFree: course.isFree,
-        estimatedHours: course.estimatedHours,
+
         updatedAt: course.updatedAt,
         categories: course.categories,
       })
@@ -123,7 +123,7 @@ export async function GET(
       name: c.name,
       description: c.description,
       categories: c.categories || [],
-      estimatedHours: c.estimatedHours || 0,
+
       enrollmentCount: 0, // Placeholder
       lessonCount: 1, // Simplified
       price: c.isFree ? 0 : c.price,

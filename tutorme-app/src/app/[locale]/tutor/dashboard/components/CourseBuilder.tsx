@@ -187,6 +187,7 @@ import {
   FileQuestion,
   ChevronRight,
   ChevronDown,
+  ChevronLeft,
   Save,
   Wand2,
   BookOpen,
@@ -342,6 +343,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     >([])
     const [loadAsModalOpen, setLoadAsModalOpen] = useState(false)
     const [assetToLoad, setAssetToLoad] = useState<{ name: string; content?: string } | null>(null)
+    const [loadAsStep, setLoadAsStep] = useState<'main' | 'task-options'>('main')
+    const [loadTaskMode, setLoadTaskMode] = useState<'single' | 'multi'>('single')
     const [leftPanelHidden, setLeftPanelHidden] = useState(false)
     const [leftPanelWidth, setLeftPanelWidth] = useState(340)
     const [leftPanelResizing, setLeftPanelResizing] = useState(false)
@@ -2641,55 +2644,93 @@ FEEDBACK: [your explanation]`
           </div>
         )}
 
-        <Dialog open={loadAsModalOpen} onOpenChange={setLoadAsModalOpen}>
+        <Dialog open={loadAsModalOpen} onOpenChange={(open) => {
+          setLoadAsModalOpen(open)
+          if (!open) {
+            setLoadAsStep('main')
+            setAssetToLoad(null)
+          }
+        }}>
           <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Load as...</DialogTitle>
+              <DialogTitle>
+                {loadAsStep === 'task-options' ? 'Load as Task...' : 'Load as...'}
+              </DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4 py-4">
-              <p className="text-sm text-gray-500">
-                Select how you would like to load "{assetToLoad?.name}":
-              </p>
-              <Button
-                className="w-full justify-start gap-2"
-                variant="outline"
-                onClick={() => {
-                  const { nodeId, lessonId } = ensureFirstLessonContext()
-                  const nodeIndex = nodes.findIndex(m => m.id === nodeId)
-                  const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
-                  const newTask = DEFAULT_TASK(nodes[nodeIndex].lessons[lessonIndex].tasks.length)
-                  const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
-
-                  newTask.description = textToInsert
-
-                  const newCourseBuilderNodes = [...nodes]
-                  newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(newTask)
-                  setCourseBuilderNodes(newCourseBuilderNodes)
-                  setMainBuilderTab('task')
-                  setSelectedItem({ type: 'task', id: newTask.id })
-                  loadTaskIntoBuilder(newTask)
-
-                  toast.success(`Created new Task and loaded '${assetToLoad?.name}'`)
-                  setLoadAsModalOpen(false)
-                  setAssetToLoad(null)
-                }}
-              >
-                <ListTodo className="h-4 w-4 text-orange-500" />
-                Task
-              </Button>
-              <Button
-                className="w-full justify-start gap-2"
-                variant="outline"
-                onClick={() => {
-                  const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
-                  if (taskBuilder.activeExtensionId) {
-                    setTaskBuilder(prev => ({
-                      ...prev,
-                      extensions: prev.extensions.map(ext =>
-                        ext.id === prev.activeExtensionId ? { ...ext, content: textToInsert } : ext
-                      ),
-                    }))
-                    if (loadedTaskId) {
+              {loadAsStep === 'main' ? (
+                <>
+                  <p className="text-sm text-gray-500">
+                    Select how you would like to load "{assetToLoad?.name}":
+                  </p>
+                  <Button
+                    className="w-full justify-start gap-2"
+                    variant="outline"
+                    onClick={() => setLoadAsStep('task-options')}
+                  >
+                    <ListTodo className="h-4 w-4 text-orange-500" />
+                    Task
+                    <ChevronRight className="ml-auto h-4 w-4 text-gray-400" />
+                  </Button>
+                  <Button
+                    className="w-full justify-start gap-2"
+                    variant="outline"
+                    onClick={() => {
+                      const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
+                      if (taskBuilder.activeExtensionId) {
+                        setTaskBuilder(prev => ({
+                          ...prev,
+                          extensions: prev.extensions.map(ext =>
+                            ext.id === prev.activeExtensionId ? { ...ext, content: textToInsert } : ext
+                          ),
+                        }))
+                        if (loadedTaskId) {
+                          setCourseBuilderNodes(prev =>
+                            prev.map(mod => ({
+                              ...mod,
+                              lessons: mod.lessons.map(lesson => ({
+                                ...lesson,
+                                tasks: lesson.tasks.map(t =>
+                                  t.id === loadedTaskId
+                                    ? {
+                                        ...t,
+                                        extensions: (t.extensions || []).map(ext =>
+                                          ext.id === taskBuilder.activeExtensionId
+                                            ? { ...ext, content: textToInsert }
+                                            : ext
+                                        ),
+                                      }
+                                    : t
+                                ),
+                              })),
+                            }))
+                          )
+                        }
+                        setMainBuilderTab('task')
+                        toast.success(`Loaded '${assetToLoad?.name}' into extension`)
+                        setLoadAsModalOpen(false)
+                        setAssetToLoad(null)
+                        return
+                      }
+                      if (!loadedTaskId) {
+                        toast.error('Select a task to add an extension')
+                        return
+                      }
+                      const extNumber = taskBuilder.extensions.length + 1
+                      const newExtension = {
+                        id: `ext-${Date.now()}`,
+                        name: `Extension ${extNumber}`,
+                        description: '',
+                        content: textToInsert,
+                        pci: '',
+                      }
+                      setTaskExtensionPciMessages(prev => ({ ...prev, [newExtension.id]: [] }))
+                      setTaskExtensionPciInputs(prev => ({ ...prev, [newExtension.id]: '' }))
+                      setTaskBuilder(prev => ({
+                        ...prev,
+                        extensions: [...prev.extensions, newExtension],
+                        activeExtensionId: newExtension.id,
+                      }))
                       setCourseBuilderNodes(prev =>
                         prev.map(mod => ({
                           ...mod,
@@ -2697,97 +2738,178 @@ FEEDBACK: [your explanation]`
                             ...lesson,
                             tasks: lesson.tasks.map(t =>
                               t.id === loadedTaskId
-                                ? {
-                                    ...t,
-                                    extensions: (t.extensions || []).map(ext =>
-                                      ext.id === taskBuilder.activeExtensionId
-                                        ? { ...ext, content: textToInsert }
-                                        : ext
-                                    ),
-                                  }
+                                ? { ...t, extensions: [...(t.extensions || []), newExtension] }
                                 : t
                             ),
                           })),
                         }))
                       )
-                    }
-                    setMainBuilderTab('task')
-                    toast.success(`Loaded '${assetToLoad?.name}' into extension`)
-                    setLoadAsModalOpen(false)
-                    setAssetToLoad(null)
-                    return
-                  }
-                  if (!loadedTaskId) {
-                    toast.error('Select a task to add an extension')
-                    return
-                  }
-                  const extNumber = taskBuilder.extensions.length + 1
-                  const newExtension = {
-                    id: `ext-${Date.now()}`,
-                    name: `Extension ${extNumber}`,
-                    description: '',
-                    content: textToInsert,
-                    pci: '',
-                  }
-                  setTaskExtensionPciMessages(prev => ({ ...prev, [newExtension.id]: [] }))
-                  setTaskExtensionPciInputs(prev => ({ ...prev, [newExtension.id]: '' }))
-                  setTaskBuilder(prev => ({
-                    ...prev,
-                    extensions: [...prev.extensions, newExtension],
-                    activeExtensionId: newExtension.id,
-                  }))
-                  setCourseBuilderNodes(prev =>
-                    prev.map(mod => ({
-                      ...mod,
-                      lessons: mod.lessons.map(lesson => ({
-                        ...lesson,
-                        tasks: lesson.tasks.map(t =>
-                          t.id === loadedTaskId
-                            ? { ...t, extensions: [...(t.extensions || []), newExtension] }
-                            : t
-                        ),
-                      })),
-                    }))
-                  )
-                  setMainBuilderTab('task')
-                  toast.success(`Created extension and loaded '${assetToLoad?.name}'`)
-                  setLoadAsModalOpen(false)
-                  setAssetToLoad(null)
-                }}
-              >
-                <Layers2 className="h-4 w-4 text-orange-500" />
-                Extensions
-              </Button>
-              <Button
-                className="w-full justify-start gap-2"
-                variant="outline"
-                onClick={() => {
-                  const { nodeId, lessonId } = ensureFirstLessonContext()
-                  const nodeIndex = nodes.findIndex(m => m.id === nodeId)
-                  const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
-                  const newAssess = DEFAULT_HOMEWORK(
-                    nodes[nodeIndex].lessons[lessonIndex].homework.length,
-                    'assessment'
-                  )
-                  const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
+                      setMainBuilderTab('task')
+                      toast.success(`Created extension and loaded '${assetToLoad?.name}'`)
+                      setLoadAsModalOpen(false)
+                      setAssetToLoad(null)
+                    }}
+                  >
+                    <Layers2 className="h-4 w-4 text-orange-500" />
+                    Extensions
+                  </Button>
+                  <Button
+                    className="w-full justify-start gap-2"
+                    variant="outline"
+                    onClick={() => {
+                      const { nodeId, lessonId } = ensureFirstLessonContext()
+                      const nodeIndex = nodes.findIndex(m => m.id === nodeId)
+                      const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+                      const newAssess = DEFAULT_HOMEWORK(
+                        nodes[nodeIndex].lessons[lessonIndex].homework.length,
+                        'assessment'
+                      )
+                      const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
 
-                  newAssess.description = textToInsert
+                      newAssess.description = textToInsert
 
-                  const newCourseBuilderNodes = [...nodes]
-                  newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.push(newAssess)
-                  setCourseBuilderNodes(newCourseBuilderNodes)
-                  setMainBuilderTab('assessment')
-                  setSelectedItem({ type: 'assessment', id: newAssess.id })
-                  loadAssessmentIntoBuilder(newAssess)
+                      const newCourseBuilderNodes = [...nodes]
+                      newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.push(newAssess)
+                      setCourseBuilderNodes(newCourseBuilderNodes)
+                      setMainBuilderTab('assessment')
+                      setSelectedItem({ type: 'assessment', id: newAssess.id })
+                      loadAssessmentIntoBuilder(newAssess)
 
-                  toast.success(`Created new Assessment and loaded '${assetToLoad?.name}'`)
-                  setLoadAsModalOpen(false)
-                  setAssetToLoad(null)
-                }}
-              >
-                <FileQuestion className="h-4 w-4 text-purple-500" />
-                Assessment
-              </Button>
+                      toast.success(`Created new Assessment and loaded '${assetToLoad?.name}'`)
+                      setLoadAsModalOpen(false)
+                      setAssetToLoad(null)
+                    }}
+                  >
+                    <FileQuestion className="h-4 w-4 text-purple-500" />
+                    Assessment
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-500">
+                    Choose how to load "{assetToLoad?.name}" as Task(s):
+                  </p>
+                  <Button
+                    className="w-full justify-start gap-2"
+                    variant="outline"
+                    onClick={() => {
+                      // Load entire document as a single task
+                      const { nodeId, lessonId } = ensureFirstLessonContext()
+                      const nodeIndex = nodes.findIndex(m => m.id === nodeId)
+                      const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+                      const newTask = DEFAULT_TASK(nodes[nodeIndex].lessons[lessonIndex].tasks.length)
+                      const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
+
+                      newTask.description = textToInsert
+
+                      const newCourseBuilderNodes = [...nodes]
+                      newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(newTask)
+                      setCourseBuilderNodes(newCourseBuilderNodes)
+                      setMainBuilderTab('task')
+                      setSelectedItem({ type: 'task', id: newTask.id })
+                      loadTaskIntoBuilder(newTask)
+
+                      toast.success(`Created new Task and loaded '${assetToLoad?.name}'`)
+                      setLoadAsStep('main')
+                      setLoadAsModalOpen(false)
+                      setAssetToLoad(null)
+                    }}
+                  >
+                    <FileText className="h-4 w-4 text-blue-500" />
+                    <div className="flex flex-col items-start">
+                      <span>Single Task</span>
+                      <span className="text-xs text-gray-500">Load entire document as one task</span>
+                    </div>
+                  </Button>
+                  <Button
+                    className="w-full justify-start gap-2"
+                    variant="outline"
+                    onClick={() => {
+                      // Load first page as task, remaining pages as extensions
+                      const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
+                      
+                      // Try to split content by pages (form feed or page markers)
+                      // Heuristic: split by form feed, then by double newlines as fallback
+                      let pages: string[] = []
+                      if (textToInsert.includes('\f')) {
+                        pages = textToInsert.split('\f').filter(p => p.trim())
+                      } else if (textToInsert.includes('--- Page')) {
+                        pages = textToInsert.split(/--- Page \d+ ---/).filter(p => p.trim())
+                      } else {
+                        // Fallback: split by double newlines for long content
+                        const chunks = textToInsert.split(/\n\n+/).filter(p => p.trim().length > 50)
+                        pages = chunks.length > 1 ? chunks : [textToInsert]
+                      }
+
+                      const { nodeId, lessonId } = ensureFirstLessonContext()
+                      const nodeIndex = nodes.findIndex(m => m.id === nodeId)
+                      const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+                      
+                      // Create main task with first page
+                      const newTask = DEFAULT_TASK(nodes[nodeIndex].lessons[lessonIndex].tasks.length)
+                      newTask.description = pages[0] || textToInsert
+                      
+                      // Create extensions for remaining pages
+                      const extensions = pages.slice(1).map((pageContent, idx) => ({
+                        id: `ext-${Date.now()}-${idx}`,
+                        name: `Extension ${idx + 1}`,
+                        description: '',
+                        content: pageContent,
+                        pci: '',
+                      }))
+                      
+                      newTask.extensions = extensions
+
+                      const newCourseBuilderNodes = [...nodes]
+                      newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(newTask)
+                      setCourseBuilderNodes(newCourseBuilderNodes)
+                      setMainBuilderTab('task')
+                      setSelectedItem({ type: 'task', id: newTask.id })
+                      
+                      // Set up task builder with the new task and extensions
+                      setTaskBuilder({
+                        title: newTask.title,
+                        taskContent: newTask.description,
+                        taskPci: '',
+                        details: '',
+                        extensions: extensions,
+                        activeExtensionId: null,
+                      })
+                      setLoadedTaskId(newTask.id)
+                      
+                      // Initialize PCI messages for extensions
+                      const extPciMessages: Record<string, { role: 'user' | 'assistant'; content: string }[]> = {}
+                      extensions.forEach(ext => {
+                        extPciMessages[ext.id] = []
+                      })
+                      setTaskExtensionPciMessages(extPciMessages)
+                      setTaskExtensionPciInputs(
+                        extensions.reduce((acc, ext) => ({ ...acc, [ext.id]: '' }), {})
+                      )
+
+                      toast.success(`Created Task with ${extensions.length} extension(s) from '${assetToLoad?.name}'`)
+                      setLoadAsStep('main')
+                      setLoadAsModalOpen(false)
+                      setAssetToLoad(null)
+                    }}
+                  >
+                    <Layers2 className="h-4 w-4 text-green-500" />
+                    <div className="flex flex-col items-start">
+                      <span>Task + Extensions</span>
+                      <span className="text-xs text-gray-500">First page as task, remaining as extensions</span>
+                    </div>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setLoadAsStep('main')}
+                    className="mt-2"
+                  >
+                    <ChevronLeft className="mr-1 h-4 w-4" />
+                    Back
+                  </Button>
+                </>
+              )}
             </div>
           </DialogContent>
         </Dialog>
@@ -4531,7 +4653,7 @@ FEEDBACK: [your explanation]`
                                     value="content"
                                     className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
                                   >
-                                    Assessment
+                                    Slide
                                   </TabsTrigger>
                                   <TabsTrigger
                                     value="pci"
@@ -4542,7 +4664,7 @@ FEEDBACK: [your explanation]`
                                 </TabsList>
                                 <TabsContent
                                   value="content"
-                                  className="mt-2 flex flex-1 flex-col space-y-2 overflow-y-auto"
+                                  className="mt-2 flex flex-1 flex-col overflow-hidden"
                                 >
                                   <AutoTextarea
                                     placeholder={
@@ -4550,7 +4672,7 @@ FEEDBACK: [your explanation]`
                                         ? 'Extension content...'
                                         : 'Enter task content or drop files here...'
                                     }
-                                    className="min-h-[300px] w-full flex-1"
+                                    className="h-full min-h-0 w-full flex-1 resize-none"
                                     onDrop={(e: any) =>
                                       handleDragFiles(e, text => {
                                         setTaskBuilder(prev => {
@@ -4866,11 +4988,11 @@ FEEDBACK: [your explanation]`
                                 </TabsList>
                                 <TabsContent
                                   value="content"
-                                  className="mt-2 flex flex-1 flex-col space-y-2 overflow-y-auto"
+                                  className="mt-2 flex flex-1 flex-col overflow-hidden"
                                 >
                                   <AutoTextarea
                                     placeholder="Enter assessment content or drop files here..."
-                                    className="min-h-[300px] w-full flex-1"
+                                    className="h-full min-h-0 w-full flex-1 resize-none"
                                     onDrop={(e: any) =>
                                       handleDragFiles(e, text => {
                                         setAssessmentBuilder(prev => {

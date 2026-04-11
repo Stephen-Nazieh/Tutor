@@ -12,7 +12,6 @@ import {
   Search,
   Filter,
   BookOpen,
-  Clock,
   ChevronRight,
   GraduationCap,
   Pencil,
@@ -95,7 +94,9 @@ export default function CoursesPage() {
                 .filter(
                   c =>
                     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    c.subject.toLowerCase().includes(searchQuery.toLowerCase())
+                    (c.categories || []).some((cat: string) =>
+                      cat.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
                 )
                 .map(course => (
                   <Card
@@ -118,20 +119,14 @@ export default function CoursesPage() {
                     </CardHeader>
                     <CardContent className="pt-0">
                       <div className="mb-4 flex flex-wrap gap-2">
-                        <Badge variant="outline">{course.subject}</Badge>
-                        {course.gradeLevel && <Badge variant="outline">{course.gradeLevel}</Badge>}
-                        {course.difficulty && (
-                          <Badge variant="outline" className="capitalize">
-                            {course.difficulty}
+                        {(course.categories || []).map((cat: string) => (
+                          <Badge key={cat} variant="outline">
+                            {cat}
                           </Badge>
-                        )}
+                        ))}
                       </div>
 
                       <div className="mb-4 flex items-center gap-4 text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          <span>{course.estimatedHours || 0}h</span>
-                        </div>
                         <div className="flex items-center gap-1">
                           <BookOpen className="h-4 w-4" />
                           <span>{course._count?.lessons || 0} lessons</span>

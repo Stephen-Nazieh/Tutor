@@ -268,17 +268,27 @@ export default function TutorSettings() {
     avatarUrl: '',
     language: 'en',
     timezone: 'Asia/Shanghai',
+    nationality: '',
+    countryOfResidence: '',
+    specialties: [] as string[],
+    tutorNationalities: [] as string[],
+    categoryNationalityCombinations: [] as string[],
   })
 
   // Load profile on mount
   useEffect(() => {
-    fetch('/api/tutor/public-profile', { credentials: 'include' })
+    fetch('/api/user/profile', { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         if (data?.profile) {
           setFormData(prev => ({
             ...prev,
             avatarUrl: data.profile.avatarUrl || '',
+            nationality: data.profile.nationality || '',
+            countryOfResidence: data.profile.countryOfResidence || '',
+            specialties: data.profile.specialties || [],
+            tutoringNationalities: data.profile.tutorNationalities || [],
+            categoryNationalityCombinations: data.profile.categoryNationalityCombinations || [],
           }))
         }
       })
@@ -860,6 +870,112 @@ export default function TutorSettings() {
                     )}
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Tutor Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Tutor Information</CardTitle>
+                <CardDescription>Your tutoring profile details (set during registration)</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Nationality & Country of Residence */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Nationality</Label>
+                    <Input 
+                      value={formData.nationality || 'Not specified'} 
+                      disabled 
+                      className="bg-gray-50" 
+                    />
+                    <p className="text-xs text-gray-500">
+                      Your nationality as selected during registration
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Country of Residence</Label>
+                    <Input 
+                      value={formData.countryOfResidence || 'Not specified'} 
+                      disabled 
+                      className="bg-gray-50" 
+                    />
+                    <p className="text-xs text-gray-500">
+                      Your current country of residence
+                    </p>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Tutoring Categories */}
+                <div className="space-y-2">
+                  <Label>Tutoring Categories</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.specialties.length > 0 ? (
+                      formData.specialties.map((specialty, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-700"
+                        >
+                          {specialty}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-gray-500">No categories specified</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Subject categories you tutor (set during registration)
+                  </p>
+                </div>
+
+                <Separator />
+
+                {/* Tutoring Nationalities */}
+                <div className="space-y-2">
+                  <Label>Student Nationalities You Tutor</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.tutorNationalities.length > 0 ? (
+                      formData.tutorNationalities.map((nationality, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm text-green-700"
+                        >
+                          {nationality}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-gray-500">No nationalities specified</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Student nationalities you specialize in tutoring (set during registration)
+                  </p>
+                </div>
+
+                {/* Category-Nationality Combinations */}
+                {formData.categoryNationalityCombinations.length > 0 && (
+                  <>
+                    <Separator />
+                    <div className="space-y-2">
+                      <Label>Search Tags</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {formData.categoryNationalityCombinations.map((combo, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-sm text-purple-700"
+                          >
+                            {combo}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        These tags help students find you when searching for specific category-nationality combinations
+                      </p>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
 

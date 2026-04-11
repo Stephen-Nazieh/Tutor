@@ -1156,6 +1156,11 @@ const NATIONAL_EXAMS_DATA: Record<string, ExamCategory[]> = {
 
 const REGIONS: Region[] = [
   {
+    id: 'global',
+    name: 'Global (All Nationalities)',
+    countries: [],
+  },
+  {
     id: 'asia',
     name: 'Asia',
     countries: [
@@ -1793,6 +1798,7 @@ export default function TutorRegistrationPage() {
     middleName: '',
     lastName: '',
     legalName: '',
+    nationality: '',
     countryOfResidence: '',
     educationLevel: '',
     tutoringExperienceRange: '',
@@ -2125,8 +2131,8 @@ export default function TutorRegistrationPage() {
       toast.error('Passwords do not match')
       return false
     }
-    if (!formData.countryOfResidence) {
-      toast.error('Country of residence is required')
+    if (!formData.nationality) {
+      toast.error('Nationality is required')
       return false
     }
     return true
@@ -2137,8 +2143,8 @@ export default function TutorRegistrationPage() {
       toast.error('Select at least one tutoring category')
       return false
     }
-    if (selectedCountries.length === 0) {
-      toast.error('Select at least one country you want to tutor in')
+    if (selectedCountries.length === 0 && !selectedRegions.includes('global')) {
+      toast.error('Select at least one student nationality you want to tutor (or select Global)')
       return false
     }
     return true
@@ -2215,6 +2221,24 @@ export default function TutorRegistrationPage() {
     try {
       // Get country names from selected country codes
       const tutoringCountryNames = getCountryNamesFromCodes(selectedCountries)
+      
+      // Generate Category-Nationality combinations
+      // e.g., ["IELTS - Korea", "TOEFL - Korea", "IELTS - Hong Kong", "TOEFL - Hong Kong"]
+      const categoryNationalityCombinations: string[] = []
+      
+      if (selectedRegions.includes('global')) {
+        // If Global is selected, just use categories without nationality suffix
+        selectedCategories.forEach(category => {
+          categoryNationalityCombinations.push(`${category} - Global`)
+        })
+      } else {
+        // Create combinations of each category with each selected country
+        selectedCategories.forEach(category => {
+          tutoringCountryNames.forEach(countryName => {
+            categoryNationalityCombinations.push(`${category} - ${countryName}`)
+          })
+        })
+      }
 
       const payload = {
         role: 'TUTOR',
@@ -2225,12 +2249,18 @@ export default function TutorRegistrationPage() {
         profileData: {
           timezone: formData.timezone,
           preferredLanguage: formData.preferredLanguage,
+          nationality: formData.nationality,
+          tutorNationalities: selectedRegions.includes('global') 
+            ? ['Global'] 
+            : tutoringCountryNames,
+          categoryNationalityCombinations: categoryNationalityCombinations,
         },
         additionalData: {
           firstName: formData.firstName,
           middleName: formData.middleName,
           lastName: formData.lastName,
           legalName: formData.legalName,
+          nationality: formData.nationality,
           countryOfResidence: formData.countryOfResidence,
           phoneCountryCode: '+1',
           phoneNumber: '0000000000',
@@ -2431,18 +2461,18 @@ export default function TutorRegistrationPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Country of Residence</Label>
+                  <Label>Nationality</Label>
                   <Select
-                    value={formData.countryOfResidence}
+                    value={formData.nationality}
                     onValueChange={value => {
                       setFormData(prev => ({
                         ...prev,
-                        countryOfResidence: value,
+                        nationality: value,
                       }))
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select country" />
+                      <SelectValue placeholder="Select your nationality" />
                     </SelectTrigger>
                     <SelectContent>
                       {ALL_COUNTRIES.map(country => (
@@ -2472,10 +2502,10 @@ export default function TutorRegistrationPage() {
                 {/* Header */}
                 <div className="mb-6 text-center">
                   <h3 className="mb-2 text-xl font-bold text-[#1F2933]">
-                    Select Your Teaching Areas
+                    Select Student Nationalities You Tutor
                   </h3>
                   <p className="text-gray-600">
-                    Select your regions, countries, and the categories you teach.
+                    Which nationalities of students would you like to offer tutoring services to? Select regions/countries or Global for all.
                   </p>
                 </div>
 

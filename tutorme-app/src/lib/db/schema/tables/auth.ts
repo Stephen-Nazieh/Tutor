@@ -92,6 +92,12 @@ export const profile = pgTable('Profile', {
   paidClassesEnabled: boolean('paidClassesEnabled').notNull().default(false),
   paymentGatewayPreference: text('paymentGatewayPreference'),
   currency: text('currency'),
+  // New fields for nationality and country of residence
+  nationality: text('nationality'),
+  countryOfResidence: text('countryOfResidence'),
+  // Fields for tutor search combinations (e.g., "IELTS - Korea", "TOEFL - Hong Kong")
+  tutorNationalities: text('tutorNationalities').array().notNull().default([]),
+  categoryNationalityCombinations: text('categoryNationalityCombinations').array().notNull().default([]),
   createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updatedAt', { withTimezone: true })
     .notNull()

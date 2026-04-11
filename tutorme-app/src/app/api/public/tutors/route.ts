@@ -1,18 +1,20 @@
 /**
  * Public API to get tutors with published courses
- * GET /api/public/tutors?q=&subject=&sort=
+ * GET /api/public/tutors?q=&subject=&sort=&combination=
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course, user, profile } from '@/lib/db/schema'
-import { eq, and, inArray } from 'drizzle-orm'
+import { eq, and, inArray, sql } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const searchQuery = searchParams.get('q')?.toLowerCase() || ''
     const categoryFilter = searchParams.get('subject')?.toLowerCase() || ''
+    const combinationFilter = searchParams.get('combination')?.toLowerCase() || ''
+    const nationalityFilter = searchParams.get('nationality')?.toLowerCase() || ''
     const sortBy = searchParams.get('sort') || 'popular'
 
     // Get all published courses with their creators
@@ -83,6 +85,8 @@ export async function GET(request: NextRequest) {
         specialties: profile.specialties,
         hourlyRate: profile.hourlyRate,
         oneOnOneEnabled: profile.oneOnOneEnabled,
+        tutorNationalities: profile.tutorNationalities,
+        categoryNationalityCombinations: profile.categoryNationalityCombinations,
       })
       .from(profile)
       .where(inArray(profile.userId, validTutorIds))
@@ -101,6 +105,24 @@ export async function GET(request: NextRequest) {
         if (!hasMatchingCategory) continue
       }
 
+      // Apply combination filter (e.g., "IELTS - Korea") if specified
+      if (combinationFilter && combinationFilter !== 'all') {
+        const combinations = profileData.categoryNationalityCombinations || []
+        const hasMatchingCombination = combinations.some(
+          (combo: string) => combo.toLowerCase().includes(combinationFilter)
+        )
+        if (!hasMatchingCombination) continue
+      }
+
+      // Apply nationality filter if specified
+      if (nationalityFilter && nationalityFilter !== 'all') {
+        const nationalities = profileData.tutorNationalities || []
+        const hasMatchingNationality = nationalities.some(
+          (nat: string) => nat.toLowerCase().includes(nationalityFilter)
+        )
+        if (!hasMatchingNationality) continue
+      }
+
       // Apply search filter if specified
       if (searchQuery) {
         const matchesSearch =
@@ -110,6 +132,10 @@ export async function GET(request: NextRequest) {
             c =>
               c.name?.toLowerCase().includes(searchQuery) ||
               c.categories?.some((cat: string) => cat.toLowerCase().includes(searchQuery))
+          ) ||
+          // Also search in combinations
+          (profileData.categoryNationalityCombinations || []).some((combo: string) =>
+            combo.toLowerCase().includes(searchQuery)
           )
         if (!matchesSearch) continue
       }
@@ -130,6 +156,8 @@ export async function GET(request: NextRequest) {
         specialties: profileData.specialties || [],
         hourlyRate: profileData.hourlyRate,
         oneOnOneEnabled: profileData.oneOnOneEnabled ?? true, // Default to true if not set
+        tutorNationalities: profileData.tutorNationalities || [],
+        categoryNationalityCombinations: profileData.categoryNationalityCombinations || [],
         courseCount: tutorCourses.length,
         totalEnrollments,
         categories,
@@ -185,9 +213,21 @@ export async function GET(request: NextRequest) {
       ...new Set(publishedCourses.flatMap(c => c.categories || [])),
     ].filter(Boolean)
 
+    // Get all unique combinations from all tutor profiles
+    const allCombinations = [
+      ...new Set(tutorProfiles.flatMap(p => p.categoryNationalityCombinations || [])),
+    ].filter(Boolean)
+
+    // Get all unique tutor nationalities
+    const allTutorNationalities = [
+      ...new Set(tutorProfiles.flatMap(p => p.tutorNationalities || [])),
+    ].filter(Boolean)
+
     return NextResponse.json({
       tutors,
       availableCategories: allCategories,
+      availableCombinations: allCombinations,
+      availableNationalities: allTutorNationalities,
       source: 'db',
     })
   } catch (error) {

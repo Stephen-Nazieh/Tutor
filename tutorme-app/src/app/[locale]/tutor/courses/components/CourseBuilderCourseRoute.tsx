@@ -437,12 +437,14 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
             <BookOpen className="h-5 w-5 text-blue-500" />
             <Select value={currentCourse?.id} onValueChange={handleCourseSelect}>
               <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select a course" />
+                <SelectValue placeholder="Select a course">
+                  {courseName || 'Select a course'}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {courses.map(course => (
                   <SelectItem key={course.id} value={course.id}>
-                    {course.name}
+                    {course.id === currentCourse?.id ? courseName || course.name : course.name}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -336,15 +336,7 @@ interface OutlineModuleItem {
   lessons: { title: string; durationMinutes: number }[]
 }
 
-interface CourseMaterials {
-  curriculumText?: string
-  notesText?: string
-  editableCurriculum?: string
-  editableNotes?: string
-  editableTopics?: string
-  outline?: OutlineItem[]
-  outlineModules?: { modules: OutlineModuleItem[] }
-}
+// CourseMaterials interface removed - using simplified course model
 
 interface Lesson {
   id: string
@@ -366,21 +358,15 @@ interface CourseData {
   id: string
   name: string
   description: string | null
-  subject: string
-  gradeLevel: string | null
-  difficulty: string
-  estimatedHours: number
+  categories?: string[]
   isPublished: boolean
   languageOfInstruction: string | null
   price: number | null
   currency: string | null
   isFree: boolean
-  curriculumSource: string | null
-  outlineSource: string | null
   schedule: ScheduleItem[]
   studentCount: number
   modules: Module[]
-  courseMaterials?: CourseMaterials
 }
 
 export default function TutorCoursePage() {
@@ -395,30 +381,12 @@ export default function TutorCoursePage() {
 
   const [courseName, setCourseName] = useState('')
   const [description, setDescription] = useState('')
-  const [gradeLevel, setGradeLevel] = useState('')
-  const [difficulty, setDifficulty] = useState('intermediate')
   const [languageOfInstruction, setLanguageOfInstruction] = useState<string>('')
   const [price, setPrice] = useState<string>('')
   const [isFree, setIsFree] = useState(false)
   const [currency, setCurrency] = useState<string>('SGD')
-  const [curriculumSource, setCurriculumSource] = useState<'PLATFORM' | 'UPLOADED'>('PLATFORM')
-  const [curriculumCatalog, setCurriculumCatalog] = useState<{ id: string; name: string }[]>([])
-  const [loadingCatalog, setLoadingCatalog] = useState(false)
-  const [outlineSource, setOutlineSource] = useState<'SELF' | 'AI'>('SELF')
   const [schedule, setSchedule] = useState<ScheduleItem[]>([])
-  const [materials, setMaterials] = useState<CourseMaterials>({})
-  const [uploadText, setUploadText] = useState({ curriculum: '', notes: '', topics: '' })
-  const [generatingOutline, setGeneratingOutline] = useState(false)
-  const [populatingSchedule, setPopulatingSchedule] = useState(false)
-  const [populatingFromContent, setPopulatingFromContent] = useState(false)
   const [launchingLiveClass, setLaunchingLiveClass] = useState(false)
-  const [editableCurriculum, setEditableCurriculum] = useState('')
-  const [editableNotes, setEditableNotes] = useState('')
-  const [editableTopics, setEditableTopics] = useState('')
-  const [outline, setOutline] = useState<OutlineItem[]>([])
-  const [outlineModules, setOutlineModules] = useState<OutlineModuleItem[]>([])
-  const [outlineModalOpen, setOutlineModalOpen] = useState(false)
-  const [typicalLessonMinutes, setTypicalLessonMinutes] = useState(45)
   const [tutorProfile, setTutorProfile] = useState<{
     currency?: string | null
     categories?: string[]
@@ -531,43 +499,25 @@ export default function TutorCoursePage() {
     if (!course) return
     setCourseName(course.name ?? '')
     setDescription(course.description ?? '')
-    setGradeLevel(course.gradeLevel ?? '')
-    setDifficulty(course.difficulty ?? 'intermediate')
     setLanguageOfInstruction(course.languageOfInstruction ?? '')
     setIsFree(course.isFree ?? false)
     setPrice(course.isFree ? '' : course.price != null ? String(course.price) : '')
     setCurrency('USD') // Fixed to USD
-    setCurriculumSource((course.curriculumSource as 'PLATFORM' | 'UPLOADED') ?? 'PLATFORM')
-    setOutlineSource((course.outlineSource as 'SELF' | 'AI') ?? 'SELF')
     setSchedule(Array.isArray(course.schedule) ? [...course.schedule] : [])
     // Load categories from course if available, otherwise use tutor profile categories
-    if ((course as unknown as { categories?: string[] }).categories) {
-      setSelectedCategories((course as unknown as { categories: string[] }).categories)
-    }
-    const cm = course.courseMaterials
-    if (cm) {
-      setMaterials(cm)
-      setEditableCurriculum(cm.editableCurriculum ?? '')
-      setEditableNotes(cm.editableNotes ?? '')
-      setEditableTopics(cm.editableTopics ?? '')
-      setOutline(cm.outline ?? [])
-      setOutlineModules(cm.outlineModules?.modules ?? [])
+    if (course.categories && Array.isArray(course.categories)) {
+      setSelectedCategories(course.categories)
     }
   }, [course, tutorProfile])
 
+  // Load curriculum catalog based on first category if available
   useEffect(() => {
-    const sub = course?.subject
-    if (!sub) {
-      setCurriculumCatalog([])
+    const categories = course?.categories
+    if (!categories || categories.length === 0) {
       return
     }
-    setLoadingCatalog(true)
-    fetch(`/api/curriculums/catalog?subject=${encodeURIComponent(sub)}`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => setCurriculumCatalog(data.curriculums ?? []))
-      .catch(() => setCurriculumCatalog([]))
-      .finally(() => setLoadingCatalog(false))
-  }, [course?.subject])
+    // Curriculum catalog loading removed - using simplified course model
+  }, [course?.categories])
 
   // Schedule summary: generate + sync (hooks must run unconditionally before any early return)
   const generateScheduleSummary = useCallback(() => {
@@ -617,13 +567,7 @@ export default function TutorCoursePage() {
     }
   }, [schedule, scheduleRepeatWeekly, numberOfWeeks, totalSessionsDesired])
 
-  const hasAtLeastOneUpload = !!(
-    uploadText.curriculum.trim() ||
-    uploadText.notes.trim() ||
-    uploadText.topics.trim() ||
-    materials.curriculumText ||
-    materials.editableCurriculum
-  )
+  // Materials upload removed - using simplified course model
 
   const handleOpenInLiveClass = async () => {
     if (!course) return
@@ -639,16 +583,14 @@ export default function TutorCoursePage() {
           : 60
 
       const normalizedDescription = (description?.trim() || course.description || '').trim()
-      const normalizedGradeLevel = (gradeLevel || course.gradeLevel || '').trim()
       const payload: Record<string, unknown> = {
         title: (courseName || course.name || '').trim(),
-        subject: course.subject || 'General',
+        category: (course.categories || [])[0] || 'General',
         curriculumId: course.id,
         maxStudents: 50,
         durationMinutes: Math.max(15, Math.min(480, durationFromSchedule)),
       }
       if (normalizedDescription) payload.description = normalizedDescription
-      if (normalizedGradeLevel) payload.gradeLevel = normalizedGradeLevel
 
       const res = await fetch('/api/class/rooms', {
         method: 'POST',
@@ -691,15 +633,11 @@ export default function TutorCoursePage() {
       // Build payload, excluding null name (name is required)
       const payload: Record<string, unknown> = {
         description: description.trim() || null,
-        gradeLevel: gradeLevel || null,
-        difficulty: difficulty || null,
         languageOfInstruction: languageOfInstruction || null,
         price: isFree ? 0 : price === '' ? null : Number(price),
         currency: 'USD',
         isFree,
         categories: selectedCategories,
-        curriculumSource,
-        outlineSource: curriculumSource === 'UPLOADED' ? outlineSource : null,
         schedule: schedule.length ? schedule : null,
       }
 
@@ -726,35 +664,15 @@ export default function TutorCoursePage() {
               ...prev,
               name: courseName.trim() || prev.name,
               description: description.trim() || prev.description,
-              gradeLevel: gradeLevel || prev.gradeLevel,
-              difficulty: difficulty || prev.difficulty,
               languageOfInstruction: languageOfInstruction || null,
               price: isFree ? 0 : price === '' ? null : Number(price),
               currency: 'USD',
               isFree,
-              curriculumSource,
-              outlineSource: curriculumSource === 'UPLOADED' ? outlineSource : null,
+              categories: selectedCategories,
               schedule,
             }
           : null
       )
-      if (
-        curriculumSource === 'UPLOADED' &&
-        (editableCurriculum || editableNotes || editableTopics || outline.length > 0)
-      ) {
-        const matRes = await fetch(`/api/tutor/courses/${id}/materials`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', ...(csrf && { 'X-CSRF-Token': csrf }) },
-          credentials: 'include',
-          body: JSON.stringify({
-            editableCurriculum: editableCurriculum || undefined,
-            editableNotes: editableNotes || undefined,
-            editableTopics: editableTopics || undefined,
-            outline: outline.length ? outline : undefined,
-          }),
-        })
-        if (matRes.ok) loadCourse()
-      }
       toast.success('All changes saved')
       loadCourse()
       return true
@@ -795,142 +713,7 @@ export default function TutorCoursePage() {
     return data?.token ?? null
   }
 
-  const handleGenerateOutline = async () => {
-    if (!hasAtLeastOneUpload) {
-      toast.error(
-        'Upload at least one of curriculum, notes, or topics before generating the outline.'
-      )
-      return
-    }
-    setGeneratingOutline(true)
-    try {
-      const csrf = await getCsrf()
-      const res = await fetch(`/api/tutor/courses/${id}/materials/outline`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(csrf && { 'X-CSRF-Token': csrf }) },
-        credentials: 'include',
-        body: JSON.stringify({
-          typicalLessonMinutes,
-          curriculumText:
-            uploadText.curriculum.trim() ||
-            materials.curriculumText ||
-            materials.editableCurriculum ||
-            undefined,
-          notesText:
-            uploadText.notes.trim() || materials.notesText || materials.editableNotes || undefined,
-        }),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        setOutline(data.outline ?? [])
-        setOutlineModules(data.outlineModules?.modules ?? [])
-        toast.success(data.message ?? 'Outline generated')
-        if (!outlineModalOpen) loadCourse()
-      } else toast.error(data.error ?? 'Failed to generate outline')
-    } catch {
-      toast.error('Failed to generate outline')
-    } finally {
-      setGeneratingOutline(false)
-    }
-  }
-
-  const handlePopulateSchedule = async () => {
-    setPopulatingSchedule(true)
-    try {
-      const csrf = await getCsrf()
-      const res = await fetch(`/api/tutor/courses/${id}/schedule/populate-from-outline`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(csrf && { 'X-CSRF-Token': csrf }) },
-        credentials: 'include',
-        body: JSON.stringify({ firstDay: DAYS[0], startTime: '09:00' }),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        setSchedule(data.schedule ?? [])
-        toast.success(data.message ?? 'Schedule populated')
-        loadCourse()
-      } else toast.error(data.error ?? 'Failed to populate schedule')
-    } catch {
-      toast.error('Failed to populate schedule')
-    } finally {
-      setPopulatingSchedule(false)
-    }
-  }
-
-  const handlePopulateScheduleFromContent = async () => {
-    setPopulatingFromContent(true)
-    try {
-      const csrf = await getCsrf()
-      const res = await fetch(`/api/tutor/courses/${id}/schedule/populate-from-content`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(csrf && { 'X-CSRF-Token': csrf }) },
-        credentials: 'include',
-        body: JSON.stringify({ firstDay: DAYS[0], startTime: '09:00' }),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        setSchedule(data.schedule ?? [])
-        toast.success(data.message ?? 'Schedule populated')
-        loadCourse()
-      } else toast.error(data.error ?? 'Failed to populate schedule')
-    } catch {
-      toast.error('Failed to populate schedule')
-    } finally {
-      setPopulatingFromContent(false)
-    }
-  }
-
-  const handleSaveMaterials = async () => {
-    try {
-      const csrf = await getCsrf()
-      const res = await fetch(`/api/tutor/courses/${id}/materials`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', ...(csrf && { 'X-CSRF-Token': csrf }) },
-        credentials: 'include',
-        body: JSON.stringify({
-          editableCurriculum: editableCurriculum || undefined,
-          editableNotes: editableNotes || undefined,
-          editableTopics: editableTopics || undefined,
-          outline: outline.length ? outline : undefined,
-        }),
-      })
-      if (res.ok) {
-        toast.success('Materials saved')
-        loadCourse()
-      } else toast.error('Failed to save materials')
-    } catch {
-      toast.error('Failed to save materials')
-    }
-  }
-
-  const [fileExtracting, setFileExtracting] = useState(false)
-  const handleFileRead = async (
-    type: 'curriculum' | 'notes' | 'topics',
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    e.target.value = ''
-    const isPlainText = /\.(txt|md|markdown)$/i.test(file.name) || file.type.startsWith('text/')
-    if (!isPlainText) setFileExtracting(true)
-    try {
-      const { extractTextFromFile } = await import('@/lib/extract-file-text')
-      const t = await extractTextFromFile(file)
-      if (type === 'curriculum') setUploadText(p => ({ ...p, curriculum: t }))
-      else if (type === 'notes') setUploadText(p => ({ ...p, notes: t }))
-      else setUploadText(p => ({ ...p, topics: t }))
-      toast.info(
-        t
-          ? 'File loaded. Generate the course outline in step 4.'
-          : 'File loaded but no text was extracted. Try another file.'
-      )
-    } catch (err) {
-      console.error(err)
-      toast.error('Could not read file. Try a .txt or .md file, or paste text.')
-    } finally {
-      setFileExtracting(false)
-    }
-  }
+  // Materials, outline, and curriculum upload functions removed - using simplified course model
 
   if (loading || !course) {
     return (
@@ -1062,33 +845,11 @@ export default function TutorCoursePage() {
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <Label>Course Name</Label>
-              {curriculumCatalog.length > 0 ? (
-                <Select
-                  value={courseName}
-                  onValueChange={handleCurriculumSelect}
-                  disabled={loadingCatalog}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={loadingCatalog ? 'Loading…' : 'Select curriculum'} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {courseName && !curriculumCatalog.some(c => c.name === courseName) && (
-                      <SelectItem value={courseName}>Current: {courseName}</SelectItem>
-                    )}
-                    {curriculumCatalog.map(c => (
-                      <SelectItem key={c.id} value={c.name}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input
-                  value={courseName}
-                  onChange={e => setCourseName(e.target.value)}
-                  placeholder="Course name"
-                />
-              )}
+              <Input
+                value={courseName}
+                onChange={e => setCourseName(e.target.value)}
+                placeholder="Course name"
+              />
             </div>
 
             <div className="space-y-2">

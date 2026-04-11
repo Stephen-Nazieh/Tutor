@@ -22,19 +22,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         courseId: course.courseId,
         name: course.name,
         description: course.description,
-        subject: course.subject,
-        gradeLevel: course.gradeLevel,
-        difficulty: course.difficulty,
-        estimatedHours: course.estimatedHours,
         isPublished: course.isPublished,
         languageOfInstruction: course.languageOfInstruction,
         price: course.price,
         currency: course.currency,
         isFree: course.isFree,
-        curriculumSource: course.curriculumSource,
-        outlineSource: course.outlineSource,
         schedule: course.schedule,
-        courseMaterials: course.courseMaterials,
         categories: course.categories,
         creatorId: course.creatorId,
       })
@@ -67,19 +60,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       id: courseRow.courseId,
       name: courseRow.name,
       description: courseRow.description,
-      subject: courseRow.subject,
-      gradeLevel: courseRow.gradeLevel,
-      difficulty: courseRow.difficulty || 'intermediate',
-      estimatedHours: courseRow.estimatedHours || 0,
       isPublished: courseRow.isPublished,
       languageOfInstruction: courseRow.languageOfInstruction,
       price: courseRow.price,
       currency: courseRow.currency,
       isFree: courseRow.isFree ?? false,
-      curriculumSource: courseRow.curriculumSource,
-      outlineSource: courseRow.outlineSource,
       schedule: courseRow.schedule || [],
-      courseMaterials: courseRow.courseMaterials || {},
       categories: courseRow.categories || [],
       // Group lessons into a single module for compatibility
       modules: [
@@ -138,8 +124,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       updateData.name = body.name.trim()
     }
     if (body.description !== undefined) updateData.description = body.description
-    if (body.gradeLevel !== undefined) updateData.gradeLevel = body.gradeLevel
-    if (body.difficulty !== undefined) updateData.difficulty = body.difficulty
     if (body.languageOfInstruction !== undefined)
       updateData.languageOfInstruction = body.languageOfInstruction
     if (body.price !== undefined) updateData.price = body.price
@@ -147,8 +131,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (body.isFree !== undefined) updateData.isFree = body.isFree
     if (body.isPublished !== undefined) updateData.isPublished = body.isPublished
     if (body.categories !== undefined) updateData.categories = body.categories
-    if (body.curriculumSource !== undefined) updateData.curriculumSource = body.curriculumSource
-    if (body.outlineSource !== undefined) updateData.outlineSource = body.outlineSource
     if (body.schedule !== undefined) updateData.schedule = body.schedule
 
     // Update the course
@@ -160,19 +142,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         courseId: course.courseId,
         name: course.name,
         description: course.description,
-        subject: course.subject,
-        gradeLevel: course.gradeLevel,
-        difficulty: course.difficulty,
-        estimatedHours: course.estimatedHours,
         isPublished: course.isPublished,
         languageOfInstruction: course.languageOfInstruction,
         price: course.price,
         currency: course.currency,
         isFree: course.isFree,
-        curriculumSource: course.curriculumSource,
-        outlineSource: course.outlineSource,
         schedule: course.schedule,
-        courseMaterials: course.courseMaterials,
         categories: course.categories,
       })
       .from(course)
