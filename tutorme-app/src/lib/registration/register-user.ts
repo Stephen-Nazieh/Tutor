@@ -374,7 +374,7 @@ export async function performRegistration(
           credentials: credentialParts.join(' | ').slice(0, 2000) || null,
           specialties: tutorData.categories,
           hourlyRate: typeof tutorData.hourlyRate === 'number' ? tutorData.hourlyRate : null,
-          countryOfResidence: tutorData.countryOfResidence ?? null,
+          countryOfResidence: tutorData.countryOfResidence || null,
           isOnboarded: false,
         })
         .where(eq(profile.userId, userId))
@@ -386,7 +386,7 @@ export async function performRegistration(
         middleName: tutorData.middleName ?? null,
         lastName: tutorData.lastName,
         legalName: tutorData.legalName ?? null,
-        countryOfResidence: tutorData.countryOfResidence ?? tutorData.nationality ?? 'Unknown',
+        countryOfResidence: tutorData.countryOfResidence || tutorData.nationality || 'Unknown',
         phoneCountryCode: tutorData.phoneCountryCode,
         phoneNumber: tutorData.phoneNumber,
         educationLevel: tutorData.educationLevel,
