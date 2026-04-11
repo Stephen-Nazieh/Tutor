@@ -336,6 +336,7 @@ export async function performRegistration(
       isOnboarded: role !== 'TUTOR',
       specialties: [],
       paidClassesEnabled: false,
+      oneOnOneEnabled: false,
       nationality: profileData?.nationality ?? null,
       countryOfResidence: sql`NULL`,
       tutorNationalities: profileData?.tutorNationalities ?? [],
