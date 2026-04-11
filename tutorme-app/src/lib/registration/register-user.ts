@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 import { nanoid } from 'nanoid'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   user,
@@ -337,7 +337,7 @@ export async function performRegistration(
       specialties: [],
       paidClassesEnabled: false,
       nationality: profileData?.nationality ?? null,
-      countryOfResidence: null,
+      countryOfResidence: sql`NULL`,
       tutorNationalities: profileData?.tutorNationalities ?? [],
       categoryNationalityCombinations: profileData?.categoryNationalityCombinations ?? [],
       ...(role === 'STUDENT' && { studentUniqueId: `STU-${nanoid(12)}` }),
