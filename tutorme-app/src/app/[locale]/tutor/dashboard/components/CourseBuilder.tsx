@@ -507,6 +507,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       items: { questionText: string; pciText: string }[]
     } | null>(null)
 
+    // PPT Upload Option Dialog state
+    const [pptUploadDialog, setPptUploadDialog] = useState<{
+      isOpen: boolean
+      file: File | null
+      target: 'task' | 'assessment' | null
+    }>({ isOpen: false, file: null, target: null })
+
     // Track currently loaded item for saving back
     const [loadedTaskId, setLoadedTaskId] = useState<string | null>(null)
     const [loadedAssessmentId, setLoadedAssessmentId] = useState<string | null>(null)
@@ -2501,13 +2508,53 @@ FEEDBACK: [your explanation]`
       return <FileText className="h-4 w-4 text-slate-500" />
     }
 
+    // Helper to check if file is PowerPoint
+    const isPowerPointFile = (file: File): boolean => {
+      const name = file.name.toLowerCase()
+      const type = file.type
+      return (
+        type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+        type === 'application/vnd.ms-powerpoint' ||
+        name.endsWith('.pptx') ||
+        name.endsWith('.ppt')
+      )
+    }
+
     const handleDragFiles = async (
       e: React.DragEvent<HTMLTextAreaElement>,
-      onText: (t: string) => void
+      onText: (t: string) => void,
+      target?: 'task' | 'assessment'
     ) => {
       const files = Array.from(e.dataTransfer.files || [])
       if (files.length > 0) {
         e.preventDefault()
+
+        // Check if any file is a PowerPoint
+        const pptFile = files.find(isPowerPointFile)
+        if (pptFile && target) {
+          // Show PPT upload options dialog
+          setPptUploadDialog({ isOpen: true, file: pptFile, target })
+          // Process non-PPT files normally
+          const otherFiles = files.filter(f => !isPowerPointFile(f))
+          if (otherFiles.length > 0) {
+            let combined = ''
+            for (const f of otherFiles) {
+              try {
+                const extracted = await extractTextFromFile(f)
+                if (extracted) {
+                  combined += extracted + '\n\n'
+                } else {
+                  combined += `[Imported ${f.name}]\n\n`
+                }
+              } catch {
+                combined += `[Imported ${f.name}]\n\n`
+              }
+            }
+            onText(combined.trim())
+          }
+          return
+        }
+
         let combined = ''
         for (const f of files) {
           try {
@@ -2525,6 +2572,75 @@ FEEDBACK: [your explanation]`
         onText(combined.trim())
         toast.success('File(s) parsed and loaded')
       }
+    }
+
+    // Handle PPT upload option selection
+    const handlePptOption = async (option: 'extract' | 'embed') => {
+      const { file, target } = pptUploadDialog
+      if (!file || !target) return
+
+      if (option === 'extract') {
+        // Extract text content
+        try {
+          const extracted = await extractTextFromFile(file)
+          const text = extracted || `[Imported ${file.name}]`
+          if (target === 'task') {
+            setTaskBuilder(prev => {
+              if (prev.activeExtensionId) {
+                const ext = prev.extensions.find(x => x.id === prev.activeExtensionId)
+                const combined = ext ? ext.content + (ext.content ? '\n\n' : '') + text : text
+                return {
+                  ...prev,
+                  extensions: prev.extensions.map(e =>
+                    e.id === prev.activeExtensionId ? { ...e, content: combined } : e
+                  ),
+                }
+              }
+              return {
+                ...prev,
+                taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + text,
+              }
+            })
+          } else {
+            setAssessmentBuilder(prev => ({
+              ...prev,
+              taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + text,
+            }))
+          }
+          toast.success('PowerPoint text extracted and loaded')
+        } catch {
+          toast.error('Failed to extract text from PowerPoint')
+        }
+      } else {
+        // Embed as presentation reference
+        const embedText = `[PowerPoint Presentation: ${file.name}]\n[File will be displayed as slides during class]`
+        if (target === 'task') {
+          setTaskBuilder(prev => {
+            if (prev.activeExtensionId) {
+              const ext = prev.extensions.find(x => x.id === prev.activeExtensionId)
+              const combined = ext ? ext.content + (ext.content ? '\n\n' : '') + embedText : embedText
+              return {
+                ...prev,
+                extensions: prev.extensions.map(e =>
+                  e.id === prev.activeExtensionId ? { ...e, content: combined } : e
+                ),
+              }
+            }
+            return {
+              ...prev,
+              taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + embedText,
+            }
+          })
+        } else {
+          setAssessmentBuilder(prev => ({
+            ...prev,
+            taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + embedText,
+          }))
+        }
+        toast.success('PowerPoint marked for presentation display')
+      }
+
+      setPptUploadDialog({ isOpen: false, file: null, target: null })
     }
 
     const handleLoadAsset = (asset: { name: string; content?: string }) => {
@@ -4702,7 +4818,7 @@ FEEDBACK: [your explanation]`
                                             }
                                           }
                                         })
-                                      })
+                                      }, 'task')
                                     }
                                     // Show task content if no extension active, otherwise show active extension's content
                                     value={
@@ -5005,7 +5121,7 @@ FEEDBACK: [your explanation]`
                                             taskContent: combined,
                                           }
                                         })
-                                      })
+                                      }, 'assessment')
                                     }
                                     value={assessmentBuilder.taskContent}
                                     onChange={(e: any) => {
@@ -5964,6 +6080,66 @@ FEEDBACK: [your explanation]`
               <DialogFooter>
                 <Button variant="outline" onClick={() => setShowDmiVersionList(false)}>
                   Close
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* PPT Upload Options Dialog */}
+          <Dialog
+            open={pptUploadDialog.isOpen}
+            onOpenChange={open => {
+              if (!open) setPptUploadDialog({ isOpen: false, file: null, target: null })
+            }}
+          >
+            <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-orange-500" />
+                  PowerPoint Upload Options
+                </DialogTitle>
+                <DialogDescription>
+                  How would you like to use &quot;{pptUploadDialog.file?.name}&quot;?
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-3 h-auto py-4 px-4"
+                  onClick={() => handlePptOption('extract')}
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100">
+                    <span className="text-lg">📄</span>
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium">Extract Text Content</p>
+                    <p className="text-sm text-muted-foreground">
+                      Parse the slides and extract all text content for editing
+                    </p>
+                  </div>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-3 h-auto py-4 px-4"
+                  onClick={() => handlePptOption('embed')}
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-100">
+                    <span className="text-lg">🖼️</span>
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium">Display as Presentation</p>
+                    <p className="text-sm text-muted-foreground">
+                      Keep the file as a presentation to display slides during class
+                    </p>
+                  </div>
+                </Button>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="ghost"
+                  onClick={() => setPptUploadDialog({ isOpen: false, file: null, target: null })}
+                >
+                  Cancel
                 </Button>
               </DialogFooter>
             </DialogContent>
