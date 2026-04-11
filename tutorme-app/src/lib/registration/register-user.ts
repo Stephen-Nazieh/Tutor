@@ -320,8 +320,8 @@ export async function performRegistration(
     const profileData =
       role === 'TUTOR' ? tutorProfileDataSchema.parse(data.profileData) : undefined
 
-    await tx.insert(profile).values({
-      // Order must match schema definition exactly
+    // Build profile insert data - ensure all nullable fields are explicitly null
+    const profileInsertData = {
       profileId: crypto.randomUUID(),
       userId,
       name,
@@ -333,7 +333,7 @@ export async function performRegistration(
       emailNotifications: true,
       smsNotifications: false,
       gradeLevel: null,
-      studentUniqueId: null,
+      studentUniqueId: role === 'STUDENT' ? `STU-${nanoid(12)}` : null,
       subjectsOfInterest: [],
       preferredLanguages: profileData?.preferredLanguage ? [profileData.preferredLanguage] : [],
       learningGoals: [],
@@ -350,13 +350,14 @@ export async function performRegistration(
       paymentGatewayPreference: null,
       currency: null,
       nationality: profileData?.nationality ?? null,
-      countryOfResidence: sql`NULL`,
+      countryOfResidence: null,
       tutorNationalities: profileData?.tutorNationalities ?? [],
       categoryNationalityCombinations: profileData?.categoryNationalityCombinations ?? [],
       createdAt: now,
       updatedAt: now,
-      ...(role === 'STUDENT' && { studentUniqueId: `STU-${nanoid(12)}` }),
-    })
+    }
+
+    await tx.insert(profile).values(profileInsertData as any)
 
     if (role === 'TUTOR') {
       const tutorData = tutorAdditionalDataSchema.parse(data.additionalData)
