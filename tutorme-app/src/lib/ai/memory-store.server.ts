@@ -55,7 +55,7 @@ async function buildDefaultStudentProfile(studentId: string): Promise<StudentPro
     id: studentId,
     name: row.name ?? row.email ?? `student-${studentId.slice(0, 6)}`,
     age: 15,
-    level: 'intermediate',
+    level: 'B1',
     learningStyle: 'mixed',
     interests: Array.isArray(row.subjectsOfInterest) ? row.subjectsOfInterest : [],
     goals: Array.isArray(row.learningGoals) ? row.learningGoals : [],
