@@ -10,7 +10,7 @@ import { eq, or, and } from 'drizzle-orm'
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -18,7 +18,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const courseId = params.id
+    const { id: courseId } = await params
 
     // Get the course to determine if it's a parent or variant
     const course = await drizzleDb.query.course.findFirst({

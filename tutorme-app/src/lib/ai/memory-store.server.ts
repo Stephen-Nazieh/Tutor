@@ -40,7 +40,6 @@ async function buildDefaultStudentProfile(studentId: string): Promise<StudentPro
       userId: userTable.userId,
       email: userTable.email,
       name: profileTable.name,
-      gradeLevel: profileTable.gradeLevel,
       learningGoals: profileTable.learningGoals,
       subjectsOfInterest: profileTable.subjectsOfInterest,
     })
@@ -56,7 +55,7 @@ async function buildDefaultStudentProfile(studentId: string): Promise<StudentPro
     id: studentId,
     name: row.name ?? row.email ?? `student-${studentId.slice(0, 6)}`,
     age: 15,
-    level: coerceEnglishLevel(row.gradeLevel),
+    level: 'intermediate',
     learningStyle: 'mixed',
     interests: Array.isArray(row.subjectsOfInterest) ? row.subjectsOfInterest : [],
     goals: Array.isArray(row.learningGoals) ? row.learningGoals : [],

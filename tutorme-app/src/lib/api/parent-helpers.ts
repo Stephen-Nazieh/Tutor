@@ -23,7 +23,7 @@ export interface FamilyMemberWithUser {
   user?: {
     userId: string
     email: string
-    profile: { name: string | null; gradeLevel?: string | null; avatarUrl?: string | null } | null
+    profile: { name: string | null; avatarUrl?: string | null } | null
   } | null
 }
 
@@ -86,7 +86,6 @@ export async function getFamilyAccountForParent(
               .select({
                 userId: profile.userId,
                 name: profile.name,
-                gradeLevel: profile.gradeLevel,
                 avatarUrl: profile.avatarUrl,
               })
               .from(profile)
@@ -121,7 +120,7 @@ export async function getFamilyAccountForParent(
                   userId: u.userId,
                   email: u.email ?? '',
                   profile: p
-                    ? { name: p.name, gradeLevel: p.gradeLevel, avatarUrl: p.avatarUrl }
+                    ? { name: p.name, avatarUrl: p.avatarUrl }
                     : null,
                 }
               : null,
@@ -166,7 +165,6 @@ export async function getFamilyAccountForParent(
           .select({
             userId: profile.userId,
             name: profile.name,
-            gradeLevel: profile.gradeLevel,
             avatarUrl: profile.avatarUrl,
           })
           .from(profile)
@@ -201,7 +199,7 @@ export async function getFamilyAccountForParent(
               userId: u.userId,
               email: u.email ?? '',
               profile: p
-                ? { name: p.name, gradeLevel: p.gradeLevel, avatarUrl: p.avatarUrl }
+                ? { name: p.name, avatarUrl: p.avatarUrl }
                 : null,
             }
           : null,

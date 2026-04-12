@@ -64,7 +64,6 @@ export const POST = withCsrf(
           title: data.title || `${data.subject} Class`,
           category: data.subject,
           description: data.description || null,
-          gradeLevel: data.gradeLevel || null,
           roomUrl: room.url,
           roomId: room.id,
           maxStudents: data.maxStudents,
@@ -90,7 +89,6 @@ export const GET = withAuth(async (req, session) => {
   const { searchParams } = new URL(req.url)
   const subject = searchParams.get('subject')
   const tutorId = searchParams.get('tutorId')
-  const gradeLevel = searchParams.get('gradeLevel')
   const curriculumId = searchParams.get('curriculumId')
 
   // Build filter
@@ -101,27 +99,7 @@ export const GET = withAuth(async (req, session) => {
 
   if (subject) filtersOfRequest.push(eq(liveSession.category, subject))
   if (tutorId) filtersOfRequest.push(eq(liveSession.tutorId, tutorId))
-  if (gradeLevel) filtersOfRequest.push(eq(liveSession.gradeLevel, gradeLevel))
   if (curriculumId) filtersOfRequest.push(eq(liveSession.courseId, curriculumId))
-
-  // For students, also include classes that match their grade level or have no grade specified
-  if (session?.user?.role === 'STUDENT' && !gradeLevel) {
-    const [studentUser] = await drizzleDb
-      .select({ gradeLevel: profile.gradeLevel })
-      .from(user)
-      .innerJoin(profile, eq(profile.userId, user.userId))
-      .where(eq(user.userId, session.user.id))
-      .limit(1)
-
-    const studentGrade = studentUser?.gradeLevel
-    if (studentGrade) {
-      const gradeFilter = or(
-        eq(liveSession.gradeLevel, studentGrade),
-        isNull(liveSession.gradeLevel)
-      )
-      if (gradeFilter) filtersOfRequest.push(gradeFilter)
-    }
-  }
 
   // Fetch sessions with tutor info
   // Since participants is a relation, and we don't have 'with' defined,

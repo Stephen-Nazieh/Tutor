@@ -29,7 +29,6 @@ export const GET = withAuth(
       title: s.title,
       category: s.category,
       description: s.description,
-      gradeLevel: s.gradeLevel,
       scheduledAt: s.scheduledAt?.toISOString() ?? null,
       startedAt: s.startedAt?.toISOString() ?? null,
       endedAt: s.endedAt?.toISOString() ?? null,

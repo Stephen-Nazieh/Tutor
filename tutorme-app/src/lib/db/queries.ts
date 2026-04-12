@@ -32,7 +32,6 @@ export async function getUserById(userId: string) {
               avatarUrl: profileRow.avatarUrl,
               dateOfBirth: profileRow.dateOfBirth,
               timezone: profileRow.timezone,
-              gradeLevel: profileRow.gradeLevel,
               subjectsOfInterest: profileRow.subjectsOfInterest,
               isOnboarded: profileRow.isOnboarded,
               hourlyRate: profileRow.hourlyRate,

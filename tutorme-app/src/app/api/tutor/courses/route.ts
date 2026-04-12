@@ -130,7 +130,20 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const createdCourses = []
+    const createdCourses: Array<{
+      id: string
+      name: string
+      description: string | null
+      categories: string[] | null
+      isPublished: boolean
+      isLiveOnline: boolean
+      createdAt: string
+      updatedAt: string
+      region: string | null
+      country: string | null
+      isVariant: boolean
+      parentCourseId: string | null
+    }> = []
 
     // Create all courses in a transaction
     await drizzleDb.transaction(async tx => {

@@ -12,7 +12,7 @@ import { eq, or, and } from 'drizzle-orm'
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -20,7 +20,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const courseId = params.id
+    const { id: courseId } = await params
     const body = await req.json()
     const { publishVariants = true } = body
 
@@ -102,7 +102,7 @@ export async function POST(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -110,7 +110,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const courseId = params.id
+    const { id: courseId } = await params
     const { searchParams } = new URL(req.url)
     const unpublishVariants = searchParams.get('variants') === 'true'
 

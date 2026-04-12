@@ -37,7 +37,6 @@ export async function batchLoadUsers(userIds: string[]) {
               ? {
                   name: profileMap.get(u.userId)!.name,
                   avatarUrl: profileMap.get(u.userId)!.avatarUrl,
-                  gradeLevel: profileMap.get(u.userId)!.gradeLevel,
                 }
               : null,
           },

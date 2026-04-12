@@ -12,7 +12,6 @@ import { profile as profileTable } from '@/lib/db/schema'
 import crypto from 'crypto'
 
 const onboardingSchema = z.object({
-  gradeLevel: z.string().min(1, 'Grade level is required').max(50),
   subjectsOfInterest: z.array(z.string().max(100)).max(20).optional().default([]),
 })
 
@@ -29,14 +28,13 @@ async function postHandler(req: NextRequest, session: Session) {
       return NextResponse.json({ error: firstError }, { status: 400 })
     }
 
-    const { gradeLevel, subjectsOfInterest } = parsed.data
+    const { subjectsOfInterest } = parsed.data
 
     const [profile] = await drizzleDb
       .insert(profileTable)
       .values({
         profileId: crypto.randomUUID(),
         userId: session.user.id,
-        gradeLevel,
         subjectsOfInterest,
         timezone: 'UTC',
         emailNotifications: true,
@@ -51,7 +49,6 @@ async function postHandler(req: NextRequest, session: Session) {
       .onConflictDoUpdate({
         target: profileTable.userId,
         set: {
-          gradeLevel,
           subjectsOfInterest,
           isOnboarded: true,
         },
