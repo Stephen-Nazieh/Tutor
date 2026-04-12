@@ -4782,80 +4782,82 @@ FEEDBACK: [your explanation]`
                                   value="content"
                                   className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                 >
-                                  <AutoTextarea
-                                    placeholder={
-                                      taskBuilder.activeExtensionId
-                                        ? 'Extension content...'
-                                        : 'Enter task content or drop files here...'
-                                    }
-                                    className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto"
-                                    disableAutoResize
-                                    onDrop={(e: any) =>
-                                      handleDragFiles(e, text => {
-                                        setTaskBuilder(prev => {
-                                          if (prev.activeExtensionId) {
-                                            const ext = prev.extensions.find(
-                                              x => x.id === prev.activeExtensionId
-                                            )
-                                            const combined = ext
-                                              ? ext.content + (ext.content ? '\n\n' : '') + text
-                                              : text
+                                  <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
+                                    <AutoTextarea
+                                      placeholder={
+                                        taskBuilder.activeExtensionId
+                                          ? 'Extension content...'
+                                          : 'Enter task content or drop files here...'
+                                      }
+                                      className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                      disableAutoResize
+                                      onDrop={(e: any) =>
+                                        handleDragFiles(e, text => {
+                                          setTaskBuilder(prev => {
+                                            if (prev.activeExtensionId) {
+                                              const ext = prev.extensions.find(
+                                                x => x.id === prev.activeExtensionId
+                                              )
+                                              const combined = ext
+                                                ? ext.content + (ext.content ? '\n\n' : '') + text
+                                                : text
+                                              return {
+                                                ...prev,
+                                                extensions: prev.extensions.map(x =>
+                                                  x.id === prev.activeExtensionId
+                                                    ? { ...x, content: combined }
+                                                    : x
+                                                ),
+                                              }
+                                            } else {
+                                              const combined =
+                                                prev.taskContent +
+                                                (prev.taskContent ? '\n\n' : '') +
+                                                text
+                                              return {
+                                                ...prev,
+                                                taskContent: combined,
+                                              }
+                                            }
+                                          })
+                                        }, 'task')
+                                      }
+                                      // Show task content if no extension active, otherwise show active extension's content
+                                      value={
+                                        taskBuilder.activeExtensionId
+                                          ? taskBuilder.extensions.find(
+                                              e => e.id === taskBuilder.activeExtensionId
+                                            )?.content || ''
+                                          : taskBuilder.taskContent
+                                      }
+                                      onChange={(e: any) => {
+                                        const newContent = e.target.value
+                                        // Auto-create task if none loaded
+                                        if (!loadedTaskId && !taskBuilder.activeExtensionId) {
+                                          autoCreateTask()
+                                        }
+                                        if (taskBuilder.activeExtensionId) {
+                                          // Update extension content
+                                          setTaskBuilder(prev => {
                                             return {
                                               ...prev,
-                                              extensions: prev.extensions.map(x =>
-                                                x.id === prev.activeExtensionId
-                                                  ? { ...x, content: combined }
-                                                  : x
+                                              extensions: prev.extensions.map(ext =>
+                                                ext.id === prev.activeExtensionId
+                                                  ? { ...ext, content: newContent }
+                                                  : ext
                                               ),
                                             }
-                                          } else {
-                                            const combined =
-                                              prev.taskContent +
-                                              (prev.taskContent ? '\n\n' : '') +
-                                              text
-                                            return {
-                                              ...prev,
-                                              taskContent: combined,
-                                            }
-                                          }
-                                        })
-                                      }, 'task')
-                                    }
-                                    // Show task content if no extension active, otherwise show active extension's content
-                                    value={
-                                      taskBuilder.activeExtensionId
-                                        ? taskBuilder.extensions.find(
-                                            e => e.id === taskBuilder.activeExtensionId
-                                          )?.content || ''
-                                        : taskBuilder.taskContent
-                                    }
-                                    onChange={(e: any) => {
-                                      const newContent = e.target.value
-                                      // Auto-create task if none loaded
-                                      if (!loadedTaskId && !taskBuilder.activeExtensionId) {
-                                        autoCreateTask()
-                                      }
-                                      if (taskBuilder.activeExtensionId) {
-                                        // Update extension content
-                                        setTaskBuilder(prev => {
-                                          return {
+                                          })
+                                        } else {
+                                          // Update task content
+                                          setTaskBuilder(prev => ({
                                             ...prev,
-                                            extensions: prev.extensions.map(ext =>
-                                              ext.id === prev.activeExtensionId
-                                                ? { ...ext, content: newContent }
-                                                : ext
-                                            ),
-                                          }
-                                        })
-                                      } else {
-                                        // Update task content
-                                        setTaskBuilder(prev => ({
-                                          ...prev,
-                                          taskContent: newContent,
-                                        }))
-                                      }
-                                    }}
-                                  />
+                                            taskContent: newContent,
+                                          }))
+                                        }
+                                      }}
+                                    />
+                                  </div>
                                   {/* Uploaded Files List - only show for task (not extensions) */}
                                   {/* Upload button - only for task (not extensions) */}
                                   {/* Assets Folder added to Slide Tab removed from here */}
@@ -5107,38 +5109,40 @@ FEEDBACK: [your explanation]`
                                   value="content"
                                   className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                 >
-                                  <AutoTextarea
-                                    placeholder="Enter assessment content or drop files here..."
-                                    className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto"
-                                    disableAutoResize
-                                    onDrop={(e: any) =>
-                                      handleDragFiles(e, text => {
-                                        setAssessmentBuilder(prev => {
-                                          const combined =
-                                            prev.taskContent +
-                                            (prev.taskContent ? '\n\n' : '') +
-                                            text
-                                          return {
-                                            ...prev,
-                                            taskContent: combined,
-                                          }
-                                        })
-                                      }, 'assessment')
-                                    }
-                                    value={assessmentBuilder.taskContent}
-                                    onChange={(e: any) => {
-                                      const newContent = e.target.value
-                                      // Auto-create assessment if none loaded
-                                      if (!loadedAssessmentId) {
-                                        autoCreateAssessment()
+                                  <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
+                                    <AutoTextarea
+                                      placeholder="Enter assessment content or drop files here..."
+                                      className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                      disableAutoResize
+                                      onDrop={(e: any) =>
+                                        handleDragFiles(e, text => {
+                                          setAssessmentBuilder(prev => {
+                                            const combined =
+                                              prev.taskContent +
+                                              (prev.taskContent ? '\n\n' : '') +
+                                              text
+                                            return {
+                                              ...prev,
+                                              taskContent: combined,
+                                            }
+                                          })
+                                        }, 'assessment')
                                       }
-                                      setAssessmentBuilder(prev => ({
-                                        ...prev,
-                                        taskContent: newContent,
-                                      }))
-                                    }}
-                                  />
-                                  {/* Uploaded Files List - only for assessment (not extensions) */}
+                                      value={assessmentBuilder.taskContent}
+                                      onChange={(e: any) => {
+                                        const newContent = e.target.value
+                                        // Auto-create assessment if none loaded
+                                        if (!loadedAssessmentId) {
+                                          autoCreateAssessment()
+                                        }
+                                        setAssessmentBuilder(prev => ({
+                                          ...prev,
+                                          taskContent: newContent,
+                                        }))
+                                      }}
+                                    />
+                                  </div>
+                                  {/* Uploaded Files List - only show for assessment (not extensions) */}
                                   {/* Upload button - only for assessment (not extensions) */}
                                   {/* Assets Folder added to Slide Tab removed from here */}
                                 </TabsContent>
