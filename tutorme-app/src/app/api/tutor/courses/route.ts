@@ -154,30 +154,28 @@ export async function POST(req: NextRequest) {
           ? data.categories
           : [data.subject ?? 'general']
 
-        const courseValues: Record<string, unknown> = {
-          courseId: courseData.courseId,
-          name: courseData.name,
-          description: data.description ?? null,
-          isPublished: false,
-          isLiveOnline: data.isLiveOnline ?? false,
-          isFree: false,
-          categories,
-          currency: 'USD',
-          schedule: Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : null,
-          createdAt: now,
-          updatedAt: now,
-          creatorId: userId,
-          // Multi-course publishing fields
-          region: courseData.region,
-          country: courseData.country,
-          parentCourseId: courseData.isVariant ? parentCourseId : null,
-          isVariant: courseData.isVariant,
-        }
-
-        // Insert course
+        // Insert course directly without type casting
         const [newCourse] = await tx
           .insert(courseTable)
-          .values(courseValues as typeof courseTable.$inferInsert)
+          .values({
+            courseId: courseData.courseId,
+            name: courseData.name,
+            description: data.description ?? null,
+            isPublished: false,
+            isLiveOnline: data.isLiveOnline ?? false,
+            isFree: false,
+            categories: categories,
+            currency: 'USD',
+            schedule: Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : null,
+            createdAt: now,
+            updatedAt: now,
+            creatorId: userId,
+            // Multi-course publishing fields
+            region: courseData.region,
+            country: courseData.country,
+            parentCourseId: courseData.isVariant ? parentCourseId : null,
+            isVariant: courseData.isVariant,
+          })
           .returning()
 
         // Create a default lesson for each course

@@ -27,7 +27,7 @@ export const course = pgTable(
     courseId: text('id').primaryKey().notNull(),
     name: text('name').notNull(),
     description: text('description'),
-    categories: jsonb('categories').$type<string[]>(),
+    categories: text('categories').array(),
     isPublished: boolean('isPublished').notNull().default(false),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
