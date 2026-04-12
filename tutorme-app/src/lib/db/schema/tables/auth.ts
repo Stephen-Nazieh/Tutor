@@ -75,7 +75,6 @@ export const profile = pgTable('Profile', {
   timezone: text('timezone').notNull().default('UTC'),
   emailNotifications: boolean('emailNotifications').notNull().default(true),
   smsNotifications: boolean('smsNotifications').notNull().default(false),
-  gradeLevel: text('gradeLevel'),
   studentUniqueId: text('studentUniqueId').unique(),
   subjectsOfInterest: text('subjectsOfInterest').array().notNull().default([]),
   preferredLanguages: text('preferredLanguages').array().notNull().default([]),

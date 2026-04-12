@@ -29,7 +29,6 @@ export const liveSession = pgTable(
     title: text('title').notNull(),
     category: text('category').notNull(),
     description: text('description'),
-    gradeLevel: text('gradeLevel'),
     scheduledAt: timestamp('scheduledAt', { withTimezone: true }),
     startedAt: timestamp('startedAt', { withTimezone: true }),
     endedAt: timestamp('endedAt', { withTimezone: true }),
