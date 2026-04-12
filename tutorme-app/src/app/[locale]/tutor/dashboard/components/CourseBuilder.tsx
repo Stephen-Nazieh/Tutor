@@ -4762,7 +4762,7 @@ FEEDBACK: [your explanation]`
                                 onValueChange={v => {
                                   setTaskBuilderActiveTab(v as 'content' | 'pci')
                                 }}
-                                className="flex h-full min-h-0 w-full flex-col"
+                                className="flex min-h-0 w-full flex-1 flex-col"
                               >
                                 <TabsList className="grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
                                   <TabsTrigger
@@ -5087,7 +5087,7 @@ FEEDBACK: [your explanation]`
                                 onValueChange={v => {
                                   setAssessmentBuilderActiveTab(v as 'content' | 'pci')
                                 }}
-                                className="flex h-full min-h-0 w-full flex-col"
+                                className="flex min-h-0 w-full flex-1 flex-col"
                               >
                                 <TabsList className="grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
                                   <TabsTrigger
