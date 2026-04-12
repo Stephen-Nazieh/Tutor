@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { and, eq, or } from 'drizzle-orm'
+import { and, eq, or, sql } from 'drizzle-orm'
 import {
   withAuth,
   withCsrf,
@@ -30,48 +30,53 @@ export const POST = withCsrf(
     }
     const { sessionId } = parsed.data
 
-    const [sessionRow] = await drizzleDb
-      .select()
-      .from(liveSessionTable)
-      .where(or(eq(liveSessionTable.sessionId, sessionId), eq(liveSessionTable.roomId, sessionId)))
-      .limit(1)
+    const sessionRow = await drizzleDb.transaction(async (tx) => {
+      const [row] = await tx
+        .select()
+        .from(liveSessionTable)
+        .where(or(eq(liveSessionTable.sessionId, sessionId), eq(liveSessionTable.roomId, sessionId)))
+        .limit(1)
+        .for('update')
 
-    if (!sessionRow) {
-      throw new NotFoundError('Session not found')
-    }
+      if (!row) {
+        throw new NotFoundError('Session not found')
+      }
 
-    if (sessionRow.status !== 'ACTIVE') {
-      throw new ValidationError('Class session is not active')
-    }
+      if (row.status !== 'ACTIVE') {
+        throw new ValidationError('Class session is not active')
+      }
 
-    const participants = await drizzleDb
-      .select()
-      .from(sessionParticipant)
-      .where(eq(sessionParticipant.sessionId, sessionRow.sessionId))
-
-    if (participants.length >= sessionRow.maxStudents) {
-      throw new ValidationError('Class session is full')
-    }
-
-    const [existingParticipant] = await drizzleDb
-      .select()
-      .from(sessionParticipant)
-      .where(
-        and(
-          eq(sessionParticipant.sessionId, sessionRow.sessionId),
-          eq(sessionParticipant.studentId, session.user.id)
+      const [existingParticipant] = await tx
+        .select()
+        .from(sessionParticipant)
+        .where(
+          and(
+            eq(sessionParticipant.sessionId, row.sessionId),
+            eq(sessionParticipant.studentId, session.user.id)
+          )
         )
-      )
-      .limit(1)
+        .limit(1)
 
-    if (!existingParticipant) {
-      await drizzleDb.insert(sessionParticipant).values({
-        participantId: crypto.randomUUID(),
-        sessionId: sessionRow.sessionId,
-        studentId: session.user.id,
-        joinedAt: new Date(),
-      })
-    }
+      if (!existingParticipant) {
+        const [{ count }] = await tx
+          .select({ count: sql<number>`count(*)::int` })
+          .from(sessionParticipant)
+          .where(eq(sessionParticipant.sessionId, row.sessionId))
+
+        if (count >= row.maxStudents) {
+          throw new ValidationError('Class session is full')
+        }
+
+        await tx.insert(sessionParticipant).values({
+          participantId: crypto.randomUUID(),
+          sessionId: row.sessionId,
+          studentId: session.user.id,
+          joinedAt: new Date(),
+        })
+      }
+
+      return row
+    })
 
     const isOwner = session.user.id === sessionRow.tutorId
     if (!sessionRow.roomId) {

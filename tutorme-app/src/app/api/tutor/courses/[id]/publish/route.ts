@@ -3,7 +3,12 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course as courseTable } from '@/lib/db/schema'
-import { eq, or, and } from 'drizzle-orm'
+import { eq, or, and, inArray } from 'drizzle-orm'
+import { z } from 'zod'
+
+const PublishCourseSchema = z.object({
+  publishVariants: z.boolean().optional().default(true),
+})
 
 /**
  * Publish a course and optionally all its variants
@@ -21,8 +26,12 @@ export async function POST(
     }
 
     const { id: courseId } = await params
-    const body = await req.json()
-    const { publishVariants = true } = body
+    const body = await req.json().catch(() => ({}))
+    const parsed = PublishCourseSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid request payload' }, { status: 400 })
+    }
+    const { publishVariants } = parsed.data
 
     // Get the course
     const existingCourse = await drizzleDb.query.course.findFirst({
@@ -35,7 +44,6 @@ export async function POST(
     }
 
     const now = new Date()
-    const publishedCourses = []
 
     // If this is a parent course and publishVariants is true, publish all variants
     if (!existingCourse.isVariant && publishVariants && existingCourse.parentCourseId === null) {
@@ -51,26 +59,29 @@ export async function POST(
           ),
       })
 
-      for (const course of coursesToPublish) {
-        const [updated] = await drizzleDb
+      const courseIdsToPublish = coursesToPublish.map(c => c.courseId)
+      
+      if (courseIdsToPublish.length > 0) {
+        const updatedCourses = await drizzleDb
           .update(courseTable)
           .set({ isPublished: true, updatedAt: now })
-          .where(eq(courseTable.courseId, course.courseId))
+          .where(inArray(courseTable.courseId, courseIdsToPublish))
           .returning()
         
-        publishedCourses.push({
+        const publishedCourses = updatedCourses.map(updated => ({
           id: updated.courseId,
           name: updated.name,
           country: updated.country,
           isVariant: updated.isVariant,
+        }))
+
+        return NextResponse.json({
+          success: true,
+          message: `Published ${publishedCourses.length} course(s)`,
+          courses: publishedCourses,
         })
       }
-
-      return NextResponse.json({
-        success: true,
-        message: `Published ${publishedCourses.length} course(s)`,
-        courses: publishedCourses,
-      })
+      return NextResponse.json({ success: true, message: 'No courses to publish', courses: [] })
     } else {
       // Just publish this single course
       const [updated] = await drizzleDb

@@ -196,6 +196,7 @@ export const courseEnrollment = pgTable(
   },
   table => ({
     CourseEnrollment_studentId_idx: index('CourseEnrollment_studentId_idx').on(table.studentId),
+    CourseEnrollment_courseId_idx: index('CourseEnrollment_courseId_idx').on(table.courseId),
     CourseEnrollment_studentId_courseId_key: uniqueIndex(
       'CourseEnrollment_studentId_courseId_key'
     ).on(table.studentId, table.courseId),

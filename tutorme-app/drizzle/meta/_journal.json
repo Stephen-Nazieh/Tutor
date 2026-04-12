@@ -232,6 +232,13 @@
       "when": 1775903142563,
       "tag": "0032_loose_jubilee",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1775991242774,
+      "tag": "0033_legal_rhodey",
+      "breakpoints": true
     }
   ]
 }

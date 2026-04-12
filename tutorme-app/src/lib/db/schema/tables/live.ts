@@ -95,6 +95,7 @@ export const sessionParticipant = pgTable(
   },
   table => ({
     SessionParticipant_studentId_idx: index('SessionParticipant_studentId_idx').on(table.studentId),
+    SessionParticipant_sessionId_idx: index('SessionParticipant_sessionId_idx').on(table.sessionId),
     SessionParticipant_sessionId_studentId_key: uniqueIndex(
       'SessionParticipant_sessionId_studentId_key'
     ).on(table.sessionId, table.studentId),

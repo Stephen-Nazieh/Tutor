@@ -101,7 +101,16 @@ export const profile = pgTable('Profile', {
   updatedAt: timestamp('updatedAt', { withTimezone: true })
     .notNull()
     .$onUpdate(() => new Date()),
-})
+},
+table => ({
+  Profile_countryOfResidence_idx: index('Profile_countryOfResidence_idx').on(table.countryOfResidence),
+  Profile_hourlyRate_idx: index('Profile_hourlyRate_idx').on(table.hourlyRate),
+  Profile_isOnboarded_idx: index('Profile_isOnboarded_idx').on(table.isOnboarded),
+  Profile_subjectsOfInterest_idx: index('Profile_subjectsOfInterest_idx').using('gin', table.subjectsOfInterest),
+  Profile_preferredLanguages_idx: index('Profile_preferredLanguages_idx').using('gin', table.preferredLanguages),
+  Profile_tutorNationalities_idx: index('Profile_tutorNationalities_idx').using('gin', table.tutorNationalities),
+  Profile_categoryNationalityCombinations_idx: index('Profile_categoryNationalityCombinations_idx').using('gin', table.categoryNationalityCombinations),
+}))
 
 export const tutorApplication = pgTable(
   'TutorApplication',
