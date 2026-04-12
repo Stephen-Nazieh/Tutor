@@ -163,7 +163,7 @@ export const AutoTextarea = React.forwardRef<HTMLTextAreaElement, AutoTextareaPr
     }, [value, props.style?.height, disableAutoResize])
 
     return (
-      <div className="relative w-full">
+      <div className={cn('relative w-full', disableAutoResize && 'h-full')}>
         <Textarea
           ref={textareaRef}
           className={cn('w-full pb-8 transition-all duration-200', className)}
