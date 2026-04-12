@@ -239,6 +239,13 @@
       "when": 1775991242774,
       "tag": "0033_legal_rhodey",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1775994076239,
+      "tag": "0034_square_black_tarantula",
+      "breakpoints": true
     }
   ]
 }

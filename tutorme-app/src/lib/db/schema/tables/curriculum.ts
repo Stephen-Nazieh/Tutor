@@ -32,6 +32,7 @@ export const course = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
     creatorId: text('creatorId'),
     isLiveOnline: boolean('isLiveOnline').notNull().default(false),
@@ -117,6 +118,7 @@ export const courseLesson = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -165,6 +167,7 @@ export const courseLessonProgress = pgTable(
     completedAt: timestamp('completedAt', { withTimezone: true }),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({

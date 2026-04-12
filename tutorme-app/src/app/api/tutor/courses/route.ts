@@ -188,6 +188,7 @@ export async function POST(req: NextRequest) {
           description: 'Introduction to this course.',
           duration: 60,
           order: 0,
+          updatedAt: now,
           builderData: {
             isPublished: false,
             duration: 60,
