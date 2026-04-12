@@ -211,6 +211,9 @@ export const CreateCurriculumSchema = z.object({
   isLiveOnline: z.boolean().optional(),
   categories: z.array(z.string()).optional(),
   schedule: z.array(ScheduleItemSchema).optional(),
+  // Multi-course publishing fields
+  region: z.string().optional(), // Asia, Europe, Global, etc.
+  countries: z.array(z.string()).optional(), // ['Hong Kong', 'Korea', 'Singapore'] or empty for Global
 })
 
 export const EnrollCurriculumSchema = z.object({

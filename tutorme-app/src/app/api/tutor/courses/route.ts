@@ -26,6 +26,10 @@ export async function GET() {
         isLiveOnline: true,
         createdAt: true,
         updatedAt: true,
+        region: true,
+        country: true,
+        isVariant: true,
+        parentCourseId: true,
       },
     })
 
@@ -39,6 +43,10 @@ export async function GET() {
       isLiveOnline: c.isLiveOnline,
       createdAt: c.createdAt,
       updatedAt: c.updatedAt,
+      region: c.region,
+      country: c.country,
+      isVariant: c.isVariant,
+      parentCourseId: c.parentCourseId,
     }))
 
     return NextResponse.json({ courses })
@@ -75,32 +83,86 @@ export async function POST(req: NextRequest) {
     const userId = session.user.id
     const now = new Date()
 
-    // Build insert values - only use current schema fields
-    const courseValues: Record<string, unknown> = {
-      courseId: crypto.randomUUID(),
-      name: data.title,
-      description: data.description ?? null,
-      isPublished: false,
-      isLiveOnline: data.isLiveOnline ?? false,
-      isFree: false,
-      categories: data.categories ?? [data.subject ?? 'general'],
-      currency: 'USD',
-      schedule: Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : null,
-      createdAt: now,
-      updatedAt: now,
-      creatorId: userId,
+    // Generate a parent course ID to link all variants
+    const parentCourseId = crypto.randomUUID()
+
+    // Determine which countries to create courses for
+    const countries = data.countries || []
+    const hasGlobal = countries.length === 0 || countries.includes('Global')
+    
+    // Create course variants based on countries
+    const coursesToCreate: Array<{
+      courseId: string
+      name: string
+      region: string | null
+      country: string | null
+      isVariant: boolean
+    }> = []
+
+    if (hasGlobal) {
+      // Create just one course with no country suffix
+      coursesToCreate.push({
+        courseId: parentCourseId,
+        name: data.title,
+        region: data.region || 'Global',
+        country: null,
+        isVariant: false,
+      })
+    } else {
+      // Create a parent course (template) - not published, just for reference
+      coursesToCreate.push({
+        courseId: parentCourseId,
+        name: data.title,
+        region: data.region || null,
+        country: null,
+        isVariant: false,
+      })
+
+      // Create a course for each country
+      for (const country of countries) {
+        coursesToCreate.push({
+          courseId: crypto.randomUUID(),
+          name: `${data.title} - ${country}`,
+          region: data.region || null,
+          country: country,
+          isVariant: true,
+        })
+      }
     }
 
-    // Insert course first (outside transaction to handle column errors)
-    const [newCourse] = await drizzleDb
-      .insert(courseTable)
-      .values(courseValues as typeof courseTable.$inferInsert)
-      .returning()
-    console.log('Course created:', newCourse.courseId)
+    const createdCourses = []
 
-    // Then create a default lesson in a transaction
-    try {
-      await drizzleDb.transaction(async tx => {
+    // Create all courses in a transaction
+    await drizzleDb.transaction(async tx => {
+      for (const courseData of coursesToCreate) {
+        // Build insert values
+        const courseValues: Record<string, unknown> = {
+          courseId: courseData.courseId,
+          name: courseData.name,
+          description: data.description ?? null,
+          isPublished: false,
+          isLiveOnline: data.isLiveOnline ?? false,
+          isFree: false,
+          categories: data.categories ?? [data.subject ?? 'general'],
+          currency: 'USD',
+          schedule: Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : null,
+          createdAt: now,
+          updatedAt: now,
+          creatorId: userId,
+          // Multi-course publishing fields
+          region: courseData.region,
+          country: courseData.country,
+          parentCourseId: courseData.isVariant ? parentCourseId : null,
+          isVariant: courseData.isVariant,
+        }
+
+        // Insert course
+        const [newCourse] = await tx
+          .insert(courseTable)
+          .values(courseValues as typeof courseTable.$inferInsert)
+          .returning()
+
+        // Create a default lesson for each course
         await tx.insert(courseLesson).values({
           lessonId: crypto.randomUUID(),
           courseId: newCourse.courseId,
@@ -121,26 +183,32 @@ export async function POST(req: NextRequest) {
             quizzes: [],
           },
         })
-        console.log('Lesson created for course:', newCourse.courseId)
-      })
-    } catch (txError) {
-      // If lesson creation fails, we should ideally rollback the course insert
-      // But since we already committed it, log the error
-      console.error('Failed to create lesson after course was created:', txError)
-      // Still return the course since it was created successfully
-    }
+
+        createdCourses.push({
+          id: newCourse.courseId,
+          name: newCourse.name,
+          description: newCourse.description,
+          categories: newCourse.categories,
+          isPublished: newCourse.isPublished,
+          isLiveOnline: newCourse.isLiveOnline,
+          createdAt: newCourse.createdAt?.toISOString?.() ?? newCourse.createdAt,
+          updatedAt: newCourse.updatedAt?.toISOString?.() ?? newCourse.updatedAt,
+          region: newCourse.region,
+          country: newCourse.country,
+          isVariant: courseData.isVariant,
+          parentCourseId: courseData.isVariant ? parentCourseId : null,
+        })
+
+        console.log('Course created:', newCourse.courseId, '-', newCourse.name)
+      }
+    })
 
     return NextResponse.json({
-      course: {
-        id: newCourse.courseId,
-        name: newCourse.name,
-        description: newCourse.description,
-        categories: newCourse.categories,
-        isPublished: newCourse.isPublished,
-        isLiveOnline: newCourse.isLiveOnline,
-        createdAt: newCourse.createdAt?.toISOString?.() ?? newCourse.createdAt,
-        updatedAt: newCourse.updatedAt?.toISOString?.() ?? newCourse.updatedAt,
-      },
+      courses: createdCourses,
+      parentCourseId,
+      message: hasGlobal 
+        ? 'Course created successfully'
+        : `Created ${createdCourses.length - 1} course variants for ${countries.join(', ')}`,
     })
   } catch (error) {
     console.error('Course creation error:', error)

@@ -40,10 +40,18 @@ export const course = pgTable(
     currency: text('currency'),
     isFree: boolean('isFree').notNull().default(false),
     schedule: jsonb('schedule'),
+    // Multi-course publishing fields
+    region: text('region'), // Asia, Europe, Global, etc.
+    country: text('country'), // Hong Kong, Korea, Singapore, etc. (null for Global)
+    parentCourseId: text('parentCourseId'), // Links related courses (e.g., all TOEFL variants)
+    isVariant: boolean('isVariant').notNull().default(false), // True if this is a country-specific variant
   },
   table => ({
     Course_isPublished_idx: index('Course_isPublished_idx').on(table.isPublished),
     Course_creatorId_idx: index('Course_creatorId_idx').on(table.creatorId),
+    Course_parentCourseId_idx: index('Course_parentCourseId_idx').on(table.parentCourseId),
+    Course_country_idx: index('Course_country_idx').on(table.country),
+    Course_region_idx: index('Course_region_idx').on(table.region),
   })
 )
 
