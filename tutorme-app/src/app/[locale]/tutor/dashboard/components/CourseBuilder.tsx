@@ -4762,7 +4762,7 @@ FEEDBACK: [your explanation]`
                                 onValueChange={v => {
                                   setTaskBuilderActiveTab(v as 'content' | 'pci')
                                 }}
-                                className="flex h-full w-full flex-col"
+                                className="flex h-full min-h-0 w-full flex-col"
                               >
                                 <TabsList className="grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
                                   <TabsTrigger
@@ -4780,7 +4780,7 @@ FEEDBACK: [your explanation]`
                                 </TabsList>
                                 <TabsContent
                                   value="content"
-                                  className="mt-2 flex flex-1 flex-col overflow-hidden"
+                                  className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden"
                                 >
                                   <AutoTextarea
                                     placeholder={
@@ -4788,7 +4788,8 @@ FEEDBACK: [your explanation]`
                                         ? 'Extension content...'
                                         : 'Enter task content or drop files here...'
                                     }
-                                    className="h-full min-h-0 w-full flex-1 resize-none"
+                                    className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto"
+                                    disableAutoResize
                                     onDrop={(e: any) =>
                                       handleDragFiles(e, text => {
                                         setTaskBuilder(prev => {
@@ -4861,7 +4862,7 @@ FEEDBACK: [your explanation]`
                                 </TabsContent>
                                 <TabsContent
                                   value="pci"
-                                  className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden"
+                                  className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden"
                                 >
                                   <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
                                     <div className="flex-1 space-y-3 overflow-y-auto p-3">

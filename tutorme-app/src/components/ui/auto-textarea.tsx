@@ -2,10 +2,12 @@ import * as React from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 
-export interface AutoTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
+export interface AutoTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  disableAutoResize?: boolean
+}
 
 export const AutoTextarea = React.forwardRef<HTMLTextAreaElement, AutoTextareaProps>(
-  ({ className, value, onChange, onKeyDown, ...props }, ref) => {
+  ({ className, value, onChange, onKeyDown, disableAutoResize, ...props }, ref) => {
     const internalRef = React.useRef<HTMLTextAreaElement>(null)
     const textareaRef = (ref as any) || internalRef
 
@@ -141,6 +143,7 @@ export const AutoTextarea = React.forwardRef<HTMLTextAreaElement, AutoTextareaPr
     }
 
     React.useEffect(() => {
+      if (disableAutoResize) return
       const target = internalRef.current || (ref as any)?.current
       if (target) {
         const manualHeight = props.style?.height
@@ -157,7 +160,7 @@ export const AutoTextarea = React.forwardRef<HTMLTextAreaElement, AutoTextareaPr
           target.style.height = `${autoHeight}px`
         }
       }
-    }, [value, props.style?.height])
+    }, [value, props.style?.height, disableAutoResize])
 
     return (
       <div className="relative w-full">
