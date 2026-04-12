@@ -32,7 +32,7 @@ import cacheManager from '@/lib/cache-manager'
 import { z } from 'zod'
 
 const StringArraySchema = z.array(z.string()).default([])
-const SkillBreakdownSchema = z.record(z.unknown()).default({})
+const SkillBreakdownSchema = z.record(z.string(), z.unknown()).default({})
 
 const CACHE_TTL = parseInt(process.env.CACHE_TTL_STUDENT_PROGRESS || '180', 10)
 
@@ -137,14 +137,22 @@ export async function GET(req: NextRequest) {
           }
         })
 
-        const allStrengths: string[] = performances.flatMap(p => StringArraySchema.parse(p.strengths || []))
-        const allWeaknesses: string[] = performances.flatMap(p => StringArraySchema.parse(p.weaknesses || []))
+        const allStrengths: string[] = performances.flatMap(p =>
+          StringArraySchema.parse(p.strengths || [])
+        )
+        const allWeaknesses: string[] = performances.flatMap(p =>
+          StringArraySchema.parse(p.weaknesses || [])
+        )
         const strengthCounts = countFrequency(allStrengths)
         const weaknessCounts = countFrequency(allWeaknesses)
 
         // Using a permissive parsing for history array elements
         const allHistory: Array<{ date: string; score: number }> = performances.flatMap(
-          p => z.array(z.any()).default([]).parse(p.taskHistory || []) as any[]
+          p =>
+            z
+              .array(z.any())
+              .default([])
+              .parse(p.taskHistory || []) as any[]
         )
         const scoreTrend = allHistory
           .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())

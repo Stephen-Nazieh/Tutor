@@ -8,15 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import {
-  Search,
-  Filter,
-  BookOpen,
-  ChevronRight,
-  GraduationCap,
-  Pencil,
-  Play,
-} from 'lucide-react'
+import { Search, Filter, BookOpen, ChevronRight, GraduationCap, Pencil, Play } from 'lucide-react'
 
 export default function CoursesPage() {
   const router = useRouter()

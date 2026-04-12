@@ -8,10 +8,7 @@ import { eq, or, and } from 'drizzle-orm'
  * Get all variants of a course
  * GET /api/tutor/courses/[id]/variants
  */
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
@@ -50,10 +47,7 @@ export async function GET(
       where: (c, { eq, and, or }) =>
         and(
           eq(c.creatorId, session.user.id),
-          or(
-            eq(c.courseId, parentId),
-            eq(c.parentCourseId, parentId)
-          )
+          or(eq(c.courseId, parentId), eq(c.parentCourseId, parentId))
         ),
       orderBy: (c, { asc }) => [asc(c.country)],
       columns: {

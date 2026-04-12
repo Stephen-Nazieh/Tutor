@@ -42,12 +42,21 @@ vi.mock('@/lib/video/daily-provider', () => ({
   },
 }))
 
-vi.mock('@/lib/db/drizzle', () => ({
-  drizzleDb: {
+vi.mock('@/lib/db/drizzle', () => {
+  const mockDb = {
     select: vi.fn().mockImplementation(() => {
       const rows = mocks.selectQueue.shift() ?? []
+      const forResult = {
+        then: (resolve: (value: unknown[]) => unknown, reject?: (reason: unknown) => unknown) =>
+          Promise.resolve(rows).then(resolve, reject),
+      }
+      const limitResult = {
+        for: vi.fn().mockReturnValue(forResult),
+        then: (resolve: (value: unknown[]) => unknown, reject?: (reason: unknown) => unknown) =>
+          Promise.resolve(rows).then(resolve, reject),
+      }
       const whereResult = {
-        limit: vi.fn().mockResolvedValue(rows),
+        limit: vi.fn().mockReturnValue(limitResult),
         then: (resolve: (value: unknown[]) => unknown, reject?: (reason: unknown) => unknown) =>
           Promise.resolve(rows).then(resolve, reject),
       }
@@ -60,8 +69,17 @@ vi.mock('@/lib/db/drizzle', () => ({
     insert: vi.fn().mockReturnValue({
       values: mocks.insertValues,
     }),
-  },
-}))
+  }
+
+  return {
+    drizzleDb: {
+      ...mockDb,
+      transaction: vi.fn().mockImplementation(async cb => {
+        return cb(mockDb)
+      }),
+    },
+  }
+})
 
 import { POST } from './route'
 
@@ -125,7 +143,7 @@ describe('POST /api/class/join', () => {
         },
       ],
       [],
-      [],
+      [{ count: 0 }],
     ]
     const req = new Request('http://localhost/api/class/join', {
       method: 'POST',

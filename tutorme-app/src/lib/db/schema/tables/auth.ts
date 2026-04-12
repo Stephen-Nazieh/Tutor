@@ -61,56 +61,75 @@ export const account = pgTable(
   })
 )
 
-export const profile = pgTable('Profile', {
-  profileId: text('id').primaryKey().notNull(),
-  userId: text('userId')
-    .notNull()
-    .unique()
-    .references(() => user.userId, { onDelete: 'cascade' }),
-  name: text('name'),
-  username: text('username').unique(),
-  bio: text('bio'),
-  avatarUrl: text('avatarUrl'),
-  dateOfBirth: timestamp('dateOfBirth', { withTimezone: true }),
-  timezone: text('timezone').notNull().default('UTC'),
-  emailNotifications: boolean('emailNotifications').notNull().default(true),
-  smsNotifications: boolean('smsNotifications').notNull().default(false),
-  studentUniqueId: text('studentUniqueId').unique(),
-  subjectsOfInterest: text('subjectsOfInterest').array().notNull().default([]),
-  preferredLanguages: text('preferredLanguages').array().notNull().default([]),
-  learningGoals: text('learningGoals').array().notNull().default([]),
-  tosAccepted: boolean('tosAccepted').notNull().default(false),
-  tosAcceptedAt: timestamp('tosAcceptedAt', { withTimezone: true }),
-  organizationName: text('organizationName'),
-  isOnboarded: boolean('isOnboarded').notNull().default(false),
-  hourlyRate: doublePrecision('hourlyRate'),
-  oneOnOneEnabled: boolean('oneOnOneEnabled'),
-  specialties: text('specialties').array().notNull().default([]),
-  credentials: text('credentials'),
-  availability: jsonb('availability').default({}),
-  paidClassesEnabled: boolean('paidClassesEnabled').notNull().default(false),
-  paymentGatewayPreference: text('paymentGatewayPreference'),
-  currency: text('currency'),
-  // New fields for nationality and country of residence
-  nationality: text('nationality'),
-  countryOfResidence: text('countryOfResidence'),
-  // Fields for tutor search combinations (e.g., "IELTS - Korea", "TOEFL - Hong Kong")
-  tutorNationalities: text('tutorNationalities').array().notNull().default([]),
-  categoryNationalityCombinations: text('categoryNationalityCombinations').array().notNull().default([]),
-  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updatedAt', { withTimezone: true })
-    .notNull()
-    .$onUpdate(() => new Date()),
-},
-table => ({
-  Profile_countryOfResidence_idx: index('Profile_countryOfResidence_idx').on(table.countryOfResidence),
-  Profile_hourlyRate_idx: index('Profile_hourlyRate_idx').on(table.hourlyRate),
-  Profile_isOnboarded_idx: index('Profile_isOnboarded_idx').on(table.isOnboarded),
-  Profile_subjectsOfInterest_idx: index('Profile_subjectsOfInterest_idx').using('gin', table.subjectsOfInterest),
-  Profile_preferredLanguages_idx: index('Profile_preferredLanguages_idx').using('gin', table.preferredLanguages),
-  Profile_tutorNationalities_idx: index('Profile_tutorNationalities_idx').using('gin', table.tutorNationalities),
-  Profile_categoryNationalityCombinations_idx: index('Profile_categoryNationalityCombinations_idx').using('gin', table.categoryNationalityCombinations),
-}))
+export const profile = pgTable(
+  'Profile',
+  {
+    profileId: text('id').primaryKey().notNull(),
+    userId: text('userId')
+      .notNull()
+      .unique()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    name: text('name'),
+    username: text('username').unique(),
+    bio: text('bio'),
+    avatarUrl: text('avatarUrl'),
+    dateOfBirth: timestamp('dateOfBirth', { withTimezone: true }),
+    timezone: text('timezone').notNull().default('UTC'),
+    emailNotifications: boolean('emailNotifications').notNull().default(true),
+    smsNotifications: boolean('smsNotifications').notNull().default(false),
+    studentUniqueId: text('studentUniqueId').unique(),
+    subjectsOfInterest: text('subjectsOfInterest').array().notNull().default([]),
+    preferredLanguages: text('preferredLanguages').array().notNull().default([]),
+    learningGoals: text('learningGoals').array().notNull().default([]),
+    tosAccepted: boolean('tosAccepted').notNull().default(false),
+    tosAcceptedAt: timestamp('tosAcceptedAt', { withTimezone: true }),
+    organizationName: text('organizationName'),
+    isOnboarded: boolean('isOnboarded').notNull().default(false),
+    hourlyRate: doublePrecision('hourlyRate'),
+    oneOnOneEnabled: boolean('oneOnOneEnabled'),
+    specialties: text('specialties').array().notNull().default([]),
+    credentials: text('credentials'),
+    availability: jsonb('availability').default({}),
+    paidClassesEnabled: boolean('paidClassesEnabled').notNull().default(false),
+    paymentGatewayPreference: text('paymentGatewayPreference'),
+    currency: text('currency'),
+    // New fields for nationality and country of residence
+    nationality: text('nationality'),
+    countryOfResidence: text('countryOfResidence'),
+    // Fields for tutor search combinations (e.g., "IELTS - Korea", "TOEFL - Hong Kong")
+    tutorNationalities: text('tutorNationalities').array().notNull().default([]),
+    categoryNationalityCombinations: text('categoryNationalityCombinations')
+      .array()
+      .notNull()
+      .default([]),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt', { withTimezone: true })
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  table => ({
+    Profile_countryOfResidence_idx: index('Profile_countryOfResidence_idx').on(
+      table.countryOfResidence
+    ),
+    Profile_hourlyRate_idx: index('Profile_hourlyRate_idx').on(table.hourlyRate),
+    Profile_isOnboarded_idx: index('Profile_isOnboarded_idx').on(table.isOnboarded),
+    Profile_subjectsOfInterest_idx: index('Profile_subjectsOfInterest_idx').using(
+      'gin',
+      table.subjectsOfInterest
+    ),
+    Profile_preferredLanguages_idx: index('Profile_preferredLanguages_idx').using(
+      'gin',
+      table.preferredLanguages
+    ),
+    Profile_tutorNationalities_idx: index('Profile_tutorNationalities_idx').using(
+      'gin',
+      table.tutorNationalities
+    ),
+    Profile_categoryNationalityCombinations_idx: index(
+      'Profile_categoryNationalityCombinations_idx'
+    ).using('gin', table.categoryNationalityCombinations),
+  })
+)
 
 export const tutorApplication = pgTable(
   'TutorApplication',

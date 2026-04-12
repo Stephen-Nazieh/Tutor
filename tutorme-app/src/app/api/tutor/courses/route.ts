@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     // Determine which countries to create courses for
     const countries = data.countries || []
     const hasGlobal = countries.length === 0 || countries.includes('Global')
-    
+
     // Create course variants based on countries
     const coursesToCreate: Array<{
       courseId: string
@@ -150,9 +150,10 @@ export async function POST(req: NextRequest) {
       for (const courseData of coursesToCreate) {
         // Build insert values
         // Ensure categories is always a proper array (not an empty object {})
-        const categories = Array.isArray(data.categories) && data.categories.length > 0
-          ? data.categories
-          : [data.subject ?? 'general']
+        const categories =
+          Array.isArray(data.categories) && data.categories.length > 0
+            ? data.categories
+            : [data.subject ?? 'general']
 
         // Insert course directly without type casting
         const [newCourse] = await tx
@@ -166,7 +167,8 @@ export async function POST(req: NextRequest) {
             isFree: false,
             categories: categories,
             currency: 'USD',
-            schedule: Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : null,
+            schedule:
+              Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : null,
             createdAt: now,
             updatedAt: now,
             creatorId: userId,
@@ -222,7 +224,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       courses: createdCourses,
       parentCourseId,
-      message: hasGlobal 
+      message: hasGlobal
         ? 'Course created successfully'
         : `Created ${createdCourses.length - 1} course variants for ${countries.join(', ')}`,
     })

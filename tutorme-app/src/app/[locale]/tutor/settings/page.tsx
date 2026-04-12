@@ -877,17 +877,19 @@ export default function TutorSettings() {
             <Card>
               <CardHeader>
                 <CardTitle>Tutor Information</CardTitle>
-                <CardDescription>Your tutoring profile details (set during registration)</CardDescription>
+                <CardDescription>
+                  Your tutoring profile details (set during registration)
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Nationality & Country of Residence */}
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label>Nationality</Label>
-                    <Input 
-                      value={formData.nationality || 'Not specified'} 
-                      disabled 
-                      className="bg-gray-50" 
+                    <Input
+                      value={formData.nationality || 'Not specified'}
+                      disabled
+                      className="bg-gray-50"
                     />
                     <p className="text-xs text-gray-500">
                       Your nationality as selected during registration
@@ -895,14 +897,12 @@ export default function TutorSettings() {
                   </div>
                   <div className="space-y-2">
                     <Label>Country of Residence</Label>
-                    <Input 
-                      value={formData.countryOfResidence || 'Not specified'} 
-                      disabled 
-                      className="bg-gray-50" 
+                    <Input
+                      value={formData.countryOfResidence || 'Not specified'}
+                      disabled
+                      className="bg-gray-50"
                     />
-                    <p className="text-xs text-gray-500">
-                      Your current country of residence
-                    </p>
+                    <p className="text-xs text-gray-500">Your current country of residence</p>
                   </div>
                 </div>
 
@@ -971,7 +971,8 @@ export default function TutorSettings() {
                         ))}
                       </div>
                       <p className="text-xs text-gray-500">
-                        These tags help students find you when searching for specific category-nationality combinations
+                        These tags help students find you when searching for specific
+                        category-nationality combinations
                       </p>
                     </div>
                   </>

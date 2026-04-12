@@ -15,10 +15,7 @@ const PublishCourseSchema = z.object({
  * POST /api/tutor/courses/[id]/publish
  * Body: { publishVariants: boolean }
  */
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
@@ -52,22 +49,19 @@ export async function POST(
         where: (course, { eq, and, or }) =>
           and(
             eq(course.creatorId, session.user.id),
-            or(
-              eq(course.courseId, courseId),
-              eq(course.parentCourseId, courseId)
-            )
+            or(eq(course.courseId, courseId), eq(course.parentCourseId, courseId))
           ),
       })
 
       const courseIdsToPublish = coursesToPublish.map(c => c.courseId)
-      
+
       if (courseIdsToPublish.length > 0) {
         const updatedCourses = await drizzleDb
           .update(courseTable)
           .set({ isPublished: true, updatedAt: now })
           .where(inArray(courseTable.courseId, courseIdsToPublish))
           .returning()
-        
+
         const publishedCourses = updatedCourses.map(updated => ({
           id: updated.courseId,
           name: updated.name,
@@ -93,12 +87,14 @@ export async function POST(
       return NextResponse.json({
         success: true,
         message: 'Course published successfully',
-        courses: [{
-          id: updated.courseId,
-          name: updated.name,
-          country: updated.country,
-          isVariant: updated.isVariant,
-        }],
+        courses: [
+          {
+            id: updated.courseId,
+            name: updated.name,
+            country: updated.country,
+            isVariant: updated.isVariant,
+          },
+        ],
       })
     }
   } catch (error) {
@@ -111,10 +107,7 @@ export async function POST(
  * Unpublish a course and optionally all its variants
  * DELETE /api/tutor/courses/[id]/publish?variants=true
  */
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
@@ -145,10 +138,7 @@ export async function DELETE(
         where: (course, { eq, and, or }) =>
           and(
             eq(course.creatorId, session.user.id),
-            or(
-              eq(course.courseId, courseId),
-              eq(course.parentCourseId, courseId)
-            )
+            or(eq(course.courseId, courseId), eq(course.parentCourseId, courseId))
           ),
       })
 
@@ -158,7 +148,7 @@ export async function DELETE(
           .set({ isPublished: false, updatedAt: now })
           .where(eq(courseTable.courseId, course.courseId))
           .returning()
-        
+
         unpublishedCourses.push({
           id: updated.courseId,
           name: updated.name,
@@ -182,11 +172,13 @@ export async function DELETE(
       return NextResponse.json({
         success: true,
         message: 'Course unpublished successfully',
-        courses: [{
-          id: updated.courseId,
-          name: updated.name,
-          country: updated.country,
-        }],
+        courses: [
+          {
+            id: updated.courseId,
+            name: updated.name,
+            country: updated.country,
+          },
+        ],
       })
     }
   } catch (error) {

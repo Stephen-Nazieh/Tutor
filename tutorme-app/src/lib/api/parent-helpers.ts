@@ -119,9 +119,7 @@ export async function getFamilyAccountForParent(
               ? {
                   userId: u.userId,
                   email: u.email ?? '',
-                  profile: p
-                    ? { name: p.name, avatarUrl: p.avatarUrl }
-                    : null,
+                  profile: p ? { name: p.name, avatarUrl: p.avatarUrl } : null,
                 }
               : null,
           }
@@ -198,9 +196,7 @@ export async function getFamilyAccountForParent(
           ? {
               userId: u.userId,
               email: u.email ?? '',
-              profile: p
-                ? { name: p.name, avatarUrl: p.avatarUrl }
-                : null,
+              profile: p ? { name: p.name, avatarUrl: p.avatarUrl } : null,
             }
           : null,
       }

@@ -2221,11 +2221,11 @@ export default function TutorRegistrationPage() {
     try {
       // Get country names from selected country codes
       const tutoringCountryNames = getCountryNamesFromCodes(selectedCountries)
-      
+
       // Generate Category-Nationality combinations
       // e.g., ["IELTS - Korea", "TOEFL - Korea", "IELTS - Hong Kong", "TOEFL - Hong Kong"]
       const categoryNationalityCombinations: string[] = []
-      
+
       if (selectedRegions.includes('global')) {
         // If Global is selected, just use categories without nationality suffix
         selectedCategories.forEach(category => {
@@ -2250,8 +2250,8 @@ export default function TutorRegistrationPage() {
           timezone: formData.timezone,
           preferredLanguage: formData.preferredLanguage,
           nationality: formData.nationality,
-          tutorNationalities: selectedRegions.includes('global') 
-            ? ['Global'] 
+          tutorNationalities: selectedRegions.includes('global')
+            ? ['Global']
             : tutoringCountryNames,
           categoryNationalityCombinations: categoryNationalityCombinations,
         },
@@ -2504,7 +2504,8 @@ export default function TutorRegistrationPage() {
                     Select Student Nationalities You Tutor
                   </h3>
                   <p className="text-gray-600">
-                    Which nationalities of students would you like to offer tutoring services to? Select regions/countries or Global for all.
+                    Which nationalities of students would you like to offer tutoring services to?
+                    Select regions/countries or Global for all.
                   </p>
                 </div>
 

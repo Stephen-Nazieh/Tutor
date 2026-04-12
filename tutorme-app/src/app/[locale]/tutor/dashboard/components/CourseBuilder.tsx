@@ -2618,7 +2618,9 @@ FEEDBACK: [your explanation]`
           setTaskBuilder(prev => {
             if (prev.activeExtensionId) {
               const ext = prev.extensions.find(x => x.id === prev.activeExtensionId)
-              const combined = ext ? ext.content + (ext.content ? '\n\n' : '') + embedText : embedText
+              const combined = ext
+                ? ext.content + (ext.content ? '\n\n' : '') + embedText
+                : embedText
               return {
                 ...prev,
                 extensions: prev.extensions.map(e =>
@@ -2760,13 +2762,16 @@ FEEDBACK: [your explanation]`
           </div>
         )}
 
-        <Dialog open={loadAsModalOpen} onOpenChange={(open) => {
-          setLoadAsModalOpen(open)
-          if (!open) {
-            setLoadAsStep('main')
-            setAssetToLoad(null)
-          }
-        }}>
+        <Dialog
+          open={loadAsModalOpen}
+          onOpenChange={open => {
+            setLoadAsModalOpen(open)
+            if (!open) {
+              setLoadAsStep('main')
+              setAssetToLoad(null)
+            }
+          }}
+        >
           <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
@@ -2797,7 +2802,9 @@ FEEDBACK: [your explanation]`
                         setTaskBuilder(prev => ({
                           ...prev,
                           extensions: prev.extensions.map(ext =>
-                            ext.id === prev.activeExtensionId ? { ...ext, content: textToInsert } : ext
+                            ext.id === prev.activeExtensionId
+                              ? { ...ext, content: textToInsert }
+                              : ext
                           ),
                         }))
                         if (loadedTaskId) {
@@ -2913,7 +2920,9 @@ FEEDBACK: [your explanation]`
                       const { nodeId, lessonId } = ensureFirstLessonContext()
                       const nodeIndex = nodes.findIndex(m => m.id === nodeId)
                       const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
-                      const newTask = DEFAULT_TASK(nodes[nodeIndex].lessons[lessonIndex].tasks.length)
+                      const newTask = DEFAULT_TASK(
+                        nodes[nodeIndex].lessons[lessonIndex].tasks.length
+                      )
                       const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
 
                       newTask.description = textToInsert
@@ -2934,7 +2943,9 @@ FEEDBACK: [your explanation]`
                     <FileText className="h-4 w-4 text-blue-500" />
                     <div className="flex flex-col items-start">
                       <span>Single Task</span>
-                      <span className="text-xs text-gray-500">Load entire document as one task</span>
+                      <span className="text-xs text-gray-500">
+                        Load entire document as one task
+                      </span>
                     </div>
                   </Button>
                   <Button
@@ -2943,7 +2954,7 @@ FEEDBACK: [your explanation]`
                     onClick={() => {
                       // Load first page as task, remaining pages as extensions
                       const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
-                      
+
                       // Try to split content by pages (form feed or page markers)
                       // Heuristic: split by form feed, then by double newlines as fallback
                       let pages: string[] = []
@@ -2960,11 +2971,13 @@ FEEDBACK: [your explanation]`
                       const { nodeId, lessonId } = ensureFirstLessonContext()
                       const nodeIndex = nodes.findIndex(m => m.id === nodeId)
                       const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
-                      
+
                       // Create main task with first page
-                      const newTask = DEFAULT_TASK(nodes[nodeIndex].lessons[lessonIndex].tasks.length)
+                      const newTask = DEFAULT_TASK(
+                        nodes[nodeIndex].lessons[lessonIndex].tasks.length
+                      )
                       newTask.description = pages[0] || textToInsert
-                      
+
                       // Create extensions for remaining pages
                       const extensions = pages.slice(1).map((pageContent, idx) => ({
                         id: `ext-${Date.now()}-${idx}`,
@@ -2973,7 +2986,7 @@ FEEDBACK: [your explanation]`
                         content: pageContent,
                         pci: '',
                       }))
-                      
+
                       newTask.extensions = extensions
 
                       const newCourseBuilderNodes = [...nodes]
@@ -2981,7 +2994,7 @@ FEEDBACK: [your explanation]`
                       setCourseBuilderNodes(newCourseBuilderNodes)
                       setMainBuilderTab('task')
                       setSelectedItem({ type: 'task', id: newTask.id })
-                      
+
                       // Set up task builder with the new task and extensions
                       setTaskBuilder({
                         title: newTask.title,
@@ -2992,9 +3005,12 @@ FEEDBACK: [your explanation]`
                         activeExtensionId: null,
                       })
                       setLoadedTaskId(newTask.id)
-                      
+
                       // Initialize PCI messages for extensions
-                      const extPciMessages: Record<string, { role: 'user' | 'assistant'; content: string }[]> = {}
+                      const extPciMessages: Record<
+                        string,
+                        { role: 'user' | 'assistant'; content: string }[]
+                      > = {}
                       extensions.forEach(ext => {
                         extPciMessages[ext.id] = []
                       })
@@ -3003,7 +3019,9 @@ FEEDBACK: [your explanation]`
                         extensions.reduce((acc, ext) => ({ ...acc, [ext.id]: '' }), {})
                       )
 
-                      toast.success(`Created Task with ${extensions.length} extension(s) from '${assetToLoad?.name}'`)
+                      toast.success(
+                        `Created Task with ${extensions.length} extension(s) from '${assetToLoad?.name}'`
+                      )
                       setLoadAsStep('main')
                       setLoadAsModalOpen(false)
                       setAssetToLoad(null)
@@ -3012,7 +3030,9 @@ FEEDBACK: [your explanation]`
                     <Layers2 className="h-4 w-4 text-green-500" />
                     <div className="flex flex-col items-start">
                       <span>Task + Extensions</span>
-                      <span className="text-xs text-gray-500">First page as task, remaining as extensions</span>
+                      <span className="text-xs text-gray-500">
+                        First page as task, remaining as extensions
+                      </span>
                     </div>
                   </Button>
                   <Button
@@ -4792,35 +4812,39 @@ FEEDBACK: [your explanation]`
                                       className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                                       disableAutoResize
                                       onDrop={(e: any) =>
-                                        handleDragFiles(e, text => {
-                                          setTaskBuilder(prev => {
-                                            if (prev.activeExtensionId) {
-                                              const ext = prev.extensions.find(
-                                                x => x.id === prev.activeExtensionId
-                                              )
-                                              const combined = ext
-                                                ? ext.content + (ext.content ? '\n\n' : '') + text
-                                                : text
-                                              return {
-                                                ...prev,
-                                                extensions: prev.extensions.map(x =>
-                                                  x.id === prev.activeExtensionId
-                                                    ? { ...x, content: combined }
-                                                    : x
-                                                ),
+                                        handleDragFiles(
+                                          e,
+                                          text => {
+                                            setTaskBuilder(prev => {
+                                              if (prev.activeExtensionId) {
+                                                const ext = prev.extensions.find(
+                                                  x => x.id === prev.activeExtensionId
+                                                )
+                                                const combined = ext
+                                                  ? ext.content + (ext.content ? '\n\n' : '') + text
+                                                  : text
+                                                return {
+                                                  ...prev,
+                                                  extensions: prev.extensions.map(x =>
+                                                    x.id === prev.activeExtensionId
+                                                      ? { ...x, content: combined }
+                                                      : x
+                                                  ),
+                                                }
+                                              } else {
+                                                const combined =
+                                                  prev.taskContent +
+                                                  (prev.taskContent ? '\n\n' : '') +
+                                                  text
+                                                return {
+                                                  ...prev,
+                                                  taskContent: combined,
+                                                }
                                               }
-                                            } else {
-                                              const combined =
-                                                prev.taskContent +
-                                                (prev.taskContent ? '\n\n' : '') +
-                                                text
-                                              return {
-                                                ...prev,
-                                                taskContent: combined,
-                                              }
-                                            }
-                                          })
-                                        }, 'task')
+                                            })
+                                          },
+                                          'task'
+                                        )
                                       }
                                       // Show task content if no extension active, otherwise show active extension's content
                                       value={
@@ -5115,18 +5139,22 @@ FEEDBACK: [your explanation]`
                                       className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                                       disableAutoResize
                                       onDrop={(e: any) =>
-                                        handleDragFiles(e, text => {
-                                          setAssessmentBuilder(prev => {
-                                            const combined =
-                                              prev.taskContent +
-                                              (prev.taskContent ? '\n\n' : '') +
-                                              text
-                                            return {
-                                              ...prev,
-                                              taskContent: combined,
-                                            }
-                                          })
-                                        }, 'assessment')
+                                        handleDragFiles(
+                                          e,
+                                          text => {
+                                            setAssessmentBuilder(prev => {
+                                              const combined =
+                                                prev.taskContent +
+                                                (prev.taskContent ? '\n\n' : '') +
+                                                text
+                                              return {
+                                                ...prev,
+                                                taskContent: combined,
+                                              }
+                                            })
+                                          },
+                                          'assessment'
+                                        )
                                       }
                                       value={assessmentBuilder.taskContent}
                                       onChange={(e: any) => {
@@ -6111,7 +6139,7 @@ FEEDBACK: [your explanation]`
               <div className="space-y-4 py-4">
                 <Button
                   variant="outline"
-                  className="w-full justify-start gap-3 h-auto py-4 px-4"
+                  className="h-auto w-full justify-start gap-3 px-4 py-4"
                   onClick={() => handlePptOption('extract')}
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100">
@@ -6126,7 +6154,7 @@ FEEDBACK: [your explanation]`
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full justify-start gap-3 h-auto py-4 px-4"
+                  className="h-auto w-full justify-start gap-3 px-4 py-4"
                   onClick={() => handlePptOption('embed')}
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-100">

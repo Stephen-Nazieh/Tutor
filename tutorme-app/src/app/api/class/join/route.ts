@@ -30,11 +30,13 @@ export const POST = withCsrf(
     }
     const { sessionId } = parsed.data
 
-    const sessionRow = await drizzleDb.transaction(async (tx) => {
+    const sessionRow = await drizzleDb.transaction(async tx => {
       const [row] = await tx
         .select()
         .from(liveSessionTable)
-        .where(or(eq(liveSessionTable.sessionId, sessionId), eq(liveSessionTable.roomId, sessionId)))
+        .where(
+          or(eq(liveSessionTable.sessionId, sessionId), eq(liveSessionTable.roomId, sessionId))
+        )
         .limit(1)
         .for('update')
 
