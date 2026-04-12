@@ -149,6 +149,11 @@ export async function POST(req: NextRequest) {
     await drizzleDb.transaction(async tx => {
       for (const courseData of coursesToCreate) {
         // Build insert values
+        // Ensure categories is always a proper array (not an empty object {})
+        const categories = Array.isArray(data.categories) && data.categories.length > 0
+          ? data.categories
+          : [data.subject ?? 'general']
+
         const courseValues: Record<string, unknown> = {
           courseId: courseData.courseId,
           name: courseData.name,
@@ -156,7 +161,7 @@ export async function POST(req: NextRequest) {
           isPublished: false,
           isLiveOnline: data.isLiveOnline ?? false,
           isFree: false,
-          categories: data.categories ?? [data.subject ?? 'general'],
+          categories,
           currency: 'USD',
           schedule: Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : null,
           createdAt: now,

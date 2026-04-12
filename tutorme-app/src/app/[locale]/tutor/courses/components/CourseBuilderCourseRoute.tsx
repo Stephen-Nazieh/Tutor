@@ -317,10 +317,8 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
             credentials: 'include',
             body: JSON.stringify({
               title: 'Untitled Course',
-              description: undefined,
               subject: 'general',
-              categories: [],
-              schedule: [],
+              categories: ['general'],
               isLiveOnline: false,
             }),
           })
