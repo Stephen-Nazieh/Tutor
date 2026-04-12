@@ -9,12 +9,12 @@
  * EDIT THIS FILE to change the tutor's personality and rules.
  */
 
-import { Student, Curriculum, ProgressData } from '../../shared-data'
+import { Student, Course, ProgressData } from '../../shared-data'
 
 export interface TutorContext {
   student: Student
   subject: string
-  curriculum?: Curriculum
+  course?: Course
   progress?: ProgressData
   conversationHistory: string
 }

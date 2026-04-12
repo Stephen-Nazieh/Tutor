@@ -1,6 +1,6 @@
 /**
  * Tutor course management page
- * Curriculum/materials source, language, price, shareable link, student count, schedule
+ * Course/materials source, language, price, shareable link, student count, schedule
  */
 
 'use client'
@@ -510,13 +510,13 @@ export default function TutorCoursePage() {
     }
   }, [course, tutorProfile])
 
-  // Load curriculum catalog based on first category if available
+  // Load course catalog based on first category if available
   useEffect(() => {
     const categories = course?.categories
     if (!categories || categories.length === 0) {
       return
     }
-    // Curriculum catalog loading removed - using simplified course model
+    // Course catalog loading removed - using simplified course model
   }, [course?.categories])
 
   // Schedule summary: generate + sync (hooks must run unconditionally before any early return)
@@ -586,7 +586,7 @@ export default function TutorCoursePage() {
       const payload: Record<string, unknown> = {
         title: (courseName || course.name || '').trim(),
         category: (course.categories || [])[0] || 'General',
-        curriculumId: course.id,
+        courseId: course.id,
         maxStudents: 50,
         durationMinutes: Math.max(15, Math.min(480, durationFromSchedule)),
       }
@@ -685,7 +685,7 @@ export default function TutorCoursePage() {
     }
   }
 
-  const handleCurriculumSelect = async (name: string) => {
+  const handleCourseSelect = async (name: string) => {
     setCourseName(name)
     try {
       const csrf = await getCsrf()
@@ -697,13 +697,13 @@ export default function TutorCoursePage() {
       })
       if (res.ok) {
         setCourse(prev => (prev ? { ...prev, name } : null))
-        toast.success('Curriculum name updated')
+        toast.success('Course name updated')
       } else {
         const data = await res.json().catch(() => ({}))
         toast.error(data.error ?? 'Failed to update name')
       }
     } catch {
-      toast.error('Failed to update curriculum name')
+      toast.error('Failed to update course name')
     }
   }
 
@@ -713,7 +713,7 @@ export default function TutorCoursePage() {
     return data?.token ?? null
   }
 
-  // Materials, outline, and curriculum upload functions removed - using simplified course model
+  // Materials, outline, and course upload functions removed - using simplified course model
 
   if (loading || !course) {
     return (

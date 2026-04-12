@@ -6,12 +6,12 @@
 **Access:** Tutors, Admins
 
 ## Purpose
-Generates quizzes, lessons, and educational content based on curriculum requirements.
+Generates quizzes, lessons, and educational content based on course requirements.
 
 ## Data Access
 
 ### Can READ:
-- `Curriculum` (all modules/lessons) - To align content
+- `Course` (all modules/lessons) - To align content
 - `Student` (grade level, current level) - To adjust difficulty
 - `ProgressData` (common struggles) - To target weak areas
 - `Quiz` (existing questions) - To avoid duplication

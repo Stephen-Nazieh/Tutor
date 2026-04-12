@@ -69,7 +69,7 @@ export const POST = withCsrf(
         .from(course)
         .where(and(eq(course.courseId, courseId), eq(course.isPublished, true)))
         .limit(1)
-      if (!courseRow) throw new NotFoundError('Curriculum not found')
+      if (!courseRow) throw new NotFoundError('Course not found')
       const amount = courseRow.price != null ? Number(courseRow.price) : 0
       if (amount <= 0) throw new ValidationError('This course is free; use Enroll instead')
 
@@ -134,7 +134,7 @@ export const POST = withCsrf(
       const paymentResponse = await gateway.createPayment({
         amount,
         currency,
-        curriculumId: courseId,
+        courseId: courseId,
         studentEmail,
         description: `${courseRow.name} (${courseRow.categories?.[0] ?? 'Course'})`,
         metadata: {
@@ -255,7 +255,7 @@ export const POST = withCsrf(
       const paymentResponse = await gateway.createPayment({
         amount,
         currency,
-        curriculumId: undefined,
+        courseId: undefined,
         studentEmail,
         description: '1-on-1 tutoring session',
         metadata: {

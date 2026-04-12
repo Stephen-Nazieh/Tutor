@@ -3142,7 +3142,7 @@ FEEDBACK: [your explanation]`
       }
     }, [leftPanelResizing])
 
-    // Auto-save curriculum edits (debounced)
+    // Auto-save course edits (debounced)
     useEffect(() => {
       if (insightsProps) return
       if (!onSave) return
@@ -3307,7 +3307,7 @@ FEEDBACK: [your explanation]`
 
                     <div className="mb-3">
                       <Input
-                        placeholder="Search curriculum..."
+                        placeholder="Search course..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                         className="h-8 text-xs"

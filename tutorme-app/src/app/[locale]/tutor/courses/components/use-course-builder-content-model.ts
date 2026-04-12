@@ -126,7 +126,7 @@ export function useCourseBuilderContentModel({
         setCourse(data.course)
       }
 
-      const currRes = await fetch(`/api/tutor/courses/${courseId}/curriculum`, {
+      const currRes = await fetch(`/api/tutor/courses/${courseId}/course`, {
         credentials: 'include',
       })
       if (currRes.ok) {
@@ -215,7 +215,7 @@ export function useCourseBuilderContentModel({
         router.replace(`/tutor/courses/${currentCourseId}/builder`)
       }
 
-      const res = await fetch(`/api/tutor/courses/${currentCourseId}/curriculum`, {
+      const res = await fetch(`/api/tutor/courses/${currentCourseId}/course`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -242,10 +242,10 @@ export function useCourseBuilderContentModel({
         }
       } else {
         const err = await res.json().catch(() => ({}))
-        if (!options?.isAutoSave) toast.error(err.error ?? 'Failed to save curriculum')
+        if (!options?.isAutoSave) toast.error(err.error ?? 'Failed to save course')
       }
     } catch {
-      if (!options?.isAutoSave) toast.error('Failed to save curriculum')
+      if (!options?.isAutoSave) toast.error('Failed to save course')
     } finally {
       if (!options?.isAutoSave) setSaving(false)
     }

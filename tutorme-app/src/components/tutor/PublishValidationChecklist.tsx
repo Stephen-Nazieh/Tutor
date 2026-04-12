@@ -3,25 +3,25 @@
 import { CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface CurriculumModule {
+interface CourseModule {
   id: string
   lessons: { id: string }[]
 }
 
-interface Curriculum {
+interface Course {
   id: string
   name: string | null
   description: string | null
   subject: string | null
   price: number | null
   currency: string | null
-  modules: CurriculumModule[]
+  modules: CourseModule[]
 }
 
 interface ValidationItem {
   id: string
   label: string
-  check: (course: Curriculum) => boolean
+  check: (course: Course) => boolean
   required: boolean
 }
 
@@ -65,7 +65,7 @@ const validations: ValidationItem[] = [
 ]
 
 interface PublishValidationChecklistProps {
-  course: Curriculum
+  course: Course
   className?: string
 }
 
@@ -136,7 +136,7 @@ export function PublishValidationChecklist({ course, className }: PublishValidat
   )
 }
 
-export function usePublishValidation(course: Curriculum) {
+export function usePublishValidation(course: Course) {
   const results = validations.map(v => ({
     ...v,
     passed: v.check(course),

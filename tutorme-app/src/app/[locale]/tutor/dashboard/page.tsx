@@ -386,7 +386,7 @@ function TutorDashboardContent() {
           },
           credentials: 'include',
           body: JSON.stringify({
-            curriculumId: course.id,
+            courseId: course.id,
             title: course.name,
             subject: course.subject,
             gradeLevel: course.gradeLevel || undefined,

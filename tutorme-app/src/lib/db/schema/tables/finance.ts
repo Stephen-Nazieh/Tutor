@@ -14,7 +14,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
 import { user } from './auth'
-import { courseEnrollment } from './curriculum'
+import { courseEnrollment } from './course'
 
 export const payment = pgTable(
   'Payment',

@@ -13,10 +13,10 @@ import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
-  curriculumEnrollment,
-  curriculum,
-  curriculumLesson,
-  curriculumLessonProgress,
+  courseEnrollment,
+  course,
+  courseLesson,
+  courseLessonProgress,
   studentPerformance,
 } from '@/lib/db/schema'
 import { eq, inArray, and, asc } from 'drizzle-orm'
@@ -32,8 +32,8 @@ export async function GET(req: NextRequest) {
   try {
     const enrollmentRows = await drizzleDb
       .select()
-      .from(curriculumEnrollment)
-      .where(eq(curriculumEnrollment.studentId, studentId))
+      .from(courseEnrollment)
+      .where(eq(courseEnrollment.studentId, studentId))
 
     const courseIds = enrollmentRows.map(e => e.courseId)
     if (courseIds.length === 0) {
@@ -52,19 +52,19 @@ export async function GET(req: NextRequest) {
 
     const curricula = await drizzleDb
       .select()
-      .from(curriculum)
-      .where(inArray(curriculum.courseId, courseIds))
+      .from(course)
+      .where(inArray(course.courseId, courseIds))
 
-    const curriculumMap = new Map(curricula.map(c => [c.courseId, c]))
+    const courseMap = new Map(curricula.map(c => [c.courseId, c]))
 
     // Lessons now directly reference courses (no modules)
     const lessons =
       courseIds.length > 0
         ? await drizzleDb
             .select()
-            .from(curriculumLesson)
-            .where(inArray(curriculumLesson.courseId, courseIds))
-            .orderBy(asc(curriculumLesson.order))
+            .from(courseLesson)
+            .where(inArray(courseLesson.courseId, courseIds))
+            .orderBy(asc(courseLesson.order))
         : []
 
     const lessonsByCourse = new Map<string, typeof lessons>()
@@ -80,11 +80,11 @@ export async function GET(req: NextRequest) {
       allLessonIds.length > 0
         ? await drizzleDb
             .select()
-            .from(curriculumLessonProgress)
+            .from(courseLessonProgress)
             .where(
               and(
-                eq(curriculumLessonProgress.studentId, studentId),
-                inArray(curriculumLessonProgress.lessonId, allLessonIds)
+                eq(courseLessonProgress.studentId, studentId),
+                inArray(courseLessonProgress.lessonId, allLessonIds)
               )
             )
         : []
@@ -113,8 +113,8 @@ export async function GET(req: NextRequest) {
     let globalOrder = 0
 
     for (const enrollment of enrollmentRows) {
-      const curriculumRow = curriculumMap.get(enrollment.courseId)
-      if (!curriculumRow) continue
+      const courseRow = courseMap.get(enrollment.courseId)
+      if (!courseRow) continue
       const courseLessons = lessonsByCourse.get(enrollment.courseId) ?? []
       for (const lesson of courseLessons) {
         const prog = progressMap.get(lesson.lessonId)
@@ -129,8 +129,8 @@ export async function GET(req: NextRequest) {
           lessonId: lesson.lessonId,
           title: lesson.title,
           description: null,
-          courseName: curriculumRow.name,
-          courseId: curriculumRow.courseId,
+          courseName: courseRow.name,
+          courseId: courseRow.courseId,
           status,
           score: prog?.score ?? null,
           order: globalOrder++,

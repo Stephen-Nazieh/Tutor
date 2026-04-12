@@ -11,8 +11,8 @@ import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   sessionParticipant,
-  curriculumEnrollment,
-  curriculum,
+  courseEnrollment,
+  course,
   liveSession,
   profile as profileTable,
 } from '@/lib/db/schema'
@@ -63,12 +63,12 @@ export async function GET(req: NextRequest) {
 
     const enrollmentRows = await drizzleDb
       .select({
-        courseId: curriculumEnrollment.courseId,
-        creatorId: curriculum.creatorId,
+        courseId: courseEnrollment.courseId,
+        creatorId: course.creatorId,
       })
-      .from(curriculumEnrollment)
-      .innerJoin(curriculum, eq(curriculumEnrollment.courseId, curriculum.courseId))
-      .where(eq(curriculumEnrollment.studentId, studentId))
+      .from(courseEnrollment)
+      .innerJoin(course, eq(courseEnrollment.courseId, course.courseId))
+      .where(eq(courseEnrollment.studentId, studentId))
 
     const tutorIds = [...new Set(enrollmentRows.map(e => e.creatorId).filter(Boolean))] as string[]
 

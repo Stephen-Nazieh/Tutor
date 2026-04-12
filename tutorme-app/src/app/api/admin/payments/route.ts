@@ -3,4 +3,4 @@ import { withAuth } from '@/lib/api/middleware'
 
 export const GET = withAuth(async () => {
   return NextResponse.json({ payments: [] })
-})
+}, { role: 'ADMIN' })

@@ -25,7 +25,7 @@ export interface QuestionBankItem {
   difficulty: QuestionDifficulty
   tags: string[]
   subject?: string
-  curriculumId?: string
+  courseId?: string
   lessonId?: string
   createdAt: Date
   updatedAt: Date
@@ -44,7 +44,7 @@ export interface CreateQuestionBankItemInput {
   difficulty: QuestionDifficulty
   tags: string[]
   subject?: string
-  curriculumId?: string
+  courseId?: string
   lessonId?: string
   isPublic?: boolean
 }
@@ -59,7 +59,7 @@ export type QuizType = 'practice' | 'graded' | 'diagnostic' | 'survey'
 export interface Quiz {
   id: string
   tutorId: string
-  curriculumId?: string
+  courseId?: string
   lessonId?: string
   title: string
   description?: string
@@ -100,7 +100,7 @@ export interface CreateQuizInput {
   title: string
   description?: string
   type: QuizType
-  curriculumId?: string
+  courseId?: string
   lessonId?: string
   timeLimit?: number
   allowedAttempts?: number
@@ -321,7 +321,7 @@ export interface QuestionBankFilters {
   difficulty?: QuestionDifficulty
   subject?: string
   tags?: string[]
-  curriculumId?: string
+  courseId?: string
   lessonId?: string
   searchQuery?: string
 }
@@ -329,6 +329,6 @@ export interface QuestionBankFilters {
 export interface QuizFilters {
   status?: QuizStatus
   type?: QuizType
-  curriculumId?: string
+  courseId?: string
   searchQuery?: string
 }

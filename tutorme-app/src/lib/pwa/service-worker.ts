@@ -168,14 +168,9 @@ self.addEventListener('fetch', (event: any) => {
     return
   }
 
-  // API requests - NetworkFirst with offline queue
+  // API requests - Bypass cache entirely
   if (url.pathname.startsWith('/api/')) {
-    if (AUTH_API_PREFIXES.some(prefix => url.pathname.startsWith(prefix))) {
-      // Never intercept auth/session/csrf routes to avoid breaking NextAuth flows.
-      event.respondWith(fetch(request))
-      return
-    }
-    event.respondWith(handleApiRequest(event))
+    event.respondWith(fetch(request))
     return
   }
 

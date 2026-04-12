@@ -25,16 +25,16 @@ export const POST = withCsrf(
       const scheduledAt = data.scheduledAt ? new Date(data.scheduledAt) : new Date()
       const isScheduledForFuture = scheduledAt.getTime() > Date.now()
 
-      if (data.curriculumId) {
+      if (data.courseId) {
         const [ownedCourse] = await drizzleDb
           .select({ courseId: course.courseId })
           .from(course)
-          .where(and(eq(course.courseId, data.curriculumId), eq(course.creatorId, userId)))
+          .where(and(eq(course.courseId, data.courseId), eq(course.creatorId, userId)))
           .limit(1)
 
         if (!ownedCourse) {
           return NextResponse.json(
-            { error: 'Invalid curriculum selection for this tutor' },
+            { error: 'Invalid course selection for this tutor' },
             { status: 400 }
           )
         }
@@ -60,7 +60,7 @@ export const POST = withCsrf(
         .values({
           sessionId: crypto.randomUUID(),
           tutorId: userId,
-          courseId: data.curriculumId || null,
+          courseId: data.courseId || null,
           title: data.title || `${data.subject} Class`,
           category: data.subject,
           description: data.description || null,
@@ -89,7 +89,7 @@ export const GET = withAuth(async (req, session) => {
   const { searchParams } = new URL(req.url)
   const subject = searchParams.get('subject')
   const tutorId = searchParams.get('tutorId')
-  const curriculumId = searchParams.get('curriculumId')
+  const courseId = searchParams.get('courseId')
 
   // Build filter
   const filtersOfRequest: SQL[] = [
@@ -99,7 +99,7 @@ export const GET = withAuth(async (req, session) => {
 
   if (subject) filtersOfRequest.push(eq(liveSession.category, subject))
   if (tutorId) filtersOfRequest.push(eq(liveSession.tutorId, tutorId))
-  if (curriculumId) filtersOfRequest.push(eq(liveSession.courseId, curriculumId))
+  if (courseId) filtersOfRequest.push(eq(liveSession.courseId, courseId))
 
   // Fetch sessions with tutor info
   // Since participants is a relation, and we don't have 'with' defined,

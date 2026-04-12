@@ -139,7 +139,7 @@ export const RATE_LIMIT_PRESETS = {
   register: { max: 12, windowMs: 15 * 60 * 1000 },
   /** Payment create: 20 per minute per IP */
   paymentCreate: { max: 20, windowMs: 60 * 1000 },
-  /** Enroll (subject or curriculum): 30 per minute per IP */
+  /** Enroll (subject or course): 30 per minute per IP */
   enroll: { max: 30, windowMs: 60 * 1000 },
   /** Class booking: 20 per minute per IP */
   booking: { max: 20, windowMs: 60 * 1000 },

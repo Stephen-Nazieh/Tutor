@@ -76,7 +76,7 @@ export default function StudentFavoritesPage() {
 
       // Fetch course details
       if (courseIds.length > 0) {
-        const coursesRes = await fetch('/api/curriculum/batch?ids=' + courseIds.join(','))
+        const coursesRes = await fetch('/api/course/batch?ids=' + courseIds.join(','))
         if (coursesRes.ok) {
           const data = await coursesRes.json()
           setFavoriteCourses(data.curricula || [])
@@ -248,7 +248,7 @@ export default function StudentFavoritesPage() {
                   Browse courses and click the heart icon to save them here.
                 </p>
                 <Button asChild>
-                  <Link href={`/${locale}/curriculum`}>Explore Courses</Link>
+                  <Link href={`/${locale}/course`}>Explore Courses</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -313,7 +313,7 @@ export default function StudentFavoritesPage() {
                         </span>
                       )}
                       <Button asChild size="sm">
-                        <Link href={`/${locale}/curriculum/${course.id}`}>
+                        <Link href={`/${locale}/course/${course.id}`}>
                           View Course
                           <ExternalLink className="ml-1 h-3 w-3" />
                         </Link>

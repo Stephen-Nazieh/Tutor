@@ -103,11 +103,22 @@ jobs:
           docker push "$IMAGE"
           echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
 
-      - name: Run database migrations (production)
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
-        run: npx drizzle-kit push --force || echo 'Migration skipped (schema up to date)'
+      - name: Run database migrations via Cloud Run Job
+        run: |
+          echo "Setting up Migration Job..."
+          gcloud run jobs create migration-job \
+            --image ${{ env.IMAGE }} \
+            --region ${{ env.REGION }} \
+            --command "npm,run,db:migrate:deploy" \
+            --set-env-vars "NODE_ENV=production,DATABASE_URL=${{ secrets.DATABASE_URL }},DIRECT_URL=${{ secrets.DIRECT_URL }}" || \
+          gcloud run jobs update migration-job \
+            --image ${{ env.IMAGE }} \
+            --region ${{ env.REGION }} \
+            --command "npm,run,db:migrate:deploy" \
+            --set-env-vars "NODE_ENV=production,DATABASE_URL=${{ secrets.DATABASE_URL }},DIRECT_URL=${{ secrets.DIRECT_URL }}"
+            
+          echo "Executing Migration Job..."
+          gcloud run jobs execute migration-job --region ${{ env.REGION }} --wait
 
       - name: Deploy to Cloud Run (100% traffic)
         id: deploy-prod
@@ -133,8 +144,3 @@ jobs:
 
       - name: Show production URL
         run: echo "Production URL -> ${{ steps.deploy-prod.outputs.url }}"
-
-      - name: Run Database Migration Script
-        run: |
-          echo "Running database schema updates..."
-          curl -sS "${{ steps.deploy-prod.outputs.url }}/api/tutor/courses/migrate/force"

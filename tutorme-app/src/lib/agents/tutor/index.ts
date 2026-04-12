@@ -16,11 +16,11 @@ import {
   Student,
   Conversation,
   Message,
-  Curriculum,
+  Course,
   ProgressData,
   getStudent,
   getConversation,
-  getCurriculum,
+  getCourse,
   getProgress,
   saveMessage,
 } from '../shared-data'
@@ -57,10 +57,10 @@ export async function tutorChat(request: TutorRequest): Promise<TutorResponse> {
   const startTime = Date.now()
 
   // FETCH DATA (READ access only)
-  const [student, conversation, curriculum, progress] = await Promise.all([
+  const [student, conversation, course, progress] = await Promise.all([
     getStudent(request.studentId),
     getConversation(request.studentId, request.subject, request.conversationId),
-    getCurriculum(request.subject, 'default'),
+    getCourse(request.subject, 'default'),
     getProgress(request.studentId, 'current'),
   ])
 
@@ -72,7 +72,7 @@ export async function tutorChat(request: TutorRequest): Promise<TutorResponse> {
   const context = {
     student,
     subject: request.subject,
-    curriculum: curriculum || undefined,
+    course: course || undefined,
     progress: progress || undefined,
     conversationHistory:
       conversation?.messages

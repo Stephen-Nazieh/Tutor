@@ -1,6 +1,6 @@
 /**
  * Server-side enrollment logic (course).
- * Used by POST /api/curriculum/[id]/enroll and by payment webhooks for course purchases.
+ * Used by POST /api/course/[id]/enroll and by payment webhooks for course purchases.
  * Drizzle ORM.
  */
 

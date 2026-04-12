@@ -221,7 +221,7 @@ export function CreateCourseDialog({
             New session
           </DialogTitle>
           <DialogDescription>
-            Create a whole course (curriculum) with modules and lessons. You can add more modules
+            Create a whole course (course) with modules and lessons. You can add more modules
             and lessons after creation.
           </DialogDescription>
         </DialogHeader>
@@ -345,7 +345,7 @@ export function CreateCourseDialog({
                 onClick={async () => {
                   setGeneratingDescription(true)
                   try {
-                    const res = await fetch('/api/curriculums/generate-description', {
+                    const res = await fetch('/api/courses/generate-description', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       credentials: 'include',

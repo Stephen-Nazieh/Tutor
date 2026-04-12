@@ -18,7 +18,7 @@ export type ResourceType =
   | 'financial_record'
   | 'family_member'
   | 'live_session'
-  | 'curriculum'
+  | 'course'
   | 'user_list'
   | 'data_export'
   | 'consent_record'

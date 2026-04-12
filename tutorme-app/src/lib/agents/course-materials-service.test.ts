@@ -28,7 +28,7 @@ describe('course-materials-service', () => {
     })
 
     const res = await generateCourseOutlineAsModules({
-      curriculumText: 'x',
+      courseText: 'x',
       typicalLessonMinutes: 45,
     })
 

@@ -8,7 +8,7 @@ import {
   sessionReplayArtifact,
   profile,
   taskSubmission,
-  curriculumLesson,
+  courseLesson,
 } from '@/lib/db/schema'
 import { eq, and, inArray, desc } from 'drizzle-orm'
 
@@ -84,9 +84,9 @@ export async function GET(_req: NextRequest) {
         if (liveSessionRow.courseId) {
           const lessonIds = (
             await drizzleDb
-              .select({ lessonId: curriculumLesson.lessonId })
-              .from(curriculumLesson)
-              .where(eq(curriculumLesson.courseId, liveSessionRow.courseId))
+              .select({ lessonId: courseLesson.lessonId })
+              .from(courseLesson)
+              .where(eq(courseLesson.courseId, liveSessionRow.courseId))
           ).map(l => l.lessonId)
 
           if (lessonIds.length > 0) {

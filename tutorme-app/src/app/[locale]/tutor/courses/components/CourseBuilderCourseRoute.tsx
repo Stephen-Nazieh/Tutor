@@ -85,14 +85,14 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
     fetchCourses()
   }, [courseId])
 
-  // Fetch course curriculum when course changes
+  // Fetch course course when course changes
   useEffect(() => {
     if (!currentCourse?.id) return
 
-    const fetchCurriculum = async () => {
+    const fetchCourse = async () => {
       setLoading(true)
       try {
-        const res = await fetch(`/api/tutor/courses/${currentCourse.id}/curriculum`, {
+        const res = await fetch(`/api/tutor/courses/${currentCourse.id}/course`, {
           credentials: 'include',
         })
         if (res.ok) {
@@ -100,13 +100,13 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
           setLoadedLessons(data.lessons || [])
         }
       } catch (error) {
-        toast.error('Failed to load curriculum')
+        toast.error('Failed to load course')
       } finally {
         setLoading(false)
       }
     }
 
-    fetchCurriculum()
+    fetchCourse()
   }, [currentCourse?.id])
 
   const handleCourseSelect = useCallback(
@@ -250,7 +250,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
         const csrfData = await csrfRes.json().catch(() => ({}))
         const csrfToken = csrfData?.token ?? null
 
-        const res = await fetch(`/api/tutor/courses/${currentCourse.id}/curriculum`, {
+        const res = await fetch(`/api/tutor/courses/${currentCourse.id}/course`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -264,7 +264,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
           const data = await res.json().catch(() => ({}))
           console.error('[CourseBuilder] Save failed:', data)
           if (!options?.isAutoSave) {
-            const errorMsg = data.details || data.error || 'Failed to save curriculum'
+            const errorMsg = data.details || data.error || 'Failed to save course'
             toast.error(errorMsg)
           }
         } else {

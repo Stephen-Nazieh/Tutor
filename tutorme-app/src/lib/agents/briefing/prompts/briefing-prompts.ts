@@ -10,13 +10,13 @@
  * EDIT THIS FILE to change how tutor briefings are generated.
  */
 
-import { LiveSession, Student, ProgressData, Curriculum } from '../../shared-data'
+import { LiveSession, Student, ProgressData, Course } from '../../shared-data'
 
 export interface BriefingContext {
   session: LiveSession
   students: Student[]
   progressData: ProgressData[]
-  curriculum: Curriculum
+  course: Course
   recentQuizScores: Array<{ studentId: string; score: number; topic: string }>
 }
 
@@ -43,15 +43,15 @@ export function buildClassBriefingPrompt(context: BriefingContext): string {
   return `Generate a pre-class briefing for a tutor preparing to teach.
 
 CLASS INFO:
-- Subject: ${context.curriculum.subject}
+- Subject: ${context.course.subject}
 - Students: ${context.students.length}
-- Topic: ${context.curriculum.modules[0]?.title || 'General'}
+- Topic: ${context.course.modules[0]?.title || 'General'}
 
 STUDENT PROFILES:
 ${studentSummaries}
 
-CURRICULUM OBJECTIVES:
-${context.curriculum.learningObjectives.map(o => `- ${o}`).join('\n')}
+COURSE OBJECTIVES:
+${context.course.learningObjectives.map(o => `- ${o}`).join('\n')}
 
 ## BRIEFING STRUCTURE
 
@@ -67,7 +67,7 @@ List 1-2 students who are excelling and can help others:
 - Format: "[Name]: [Strength] - [How to leverage]"
 
 ### 4. COMMON MISCONCEPTIONS
-Based on the curriculum and past struggles, predict 2-3 concepts students might struggle with today.
+Based on the course and past struggles, predict 2-3 concepts students might struggle with today.
 
 ### 5. TEACHING STRATEGIES
 Suggest 2-3 specific strategies for this class composition.

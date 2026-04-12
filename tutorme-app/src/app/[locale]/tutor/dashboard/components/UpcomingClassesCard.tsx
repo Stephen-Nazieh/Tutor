@@ -31,7 +31,7 @@ import { cn } from '@/lib/utils'
 
 export interface UpcomingClass {
   id: string
-  curriculumId?: string
+  courseId?: string
   title: string
   subject: string
   scheduledAt: string
@@ -511,8 +511,8 @@ export function UpcomingClassesCard({
                     </Button>
                   </div>
 
-                  {selectedClass.curriculumId ? (
-                    <Link href={`/tutor/courses/${selectedClass.curriculumId}`}>
+                  {selectedClass.courseId ? (
+                    <Link href={`/tutor/courses/${selectedClass.courseId}`}>
                       <Button variant="outline" className="w-full">
                         <Sparkles className="mr-2 h-4 w-4" />
                         View Course Details

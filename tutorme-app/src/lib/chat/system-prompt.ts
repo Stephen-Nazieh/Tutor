@@ -84,7 +84,7 @@ Student development is tracked year to year using data-driven metrics.
 Schools and teachers can:
 • Map skill growth
 • Identify long-term trends
-• Measure curriculum effectiveness
+• Measure course effectiveness
 
 Students and families see academic progress clearly.
 
@@ -98,7 +98,7 @@ School leaders can:
 Instruction improves through measurable insight.
 
 ### AUTOMATED STANDARDS-BASED GRADING
-Assessments are graded using customizable grading schemas aligned with curriculum standards.
+Assessments are graded using customizable grading schemas aligned with course standards.
 The system automatically generates:
 • Proficiency levels
 • Report card categories

@@ -110,7 +110,7 @@ export class AirwallexGateway implements PaymentGateway {
       amount: request.amount,
       currency: request.currency.toUpperCase(),
       merchant_order_id:
-        request.bookingId ?? (request.curriculumId ? `course:${request.curriculumId}` : 'payment'),
+        request.bookingId ?? (request.courseId ? `course:${request.courseId}` : 'payment'),
       return_url: returnUrl,
     }
 

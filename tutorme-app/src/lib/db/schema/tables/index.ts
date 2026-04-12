@@ -2,7 +2,7 @@
  * Drizzle tables — re-export all domain slices (formerly a single tables.ts).
  */
 export * from './auth'
-export * from './curriculum'
+export * from './course'
 export * from './classroom'
 export * from './content'
 export * from './live'

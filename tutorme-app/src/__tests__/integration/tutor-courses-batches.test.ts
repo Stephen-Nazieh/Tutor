@@ -9,9 +9,9 @@ import { eq, inArray } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   courseBatch,
-  curriculum,
-  curriculumLesson,
-  curriculumModule,
+  course,
+  courseLesson,
+  courseModule,
   profile,
   user,
 } from '@/lib/db/schema'
@@ -90,17 +90,17 @@ describe('Tutor courses and batches API integration', () => {
     if (courseId) {
       try {
         const modules = await drizzleDb
-          .select({ id: curriculumModule.id })
-          .from(curriculumModule)
-          .where(eq(curriculumModule.curriculumId, courseId))
+          .select({ id: courseModule.id })
+          .from(courseModule)
+          .where(eq(courseModule.courseId, courseId))
         const moduleIds = modules.map(m => m.id)
         if (moduleIds.length > 0) {
           await drizzleDb
-            .delete(curriculumLesson)
-            .where(inArray(curriculumLesson.moduleId, moduleIds))
+            .delete(courseLesson)
+            .where(inArray(courseLesson.moduleId, moduleIds))
         }
-        await drizzleDb.delete(curriculumModule).where(eq(curriculumModule.curriculumId, courseId))
-        await drizzleDb.delete(curriculum).where(eq(curriculum.id, courseId))
+        await drizzleDb.delete(courseModule).where(eq(courseModule.courseId, courseId))
+        await drizzleDb.delete(course).where(eq(course.id, courseId))
       } catch {}
     }
     if (tutorId) {

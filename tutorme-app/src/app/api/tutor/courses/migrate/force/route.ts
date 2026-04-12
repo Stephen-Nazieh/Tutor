@@ -17,10 +17,10 @@ export async function GET() {
       sql`ALTER TABLE "CourseLesson" ADD COLUMN IF NOT EXISTS "builderData" jsonb;`
     )
     await getDrizzleDb().execute(
-      sql`ALTER TABLE "CurriculumModule" ADD COLUMN IF NOT EXISTS "builderData" jsonb;`
+      sql`ALTER TABLE "CourseModule" ADD COLUMN IF NOT EXISTS "builderData" jsonb;`
     )
 
-    // Fix for legacy moduleId column constraint that causes "Failed to save curriculum"
+    // Fix for legacy moduleId column constraint that causes "Failed to save course"
     await getDrizzleDb().execute(
       sql`ALTER TABLE "CourseLesson" ALTER COLUMN "moduleId" DROP NOT NULL;`
     )

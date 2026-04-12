@@ -39,7 +39,7 @@ async function getHandler(req: NextRequest, session: Session) {
       return NextResponse.json({ error: 'Not enrolled in English tutor' }, { status: 404 })
     }
 
-    // Get student's curriculum enrollment
+    // Get student's course enrollment
     const [enrollmentRow] = await drizzleDb
       .select()
       .from(courseEnrollment)
@@ -47,17 +47,17 @@ async function getHandler(req: NextRequest, session: Session) {
       .limit(1)
 
     if (!enrollmentRow) {
-      return NextResponse.json({ error: 'No curriculum assigned' }, { status: 404 })
+      return NextResponse.json({ error: 'No course assigned' }, { status: 404 })
     }
 
-    const [curriculumRow] = await drizzleDb
+    const [courseRow] = await drizzleDb
       .select()
       .from(course)
       .where(eq(course.courseId, enrollmentRow.courseId))
       .limit(1)
 
-    if (!curriculumRow) {
-      return NextResponse.json({ error: 'No curriculum assigned' }, { status: 404 })
+    if (!courseRow) {
+      return NextResponse.json({ error: 'No course assigned' }, { status: 404 })
     }
 
     // Get lessons directly under course (modules deprecated)
@@ -68,7 +68,7 @@ async function getHandler(req: NextRequest, session: Session) {
         order: courseLesson.order,
       })
       .from(courseLesson)
-      .where(eq(courseLesson.courseId, curriculumRow.courseId))
+      .where(eq(courseLesson.courseId, courseRow.courseId))
       .orderBy(asc(courseLesson.order))
 
     // If specific lesson requested, return that
@@ -139,11 +139,11 @@ async function getHandler(req: NextRequest, session: Session) {
 
     return NextResponse.json({
       context: 'recommended_lesson',
-      curriculum: {
-        id: curriculumRow.courseId,
-        name: curriculumRow.name,
-        categories: curriculumRow.categories,
-        description: curriculumRow.description,
+      course: {
+        id: courseRow.courseId,
+        name: courseRow.name,
+        categories: courseRow.categories,
+        description: courseRow.description,
       },
       currentLesson: currentLesson
         ? {

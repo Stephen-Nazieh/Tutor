@@ -38,7 +38,7 @@ interface AssignmentItem {
   gradedAt: string | null
   questionCount: number
   lessonTitle: string | null
-  curriculumName: string | null
+  courseName: string | null
   tutorName: string | null
   timeSpent: number | null
   attempts: number
@@ -258,7 +258,7 @@ export default function StudentAssignmentsPage() {
                               )}
                               <div className="mt-2 flex flex-wrap gap-3 text-xs text-gray-500">
                                 {a.lessonTitle && <span>{a.lessonTitle}</span>}
-                                {a.curriculumName && <span>· {a.curriculumName}</span>}
+                                {a.courseName && <span>· {a.courseName}</span>}
                                 {a.tutorName && <span>· 教师: {a.tutorName}</span>}
                                 {a.dueDate && (
                                   <span className="flex items-center gap-1">

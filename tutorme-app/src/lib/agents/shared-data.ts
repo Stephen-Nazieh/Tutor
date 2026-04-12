@@ -47,8 +47,8 @@ export interface Message {
   }
 }
 
-// Curriculum data - All agents READ-ONLY
-export interface Curriculum {
+// Course data - All agents READ-ONLY
+export interface Course {
   id: string
   subject: string
   grade: string
@@ -158,8 +158,8 @@ export interface Tutor {
 
 import { cache } from '@/lib/db'
 import {
-  course as curriculumTable,
-  courseLesson as curriculumLesson,
+  course as courseTable,
+  courseLesson as courseLesson,
   liveSession as liveSessionTable,
   studentPerformance,
   user,
@@ -278,27 +278,27 @@ export async function saveMessage(conversationId: string, message: Message): Pro
   await cache.set(key, updated, CONVERSATION_TTL_SECONDS)
 }
 
-export async function getCurriculum(subject: string, grade: string): Promise<Curriculum | null> {
+export async function getCourse(subject: string, grade: string): Promise<Course | null> {
   const db = await getDb()
-  const curriculumRow = await db
+  const courseRow = await db
     .select()
-    .from(curriculumTable)
-    .where(and(eq(curriculumTable.categories, [subject]), eq(curriculumTable.isPublished, true)))
+    .from(courseTable)
+    .where(and(eq(courseTable.categories, [subject]), eq(courseTable.isPublished, true)))
     .limit(1)
 
-  if (!curriculumRow[0]) return null
+  if (!courseRow[0]) return null
 
   const lessons = await db
     .select()
-    .from(curriculumLesson)
-    .where(eq(curriculumLesson.courseId, curriculumRow[0].courseId))
-    .orderBy(curriculumLesson.order)
+    .from(courseLesson)
+    .where(eq(courseLesson.courseId, courseRow[0].courseId))
+    .orderBy(courseLesson.order)
 
   return {
-    id: curriculumRow[0].courseId,
-    subject: curriculumRow[0].categories?.[0] ?? '',
+    id: courseRow[0].courseId,
+    subject: courseRow[0].categories?.[0] ?? '',
     grade,
-    learningObjectives: curriculumRow[0].categories || [],
+    learningObjectives: courseRow[0].categories || [],
     modules: [
       {
         id: 'default-module',

@@ -11,10 +11,10 @@ import { BackButton } from '@/components/navigation'
 function PaymentCancelContent() {
   const searchParams = useSearchParams()
   const type = searchParams.get('type')
-  const curriculumId = searchParams.get('curriculumId')
+  const courseId = searchParams.get('courseId')
   const isCourse = type === 'course'
 
-  const tryAgainUrl = isCourse && curriculumId ? `/student/dashboard` : '/student/classes'
+  const tryAgainUrl = isCourse && courseId ? `/student/dashboard` : '/student/classes'
 
   return (
     <div className="safe-top safe-bottom flex min-h-screen items-center justify-center bg-gray-50 p-4">

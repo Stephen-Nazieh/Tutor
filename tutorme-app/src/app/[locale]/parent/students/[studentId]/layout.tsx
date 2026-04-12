@@ -20,7 +20,7 @@ interface StudentData {
   name: string
   email: string | null
   relation: string
-  enrollments: Array<{ curriculumId: string; curriculumName: string }>
+  enrollments: Array<{ courseId: string; courseName: string }>
   level: number | null
   xp: number | null
 }

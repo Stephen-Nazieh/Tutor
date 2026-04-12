@@ -38,7 +38,7 @@ export const GET = withAuth(
 
     const classes = sessions.map(s => ({
       id: s.sessionId,
-      curriculumId: s.courseId,
+      courseId: s.courseId,
       title: s.title,
       subject: s.category,
       scheduledAt: s.scheduledAt?.toISOString() ?? new Date().toISOString(),

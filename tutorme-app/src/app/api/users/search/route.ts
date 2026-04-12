@@ -28,21 +28,21 @@ export const GET = withAuth(async (req: NextRequest, session) => {
       .from(courseEnrollment)
       .where(eq(courseEnrollment.studentId, requesterId))
 
-    const curriculumIds = enrollments.map(e => e.courseId)
-    if (curriculumIds.length === 0) {
+    const courseIds = enrollments.map(e => e.courseId)
+    if (courseIds.length === 0) {
       return NextResponse.json({ results: [] })
     }
 
     const tutors = await drizzleDb
       .select({ tutorId: course.creatorId })
       .from(course)
-      .where(inArray(course.courseId, curriculumIds))
+      .where(inArray(course.courseId, courseIds))
     const tutorIds = tutors.map(t => t.tutorId).filter(Boolean) as string[]
 
     const peers = await drizzleDb
       .select({ studentId: courseEnrollment.studentId })
       .from(courseEnrollment)
-      .where(inArray(courseEnrollment.courseId, curriculumIds))
+      .where(inArray(courseEnrollment.courseId, courseIds))
     const peerIds = peers.map(p => p.studentId)
 
     allowedUserIds = Array.from(new Set([...tutorIds, ...peerIds]))
@@ -51,14 +51,14 @@ export const GET = withAuth(async (req: NextRequest, session) => {
       .select({ courseId: course.courseId })
       .from(course)
       .where(eq(course.creatorId, requesterId))
-    const curriculumIds = curricula.map(c => c.courseId)
-    if (curriculumIds.length === 0) {
+    const courseIds = curricula.map(c => c.courseId)
+    if (courseIds.length === 0) {
       allowedUserIds = [requesterId]
     } else {
       const students = await drizzleDb
         .select({ studentId: courseEnrollment.studentId })
         .from(courseEnrollment)
-        .where(inArray(courseEnrollment.courseId, curriculumIds))
+        .where(inArray(courseEnrollment.courseId, courseIds))
       const studentIds = students.map(s => s.studentId)
       allowedUserIds = Array.from(new Set([requesterId, ...studentIds]))
     }

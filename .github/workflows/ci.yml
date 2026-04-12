@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      - name: Generate Drizzle Types
+        run: npx drizzle-kit generate
+
       - name: Typecheck
         run: npm run typecheck
 
@@ -51,6 +54,9 @@ jobs:
 
       - name: Clean build cache
         run: rm -rf .next
+
+      - name: Generate Drizzle Types
+        run: npx drizzle-kit generate
 
       - name: Build
         run: npm run build

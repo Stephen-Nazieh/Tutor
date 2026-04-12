@@ -2248,7 +2248,7 @@ const CategoriesModal = ({
               {t('viewAllCategories')}
             </h2>
             <p className={`mb-6 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>
-              Explore all curriculums, standardized tests, and college admission exams available on
+              Explore all courses, standardized tests, and college admission exams available on
               Solocorn
             </p>
 

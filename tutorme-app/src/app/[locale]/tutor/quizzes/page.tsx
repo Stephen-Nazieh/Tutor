@@ -160,7 +160,7 @@ export default function QuizzesPage() {
           passingScore: quiz.passingScore,
           questions: quiz.questions,
           tags: quiz.tags,
-          curriculumId: quiz.curriculumId,
+          courseId: quiz.courseId,
           lessonId: quiz.lessonId,
         }),
       })

@@ -8,7 +8,7 @@ export interface CreatePaymentRequest {
   /** For clinic bookings; omit for course payments */
   bookingId?: string
   /** For course payments; used as gateway reference when bookingId is absent */
-  curriculumId?: string
+  courseId?: string
   studentEmail: string
   description: string
   metadata?: Record<string, unknown>

@@ -70,7 +70,7 @@ export const MOCK_TUTORS: MockTutorProfile[] = [
     bio: 'Physics and chemistry tutor helping students translate theory into exam performance.',
     avatarUrl: null,
     specialties: ['Physics', 'Chemistry', 'Lab Skills'],
-    credentials: 'BSc Physics, former lab instructor, curriculum designer for AP sciences.',
+    credentials: 'BSc Physics, former lab instructor, course designer for AP sciences.',
     hourlyRate: 60,
     courses: [
       {
@@ -95,7 +95,7 @@ export const MOCK_TUTORS: MockTutorProfile[] = [
     bio: 'Language arts and communication coach for writing clarity and confident speaking.',
     avatarUrl: null,
     specialties: ['English Writing', 'Reading Comprehension', 'Public Speaking'],
-    credentials: 'MA Education, published curriculum writer, debate coach.',
+    credentials: 'MA Education, published course writer, debate coach.',
     hourlyRate: 48,
     courses: [
       {

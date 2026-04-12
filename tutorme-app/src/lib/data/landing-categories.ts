@@ -7,7 +7,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Hong Kong Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_2',
@@ -31,7 +31,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Korea Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_5',
@@ -47,7 +47,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Singapore Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_7',
@@ -71,7 +71,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Japan Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_10',
@@ -87,7 +87,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Thailand Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_12',
@@ -103,7 +103,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'India Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_14',
@@ -127,7 +127,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Vietnam Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_17',
@@ -143,7 +143,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Taiwan Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_19',
@@ -159,7 +159,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Malaysia Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_21',
@@ -175,7 +175,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Indonesia Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_23',
@@ -191,7 +191,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Philippines Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_25',
@@ -207,7 +207,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Israel Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_27',
@@ -223,7 +223,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Gulf States Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_29',
@@ -239,7 +239,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'United Kingdom Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_31',
@@ -263,7 +263,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Germany Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_34',
@@ -279,7 +279,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'France Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_36',
@@ -295,7 +295,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Netherlands Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_38',
@@ -311,7 +311,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Belgium Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_40',
@@ -327,7 +327,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Switzerland Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_42',
@@ -343,7 +343,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Italy Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_44',
@@ -359,7 +359,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Spain Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_46',
@@ -375,7 +375,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Ireland Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_48',
@@ -391,7 +391,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Netherlands Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_50',
@@ -407,7 +407,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Belgium Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_52',
@@ -423,7 +423,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Switzerland Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_54',
@@ -439,7 +439,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Portugal Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_56',
@@ -455,7 +455,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Austria Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_58',
@@ -471,7 +471,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Poland Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_60',
@@ -487,7 +487,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Czech Republic Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_62',
@@ -503,7 +503,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Hungary Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_64',
@@ -519,7 +519,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Romania Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_66',
@@ -535,7 +535,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Greece Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_68',
@@ -551,7 +551,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Turkey Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_70',
@@ -567,7 +567,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Australia Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_72',
@@ -583,7 +583,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'New Zealand Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_74',
@@ -599,7 +599,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'United States Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_76',
@@ -615,7 +615,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Canada Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_78',
@@ -631,7 +631,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Mexico Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_80',
@@ -711,7 +711,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Costa Rica Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_90',
@@ -799,7 +799,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Panama Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_101',
@@ -887,7 +887,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Dominican Republic Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_112',
@@ -959,7 +959,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Brazil Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_121',
@@ -1023,7 +1023,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Chile Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_129',
@@ -1079,7 +1079,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Peru Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_136',
@@ -1135,7 +1135,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Colombia Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_143',
@@ -1151,7 +1151,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Argentina Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_145',
@@ -1207,7 +1207,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Uruguay Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_152',
@@ -1295,7 +1295,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Ecuador Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_163',
@@ -1383,7 +1383,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Nigeria Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_174',
@@ -1399,7 +1399,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Kenya Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_176',
@@ -1415,7 +1415,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Ghana Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_178',
@@ -1471,7 +1471,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Egypt Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_185',
@@ -1535,7 +1535,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Morocco Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_193',
@@ -1607,7 +1607,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Tunisia Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_202',
@@ -1679,7 +1679,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Botswana Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_211',
@@ -1695,7 +1695,7 @@ export const LANDING_CATEGORIES = [
     icon: Globe,
     description: 'Namibia Secondary Education',
     color: 'bg-sky-500',
-    category: 'Regional Secondary Curriculums',
+    category: 'Regional Secondary Courses',
   },
   {
     id: 'cat_213',
@@ -1815,7 +1815,7 @@ export const LANDING_CATEGORIES = [
     icon: BookOpen,
     description: 'Advanced Placement',
     color: 'bg-red-500',
-    category: 'Curriculums',
+    category: 'Courses',
   },
   {
     id: 'cat_228',
@@ -1823,7 +1823,7 @@ export const LANDING_CATEGORIES = [
     icon: BookOpen,
     description: 'International A Levels',
     color: 'bg-emerald-500',
-    category: 'Curriculums',
+    category: 'Courses',
   },
   {
     id: 'cat_229',
@@ -1831,7 +1831,7 @@ export const LANDING_CATEGORIES = [
     icon: BookOpen,
     description: 'International Baccalaureate',
     color: 'bg-teal-500',
-    category: 'Curriculums',
+    category: 'Courses',
   },
   {
     id: 'cat_230',

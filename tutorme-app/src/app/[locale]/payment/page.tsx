@@ -45,27 +45,27 @@ export default function PaymentPage() {
   const [oneOnOneLoading, setOneOnOneLoading] = useState(false)
   const [selectedGateway, setSelectedGateway] = useState<GatewayOption>('HITPAY')
 
-  const curriculumId = searchParams.get('curriculumId')
+  const courseId = searchParams.get('courseId')
   const requestId = searchParams.get('requestId')
   const amount = searchParams.get('amount')
   const currency = searchParams.get('currency') || 'USD'
 
   useEffect(() => {
-    if (curriculumId) {
+    if (courseId) {
       // Load course details
-      fetch(`/api/curriculum/${curriculumId}`)
+      fetch(`/api/course/${courseId}`)
         .then(res => (res.ok ? res.json() : null))
         .then(data => {
-          if (data?.curriculum) {
+          if (data?.course) {
             setCourse({
-              name: data.curriculum.name,
-              subject: data.curriculum.subject,
+              name: data.course.name,
+              subject: data.course.subject,
             })
           }
         })
-        .catch(err => console.error('[Payment] Failed to load curriculum:', err))
+        .catch(err => console.error('[Payment] Failed to load course:', err))
     }
-  }, [curriculumId])
+  }, [courseId])
 
   useEffect(() => {
     if (!requestId) return
@@ -100,7 +100,7 @@ export default function PaymentPage() {
         toast.error('Invalid payment details')
         return
       }
-    } else if (!curriculumId || !amount) {
+    } else if (!courseId || !amount) {
       toast.error('Invalid payment details')
       return
     }
@@ -123,7 +123,7 @@ export default function PaymentPage() {
         },
         credentials: 'include',
         body: JSON.stringify({
-          curriculumId: requestId ? undefined : curriculumId,
+          courseId: requestId ? undefined : courseId,
           oneOnOneRequestId: requestId || undefined,
           amount: requestId ? undefined : parseFloat(amount || '0'),
           currency: requestId ? oneOnOne?.currency : currency,
@@ -170,7 +170,7 @@ export default function PaymentPage() {
     return `${symbol}${parseFloat(amount).toFixed(2)}`
   }
 
-  const showInvalid = requestId ? !oneOnOne && !oneOnOneLoading : !curriculumId || !amount
+  const showInvalid = requestId ? !oneOnOne && !oneOnOneLoading : !courseId || !amount
 
   if (showInvalid) {
     return (
@@ -182,7 +182,7 @@ export default function PaymentPage() {
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full">
-              <Link href="/curriculum">
+              <Link href="/course">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Courses
               </Link>

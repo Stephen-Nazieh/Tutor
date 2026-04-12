@@ -1,6 +1,6 @@
 /**
- * Curriculum Listing Page
- * Browse and enroll in available curriculums
+ * Course Listing Page
+ * Browse and enroll in available courses
  */
 
 'use client'
@@ -23,7 +23,7 @@ import { Progress } from '@/components/ui/progress'
 import {
   PreferenceEnrollmentDialog,
   type ScheduleItem,
-} from '@/components/curriculum/PreferenceEnrollmentDialog'
+} from '@/components/course/PreferenceEnrollmentDialog'
 import {
   BookOpen,
   Clock,
@@ -51,7 +51,7 @@ import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
-interface Curriculum {
+interface Course {
   id: string
   name: string
   description: string | null
@@ -88,16 +88,16 @@ const SUBJECT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   default: BookOpen,
 }
 
-export default function CurriculumPage() {
+export default function CoursePage() {
   const { data: session } = useSession()
   const searchParams = useSearchParams()
   const isTutor = session?.user?.role === 'TUTOR'
-  const [curriculums, setCurriculums] = useState<Curriculum[]>([])
+  const [courses, setCourses] = useState<Course[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<
     'mine' | 'pending' | 'completed' | 'favorites' | 'following'
   >((searchParams.get('tab') as any) || 'mine')
-  const [selectedEnrollment, setSelectedEnrollment] = useState<Curriculum | null>(null)
+  const [selectedEnrollment, setSelectedEnrollment] = useState<Course | null>(null)
   const [favoriteIds, setFavoriteIds] = useState<string[]>([])
 
   const loadFavorites = () => {
@@ -161,27 +161,27 @@ export default function CurriculumPage() {
     if (activeTab === 'following') {
       loadFollowing()
     } else {
-      loadCurriculums()
+      loadCourses()
     }
   }, [activeTab])
 
-  const loadCurriculums = async () => {
+  const loadCourses = async () => {
     setIsLoading(true)
     try {
-      const res = await fetch(`/api/curriculum?filter=all`)
+      const res = await fetch(`/api/course?filter=all`)
       if (res.ok) {
         const data = await res.json()
-        setCurriculums(data.curriculums)
+        setCourses(data.courses)
       }
     } catch (error) {
-      console.error('Failed to load curriculums:', error)
+      console.error('Failed to load courses:', error)
     } finally {
       setIsLoading(false)
     }
   }
 
   const now = new Date()
-  const myCourses = curriculums.filter(c => c.enrollment || c.progress)
+  const myCourses = courses.filter(c => c.enrollment || c.progress)
 
   const ongoing = myCourses.filter(
     c =>
@@ -195,20 +195,20 @@ export default function CurriculumPage() {
   )
 
   const completed = myCourses.filter(c => c.progress?.isCompleted)
-  const favorites = curriculums.filter(
+  const favorites = courses.filter(
     c => favoriteIds.includes(c.id) && !myCourses.some(mc => mc.id === c.id)
   )
 
-  const [detailCourse, setDetailCourse] = useState<Curriculum | null>(null)
+  const [detailCourse, setDetailCourse] = useState<Course | null>(null)
   const [enteringClass, setEnteringClass] = useState<string | null>(null)
   const router = useRouter()
 
   const handleEnterClass = useCallback(
-    async (curriculumId: string) => {
-      setEnteringClass(curriculumId)
+    async (courseId: string) => {
+      setEnteringClass(courseId)
       try {
-        // Fetch active sessions for this curriculum
-        const res = await fetch(`/api/class/rooms?curriculumId=${curriculumId}`, {
+        // Fetch active sessions for this course
+        const res = await fetch(`/api/class/rooms?courseId=${courseId}`, {
           credentials: 'include',
         })
         if (res.ok) {
@@ -541,12 +541,12 @@ export default function CurriculumPage() {
           onOpenChange={open => {
             if (!open) setSelectedEnrollment(null)
           }}
-          curriculumId={selectedEnrollment.id}
-          curriculumName={selectedEnrollment.name}
+          courseId={selectedEnrollment.id}
+          courseName={selectedEnrollment.name}
           availabilitySlots={selectedEnrollment.availability?.slots ?? []}
           onSubmitted={() => {
             setSelectedEnrollment(null)
-            loadCurriculums()
+            loadCourses()
           }}
         />
       )}
@@ -564,12 +564,12 @@ function CourseSection({
   onEnterClass,
 }: {
   title: string
-  courses: Curriculum[]
+  courses: Course[]
   favoriteIds: string[]
   toggleFavorite: (id: string) => void
-  onDetails: (c: Curriculum) => void
+  onDetails: (c: Course) => void
   enteringClass: string | null
-  onEnterClass: (curriculumId: string) => void
+  onEnterClass: (courseId: string) => void
 }) {
   return (
     <section>
@@ -578,13 +578,13 @@ function CourseSection({
         <Badge variant="outline">{courses.length} courses</Badge>
       </div>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {courses.map(curriculum => (
+        {courses.map(course => (
           <CourseCard
-            key={curriculum.id}
-            curriculum={curriculum}
-            isFavorite={favoriteIds.includes(curriculum.id)}
-            onFavorite={() => toggleFavorite(curriculum.id)}
-            onDetails={() => onDetails(curriculum)}
+            key={course.id}
+            course={course}
+            isFavorite={favoriteIds.includes(course.id)}
+            onFavorite={() => toggleFavorite(course.id)}
+            onDetails={() => onDetails(course)}
             enteringClass={enteringClass}
             onEnterClass={onEnterClass}
           />
@@ -595,27 +595,27 @@ function CourseSection({
 }
 
 function CourseCard({
-  curriculum,
+  course,
   isFavorite,
   onFavorite,
   onDetails,
   enteringClass,
   onEnterClass,
 }: {
-  curriculum: Curriculum
+  course: Course
   isFavorite: boolean
   onFavorite: () => void
   onDetails: () => void
   enteringClass: string | null
-  onEnterClass: (curriculumId: string) => void
+  onEnterClass: (courseId: string) => void
 }) {
-  const SubjectIcon = SUBJECT_ICONS[curriculum.subject] || SUBJECT_ICONS.default
-  const progress = curriculum.progress
+  const SubjectIcon = SUBJECT_ICONS[course.subject] || SUBJECT_ICONS.default
+  const progress = course.progress
   const progressPercent = progress
     ? Math.round((progress.lessonsCompleted / progress.totalLessons) * 100)
     : 0
   const isPending =
-    curriculum.enrollment?.startDate && new Date(curriculum.enrollment.startDate) > new Date()
+    course.enrollment?.startDate && new Date(course.enrollment.startDate) > new Date()
   const isOngoing = !isPending && (!progress || !progress.isCompleted)
 
   return (
@@ -642,13 +642,13 @@ function CourseCard({
             </Button>
           </div>
         </div>
-        <CardTitle className="mt-4">{curriculum.name}</CardTitle>
+        <CardTitle className="mt-4">{course.name}</CardTitle>
         <CardDescription className="mt-2 line-clamp-2">
-          {curriculum.description || 'No description available'}
+          {course.description || 'No description available'}
         </CardDescription>
         <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
           <Clock className="h-3.5 w-3.5" />
-          <span>{curriculum.availability?.summary || 'Flexible Schedule'}</span>
+          <span>{course.availability?.summary || 'Flexible Schedule'}</span>
         </div>
       </CardHeader>
 
@@ -656,11 +656,11 @@ function CourseCard({
         <div className="flex flex-wrap gap-4 text-sm text-gray-600">
           <div className="flex items-center gap-1">
             <BookOpen className="h-4 w-4" />
-            <span>{curriculum._count.modules} modules</span>
+            <span>{course._count.modules} modules</span>
           </div>
           <div className="flex items-center gap-1">
             <Target className="h-4 w-4" />
-            <span>{curriculum._count.lessons} lessons</span>
+            <span>{course._count.lessons} lessons</span>
           </div>
         </div>
 
@@ -674,10 +674,10 @@ function CourseCard({
           </div>
         )}
 
-        {curriculum.enrollment?.startDate && (
+        {course.enrollment?.startDate && (
           <div className="rounded-md bg-blue-50 p-2 text-xs text-blue-700">
             Commence{isPending ? 's' : 'd'} on:{' '}
-            {new Date(curriculum.enrollment.startDate).toLocaleDateString()}
+            {new Date(course.enrollment.startDate).toLocaleDateString()}
           </div>
         )}
       </CardContent>
@@ -687,13 +687,13 @@ function CourseCard({
           <Button
             className="h-9 w-full flex-1"
             variant="default"
-            disabled={enteringClass === curriculum.id}
+            disabled={enteringClass === course.id}
             onClick={e => {
               e.stopPropagation()
-              onEnterClass(curriculum.id)
+              onEnterClass(course.id)
             }}
           >
-            {enteringClass === curriculum.id
+            {enteringClass === course.id
               ? 'Joining...'
               : progressPercent > 0
                 ? 'Continue'

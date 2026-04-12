@@ -16,7 +16,7 @@ import { toast } from 'sonner'
 import { PublishValidationChecklist, usePublishValidation } from './PublishValidationChecklist'
 import { cn } from '@/lib/utils'
 
-interface CurriculumModule {
+interface CourseModule {
   id: string
   lessons: { id: string }[]
 }
@@ -29,7 +29,7 @@ interface Course {
   price: number | null
   currency: string | null
   isPublished: boolean
-  modules: CurriculumModule[]
+  modules: CourseModule[]
 }
 
 interface PublishButtonProps {

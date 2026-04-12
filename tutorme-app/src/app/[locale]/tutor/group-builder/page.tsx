@@ -286,7 +286,7 @@ export default function GroupBuilderPage() {
   }
 
   const copyGroupLink = (batchId: string) => {
-    const url = `${window.location.origin}/curriculum/enroll?group=${batchId}`
+    const url = `${window.location.origin}/course/enroll?group=${batchId}`
     navigator.clipboard.writeText(url)
     toast.success('Group enrollment link copied')
   }
@@ -812,7 +812,7 @@ export default function GroupBuilderPage() {
                   <div className="flex gap-2">
                     <Input
                       readOnly
-                      value={`${typeof window !== 'undefined' ? window.location.origin : ''}/curriculum/enroll?group=${batch.id}`}
+                      value={`${typeof window !== 'undefined' ? window.location.origin : ''}/course/enroll?group=${batch.id}`}
                       className="flex-1 bg-white font-mono text-sm"
                     />
                     <Button variant="outline" onClick={() => copyGroupLink(batch.id)}>

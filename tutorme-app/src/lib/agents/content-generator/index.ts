@@ -12,7 +12,7 @@
  */
 
 import { generateWithFallback } from '../orchestrator-llm'
-import { Quiz, Question, Curriculum, Student, getCurriculum, getStudent } from '../shared-data'
+import { Quiz, Question, Course, Student, getCourse, getStudent } from '../shared-data'
 import { safeJsonParseWithSchema } from '@/lib/ai/json'
 import { z } from 'zod'
 import {
@@ -280,7 +280,7 @@ export async function generatePersonalizedPractice(
   const student = await getStudent(studentId)
   if (!student) throw new Error('Student not found')
 
-  const curriculum = await getCurriculum(subject, student.grade)
+  const course = await getCourse(subject, student.grade)
 
   const prompt = `Generate a personalized practice quiz for ${student.name} in ${subject}.
 

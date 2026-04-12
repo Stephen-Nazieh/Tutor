@@ -131,7 +131,7 @@ const mockAssets: Asset[] = [
     parentId: null,
     createdAt: new Date('2026-01-15'),
     updatedAt: new Date('2026-02-10'),
-    description: 'Mathematics curriculum materials',
+    description: 'Mathematics course materials',
     metadata: { topic: 'math' },
   },
   {
@@ -207,7 +207,7 @@ const mockAssets: Asset[] = [
     parentId: null,
     createdAt: new Date('2026-01-10'),
     updatedAt: new Date('2026-02-08'),
-    description: 'Physics curriculum',
+    description: 'Physics course',
   },
   {
     id: 'les-3',

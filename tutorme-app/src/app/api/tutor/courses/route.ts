@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course as courseTable, courseLesson } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
-import { CreateCurriculumSchema } from '@/lib/validation/schemas'
+import { CreateCourseSchema } from '@/lib/validation/schemas'
 import { ZodError } from 'zod'
 
 export async function GET() {
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
 
     let data
     try {
-      data = CreateCurriculumSchema.parse(body)
+      data = CreateCourseSchema.parse(body)
     } catch (parseError) {
       console.error('Schema validation error:', parseError)
       if (parseError instanceof ZodError) {

@@ -89,7 +89,7 @@ export default function CreateCoursePage() {
               Create New Course
             </CardTitle>
             <CardDescription>
-              Set your course details and continue to the Course Builder to design your curriculum.
+              Set your course details and continue to the Course Builder to design your course.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">

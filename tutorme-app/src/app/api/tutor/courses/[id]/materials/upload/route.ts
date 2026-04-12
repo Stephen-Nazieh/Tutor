@@ -1,6 +1,6 @@
 /**
  * POST /api/tutor/courses/[id]/materials/upload
- * Upload curriculum, notes, or topics list. AI converts to editable format and stores.
+ * Upload course, notes, or topics list. AI converts to editable format and stores.
  * Tutor-only.
  */
 
@@ -8,11 +8,11 @@ import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum } from '@/lib/db/schema'
+import { course } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { convertToEditable, convertTopicsToEditable } from '@/lib/agents/course-materials-service'
 
-const TYPES = ['curriculum', 'notes', 'topics'] as const
+const TYPES = ['course', 'notes', 'topics'] as const
 
 export const POST = withCsrf(
   withAuth(
@@ -20,27 +20,27 @@ export const POST = withCsrf(
       const id = await getParamAsync(context?.params, 'id')
       if (!id) return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
 
-      const [curriculumRow] = await drizzleDb
+      const [courseRow] = await drizzleDb
         .select({
-          id: curriculum.courseId,
-          languageOfInstruction: curriculum.languageOfInstruction,
+          id: course.courseId,
+          languageOfInstruction: course.languageOfInstruction,
         })
-        .from(curriculum)
-        .where(eq(curriculum.courseId, id))
-      if (!curriculumRow) throw new NotFoundError('Course not found')
+        .from(course)
+        .where(eq(course.courseId, id))
+      if (!courseRow) throw new NotFoundError('Course not found')
 
       const body = await req.json().catch(() => ({}))
       const type = body.type as string
       const text = typeof body.text === 'string' ? body.text.trim() : ''
 
       if (!TYPES.includes(type as (typeof TYPES)[number])) {
-        throw new ValidationError('type must be curriculum, notes, or topics')
+        throw new ValidationError('type must be course, notes, or topics')
       }
       if (!text || text.length > 50000) {
         throw new ValidationError('text is required and must be under 50000 characters')
       }
 
-      const lang = curriculumRow.languageOfInstruction ?? 'en'
+      const lang = courseRow.languageOfInstruction ?? 'en'
       // courseMaterials column doesn't exist
       const materials: Record<string, unknown> = {}
 
@@ -55,14 +55,14 @@ export const POST = withCsrf(
         materials.topicsText = text
       } else {
         const result = await convertToEditable({
-          type: type as 'curriculum' | 'notes',
+          type: type as 'course' | 'notes',
           rawText: text,
           language: lang,
         })
         editable = result.editable
-        if (type === 'curriculum') {
-          materials.curriculumText = text
-          materials.editableCurriculum = editable
+        if (type === 'course') {
+          materials.courseText = text
+          materials.editableCourse = editable
         } else {
           materials.notesText = text
           materials.editableNotes = editable
@@ -71,9 +71,9 @@ export const POST = withCsrf(
 
       // courseMaterials column doesn't exist - skip saving
       // await drizzleDb
-      //   .update(curriculum)
+      //   .update(course)
       //   .set({ courseMaterials: materials as object })
-      //   .where(eq(curriculum.courseId, id))
+      //   .where(eq(course.courseId, id))
 
       return NextResponse.json({
         type,

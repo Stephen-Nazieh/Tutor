@@ -16,11 +16,11 @@ import {
   LiveSession,
   Student,
   ProgressData,
-  Curriculum,
+  Course,
   Conversation,
   getLiveSession,
   getStudent,
-  getCurriculum,
+  getCourse,
   getProgress,
   getConversation,
 } from '../shared-data'
@@ -110,15 +110,15 @@ export async function generateClassBriefing(sessionId: string): Promise<ClassBri
     }
   }
 
-  // Get curriculum
-  const curriculum = await getCurriculum(session.subject, 'default')
-  if (!curriculum) throw new Error('Curriculum not found')
+  // Get course
+  const course = await getCourse(session.subject, 'default')
+  if (!course) throw new Error('Course not found')
 
   const context: BriefingContext = {
     session,
     students,
     progressData,
-    curriculum,
+    course,
     recentQuizScores,
   }
 

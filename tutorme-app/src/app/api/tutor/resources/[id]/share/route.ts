@@ -2,7 +2,7 @@
  * Resource Sharing API
  *
  * GET  /api/tutor/resources/[id]/share  — Get current sharing settings
- * POST /api/tutor/resources/[id]/share  — Share resource with students/curriculum/all
+ * POST /api/tutor/resources/[id]/share  — Share resource with students/course/all
  * DELETE /api/tutor/resources/[id]/share — Revoke all shares for a resource
  */
 
@@ -78,7 +78,7 @@ export const POST = withAuth(
     }
 
     const body = await req.json()
-    const { recipientIds, curriculumId, sharedWithAll, message } = body
+    const { recipientIds, courseId, sharedWithAll, message } = body
 
     const shares: { shareId: string }[] = []
 
@@ -103,7 +103,7 @@ export const POST = withAuth(
             resourceId: id,
             sharedByTutorId: tutorId,
             sharedWithAll: true,
-            courseId: curriculumId ?? null,
+            courseId: courseId ?? null,
             message: message ?? null,
             recipientId: null,
           })
@@ -124,7 +124,7 @@ export const POST = withAuth(
           if (existing[0]) {
             await drizzleDb
               .update(resourceShare)
-              .set({ courseId: curriculumId ?? null, message: message ?? null })
+              .set({ courseId: courseId ?? null, message: message ?? null })
               .where(eq(resourceShare.shareId, existing[0].shareId))
             shares.push({ shareId: existing[0].shareId })
           } else {
@@ -135,7 +135,7 @@ export const POST = withAuth(
                 resourceId: id,
                 sharedByTutorId: tutorId,
                 recipientId,
-                courseId: curriculumId ?? null,
+                courseId: courseId ?? null,
                 message: message ?? null,
                 sharedWithAll: false,
               })

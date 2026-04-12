@@ -5,14 +5,14 @@ export const AGENT_METADATA = {
     description: 'Socratic AI tutor for student learning',
     uiLocations: ['/student/ai-tutor', '/student/learn/[id]', '/student/quizzes/[id]'],
     primaryFunction: 'Teaching through questioning',
-    dataAccess: 'READ: Student, Conversation, Curriculum, Progress | WRITE: Conversation',
+    dataAccess: 'READ: Student, Conversation, Course, Progress | WRITE: Conversation',
   },
   contentGenerator: {
     name: 'Content Generator Agent',
     description: 'Generates quizzes, lessons, and educational content',
     uiLocations: ['/tutor/courses/[id]/builder', '/admin/content'],
     primaryFunction: 'Content creation',
-    dataAccess: 'READ: Curriculum, Student | WRITE: Quiz, Question, Lesson',
+    dataAccess: 'READ: Course, Student | WRITE: Quiz, Question, Lesson',
   },
   grading: {
     name: 'Grading Agent',
@@ -27,7 +27,7 @@ export const AGENT_METADATA = {
     uiLocations: ['/tutor/dashboard', '/tutor/insights?sessionId=[id]'],
     primaryFunction: 'Tutor preparation',
     dataAccess:
-      'READ: LiveSession, ProgressData, Student, Curriculum | WRITE: LiveSession.briefingData',
+      'READ: LiveSession, ProgressData, Student, Course | WRITE: LiveSession.briefingData',
   },
   liveMonitor: {
     name: 'Live Monitor Agent',

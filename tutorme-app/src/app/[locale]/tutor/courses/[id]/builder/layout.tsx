@@ -61,7 +61,7 @@ interface BuilderNavItem {
 }
 
 const builderNavItems: BuilderNavItem[] = [
-  { id: 'curriculum', label: 'Curriculum', icon: BookOpen },
+  { id: 'course', label: 'Course', icon: BookOpen },
   { id: 'modules', label: 'Modules', icon: Layers },
   { id: 'content', label: 'Content', icon: FileText },
   { id: 'ai-assist', label: 'AI Assist', icon: Sparkles },
@@ -108,7 +108,7 @@ const DIFFICULTY_LEVELS = [
   { value: 'advanced', label: 'Advanced' },
 ]
 
-const CURRICULUM_LANGUAGES = [
+const COURSE_LANGUAGES = [
   { value: 'en', label: 'English' },
   { value: 'zh-CN', label: 'Chinese (Simplified)' },
   { value: 'zh-TW', label: 'Chinese (Traditional)' },
@@ -177,7 +177,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
   const pathname = usePathname()
   const courseId = (params?.id as string) ?? ''
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [activeSection, setActiveSection] = useState('curriculum')
+  const [activeSection, setActiveSection] = useState('course')
 
   // Groups & Schedules Modal State
   const [groupsModalOpen, setGroupsModalOpen] = useState(false)
@@ -189,8 +189,8 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
   const [expandedBatchId, setExpandedBatchId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<string>('')
 
-  // Curriculum & Materials Modal State
-  const [curriculumModalOpen, setCurriculumModalOpen] = useState(false)
+  // Course & Materials Modal State
+  const [courseModalOpen, setCourseModalOpen] = useState(false)
   const [course, setCourse] = useState<{
     id: string
     name: string
@@ -208,13 +208,13 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
   } | null>(null)
   const [loadingCourse, setLoadingCourse] = useState(false)
   const [launchingLiveClass, setLaunchingLiveClass] = useState(false)
-  const [curriculumSource, setCurriculumSource] = useState<'PLATFORM' | 'UPLOADED'>('PLATFORM')
+  const [courseSource, setCourseSource] = useState<'PLATFORM' | 'UPLOADED'>('PLATFORM')
   const [outlineSource, setOutlineSource] = useState<'SELF' | 'AI'>('SELF')
-  const [curriculumCatalog, setCurriculumCatalog] = useState<{ id: string; name: string }[]>([])
+  const [courseCatalog, setCourseCatalog] = useState<{ id: string; name: string }[]>([])
   const [loadingCatalog, setLoadingCatalog] = useState(false)
-  const [uploadText, setUploadText] = useState({ curriculum: '', notes: '', topics: '' })
+  const [uploadText, setUploadText] = useState({ course: '', notes: '', topics: '' })
   const [fileExtracting, setFileExtracting] = useState(false)
-  const [editableCurriculum, setEditableCurriculum] = useState('')
+  const [editableCourse, setEditableCourse] = useState('')
   const [editableNotes, setEditableNotes] = useState('')
   const [outline, setOutline] = useState<{ title: string; durationMinutes: number }[]>([])
   const [typicalLessonMinutes, setTypicalLessonMinutes] = useState(45)
@@ -223,7 +223,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
 
   // Determine active section based on URL or default
   const getActiveSection = () => {
-    if (pathname.includes('/builder')) return 'curriculum'
+    if (pathname.includes('/builder')) return 'course'
     return activeSection
   }
 
@@ -271,7 +271,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
     }
   }, [groupsModalOpen, loadBatches, loadEnrollments])
 
-  // Load course data for Curriculum modal
+  // Load course data for Course modal
   const loadCourse = useCallback(async () => {
     if (!courseId) return
     setLoadingCourse(true)
@@ -280,20 +280,20 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
       if (res.ok) {
         const data = await res.json()
         setCourse(data.course)
-        setCurriculumSource(
-          (data.course?.curriculumSource as 'PLATFORM' | 'UPLOADED') ?? 'PLATFORM'
+        setCourseSource(
+          (data.course?.courseSource as 'PLATFORM' | 'UPLOADED') ?? 'PLATFORM'
         )
         setOutlineSource((data.course?.outlineSource as 'SELF' | 'AI') ?? 'SELF')
 
-        // Load curriculum catalog for subject
+        // Load course catalog for subject
         if (data.course?.subject) {
           setLoadingCatalog(true)
-          fetch(`/api/curriculums/catalog?subject=${encodeURIComponent(data.course.subject)}`, {
+          fetch(`/api/courses/catalog?subject=${encodeURIComponent(data.course.subject)}`, {
             credentials: 'include',
           })
             .then(res => res.json())
-            .then(data => setCurriculumCatalog(data.curriculums ?? []))
-            .catch(() => setCurriculumCatalog([]))
+            .then(data => setCourseCatalog(data.courses ?? []))
+            .catch(() => setCourseCatalog([]))
             .finally(() => setLoadingCatalog(false))
         }
       }
@@ -305,10 +305,10 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
   }, [courseId])
 
   useEffect(() => {
-    if (curriculumModalOpen) {
+    if (courseModalOpen) {
       loadCourse()
     }
-  }, [curriculumModalOpen, loadCourse])
+  }, [courseModalOpen, loadCourse])
 
   const getCsrf = async () => {
     const res = await fetch('/api/csrf', { credentials: 'include' })
@@ -316,9 +316,9 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
     return data?.token ?? null
   }
 
-  // Curriculum & Materials handlers
+  // Course & Materials handlers
   const handleFileRead = async (
-    type: 'curriculum' | 'notes' | 'topics',
+    type: 'course' | 'notes' | 'topics',
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = e.target.files?.[0]
@@ -329,7 +329,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
     try {
       const { extractTextFromFile } = await import('@/lib/extract-file-text')
       const t = await extractTextFromFile(file)
-      if (type === 'curriculum') setUploadText(p => ({ ...p, curriculum: t }))
+      if (type === 'course') setUploadText(p => ({ ...p, course: t }))
       else if (type === 'notes') setUploadText(p => ({ ...p, notes: t }))
       else setUploadText(p => ({ ...p, topics: t }))
       toast.info(
@@ -346,13 +346,13 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
 
   const handleGenerateOutline = async () => {
     const hasContent =
-      uploadText.curriculum.trim() ||
+      uploadText.course.trim() ||
       uploadText.notes.trim() ||
       uploadText.topics.trim() ||
-      editableCurriculum.trim()
+      editableCourse.trim()
     if (!hasContent) {
       toast.error(
-        'Upload at least one of curriculum, notes, or topics before generating the outline.'
+        'Upload at least one of course, notes, or topics before generating the outline.'
       )
       return
     }
@@ -365,7 +365,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
         credentials: 'include',
         body: JSON.stringify({
           typicalLessonMinutes,
-          curriculumText: uploadText.curriculum.trim() || editableCurriculum || undefined,
+          courseText: uploadText.course.trim() || editableCourse || undefined,
           notesText: uploadText.notes.trim() || editableNotes || undefined,
         }),
       })
@@ -390,7 +390,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
         headers: { 'Content-Type': 'application/json', ...(csrf && { 'X-CSRF-Token': csrf }) },
         credentials: 'include',
         body: JSON.stringify({
-          editableCurriculum: editableCurriculum || undefined,
+          editableCourse: editableCourse || undefined,
           editableNotes: editableNotes || undefined,
           outline: outline.length ? outline : undefined,
         }),
@@ -578,7 +578,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
       const payload: Record<string, unknown> = {
         title: String(course.name || 'Live Class'),
         subject: String(course.subject || 'General'),
-        curriculumId: course.curriculumId || courseId,
+        courseId: course.courseId || courseId,
         maxStudents: 50,
         durationMinutes: Math.max(15, Math.min(480, durationFromCourseSchedule)),
       }
@@ -652,7 +652,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
   const copyGroupLink = (batchId: string) => {
     const url =
       typeof window !== 'undefined'
-        ? `${window.location.origin}/curriculum/${courseId}?batch=${batchId}`
+        ? `${window.location.origin}/course/${courseId}?batch=${batchId}`
         : ''
     if (url) {
       navigator.clipboard.writeText(url).then(() => toast.success('Group link copied'))
@@ -890,7 +890,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                         <div className="flex gap-2">
                           <Input
                             readOnly
-                            value={`${typeof window !== 'undefined' ? window.location.origin : ''}/curriculum/${courseId}?batch=${batch.id}`}
+                            value={`${typeof window !== 'undefined' ? window.location.origin : ''}/course/${courseId}?batch=${batch.id}`}
                             className="flex-1 bg-white font-mono text-sm"
                           />
                           <Button
@@ -898,7 +898,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                             variant="outline"
                             size="icon"
                             onClick={() => {
-                              const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/curriculum/${courseId}?batch=${batch.id}`
+                              const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/course/${courseId}?batch=${batch.id}`
                               if (url)
                                 navigator.clipboard
                                   .writeText(url)
@@ -1061,13 +1061,13 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
         </DialogContent>
       </Dialog>
 
-      {/* Curriculum & Materials Modal - 90% width/height */}
-      <Dialog open={curriculumModalOpen} onOpenChange={setCurriculumModalOpen}>
+      {/* Course & Materials Modal - 90% width/height */}
+      <Dialog open={courseModalOpen} onOpenChange={setCourseModalOpen}>
         <DialogContent className="flex h-[90vh] max-h-[90vh] w-[90vw] max-w-[90vw] flex-col overflow-hidden p-0">
           <DialogHeader className="shrink-0 border-b px-6 py-4">
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
-              Curriculum & Materials
+              Course & Materials
             </DialogTitle>
           </DialogHeader>
 
@@ -1085,7 +1085,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                   <Label className="text-sm font-medium">Course Name</Label>
                   <Input value={course.name} readOnly className="bg-white" />
                   <p className="text-xs text-muted-foreground">
-                    Course name is set based on the selected subject curriculum.
+                    Course name is set based on the selected subject course.
                   </p>
                 </div>
 
@@ -1107,19 +1107,19 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                     <label className="flex cursor-pointer items-center gap-2">
                       <input
                         type="radio"
-                        name="curriculumSource"
-                        checked={curriculumSource === 'PLATFORM'}
-                        onChange={() => setCurriculumSource('PLATFORM')}
+                        name="courseSource"
+                        checked={courseSource === 'PLATFORM'}
+                        onChange={() => setCourseSource('PLATFORM')}
                         className="rounded-full"
                       />
-                      <span>Platform-provided curriculum and materials</span>
+                      <span>Platform-provided course and materials</span>
                     </label>
                     <label className="flex cursor-pointer items-center gap-2">
                       <input
                         type="radio"
-                        name="curriculumSource"
-                        checked={curriculumSource === 'UPLOADED'}
-                        onChange={() => setCurriculumSource('UPLOADED')}
+                        name="courseSource"
+                        checked={courseSource === 'UPLOADED'}
+                        onChange={() => setCourseSource('UPLOADED')}
                         className="rounded-full"
                       />
                       <span>Upload my own materials</span>
@@ -1127,14 +1127,14 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                   </div>
                 </div>
 
-                {curriculumSource === 'PLATFORM' && (
+                {courseSource === 'PLATFORM' && (
                   <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
                     <h4 className="flex items-center gap-2 font-medium">
                       <CheckCircle2 className="h-4 w-4 text-green-600" />
                       Course content for your review
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      Below is the platform curriculum. Each topic is sized for a typical lesson.
+                      Below is the platform course. Each topic is sized for a typical lesson.
                       You can edit modules and lessons in the course content page.
                     </p>
                     <div className="max-h-[320px] space-y-3 overflow-y-auto">
@@ -1158,12 +1158,12 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                       ))}
                     </div>
                     <Button variant="outline" size="sm" asChild>
-                      <Link href={`/curriculum/${courseId}`}>Edit course content</Link>
+                      <Link href={`/course/${courseId}`}>Edit course content</Link>
                     </Button>
                   </div>
                 )}
 
-                {curriculumSource === 'UPLOADED' && (
+                {courseSource === 'UPLOADED' && (
                   <>
                     <div className="space-y-2 border-l-2 border-muted pl-4">
                       <Label>Who creates the outline?</Label>
@@ -1195,21 +1195,21 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                     {outlineSource === 'SELF' && (
                       <div className="space-y-6">
                         <p className="text-sm text-muted-foreground">
-                          <strong>When to upload what:</strong> First upload your curriculum
+                          <strong>When to upload what:</strong> First upload your course
                           (syllabus or outline). Then optionally upload notes. If you upload a list
                           of topics, AI will put it in the "Edit Topics" area.
                         </p>
 
-                        {/* Step 1: Upload curriculum */}
+                        {/* Step 1: Upload course */}
                         <div className="space-y-2 rounded-lg border p-4">
                           <div className="flex items-center gap-2">
                             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
                               1
                             </span>
-                            <Label className="text-base">Upload curriculum</Label>
+                            <Label className="text-base">Upload course</Label>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Paste or upload your curriculum/syllabus. Supports .txt, .md, .pdf,
+                            Paste or upload your course/syllabus. Supports .txt, .md, .pdf,
                             .doc/.docx, and images.
                           </p>
                           <div className="flex flex-wrap items-center gap-2">
@@ -1217,14 +1217,14 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                               type="file"
                               accept=".txt,.md,.pdf,.doc,.docx,image/*"
                               className="max-w-[200px]"
-                              onChange={e => handleFileRead('curriculum', e)}
+                              onChange={e => handleFileRead('course', e)}
                               disabled={fileExtracting}
                             />
                             {fileExtracting && (
                               <span className="text-sm text-muted-foreground">Sending to AI…</span>
                             )}
-                            {uploadText.curriculum && !fileExtracting && (
-                              <span className="text-sm text-green-600">Curriculum loaded</span>
+                            {uploadText.course && !fileExtracting && (
+                              <span className="text-sm text-green-600">Course loaded</span>
                             )}
                           </div>
                         </div>
@@ -1345,7 +1345,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
 
                     {outlineSource === 'AI' && (
                       <p className="text-sm text-muted-foreground">
-                        Upload your materials above (curriculum and optionally notes). Then use
+                        Upload your materials above (course and optionally notes). Then use
                         "Generate course outline" to let AI create the outline from your content.
                       </p>
                     )}

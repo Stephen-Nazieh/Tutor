@@ -16,7 +16,7 @@ import { complianceAudit } from '@/lib/monitoring/compliance-audit'
 import { globalPerformanceMonitor } from '@/lib/monitoring/sentry-setup'
 import { cache } from '@/lib/db'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum, liveSession, payment, securityEvent, user } from '@/lib/db/schema'
+import { course, liveSession, payment, securityEvent, user } from '@/lib/db/schema'
 
 export const dynamic = 'force-dynamic'
 
@@ -162,7 +162,7 @@ async function checkDatabaseHealth(): Promise<HealthCheck> {
   try {
     await drizzleDb.transaction(async tx => {
       const [u] = await tx.select({ count: sql<number>`count(*)::int` }).from(user)
-      const [c] = await tx.select({ count: sql<number>`count(*)::int` }).from(curriculum)
+      const [c] = await tx.select({ count: sql<number>`count(*)::int` }).from(course)
       const [l] = await tx.select({ count: sql<number>`count(*)::int` }).from(liveSession)
       const [p] = await tx.select({ count: sql<number>`count(*)::int` }).from(payment)
       const totalRecords = (u?.count ?? 0) + (c?.count ?? 0) + (l?.count ?? 0) + (p?.count ?? 0)
@@ -514,7 +514,7 @@ async function checkCriticalEndpointsHealth(request: NextRequest): Promise<Healt
     const criticalEndpoints = [
       '/api/health',
       '/api/auth/session',
-      '/api/curriculums/list',
+      '/api/courses/list',
       '/api/csrf',
     ]
 

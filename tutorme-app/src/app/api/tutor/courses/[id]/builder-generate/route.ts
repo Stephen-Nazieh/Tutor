@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withRateLimitPreset, ValidationError, NotFoundError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum } from '@/lib/db/schema'
+import { course } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { generateWithFallback } from '@/lib/agents'
 
@@ -120,7 +120,7 @@ Return ONLY valid JSON with this exact shape:
 Rules:
 - Generate a complete course with modules, lessons, tasks, assessments, and a module-level exam.
 - Use the reference material where available.
-- If reference material is absent, rely on reputable general curriculum patterns.
+- If reference material is absent, rely on reputable general course patterns.
 - Keep output concise and practical for real tutoring delivery.
 `.trim()
 }
@@ -141,18 +141,18 @@ export const POST = withAuth(
       throw new ValidationError('Prompt or references are required')
     }
 
-    const [curriculumRow] = await drizzleDb
-      .select({ id: curriculum.courseId, subject: curriculum.categories })
-      .from(curriculum)
-      .where(and(eq(curriculum.courseId, courseId), eq(curriculum.creatorId, session.user.id)))
-    if (!curriculumRow) {
+    const [courseRow] = await drizzleDb
+      .select({ id: course.courseId, subject: course.categories })
+      .from(course)
+      .where(and(eq(course.courseId, courseId), eq(course.creatorId, session.user.id)))
+    if (!courseRow) {
       throw new NotFoundError('Course not found')
     }
 
     let references = uploadedReferences.join('\n\n').slice(0, 18000)
     if (!references.trim()) {
       const webContext = await fetchWebReference(
-        curriculumRow.subject?.[0] || tutorInstruction.split(/\s+/).slice(0, 4).join(' ')
+        courseRow.subject?.[0] || tutorInstruction.split(/\s+/).slice(0, 4).join(' ')
       )
       references = webContext
     }
@@ -160,7 +160,7 @@ export const POST = withAuth(
     const prompt = buildPrompt({
       tutorInstruction,
       references,
-      subject: curriculumRow.subject?.[0] || '',
+      subject: courseRow.subject?.[0] || '',
       gradeLevel: '',
     })
 

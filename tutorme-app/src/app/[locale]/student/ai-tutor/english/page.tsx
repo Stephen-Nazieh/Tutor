@@ -39,7 +39,7 @@ import { SkillRadar } from '../../dashboard/components/SkillRadar'
 import { AIWhiteboard, extractWhiteboardItems } from '@/components/ai-tutor/ai-whiteboard'
 import { TopicSidebar, ENGLISH_TOPICS } from '@/components/ai-tutor/topic-sidebar'
 import { TutorPreferences } from '@/components/ai-tutor/tutor-preferences'
-import { CurriculumSidebar, CurriculumMiniCard } from '@/components/ai-tutor/curriculum-sidebar'
+import { CourseSidebar, CourseMiniCard } from '@/components/ai-tutor/course-sidebar'
 import { AIActivityArea } from '@/components/ai-tutor/ai-activity-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
@@ -93,13 +93,13 @@ export default function EnglishTutorPage() {
   const [whiteboardCollapsed, setWhiteboardCollapsed] = useState(false)
   const [activityAreaCollapsed, setActivityAreaCollapsed] = useState(false)
 
-  // Curriculum state
-  const [curriculum, setCurriculum] = useState<any>(null)
+  // Course state
+  const [course, setCourse] = useState<any>(null)
   const [currentLessonId, setCurrentLessonId] = useState<string | undefined>()
 
   // Suggestions based on context
   const [suggestions, setSuggestions] = useState<string[]>([])
-  const [showCurriculum, setShowCurriculum] = useState(false)
+  const [showCourse, setShowCourse] = useState(false)
 
   useEffect(() => {
     loadEnrollment()
@@ -124,9 +124,9 @@ export default function EnglishTutorPage() {
 
       setEnrollment(englishEnroll)
 
-      // Load curriculum if assigned
-      if (englishEnroll.curriculumId) {
-        await loadCurriculum()
+      // Load course if assigned
+      if (englishEnroll.courseId) {
+        await loadCourse()
       }
 
       // Load session messages
@@ -239,16 +239,16 @@ export default function EnglishTutorPage() {
     }
   }
 
-  const loadCurriculum = async () => {
+  const loadCourse = async () => {
     try {
-      const res = await fetch('/api/curriculum')
+      const res = await fetch('/api/course')
       const data = await res.json()
-      if (data.curriculum) {
-        setCurriculum(data.curriculum)
+      if (data.course) {
+        setCourse(data.course)
 
         // Find current lesson
-        if (data.curriculum.modules) {
-          for (const module of data.curriculum.modules) {
+        if (data.course.modules) {
+          for (const module of data.course.modules) {
             for (const lesson of module.lessons) {
               if (lesson.progress?.status !== 'COMPLETED') {
                 setCurrentLessonId(lesson.id)
@@ -259,7 +259,7 @@ export default function EnglishTutorPage() {
         }
       }
     } catch (error) {
-      console.error('Failed to load curriculum:', error)
+      console.error('Failed to load course:', error)
     }
   }
 
@@ -268,7 +268,7 @@ export default function EnglishTutorPage() {
     setInput(
       `Let's work on "${lesson.title}" from ${module.title}. Can you walk me through this lesson?`
     )
-    setShowCurriculum(false)
+    setShowCourse(false)
 
     // Link session to lesson if available
     if (lesson.id) {
@@ -399,25 +399,25 @@ export default function EnglishTutorPage() {
             sidebarCollapsed ? 'lg:w-16' : 'lg:col-span-1'
           )}
         >
-          {curriculum ? (
+          {course ? (
             <Card className="flex h-full flex-col">
-              <Tabs defaultValue="curriculum" className="flex flex-1 flex-col">
+              <Tabs defaultValue="course" className="flex flex-1 flex-col">
                 <TabsList
                   className={cn(
                     'mx-4 mb-0 mt-4 grid w-full',
                     sidebarCollapsed ? 'w-10 grid-cols-1' : 'grid-cols-2'
                   )}
                 >
-                  <TabsTrigger value="curriculum" className={cn(sidebarCollapsed && 'px-2')}>
+                  <TabsTrigger value="course" className={cn(sidebarCollapsed && 'px-2')}>
                     <GraduationCap className="h-4 w-4" />
                     {!sidebarCollapsed && <span className="ml-1">Course</span>}
                   </TabsTrigger>
                   {!sidebarCollapsed && <TabsTrigger value="topics">Topics</TabsTrigger>}
                 </TabsList>
 
-                <TabsContent value="curriculum" className="mt-0 flex-1">
-                  <CurriculumSidebar
-                    curriculum={curriculum}
+                <TabsContent value="course" className="mt-0 flex-1">
+                  <CourseSidebar
+                    course={course}
                     currentLessonId={currentLessonId}
                     onSelectLesson={handleSelectLesson}
                     collapsed={sidebarCollapsed}
@@ -469,11 +469,11 @@ export default function EnglishTutorPage() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-[300px] sm:w-[400px]">
-                  <SheetTitle>{curriculum ? 'Curriculum' : 'Topics'}</SheetTitle>
+                  <SheetTitle>{course ? 'Course' : 'Topics'}</SheetTitle>
                   <div className="mt-4 h-full">
-                    {curriculum ? (
-                      <CurriculumSidebar
-                        curriculum={curriculum}
+                    {course ? (
+                      <CourseSidebar
+                        course={course}
                         currentLessonId={currentLessonId}
                         onSelectLesson={handleSelectLesson}
                       />

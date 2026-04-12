@@ -14,7 +14,7 @@ import {
   message,
   user,
   profile,
-  curriculum,
+  course,
   sessionReplayArtifact,
 } from '@/lib/db/schema'
 import { eq, and, asc, desc, sql } from 'drizzle-orm'
@@ -138,15 +138,15 @@ export const GET = withAuth(
     )
 
     const tutorCourses = await drizzleDb
-      .select({ id: curriculum.courseId, name: curriculum.name, updatedAt: curriculum.updatedAt })
-      .from(curriculum)
+      .select({ id: course.courseId, name: course.name, updatedAt: course.updatedAt })
+      .from(course)
       .where(
         and(
-          eq(curriculum.creatorId, tutorId),
-          sql`${curriculum.categories} @> ARRAY[${liveSessionRow.category}]`
+          eq(course.creatorId, tutorId),
+          sql`${course.categories} @> ARRAY[${liveSessionRow.category}]`
         )
       )
-      .orderBy(desc(curriculum.updatedAt))
+      .orderBy(desc(course.updatedAt))
       .limit(50)
 
     const normalizedSessionTitle = normalizeCourseText(liveSessionRow.title || '')

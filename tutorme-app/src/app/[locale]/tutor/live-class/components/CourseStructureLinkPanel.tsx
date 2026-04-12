@@ -81,7 +81,7 @@ export function CourseStructureLinkPanel({
     if (!courseId) return
     setLoadingBuilder(true)
     try {
-      const res = await fetch(`/api/tutor/courses/${courseId}/curriculum`, {
+      const res = await fetch(`/api/tutor/courses/${courseId}/course`, {
         credentials: 'include',
       })
       if (!res.ok) throw new Error('Failed to load course builder data')
@@ -119,7 +119,7 @@ export function CourseStructureLinkPanel({
       const csrfData = await csrfRes.json().catch(() => ({}))
       const csrfToken = csrfData?.token ?? null
 
-      const res = await fetch(`/api/tutor/courses/${selectedCourseId}/curriculum`, {
+      const res = await fetch(`/api/tutor/courses/${selectedCourseId}/course`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -135,14 +135,14 @@ export function CourseStructureLinkPanel({
 
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        toast.error(data.error ?? 'Failed to save curriculum')
+        toast.error(data.error ?? 'Failed to save course')
         return
       }
 
       setLessons(nextLessons)
       toast.success('Course Saved')
     } catch {
-      toast.error('Failed to save curriculum')
+      toast.error('Failed to save course')
     } finally {
       setSavingBuilder(false)
     }

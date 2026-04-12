@@ -15,7 +15,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
 import { user } from './auth'
-import { course } from './curriculum'
+import { course } from './course'
 
 export const calendarConnection = pgTable(
   'CalendarConnection',

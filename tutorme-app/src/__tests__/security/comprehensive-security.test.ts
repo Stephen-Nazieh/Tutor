@@ -178,7 +178,7 @@ describe('Comprehensive Security Tests', () => {
     it('should log payment alert events', () => {
       expect(() => {
         securityAudit.logPaymentAlert('stu_123', 'cor_456', 'room_789', {
-          curriculumId: 'cor_456',
+          courseId: 'cor_456',
           familyAccountId: 'fam_123',
         })
       }).not.toThrow()

@@ -18,7 +18,7 @@ import { TutorList } from './components/TutorList'
 import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
 import { BackButton } from '@/components/navigation'
 
-interface CurriculumListItem {
+interface CourseListItem {
   id: string
   name: string
   subject: string
@@ -37,7 +37,7 @@ interface CurriculumListItem {
 export default function SubjectCoursesPage() {
   const params = useParams()
   const subjectCode = typeof params.subjectCode === 'string' ? params.subjectCode : ''
-  const [curriculums, setCurriculums] = useState<CurriculumListItem[]>([])
+  const [courses, setCourses] = useState<CourseListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -65,15 +65,15 @@ export default function SubjectCoursesPage() {
     let cancelled = false
     setLoading(true)
     setError(null)
-    fetch(`/api/curriculums/list?subject=${encodeURIComponent(subjectCode)}`, {
+    fetch(`/api/courses/list?subject=${encodeURIComponent(subjectCode)}`, {
       credentials: 'include',
     })
       .then(res => {
         if (!res.ok) throw new Error('Failed to load courses')
         return res.json()
       })
-      .then((data: { curriculums: CurriculumListItem[] }) => {
-        if (!cancelled) setCurriculums(data.curriculums ?? [])
+      .then((data: { courses: CourseListItem[] }) => {
+        if (!cancelled) setCourses(data.courses ?? [])
       })
       .catch(e => {
         if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load courses')
@@ -149,7 +149,7 @@ export default function SubjectCoursesPage() {
               </Card>
             )}
 
-            {!loading && !error && curriculums.length === 0 && (
+            {!loading && !error && courses.length === 0 && (
               <Card className="border-border bg-card">
                 <CardContent className="pt-6">
                   <div className="flex flex-col items-center py-8 text-center">
@@ -165,9 +165,9 @@ export default function SubjectCoursesPage() {
               </Card>
             )}
 
-            {!loading && !error && curriculums.length > 0 && (
+            {!loading && !error && courses.length > 0 && (
               <ul className="space-y-4">
-                {curriculums.map(c => (
+                {courses.map(c => (
                   <li key={c.id}>
                     <Card className="border-border bg-card transition-colors hover:border-accent">
                       <CardHeader className="pb-2">

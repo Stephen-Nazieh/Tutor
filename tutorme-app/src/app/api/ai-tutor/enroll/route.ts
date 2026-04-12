@@ -6,13 +6,13 @@
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { aITutorEnrollment, curriculumEnrollment, curriculum } from '@/lib/db/schema'
+import { aITutorEnrollment, courseEnrollment, course } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 export const POST = withCsrf(
   withAuth(
     async (req, session) => {
-      const { subject, curriculumId } = await req.json()
+      const { subject, courseId } = await req.json()
 
       if (!subject) {
         throw new ValidationError('Subject is required')
@@ -58,44 +58,44 @@ export const POST = withCsrf(
         totalMinutes: 0,
       })
 
-      if (curriculumId) {
+      if (courseId) {
         const [hasEnrollment] = await drizzleDb
           .select()
-          .from(curriculumEnrollment)
+          .from(courseEnrollment)
           .where(
             and(
-              eq(curriculumEnrollment.studentId, session.user.id),
-              eq(curriculumEnrollment.courseId, curriculumId)
+              eq(courseEnrollment.studentId, session.user.id),
+              eq(courseEnrollment.courseId, courseId)
             )
           )
           .limit(1)
         if (!hasEnrollment) {
-          await drizzleDb.insert(curriculumEnrollment).values({
+          await drizzleDb.insert(courseEnrollment).values({
             enrollmentId: crypto.randomUUID(),
             studentId: session.user.id,
-            courseId: curriculumId,
+            courseId: courseId,
             lessonsCompleted: 0,
             enrollmentSource: 'ai-tutor',
           })
         }
       }
 
-      let curriculumInfo = null
-      if (curriculumId) {
-        const [curriculumRow] = await drizzleDb
+      let courseInfo = null
+      if (courseId) {
+        const [courseRow] = await drizzleDb
           .select({
-            name: curriculum.name,
-            categories: curriculum.categories,
-            description: curriculum.description,
+            name: course.name,
+            categories: course.categories,
+            description: course.description,
           })
-          .from(curriculum)
-          .where(eq(curriculum.courseId, curriculumId))
+          .from(course)
+          .where(eq(course.courseId, courseId))
           .limit(1)
-        curriculumInfo = curriculumRow
+        courseInfo = courseRow
           ? {
-              name: curriculumRow.name,
-              categories: curriculumRow.categories ?? [],
-              description: curriculumRow.description,
+              name: courseRow.name,
+              categories: courseRow.categories ?? [],
+              description: courseRow.description,
             }
           : null
       }
@@ -111,7 +111,7 @@ export const POST = withCsrf(
           id: enrollment!.enrollmentId,
           subjectCode: enrollment!.subjectCode,
           status: enrollment!.status,
-          curriculum: curriculumInfo,
+          course: courseInfo,
         },
         message: 'Successfully enrolled in AI Tutor',
       })

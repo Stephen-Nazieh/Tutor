@@ -5,7 +5,7 @@
 import { pgTable, text, integer, boolean, timestamp, jsonb, index } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
 import { user } from './auth'
-import { course, courseLesson } from './curriculum'
+import { course, courseLesson } from './course'
 import { liveSession } from './live'
 
 export const builderTask = pgTable(

@@ -44,7 +44,7 @@ export class HitpayGateway implements PaymentGateway {
       email: request.studentEmail,
       purpose: request.description,
       reference_number:
-        request.bookingId ?? (request.curriculumId ? `course:${request.curriculumId}` : 'payment'),
+        request.bookingId ?? (request.courseId ? `course:${request.courseId}` : 'payment'),
       redirect_url: redirectUrl,
       webhook: webhookUrl,
     }

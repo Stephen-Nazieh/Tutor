@@ -136,7 +136,7 @@ export const CreateRoomSchema = z.object({
   subject: z.string().min(2, 'Subject must be at least 2 characters').max(50),
   description: z.string().max(1000).optional(),
   gradeLevel: z.string().optional(),
-  curriculumId: cuidOrUuid.optional(),
+  courseId: cuidOrUuid.optional(),
   scheduledAt: z.string().datetime('Invalid scheduled date/time').optional(),
   maxStudents: z.number().int().min(1).max(500).default(50),
   durationMinutes: z.number().int().min(15).max(480).default(120),
@@ -188,7 +188,7 @@ export const SubmitTaskSchema = z.object({
 })
 
 // ============================================
-// Curriculum & Learning Schemas
+// Course & Learning Schemas
 // ============================================
 
 const ScheduleItemSchema = z.object({
@@ -201,7 +201,7 @@ const ScheduleItemSchema = z.object({
     .optional(),
 })
 
-export const CreateCurriculumSchema = z.object({
+export const CreateCourseSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(2000).optional(),
   subject: z.string().min(1).optional(),
@@ -216,8 +216,8 @@ export const CreateCurriculumSchema = z.object({
   countries: z.array(z.string()).optional(), // ['Hong Kong', 'Korea', 'Singapore'] or empty for Global
 })
 
-export const EnrollCurriculumSchema = z.object({
-  curriculumId: cuidOrUuid,
+export const EnrollCourseSchema = z.object({
+  courseId: cuidOrUuid,
   studentId: z.string().cuid('Invalid student ID'),
 })
 
@@ -230,7 +230,7 @@ export const UpdateCourseSettingsSchema = z.object({
   price: z.number().min(0).optional().nullable(),
   currency: z.string().length(3).optional().nullable(),
   isFree: z.boolean().optional().nullable(),
-  curriculumSource: z.enum(['PLATFORM', 'UPLOADED']).optional().nullable(),
+  courseSource: z.enum(['PLATFORM', 'UPLOADED']).optional().nullable(),
   outlineSource: z.enum(['SELF', 'AI']).optional().nullable(),
   schedule: z.array(ScheduleItemSchema).optional().nullable(),
   isLiveOnline: z.boolean().optional().nullable(),

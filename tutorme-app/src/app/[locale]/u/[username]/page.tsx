@@ -624,7 +624,7 @@ export default function PublicTutorPage() {
         },
         credentials: 'include',
         body: JSON.stringify({
-          curriculumId: course.id,
+          courseId: course.id,
           title: course.name,
           subject: course.categories[0] || 'General',
           description: course.description || undefined,
@@ -668,7 +668,7 @@ export default function PublicTutorPage() {
     try {
       // 1) Ensure enrollment
       const checkRes = await fetch(
-        `/api/student/enrollments/check?curriculumId=${encodeURIComponent(course.id)}`,
+        `/api/student/enrollments/check?courseId=${encodeURIComponent(course.id)}`,
         { credentials: 'include' }
       )
 
@@ -690,7 +690,7 @@ export default function PublicTutorPage() {
         const csrfData = await csrfRes.json().catch(() => ({}))
         const csrfToken = csrfData?.token ?? null
 
-        const enrollRes = await fetch(`/api/curriculum/${encodeURIComponent(course.id)}/enroll`, {
+        const enrollRes = await fetch(`/api/course/${encodeURIComponent(course.id)}/enroll`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -711,17 +711,17 @@ export default function PublicTutorPage() {
         toast.success(enrollData?.message || 'Enrolled successfully')
       }
 
-      // 2) Join latest active session for this curriculum
+      // 2) Join latest active session for this course
       const roomsRes = await fetch('/api/class/rooms', { credentials: 'include' })
       const roomsData = await roomsRes.json().catch(() => ({}))
       const sessions = (roomsData?.sessions ?? []) as Array<{
         id?: string
-        curriculumId?: string
+        courseId?: string
         scheduledAt?: string
       }>
 
       const matching = sessions
-        .filter(s => s.curriculumId === course.id && typeof s.id === 'string')
+        .filter(s => s.courseId === course.id && typeof s.id === 'string')
         .sort(
           (a, b) => new Date(b.scheduledAt ?? 0).getTime() - new Date(a.scheduledAt ?? 0).getTime()
         )
@@ -1122,7 +1122,7 @@ export default function PublicTutorPage() {
                             variant="outline"
                             className={cn(isCompact && 'h-7 text-xs')}
                           >
-                            <Link href={`/${locale}/curriculum/${course.id}`}>
+                            <Link href={`/${locale}/course/${course.id}`}>
                               <FileText className="mr-1 h-3 w-3" />
                               Outline
                             </Link>

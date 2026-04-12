@@ -30,7 +30,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { BackButton } from '@/components/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-interface Curriculum {
+interface Course {
   id: string
   code: string
   name: string
@@ -91,10 +91,10 @@ export default function BrowseTutorsPage() {
     voiceAccent: 'us',
   })
 
-  // Curriculum selection
-  const [curriculums, setCurriculums] = useState<Curriculum[]>([])
-  const [selectedCurriculum, setSelectedCurriculum] = useState<string | null>(null)
-  const [loadingCurriculums, setLoadingCurriculums] = useState(false)
+  // Course selection
+  const [courses, setCourses] = useState<Course[]>([])
+  const [selectedCourse, setSelectedCourse] = useState<string | null>(null)
+  const [loadingCourses, setLoadingCourses] = useState(false)
 
   useEffect(() => {
     fetchSubjects()
@@ -117,21 +117,21 @@ export default function BrowseTutorsPage() {
     setSelectedSubject(subjectId)
     setShowPreferences(true)
 
-    // Load available curriculums
+    // Load available courses
     try {
-      setLoadingCurriculums(true)
-      const res = await fetch('/api/curriculums/list')
+      setLoadingCourses(true)
+      const res = await fetch('/api/courses/list')
       const data = await res.json()
-      setCurriculums(data.curriculums || [])
+      setCourses(data.courses || [])
 
-      // Auto-select first curriculum if available
-      if (data.curriculums?.length > 0) {
-        setSelectedCurriculum(data.curriculums[0].id)
+      // Auto-select first course if available
+      if (data.courses?.length > 0) {
+        setSelectedCourse(data.courses[0].id)
       }
     } catch (error) {
-      console.error('Failed to load curriculums:', error)
+      console.error('Failed to load courses:', error)
     } finally {
-      setLoadingCurriculums(false)
+      setLoadingCourses(false)
     }
   }
 
@@ -153,7 +153,7 @@ export default function BrowseTutorsPage() {
           voiceGender: preferences.voiceGender,
           voiceAccent: preferences.voiceAccent,
           avatarStyle: 'modern',
-          curriculumId: selectedCurriculum,
+          courseId: selectedCourse,
         }),
       })
 
@@ -320,10 +320,10 @@ export default function BrowseTutorsPage() {
           <Tabs defaultValue="preferences" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="preferences">Preferences</TabsTrigger>
-              <TabsTrigger value="curriculum" className="flex items-center gap-1">
+              <TabsTrigger value="course" className="flex items-center gap-1">
                 <BookOpen className="h-4 w-4" />
-                Curriculum
-                {selectedCurriculum && <Check className="h-3 w-3 text-green-500" />}
+                Course
+                {selectedCourse && <Check className="h-3 w-3 text-green-500" />}
               </TabsTrigger>
             </TabsList>
 
@@ -405,32 +405,32 @@ export default function BrowseTutorsPage() {
               </div>
             </TabsContent>
 
-            <TabsContent value="curriculum" className="py-4">
-              {loadingCurriculums ? (
+            <TabsContent value="course" className="py-4">
+              {loadingCourses ? (
                 <div className="py-8 text-center">
                   <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
-                  <p className="mt-2 text-gray-600">Loading curriculums...</p>
+                  <p className="mt-2 text-gray-600">Loading courses...</p>
                 </div>
-              ) : curriculums.length === 0 ? (
+              ) : courses.length === 0 ? (
                 <div className="py-8 text-center">
                   <BookOpen className="mx-auto mb-4 h-12 w-12 text-gray-300" />
                   <h3 className="mb-2 text-lg font-semibold text-gray-700">
-                    No Curriculums Available
+                    No Courses Available
                   </h3>
                   <p className="text-sm text-gray-500">
-                    There are no curriculums set up yet. You can still enroll and get general
+                    There are no courses set up yet. You can still enroll and get general
                     English tutoring.
                   </p>
                 </div>
               ) : (
                 <ScrollArea className="h-[400px] pr-4">
                   <div className="space-y-3">
-                    {curriculums.map(curriculum => (
+                    {courses.map(course => (
                       <button
-                        key={curriculum.id}
-                        onClick={() => setSelectedCurriculum(curriculum.id)}
+                        key={course.id}
+                        onClick={() => setSelectedCourse(course.id)}
                         className={`w-full rounded-lg border p-4 text-left transition-all ${
-                          selectedCurriculum === curriculum.id
+                          selectedCourse === course.id
                             ? 'border-blue-500 bg-blue-50'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
@@ -438,10 +438,10 @@ export default function BrowseTutorsPage() {
                         <div className="flex items-start gap-3">
                           <div
                             className={`rounded-lg p-2 ${
-                              curriculum.category === 'test_prep' ? 'bg-purple-100' : 'bg-blue-100'
+                              course.category === 'test_prep' ? 'bg-purple-100' : 'bg-blue-100'
                             }`}
                           >
-                            {curriculum.category === 'test_prep' ? (
+                            {course.category === 'test_prep' ? (
                               <GraduationCap className="h-5 w-5 text-purple-600" />
                             ) : (
                               <BookOpen className="h-5 w-5 text-blue-600" />
@@ -449,14 +449,14 @@ export default function BrowseTutorsPage() {
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <h3 className="font-semibold">{curriculum.name}</h3>
-                              {selectedCurriculum === curriculum.id && (
+                              <h3 className="font-semibold">{course.name}</h3>
+                              {selectedCourse === course.id && (
                                 <Check className="h-4 w-4 text-blue-500" />
                               )}
                             </div>
-                            <p className="mt-1 text-sm text-gray-600">{curriculum.description}</p>
+                            <p className="mt-1 text-sm text-gray-600">{course.description}</p>
                             <div className="mt-2 flex flex-wrap gap-1">
-                              {curriculum.skills?.map(skill => (
+                              {course.skills?.map(skill => (
                                 <Badge
                                   key={skill}
                                   variant="secondary"
@@ -467,8 +467,8 @@ export default function BrowseTutorsPage() {
                               ))}
                             </div>
                             <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
-                              <span>{curriculum.modulesCount || 0} modules</span>
-                              <span>{curriculum.lessonsCount || 0} lessons</span>
+                              <span>{course.modulesCount || 0} modules</span>
+                              <span>{course.lessonsCount || 0} lessons</span>
                             </div>
                           </div>
                         </div>
@@ -480,9 +480,9 @@ export default function BrowseTutorsPage() {
 
               <div className="mt-4 rounded-lg bg-blue-50 p-3">
                 <p className="text-sm text-blue-700">
-                  <strong>Why choose a curriculum?</strong> Curriculums provide structured learning
+                  <strong>Why choose a course?</strong> Courses provide structured learning
                   paths with organized lessons, exercises, and progress tracking. Your AI tutor will
-                  follow the curriculum to help you achieve your goals faster.
+                  follow the course to help you achieve your goals faster.
                 </p>
               </div>
             </TabsContent>

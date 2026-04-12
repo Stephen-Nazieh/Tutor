@@ -13,7 +13,7 @@ Provides Socratic tutoring to students. Never gives direct answers, guides stude
 ### Can READ:
 - `Student` (all fields) - To personalize teaching style
 - `Conversation` (all messages) - For context/memory
-- `Curriculum` (current lesson content) - To stay on topic
+- `Course` (current lesson content) - To stay on topic
 - `ProgressData` (student's struggles/strengths) - To focus on weak areas
 - `Quiz` (previous attempts) - To review mistakes
 

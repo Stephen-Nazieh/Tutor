@@ -23,7 +23,7 @@ interface SessionSummary {
   id: string
   lessonId: string
   lessonTitle: string | null
-  curriculumName: string | null
+  courseName: string | null
   status: string
   currentSection: string
   conceptMastery: Record<string, number>
@@ -258,9 +258,9 @@ export default function StudentAITutorPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="font-medium">{s.lessonTitle ?? '未命名课程'}</h3>
-                        {s.curriculumName && (
+                        {s.courseName && (
                           <Badge variant="outline" className="text-xs">
-                            {s.curriculumName}
+                            {s.courseName}
                           </Badge>
                         )}
                         <Badge

@@ -150,11 +150,11 @@ export async function generatePersonalizedTasks(
 }
 
 /**
- * Get student profiles for a curriculum
+ * Get student profiles for a course
  */
 async function getStudentProfiles(
   studentIds: string[],
-  _curriculumId?: string
+  _courseId?: string
 ): Promise<StudentProfile[]> {
   const profiles = await Promise.all(
     studentIds.map(async id => {
@@ -206,9 +206,9 @@ function mapLevelToDifficulty(level: string): 'beginner' | 'intermediate' | 'adv
 export async function generateClusteredTasks(
   config: TaskConfiguration,
   studentIds: string[],
-  curriculumId?: string
+  courseId?: string
 ): Promise<Map<string, GeneratedTask[]>> {
-  const profiles = await getStudentProfiles(studentIds, curriculumId)
+  const profiles = await getStudentProfiles(studentIds, courseId)
   const tasksByCluster = new Map<string, GeneratedTask[]>()
 
   // Group students by cluster
@@ -257,9 +257,9 @@ export async function generateClusteredTasks(
 export async function generatePeerGroupTasks(
   config: TaskConfiguration,
   studentIds: string[],
-  curriculumId?: string
+  courseId?: string
 ): Promise<Map<string, GeneratedTask[]>> {
-  await getStudentProfiles(studentIds, curriculumId)
+  await getStudentProfiles(studentIds, courseId)
   const tasks = await generateUniformTasks(config)
   const out = new Map<string, GeneratedTask[]>()
   for (const id of studentIds) out.set(id, tasks)
@@ -272,7 +272,7 @@ export async function generatePeerGroupTasks(
 export async function generateAndDistributeTasks(
   mode: DistributionMode,
   config: TaskConfiguration,
-  params: { studentIds?: string[]; targetStudentId?: string; curriculumId?: string } = {}
+  params: { studentIds?: string[]; targetStudentId?: string; courseId?: string } = {}
 ): Promise<{ success: boolean; tasks?: Map<string, GeneratedTask[]>; error?: string }> {
   try {
     const studentIds = params.studentIds || (params.targetStudentId ? [params.targetStudentId] : [])
@@ -287,7 +287,7 @@ export async function generateAndDistributeTasks(
     if (mode === 'personalized') {
       if (!params.targetStudentId)
         return { success: false, error: 'targetStudentId is required for personalized mode' }
-      const profiles = await getStudentProfiles([params.targetStudentId], params.curriculumId)
+      const profiles = await getStudentProfiles([params.targetStudentId], params.courseId)
       const tasks = await generatePersonalizedTasks(config, profiles[0]!)
       return { success: true, tasks: new Map([[params.targetStudentId, tasks]]) }
     }
@@ -295,14 +295,14 @@ export async function generateAndDistributeTasks(
     if (mode === 'clustered') {
       if (studentIds.length === 0)
         return { success: false, error: 'studentIds required for clustered mode' }
-      const tasks = await generateClusteredTasks(config, studentIds, params.curriculumId)
+      const tasks = await generateClusteredTasks(config, studentIds, params.courseId)
       return { success: true, tasks }
     }
 
     if (mode === 'peer_group') {
       if (studentIds.length === 0)
         return { success: false, error: 'studentIds required for peer_group mode' }
-      const tasks = await generatePeerGroupTasks(config, studentIds, params.curriculumId)
+      const tasks = await generatePeerGroupTasks(config, studentIds, params.courseId)
       return { success: true, tasks }
     }
 

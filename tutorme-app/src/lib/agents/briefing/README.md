@@ -18,7 +18,7 @@ Prepares tutors before class with AI-generated briefings about:
 - `LiveSession` (student roster, topic) - To know who/what to brief on
 - `ProgressData` (all students in session) - Performance analytics
 - `Student` (profiles, learning styles) - To personalize advice
-- `Curriculum` (lesson content) - To understand objectives
+- `Course` (lesson content) - To understand objectives
 - `Conversation` (recent AI tutor chats) - To see student questions
 - `QuizScore` (recent results) - To identify struggling students
 

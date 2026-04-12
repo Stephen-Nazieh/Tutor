@@ -22,8 +22,8 @@ interface StudentData {
   email: string | null
   relation: string
   enrollments: Array<{
-    curriculumId: string
-    curriculumName: string
+    courseId: string
+    courseName: string
     enrolledAt: string
   }>
   level: number | null
@@ -164,8 +164,8 @@ export default function StudentDetailPage() {
               ) : (
                 <ul className="space-y-2">
                   {student.enrollments.map(e => (
-                    <li key={e.curriculumId} className="text-sm">
-                      {e.curriculumName}
+                    <li key={e.courseId} className="text-sm">
+                      {e.courseName}
                     </li>
                   ))}
                 </ul>

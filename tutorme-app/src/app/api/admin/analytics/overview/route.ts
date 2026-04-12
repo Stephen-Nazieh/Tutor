@@ -9,4 +9,4 @@ export const GET = withAuth(async () => {
     },
     { status: 410 }
   )
-})
+}, { role: 'ADMIN' })

@@ -8,7 +8,7 @@
  * EDIT THIS FILE to change how quizzes are generated.
  */
 
-import { Curriculum, Student } from '../../shared-data'
+import { Course, Student } from '../../shared-data'
 
 export interface QuizGenerationRequest {
   subject: string

@@ -3,7 +3,7 @@ import { safeJsonParseWithSchema } from '@/lib/ai/json'
 import { z } from 'zod'
 
 export interface ConvertToEditableRequest {
-  type: 'curriculum' | 'notes'
+  type: 'course' | 'notes'
   rawText: string
   language?: string
 }
@@ -11,7 +11,7 @@ export interface ConvertToEditableRequest {
 export async function convertToEditable(
   params: ConvertToEditableRequest
 ): Promise<{ editable: string; provider: string }> {
-  const typeLabel = params.type === 'curriculum' ? 'curriculum/syllabus' : 'teaching notes'
+  const typeLabel = params.type === 'course' ? 'course/syllabus' : 'teaching notes'
   const prompt = `Convert the following uploaded ${typeLabel} into a clean, well-structured editable text. Keep all important information. Use headings, lists, and paragraphs. Do not add a schedule or lesson lengths - only structure the content. Output plain text only.
 
 Uploaded content:
@@ -74,22 +74,22 @@ function normalizeLessons(
   }))
 }
 
-export interface CourseOutlineFromCurriculumRequest {
-  curriculumText: string
+export interface CourseOutlineFromCourseRequest {
+  courseText: string
   subject?: string
   typicalLessonMinutes: number
   language?: string
 }
 
-export async function generateCourseOutlineFromCurriculum(
-  params: CourseOutlineFromCurriculumRequest
+export async function generateCourseOutlineFromCourse(
+  params: CourseOutlineFromCourseRequest
 ): Promise<{ outline: LessonItem[]; provider: string }> {
   const mins = params.typicalLessonMinutes ?? 45
-  const prompt = `From the following curriculum/syllabus content, generate a detailed course outline. Each outline item must be completable in one typical lesson (${mins} minutes). Do not merge multiple lessons into one item. Output only a JSON array, no other text. Format:
+  const prompt = `From the following course/syllabus content, generate a detailed course outline. Each outline item must be completable in one typical lesson (${mins} minutes). Do not merge multiple lessons into one item. Output only a JSON array, no other text. Format:
 [{"title":"Lesson 1 title","durationMinutes":${mins}},{"title":"Lesson 2 title","durationMinutes":${mins}}]
 
-Curriculum content:
-${params.curriculumText.slice(0, 12000)}`
+Course content:
+${params.courseText.slice(0, 12000)}`
 
   const result = await generateWithFallback(prompt, {
     temperature: 0.4,
@@ -103,7 +103,7 @@ ${params.curriculumText.slice(0, 12000)}`
 }
 
 export interface CourseOutlineAsModulesRequest {
-  curriculumText: string
+  courseText: string
   notesText?: string
   subject?: string
   typicalLessonMinutes: number
@@ -115,18 +115,18 @@ export async function generateCourseOutlineAsModules(
 ): Promise<{ modules: ModuleItem[]; outline: LessonItem[]; provider: string }> {
   const mins = params.typicalLessonMinutes ?? 45
   const combinedText = params.notesText
-    ? `${params.curriculumText}\n\n--- Notes ---\n${params.notesText}`
-    : params.curriculumText
+    ? `${params.courseText}\n\n--- Notes ---\n${params.notesText}`
+    : params.courseText
   const content = combinedText.slice(0, 12000)
 
-  const prompt = `From the following curriculum/syllabus content, generate a module-based course outline. Requirements:
+  const prompt = `From the following course/syllabus content, generate a module-based course outline. Requirements:
 - Output only a JSON array; each element is a module. No other text.
 - Each module has: title (string), description (optional), notes (optional), tasks (optional array of { "title": "task name" }), lessons (required array of { "title": "lesson title", "durationMinutes": ${mins} }).
 - Each lesson is one typical class (${mins} minutes). Do not merge multiple lessons into one item.
 Example format:
 [{"title":"Module 1","description":"...","notes":"...","tasks":[{"title":"Task 1"}],"lessons":[{"title":"Lesson 1","durationMinutes":${mins}}]},{"title":"Module 2","lessons":[{"title":"Lesson 2","durationMinutes":${mins}}]}]
 
-Curriculum content:
+Course content:
 ${content}`
 
   const result = await generateWithFallback(prompt, {

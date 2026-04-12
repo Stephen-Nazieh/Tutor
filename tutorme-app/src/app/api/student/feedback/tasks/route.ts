@@ -35,7 +35,7 @@ export async function GET() {
 
     // Get deployed tasks from those sessions
     // Note: In a full implementation, you'd have a deployment table
-    // For now, we'll return recently published tasks from curriculums
+    // For now, we'll return recently published tasks from courses
     const tasks = await drizzleDb
       .select({
         id: builderTask.taskId,
