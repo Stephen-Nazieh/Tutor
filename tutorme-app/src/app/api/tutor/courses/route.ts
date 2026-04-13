@@ -178,6 +178,10 @@ export async function POST(req: NextRequest) {
             country: courseData.country,
             parentCourseId: courseData.isVariant ? parentCourseId : null,
             isVariant: courseData.isVariant,
+            // Ensure these are explicitly set to avoid column mismatch
+            languageOfInstruction: null,
+            price: null,
+            deletedAt: null,
           })
           .returning()
 
