@@ -237,9 +237,21 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Course creation error:', error)
 
+    // Log detailed error for debugging
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      })
+    }
+
     const errorMessage = error instanceof Error ? error.message : 'Failed to create course'
 
-    return NextResponse.json({ error: errorMessage }, { status: 500 })
+    return NextResponse.json(
+      { error: errorMessage, details: error instanceof Error ? error.stack : undefined },
+      { status: 500 }
+    )
   }
 }
 
