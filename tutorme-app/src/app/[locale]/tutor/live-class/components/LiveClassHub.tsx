@@ -20,11 +20,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { toast } from 'sonner'
 import { StudentList } from './StudentList'
-import { UnifiedBreakoutManager, UnifiedBreakoutModal } from './breakout'
 import { HandRaiseQueue } from './HandRaiseQueue'
 import { ChatMonitor } from './ChatMonitor'
-
-import { AITeachingAssistant } from './AITeachingAssistant'
 
 import { MultiLayerWhiteboardInterface } from './MultiLayerWhiteboardInterface'
 import { QuickPollPanel } from '@/components/polls'
@@ -35,7 +32,6 @@ import {
 
 import type {
   LiveStudent,
-  BreakoutRoom,
   HandRaise,
   ChatMessage,
   EngagementMetrics,
@@ -172,7 +168,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
 
   // State
   const [students, setStudents] = useState<LiveStudent[]>([])
-  const [breakoutRooms, setBreakoutRooms] = useState<BreakoutRoom[]>([])
+  // BREAKOUT ROOMS FEATURE REMOVED - breakoutRooms state deleted
   const [handRaises, setHandRaises] = useState<HandRaise[]>([])
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [metrics, setMetrics] = useState<EngagementMetrics | null>(null)
@@ -223,8 +219,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   const [showEndClassDialog, setShowEndClassDialog] = useState(false)
   const [showRecordingNotice, setShowRecordingNotice] = useState(false)
   const [activeTab, setActiveTab] = useState('whiteboard')
-  const [activeBreakoutRoom, setActiveBreakoutRoom] = useState<BreakoutRoom | null>(null)
-  const [isBreakoutModalOpen, setIsBreakoutModalOpen] = useState(false)
+  // BREAKOUT ROOMS FEATURE REMOVED - activeBreakoutRoom and isBreakoutModalOpen state deleted
   const autoRecordingStartedRef = useRef(false)
   const recordingNoticeStorageKey = `live-class-recording-notice:${sessionId}`
   // Prevent full reload when session object reference changes (e.g. refetch); only load once per sessionId + userId.
@@ -340,7 +335,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
         setClassRoomId(data.session.roomId || null)
         setLinkedCourseId(data.session.linkedCourseId || null)
         setStudents(data.students || [])
-        setBreakoutRooms([])
+        // BREAKOUT ROOMS FEATURE REMOVED - setBreakoutRooms call deleted
         setHandRaises(deriveHandRaisesFromStudents(data.students || []))
         setMessages(data.messages || [])
         setMetrics(data.metrics || buildFallbackMetrics(data.students || []))
@@ -512,86 +507,14 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
     [students]
   )
 
-  // Student Management - Invite to breakout
-  const handleInviteToBreakout = useCallback(
-    (studentId: string) => {
-      const student = students.find(s => s.id === studentId)
-      if (student) {
-        toast.success(`${student.name} invited to breakout room`)
-      }
-    },
-    [students]
-  )
-
-  const handleAssignToRoom = useCallback(
-    (studentId: string, roomId: string) => {
-      setStudents(prev =>
-        prev.map(s => (s.id === studentId ? { ...s, breakoutRoomId: roomId } : s))
-      )
-      setBreakoutRooms(prev =>
-        prev.map(room => {
-          if (room.id === roomId) {
-            const student = students.find(s => s.id === studentId)
-            if (student && !room.participants.find(p => p.userId === studentId)) {
-              const participant = {
-                id: student.id,
-                userId: student.id,
-                name: student.name,
-                role: 'student' as const,
-                joinedAt: new Date().toISOString(),
-                isOnline: student.status === 'online',
-                isMuted: false,
-                isVideoOff: false,
-                isScreenSharing: false,
-                engagementScore: student.engagementScore,
-                attentionLevel: student.attentionLevel,
-                handRaised: student.handRaised,
-              }
-              return { ...room, participants: [...room.participants, participant] }
-            }
-          }
-          return room
-        })
-      )
-    },
-    [students]
-  )
-
-  const handleRemoveFromRoom = useCallback((studentId: string) => {
-    setStudents(prev =>
-      prev.map(s => (s.id === studentId ? { ...s, breakoutRoomId: undefined } : s))
-    )
-    setBreakoutRooms(prev =>
-      prev.map(room => ({
-        ...room,
-        participants: room.participants.filter(p => p.userId !== studentId),
-      }))
-    )
-  }, [])
-
-  const handleJoinRoom = useCallback((room: BreakoutRoom) => {
-    setActiveBreakoutRoom(room)
-    setIsBreakoutModalOpen(true)
-  }, [])
-
-  const handleCloseBreakoutModal = useCallback(() => {
-    setIsBreakoutModalOpen(false)
-    setActiveBreakoutRoom(null)
-  }, [])
-
-  const handleEndBreakoutRoom = useCallback((roomId: string) => {
-    setBreakoutRooms(prev =>
-      prev.map(r => (r.id === roomId ? { ...r, status: 'closed' as const } : r))
-    )
-    setStudents(prev =>
-      prev.map(s => (s.breakoutRoomId === roomId ? { ...s, breakoutRoomId: undefined } : s))
-    )
-    toast.success('Breakout room ended')
-  }, [])
-
-  const handleExtendTime = useCallback((roomId: string, minutes: number) => {
-    toast.success(`Extended room time by ${minutes} minutes`)
-  }, [])
+  // BREAKOUT ROOMS FEATURE REMOVED - All breakout room handler functions deleted:
+  // - handleInviteToBreakout
+  // - handleAssignToRoom  
+  // - handleRemoveFromRoom
+  // - handleJoinRoom
+  // - handleCloseBreakoutModal
+  // - handleEndBreakoutRoom
+  // - handleExtendTime
 
   const handlePinMessage = useCallback((messageId: string) => {
     setMessages(prev => prev.map(m => (m.id === messageId ? { ...m, isPinned: !m.isPinned } : m)))
@@ -798,26 +721,13 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
             <TabsContent value="students" className="mt-4 flex-1 overflow-hidden">
               <StudentList
                 students={students}
-                breakoutRooms={breakoutRooms}
                 onCallOn={handleCallOn}
-                onAssignToRoom={handleAssignToRoom}
-                onRemoveFromRoom={handleRemoveFromRoom}
                 onPushHint={handlePushHint}
                 onSendNudge={handleSendNudge}
-                onInviteToBreakout={handleInviteToBreakout}
               />
             </TabsContent>
 
-            <TabsContent value="rooms" className="mt-4 flex-1 overflow-hidden">
-              <UnifiedBreakoutManager
-                sessionId={sessionId}
-                tutorId={session?.user?.id || 'tutor-1'}
-                tutorName={session?.user?.name || 'Tutor'}
-                students={students}
-                onRoomsChange={setBreakoutRooms}
-                onJoinRoom={handleJoinRoom}
-              />
-            </TabsContent>
+            {/* BREAKOUT ROOMS TAB REMOVED - UnifiedBreakoutManager deleted */}
 
             <TabsContent value="polls" className="mt-4 flex-1 overflow-hidden">
               <QuickPollPanel
@@ -932,33 +842,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
 
               {/* AI Teaching Assistant - Top Priority */}
               <div className="min-h-0">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-muted-foreground text-xs font-semibold">
-                    AI Teaching Assistant
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-2 text-xs"
-                    onClick={() => setShowTeachingAssistant(prev => !prev)}
-                  >
-                    {showTeachingAssistant ? 'Hide' : 'Show'}
-                  </Button>
-                </div>
-                {showTeachingAssistant ? (
-                  <div className="h-[40%] min-h-0">
-                    <AITeachingAssistant
-                      students={students}
-                      metrics={metrics}
-                      classDuration={metrics?.classDuration || 0}
-                      currentTopic={classSubject}
-                    />
-                  </div>
-                ) : (
-                  <div className="text-muted-foreground rounded border border-dashed p-3 text-xs">
-                    Teaching assistant hidden.
-                  </div>
-                )}
+                {/* AI TEACHING ASSISTANT FEATURE REMOVED */}
               </div>
 
               {/* Hand Raise Queue */}
@@ -998,23 +882,12 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
                 toast.info(`Selected student: ${studentId}`)
               }}
               onSendNudge={handleSendNudge}
-              onInviteToBreakout={handleInviteToBreakout}
             />
           </div>
         )}
       </div>
 
-      {/* Breakout Room Modal */}
-      <UnifiedBreakoutModal
-        room={activeBreakoutRoom}
-        isOpen={isBreakoutModalOpen}
-        onClose={handleCloseBreakoutModal}
-        userId={session?.user?.id || 'tutor-1'}
-        userName={session?.user?.name || 'Tutor'}
-        role="tutor"
-        onEndRoom={handleEndBreakoutRoom}
-        onExtendTime={handleExtendTime}
-      />
+      {/* BREAKOUT ROOM MODAL REMOVED - UnifiedBreakoutModal deleted */}
 
       {/* End Class Dialog */}
       <Dialog open={showEndClassDialog} onOpenChange={setShowEndClassDialog}>

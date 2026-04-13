@@ -103,14 +103,6 @@ export type BuilderTaskStatus = (typeof builderTaskStatusEnum.enumValues)[number
 export const taskDeploymentStatusEnum = pgEnum('TaskDeploymentStatus', ['active', 'closed'])
 export type TaskDeploymentStatus = (typeof taskDeploymentStatusEnum.enumValues)[number]
 
-export const breakoutStatusEnum = pgEnum('BreakoutStatus', [
-  'forming',
-  'active',
-  'paused',
-  'closed',
-])
-export type BreakoutStatus = (typeof breakoutStatusEnum.enumValues)[number]
-
 export const liveSessionStatusEnum = pgEnum('LiveSessionStatus', [
   'scheduled',
   'active',
