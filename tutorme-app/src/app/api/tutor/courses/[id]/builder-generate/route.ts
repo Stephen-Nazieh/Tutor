@@ -31,11 +31,7 @@ async function fetchWebReference(query: string): Promise<string> {
   return ''
 }
 
-function buildPrompt(input: {
-  tutorInstruction: string
-  references: string
-  subject: string
-}) {
+function buildPrompt(input: { tutorInstruction: string; references: string; subject: string }) {
   const referenceBlock = input.references.trim()
     ? `Reference material:\n${input.references.slice(0, 18000)}`
     : 'No uploaded references were provided.'

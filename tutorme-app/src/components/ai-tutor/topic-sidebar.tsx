@@ -307,7 +307,7 @@ export function TopicSidebar({
 
                 {/* Expandable subtopics */}
                 {expandedTopics.includes(topic.id) && topic.subtopics && (
-                  <div className="ml-9 mt-1 space-y-0.5 animate-in slide-in-from-top-1">
+                  <div className="animate-in slide-in-from-top-1 ml-9 mt-1 space-y-0.5">
                     {topic.subtopics.map((subtopic, idx) => (
                       <button
                         key={idx}

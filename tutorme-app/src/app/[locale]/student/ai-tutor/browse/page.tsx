@@ -414,12 +414,10 @@ export default function BrowseTutorsPage() {
               ) : courses.length === 0 ? (
                 <div className="py-8 text-center">
                   <BookOpen className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-                  <h3 className="mb-2 text-lg font-semibold text-gray-700">
-                    No Courses Available
-                  </h3>
+                  <h3 className="mb-2 text-lg font-semibold text-gray-700">No Courses Available</h3>
                   <p className="text-sm text-gray-500">
-                    There are no courses set up yet. You can still enroll and get general
-                    English tutoring.
+                    There are no courses set up yet. You can still enroll and get general English
+                    tutoring.
                   </p>
                 </div>
               ) : (
@@ -480,8 +478,8 @@ export default function BrowseTutorsPage() {
 
               <div className="mt-4 rounded-lg bg-blue-50 p-3">
                 <p className="text-sm text-blue-700">
-                  <strong>Why choose a course?</strong> Courses provide structured learning
-                  paths with organized lessons, exercises, and progress tracking. Your AI tutor will
+                  <strong>Why choose a course?</strong> Courses provide structured learning paths
+                  with organized lessons, exercises, and progress tracking. Your AI tutor will
                   follow the course to help you achieve your goals faster.
                 </p>
               </div>

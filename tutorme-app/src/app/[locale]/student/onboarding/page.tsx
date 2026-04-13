@@ -32,8 +32,6 @@ const STEPS = [
   },
 ]
 
-
-
 const SUBJECTS = [
   { id: 'math', name: 'Mathematics', icon: '📐' },
   { id: 'physics', name: 'Physics', icon: '⚡' },
@@ -182,7 +180,7 @@ export default function OnboardingPage() {
 
           <div className="flex-1">
             {step === 0 && (
-              <div className="space-y-4 duration-300 animate-in fade-in slide-in-from-right-4">
+              <div className="animate-in fade-in slide-in-from-right-4 space-y-4 duration-300">
                 <p className="mb-4 block text-sm font-medium text-gray-700">
                   Select all that apply:
                 </p>
@@ -218,7 +216,7 @@ export default function OnboardingPage() {
             )}
 
             {step === 1 && (
-              <div className="space-y-6 duration-300 animate-in fade-in slide-in-from-right-4">
+              <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
                 <div>
                   <Label className="mb-3 block text-base">Preferred Language</Label>
                   <Label className="mb-3 block text-base">Preferred Language</Label>
@@ -237,7 +235,7 @@ export default function OnboardingPage() {
             )}
 
             {step === 2 && (
-              <div className="space-y-4 duration-300 animate-in fade-in slide-in-from-right-4">
+              <div className="animate-in fade-in slide-in-from-right-4 space-y-4 duration-300">
                 <p className="mb-4 block text-sm font-medium text-gray-700">
                   Pick at least 3 subjects you're interested in:
                 </p>

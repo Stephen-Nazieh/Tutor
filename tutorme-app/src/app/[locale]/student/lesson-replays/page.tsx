@@ -61,7 +61,7 @@ export default function LessonReplaysPage() {
         </div>
       ) : sessions.length === 0 ? (
         <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
+          <CardContent className="text-muted-foreground py-10 text-center text-sm">
             No lesson replays yet.
           </CardContent>
         </Card>
@@ -73,7 +73,7 @@ export default function LessonReplaysPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="font-medium">{session.title}</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       {session.subject} · {session.tutorName}
                     </p>
                   </div>
@@ -83,14 +83,14 @@ export default function LessonReplaysPage() {
                   </Badge>
                 </div>
 
-                <div className="flex gap-3 text-xs text-muted-foreground">
+                <div className="text-muted-foreground flex gap-3 text-xs">
                   <span>Tasks: {session.taskCount}</span>
                   <span>Submitted: {session.submittedCount}</span>
                   <span>Replay: {session.replayStatus}</span>
                 </div>
 
                 {session.summaryPreview && (
-                  <div className="flex gap-2 rounded-md border bg-muted/30 p-2.5 text-xs">
+                  <div className="bg-muted/30 flex gap-2 rounded-md border p-2.5 text-xs">
                     <FileText className="mt-0.5 h-3.5 w-3.5" />
                     <span>{session.summaryPreview}</span>
                   </div>

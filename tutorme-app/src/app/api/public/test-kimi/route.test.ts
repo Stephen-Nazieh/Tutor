@@ -26,10 +26,17 @@ describe('/api/public/test-kimi', () => {
   it('returns success when API responds', async () => {
     process.env.NODE_ENV = 'development'
     process.env.KIMI_API_KEY = 'test-key'
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ model: 'kimi-k2.5', choices: [{ message: { content: 'ok' } }], usage: { total_tokens: 10 } })
-    }))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          model: 'kimi-k2.5',
+          choices: [{ message: { content: 'ok' } }],
+          usage: { total_tokens: 10 },
+        }),
+      })
+    )
 
     const res = await GET()
     expect(res.status).toBe(200)

@@ -144,8 +144,8 @@ export default function StudentDashboard() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
-        <nav className="safe-top sticky top-0 z-50 border-b border-border bg-secondary">
+      <div className="bg-background text-foreground min-h-screen" style={themeStyle}>
+        <nav className="safe-top border-border bg-secondary sticky top-0 z-50 border-b">
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between">
               <div className="h-7 w-24 animate-pulse rounded bg-gray-200" />
@@ -207,9 +207,9 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
+    <div className="bg-background text-foreground min-h-screen" style={themeStyle}>
       {/* Navigation */}
-      <nav className="safe-top sticky top-0 z-50 border-b border-border bg-secondary">
+      <nav className="safe-top border-border bg-secondary sticky top-0 z-50 border-b">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 justify-between">
             <div className="flex items-center">
@@ -232,7 +232,7 @@ export default function StudentDashboard() {
                     } catch {}
                   }}
                 >
-                  <SelectTrigger className="h-8 w-[190px] border-border bg-card text-foreground">
+                  <SelectTrigger className="border-border bg-card text-foreground h-8 w-[190px]">
                     <SelectValue placeholder="Select theme" />
                   </SelectTrigger>
                   <SelectContent className="max-h-72">
@@ -271,7 +271,7 @@ export default function StudentDashboard() {
               variant="outline"
               size="sm"
               onClick={() => fetchDashboardData()}
-              className="shrink-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="focus-visible:ring-ring shrink-0 focus-visible:ring-2 focus-visible:ring-offset-2"
             >
               {strings.retry}
             </Button>

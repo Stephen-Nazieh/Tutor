@@ -52,9 +52,9 @@ export function RecommendationsCard({ recommendations }: RecommendationsCardProp
       </CardHeader>
       <CardContent>
         {recommendations.length === 0 ? (
-          <div className="py-6 text-center text-muted-foreground">
-            <Lightbulb className="mx-auto mb-2 h-12 w-12 text-muted-foreground/60" />
-            <p className="text-sm font-medium text-foreground">No recommendations yet</p>
+          <div className="text-muted-foreground py-6 text-center">
+            <Lightbulb className="text-muted-foreground/60 mx-auto mb-2 h-12 w-12" />
+            <p className="text-foreground text-sm font-medium">No recommendations yet</p>
             <p className="mt-1 text-xs">
               Complete lessons and quizzes to get personalized suggestions.
             </p>
@@ -86,10 +86,10 @@ export function RecommendationsCard({ recommendations }: RecommendationsCardProp
                           {rec.priority}
                         </span>
                       </div>
-                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                      <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">
                         {rec.description}
                       </p>
-                      <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                      <div className="text-muted-foreground mt-2 flex items-center gap-1 text-xs">
                         <Clock className="h-3 w-3" />
                         {rec.estimatedTime}
                       </div>

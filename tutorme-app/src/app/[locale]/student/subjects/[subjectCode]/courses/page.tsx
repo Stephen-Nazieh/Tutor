@@ -92,13 +92,13 @@ export default function SubjectCoursesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
+    <div className="bg-background text-foreground min-h-screen" style={themeStyle}>
       <div className="mx-auto max-w-3xl p-4 sm:p-6">
         <div className="mb-6 flex items-center justify-between">
           <BackButton href={signupUrl} />
           {/* Theme Selector */}
           <Select value={themeId} onValueChange={setThemeId}>
-            <SelectTrigger className="h-8 w-[160px] border-border bg-card text-xs text-foreground">
+            <SelectTrigger className="border-border bg-card text-foreground h-8 w-[160px] text-xs">
               <SelectValue placeholder="Theme" />
             </SelectTrigger>
             <SelectContent>
@@ -111,15 +111,15 @@ export default function SubjectCoursesPage() {
           </Select>
         </div>
 
-        <h1 className="mb-2 text-2xl font-semibold text-foreground">
+        <h1 className="text-foreground mb-2 text-2xl font-semibold">
           Choose a Course / Tutor — {subjectLabel}
         </h1>
-        <p className="mb-6 text-sm text-muted-foreground">
+        <p className="text-muted-foreground mb-6 text-sm">
           Select a course to enroll or find a tutor for personalized help.
         </p>
 
         <Tabs defaultValue="courses" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 bg-muted">
+          <TabsList className="bg-muted grid w-full grid-cols-2">
             <TabsTrigger value="courses" className="flex items-center gap-2">
               <GraduationCap className="h-4 w-4" />
               Courses
@@ -133,14 +133,14 @@ export default function SubjectCoursesPage() {
           <TabsContent value="courses" className="space-y-4">
             {loading && (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
               </div>
             )}
 
             {error && (
               <Card className="border-destructive/50 bg-card">
                 <CardContent className="pt-6">
-                  <p className="text-sm text-destructive">{error}</p>
+                  <p className="text-destructive text-sm">{error}</p>
                   <Button variant="outline" asChild className="mt-4">
                     <Link href={signupUrl}>Back to signup</Link>
                   </Button>
@@ -152,8 +152,8 @@ export default function SubjectCoursesPage() {
               <Card className="border-border bg-card">
                 <CardContent className="pt-6">
                   <div className="flex flex-col items-center py-8 text-center">
-                    <BookOpen className="mb-4 h-12 w-12 text-muted" />
-                    <p className="mb-4 text-muted-foreground">
+                    <BookOpen className="text-muted mb-4 h-12 w-12" />
+                    <p className="text-muted-foreground mb-4">
                       No courses available for {subjectLabel} yet.
                     </p>
                     <Button variant="outline" asChild>
@@ -168,9 +168,9 @@ export default function SubjectCoursesPage() {
               <ul className="space-y-4">
                 {courses.map(c => (
                   <li key={c.id}>
-                    <Card className="border-border bg-card transition-colors hover:border-accent">
+                    <Card className="border-border bg-card hover:border-accent transition-colors">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-lg text-foreground">{c.name}</CardTitle>
+                        <CardTitle className="text-foreground text-lg">{c.name}</CardTitle>
                         {c.difficulty && (
                           <CardDescription className="mt-1 flex flex-wrap gap-2">
                             <span className="capitalize">{c.difficulty}</span>
@@ -179,17 +179,17 @@ export default function SubjectCoursesPage() {
                       </CardHeader>
                       <CardContent className="space-y-3">
                         {c.description && (
-                          <p className="line-clamp-2 text-sm text-muted-foreground">
+                          <p className="text-muted-foreground line-clamp-2 text-sm">
                             {c.description}
                           </p>
                         )}
-                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                        <div className="text-muted-foreground flex flex-wrap gap-3 text-xs">
                           <span>{c.estimatedHours}h estimated</span>
                           <span>
                             {c.modulesCount} modules · {c.lessonsCount} lessons
                           </span>
                           {c.studentCount > 0 && <span>{c.studentCount} students</span>}
-                          <span className="font-medium text-foreground">
+                          <span className="text-foreground font-medium">
                             {formatPrice(c.price, c.currency)}
                           </span>
                         </div>
@@ -204,7 +204,7 @@ export default function SubjectCoursesPage() {
                           <Button
                             variant="outline"
                             asChild
-                            className="w-full border-border sm:w-auto"
+                            className="border-border w-full sm:w-auto"
                           >
                             <Link
                               href={`/student/subjects/${encodeURIComponent(subjectCode)}/courses/${encodeURIComponent(c.id)}/details`}

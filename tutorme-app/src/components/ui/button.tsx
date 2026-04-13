@@ -15,8 +15,8 @@ const buttonVariants = cva(
     'inline-flex items-center justify-center gap-2',
     'whitespace-nowrap text-sm font-medium',
     'rounded-lg', // Soft rounded corners
-    'transition-all duration-200 ease-premium',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+    'ease-premium transition-all duration-200',
+    'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     'disabled:pointer-events-none disabled:opacity-50',
     'active:scale-[0.98]', // Subtle press effect
   ],
@@ -27,43 +27,43 @@ const buttonVariants = cva(
         default: [
           'bg-primary text-primary-foreground',
           'shadow-elevation-2',
-          'hover:-translate-y-0.5 hover:shadow-hover-lift',
+          'hover:shadow-hover-lift hover:-translate-y-0.5',
           'hover:bg-primary/95',
-          'active:translate-y-0 active:shadow-active-press',
+          'active:shadow-active-press active:translate-y-0',
         ],
 
         // Primary with gradient - Premium feel
         gradient: [
-          'bg-gradient-to-r from-primary to-primary-300',
+          'from-primary to-primary-300 bg-gradient-to-r',
           'text-primary-foreground',
           'shadow-elevation-2',
-          'hover:-translate-y-0.5 hover:shadow-hover-lift',
+          'hover:shadow-hover-lift hover:-translate-y-0.5',
           'hover:from-primary-400 hover:to-primary-200',
-          'active:translate-y-0 active:shadow-active-press',
+          'active:shadow-active-press active:translate-y-0',
         ],
 
         // Secondary - Blue accent
         secondary: [
           'bg-secondary text-secondary-foreground',
           'shadow-elevation-1',
-          'hover:-translate-y-0.5 hover:shadow-elevation-2',
+          'hover:shadow-elevation-2 hover:-translate-y-0.5',
           'hover:bg-secondary/95',
-          'active:translate-y-0 active:shadow-active-press',
+          'active:shadow-active-press active:translate-y-0',
         ],
 
         // Secondary with gradient
         'secondary-gradient': [
-          'bg-gradient-to-r from-secondary to-secondary-300',
+          'from-secondary to-secondary-300 bg-gradient-to-r',
           'text-secondary-foreground',
           'shadow-elevation-1',
-          'hover:-translate-y-0.5 hover:shadow-elevation-2',
+          'hover:shadow-elevation-2 hover:-translate-y-0.5',
           'hover:from-secondary-400 hover:to-secondary-200',
-          'active:translate-y-0 active:shadow-active-press',
+          'active:shadow-active-press active:translate-y-0',
         ],
 
         // Outline - Bordered, transparent background
         outline: [
-          'border-2 border-input bg-transparent',
+          'border-input border-2 bg-transparent',
           'text-foreground',
           'hover:bg-accent hover:text-accent-foreground',
           'hover:border-accent',
@@ -89,18 +89,18 @@ const buttonVariants = cva(
         accent: [
           'bg-accent text-accent-foreground',
           'shadow-elevation-1',
-          'hover:-translate-y-0.5 hover:shadow-elevation-2',
+          'hover:shadow-elevation-2 hover:-translate-y-0.5',
           'hover:bg-accent/90',
-          'active:translate-y-0 active:shadow-active-press',
+          'active:shadow-active-press active:translate-y-0',
         ],
 
         // Destructive - Error/danger actions
         destructive: [
           'bg-destructive text-destructive-foreground',
           'shadow-elevation-1',
-          'hover:-translate-y-0.5 hover:shadow-elevation-2',
+          'hover:shadow-elevation-2 hover:-translate-y-0.5',
           'hover:bg-destructive/90',
-          'active:translate-y-0 active:shadow-active-press',
+          'active:shadow-active-press active:translate-y-0',
         ],
 
         // Link - Text-only button
@@ -112,7 +112,7 @@ const buttonVariants = cva(
         // Glass - Translucent effect
         glass: [
           'bg-background/80 backdrop-blur-md',
-          'border border-border/50',
+          'border-border/50 border',
           'text-foreground',
           'shadow-elevation-1',
           'hover:bg-background/90 hover:shadow-elevation-2',
@@ -122,10 +122,10 @@ const buttonVariants = cva(
         // Floating - Elevated card-like button
         floating: [
           'bg-card text-card-foreground',
-          'border border-border/30',
+          'border-border/30 border',
           'shadow-elevation-2',
-          'hover:-translate-y-0.5 hover:shadow-hover-lift',
-          'active:translate-y-0 active:shadow-active-press',
+          'hover:shadow-hover-lift hover:-translate-y-0.5',
+          'active:shadow-active-press active:translate-y-0',
         ],
       },
 

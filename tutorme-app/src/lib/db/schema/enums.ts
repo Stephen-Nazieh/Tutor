@@ -93,3 +93,38 @@ export const bookingRequestStatusEnum = pgEnum('BookingRequestStatus', [
   'CANCELLED',
 ])
 export type BookingRequestStatus = (typeof bookingRequestStatusEnum.enumValues)[number]
+
+export const builderTaskTypeEnum = pgEnum('BuilderTaskType', ['task', 'assessment', 'homework'])
+export type BuilderTaskType = (typeof builderTaskTypeEnum.enumValues)[number]
+
+export const builderTaskStatusEnum = pgEnum('BuilderTaskStatus', ['draft', 'published', 'archived'])
+export type BuilderTaskStatus = (typeof builderTaskStatusEnum.enumValues)[number]
+
+export const taskDeploymentStatusEnum = pgEnum('TaskDeploymentStatus', ['active', 'closed'])
+export type TaskDeploymentStatus = (typeof taskDeploymentStatusEnum.enumValues)[number]
+
+export const breakoutStatusEnum = pgEnum('BreakoutStatus', [
+  'forming',
+  'active',
+  'paused',
+  'closed',
+])
+export type BreakoutStatus = (typeof breakoutStatusEnum.enumValues)[number]
+
+export const liveSessionStatusEnum = pgEnum('LiveSessionStatus', [
+  'scheduled',
+  'active',
+  'ended',
+  'preparing',
+  'live',
+  'paused',
+])
+export type LiveSessionStatus = (typeof liveSessionStatusEnum.enumValues)[number]
+
+export const payoutStatusEnum = pgEnum('PayoutStatus', [
+  'PENDING',
+  'PROCESSING',
+  'COMPLETED',
+  'REJECTED',
+])
+export type PayoutStatus = (typeof payoutStatusEnum.enumValues)[number]

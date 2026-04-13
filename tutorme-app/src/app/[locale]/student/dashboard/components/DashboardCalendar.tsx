@@ -198,11 +198,11 @@ export function DashboardCalendar({
           <TabsContent value="classes" className="mt-0">
             {classesLoading ? (
               <div className="py-8 text-center">
-                <p className="text-sm text-muted-foreground">Loading your classes...</p>
+                <p className="text-muted-foreground text-sm">Loading your classes...</p>
               </div>
             ) : classes.length === 0 ? (
               <div className="py-8 text-center">
-                <BookOpen className="mx-auto mb-3 h-12 w-12 text-muted-foreground/60" />
+                <BookOpen className="text-muted-foreground/60 mx-auto mb-3 h-12 w-12" />
                 <p className="text-muted-foreground">You haven&apos;t booked any classes yet.</p>
                 <Button className="mt-4" asChild>
                   <Link href="/student/courses">Browse Classes</Link>
@@ -213,14 +213,14 @@ export function DashboardCalendar({
                 {classes.map(cls => (
                   <div
                     key={cls.id}
-                    className="rounded-lg border border-border bg-muted/40 p-4 transition-colors hover:bg-muted/70"
+                    className="border-border bg-muted/40 hover:bg-muted/70 rounded-lg border p-4 transition-colors"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h4 className="font-medium text-foreground">{cls.title}</h4>
-                        <p className="text-sm text-muted-foreground">{cls.subject}</p>
+                        <h4 className="text-foreground font-medium">{cls.title}</h4>
+                        <p className="text-muted-foreground text-sm">{cls.subject}</p>
 
-                        <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                        <div className="text-muted-foreground mt-2 flex items-center gap-4 text-xs">
                           <span className="flex items-center gap-1">
                             <CalendarDays className="h-3 w-3" />
                             {formatDate(cls.scheduledAt)}
@@ -239,7 +239,7 @@ export function DashboardCalendar({
                           </span>
                         </div>
 
-                        <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                        <div className="text-muted-foreground mt-2 flex items-center gap-4 text-xs">
                           <span className="flex items-center gap-1">
                             <Users className="h-3 w-3" />
                             {cls.students}/{cls.maxStudents} students

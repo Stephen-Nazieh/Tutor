@@ -153,7 +153,7 @@ export default function CompliancePage() {
   if (loading)
     return (
       <div className="flex h-64 items-center justify-center">
-        <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+        <RefreshCw className="text-muted-foreground h-8 w-8 animate-spin" />
       </div>
     )
 
@@ -167,7 +167,7 @@ export default function CompliancePage() {
             <Shield className="h-7 w-7 text-blue-600" />
             Privacy & Compliance
           </h1>
-          <p className="mt-1 text-muted-foreground">
+          <p className="text-muted-foreground mt-1">
             COPPA, FERPA & GDPR compliance dashboard — manage data rights, access logs, and
             third-party audits.
           </p>
@@ -197,7 +197,7 @@ export default function CompliancePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{s?.pendingDeletionRequests ?? 0}</div>
-            <p className="text-xs text-muted-foreground">pending</p>
+            <p className="text-muted-foreground text-xs">pending</p>
           </CardContent>
         </Card>
 
@@ -209,7 +209,7 @@ export default function CompliancePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{s?.completedDeletionsLast30Days ?? 0}</div>
-            <p className="text-xs text-muted-foreground">last 30 days</p>
+            <p className="text-muted-foreground text-xs">last 30 days</p>
           </CardContent>
         </Card>
 
@@ -221,7 +221,7 @@ export default function CompliancePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{s?.pendingExportRequests ?? 0}</div>
-            <p className="text-xs text-muted-foreground">pending</p>
+            <p className="text-muted-foreground text-xs">pending</p>
           </CardContent>
         </Card>
 
@@ -235,7 +235,7 @@ export default function CompliancePage() {
             <div className="text-2xl font-bold text-amber-600">
               {s?.minorsWithoutParentalConsent ?? 0}
             </div>
-            <p className="text-xs text-muted-foreground">missing consent</p>
+            <p className="text-muted-foreground text-xs">missing consent</p>
           </CardContent>
         </Card>
 
@@ -247,7 +247,7 @@ export default function CompliancePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{s?.thirdPartyServicesAudited ?? 0}</div>
-            <p className="text-xs text-muted-foreground">audited</p>
+            <p className="text-muted-foreground text-xs">audited</p>
           </CardContent>
         </Card>
 
@@ -261,7 +261,7 @@ export default function CompliancePage() {
             <div className="text-2xl font-bold text-orange-600">
               {s?.thirdPartyServicesNonCompliant ?? 0}
             </div>
-            <p className="text-xs text-muted-foreground">3rd parties</p>
+            <p className="text-muted-foreground text-xs">3rd parties</p>
           </CardContent>
         </Card>
       </div>
@@ -291,7 +291,7 @@ export default function CompliancePage() {
             </CardHeader>
             <CardContent>
               {(data?.pendingDeletions ?? []).length === 0 ? (
-                <div className="py-8 text-center text-muted-foreground">
+                <div className="text-muted-foreground py-8 text-center">
                   <ShieldCheck className="mx-auto mb-2 h-10 w-10 text-green-400" />
                   No pending deletion requests. All caught up!
                 </div>
@@ -303,15 +303,15 @@ export default function CompliancePage() {
                         <div>
                           <div className="text-sm font-medium">
                             User:{' '}
-                            <code className="rounded bg-muted px-1 text-xs">
+                            <code className="bg-muted rounded px-1 text-xs">
                               {r.userId.slice(0, 12)}...
                             </code>
                           </div>
-                          <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                          <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
                             <Clock className="h-3 w-3" /> Requested: {formatDate(r.requestedAt)}
                           </div>
                           {r.reason && (
-                            <div className="mt-1 text-xs text-muted-foreground">
+                            <div className="text-muted-foreground mt-1 text-xs">
                               Reason: {r.reason}
                             </div>
                           )}
@@ -361,7 +361,7 @@ export default function CompliancePage() {
             </CardHeader>
             <CardContent>
               {(data?.recentPiiAccess ?? []).length === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">
+                <p className="text-muted-foreground py-8 text-center text-sm">
                   No access events logged yet.
                 </p>
               ) : (
@@ -379,14 +379,14 @@ export default function CompliancePage() {
                     </thead>
                     <tbody>
                       {data?.recentPiiAccess.map(log => (
-                        <tr key={log.id} className="border-b hover:bg-muted/50">
+                        <tr key={log.id} className="hover:bg-muted/50 border-b">
                           <td className="py-2 pr-4 font-mono">{log.accessorId.slice(0, 8)}...</td>
                           <td className="py-2 pr-4">
                             <Badge variant="outline" className="text-xs">
                               {log.accessorRole}
                             </Badge>
                           </td>
-                          <td className="py-2 pr-4 text-muted-foreground">{log.resourceType}</td>
+                          <td className="text-muted-foreground py-2 pr-4">{log.resourceType}</td>
                           <td className="py-2 pr-4">
                             <span
                               className={`rounded px-1.5 py-0.5 text-xs font-medium ${
@@ -402,10 +402,10 @@ export default function CompliancePage() {
                               {log.action}
                             </span>
                           </td>
-                          <td className="py-2 pr-4 font-mono text-muted-foreground">
+                          <td className="text-muted-foreground py-2 pr-4 font-mono">
                             {log.endpoint}
                           </td>
-                          <td className="whitespace-nowrap py-2 text-muted-foreground">
+                          <td className="text-muted-foreground whitespace-nowrap py-2">
                             {formatDate(log.accessedAt)}
                           </td>
                         </tr>
@@ -431,10 +431,10 @@ export default function CompliancePage() {
             <CardContent>
               {(data?.thirdParties ?? []).length === 0 ? (
                 <div className="py-8 text-center">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     No third-party services audited yet.
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="text-muted-foreground mt-1 text-xs">
                     Add services via the database to track compliance.
                   </p>
                 </div>
@@ -471,8 +471,8 @@ export default function CompliancePage() {
                           </span>
                         )}
                       </div>
-                      {tp.notes && <p className="mt-2 text-xs text-muted-foreground">{tp.notes}</p>}
-                      <p className="mt-2 text-xs text-muted-foreground">
+                      {tp.notes && <p className="text-muted-foreground mt-2 text-xs">{tp.notes}</p>}
+                      <p className="text-muted-foreground mt-2 text-xs">
                         Last audited: {formatDate(tp.lastAuditedAt)}
                       </p>
                     </div>

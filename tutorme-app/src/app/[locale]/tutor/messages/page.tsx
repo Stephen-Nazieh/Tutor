@@ -182,11 +182,11 @@ export default function CommunicationCenterPage() {
   if (loading) {
     return (
       <div
-        className="min-h-screen w-full bg-background px-4 py-8 text-foreground sm:px-6 lg:px-8"
+        className="bg-background text-foreground min-h-screen w-full px-4 py-8 sm:px-6 lg:px-8"
         style={themeStyle}
       >
         <div className="flex h-64 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Loader2 className="text-primary h-8 w-8 animate-spin" />
         </div>
       </div>
     )
@@ -194,17 +194,17 @@ export default function CommunicationCenterPage() {
 
   return (
     <div
-      className="min-h-screen w-full bg-background px-4 py-8 text-foreground sm:px-6 lg:px-8"
+      className="bg-background text-foreground min-h-screen w-full px-4 py-8 sm:px-6 lg:px-8"
       style={themeStyle}
     >
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Messages</h1>
+            <h1 className="text-foreground text-2xl font-bold">Messages</h1>
           </div>
           {/* Theme Selector */}
           <Select value={themeId} onValueChange={setThemeId}>
-            <SelectTrigger className="h-8 w-[180px] border-border bg-card text-foreground">
+            <SelectTrigger className="border-border bg-card text-foreground h-8 w-[180px]">
               <SelectValue placeholder="Select theme" />
             </SelectTrigger>
             <SelectContent>
@@ -220,14 +220,14 @@ export default function CommunicationCenterPage() {
 
       <div className="grid h-[600px] grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Conversations List */}
-        <Card className="flex flex-col overflow-hidden border-border bg-card lg:col-span-1">
+        <Card className="border-border bg-card flex flex-col overflow-hidden lg:col-span-1">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between text-base text-foreground">
+            <CardTitle className="text-foreground flex items-center justify-between text-base">
               Conversations
               {totalUnread > 0 && <Badge className="bg-red-500">{totalUnread}</Badge>}
             </CardTitle>
             <div className="relative mt-2">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
               <Input
                 placeholder="Search messages..."
                 value={searchQuery}
@@ -238,10 +238,10 @@ export default function CommunicationCenterPage() {
           </CardHeader>
           <CardContent className="flex-1 overflow-hidden p-0">
             <ScrollArea className="h-full">
-              <div className="divide-y divide-border">
+              <div className="divide-border divide-y">
                 {filteredConversations.length === 0 ? (
-                  <div className="p-4 text-center text-muted-foreground">
-                    <MessageSquare className="mx-auto mb-2 h-10 w-10 text-muted" />
+                  <div className="text-muted-foreground p-4 text-center">
+                    <MessageSquare className="text-muted mx-auto mb-2 h-10 w-10" />
                     <p className="text-sm">No conversations yet</p>
                   </div>
                 ) : (
@@ -249,7 +249,7 @@ export default function CommunicationCenterPage() {
                     <button
                       key={conv.id}
                       onClick={() => setSelectedConversation(conv)}
-                      className={`flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-accent ${
+                      className={`hover:bg-accent flex w-full items-center gap-3 p-4 text-left transition-colors ${
                         selectedConversation?.id === conv.id ? 'bg-accent' : ''
                       }`}
                     >
@@ -260,14 +260,14 @@ export default function CommunicationCenterPage() {
                       </Avatar>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between">
-                          <span className="truncate text-sm font-medium text-foreground">
+                          <span className="text-foreground truncate text-sm font-medium">
                             {conv.otherParticipant.name}
                           </span>
                           {conv.unreadCount > 0 && (
                             <Badge className="ml-2 bg-red-500 text-xs">{conv.unreadCount}</Badge>
                           )}
                         </div>
-                        <p className="truncate text-xs text-muted-foreground">
+                        <p className="text-muted-foreground truncate text-xs">
                           {conv.lastMessage?.content || 'No messages yet'}
                         </p>
                       </div>
@@ -280,10 +280,10 @@ export default function CommunicationCenterPage() {
         </Card>
 
         {/* Chat Area */}
-        <Card className="flex flex-col overflow-hidden border-border bg-card lg:col-span-2">
+        <Card className="border-border bg-card flex flex-col overflow-hidden lg:col-span-2">
           {selectedConversation ? (
             <>
-              <CardHeader className="border-b border-border pb-3">
+              <CardHeader className="border-border border-b pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
@@ -292,10 +292,10 @@ export default function CommunicationCenterPage() {
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle className="text-base text-foreground">
+                      <CardTitle className="text-foreground text-base">
                         {selectedConversation.otherParticipant.name}
                       </CardTitle>
-                      <p className="text-xs text-muted-foreground">Student</p>
+                      <p className="text-muted-foreground text-xs">Student</p>
                     </div>
                   </div>
                   <Link href={`/tutor/reports/${selectedConversation.otherParticipant.id}`}>
@@ -311,8 +311,8 @@ export default function CommunicationCenterPage() {
                 <ScrollArea className="flex-1 p-4">
                   <div className="space-y-4">
                     {messages.length === 0 ? (
-                      <div className="py-8 text-center text-muted-foreground">
-                        <MessageSquare className="mx-auto mb-3 h-12 w-12 text-muted" />
+                      <div className="text-muted-foreground py-8 text-center">
+                        <MessageSquare className="text-muted mx-auto mb-3 h-12 w-12" />
                         <p>No messages yet</p>
                         <p className="text-sm">Start the conversation!</p>
                       </div>
@@ -368,7 +368,7 @@ export default function CommunicationCenterPage() {
                   </div>
                 </ScrollArea>
 
-                <div className="border-t border-border p-4">
+                <div className="border-border border-t p-4">
                   <div className="flex gap-2">
                     <MentionInput
                       placeholder="Type a message..."

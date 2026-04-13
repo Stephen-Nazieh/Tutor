@@ -33,7 +33,7 @@ export const liveSession = pgTable(
     startedAt: timestamp('startedAt', { withTimezone: true }),
     endedAt: timestamp('endedAt', { withTimezone: true }),
     maxStudents: integer('maxStudents').notNull(),
-    status: text('status').notNull(),
+    status: enums.liveSessionStatusEnum('status').notNull(),
     roomId: text('roomId'),
     roomUrl: text('roomUrl'),
     recordingUrl: text('recordingUrl'),
@@ -69,6 +69,7 @@ export const sessionReplayArtifact = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -126,6 +127,7 @@ export const poll = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -165,7 +167,7 @@ export const pollResponse = pgTable(
     optionIds: text('optionIds').array().notNull(),
     rating: integer('rating'),
     textAnswer: text('textAnswer'),
-    studentId: text('studentId'),
+    studentId: text('studentId').references(() => user.userId, { onDelete: 'set null' }),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
   },
   table => ({
@@ -333,7 +335,10 @@ export const notification = pgTable(
 
 export const notificationPreference = pgTable('NotificationPreference', {
   preferenceId: text('id').primaryKey().notNull(),
-  userId: text('userId').notNull().unique(),
+  userId: text('userId')
+    .notNull()
+    .unique()
+    .references(() => user.userId, { onDelete: 'cascade' }),
   emailEnabled: boolean('emailEnabled').notNull(),
   pushEnabled: boolean('pushEnabled').notNull(),
   inAppEnabled: boolean('inAppEnabled').notNull(),
@@ -344,5 +349,6 @@ export const notificationPreference = pgTable('NotificationPreference', {
   emailDigest: text('emailDigest').notNull(),
   updatedAt: timestamp('updatedAt', { withTimezone: true })
     .notNull()
+    .defaultNow()
     .$onUpdate(() => new Date()),
 })

@@ -36,6 +36,7 @@ export const contentItem = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -82,6 +83,7 @@ export const contentQuizCheckpoint = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -109,6 +111,7 @@ export const contentProgress = pgTable(
     lastPosition: integer('lastPosition'),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -139,6 +142,7 @@ export const reviewSchedule = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({

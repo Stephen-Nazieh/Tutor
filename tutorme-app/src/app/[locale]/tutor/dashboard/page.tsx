@@ -504,11 +504,11 @@ function TutorDashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
+    <div className="bg-background text-foreground min-h-screen" style={themeStyle}>
       <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-4 pb-4 lg:flex-row lg:items-center lg:justify-end">
           <div className="flex items-center gap-2">
-            <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Theme</span>
+            <span className="text-muted-foreground text-xs uppercase tracking-[0.2em]">Theme</span>
             <Select
               value={themeId}
               onValueChange={value => {
@@ -518,7 +518,7 @@ function TutorDashboardContent() {
                 } catch {}
               }}
             >
-              <SelectTrigger className="h-8 w-[200px] border-border bg-card text-foreground">
+              <SelectTrigger className="border-border bg-card text-foreground h-8 w-[200px]">
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
               <SelectContent className="max-h-72">
@@ -559,7 +559,7 @@ function TutorDashboardContent() {
 
         {/* Dashboard Stats */}
         <div className="mb-8 space-y-4">
-          <Card className="border border-border bg-card/95 shadow-xl backdrop-blur-md">
+          <Card className="border-border bg-card/95 border shadow-xl backdrop-blur-md">
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 gap-6 divide-y divide-gray-100 md:grid-cols-3 md:divide-x md:divide-y-0">
                 <div className="py-2 text-center md:py-0">
@@ -582,11 +582,11 @@ function TutorDashboardContent() {
 
         {/* 1-on-1 Requests */}
         <div className="mb-8">
-          <Card className="border border-border bg-card/95 shadow-xl backdrop-blur-md">
+          <Card className="border-border bg-card/95 border shadow-xl backdrop-blur-md">
             <CardHeader className="flex flex-row items-center justify-between gap-3">
               <div>
                 <CardTitle>1-on-1 Requests</CardTitle>
-                <p className="text-xs text-muted-foreground">Pending requests from students</p>
+                <p className="text-muted-foreground text-xs">Pending requests from students</p>
               </div>
               <Button asChild variant="outline" size="sm">
                 <Link href={withLocalePath('/tutor/notifications')}>View all</Link>
@@ -594,7 +594,7 @@ function TutorDashboardContent() {
             </CardHeader>
             <CardContent className="space-y-3">
               {oneOnOneRequests.length === 0 ? (
-                <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
                   No pending 1-on-1 requests.
                 </div>
               ) : (
@@ -607,7 +607,7 @@ function TutorDashboardContent() {
                       <p className="truncate font-semibold text-slate-900">
                         @{request.student?.handle || 'student'}
                       </p>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
                         <span>
                           {new Date(request.requestedDate).toLocaleDateString('en-US', {
                             month: 'short',
@@ -646,7 +646,7 @@ function TutorDashboardContent() {
                 ))
               )}
               {oneOnOneRequests.length > 3 ? (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   +{oneOnOneRequests.length - 3} more pending requests
                 </p>
               ) : null}
@@ -672,13 +672,13 @@ function TutorDashboardContent() {
               />
             </TabsContent>
             <TabsContent value="courses">
-              <Card className="border border-border bg-card/95 shadow-xl backdrop-blur-md">
+              <Card className="border-border bg-card/95 border shadow-xl backdrop-blur-md">
                 <CardHeader>
                   <CardTitle>Courses With Enrolled Students</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {enrolledCourses.length === 0 ? (
-                    <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                    <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
                       No courses have enrolled students yet.
                     </div>
                   ) : (
@@ -696,7 +696,7 @@ function TutorDashboardContent() {
                               <Badge variant="outline">Draft</Badge>
                             )}
                           </div>
-                          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                          <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
                             <span>{course.subject}</span>
                             {course.price ? (
                               <span>
@@ -706,7 +706,7 @@ function TutorDashboardContent() {
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <div className="text-muted-foreground flex items-center gap-2 text-xs">
                             <Badge variant="secondary">{course.sessionCount ?? 0} sessions</Badge>
                             <Badge variant="secondary">{course.enrollmentCount} enrolled</Badge>
                           </div>
@@ -779,10 +779,10 @@ function TutorDashboardContent() {
             <div className="mt-4">
               {loadingSessions ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  <div className="border-primary h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" />
                 </div>
               ) : courseSessions.length === 0 ? (
-                <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
                   <Calendar className="mx-auto mb-2 h-8 w-8 text-gray-300" />
                   <p>No sessions found for this course.</p>
                 </div>
@@ -812,7 +812,7 @@ function TutorDashboardContent() {
                                 {session.status}
                               </Badge>
                             </div>
-                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                            <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                               {session.scheduledAt && (
                                 <span className="flex items-center gap-1">
                                   <Calendar className="h-3 w-3" />
@@ -884,7 +884,7 @@ function TutorDashboardContent() {
             <Separator className="my-4" />
 
             <DialogFooter className="flex items-center justify-between sm:justify-between">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="text-muted-foreground flex items-center gap-2 text-xs">
                 <AlertCircle className="h-4 w-4" />
                 <span>Cancelling a session will notify enrolled students</span>
               </div>

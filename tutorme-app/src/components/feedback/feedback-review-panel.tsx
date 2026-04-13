@@ -244,7 +244,7 @@ export function FeedbackReviewPanel({
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-xl">AI 反馈审核</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">审核AI生成的学生反馈内容</p>
+            <p className="text-muted-foreground mt-1 text-sm">审核AI生成的学生反馈内容</p>
           </div>
           <div className="flex items-center gap-4">
             {stats && (
@@ -277,8 +277,8 @@ export function FeedbackReviewPanel({
 
           <TabsContent value="pending" className="space-y-4">
             {/* Filters */}
-            <div className="flex items-center gap-4 rounded-lg bg-muted/50 p-4">
-              <Filter className="h-4 w-4 text-muted-foreground" />
+            <div className="bg-muted/50 flex items-center gap-4 rounded-lg p-4">
+              <Filter className="text-muted-foreground h-4 w-4" />
               <Select value={filterPriority} onValueChange={setFilterPriority}>
                 <SelectTrigger className="w-32">
                   <SelectValue placeholder="优先级" />
@@ -315,10 +315,10 @@ export function FeedbackReviewPanel({
             <ScrollArea className="h-[500px]">
               {loading ? (
                 <div className="flex h-40 items-center justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
+                  <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2" />
                 </div>
               ) : feedbackItems.length === 0 ? (
-                <div className="py-12 text-center text-muted-foreground">
+                <div className="text-muted-foreground py-12 text-center">
                   <CheckCircle className="mx-auto mb-4 h-12 w-12 text-green-500" />
                   <p>所有反馈已审核完成！</p>
                 </div>
@@ -334,7 +334,7 @@ export function FeedbackReviewPanel({
                       onChange={handleSelectAll}
                       className="rounded border-gray-300"
                     />
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-muted-foreground text-sm">
                       全选 ({selectedItems.size}/{feedbackItems.length})
                     </span>
                   </div>
@@ -344,7 +344,7 @@ export function FeedbackReviewPanel({
                       key={item.id}
                       className={cn(
                         'rounded-lg border transition-all',
-                        expandedItem === item.id ? 'ring-2 ring-primary' : 'hover:border-primary/50'
+                        expandedItem === item.id ? 'ring-primary ring-2' : 'hover:border-primary/50'
                       )}
                     >
                       {/* Header */}
@@ -382,7 +382,7 @@ export function FeedbackReviewPanel({
                               title={`优先级: ${item.priority}`}
                             />
                           </div>
-                          <p className="truncate text-sm text-muted-foreground">
+                          <p className="text-muted-foreground truncate text-sm">
                             {item.aiContent.content.substring(0, 100)}...
                           </p>
                         </div>
@@ -391,18 +391,18 @@ export function FeedbackReviewPanel({
                           <div className="text-right">
                             <div className="flex items-center gap-1">
                               {getToneIcon(item.aiContent.tone)}
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-muted-foreground text-xs">
                                 AI 置信度: {Math.round(item.aiContent.aiConfidence * 100)}%
                               </span>
                             </div>
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-muted-foreground text-xs">
                               {new Date(item.createdAt).toLocaleString('zh-CN')}
                             </span>
                           </div>
                           {expandedItem === item.id ? (
-                            <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                            <ChevronUp className="text-muted-foreground h-5 w-5" />
                           ) : (
-                            <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                            <ChevronDown className="text-muted-foreground h-5 w-5" />
                           )}
                         </div>
                       </div>
@@ -439,7 +439,7 @@ export function FeedbackReviewPanel({
                             <>
                               <div className="py-4">
                                 <h4 className="mb-2 text-sm font-medium">反馈内容</h4>
-                                <div className="rounded-lg bg-muted p-4 text-sm leading-relaxed">
+                                <div className="bg-muted rounded-lg p-4 text-sm leading-relaxed">
                                   {item.aiContent.content}
                                 </div>
                               </div>
@@ -452,9 +452,9 @@ export function FeedbackReviewPanel({
                                       {item.aiContent.suggestedActions.map((action, idx) => (
                                         <li
                                           key={idx}
-                                          className="flex items-center gap-2 text-sm text-muted-foreground"
+                                          className="text-muted-foreground flex items-center gap-2 text-sm"
                                         >
-                                          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                                          <span className="bg-primary h-1.5 w-1.5 rounded-full" />
                                           {action}
                                         </li>
                                       ))}
@@ -512,7 +512,7 @@ export function FeedbackReviewPanel({
           </TabsContent>
 
           <TabsContent value="history">
-            <div className="py-12 text-center text-muted-foreground">
+            <div className="text-muted-foreground py-12 text-center">
               <Clock className="mx-auto mb-4 h-12 w-12" />
               <p>历史记录功能即将上线</p>
             </div>
@@ -524,13 +524,13 @@ export function FeedbackReviewPanel({
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-2xl font-bold">{stats.pendingCount}</div>
-                    <p className="text-xs text-muted-foreground">待审核</p>
+                    <p className="text-muted-foreground text-xs">待审核</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-2xl font-bold">{stats.approvedToday}</div>
-                    <p className="text-xs text-muted-foreground">今日通过</p>
+                    <p className="text-muted-foreground text-xs">今日通过</p>
                   </CardContent>
                 </Card>
                 <Card>
@@ -538,7 +538,7 @@ export function FeedbackReviewPanel({
                     <div className="text-2xl font-bold">
                       {Math.round(stats.averageConfidence * 100)}%
                     </div>
-                    <p className="text-xs text-muted-foreground">平均AI置信度</p>
+                    <p className="text-muted-foreground text-xs">平均AI置信度</p>
                   </CardContent>
                 </Card>
                 <Card>
@@ -546,13 +546,13 @@ export function FeedbackReviewPanel({
                     <div className="text-2xl font-bold">
                       {Math.round(stats.autoApprovedRate * 100)}%
                     </div>
-                    <p className="text-xs text-muted-foreground">自动通过率</p>
+                    <p className="text-muted-foreground text-xs">自动通过率</p>
                   </CardContent>
                 </Card>
               </div>
             ) : (
               <div className="py-12 text-center">
-                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
+                <div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2" />
               </div>
             )}
           </TabsContent>

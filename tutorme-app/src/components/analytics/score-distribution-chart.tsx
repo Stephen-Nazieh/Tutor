@@ -37,9 +37,9 @@ export function ScoreDistributionChart({
       <CardHeader>
         <CardTitle className="text-lg">{title}</CardTitle>
         {classAverage && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             班级平均分:{' '}
-            <span className="font-semibold text-primary">{classAverage.toFixed(1)}%</span>
+            <span className="text-primary font-semibold">{classAverage.toFixed(1)}%</span>
           </p>
         )}
       </CardHeader>

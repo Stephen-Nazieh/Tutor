@@ -48,9 +48,9 @@ export function PWAInstallPrompt() {
   if (!show) return null
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md rounded-lg border bg-background p-4 shadow-lg sm:left-auto sm:right-4">
+    <div className="bg-background fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md rounded-lg border p-4 shadow-lg sm:left-auto sm:right-4">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-sm text-foreground">将 Solocorn 添加到主屏幕，离线也能使用。</p>
+        <p className="text-foreground text-sm">将 Solocorn 添加到主屏幕，离线也能使用。</p>
         <Button
           variant="ghost"
           size="icon"

@@ -122,7 +122,7 @@ export function QuickPollPanel({
         className="flex flex-1 flex-col"
       >
         {!isConnected && (
-          <div className="px-4 pt-3 text-xs text-muted-foreground">
+          <div className="text-muted-foreground px-4 pt-3 text-xs">
             Waiting for poll socket connection. Creating or starting polls is disabled until
             connected.
           </div>

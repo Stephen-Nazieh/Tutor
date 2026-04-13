@@ -84,7 +84,7 @@ export default function CourseBuilderPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             {creating ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="text-muted-foreground flex items-center gap-2 text-sm">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Creating your course...
               </div>
@@ -94,7 +94,7 @@ export default function CourseBuilderPage() {
                 <Button onClick={() => void createCourse()}>Try Again</Button>
               </div>
             ) : (
-              <div className="text-sm text-muted-foreground">Redirecting...</div>
+              <div className="text-muted-foreground text-sm">Redirecting...</div>
             )}
           </CardContent>
         </Card>

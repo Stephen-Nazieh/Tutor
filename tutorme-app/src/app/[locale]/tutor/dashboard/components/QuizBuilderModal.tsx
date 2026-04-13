@@ -117,7 +117,7 @@ export function QuizBuilderModal({
             </DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
-            <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+            <TabsList className="bg-muted mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border p-1">
               <TabsTrigger
                 value="edit"
                 className="rounded-lg border border-gray-400 bg-white transition-all duration-200 data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
@@ -133,7 +133,7 @@ export function QuizBuilderModal({
             </TabsList>
             <TabsContent
               value="edit"
-              className="mt-4 space-y-4 rounded-2xl border border-border bg-card/95 p-6 py-4 shadow-xl backdrop-blur-md"
+              className="border-border bg-card/95 mt-4 space-y-4 rounded-2xl border p-6 py-4 shadow-xl backdrop-blur-md"
             >
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
@@ -208,7 +208,7 @@ export function QuizBuilderModal({
                         <SelectItem value="selected_lessons">Selected lessons only</SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       This is a summative assessment covering knowledge from the entire module
                     </p>
                   </div>
@@ -230,7 +230,7 @@ export function QuizBuilderModal({
                             <Badge variant="secondary">
                               Q{idx + 1} - {q.type.toUpperCase()}
                             </Badge>
-                            <label className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <label className="text-muted-foreground flex items-center gap-1 text-xs">
                               <input
                                 type="checkbox"
                                 checked={q.extendEnabled ?? false}
@@ -250,7 +250,7 @@ export function QuizBuilderModal({
                                 updateQuestion(idx, { points: parseInt(e.target.value) || 1 })
                               }
                             />
-                            <span className="text-sm text-muted-foreground">pts</span>
+                            <span className="text-muted-foreground text-sm">pts</span>
                             <Button
                               variant="ghost"
                               size="icon"
@@ -352,7 +352,7 @@ export function QuizBuilderModal({
                     >
                       <BookOpen className="mr-1 h-4 w-4" /> Add from question bank
                     </Button>
-                    <div className="mx-1 h-6 w-px bg-border" />
+                    <div className="bg-border mx-1 h-6 w-px" />
                     <Button variant="outline" size="sm" onClick={() => addQuestion('mcq')}>
                       <Plus className="mr-1 h-4 w-4" /> MCQ
                     </Button>
@@ -382,14 +382,14 @@ export function QuizBuilderModal({
               value="preview"
               className="mt-4 space-y-4 rounded-2xl bg-white/95 p-6 py-4 shadow-2xl backdrop-blur-md"
             >
-              <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+              <div className="bg-muted/30 space-y-3 rounded-lg border p-4">
                 <h3 className="font-semibold">{data.title}</h3>
                 {data.description && (
-                  <p className="text-sm text-muted-foreground">{data.description}</p>
+                  <p className="text-muted-foreground text-sm">{data.description}</p>
                 )}
                 {data.sourceDocument && (
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">
+                    <p className="text-muted-foreground text-xs font-medium">
                       Imported material (editable)
                     </p>
                     <Textarea
@@ -407,7 +407,7 @@ export function QuizBuilderModal({
                     />
                   </div>
                 )}
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   {data.timeLimit != null ? `${data.timeLimit} min limit · ` : ''}
                   {(data as Quiz).attemptsAllowed} attempt(s) · {data.questions.length} questions
                 </p>
@@ -509,15 +509,15 @@ function QuestionBankSelector({ onSelect }: { onSelect: (questions: QuizQuestion
       />
       <div className="max-h-[400px] overflow-y-auto rounded-lg border">
         {loading ? (
-          <div className="p-8 text-center text-muted-foreground">Loading...</div>
+          <div className="text-muted-foreground p-8 text-center">Loading...</div>
         ) : filteredItems.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground">No questions found</div>
+          <div className="text-muted-foreground p-8 text-center">No questions found</div>
         ) : (
           <div className="divide-y">
             {filteredItems.map(item => (
               <div
                 key={item.id}
-                className={`cursor-pointer p-3 transition-colors hover:bg-muted/50 ${
+                className={`hover:bg-muted/50 cursor-pointer p-3 transition-colors ${
                   selectedIds.has(item.id) ? 'bg-blue-50 hover:bg-blue-100' : ''
                 }`}
                 onClick={() => toggleSelection(item.id)}
@@ -535,7 +535,7 @@ function QuestionBankSelector({ onSelect }: { onSelect: (questions: QuizQuestion
                       <Badge variant="secondary" className="text-xs">
                         {item.type.toUpperCase()}
                       </Badge>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-muted-foreground text-xs">
                         {item.options?.length || 0} options
                       </span>
                     </div>

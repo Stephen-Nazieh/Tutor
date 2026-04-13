@@ -81,7 +81,7 @@ export default function SettingsPage() {
       case 'json':
         return (
           <textarea
-            className="min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className="border-input bg-background min-h-[100px] w-full rounded-md border px-3 py-2 text-sm"
             value={JSON.stringify(value, null, 2)}
             onChange={e => {
               try {

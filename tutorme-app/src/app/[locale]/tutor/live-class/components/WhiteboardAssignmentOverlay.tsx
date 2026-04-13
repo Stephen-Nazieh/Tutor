@@ -112,7 +112,7 @@ export function WhiteboardAssignmentOverlay({
           )}
 
           {isQuestionShare && (
-            <span className="text-xs text-muted-foreground">{questions.length} Q</span>
+            <span className="text-muted-foreground text-xs">{questions.length} Q</span>
           )}
         </div>
 
@@ -120,7 +120,7 @@ export function WhiteboardAssignmentOverlay({
           {canManageShare && isQuestionShare && (
             <>
               {/* Answers label */}
-              <span className="mr-1 text-xs text-muted-foreground">Answers:</span>
+              <span className="text-muted-foreground mr-1 text-xs">Answers:</span>
 
               {/* Me */}
               <Button
@@ -199,7 +199,7 @@ export function WhiteboardAssignmentOverlay({
 
               {/* Timer */}
               <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3 text-muted-foreground" />
+                <Clock className="text-muted-foreground h-3 w-3" />
                 <Label htmlFor="time-limit" className="text-xs">
                   Time:
                 </Label>
@@ -212,7 +212,7 @@ export function WhiteboardAssignmentOverlay({
                   onChange={e => handleTimeLimitChange(e.target.value)}
                   className="h-6 w-14 text-xs"
                 />
-                <span className="text-xs text-muted-foreground">min</span>
+                <span className="text-muted-foreground text-xs">min</span>
               </div>
             </>
           )}
@@ -297,7 +297,7 @@ export function WhiteboardAssignmentOverlay({
                     </div>
 
                     {q.options && q.options.length > 0 && (
-                      <div className="pl-8 text-xs text-muted-foreground">
+                      <div className="text-muted-foreground pl-8 text-xs">
                         {q.options.join(' • ')}
                       </div>
                     )}
@@ -314,7 +314,7 @@ export function WhiteboardAssignmentOverlay({
                 ))}
               </div>
             ) : share.fileUrl ? (
-              <div className="flex h-40 flex-col items-center justify-center text-muted-foreground">
+              <div className="text-muted-foreground flex h-40 flex-col items-center justify-center">
                 <p className="text-sm">PDF Document</p>
                 <a
                   href={share.fileUrl}
@@ -326,7 +326,7 @@ export function WhiteboardAssignmentOverlay({
                 </a>
               </div>
             ) : (
-              <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
+              <div className="text-muted-foreground flex h-40 items-center justify-center text-sm">
                 No content available
               </div>
             )}

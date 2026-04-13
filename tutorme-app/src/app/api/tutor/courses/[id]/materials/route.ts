@@ -26,8 +26,7 @@ export const PATCH = withCsrf(
       const body = await req.json().catch(() => ({}))
       const materials: Record<string, unknown> = {}
 
-      if (typeof body.editableCourse === 'string')
-        materials.editableCourse = body.editableCourse
+      if (typeof body.editableCourse === 'string') materials.editableCourse = body.editableCourse
       if (typeof body.editableNotes === 'string') materials.editableNotes = body.editableNotes
       if (typeof body.editableTopics === 'string') materials.editableTopics = body.editableTopics
       if (Array.isArray(body.outline)) {

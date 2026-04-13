@@ -298,7 +298,7 @@ export function LiveSharedDocumentModal({
                 {isQuestionShare && (
                   <div className="flex flex-wrap items-center gap-4">
                     {/* Answers label */}
-                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    <span className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
                       Answers:
                     </span>
 
@@ -364,7 +364,7 @@ export function LiveSharedDocumentModal({
 
                       {/* Timer */}
                       <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <Clock className="text-muted-foreground h-4 w-4" />
                         <Label htmlFor="time-limit" className="text-sm">
                           Time limit:
                         </Label>
@@ -377,7 +377,7 @@ export function LiveSharedDocumentModal({
                           onChange={e => handleTimeLimitChange(e.target.value)}
                           className="h-8 w-20"
                         />
-                        <span className="text-sm text-muted-foreground">min</span>
+                        <span className="text-muted-foreground text-sm">min</span>
                       </div>
                     </>
                   )}
@@ -453,7 +453,7 @@ export function LiveSharedDocumentModal({
                 type="button"
                 onClick={onSubmitToTutor}
                 disabled={hasSubmitted}
-                className="rounded border px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-60"
+                className="hover:bg-muted rounded border px-3 py-1.5 text-sm disabled:opacity-60"
               >
                 {hasSubmitted ? 'Submitted to Tutor' : 'Submit to Tutor'}
               </button>
@@ -471,13 +471,13 @@ export function LiveSharedDocumentModal({
                 {canManageShare ? (
                   <>
                     <div className="flex items-center justify-between">
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-muted-foreground text-xs">
                         Tutor view — {questions.length} question(s)
                       </div>
                       {/* Timer display for tutor */}
                       {share.timeLimit && share.timeLimit > 0 && (
                         <div className="flex items-center gap-1 text-sm">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <Clock className="text-muted-foreground h-4 w-4" />
                           <span className="text-muted-foreground">
                             Time limit: {share.timeLimit} min
                           </span>
@@ -492,12 +492,12 @@ export function LiveSharedDocumentModal({
                               Q{idx + 1}. {q.question}
                             </div>
                             {q.options?.length ? (
-                              <div className="text-xs text-muted-foreground">
+                              <div className="text-muted-foreground text-xs">
                                 Options: {q.options.join(', ')}
                               </div>
                             ) : null}
                             {q.type === 'matching' && q.matchingPairs && (
-                              <div className="text-xs text-muted-foreground">
+                              <div className="text-muted-foreground text-xs">
                                 Pairs:{' '}
                                 {q.matchingPairs
                                   .map(pair => `${pair.left} → ${pair.right}`)
@@ -520,7 +520,7 @@ export function LiveSharedDocumentModal({
                 ) : currentQuestion ? (
                   <>
                     <div className="flex items-center justify-between">
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-muted-foreground text-xs">
                         Question {Math.min(currentIndex + 1, questions.length)} of{' '}
                         {questions.length}
                       </div>
@@ -528,7 +528,7 @@ export function LiveSharedDocumentModal({
                       {/* Timer display for students */}
                       {share.timeLimit && share.timeLimit > 0 && (
                         <div className="flex items-center gap-1 text-sm">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <Clock className="text-muted-foreground h-4 w-4" />
                           <span className="text-muted-foreground">
                             Time limit: {share.timeLimit} min
                           </span>
@@ -666,17 +666,17 @@ export function LiveSharedDocumentModal({
                     </div>
                   </>
                 ) : (
-                  <div className="rounded border p-4 text-sm text-muted-foreground">
+                  <div className="text-muted-foreground rounded border p-4 text-sm">
                     No questions available.
                   </div>
                 )}
               </div>
             ) : isPdf ? (
-              <div className="flex h-full items-center justify-center text-muted-foreground">
+              <div className="text-muted-foreground flex h-full items-center justify-center">
                 PDF tutoring feature has been deprecated
               </div>
             ) : (
-              <div className="m-4 rounded-lg border bg-muted/20 p-4 text-sm">
+              <div className="bg-muted/20 m-4 rounded-lg border p-4 text-sm">
                 <p className="font-medium">This file is not a PDF.</p>
                 <p className="text-muted-foreground">
                   Open the source file in a new tab. PDF canvas annotation is available for PDF

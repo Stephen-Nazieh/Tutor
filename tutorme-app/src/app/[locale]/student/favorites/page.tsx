@@ -123,7 +123,7 @@ export default function StudentFavoritesPage() {
           <TabsTrigger value="tutors">
             Tutors
             {favoriteTutors.length > 0 && (
-              <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
+              <span className="bg-muted ml-2 rounded-full px-2 py-0.5 text-xs">
                 {favoriteTutors.length}
               </span>
             )}
@@ -131,7 +131,7 @@ export default function StudentFavoritesPage() {
           <TabsTrigger value="courses">
             Courses
             {favoriteCourses.length > 0 && (
-              <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
+              <span className="bg-muted ml-2 rounded-full px-2 py-0.5 text-xs">
                 {favoriteCourses.length}
               </span>
             )}
@@ -144,8 +144,8 @@ export default function StudentFavoritesPage() {
               {Array.from({ length: 3 }).map((_, i) => (
                 <Card key={i} className="animate-pulse">
                   <CardHeader className="space-y-3">
-                    <div className="h-6 w-2/3 rounded bg-muted" />
-                    <div className="h-4 w-1/2 rounded bg-muted" />
+                    <div className="bg-muted h-6 w-2/3 rounded" />
+                    <div className="bg-muted h-4 w-1/2 rounded" />
                   </CardHeader>
                 </Card>
               ))}
@@ -153,9 +153,9 @@ export default function StudentFavoritesPage() {
           ) : favoriteTutors.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
-                <Heart className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                <Heart className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
                 <h3 className="mb-2 text-lg font-medium">No favorite tutors yet</h3>
-                <p className="mb-4 text-muted-foreground">
+                <p className="text-muted-foreground mb-4">
                   Browse tutors and click the heart icon to save them here.
                 </p>
                 <Button asChild>
@@ -169,9 +169,9 @@ export default function StudentFavoritesPage() {
                 <Card key={tutor.id} className="relative">
                   <button
                     onClick={() => removeTutor(tutor.id)}
-                    className="absolute right-3 top-3 rounded-full p-2 transition-colors hover:bg-muted"
+                    className="hover:bg-muted absolute right-3 top-3 rounded-full p-2 transition-colors"
                   >
-                    <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
+                    <Trash2 className="text-muted-foreground h-4 w-4 hover:text-red-500" />
                   </button>
                   <CardHeader>
                     <div className="flex items-start gap-3 pr-8">
@@ -188,7 +188,7 @@ export default function StudentFavoritesPage() {
                         <CardDescription>@{tutor.username}</CardDescription>
                       </div>
                     </div>
-                    <p className="line-clamp-2 text-sm text-muted-foreground">
+                    <p className="text-muted-foreground line-clamp-2 text-sm">
                       {tutor.bio || 'Experienced tutor ready to help you improve quickly.'}
                     </p>
                   </CardHeader>
@@ -197,7 +197,7 @@ export default function StudentFavoritesPage() {
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                         <span className="font-medium">{tutor.averageRating.toFixed(1)}</span>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-muted-foreground text-sm">
                           ({tutor.totalReviewCount} reviews)
                         </span>
                       </div>
@@ -210,7 +210,7 @@ export default function StudentFavoritesPage() {
                       ))}
                     </div>
                     <div className="flex items-center justify-between border-t pt-2">
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-muted-foreground text-sm">
                         {tutor.courseCount} courses
                       </span>
                       <Button asChild size="sm">
@@ -233,8 +233,8 @@ export default function StudentFavoritesPage() {
               {Array.from({ length: 3 }).map((_, i) => (
                 <Card key={i} className="animate-pulse">
                   <CardHeader className="space-y-3">
-                    <div className="h-6 w-2/3 rounded bg-muted" />
-                    <div className="h-4 w-1/2 rounded bg-muted" />
+                    <div className="bg-muted h-6 w-2/3 rounded" />
+                    <div className="bg-muted h-4 w-1/2 rounded" />
                   </CardHeader>
                 </Card>
               ))}
@@ -242,9 +242,9 @@ export default function StudentFavoritesPage() {
           ) : favoriteCourses.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
-                <BookOpen className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                <BookOpen className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
                 <h3 className="mb-2 text-lg font-medium">No favorite courses yet</h3>
-                <p className="mb-4 text-muted-foreground">
+                <p className="text-muted-foreground mb-4">
                   Browse courses and click the heart icon to save them here.
                 </p>
                 <Button asChild>
@@ -258,16 +258,16 @@ export default function StudentFavoritesPage() {
                 <Card key={course.id} className="relative">
                   <button
                     onClick={() => removeCourse(course.id)}
-                    className="absolute right-3 top-3 rounded-full p-2 transition-colors hover:bg-muted"
+                    className="hover:bg-muted absolute right-3 top-3 rounded-full p-2 transition-colors"
                   >
-                    <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
+                    <Trash2 className="text-muted-foreground h-4 w-4 hover:text-red-500" />
                   </button>
                   <CardHeader>
                     <div className="pr-8">
                       <CardTitle className="text-lg">{course.name}</CardTitle>
                       <CardDescription>{course.subject}</CardDescription>
                     </div>
-                    <p className="line-clamp-2 text-sm text-muted-foreground">
+                    <p className="text-muted-foreground line-clamp-2 text-sm">
                       {course.description || 'No description available.'}
                     </p>
                   </CardHeader>
@@ -282,12 +282,12 @@ export default function StudentFavoritesPage() {
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                         <span className="font-medium">{course.rating.toFixed(1)}</span>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-muted-foreground text-sm">
                           ({course.reviewCount} reviews)
                         </span>
                       </div>
                     )}
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="text-muted-foreground flex items-center gap-4 text-sm">
                       <span className="flex items-center gap-1">
                         <BookOpen className="h-4 w-4" />
                         {course.moduleCount} modules

@@ -16,6 +16,7 @@ import {
 import * as enums from '../enums'
 
 import { user } from './auth'
+import { builderTask } from './builder'
 
 // ============================================
 // COURSE TABLES
@@ -34,7 +35,7 @@ export const course = pgTable(
       .notNull()
       .defaultNow()
       .$onUpdate(() => new Date()),
-    creatorId: text('creatorId'),
+    creatorId: text('creatorId').references(() => user.userId, { onDelete: 'set null' }),
     isLiveOnline: boolean('isLiveOnline').notNull().default(false),
     languageOfInstruction: text('languageOfInstruction'),
     price: doublePrecision('price'),
@@ -62,9 +63,15 @@ export const courseShare = pgTable(
   'CourseShare',
   {
     shareId: text('id').primaryKey().notNull(),
-    courseId: text('courseId').notNull(),
-    sharedByTutorId: text('sharedByTutorId').notNull(),
-    recipientId: text('recipientId').notNull(),
+    courseId: text('courseId')
+      .notNull()
+      .references(() => course.courseId, { onDelete: 'cascade' }),
+    sharedByTutorId: text('sharedByTutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    recipientId: text('recipientId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     message: text('message').notNull(),
     isPublic: boolean('isPublic').notNull(),
     sharedAt: timestamp('sharedAt', { withTimezone: true }).notNull().defaultNow(),
@@ -113,8 +120,12 @@ export const lessonSession = pgTable(
   'LessonSession',
   {
     sessionId: text('id').primaryKey().notNull(),
-    studentId: text('studentId').notNull(),
-    lessonId: text('lessonId').notNull(),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    lessonId: text('lessonId')
+      .notNull()
+      .references(() => courseLesson.lessonId, { onDelete: 'cascade' }),
     status: text('status').notNull(),
     currentSection: text('currentSection').notNull(),
     conceptMastery: jsonb('conceptMastery').notNull(),
@@ -141,8 +152,12 @@ export const courseLessonProgress = pgTable(
   'CourseLessonProgress',
   {
     progressId: text('id').primaryKey().notNull(),
-    lessonId: text('lessonId').notNull(),
-    studentId: text('studentId').notNull(),
+    lessonId: text('lessonId')
+      .notNull()
+      .references(() => courseLesson.lessonId, { onDelete: 'cascade' }),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     status: text('status').notNull(),
     currentSection: text('currentSection').notNull(),
     score: integer('score'),
@@ -224,8 +239,10 @@ export const studentPerformance = pgTable(
   'StudentPerformance',
   {
     performanceId: text('id').primaryKey().notNull(),
-    studentId: text('studentId').notNull(),
-    courseId: text('courseId'),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    courseId: text('courseId').references(() => course.courseId, { onDelete: 'set null' }),
     averageScore: doublePrecision('averageScore').notNull(),
     completionRate: doublePrecision('completionRate').notNull(),
     engagementScore: doublePrecision('engagementScore').notNull(),
@@ -242,6 +259,7 @@ export const studentPerformance = pgTable(
     recommendedPeers: jsonb('recommendedPeers').notNull(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -259,8 +277,12 @@ export const taskSubmission = pgTable(
   'TaskSubmission',
   {
     submissionId: text('id').primaryKey().notNull(),
-    taskId: text('taskId').notNull(),
-    studentId: text('studentId').notNull(),
+    taskId: text('taskId')
+      .notNull()
+      .references(() => builderTask.taskId, { onDelete: 'cascade' }),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     answers: jsonb('answers').notNull(),
     timeSpent: integer('timeSpent').notNull(),
     attempts: integer('attempts').notNull(),
@@ -288,8 +310,13 @@ export const feedbackWorkflow = pgTable(
   'FeedbackWorkflow',
   {
     workflowId: text('id').primaryKey().notNull(),
-    submissionId: text('submissionId').notNull().unique(),
-    studentId: text('studentId').notNull(),
+    submissionId: text('submissionId')
+      .notNull()
+      .unique()
+      .references(() => taskSubmission.submissionId, { onDelete: 'cascade' }),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     aiScore: doublePrecision('aiScore'),
     aiComments: text('aiComments'),
     aiStrengths: jsonb('aiStrengths').notNull(),
@@ -300,11 +327,12 @@ export const feedbackWorkflow = pgTable(
     modifiedComments: text('modifiedComments'),
     addedNotes: text('addedNotes'),
     approvedAt: timestamp('approvedAt', { withTimezone: true }),
-    approvedBy: text('approvedBy'),
+    approvedBy: text('approvedBy').references(() => user.userId, { onDelete: 'set null' }),
     autoApproved: boolean('autoApproved').notNull(),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({

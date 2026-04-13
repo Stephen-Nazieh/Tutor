@@ -511,12 +511,7 @@ async function checkCriticalEndpointsHealth(request: NextRequest): Promise<Healt
   try {
     const baseUrl =
       request.nextUrl.origin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3003'
-    const criticalEndpoints = [
-      '/api/health',
-      '/api/auth/session',
-      '/api/courses/list',
-      '/api/csrf',
-    ]
+    const criticalEndpoints = ['/api/health', '/api/auth/session', '/api/courses/list', '/api/csrf']
 
     const endpointTests = await Promise.all(
       criticalEndpoints.map(async path => {

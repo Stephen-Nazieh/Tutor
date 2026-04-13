@@ -38,7 +38,7 @@ export function EngagementTimelineChart({
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="text-lg">{title}</CardTitle>
-        <div className="flex gap-4 text-sm text-muted-foreground">
+        <div className="text-muted-foreground flex gap-4 text-sm">
           <span>
             消息: <strong className="text-blue-500">{totalMessages}</strong>
           </span>

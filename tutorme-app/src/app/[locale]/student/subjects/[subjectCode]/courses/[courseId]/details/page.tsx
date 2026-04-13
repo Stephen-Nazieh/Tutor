@@ -135,7 +135,7 @@ export default function CourseDetailsPage() {
           </Link>
           <Card className="border-destructive/50">
             <CardContent className="pt-6">
-              <p className="text-sm text-destructive">{error ?? 'Course not found'}</p>
+              <p className="text-destructive text-sm">{error ?? 'Course not found'}</p>
               <Button variant="outline" asChild className="mt-4">
                 <Link href={coursesUrl}>Back to courses</Link>
               </Button>
@@ -162,8 +162,8 @@ export default function CourseDetailsPage() {
         <Card>
           <CardHeader>
             <div className="flex items-start gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <BookOpen className="h-6 w-6 text-primary" />
+              <div className="bg-primary/10 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg">
+                <BookOpen className="text-primary h-6 w-6" />
               </div>
               <div className="min-w-0 flex-1">
                 <CardTitle className="text-xl">{data.name}</CardTitle>
@@ -184,7 +184,7 @@ export default function CourseDetailsPage() {
             {data.description && (
               <div>
                 <h3 className="mb-1 text-sm font-medium text-gray-700">Description</h3>
-                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                <p className="text-muted-foreground whitespace-pre-wrap text-sm">
                   {data.description}
                 </p>
               </div>
@@ -196,10 +196,10 @@ export default function CourseDetailsPage() {
                   <User className="h-4 w-4" />
                   Tutor
                 </h3>
-                <div className="rounded-lg border bg-muted/30 p-3">
+                <div className="bg-muted/30 rounded-lg border p-3">
                   <p className="font-medium">{data.creator.name}</p>
                   {data.creator.bio && (
-                    <p className="mt-1 text-sm text-muted-foreground">{data.creator.bio}</p>
+                    <p className="text-muted-foreground mt-1 text-sm">{data.creator.bio}</p>
                   )}
                 </div>
               </div>
@@ -207,41 +207,41 @@ export default function CourseDetailsPage() {
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="flex items-center gap-2 text-sm">
-                <Clock className="h-4 w-4 text-muted-foreground" />
+                <Clock className="text-muted-foreground h-4 w-4" />
                 <span>
                   <strong>Duration:</strong> {data.estimatedHours} hours estimated
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <DollarSign className="text-muted-foreground h-4 w-4" />
                 <span>
                   <strong>Price:</strong> {formatPrice(data.price, data.currency)}
                 </span>
               </div>
               {data.languageOfInstruction && (
                 <div className="flex items-center gap-2 text-sm">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <Globe className="text-muted-foreground h-4 w-4" />
                   <span>
                     <strong>Language:</strong> {data.languageOfInstruction}
                   </span>
                 </div>
               )}
               <div className="flex items-center gap-2 text-sm">
-                <BookOpen className="h-4 w-4 text-muted-foreground" />
+                <BookOpen className="text-muted-foreground h-4 w-4" />
                 <span>
                   {data.modulesCount} modules · {data.lessonsCount} lessons
                 </span>
               </div>
               {data.studentCount != null && data.studentCount > 0 && (
                 <div className="flex items-center gap-2 text-sm">
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <Users className="text-muted-foreground h-4 w-4" />
                   <span>{data.studentCount} students enrolled</span>
                 </div>
               )}
             </div>
 
             {data.isLiveOnline && (
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <p className="text-muted-foreground flex items-center gap-2 text-sm">
                 <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
                 Live online sessions available
               </p>
@@ -253,7 +253,7 @@ export default function CourseDetailsPage() {
                   <Calendar className="h-4 w-4" />
                   Schedule
                 </h3>
-                <p className="text-sm text-muted-foreground">{scheduleText}</p>
+                <p className="text-muted-foreground text-sm">{scheduleText}</p>
               </div>
             )}
 

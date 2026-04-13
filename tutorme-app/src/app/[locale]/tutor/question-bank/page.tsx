@@ -624,7 +624,7 @@ export default function QuestionBankPage() {
           <div className="flex flex-wrap gap-4">
             <div className="min-w-[200px] flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                 <Input
                   placeholder="Search questions..."
                   value={searchQuery}
@@ -670,13 +670,13 @@ export default function QuestionBankPage() {
       {/* Questions List */}
       {loading ? (
         <div className="flex h-64 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
         </div>
       ) : questions.length === 0 ? (
         <Card className="p-12 text-center">
-          <BookOpen className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+          <BookOpen className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
           <h3 className="mb-2 text-lg font-medium">No questions yet</h3>
-          <p className="mb-4 text-muted-foreground">
+          <p className="text-muted-foreground mb-4">
             Create your first item to start building your assessment bank
           </p>
           <Button
@@ -706,7 +706,7 @@ export default function QuestionBankPage() {
                     </div>
                     <p className="mb-2 font-medium">{question.question}</p>
                     {(question.options as string[])?.length > 0 && (
-                      <div className="mb-2 text-sm text-muted-foreground">
+                      <div className="text-muted-foreground mb-2 text-sm">
                         Options:{' '}
                         {(question.options as string[]).map((o, i) => (
                           <span
@@ -739,7 +739,7 @@ export default function QuestionBankPage() {
                       <Copy className="h-4 w-4" />
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => handleDelete(question.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                      <Trash2 className="text-destructive h-4 w-4" />
                     </Button>
                   </div>
                 </div>

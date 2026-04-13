@@ -45,7 +45,7 @@ export function CourseScheduleCard({
           <Calendar className="h-5 w-5" />
           Class schedule
           {subtitle && (
-            <span className="text-sm font-normal text-muted-foreground">({subtitle})</span>
+            <span className="text-muted-foreground text-sm font-normal">({subtitle})</span>
           )}
         </CardTitle>
         <CardDescription>

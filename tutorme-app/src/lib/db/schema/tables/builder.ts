@@ -25,13 +25,14 @@ export const builderTask = pgTable(
     content: text('content').notNull(), // Content tab content
     pci: text('pci').notNull(), // PCI tab content (instructions)
     details: text('details'), // Additional details
-    type: text('type').notNull().default('task'), // 'task', 'assessment', or 'homework'
-    status: text('status').notNull().default('draft'), // 'draft', 'published', 'archived'
+    type: enums.builderTaskTypeEnum('type').notNull().default('task'),
+    status: enums.builderTaskStatusEnum('status').notNull().default('draft'),
     order: integer('order').notNull().default(0), // For ordering within lesson
     metadata: jsonb('metadata'), // Additional flexible metadata
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
     publishedAt: timestamp('publishedAt', { withTimezone: true }),
     // Soft delete
@@ -66,6 +67,7 @@ export const builderTaskExtension = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -133,6 +135,7 @@ export const builderTaskDmi = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -205,9 +208,15 @@ export const taskQuestion = pgTable(
   'TaskQuestion',
   {
     questionId: text('id').primaryKey().notNull(),
-    taskId: text('taskId').notNull(),
-    tutorId: text('tutorId').notNull(),
-    sessionId: text('sessionId').notNull(), // Live session this question belongs to
+    taskId: text('taskId')
+      .notNull()
+      .references(() => builderTask.taskId, { onDelete: 'cascade' }),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    sessionId: text('sessionId')
+      .notNull()
+      .references(() => liveSession.sessionId, { onDelete: 'cascade' }), // Live session this question belongs to
     question: text('question').notNull(),
     answers: jsonb('answers')
       .notNull()
@@ -238,7 +247,7 @@ export const taskDeployment = pgTable(
       .references(() => liveSession.sessionId, { onDelete: 'cascade' }),
     studentIds: jsonb('studentIds').notNull().$type<string[]>(), // Target students
     deployedAt: timestamp('deployedAt', { withTimezone: true }).notNull().defaultNow(),
-    status: text('status').notNull().default('active'), // 'active', 'closed'
+    status: enums.taskDeploymentStatusEnum('status').notNull().default('active'),
     closedAt: timestamp('closedAt', { withTimezone: true }),
   },
   table => ({
@@ -257,7 +266,9 @@ export const tutorAsset = pgTable(
   'TutorAsset',
   {
     assetId: text('id').primaryKey().notNull(),
-    tutorId: text('tutorId').notNull(),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     content: text('content'), // Extracted text content
     url: text('url'), // File URL if stored externally
@@ -267,6 +278,7 @@ export const tutorAsset = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({

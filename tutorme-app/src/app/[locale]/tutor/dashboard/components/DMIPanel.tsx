@@ -26,7 +26,7 @@ export function DMIPanel({ items, onItemsChange, onDeploy }: DMIPanelProps) {
     return (
       <div className="min-h-[150px] rounded-lg bg-slate-50 p-3">
         <h4 className="mb-2 text-sm font-medium">Digital Marking Interface</h4>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Click "Generate DMI" to create a student answer form from the Slide tab.
         </p>
       </div>

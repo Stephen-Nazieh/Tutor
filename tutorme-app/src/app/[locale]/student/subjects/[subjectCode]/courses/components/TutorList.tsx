@@ -97,8 +97,8 @@ export function TutorList({ subjectCode }: TutorListProps) {
     return (
       <Card className="border-destructive/50">
         <CardContent className="pt-6 text-center">
-          <AlertCircle className="mx-auto mb-4 h-12 w-12 text-destructive" />
-          <p className="mb-4 text-destructive">{error}</p>
+          <AlertCircle className="text-destructive mx-auto mb-4 h-12 w-12" />
+          <p className="text-destructive mb-4">{error}</p>
           <Button variant="outline" onClick={() => window.location.reload()}>
             Try Again
           </Button>
@@ -112,9 +112,9 @@ export function TutorList({ subjectCode }: TutorListProps) {
     return (
       <Card className="border-border bg-card">
         <CardContent className="pb-12 pt-12 text-center">
-          <Users className="mx-auto mb-4 h-16 w-16 text-muted" />
-          <h3 className="mb-2 text-lg font-medium text-foreground">No tutors available yet</h3>
-          <p className="mx-auto mb-6 max-w-md text-muted-foreground">
+          <Users className="text-muted mx-auto mb-4 h-16 w-16" />
+          <h3 className="text-foreground mb-2 text-lg font-medium">No tutors available yet</h3>
+          <p className="text-muted-foreground mx-auto mb-6 max-w-md">
             We&apos;re working on adding tutors for this subject. Check back soon or try the AI
             tutor option!
           </p>
@@ -132,7 +132,7 @@ export function TutorList({ subjectCode }: TutorListProps) {
   // Tutors list
   return (
     <div className="space-y-4">
-      <p className="mb-4 text-sm text-muted-foreground">
+      <p className="text-muted-foreground mb-4 text-sm">
         {tutors.length} tutor{tutors.length !== 1 ? 's' : ''} available for this subject
       </p>
       {tutors.map(tutor => (

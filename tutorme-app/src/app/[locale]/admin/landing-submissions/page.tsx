@@ -60,7 +60,7 @@ export default function LandingSubmissionsPage() {
     <div className="space-y-6 p-6">
       <div>
         <h1 className="text-3xl font-bold">Landing Page Submissions</h1>
-        <p className="mt-1 text-muted-foreground">
+        <p className="text-muted-foreground mt-1">
           Contact messages and tutor sign-up applications from the landing page.
         </p>
       </div>
@@ -75,7 +75,7 @@ export default function LandingSubmissionsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{messages.length}</div>
-            <p className="text-xs text-muted-foreground">Total inquiries received</p>
+            <p className="text-muted-foreground text-xs">Total inquiries received</p>
           </CardContent>
         </Card>
         <Card>
@@ -87,7 +87,7 @@ export default function LandingSubmissionsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{signups.length}</div>
-            <p className="text-xs text-muted-foreground">Tutor applications received</p>
+            <p className="text-muted-foreground text-xs">Tutor applications received</p>
           </CardContent>
         </Card>
       </div>
@@ -116,7 +116,7 @@ export default function LandingSubmissionsPage() {
           {messages.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
-                <Mail className="mx-auto mb-4 h-12 w-12 text-muted-foreground/30" />
+                <Mail className="text-muted-foreground/30 mx-auto mb-4 h-12 w-12" />
                 <p className="text-muted-foreground">No contact messages yet.</p>
               </CardContent>
             </Card>
@@ -133,7 +133,7 @@ export default function LandingSubmissionsPage() {
                         </a>
                       </CardDescription>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <div className="text-muted-foreground flex items-center gap-1 text-xs">
                       <Clock className="h-3 w-3" />
                       {formatDate(msg.createdAt)}
                     </div>
@@ -151,7 +151,7 @@ export default function LandingSubmissionsPage() {
           {signups.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
-                <UserPlus className="mx-auto mb-4 h-12 w-12 text-muted-foreground/30" />
+                <UserPlus className="text-muted-foreground/30 mx-auto mb-4 h-12 w-12" />
                 <p className="text-muted-foreground">No tutor applications yet.</p>
               </CardContent>
             </Card>
@@ -180,9 +180,9 @@ export default function LandingSubmissionsPage() {
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {signup.bio && (
-                      <p className="line-clamp-3 text-sm text-muted-foreground">{signup.bio}</p>
+                      <p className="text-muted-foreground line-clamp-3 text-sm">{signup.bio}</p>
                     )}
-                    <div className="flex items-center gap-1 border-t pt-1 text-xs text-muted-foreground">
+                    <div className="text-muted-foreground flex items-center gap-1 border-t pt-1 text-xs">
                       <Clock className="h-3 w-3" />
                       {formatDate(signup.createdAt)}
                     </div>

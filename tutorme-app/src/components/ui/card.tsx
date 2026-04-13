@@ -12,17 +12,17 @@ const cardVariants = cva(
   [
     'rounded-xl', // Soft rounded corners
     'bg-card text-card-foreground',
-    'transition-all duration-250 ease-premium',
+    'duration-250 ease-premium transition-all',
   ],
   {
     variants: {
       // Elevation levels - Floating in space effect
       elevation: {
-        none: ['border border-border/50'],
-        1: ['border border-border/50', 'shadow-elevation-1'],
-        2: ['border border-border/40', 'shadow-elevation-2'],
-        3: ['border border-border/30', 'shadow-elevation-3'],
-        4: ['border border-border/20', 'shadow-elevation-4'],
+        none: ['border-border/50 border'],
+        1: ['border-border/50 border', 'shadow-elevation-1'],
+        2: ['border-border/40 border', 'shadow-elevation-2'],
+        3: ['border-border/30 border', 'shadow-elevation-3'],
+        4: ['border-border/20 border', 'shadow-elevation-4'],
         5: ['border-0', 'shadow-elevation-5'],
       },
 
@@ -42,15 +42,15 @@ const cardVariants = cva(
       variant: {
         default: '',
         elevated: ['bg-card-elevated', 'border-0', 'shadow-elevation-3'],
-        outlined: ['bg-transparent', 'border-2 border-border', 'shadow-none'],
+        outlined: ['bg-transparent', 'border-border border-2', 'shadow-none'],
         ghost: ['bg-transparent', 'border-0', 'shadow-none', 'hover:bg-accent/20'],
         glass: [
           'bg-background/80',
           'backdrop-blur-md',
-          'border border-border/50',
+          'border-border/50 border',
           'shadow-elevation-2',
         ],
-        floating: ['bg-card', 'border border-border/20', 'shadow-floating'],
+        floating: ['bg-card', 'border-border/20 border', 'shadow-floating'],
       },
 
       // Padding options
@@ -108,7 +108,7 @@ const CardHeader = React.forwardRef<
       spacing === 'sm' && 'p-4',
       spacing === 'default' && 'p-6',
       spacing === 'lg' && 'p-8',
-      bordered && 'border-b border-border/50',
+      bordered && 'border-border/50 border-b',
       className
     )}
     {...props}
@@ -137,7 +137,7 @@ const CardTitle = React.forwardRef<
     <Component
       ref={ref}
       className={cn(
-        'font-semibold leading-tight tracking-tight text-foreground',
+        'text-foreground font-semibold leading-tight tracking-tight',
         sizeClasses[size],
         className
       )}
@@ -222,7 +222,7 @@ const CardFooter = React.forwardRef<
         spacing === 'sm' && 'p-4',
         spacing === 'default' && 'p-6',
         spacing === 'lg' && 'p-8',
-        bordered && 'border-t border-border/50',
+        bordered && 'border-border/50 border-t',
         className
       )}
       {...props}
@@ -263,7 +263,7 @@ const CardImage = React.forwardRef<
         className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
       />
       {overlay && (
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+        <div className="from-background/80 absolute inset-0 bg-gradient-to-t to-transparent" />
       )}
     </div>
   )
@@ -316,7 +316,7 @@ const CardDivider = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      'border-t border-border/50',
+      'border-border/50 border-t',
       spacing === 'sm' && 'my-3',
       spacing === 'default' && 'my-4',
       spacing === 'lg' && 'my-6',

@@ -102,7 +102,7 @@ export default function StudentQuizzesPage() {
         <TabsContent value={activeTab}>
           {quizzes.length === 0 ? (
             <Card className="p-12 text-center">
-              <FileText className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+              <FileText className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
               <h3 className="mb-2 text-lg font-medium">No quizzes found</h3>
               <p className="text-muted-foreground">
                 {activeTab === 'available'
@@ -137,7 +137,7 @@ export default function StudentQuizzesPage() {
 
                     {/* Due date */}
                     {quiz.dueDate && (
-                      <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="text-muted-foreground mb-4 flex items-center gap-2 text-sm">
                         <Calendar className="h-4 w-4" />
                         Due {new Date(quiz.dueDate).toLocaleDateString()}
                       </div>
@@ -165,7 +165,7 @@ export default function StudentQuizzesPage() {
 
                     {/* Attempts remaining */}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-muted-foreground text-sm">
                         {quiz.attemptsMade} / {quiz.allowedAttempts} attempts used
                       </span>
                       {quiz.canAttempt ? (

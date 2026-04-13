@@ -3334,7 +3334,7 @@ export function TutorWhiteboardManager({
                     </div>
                   )}
                 </div>
-                <div className="mt-4 rounded-md border bg-muted/20 p-3">
+                <div className="bg-muted/20 mt-4 rounded-md border p-3">
                   <h4 className="mb-2 text-sm font-semibold">
                     Moderation + Overlay + Breakout Sync
                   </h4>
@@ -3423,7 +3423,7 @@ export function TutorWhiteboardManager({
             </div>
           ) : (
             <div className="space-y-4 overflow-y-auto px-6 py-4">
-              <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted/40 px-3 py-2">
+              <div className="bg-muted/40 flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{reviewStudent.name}</span>
                   {reviewSubmission ? (

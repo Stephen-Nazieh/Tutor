@@ -154,9 +154,9 @@ export function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankMod
           {/* Left: Question List */}
           <div className="flex-1 overflow-y-auto rounded-lg border">
             {loading ? (
-              <div className="p-8 text-center text-muted-foreground">Loading bank...</div>
+              <div className="text-muted-foreground p-8 text-center">Loading bank...</div>
             ) : filteredQuestions.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">No matched items</div>
+              <div className="text-muted-foreground p-8 text-center">No matched items</div>
             ) : (
               filteredQuestions.map(question => (
                 <div

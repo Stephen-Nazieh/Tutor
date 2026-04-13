@@ -90,7 +90,7 @@ function StarRating({ rating, count }: { rating: number; count?: number }) {
     <div className="flex items-center gap-1">
       <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
       <span className="font-medium">{rating.toFixed(1)}</span>
-      {count !== undefined && <span className="text-sm text-muted-foreground">({count})</span>}
+      {count !== undefined && <span className="text-muted-foreground text-sm">({count})</span>}
     </div>
   )
 }
@@ -252,15 +252,15 @@ export default function StudentTutorDirectoryPage() {
 
   return (
     <div
-      className="min-h-screen w-full space-y-6 bg-background p-4 text-foreground sm:p-6"
+      className="bg-background text-foreground min-h-screen w-full space-y-6 p-4 sm:p-6"
       style={themeStyle}
     >
-      <Card className="overflow-hidden border-border bg-card shadow-sm">
-        <div className="bg-gradient-to-br from-sky-50/80 via-cyan-50/80 to-emerald-50/80 p-6 dark:from-sky-950/30 dark:via-cyan-950/30 dark:to-emerald-950/30 sm:p-8">
+      <Card className="border-border bg-card overflow-hidden shadow-sm">
+        <div className="bg-gradient-to-br from-sky-50/80 via-cyan-50/80 to-emerald-50/80 p-6 sm:p-8 dark:from-sky-950/30 dark:via-cyan-950/30 dark:to-emerald-950/30">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Find Your Tutor</h1>
-              <p className="max-w-2xl text-sm text-muted-foreground">
+              <h1 className="text-foreground text-2xl font-bold sm:text-3xl">Find Your Tutor</h1>
+              <p className="text-muted-foreground max-w-2xl text-sm">
                 Explore tutor profiles, compare subjects and courses, and open any tutor profile
                 instantly.
               </p>
@@ -268,7 +268,7 @@ export default function StudentTutorDirectoryPage() {
             <div className="flex items-center gap-3">
               {/* Theme Selector */}
               <Select value={themeId} onValueChange={setThemeId}>
-                <SelectTrigger className="h-9 w-[150px] border-border bg-background text-xs text-foreground">
+                <SelectTrigger className="border-border bg-background text-foreground h-9 w-[150px] text-xs">
                   <SelectValue placeholder="Theme" />
                 </SelectTrigger>
                 <SelectContent>
@@ -289,25 +289,25 @@ export default function StudentTutorDirectoryPage() {
           </div>
         </div>
         <CardContent className="grid gap-3 p-4 sm:grid-cols-3 sm:p-6">
-          <div className="rounded-lg border border-border bg-card p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Tutors</p>
-            <p className="mt-1 text-xl font-semibold text-foreground">
+          <div className="border-border bg-card rounded-lg border p-3">
+            <p className="text-muted-foreground text-xs uppercase tracking-wide">Tutors</p>
+            <p className="text-foreground mt-1 text-xl font-semibold">
               {headlineMetrics.tutorCount}
             </p>
           </div>
-          <div className="rounded-lg border border-border bg-card p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+          <div className="border-border bg-card rounded-lg border p-3">
+            <p className="text-muted-foreground text-xs uppercase tracking-wide">
               Published Courses
             </p>
-            <p className="mt-1 text-xl font-semibold text-foreground">
+            <p className="text-foreground mt-1 text-xl font-semibold">
               {headlineMetrics.totalCourses}
             </p>
           </div>
-          <div className="rounded-lg border border-border bg-card p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+          <div className="border-border bg-card rounded-lg border p-3">
+            <p className="text-muted-foreground text-xs uppercase tracking-wide">
               Total Enrollments
             </p>
-            <p className="mt-1 text-xl font-semibold text-foreground">
+            <p className="text-foreground mt-1 text-xl font-semibold">
               {headlineMetrics.totalEnrollments}
             </p>
           </div>
@@ -324,7 +324,7 @@ export default function StudentTutorDirectoryPage() {
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-3">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+            <Search className="text-muted-foreground pointer-events-none absolute left-3 top-3.5 h-4 w-4" />
             <Input
               value={searchQuery}
               onChange={event => setSearchQuery(event.target.value)}
@@ -362,19 +362,19 @@ export default function StudentTutorDirectoryPage() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {loading ? (
           Array.from({ length: 6 }).map((_, index) => (
-            <Card key={`loading-${index}`} className="animate-pulse border-border bg-card">
+            <Card key={`loading-${index}`} className="border-border bg-card animate-pulse">
               <CardHeader className="space-y-3">
-                <div className="h-6 w-2/3 rounded bg-muted" />
-                <div className="h-4 w-1/2 rounded bg-muted" />
+                <div className="bg-muted h-6 w-2/3 rounded" />
+                <div className="bg-muted h-4 w-1/2 rounded" />
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="h-4 rounded bg-muted" />
-                <div className="h-4 rounded bg-muted" />
+                <div className="bg-muted h-4 rounded" />
+                <div className="bg-muted h-4 rounded" />
               </CardContent>
             </Card>
           ))
         ) : tutors.length === 0 ? (
-          <Card className="col-span-full border-border bg-card">
+          <Card className="border-border bg-card col-span-full">
             <CardHeader>
               <CardTitle className="text-foreground">
                 No tutors match your current filters
@@ -408,18 +408,18 @@ export default function StudentTutorDirectoryPage() {
               </Button>
               <CardHeader className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <Avatar className="h-12 w-12 border border-border">
+                  <Avatar className="border-border h-12 w-12 border">
                     <AvatarImage src={tutor.avatarUrl || undefined} alt={`${tutor.name} avatar`} />
                     <AvatarFallback className="bg-muted text-foreground">
                       {getInitials(tutor.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1 pr-8">
-                    <CardTitle className="truncate text-lg text-foreground">{tutor.name}</CardTitle>
+                    <CardTitle className="text-foreground truncate text-lg">{tutor.name}</CardTitle>
                     <CardDescription>@{tutor.username}</CardDescription>
                   </div>
                 </div>
-                <p className="line-clamp-2 text-sm text-muted-foreground">
+                <p className="text-muted-foreground line-clamp-2 text-sm">
                   {tutor.bio || 'Experienced tutor ready to help you improve quickly.'}
                 </p>
               </CardHeader>
@@ -442,13 +442,13 @@ export default function StudentTutorDirectoryPage() {
                   ) : null}
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="rounded-md border border-border bg-muted/30 p-2">
+                  <div className="border-border bg-muted/30 rounded-md border p-2">
                     <p className="text-muted-foreground">Courses</p>
-                    <p className="font-semibold text-foreground">{tutor.courseCount}</p>
+                    <p className="text-foreground font-semibold">{tutor.courseCount}</p>
                   </div>
-                  <div className="rounded-md border border-border bg-muted/30 p-2">
+                  <div className="border-border bg-muted/30 rounded-md border p-2">
                     <p className="text-muted-foreground">Enrollments</p>
-                    <p className="font-semibold text-foreground">{tutor.totalEnrollments}</p>
+                    <p className="text-foreground font-semibold">{tutor.totalEnrollments}</p>
                   </div>
                 </div>
                 <Button
@@ -472,12 +472,12 @@ export default function StudentTutorDirectoryPage() {
       </div>
 
       <Dialog open={Boolean(activeTutor)} onOpenChange={open => !open && setActiveTutor(null)}>
-        <DialogContent className="max-h-[88vh] overflow-y-auto border-border bg-card sm:max-w-3xl">
+        <DialogContent className="border-border bg-card max-h-[88vh] overflow-y-auto sm:max-w-3xl">
           {activeTutor ? (
             <>
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-3 text-foreground">
-                  <Avatar className="h-10 w-10 border border-border">
+                <DialogTitle className="text-foreground flex items-center gap-3">
+                  <Avatar className="border-border h-10 w-10 border">
                     <AvatarImage
                       src={activeTutor.avatarUrl || undefined}
                       alt={`${activeTutor.name} avatar`}
@@ -503,33 +503,33 @@ export default function StudentTutorDirectoryPage() {
               </DialogHeader>
 
               <div className="space-y-4">
-                <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm text-foreground">
+                <div className="border-border bg-muted/20 text-foreground rounded-lg border p-3 text-sm">
                   {activeTutor.bio || 'No bio provided yet.'}
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-md border border-border bg-muted/30 p-3">
-                    <p className="text-xs text-muted-foreground">Courses</p>
-                    <p className="text-lg font-semibold text-foreground">
+                  <div className="border-border bg-muted/30 rounded-md border p-3">
+                    <p className="text-muted-foreground text-xs">Courses</p>
+                    <p className="text-foreground text-lg font-semibold">
                       {activeTutor.courseCount}
                     </p>
                   </div>
-                  <div className="rounded-md border border-border bg-muted/30 p-3">
-                    <p className="text-xs text-muted-foreground">Enrollments</p>
-                    <p className="text-lg font-semibold text-foreground">
+                  <div className="border-border bg-muted/30 rounded-md border p-3">
+                    <p className="text-muted-foreground text-xs">Enrollments</p>
+                    <p className="text-foreground text-lg font-semibold">
                       {activeTutor.totalEnrollments}
                     </p>
                   </div>
-                  <div className="rounded-md border border-border bg-muted/30 p-3">
-                    <p className="text-xs text-muted-foreground">Rating</p>
-                    <p className="text-lg font-semibold text-foreground">
+                  <div className="border-border bg-muted/30 rounded-md border p-3">
+                    <p className="text-muted-foreground text-xs">Rating</p>
+                    <p className="text-foreground text-lg font-semibold">
                       {activeTutor.averageRating?.toFixed(1) || 'N/A'}
                     </p>
                   </div>
                 </div>
 
                 <div>
-                  <p className="mb-2 text-sm font-medium text-foreground">Specialties</p>
+                  <p className="text-foreground mb-2 text-sm font-medium">Specialties</p>
                   <div className="flex flex-wrap gap-2">
                     {(activeTutor.specialties.length > 0
                       ? activeTutor.specialties
@@ -548,18 +548,18 @@ export default function StudentTutorDirectoryPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-sm font-medium text-foreground">Categories & Courses</p>
+                  <p className="text-foreground text-sm font-medium">Categories & Courses</p>
                   {getCategoryGroups(activeTutor).map(category => (
                     <div
                       key={category.name}
-                      className="rounded-lg border border-border bg-muted/10 p-3"
+                      className="border-border bg-muted/10 rounded-lg border p-3"
                     >
                       <div className="mb-2 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Badge variant="secondary" className="bg-muted">
                             {category.name}
                           </Badge>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-muted-foreground text-xs">
                             {category.courses.length} courses
                           </span>
                         </div>
@@ -568,7 +568,7 @@ export default function StudentTutorDirectoryPage() {
                             rating={category.averageRating}
                             count={category.totalReviews}
                           />
-                          <span className="font-medium text-foreground">
+                          <span className="text-foreground font-medium">
                             ${category.averageRate.toFixed(0)}/course
                           </span>
                         </div>
@@ -582,7 +582,7 @@ export default function StudentTutorDirectoryPage() {
                             <span className="text-muted-foreground">{course.name}</span>
                             <div className="flex items-center gap-2">
                               <StarRating rating={course.rating || 0} count={course.reviewCount} />
-                              <span className="font-medium text-foreground">
+                              <span className="text-foreground font-medium">
                                 ${course.price}
                                 {course.currency}
                               </span>
@@ -590,7 +590,7 @@ export default function StudentTutorDirectoryPage() {
                           </div>
                         ))}
                         {category.courses.length > 3 && (
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-muted-foreground text-xs">
                             +{category.courses.length - 3} more courses
                           </p>
                         )}

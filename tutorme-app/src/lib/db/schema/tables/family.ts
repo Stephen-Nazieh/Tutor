@@ -37,6 +37,7 @@ export const familyAccount = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
     verifiedAt: timestamp('verifiedAt', { withTimezone: true }),
   },
@@ -74,6 +75,7 @@ export const familyMember = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -106,6 +108,7 @@ export const familyBudget = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -136,6 +139,7 @@ export const familyPayment = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -283,6 +287,7 @@ export const parentPaymentAuthorization = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -306,6 +311,7 @@ export const parentSpendingLimit = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({

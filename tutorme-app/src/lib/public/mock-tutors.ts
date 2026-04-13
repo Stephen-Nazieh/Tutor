@@ -119,5 +119,5 @@ export function shouldUseMockPublicTutors(): boolean {
 
 export function findMockTutorByUsername(username: string): MockTutorProfile | null {
   const normalized = username.trim().replace(/^@+/, '').toLowerCase()
-  return MOCK_TUTORS.find((tutor) => tutor.username.toLowerCase() === normalized) || null
+  return MOCK_TUTORS.find(tutor => tutor.username.toLowerCase() === normalized) || null
 }

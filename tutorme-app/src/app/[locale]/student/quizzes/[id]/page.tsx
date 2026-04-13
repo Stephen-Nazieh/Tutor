@@ -214,7 +214,7 @@ export default function QuizTakingPage({ params }: { params: Promise<{ id: strin
               <div className={`text-6xl font-bold ${passed ? 'text-green-500' : 'text-red-500'}`}>
                 {percentage}%
               </div>
-              <p className="mt-2 text-muted-foreground">
+              <p className="text-muted-foreground mt-2">
                 {passed
                   ? 'Congratulations! You passed!'
                   : "Keep practicing! You'll do better next time."}
@@ -225,15 +225,15 @@ export default function QuizTakingPage({ params }: { params: Promise<{ id: strin
             <div className="grid grid-cols-3 gap-4 text-center">
               <div className="rounded-lg bg-gray-50 p-4">
                 <div className="text-2xl font-semibold">{results.score}</div>
-                <div className="text-sm text-muted-foreground">Points Earned</div>
+                <div className="text-muted-foreground text-sm">Points Earned</div>
               </div>
               <div className="rounded-lg bg-gray-50 p-4">
                 <div className="text-2xl font-semibold">{results.maxScore}</div>
-                <div className="text-sm text-muted-foreground">Total Points</div>
+                <div className="text-muted-foreground text-sm">Total Points</div>
               </div>
               <div className="rounded-lg bg-gray-50 p-4">
                 <div className="text-2xl font-semibold">{formatTime(timeSpent)}</div>
-                <div className="text-sm text-muted-foreground">Time Spent</div>
+                <div className="text-muted-foreground text-sm">Time Spent</div>
               </div>
             </div>
 
@@ -253,12 +253,12 @@ export default function QuizTakingPage({ params }: { params: Promise<{ id: strin
                     )}
                     <div className="flex-1">
                       <p className="font-medium">Question {idx + 1}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-muted-foreground text-sm">
                         {result.pointsEarned} / {result.pointsMax} points
                       </p>
                       {result.feedback && <p className="mt-1 text-sm">{result.feedback}</p>}
                       {result.explanation && (
-                        <p className="mt-1 text-sm text-muted-foreground">{result.explanation}</p>
+                        <p className="text-muted-foreground mt-1 text-sm">{result.explanation}</p>
                       )}
                     </div>
                   </div>
@@ -358,7 +358,7 @@ export default function QuizTakingPage({ params }: { params: Promise<{ id: strin
           <div className="flex items-center justify-between">
             <div>
               <h1 className="font-semibold">{quiz.title}</h1>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="text-muted-foreground flex items-center gap-4 text-sm">
                 <span>
                   Question {currentQuestionIndex + 1} of {questions.length}
                 </span>
@@ -434,7 +434,7 @@ export default function QuizTakingPage({ params }: { params: Promise<{ id: strin
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
-                        <span className="mr-3 font-medium text-muted-foreground">
+                        <span className="text-muted-foreground mr-3 font-medium">
                           {String.fromCharCode(65 + idx)}.
                         </span>
                         {option}

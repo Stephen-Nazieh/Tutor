@@ -47,7 +47,7 @@ export default function SubjectSignupPage() {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="human" className="mt-6 space-y-4">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   Join live classes with a human tutor. Book sessions that fit your schedule and get
                   real-time help in a small group.
                 </p>
@@ -56,7 +56,7 @@ export default function SubjectSignupPage() {
                 </Button>
               </TabsContent>
               <TabsContent value="ai" className="mt-6 space-y-4">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   Learn with the AI tutor 24/7. Get Socratic-style guidance, practice conversations,
                   and instant feedback at your own pace.
                 </p>

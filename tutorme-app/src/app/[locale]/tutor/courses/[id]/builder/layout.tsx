@@ -278,9 +278,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
       if (res.ok) {
         const data = await res.json()
         setCourse(data.course)
-        setCourseSource(
-          (data.course?.courseSource as 'PLATFORM' | 'UPLOADED') ?? 'PLATFORM'
-        )
+        setCourseSource((data.course?.courseSource as 'PLATFORM' | 'UPLOADED') ?? 'PLATFORM')
         setOutlineSource((data.course?.outlineSource as 'SELF' | 'AI') ?? 'SELF')
       }
     } catch {
@@ -337,9 +335,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
       uploadText.topics.trim() ||
       editableCourse.trim()
     if (!hasContent) {
-      toast.error(
-        'Upload at least one of course, notes, or topics before generating the outline.'
-      )
+      toast.error('Upload at least one of course, notes, or topics before generating the outline.')
       return
     }
     setGeneratingOutline(true)
@@ -699,7 +695,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                           className="data-[state=active]:bg-white data-[state=active]:shadow-sm"
                         >
                           {batch.name}
-                          <span className="ml-2 text-xs text-muted-foreground">
+                          <span className="text-muted-foreground ml-2 text-xs">
                             ({batch.enrollmentCount})
                           </span>
                         </TabsTrigger>
@@ -734,7 +730,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                       <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
                           <h3 className="text-lg font-semibold">{batch.name}</h3>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-muted-foreground text-sm">
                             {batch.enrollmentCount} student{batch.enrollmentCount !== 1 ? 's' : ''}{' '}
                             enrolled
                           </p>
@@ -856,7 +852,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                             </SelectContent>
                           </Select>
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-muted-foreground text-xs">
                           Set a custom price for this group. Leave empty to use the default course
                           price.
                         </p>
@@ -868,7 +864,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                           <Link2 className="h-4 w-4 text-blue-500" />
                           Share & Enrollment
                         </Label>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-muted-foreground text-xs">
                           Share this group link for students to join this specific group.
                         </p>
                         <div className="flex gap-2">
@@ -919,7 +915,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                         </div>
 
                         {batch.schedule.length === 0 ? (
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-muted-foreground text-sm">
                             No schedule set. Add class slots for this group.
                           </p>
                         ) : (
@@ -1014,7 +1010,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                         {(() => {
                           const studentsInBatch = enrollments.filter(e => e.batchId === batch.id)
                           return studentsInBatch.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-muted-foreground text-sm">
                               No students assigned to this group yet.
                             </p>
                           ) : (
@@ -1023,11 +1019,11 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                                 <div key={e.id} className="flex items-center justify-between p-3">
                                   <div>
                                     <p className="text-sm font-medium">{e.studentName}</p>
-                                    <p className="text-xs text-muted-foreground">
+                                    <p className="text-muted-foreground text-xs">
                                       {e.studentEmail}
                                     </p>
                                   </div>
-                                  <span className="text-xs text-muted-foreground">
+                                  <span className="text-muted-foreground text-xs">
                                     {e.lessonsCompleted} lessons completed
                                   </span>
                                 </div>
@@ -1068,7 +1064,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                 <div className="space-y-3 rounded-lg bg-gray-50 p-4">
                   <Label className="text-sm font-medium">Course Name</Label>
                   <Input value={course.name} readOnly className="bg-white" />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     Course name is set based on the selected subject course.
                   </p>
                 </div>
@@ -1112,21 +1108,21 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                 </div>
 
                 {courseSource === 'PLATFORM' && (
-                  <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+                  <div className="bg-muted/30 space-y-3 rounded-lg border p-4">
                     <h4 className="flex items-center gap-2 font-medium">
                       <CheckCircle2 className="h-4 w-4 text-green-600" />
                       Course content for your review
                     </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Below is the platform course. Each topic is sized for a typical lesson.
-                      You can edit modules and lessons in the course content page.
+                    <p className="text-muted-foreground text-sm">
+                      Below is the platform course. Each topic is sized for a typical lesson. You
+                      can edit modules and lessons in the course content page.
                     </p>
                     <div className="max-h-[320px] space-y-3 overflow-y-auto">
                       {course.modules?.map(mod => (
-                        <div key={mod.id} className="rounded border bg-background p-3">
+                        <div key={mod.id} className="bg-background rounded border p-3">
                           <p className="font-medium">{mod.title}</p>
                           {mod.description && (
-                            <p className="text-sm text-muted-foreground">{mod.description}</p>
+                            <p className="text-muted-foreground text-sm">{mod.description}</p>
                           )}
                           <ul className="mt-2 space-y-1 text-sm">
                             {(mod.lessons ?? []).map(les => (
@@ -1149,7 +1145,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
 
                 {courseSource === 'UPLOADED' && (
                   <>
-                    <div className="space-y-2 border-l-2 border-muted pl-4">
+                    <div className="border-muted space-y-2 border-l-2 pl-4">
                       <Label>Who creates the outline?</Label>
                       <div className="flex flex-col gap-2">
                         <label className="flex cursor-pointer items-center gap-2">
@@ -1178,21 +1174,21 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
 
                     {outlineSource === 'SELF' && (
                       <div className="space-y-6">
-                        <p className="text-sm text-muted-foreground">
-                          <strong>When to upload what:</strong> First upload your course
-                          (syllabus or outline). Then optionally upload notes. If you upload a list
-                          of topics, AI will put it in the "Edit Topics" area.
+                        <p className="text-muted-foreground text-sm">
+                          <strong>When to upload what:</strong> First upload your course (syllabus
+                          or outline). Then optionally upload notes. If you upload a list of topics,
+                          AI will put it in the "Edit Topics" area.
                         </p>
 
                         {/* Step 1: Upload course */}
                         <div className="space-y-2 rounded-lg border p-4">
                           <div className="flex items-center gap-2">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+                            <span className="bg-primary text-primary-foreground flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium">
                               1
                             </span>
                             <Label className="text-base">Upload course</Label>
                           </div>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-muted-foreground text-sm">
                             Paste or upload your course/syllabus. Supports .txt, .md, .pdf,
                             .doc/.docx, and images.
                           </p>
@@ -1205,7 +1201,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                               disabled={fileExtracting}
                             />
                             {fileExtracting && (
-                              <span className="text-sm text-muted-foreground">Sending to AI…</span>
+                              <span className="text-muted-foreground text-sm">Sending to AI…</span>
                             )}
                             {uploadText.course && !fileExtracting && (
                               <span className="text-sm text-green-600">Course loaded</span>
@@ -1216,12 +1212,12 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                         {/* Step 2: Upload notes */}
                         <div className="space-y-2 rounded-lg border p-4">
                           <div className="flex items-center gap-2">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+                            <span className="bg-primary text-primary-foreground flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium">
                               2
                             </span>
                             <Label className="text-base">Upload notes (optional)</Label>
                           </div>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-muted-foreground text-sm">
                             Paste or upload teaching notes. Supports .txt, .md, .pdf, .doc/.docx,
                             and images.
                           </p>
@@ -1234,7 +1230,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                               disabled={fileExtracting}
                             />
                             {fileExtracting && (
-                              <span className="text-sm text-muted-foreground">Sending…</span>
+                              <span className="text-muted-foreground text-sm">Sending…</span>
                             )}
                             {uploadText.notes && !fileExtracting && (
                               <span className="text-sm text-green-600">Notes loaded</span>
@@ -1245,13 +1241,13 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                         {/* Step 3: List of topics */}
                         <div className="space-y-2 rounded-lg border p-4">
                           <div className="flex items-center gap-2">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+                            <span className="bg-primary text-primary-foreground flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium">
                               3
                             </span>
                             <ListOrdered className="h-5 w-5" />
                             <Label className="text-base">List of topics (optional)</Label>
                           </div>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-muted-foreground text-sm">
                             If you have a list of topics (bullets or short lines), paste or upload
                             it.
                           </p>
@@ -1264,7 +1260,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                               disabled={fileExtracting}
                             />
                             {fileExtracting && (
-                              <span className="text-sm text-muted-foreground">Sending…</span>
+                              <span className="text-muted-foreground text-sm">Sending…</span>
                             )}
                             {uploadText.topics && !fileExtracting && (
                               <span className="text-sm text-green-600">Topics loaded</span>
@@ -1275,7 +1271,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                         {/* Step 4: Generate outline */}
                         <div className="space-y-2 rounded-lg border p-4">
                           <div className="flex items-center gap-2">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+                            <span className="bg-primary text-primary-foreground flex h-7 w-7 items-center justify-center rounded-full text-sm font-medium">
                               4
                             </span>
                             <FileTextIcon className="h-5 w-5" />
@@ -1328,7 +1324,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
                     )}
 
                     {outlineSource === 'AI' && (
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-muted-foreground text-sm">
                         Upload your materials above (course and optionally notes). Then use
                         "Generate course outline" to let AI create the outline from your content.
                       </p>
@@ -1411,7 +1407,7 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
         </div>
 
         {assignedCourses.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             No courses assigned to this group yet. Assign a course to get started.
           </p>
         ) : (
@@ -1430,7 +1426,7 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
                       {assignment.resolutionStrategy === 'adaptive' ? '🔄 Adaptive' : '🎯 Fixed'}
                     </Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     Assigned {new Date(assignment.assignedAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -1468,7 +1464,7 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{course.name}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     Will adapt to {batch.difficulty} level
                   </p>
                 </div>

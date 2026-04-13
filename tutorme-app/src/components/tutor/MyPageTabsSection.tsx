@@ -229,7 +229,7 @@ export function MyPageTabsSection() {
         <TabsTrigger value="courses">
           Courses
           {paidPublishedCourses.length > 0 && (
-            <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
+            <span className="bg-muted ml-2 rounded-full px-2 py-0.5 text-xs">
               {paidPublishedCourses.length}
             </span>
           )}
@@ -237,13 +237,13 @@ export function MyPageTabsSection() {
         <TabsTrigger value="classes">
           Classes
           {classes.length > 0 && (
-            <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">{classes.length}</span>
+            <span className="bg-muted ml-2 rounded-full px-2 py-0.5 text-xs">{classes.length}</span>
           )}
         </TabsTrigger>
         <TabsTrigger value="building">
           Building
           {draftCourses.length > 0 && (
-            <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
+            <span className="bg-muted ml-2 rounded-full px-2 py-0.5 text-xs">
               {draftCourses.length}
             </span>
           )}
@@ -251,7 +251,7 @@ export function MyPageTabsSection() {
         <TabsTrigger value="completed">
           Completed
           {completedItems.length > 0 && (
-            <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
+            <span className="bg-muted ml-2 rounded-full px-2 py-0.5 text-xs">
               {completedItems.length}
             </span>
           )}
@@ -272,7 +272,7 @@ export function MyPageTabsSection() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex items-center rounded-md border bg-muted/50 p-1">
+                <div className="bg-muted/50 flex items-center rounded-md border p-1">
                   <Button
                     variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                     size="sm"
@@ -335,7 +335,7 @@ export function MyPageTabsSection() {
                             {course.isPublished ? 'Published' : 'Draft'}
                           </Badge>
                         </div>
-                        <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
+                        <p className="text-muted-foreground mt-1 line-clamp-1 text-sm">
                           {course.description || 'No description'}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-2">
@@ -375,7 +375,7 @@ export function MyPageTabsSection() {
                             }}
                             className="h-8 w-24 text-right"
                           />
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-muted-foreground text-xs">
                             {course.currency || 'USD'}
                           </span>
                           <Button
@@ -489,7 +489,7 @@ export function MyPageTabsSection() {
                         }}
                         className="h-8 w-24 text-right"
                       />
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-muted-foreground text-xs">
                         {course.currency || 'USD'}
                       </span>
                       <Button
@@ -611,7 +611,7 @@ export function MyPageTabsSection() {
           <CardContent className="space-y-2">
             {classes.length === 0 ? (
               <div className="py-8 text-center">
-                <p className="mb-4 text-muted-foreground">No scheduled classes yet.</p>
+                <p className="text-muted-foreground mb-4">No scheduled classes yet.</p>
                 <Button onClick={() => router.push('/tutor/classes/new')}>
                   Schedule Your First Class
                 </Button>
@@ -625,7 +625,7 @@ export function MyPageTabsSection() {
                       {cls.status}
                     </Badge>
                   </div>
-                  <div className="text-sm text-muted-foreground">{cls.subject}</div>
+                  <div className="text-muted-foreground text-sm">{cls.subject}</div>
                   <div className="mt-2 text-xs text-gray-500">
                     {formatDate(cls.scheduledAt)} • {cls.duration} min
                   </div>
@@ -652,7 +652,7 @@ export function MyPageTabsSection() {
           <CardContent>
             {draftCourses.length === 0 ? (
               <div className="py-8 text-center">
-                <p className="mb-4 text-muted-foreground">No items in progress. Start building!</p>
+                <p className="text-muted-foreground mb-4">No items in progress. Start building!</p>
                 <Button onClick={() => router.push('/tutor/courses/new')}>Create New Course</Button>
               </div>
             ) : (
@@ -660,7 +660,7 @@ export function MyPageTabsSection() {
                 {draftCourses.map(course => (
                   <div
                     key={course.id}
-                    className="flex items-center justify-between rounded border p-4 transition-colors hover:bg-muted/50"
+                    className="hover:bg-muted/50 flex items-center justify-between rounded border p-4 transition-colors"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
@@ -673,10 +673,10 @@ export function MyPageTabsSection() {
                           Draft
                         </Badge>
                       </div>
-                      <p className="mt-1 text-sm text-muted-foreground">
+                      <p className="text-muted-foreground mt-1 text-sm">
                         {course.description || 'No description'}
                       </p>
-                      <p className="mt-2 text-xs text-muted-foreground">
+                      <p className="text-muted-foreground mt-2 text-xs">
                         {course._count?.lessons || 0} lessons • Last edited{' '}
                         {formatDate(course.updatedAt)}
                       </p>
@@ -724,7 +724,7 @@ export function MyPageTabsSection() {
           </CardHeader>
           <CardContent className="space-y-2">
             {completedItems.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
+              <p className="text-muted-foreground py-8 text-center text-sm">
                 No completed courses yet.
               </p>
             ) : (
@@ -734,7 +734,7 @@ export function MyPageTabsSection() {
                     <div className="font-medium">{item.name}</div>
                     <Badge variant="outline">Closed</Badge>
                   </div>
-                  <div className="text-sm text-muted-foreground">{item.subject}</div>
+                  <div className="text-muted-foreground text-sm">{item.subject}</div>
                   <div className="mt-2 text-xs text-gray-500">
                     Published: {formatDate(item.publishedAt || '')}
                   </div>

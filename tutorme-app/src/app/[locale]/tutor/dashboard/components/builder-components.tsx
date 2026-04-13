@@ -234,9 +234,9 @@ export function ResourceImportPanel<
         </Button>
       </div>
       {source && (
-        <div className="space-y-2 rounded border bg-muted/20 p-3">
-          <div className="text-xs text-muted-foreground">
-            Imported: <span className="font-medium text-foreground">{source.fileName}</span>
+        <div className="bg-muted/20 space-y-2 rounded border p-3">
+          <div className="text-muted-foreground text-xs">
+            Imported: <span className="text-foreground font-medium">{source.fileName}</span>
           </div>
           <Textarea
             value={source.extractedText}
@@ -594,7 +594,7 @@ export function StudentPreviewModal({
           <p className="mb-2 text-center text-3xl font-bold">
             {correct}/{questions.length}
           </p>
-          <p className="mb-6 text-center text-muted-foreground">
+          <p className="text-muted-foreground mb-6 text-center">
             This is how a student would see their results
           </p>
           <div className="max-h-60 space-y-2 overflow-y-auto">
@@ -1041,7 +1041,7 @@ export function MatchingPairsEditor({
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-2 gap-3 text-xs font-medium text-muted-foreground">
+      <div className="text-muted-foreground grid grid-cols-2 gap-3 text-xs font-medium">
         <span>Column A</span>
         <span>Column B</span>
       </div>
@@ -1056,7 +1056,7 @@ export function MatchingPairsEditor({
               onChange={(e: any) => updatePair(idx, 'left', e.target.value)}
               placeholder={`Left ${idx + 1}`}
             />
-            <div className="text-xs text-muted-foreground">↔</div>
+            <div className="text-muted-foreground text-xs">↔</div>
             <Input
               value={pair.right}
               onChange={(e: any) => updatePair(idx, 'right', e.target.value)}
@@ -1077,7 +1077,7 @@ export function MatchingPairsEditor({
       <Button type="button" variant="outline" size="sm" onClick={addPair}>
         <Plus className="mr-1 h-3 w-3" /> Add pair
       </Button>
-      <div className="text-xs text-muted-foreground">
+      <div className="text-muted-foreground text-xs">
         Use the arrow as a visual cue for linking pairs. Students will match Column A to Column B.
       </div>
     </div>
@@ -1131,7 +1131,7 @@ export function QuestionBankQuickImport({
   }
 
   return (
-    <div className={cn('rounded border border-dashed bg-background/80 p-2.5', className)}>
+    <div className={cn('bg-background/80 rounded border border-dashed p-2.5', className)}>
       <div className="flex flex-wrap items-center gap-2">
         <Select value={selectedId} onValueChange={handleSelect}>
           <SelectTrigger className={cn('h-8 min-w-[260px]', triggerClassName)}>
@@ -1219,7 +1219,7 @@ export function ManualQuestionComposer({
   }
 
   return (
-    <div className="space-y-2 rounded border bg-muted/20 p-2.5">
+    <div className="bg-muted/20 space-y-2 rounded border p-2.5">
       <Label className="text-xs font-medium">Write a new question</Label>
       <Textarea
         value={questionText}
@@ -1243,30 +1243,30 @@ export function ManualQuestionComposer({
 }
 
 export function QuestionsPreview({ questions }: { questions: QuizQuestion[] }) {
-  if (!questions?.length) return <p className="text-sm text-muted-foreground">No questions yet.</p>
+  if (!questions?.length) return <p className="text-muted-foreground text-sm">No questions yet.</p>
   return (
     <div className="mt-2 space-y-3">
       {questions.map((q, idx) => (
-        <div key={q.id} className="space-y-2 rounded-lg border bg-muted/30 p-3">
+        <div key={q.id} className="bg-muted/30 space-y-2 rounded-lg border p-3">
           <div className="flex items-center justify-between">
             <Badge variant="secondary" className="text-xs">
               Q{idx + 1} · {q.type.toUpperCase()}
             </Badge>
-            <span className="text-xs text-muted-foreground">{q.points} pts</span>
+            <span className="text-muted-foreground text-xs">{q.points} pts</span>
           </div>
           <p className="text-sm font-medium">{q.question || '(No question text)'}</p>
           {q.type === 'mcq' && q.options?.length && (
-            <ul className="list-inside list-disc text-sm text-muted-foreground">
+            <ul className="text-muted-foreground list-inside list-disc text-sm">
               {q.options.map((opt, i) => (
                 <li key={i}>{opt || `Option ${i + 1}`}</li>
               ))}
             </ul>
           )}
           {q.type === 'truefalse' && (
-            <p className="text-sm text-muted-foreground">Options: True / False</p>
+            <p className="text-muted-foreground text-sm">Options: True / False</p>
           )}
           {q.explanation && (
-            <p className="mt-2 border-t pt-2 text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-2 border-t pt-2 text-xs">
               Explanation: {q.explanation}
             </p>
           )}

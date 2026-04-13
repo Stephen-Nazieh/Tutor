@@ -155,6 +155,8 @@ export async function POST(req: NextRequest) {
             ? data.categories
             : [data.subject ?? 'general']
 
+        const schedule = Array.isArray(data.schedule) ? data.schedule : []
+
         // Insert course directly without type casting
         const [newCourse] = await tx
           .insert(courseTable)
@@ -167,8 +169,7 @@ export async function POST(req: NextRequest) {
             isFree: false,
             categories: categories,
             currency: 'USD',
-            schedule:
-              Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : null,
+            schedule,
             createdAt: now,
             updatedAt: now,
             creatorId: userId,

@@ -24,8 +24,6 @@ import {
 import { toast } from 'sonner'
 import { Loader2, BookOpen, Plus, X } from 'lucide-react'
 
-
-
 interface CreateCourseDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -205,8 +203,8 @@ export function CreateCourseDialog({
             New session
           </DialogTitle>
           <DialogDescription>
-            Create a whole course (course) with modules and lessons. You can add more modules
-            and lessons after creation.
+            Create a whole course (course) with modules and lessons. You can add more modules and
+            lessons after creation.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -294,7 +292,7 @@ export function CreateCourseDialog({
                 Add
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               Subjects are suggested from your categories. You can add more.
             </p>
           </div>

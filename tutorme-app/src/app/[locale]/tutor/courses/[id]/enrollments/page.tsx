@@ -65,7 +65,7 @@ export default function TutorCourseEnrollmentsPage() {
             <Users className="h-5 w-5" />
             Course Enrollments
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Track students currently enrolled in this course.
           </p>
         </div>
@@ -82,7 +82,7 @@ export default function TutorCourseEnrollmentsPage() {
               <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
             </div>
           ) : enrollments.length === 0 ? (
-            <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+            <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
               No students enrolled yet.
             </div>
           ) : (
@@ -93,10 +93,10 @@ export default function TutorCourseEnrollmentsPage() {
               >
                 <div className="min-w-0">
                   <p className="font-semibold text-slate-900">{enrollment.studentName}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     {enrollment.studentEmail || 'No email on file'}
                   </p>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-2 text-xs">
                     <span>Enrolled {new Date(enrollment.enrolledAt).toLocaleDateString()}</span>
                     {enrollment.batchName ? <span>• {enrollment.batchName}</span> : null}
                     {enrollment.completedAt ? <span>• Completed</span> : null}

@@ -253,7 +253,7 @@ export default function QuizzesPage() {
           <div className="flex flex-wrap gap-4">
             <div className="min-w-[200px] flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                 <Input
                   placeholder="Search quizzes..."
                   value={searchQuery}
@@ -301,13 +301,13 @@ export default function QuizzesPage() {
       {/* Quizzes List */}
       {loading ? (
         <div className="flex h-64 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
         </div>
       ) : quizzes.length === 0 ? (
         <Card className="p-12 text-center">
-          <FileText className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+          <FileText className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
           <h3 className="mb-2 text-lg font-medium">No quizzes yet</h3>
-          <p className="mb-4 text-muted-foreground">
+          <p className="text-muted-foreground mb-4">
             Create your first quiz to assess your students
           </p>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
@@ -345,7 +345,7 @@ export default function QuizzesPage() {
                     </Badge>
                   )}
                 </div>
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <div className="text-muted-foreground flex items-center justify-between text-sm">
                   <div className="flex items-center gap-4">
                     <span className="flex items-center gap-1">
                       <Users className="h-4 w-4" />
@@ -388,7 +388,7 @@ export default function QuizzesPage() {
                       handleDelete(quiz.id)
                     }}
                   >
-                    <Trash2 className="h-4 w-4 text-destructive" />
+                    <Trash2 className="text-destructive h-4 w-4" />
                   </Button>
                 </div>
               </CardContent>

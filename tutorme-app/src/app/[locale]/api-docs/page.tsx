@@ -6,7 +6,7 @@ import 'swagger-ui-react/swagger-ui.css'
 
 export default function ApiDocs() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       <div className="container mx-auto py-8">
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold">Solocorn API Documentation</h1>

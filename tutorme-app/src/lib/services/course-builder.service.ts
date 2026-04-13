@@ -25,13 +25,16 @@ export class CourseBuilderService {
    * Retrieves the full builder tree (lessons) for a given course.
    * Verifies that the course belongs to the requesting user.
    */
-  static async getCourseBuilderData(courseId: string, userId: string): Promise<BuilderLessonData[]> {
+  static async getCourseBuilderData(
+    courseId: string,
+    userId: string
+  ): Promise<BuilderLessonData[]> {
     // Verify ownership
     const [courseRow] = await drizzleDb
       .select({ courseId: course.courseId })
       .from(course)
       .where(and(eq(course.courseId, courseId), eq(course.creatorId, userId)))
-    
+
     if (!courseRow) {
       throw new Error('Course not found or access denied')
     }
@@ -69,13 +72,17 @@ export class CourseBuilderService {
    * Upserts the full builder tree (lessons) for a given course.
    * Verifies that the course belongs to the requesting user.
    */
-  static async updateCourseBuilderData(courseId: string, userId: string, lessons: any[]): Promise<void> {
+  static async updateCourseBuilderData(
+    courseId: string,
+    userId: string,
+    lessons: any[]
+  ): Promise<void> {
     // Verify ownership
     const [courseRow] = await drizzleDb
       .select({ courseId: course.courseId })
       .from(course)
       .where(and(eq(course.courseId, courseId), eq(course.creatorId, userId)))
-    
+
     if (!courseRow) {
       throw new Error('Course not found or access denied')
     }
@@ -89,7 +96,7 @@ export class CourseBuilderService {
         .select({ id: courseLesson.lessonId })
         .from(courseLesson)
         .where(eq(courseLesson.courseId, courseId))
-      
+
       const existingLessonIds = new Set(existingDbLessons.map(l => l.id))
       const incomingLessonIds = new Set(lessons.map(l => l.id).filter(Boolean))
 
@@ -101,7 +108,7 @@ export class CourseBuilderService {
 
       for (const [idx, les] of lessons.entries()) {
         if (!les.id) les.id = crypto.randomUUID()
-        
+
         const builderData = {
           isPublished: les.isPublished ?? false,
           duration: les.duration ?? 45,

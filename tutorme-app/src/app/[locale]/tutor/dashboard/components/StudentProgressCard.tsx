@@ -143,7 +143,7 @@ export function StudentProgressCard({ students = [], loading }: StudentProgressC
           </div>
         </div>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
           <Input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -154,7 +154,7 @@ export function StudentProgressCard({ students = [], loading }: StudentProgressC
       </CardHeader>
       <CardContent className="space-y-3">
         {filtered.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">No students found.</p>
+          <p className="text-muted-foreground py-6 text-center text-sm">No students found.</p>
         ) : (
           filtered.map(student => {
             const row = progressRows[student.id]
@@ -166,7 +166,7 @@ export function StudentProgressCard({ students = [], loading }: StudentProgressC
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <p className="truncate font-medium">{student.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{student.email}</p>
+                    <p className="text-muted-foreground truncate text-xs">{student.email}</p>
                   </div>
                   {row ? (
                     getRiskBadge(row.recentRisk)
@@ -175,13 +175,13 @@ export function StudentProgressCard({ students = [], loading }: StudentProgressC
                   )}
                 </div>
                 <div className="space-y-1">
-                  <div className="flex justify-between text-xs text-muted-foreground">
+                  <div className="text-muted-foreground flex justify-between text-xs">
                     <span>Progress</span>
                     <span>{row?.overallProgress ?? 0}%</span>
                   </div>
                   <Progress value={row?.overallProgress ?? 0} className="h-2" />
                 </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <div className="text-muted-foreground flex items-center justify-between text-xs">
                   <span>Courses: {student.courseCount}</span>
                   <span>Classes: {student.classCount}</span>
                   <span>Score: {row?.averageScore ?? 0}%</span>
@@ -200,7 +200,7 @@ export function StudentProgressCard({ students = [], loading }: StudentProgressC
             )
           })
         )}
-        {loadingProgress && <p className="text-xs text-muted-foreground">Refreshing metrics…</p>}
+        {loadingProgress && <p className="text-muted-foreground text-xs">Refreshing metrics…</p>}
       </CardContent>
     </Card>
   )

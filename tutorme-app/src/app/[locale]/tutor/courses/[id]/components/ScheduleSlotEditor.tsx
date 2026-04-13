@@ -22,7 +22,7 @@ interface ScheduleSlotEditorProps {
 
 export function ScheduleSlotEditor({ slot, index, onUpdate, onRemove }: ScheduleSlotEditorProps) {
   return (
-    <div className="flex flex-wrap items-end gap-2 rounded-lg border bg-muted/30 p-3">
+    <div className="bg-muted/30 flex flex-wrap items-end gap-2 rounded-lg border p-3">
       <div className="min-w-[120px] space-y-1">
         <Label className="text-xs">Day</Label>
         <Select value={slot.dayOfWeek} onValueChange={v => onUpdate(index, 'dayOfWeek', v)}>

@@ -73,7 +73,7 @@ export function AdminHeader({ collapsed }: AdminHeaderProps) {
               </Avatar>
               <div className="hidden text-left sm:block">
                 <p className="text-sm font-medium">{session?.name || session?.email}</p>
-                <p className="text-xs text-muted-foreground">{session?.roles?.join(', ')}</p>
+                <p className="text-muted-foreground text-xs">{session?.roles?.join(', ')}</p>
               </div>
             </Button>
           </DropdownMenuTrigger>

@@ -163,7 +163,7 @@ export default function CourseEnrollPage() {
           <BackButton href={coursesUrl} className="mb-4" />
           <Card className="border-destructive/50">
             <CardContent className="pt-6">
-              <p className="text-sm text-destructive">{error ?? 'Course not found'}</p>
+              <p className="text-destructive text-sm">{error ?? 'Course not found'}</p>
               <Button variant="outline" asChild className="mt-4">
                 <Link href={coursesUrl}>Back to courses</Link>
               </Button>
@@ -193,20 +193,20 @@ export default function CourseEnrollPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {course.description && (
-              <p className="text-sm text-muted-foreground">{course.description}</p>
+              <p className="text-muted-foreground text-sm">{course.description}</p>
             )}
-            <ul className="space-y-1 text-sm text-muted-foreground">
+            <ul className="text-muted-foreground space-y-1 text-sm">
               <li>{course.estimatedHours}h estimated</li>
               <li>
                 {course.modulesCount} modules · {course.lessonsCount} lessons
               </li>
-              <li className="font-medium text-foreground">
+              <li className="text-foreground font-medium">
                 Price: {formatPrice(course.price, course.currency)}
               </li>
             </ul>
 
             {course.enrolled ? (
-              <div className="space-y-2 rounded-lg border bg-muted/50 p-4">
+              <div className="bg-muted/50 space-y-2 rounded-lg border p-4">
                 <p className="text-sm font-medium">You&apos;re already enrolled in this course.</p>
                 <div className="flex flex-wrap gap-2">
                   <Button asChild>
@@ -236,7 +236,7 @@ export default function CourseEnrollPage() {
                       value={startDate ?? ''}
                       onChange={e => setStartDate(e.target.value)}
                       min={new Date().toISOString().split('T')[0]}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </div>
                 </div>
@@ -252,12 +252,12 @@ export default function CourseEnrollPage() {
                     )}
                   </Button>
                 ) : (
-                  <div className="space-y-2 rounded-lg border bg-muted/50 p-4">
+                  <div className="bg-muted/50 space-y-2 rounded-lg border p-4">
                     <p className="flex items-center gap-2 text-sm font-medium">
                       <CreditCard className="h-4 w-4" />
                       Pay & Enroll
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       You will be redirected to our secure payment page. After payment, you will be
                       enrolled automatically.
                     </p>

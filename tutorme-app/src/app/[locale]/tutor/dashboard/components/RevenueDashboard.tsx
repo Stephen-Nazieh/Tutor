@@ -404,12 +404,12 @@ export function RevenueDashboard({
   if (compact) {
     return (
       <>
-        <Card className="h-full border border-border bg-card" style={themeStyle}>
-          <CardHeader className="pb-3 text-foreground">
+        <Card className="border-border bg-card h-full border" style={themeStyle}>
+          <CardHeader className="text-foreground pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-green-500" />
-                <CardTitle className="text-base text-foreground">Revenue</CardTitle>
+                <CardTitle className="text-foreground text-base">Revenue</CardTitle>
               </div>
               <Button variant="ghost" size="sm" onClick={() => router.push('/tutor/revenue')}>
                 View All
@@ -421,30 +421,30 @@ export function RevenueDashboard({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold text-foreground">
+                  <p className="text-foreground text-2xl font-bold">
                     {formatCurrency(availableBalance)}
                   </p>
-                  <p className="text-xs text-muted-foreground">Available Balance</p>
+                  <p className="text-muted-foreground text-xs">Available Balance</p>
                 </div>
                 <div className="text-right">
                   <div className="flex items-center gap-1 text-green-600">
                     <TrendingUp className="h-4 w-4" />
                     <span className="text-sm font-medium">+{revenueChange.toFixed(1)}%</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">vs last month</p>
+                  <p className="text-muted-foreground text-xs">vs last month</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg border border-border bg-muted p-3">
-                  <p className="text-lg font-bold text-foreground">{totalBookings}</p>
-                  <p className="text-xs text-muted-foreground">Bookings</p>
+                <div className="border-border bg-muted rounded-lg border p-3">
+                  <p className="text-foreground text-lg font-bold">{totalBookings}</p>
+                  <p className="text-muted-foreground text-xs">Bookings</p>
                 </div>
-                <div className="rounded-lg border border-border bg-muted p-3">
-                  <p className="text-lg font-bold text-foreground">
+                <div className="border-border bg-muted rounded-lg border p-3">
+                  <p className="text-foreground text-lg font-bold">
                     {formatCurrency(avgBookingValue)}
                   </p>
-                  <p className="text-xs text-muted-foreground">Avg Value</p>
+                  <p className="text-muted-foreground text-xs">Avg Value</p>
                 </div>
               </div>
 
@@ -499,19 +499,19 @@ export function RevenueDashboard({
 
   return (
     <>
-      <Card className="flex h-full flex-col border border-border bg-card" style={themeStyle}>
-        <CardHeader className="pb-3 text-foreground">
+      <Card className="border-border bg-card flex h-full flex-col border" style={themeStyle}>
+        <CardHeader className="text-foreground pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-green-500" />
-              <CardTitle className="text-base font-bold text-foreground">
+              <CardTitle className="text-foreground text-base font-bold">
                 Revenue & Business
               </CardTitle>
             </div>
             <div className="flex items-center gap-1">
               {/* Theme Selector */}
               <Select value={themeId} onValueChange={setThemeId}>
-                <SelectTrigger className="h-8 w-[140px] border-border bg-background text-xs text-foreground">
+                <SelectTrigger className="border-border bg-background text-foreground h-8 w-[140px] text-xs">
                   <SelectValue placeholder="Theme" />
                 </SelectTrigger>
                 <SelectContent>
@@ -535,11 +535,11 @@ export function RevenueDashboard({
 
           {/* Summary Cards */}
           <div className="mt-3 grid grid-cols-2 gap-3">
-            <div className="rounded-xl border border-border bg-green-50 p-3">
+            <div className="border-border rounded-xl border bg-green-50 p-3">
               <p className="mb-1 text-xs text-green-600">Available Balance</p>
               <p className="text-xl font-bold text-green-800">{formatCurrency(availableBalance)}</p>
             </div>
-            <div className="rounded-xl border border-border bg-blue-50 p-3">
+            <div className="border-border rounded-xl border bg-blue-50 p-3">
               <p className="mb-1 text-xs text-blue-600">This Month</p>
               <div className="flex items-center gap-2">
                 <p className="text-xl font-bold text-blue-800">
@@ -555,7 +555,7 @@ export function RevenueDashboard({
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab as any} className="mt-4">
-            <TabsList className="grid w-full grid-cols-4 bg-muted">
+            <TabsList className="bg-muted grid w-full grid-cols-4">
               <TabsTrigger value="overview" className="text-xs">
                 Overview
               </TabsTrigger>
@@ -579,44 +579,44 @@ export function RevenueDashboard({
                 <div className="space-y-4">
                   {/* Key Metrics */}
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-lg border border-border bg-card p-3 text-center">
-                      <p className="text-lg font-bold text-foreground">{totalBookings}</p>
-                      <p className="text-xs text-muted-foreground">Total Bookings</p>
+                    <div className="border-border bg-card rounded-lg border p-3 text-center">
+                      <p className="text-foreground text-lg font-bold">{totalBookings}</p>
+                      <p className="text-muted-foreground text-xs">Total Bookings</p>
                     </div>
-                    <div className="rounded-lg border border-border bg-card p-3 text-center">
-                      <p className="text-lg font-bold text-foreground">
+                    <div className="border-border bg-card rounded-lg border p-3 text-center">
+                      <p className="text-foreground text-lg font-bold">
                         {formatCurrency(avgBookingValue)}
                       </p>
-                      <p className="text-xs text-muted-foreground">Avg Booking Value</p>
+                      <p className="text-muted-foreground text-xs">Avg Booking Value</p>
                     </div>
-                    <div className="rounded-lg border border-border bg-card p-3 text-center">
-                      <p className="text-lg font-bold text-foreground">{courses.length}</p>
-                      <p className="text-xs text-muted-foreground">Active Courses</p>
+                    <div className="border-border bg-card rounded-lg border p-3 text-center">
+                      <p className="text-foreground text-lg font-bold">{courses.length}</p>
+                      <p className="text-muted-foreground text-xs">Active Courses</p>
                     </div>
-                    <div className="rounded-lg border border-border bg-card p-3 text-center">
-                      <p className="text-lg font-bold text-foreground">4.7</p>
-                      <p className="text-xs text-muted-foreground">Avg Rating</p>
+                    <div className="border-border bg-card rounded-lg border p-3 text-center">
+                      <p className="text-foreground text-lg font-bold">4.7</p>
+                      <p className="text-muted-foreground text-xs">Avg Rating</p>
                     </div>
                   </div>
 
                   {/* Recent Earnings */}
                   <div>
-                    <h3 className="mb-2 text-sm font-medium text-foreground">
+                    <h3 className="text-foreground mb-2 text-sm font-medium">
                       Recent Transactions
                     </h3>
                     <div className="space-y-2">
                       {earnings.slice(0, 5).map(earning => (
                         <div
                           key={earning.id}
-                          className="flex items-center justify-between rounded bg-muted p-2"
+                          className="bg-muted flex items-center justify-between rounded p-2"
                         >
                           <div className="flex items-center gap-2">
                             {getTypeIcon(earning.type)}
                             <div>
-                              <p className="text-sm font-medium text-foreground">
+                              <p className="text-foreground text-sm font-medium">
                                 {earning.description}
                               </p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-muted-foreground text-xs">
                                 {formatDate(earning.date)}
                               </p>
                             </div>
@@ -651,22 +651,22 @@ export function RevenueDashboard({
               {activeTab === 'earnings' && (
                 <div className="space-y-3">
                   {earnings.map(earning => (
-                    <div key={earning.id} className="rounded-lg border border-border bg-card p-3">
+                    <div key={earning.id} className="border-border bg-card rounded-lg border p-3">
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                          <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-full">
                             {getTypeIcon(earning.type)}
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-foreground">
+                            <p className="text-foreground text-sm font-medium">
                               {earning.description}
                             </p>
                             {earning.studentName && (
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-muted-foreground text-xs">
                                 Student: {earning.studentName}
                               </p>
                             )}
-                            <p className="text-xs text-muted-foreground">{earning.date}</p>
+                            <p className="text-muted-foreground text-xs">{earning.date}</p>
                           </div>
                         </div>
                         <div className="text-right">
@@ -690,29 +690,29 @@ export function RevenueDashboard({
               {activeTab === 'courses' && (
                 <div className="space-y-3">
                   {courses.map(course => (
-                    <div key={course.id} className="rounded-lg border border-border bg-card p-3">
+                    <div key={course.id} className="border-border bg-card rounded-lg border p-3">
                       <div className="mb-2 flex items-start justify-between">
-                        <h4 className="text-sm font-medium text-foreground">{course.name}</h4>
+                        <h4 className="text-foreground text-sm font-medium">{course.name}</h4>
                         <Badge variant="outline" className="text-xs">
                           ⭐ {course.rating}
                         </Badge>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-center">
-                        <div className="rounded bg-muted p-2">
-                          <p className="text-lg font-bold text-foreground">{course.enrollments}</p>
-                          <p className="text-xs text-muted-foreground">Students</p>
+                        <div className="bg-muted rounded p-2">
+                          <p className="text-foreground text-lg font-bold">{course.enrollments}</p>
+                          <p className="text-muted-foreground text-xs">Students</p>
                         </div>
-                        <div className="rounded bg-muted p-2">
-                          <p className="text-lg font-bold text-foreground">
+                        <div className="bg-muted rounded p-2">
+                          <p className="text-foreground text-lg font-bold">
                             {formatCurrency(course.revenue)}
                           </p>
-                          <p className="text-xs text-muted-foreground">Revenue</p>
+                          <p className="text-muted-foreground text-xs">Revenue</p>
                         </div>
-                        <div className="rounded bg-muted p-2">
-                          <p className="text-lg font-bold text-foreground">
+                        <div className="bg-muted rounded p-2">
+                          <p className="text-foreground text-lg font-bold">
                             {course.conversionRate}%
                           </p>
-                          <p className="text-xs text-muted-foreground">Conversion</p>
+                          <p className="text-muted-foreground text-xs">Conversion</p>
                         </div>
                       </div>
                     </div>
@@ -723,8 +723,8 @@ export function RevenueDashboard({
               {activeTab === 'analytics' && (
                 <div className="space-y-4">
                   {/* Conversion Funnel - Moved to top for visibility */}
-                  <div className="rounded-lg border border-border bg-gradient-to-br from-blue-50/50 to-purple-50/50 p-4">
-                    <h3 className="mb-4 flex items-center gap-2 font-medium text-foreground">
+                  <div className="border-border rounded-lg border bg-gradient-to-br from-blue-50/50 to-purple-50/50 p-4">
+                    <h3 className="text-foreground mb-4 flex items-center gap-2 font-medium">
                       <TrendingUp className="h-5 w-5" />
                       Conversion Funnel
                     </h3>
@@ -787,21 +787,21 @@ export function RevenueDashboard({
 
                   {/* Popular Time Slots */}
                   <div>
-                    <h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
+                    <h3 className="text-foreground mb-3 flex items-center gap-2 text-sm font-medium">
                       <Clock className="h-4 w-4" />
                       Popular Time Slots
                     </h3>
                     <div className="space-y-2">
                       {timeSlots.map((slot, idx) => (
                         <div key={idx} className="flex items-center gap-3">
-                          <span className="w-32 truncate text-xs text-foreground">{slot.slot}</span>
-                          <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                          <span className="text-foreground w-32 truncate text-xs">{slot.slot}</span>
+                          <div className="bg-muted h-2 flex-1 overflow-hidden rounded-full">
                             <div
                               className="h-full rounded-full bg-purple-500"
                               style={{ width: `${(slot.bookings / 50) * 100}%` }}
                             />
                           </div>
-                          <span className="w-12 text-right text-xs text-foreground">
+                          <span className="text-foreground w-12 text-right text-xs">
                             {slot.bookings}
                           </span>
                         </div>
@@ -810,12 +810,12 @@ export function RevenueDashboard({
                   </div>
 
                   {/* Conversion Funnel */}
-                  <div className="rounded-lg bg-muted p-3">
-                    <h3 className="mb-3 text-sm font-medium text-foreground">Conversion Funnel</h3>
+                  <div className="bg-muted rounded-lg p-3">
+                    <h3 className="text-foreground mb-3 text-sm font-medium">Conversion Funnel</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Page Views</span>
-                        <span className="font-medium text-foreground">1,245</span>
+                        <span className="text-foreground font-medium">1,245</span>
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-blue-100">
                         <div
@@ -826,7 +826,7 @@ export function RevenueDashboard({
 
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Course Views</span>
-                        <span className="font-medium text-foreground">456 (36.6%)</span>
+                        <span className="text-foreground font-medium">456 (36.6%)</span>
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-blue-100">
                         <div
@@ -837,7 +837,7 @@ export function RevenueDashboard({
 
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Enrollments</span>
-                        <span className="font-medium text-foreground">123 (27.0%)</span>
+                        <span className="text-foreground font-medium">123 (27.0%)</span>
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-green-100">
                         <div
@@ -849,8 +849,8 @@ export function RevenueDashboard({
                   </div>
 
                   {/* Revenue Trend */}
-                  <div className="rounded-lg bg-muted p-3">
-                    <h3 className="mb-3 text-sm font-medium text-foreground">
+                  <div className="bg-muted rounded-lg p-3">
+                    <h3 className="text-foreground mb-3 text-sm font-medium">
                       Monthly Revenue Trend
                     </h3>
                     <div className="flex h-24 items-end gap-2">
@@ -860,7 +860,7 @@ export function RevenueDashboard({
                             className="w-full rounded-t bg-purple-500"
                             style={{ height: `${height}%` }}
                           />
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-muted-foreground text-xs">
                             {['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'][idx]}
                           </span>
                         </div>

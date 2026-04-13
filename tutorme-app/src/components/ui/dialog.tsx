@@ -13,12 +13,12 @@ import { cn } from '@/lib/utils'
 
 const dialogContentVariants = cva(
   [
-    'fixed z-modal',
+    'z-modal fixed',
     'w-full',
     'bg-background',
-    'border border-border/50',
+    'border-border/50 border',
     'shadow-elevation-5',
-    'duration-300 ease-premium',
+    'ease-premium duration-300',
     'data-[state=open]:animate-in data-[state=closed]:animate-out',
     'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
     'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
@@ -89,7 +89,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      'fixed inset-0 z-modal-backdrop',
+      'z-modal-backdrop fixed inset-0',
       'bg-background/80',
       blur && 'backdrop-blur-sm',
       'data-[state=open]:animate-in data-[state=closed]:animate-out',
@@ -148,7 +148,7 @@ const DialogContent = React.forwardRef<
               'opacity-70',
               'transition-all duration-150',
               'hover:bg-accent hover:opacity-100',
-              'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+              'focus:ring-ring focus:outline-none focus:ring-2 focus:ring-offset-2',
               'disabled:pointer-events-none'
             )}
           >
@@ -186,7 +186,7 @@ const DialogHeader = React.forwardRef<
         'flex flex-col space-y-2',
         'text-center sm:text-left',
         spacingClasses[spacing],
-        bordered && 'border-b border-border/50',
+        bordered && 'border-border/50 border-b',
         className
       )}
       {...props}
@@ -227,7 +227,7 @@ const DialogFooter = React.forwardRef<
         'flex flex-col-reverse gap-2 sm:flex-row sm:gap-3',
         alignClasses[align],
         spacingClasses[spacing],
-        bordered && 'border-t border-border/50',
+        bordered && 'border-border/50 border-t',
         className
       )}
       {...props}
@@ -256,7 +256,7 @@ const DialogTitle = React.forwardRef<
     <DialogPrimitive.Title
       ref={ref}
       className={cn(
-        'font-semibold leading-tight tracking-tight text-foreground',
+        'text-foreground font-semibold leading-tight tracking-tight',
         sizeClasses[size],
         className
       )}

@@ -20,10 +20,7 @@ export const PATCH = withCsrf(
         .select()
         .from(courseEnrollment)
         .where(
-          and(
-            eq(courseEnrollment.enrollmentId, enrollmentId),
-            eq(courseEnrollment.courseId, id)
-          )
+          and(eq(courseEnrollment.enrollmentId, enrollmentId), eq(courseEnrollment.courseId, id))
         )
       if (!enrollment) throw new NotFoundError('Enrollment not found')
       // batchId column doesn't exist in schema - skipping batch update

@@ -33,6 +33,7 @@ export const payment = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
     enrollmentId: text('enrollmentId').references(() => courseEnrollment.enrollmentId, {
       onDelete: 'set null',
@@ -71,6 +72,7 @@ export const refund = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -108,7 +110,7 @@ export const payout = pgTable(
       .references(() => user.userId, { onDelete: 'cascade' }),
     amount: doublePrecision('amount').notNull(),
     currency: text('currency').notNull(),
-    status: text('status').notNull(),
+    status: enums.payoutStatusEnum('status').notNull(),
     method: text('method').notNull(),
     details: jsonb('details'),
     notes: text('notes'),

@@ -24,6 +24,7 @@ export const adminRole = pgTable('AdminRole', {
   createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updatedAt', { withTimezone: true })
     .notNull()
+    .defaultNow()
     .$onUpdate(() => new Date()),
 })
 
@@ -68,6 +69,7 @@ export const featureFlag = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
     deletedAt: timestamp('deletedAt', { withTimezone: true }),
   },
@@ -115,6 +117,7 @@ export const llmProvider = pgTable('LlmProvider', {
   createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updatedAt', { withTimezone: true })
     .notNull()
+    .defaultNow()
     .$onUpdate(() => new Date()),
 })
 
@@ -189,6 +192,7 @@ export const systemSetting = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -205,7 +209,9 @@ export const adminAuditLog = pgTable(
   'AdminAuditLog',
   {
     auditLogId: text('id').primaryKey().notNull(),
-    adminId: text('adminId').notNull(),
+    adminId: text('adminId')
+      .notNull()
+      .references(() => user.userId),
     action: text('action').notNull(),
     resourceType: text('resourceType'),
     resourceId: text('resourceId'),
@@ -228,7 +234,9 @@ export const adminSession = pgTable(
   'AdminSession',
   {
     sessionId: text('id').primaryKey().notNull(),
-    adminId: text('adminId').notNull(),
+    adminId: text('adminId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     token: text('token').notNull().unique(),
     ipAddress: text('ipAddress'),
     userAgent: text('userAgent'),

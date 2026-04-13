@@ -99,8 +99,8 @@ export async function GET(request: NextRequest) {
 
       // Apply category filter if specified
       if (categoryFilter && categoryFilter !== 'all') {
-        const hasMatchingCategory = tutorCourses.some(
-          c => c.categories?.some((cat: string) => cat.toLowerCase().includes(categoryFilter))
+        const hasMatchingCategory = tutorCourses.some(c =>
+          c.categories?.some((cat: string) => cat.toLowerCase().includes(categoryFilter))
         )
         if (!hasMatchingCategory) continue
       }
@@ -108,8 +108,8 @@ export async function GET(request: NextRequest) {
       // Apply combination filter (e.g., "IELTS - Korea") if specified
       if (combinationFilter && combinationFilter !== 'all') {
         const combinations = profileData.categoryNationalityCombinations || []
-        const hasMatchingCombination = combinations.some(
-          (combo: string) => combo.toLowerCase().includes(combinationFilter)
+        const hasMatchingCombination = combinations.some((combo: string) =>
+          combo.toLowerCase().includes(combinationFilter)
         )
         if (!hasMatchingCombination) continue
       }
@@ -117,8 +117,8 @@ export async function GET(request: NextRequest) {
       // Apply nationality filter if specified
       if (nationalityFilter && nationalityFilter !== 'all') {
         const nationalities = profileData.tutorNationalities || []
-        const hasMatchingNationality = nationalities.some(
-          (nat: string) => nat.toLowerCase().includes(nationalityFilter)
+        const hasMatchingNationality = nationalities.some((nat: string) =>
+          nat.toLowerCase().includes(nationalityFilter)
         )
         if (!hasMatchingNationality) continue
       }
@@ -163,9 +163,11 @@ export async function GET(request: NextRequest) {
         categories,
         latestCourseUpdatedAt:
           tutorCourses.length > 0
-            ? tutorCourses.sort(
-                (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-              )[0].updatedAt?.toISOString()
+            ? tutorCourses
+                .sort(
+                  (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+                )[0]
+                .updatedAt?.toISOString()
             : null,
         coursePreview: tutorCourses.map(c => ({
           id: c.courseId,
@@ -209,9 +211,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all unique categories for filter dropdown
-    const allCategories = [
-      ...new Set(publishedCourses.flatMap(c => c.categories || [])),
-    ].filter(Boolean)
+    const allCategories = [...new Set(publishedCourses.flatMap(c => c.categories || []))].filter(
+      Boolean
+    )
 
     // Get all unique combinations from all tutor profiles
     const allCombinations = [

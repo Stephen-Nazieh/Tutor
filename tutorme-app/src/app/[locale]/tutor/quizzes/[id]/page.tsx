@@ -213,7 +213,7 @@ export default function QuizBuilderPage({ params }: { params: Promise<{ id: stri
               <BackButton href="/tutor/quizzes" />
               <div>
                 <h1 className="text-xl font-semibold">{formData.title || 'Untitled Quiz'}</h1>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="text-muted-foreground flex items-center gap-2 text-sm">
                   <Badge variant={quiz.status === 'published' ? 'default' : 'secondary'}>
                     {quiz.status}
                   </Badge>
@@ -569,13 +569,13 @@ function QuizAssignmentPanel({ quizId }: { quizId: string }) {
                       Assigned {new Date(assignment.assignedAt).toLocaleDateString()}
                     </span>
                     {assignment.dueDate && (
-                      <span className="ml-2 text-sm text-muted-foreground">
+                      <span className="text-muted-foreground ml-2 text-sm">
                         Due {new Date(assignment.dueDate).toLocaleDateString()}
                       </span>
                     )}
                   </div>
                   <Button variant="ghost" size="sm">
-                    <Trash2 className="h-4 w-4 text-destructive" />
+                    <Trash2 className="text-destructive h-4 w-4" />
                   </Button>
                 </div>
               ))}
@@ -620,25 +620,25 @@ function QuizAnalyticsPanel({ quizId }: { quizId: string }) {
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">{analytics.attemptsCount}</div>
-            <p className="text-sm text-muted-foreground">Total Attempts</p>
+            <p className="text-muted-foreground text-sm">Total Attempts</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">{analytics.averageScore}%</div>
-            <p className="text-sm text-muted-foreground">Average Score</p>
+            <p className="text-muted-foreground text-sm">Average Score</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">{analytics.completionRate}%</div>
-            <p className="text-sm text-muted-foreground">Completion Rate</p>
+            <p className="text-muted-foreground text-sm">Completion Rate</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">{Math.floor(analytics.averageTimeSpent / 60)}m</div>
-            <p className="text-sm text-muted-foreground">Avg. Time Spent</p>
+            <p className="text-muted-foreground text-sm">Avg. Time Spent</p>
           </CardContent>
         </Card>
       </div>
@@ -697,7 +697,7 @@ function QuizAnalyticsPanel({ quizId }: { quizId: string }) {
                     correct
                   </Badge>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="text-muted-foreground flex items-center gap-4 text-sm">
                   <span>Avg Score: {qa.averageScore.toFixed(1)}</span>
                   <span>Difficulty: {(qa.difficultyIndex * 100).toFixed(0)}%</span>
                 </div>
@@ -721,7 +721,7 @@ function QuizAnalyticsPanel({ quizId }: { quizId: string }) {
               >
                 <div>
                   <span className="font-medium">{student.studentName}</span>
-                  <span className="ml-2 text-sm text-muted-foreground">
+                  <span className="text-muted-foreground ml-2 text-sm">
                     {student.attemptCount} attempt{student.attemptCount !== 1 ? 's' : ''}
                   </span>
                 </div>
@@ -729,7 +729,7 @@ function QuizAnalyticsPanel({ quizId }: { quizId: string }) {
                   <span className="text-sm">
                     Best: <span className="font-medium">{student.bestScore}%</span>
                   </span>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-muted-foreground text-sm">
                     Avg: {student.averageScore}%
                   </span>
                 </div>

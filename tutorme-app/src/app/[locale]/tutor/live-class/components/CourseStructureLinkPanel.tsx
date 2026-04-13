@@ -222,7 +222,7 @@ export function CourseStructureLinkPanel({
           />
 
           <div
-            className="absolute inset-y-0 left-0 flex h-full border-r bg-background shadow-xl"
+            className="bg-background absolute inset-y-0 left-0 flex h-full border-r shadow-xl"
             style={{ width: `${panelWidth}px` }}
           >
             <button
@@ -235,7 +235,7 @@ export function CourseStructureLinkPanel({
             <div className="flex h-full min-w-0 flex-1 flex-col">
               <div className="border-b px-6 py-4">
                 <div className="text-lg font-semibold">Live Course Builder Panel</div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-muted-foreground text-sm">
                   This is the same builder as Course Builder page. Changes stay in sync.
                 </div>
               </div>
@@ -272,7 +272,7 @@ export function CourseStructureLinkPanel({
 
               <div className="min-h-0 flex-1 overflow-hidden">
                 {!selectedCourseId ? (
-                  <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                  <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
                     Select a course to open the builder.
                   </div>
                 ) : loadingBuilder || lessons === null ? (
@@ -299,7 +299,7 @@ export function CourseStructureLinkPanel({
 
               <button
                 type="button"
-                className="absolute right-4 top-4 rounded border border-border bg-background px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+                className="border-border bg-background text-muted-foreground hover:text-foreground absolute right-4 top-4 rounded border px-2 py-1 text-xs"
                 onClick={() => setOpen(false)}
               >
                 Close

@@ -13,15 +13,15 @@ const inputVariants = cva(
     'flex w-full',
     'rounded-lg', // Soft rounded corners
     'bg-background',
-    'border border-input',
-    'text-sm text-foreground',
+    'border-input border',
+    'text-foreground text-sm',
     'placeholder:text-muted-foreground',
-    'transition-all duration-150 ease-premium',
+    'ease-premium transition-all duration-150',
     'file:border-0 file:bg-transparent file:text-sm file:font-medium',
     // Focus states
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+    'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     // Disabled states
-    'disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50',
+    'disabled:bg-muted disabled:cursor-not-allowed disabled:opacity-50',
   ],
   {
     variants: {
@@ -37,12 +37,12 @@ const inputVariants = cva(
       variant: {
         default: ['border-input', 'focus-visible:border-primary'],
         filled: [
-          'border-transparent bg-muted',
+          'bg-muted border-transparent',
           'hover:bg-muted/80',
           'focus-visible:border-primary focus-visible:bg-background',
         ],
         outlined: [
-          'border-2 border-input bg-transparent',
+          'border-input border-2 bg-transparent',
           'focus-visible:border-primary focus-visible:bg-background',
         ],
         ghost: [
@@ -51,7 +51,7 @@ const inputVariants = cva(
           'focus-visible:bg-muted focus-visible:ring-0',
         ],
         elevated: [
-          'border-0 bg-background',
+          'bg-background border-0',
           'shadow-elevation-1',
           'focus-visible:shadow-elevation-2 focus-visible:ring-offset-0',
         ],
@@ -117,7 +117,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <div className="w-full space-y-1.5">
         <div className="relative flex items-center">
           {leftIcon && (
-            <div className="pointer-events-none absolute left-3 flex items-center justify-center text-muted-foreground">
+            <div className="text-muted-foreground pointer-events-none absolute left-3 flex items-center justify-center">
               {leftIcon}
             </div>
           )}
@@ -133,7 +133,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {rightIcon && (
-            <div className="pointer-events-none absolute right-3 flex items-center justify-center text-muted-foreground">
+            <div className="text-muted-foreground pointer-events-none absolute right-3 flex items-center justify-center">
               {rightIcon}
             </div>
           )}
@@ -200,8 +200,8 @@ const InputGroup = React.forwardRef<HTMLDivElement, InputGroupProps>(
     <div
       ref={ref}
       className={cn(
-        'flex overflow-hidden rounded-lg border border-input',
-        'focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
+        'border-input flex overflow-hidden rounded-lg border',
+        'focus-within:ring-ring focus-within:ring-2 focus-within:ring-offset-2',
         className
       )}
       {...props}
@@ -225,9 +225,9 @@ const InputGroupText = React.forwardRef<HTMLDivElement, InputGroupTextProps>(
     <div
       ref={ref}
       className={cn(
-        'flex items-center bg-muted px-3 py-2 text-sm text-muted-foreground',
-        position === 'left' && 'border-r border-input',
-        position === 'right' && 'border-l border-input',
+        'bg-muted text-muted-foreground flex items-center px-3 py-2 text-sm',
+        position === 'left' && 'border-input border-r',
+        position === 'right' && 'border-input border-l',
         className
       )}
       {...props}
@@ -256,7 +256,7 @@ const InputGroupInput = React.forwardRef<HTMLInputElement, InputGroupInputProps>
       <input
         ref={ref}
         className={cn(
-          'flex-1 bg-background px-3 py-2 text-foreground',
+          'bg-background text-foreground flex-1 px-3 py-2',
           'placeholder:text-muted-foreground',
           'focus:outline-none',
           sizeClasses[inputSize],

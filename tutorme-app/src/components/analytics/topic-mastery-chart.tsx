@@ -53,7 +53,7 @@ export function TopicMasteryChart({
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="text-lg">{title}</CardTitle>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           已掌握: <span className="font-semibold text-green-500">{masteredCount}</span> /{' '}
           {totalCount} 知识点
         </p>

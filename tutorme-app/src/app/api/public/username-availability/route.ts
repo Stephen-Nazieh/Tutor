@@ -12,7 +12,11 @@ async function generateSuggestion(seed: string): Promise<string> {
     const candidate = `${base}${suffix}`.slice(0, 30)
     if (!HANDLE_REGEX.test(candidate) || isReservedHandle(candidate)) continue
     try {
-      const [existing] = await drizzleDb.select({ userId: user.userId }).from(user).where(eq(user.handle, candidate)).limit(1)
+      const [existing] = await drizzleDb
+        .select({ userId: user.userId })
+        .from(user)
+        .where(eq(user.handle, candidate))
+        .limit(1)
       if (!existing) return candidate
     } catch {
       // If DB check fails, return a random candidate
@@ -28,7 +32,10 @@ export async function GET(request: NextRequest) {
     const normalized = normalizeHandle(usernameParam)
 
     if (!normalized || !HANDLE_REGEX.test(normalized) || isReservedHandle(normalized)) {
-      return NextResponse.json({ available: false, suggestion: await generateSuggestion(usernameParam) })
+      return NextResponse.json({
+        available: false,
+        suggestion: await generateSuggestion(usernameParam),
+      })
     }
 
     try {
@@ -39,14 +46,20 @@ export async function GET(request: NextRequest) {
         .limit(1)
 
       if (existing) {
-        return NextResponse.json({ available: false, suggestion: await generateSuggestion(normalized) })
+        return NextResponse.json({
+          available: false,
+          suggestion: await generateSuggestion(normalized),
+        })
       }
 
       return NextResponse.json({ available: true, username: normalized })
     } catch (dbError) {
       console.error('Database error checking username:', dbError)
       // Return a graceful fallback - assume taken with suggestion
-      return NextResponse.json({ available: false, suggestion: await generateSuggestion(normalized) })
+      return NextResponse.json({
+        available: false,
+        suggestion: await generateSuggestion(normalized),
+      })
     }
   } catch (error) {
     console.error('Username availability check failed:', error)

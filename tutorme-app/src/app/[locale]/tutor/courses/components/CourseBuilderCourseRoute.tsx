@@ -360,7 +360,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
   if (!currentCourse && !loading) {
     return (
       <div
-        className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground"
+        className="bg-background text-foreground flex min-h-screen items-center justify-center p-6"
         style={themeStyle}
       >
         <Card className="w-full max-w-md">
@@ -413,12 +413,12 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
 
   return (
     <div
-      className="flex h-screen w-full flex-col items-stretch overflow-hidden bg-[#fafafc] text-foreground"
+      className="text-foreground flex h-screen w-full flex-col items-stretch overflow-hidden bg-[#fafafc]"
       data-tutor-route="course-builder"
       style={themeStyle}
     >
       {/* Top Navigation Bar with Course Controls */}
-      <div className="sticky top-0 z-10 w-full border-b border-border bg-card">
+      <div className="border-border bg-card sticky top-0 z-10 w-full border-b">
         <div className="flex w-full items-center justify-between gap-4 px-4 py-2 sm:px-6">
           {/* Course Selector and Name Editor */}
           <div className="flex items-center gap-3">
@@ -475,7 +475,7 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
 
           <div className="flex shrink-0 items-center gap-3">
             <Select value={themeId} onValueChange={setThemeId}>
-              <SelectTrigger className="h-8 w-[180px] border-border bg-card text-foreground">
+              <SelectTrigger className="border-border bg-card text-foreground h-8 w-[180px]">
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
               <SelectContent>
@@ -506,8 +506,8 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
         </div>
       </div>
 
-      <div className="flex w-full flex-1 flex-col overflow-y-auto px-6 pb-6 pt-4 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2">
-        <h1 className="mb-2 text-center text-2xl font-bold tracking-tight text-foreground">
+      <div className="[&::-webkit-scrollbar-thumb]:bg-border flex w-full flex-1 flex-col overflow-y-auto px-6 pb-6 pt-4 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2">
+        <h1 className="text-foreground mb-2 text-center text-2xl font-bold tracking-tight">
           Course Builder
         </h1>
 

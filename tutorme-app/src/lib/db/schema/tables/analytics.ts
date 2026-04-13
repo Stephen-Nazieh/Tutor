@@ -16,6 +16,7 @@ import {
 import * as enums from '../enums'
 import { user } from './auth'
 import { liveSession } from './live'
+import { course } from './course'
 
 export const performanceMetric = pgTable(
   'PerformanceMetric',
@@ -26,7 +27,7 @@ export const performanceMetric = pgTable(
     unit: text('unit').notNull(),
     tags: jsonb('tags'),
     userId: text('userId').references(() => user.userId, { onDelete: 'set null' }),
-    sessionId: text('sessionId'),
+    sessionId: text('sessionId').references(() => liveSession.sessionId, { onDelete: 'set null' }),
     timestamp: timestamp('timestamp', { withTimezone: true }).notNull().defaultNow(),
   },
   table => ({
@@ -86,7 +87,10 @@ export const engagementSnapshot = pgTable(
 )
 
 export const sessionEngagementSummary = pgTable('SessionEngagementSummary', {
-  summarySessionId: text('id').primaryKey().notNull(),
+  summarySessionId: text('id')
+    .primaryKey()
+    .notNull()
+    .references(() => liveSession.sessionId, { onDelete: 'cascade' }),
   averageEngagement: doublePrecision('averageEngagement'),
   peakEngagement: doublePrecision('peakEngagement'),
   lowEngagement: doublePrecision('lowEngagement'),
@@ -155,7 +159,9 @@ export const sessionBookmark = pgTable(
   'SessionBookmark',
   {
     bookmarkId: text('id').primaryKey().notNull(),
-    sessionId: text('sessionId').notNull(),
+    sessionId: text('sessionId')
+      .notNull()
+      .references(() => liveSession.sessionId, { onDelete: 'cascade' }),
     timestampSeconds: integer('timestampSeconds').notNull(),
     label: text('label'),
     note: text('note'),
@@ -170,7 +176,9 @@ export const resource = pgTable(
   'Resource',
   {
     resourceId: text('id').primaryKey().notNull(),
-    tutorId: text('tutorId').notNull(),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     description: text('description'),
     type: text('type').notNull(),
@@ -184,6 +192,7 @@ export const resource = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -198,10 +207,14 @@ export const resourceShare = pgTable(
   'ResourceShare',
   {
     shareId: text('id').primaryKey().notNull(),
-    resourceId: text('resourceId').notNull(),
-    sharedByTutorId: text('sharedByTutorId').notNull(),
-    recipientId: text('recipientId'),
-    courseId: text('courseId'),
+    resourceId: text('resourceId')
+      .notNull()
+      .references(() => resource.resourceId, { onDelete: 'cascade' }),
+    sharedByTutorId: text('sharedByTutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    recipientId: text('recipientId').references(() => user.userId, { onDelete: 'set null' }),
+    courseId: text('courseId').references(() => course.courseId, { onDelete: 'set null' }),
     sharedWithAll: boolean('sharedWithAll').notNull(),
     message: text('message'),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
@@ -215,8 +228,8 @@ export const resourceShare = pgTable(
     ResourceShare_resourceId_recipientId_key: uniqueIndex(
       'ResourceShare_resourceId_recipientId_key'
     ).on(table.resourceId, table.recipientId),
-    ResourceShare_resourceId_sharedWithAll_key: uniqueIndex(
-      'ResourceShare_resourceId_sharedWithAll_key'
+    ResourceShare_resourceId_sharedWithAll_idx: index(
+      'ResourceShare_resourceId_sharedWithAll_idx'
     ).on(table.resourceId, table.sharedWithAll),
   })
 )
@@ -225,7 +238,9 @@ export const libraryTask = pgTable(
   'LibraryTask',
   {
     libraryTaskId: text('id').primaryKey().notNull(),
-    userId: text('userId').notNull(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     question: text('question').notNull(),
     type: text('type').notNull(),
     options: jsonb('options'),
@@ -240,6 +255,7 @@ export const libraryTask = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({

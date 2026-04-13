@@ -41,7 +41,7 @@ export function PerformanceTrendChart({
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="text-lg">{title}</CardTitle>
-        {studentName && <p className="text-sm text-muted-foreground">{studentName}</p>}
+        {studentName && <p className="text-muted-foreground text-sm">{studentName}</p>}
       </CardHeader>
       <CardContent>
         <div className="h-[250px] min-h-[250px]">

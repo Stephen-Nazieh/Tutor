@@ -76,7 +76,7 @@ export default function PublicTutorDirectoryPage() {
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Search className="text-muted-foreground pointer-events-none absolute left-3 top-3 h-4 w-4" />
               <Input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
@@ -90,11 +90,11 @@ export default function PublicTutorDirectoryPage() {
           </div>
 
           {loading ? (
-            <div className="rounded-lg border bg-white p-6 text-sm text-muted-foreground">
+            <div className="text-muted-foreground rounded-lg border bg-white p-6 text-sm">
               Loading tutors...
             </div>
           ) : tutors.length === 0 ? (
-            <div className="rounded-lg border bg-white p-6 text-sm text-muted-foreground">
+            <div className="text-muted-foreground rounded-lg border bg-white p-6 text-sm">
               No tutors found. Try a different search.
             </div>
           ) : (

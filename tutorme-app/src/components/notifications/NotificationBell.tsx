@@ -200,7 +200,7 @@ export function NotificationBell() {
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white animate-in zoom-in-50">
+          <span className="animate-in zoom-in-50 absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -208,7 +208,7 @@ export function NotificationBell() {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 flex max-h-[480px] w-96 flex-col rounded-xl border bg-white shadow-xl duration-200 animate-in slide-in-from-top-2">
+        <div className="animate-in slide-in-from-top-2 absolute right-0 top-full z-50 mt-2 flex max-h-[480px] w-96 flex-col rounded-xl border bg-white shadow-xl duration-200">
           {/* Header */}
           <div className="flex items-center justify-between border-b px-4 py-3">
             <h3 className="text-sm font-semibold">Notifications</h3>

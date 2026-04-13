@@ -95,7 +95,7 @@ function StarRating({ rating, count }: { rating: number | null; count?: number }
       <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
       <span className="font-medium">{rating.toFixed(1)}</span>
       {count !== undefined && count > 0 && (
-        <span className="text-sm text-muted-foreground">({count})</span>
+        <span className="text-muted-foreground text-sm">({count})</span>
       )}
     </div>
   )
@@ -315,7 +315,7 @@ function Book1on1Dialog({
             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
           </div>
         ) : !availability?.available ? (
-          <div className="py-6 text-center text-muted-foreground">
+          <div className="text-muted-foreground py-6 text-center">
             This tutor is not currently offering one-on-one sessions.
           </div>
         ) : (
@@ -329,7 +329,7 @@ function Book1on1Dialog({
             </div>
 
             {/* Timezone info */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="text-muted-foreground flex items-center gap-2 text-sm">
               <Clock className="h-4 w-4" />
               <span>Times shown in: {availability.timezone}</span>
             </div>
@@ -338,7 +338,7 @@ function Book1on1Dialog({
             <ScrollArea className="max-h-[400px]">
               <div className="space-y-4 pr-4">
                 {dates.length === 0 ? (
-                  <div className="py-6 text-center text-muted-foreground">
+                  <div className="text-muted-foreground py-6 text-center">
                     No available slots in the next 3 weeks.
                   </div>
                 ) : (
@@ -581,7 +581,7 @@ export default function PublicTutorPage() {
       <div className="w-full p-4 sm:p-6">
         <Card className="animate-pulse">
           <CardHeader>
-            <div className="h-8 w-1/3 rounded bg-muted" />
+            <div className="bg-muted h-8 w-1/3 rounded" />
           </CardHeader>
         </Card>
       </div>
@@ -972,7 +972,7 @@ export default function PublicTutorPage() {
         </CardHeader>
         <CardContent>
           {courses.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No published courses yet.</p>
+            <p className="text-muted-foreground text-sm">No published courses yet.</p>
           ) : (
             <div
               className={cn(
@@ -1009,7 +1009,7 @@ export default function PublicTutorPage() {
                     <div
                       key={course.id}
                       className={cn(
-                        'flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-card text-left shadow-sm',
+                        'bg-card flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200 text-left shadow-sm',
                         isList &&
                           'aspect-auto min-h-0 flex-row items-stretch sm:min-h-[148px] [&>*]:first:shrink-0',
                         isCompact && 'text-xs'

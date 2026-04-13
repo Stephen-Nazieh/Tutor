@@ -7,14 +7,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import crypto from 'crypto'
 import { eq, inArray } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  courseBatch,
-  course,
-  courseLesson,
-  courseModule,
-  profile,
-  user,
-} from '@/lib/db/schema'
+import { courseBatch, course, courseLesson, courseModule, profile, user } from '@/lib/db/schema'
 import { POST as createCourse } from '@/app/api/tutor/courses/route'
 import { GET as listBatches, POST as createBatch } from '@/app/api/tutor/courses/[id]/batches/route'
 import { PATCH as updateBatch } from '@/app/api/tutor/courses/[id]/batches/[batchId]/route'
@@ -95,9 +88,7 @@ describe('Tutor courses and batches API integration', () => {
           .where(eq(courseModule.courseId, courseId))
         const moduleIds = modules.map(m => m.id)
         if (moduleIds.length > 0) {
-          await drizzleDb
-            .delete(courseLesson)
-            .where(inArray(courseLesson.moduleId, moduleIds))
+          await drizzleDb.delete(courseLesson).where(inArray(courseLesson.moduleId, moduleIds))
         }
         await drizzleDb.delete(courseModule).where(eq(courseModule.courseId, courseId))
         await drizzleDb.delete(course).where(eq(course.id, courseId))

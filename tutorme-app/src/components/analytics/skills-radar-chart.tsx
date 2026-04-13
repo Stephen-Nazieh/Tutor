@@ -34,7 +34,7 @@ export function SkillsRadarChart({ data, title = '技能雷达图', subtitle }: 
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="text-lg">{title}</CardTitle>
-        {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+        {subtitle && <p className="text-muted-foreground text-sm">{subtitle}</p>}
       </CardHeader>
       <CardContent>
         <div className="h-[300px] min-h-[300px]">
@@ -73,8 +73,8 @@ export function SkillsRadarChart({ data, title = '技能雷达图', subtitle }: 
           </ClientOnly>
         </div>
         <div className="mt-2 text-center">
-          <p className="text-sm text-muted-foreground">
-            综合得分: <span className="font-semibold text-primary">{average.toFixed(1)}</span>
+          <p className="text-muted-foreground text-sm">
+            综合得分: <span className="text-primary font-semibold">{average.toFixed(1)}</span>
           </p>
         </div>
       </CardContent>

@@ -70,7 +70,7 @@ export function LessonSelectorDialog({
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Choose which lesson to save this {itemType} to:
           </p>
 

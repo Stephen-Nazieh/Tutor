@@ -2700,7 +2700,7 @@ FEEDBACK: [your explanation]`
         {assetsOpen && (
           <div className="flex min-h-[50px] flex-col gap-2 rounded-b-md bg-white p-2">
             {courseAssets.length === 0 ? (
-              <p className="w-full py-2 text-center text-xs text-muted-foreground">
+              <p className="text-muted-foreground w-full py-2 text-center text-xs">
                 No assets imported.
               </p>
             ) : (
@@ -3239,7 +3239,7 @@ FEEDBACK: [your explanation]`
                 style={{ width: leftPanelWidth }}
                 className="flex min-h-0 shrink-0 flex-col"
               >
-                <Card className="flex h-full min-h-0 flex-1 flex-col rounded-2xl border border-border bg-card shadow-xl ring-1 ring-black/5">
+                <Card className="border-border bg-card flex h-full min-h-0 flex-1 flex-col rounded-2xl border shadow-xl ring-1 ring-black/5">
                   <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden pt-3">
                     {/* Header with Hide, Import, and +Lesson buttons */}
                     <div className="mb-3 flex items-center justify-between">
@@ -3640,7 +3640,7 @@ FEEDBACK: [your explanation]`
                                                                   <span className="font-semibold text-orange-700">
                                                                     {idx + 1}.{extIdx + 1}
                                                                   </span>
-                                                                  <span className="flex-1 truncate text-muted-foreground">
+                                                                  <span className="text-muted-foreground flex-1 truncate">
                                                                     {ext.name}
                                                                   </span>
                                                                   {!lessonBankMode && (
@@ -4112,7 +4112,7 @@ FEEDBACK: [your explanation]`
                           </SortableContext>
 
                           {nodes.length === 0 && (
-                            <div className="py-8 text-center text-muted-foreground">
+                            <div className="text-muted-foreground py-8 text-center">
                               <Layers className="mx-auto mb-2 h-8 w-8 opacity-30" />
                               <p className="text-sm">No lessons yet. Click "Lesson" to add one.</p>
                             </div>
@@ -4126,7 +4126,7 @@ FEEDBACK: [your explanation]`
                 </Card>
               </div>
               <div
-                className="group flex w-2 shrink-0 cursor-col-resize items-center justify-center transition-colors hover:bg-primary/20 active:bg-primary/30"
+                className="hover:bg-primary/20 active:bg-primary/30 group flex w-2 shrink-0 cursor-col-resize items-center justify-center transition-colors"
                 onMouseDown={e => {
                   e.preventDefault()
                   leftResizeStartX.current = e.clientX
@@ -4135,7 +4135,7 @@ FEEDBACK: [your explanation]`
                 }}
                 title="Drag to resize"
               >
-                <GripHorizontal className="h-3 w-3 rotate-90 text-muted-foreground group-hover:text-primary" />
+                <GripHorizontal className="text-muted-foreground group-hover:text-primary h-3 w-3 rotate-90" />
               </div>
             </>
           )}
@@ -4163,17 +4163,17 @@ FEEDBACK: [your explanation]`
                 onValueChange={v => setMainTab(v as 'test-pci' | 'builder')}
                 className="flex h-full w-full flex-1 flex-col"
               >
-                <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl bg-muted/30 p-1">
+                <TabsList className="bg-muted/30 mb-4 grid w-full grid-cols-2 gap-1 rounded-xl p-1">
                   <TabsTrigger
                     value="test-pci"
-                    className="gap-2 rounded-lg bg-transparent data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                    className="data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg bg-transparent data-[state=active]:shadow-sm"
                   >
                     <BrainCircuit className="h-4 w-4 text-blue-500" />
                     {insightsProps ? 'Live' : 'Test'}
                   </TabsTrigger>
                   <TabsTrigger
                     value="builder"
-                    className="gap-2 rounded-lg bg-transparent data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                    className="data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg bg-transparent data-[state=active]:shadow-sm"
                   >
                     <Wand2 className="h-4 w-4 text-orange-500" />
                     Build
@@ -4184,7 +4184,7 @@ FEEDBACK: [your explanation]`
                   value="test-pci"
                   className="h-full w-full flex-1 data-[state=inactive]:hidden"
                 >
-                  <Card className="flex h-full w-full min-w-0 flex-1 overflow-hidden rounded-2xl border border-border bg-card shadow-xl ring-1 ring-black/5">
+                  <Card className="border-border bg-card flex h-full w-full min-w-0 flex-1 overflow-hidden rounded-2xl border shadow-xl ring-1 ring-black/5">
                     <CardContent className="flex h-full min-h-0 w-full flex-col overflow-hidden p-0 pt-4">
                       <CardTitle className="mb-3 flex items-center justify-between gap-2 px-4 text-base font-semibold">
                         <div className="flex items-center gap-2">
@@ -4220,7 +4220,7 @@ FEEDBACK: [your explanation]`
                               onValueChange={setTestPciActiveTab}
                               className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-hidden"
                             >
-                              <TabsList className="flex min-h-[3.2rem] w-full shrink-0 flex-nowrap items-stretch gap-1 rounded-xl border bg-muted p-1">
+                              <TabsList className="bg-muted flex min-h-[3.2rem] w-full shrink-0 flex-nowrap items-stretch gap-1 rounded-xl border p-1">
                                 {testPciTabs.map(tab => (
                                   <div key={tab.id} className="relative min-w-0 flex-1 basis-0">
                                     {editingTabId === tab.id ? (
@@ -4258,8 +4258,8 @@ FEEDBACK: [your explanation]`
                                   value={tab.id}
                                   className="mt-2 flex h-full w-full min-w-0 flex-1 flex-col self-stretch overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                 >
-                                  <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg bg-muted p-4">
-                                    <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                                  <div className="bg-muted flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg p-4">
+                                    <p className="text-muted-foreground whitespace-pre-wrap text-sm">
                                       {testPciContent[tab.id] || `${tab.label} view content`}
                                     </p>
                                     {/* Show AI scores if any */}
@@ -4299,7 +4299,7 @@ FEEDBACK: [your explanation]`
                               ))}
                             </Tabs>
                             {/* Enhanced text input styled as Kimi AI */}
-                            <div className="mt-4 rounded-2xl border border-border bg-background shadow-xl backdrop-blur-md">
+                            <div className="border-border bg-background mt-4 rounded-2xl border shadow-xl backdrop-blur-md">
                               <div className="relative p-1">
                                 <AutoTextarea
                                   className="min-h-[100px] w-full border-0 bg-transparent py-4 pl-4 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -4328,8 +4328,8 @@ FEEDBACK: [your explanation]`
                                   <Send className="h-4 w-4" />
                                 </Button>
                               </div>
-                              <div className="border-t border-border/50 bg-muted/20 px-4 py-2.5">
-                                <p className="text-[10px] text-muted-foreground">
+                              <div className="border-border/50 bg-muted/20 border-t px-4 py-2.5">
+                                <p className="text-muted-foreground text-[10px]">
                                   Tip: Start line with &quot;1.&quot;, &quot;-&quot;, or
                                   &quot;a.&quot; for auto-numbering. Use Tab/Shift+Tab to indent.
                                 </p>
@@ -4429,29 +4429,29 @@ FEEDBACK: [your explanation]`
                                       </div>
                                       <div className="grid gap-3">
                                         <div className="rounded-lg border bg-white/90 p-3">
-                                          <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                          <p className="text-muted-foreground text-xs font-semibold uppercase">
                                             Task Completion
                                           </p>
                                           <p className="mt-1 text-lg font-semibold text-gray-900">
                                             --
                                           </p>
-                                          <p className="text-xs text-muted-foreground">
+                                          <p className="text-muted-foreground text-xs">
                                             Waiting for submissions
                                           </p>
                                         </div>
                                         <div className="rounded-lg border bg-white/90 p-3">
-                                          <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                          <p className="text-muted-foreground text-xs font-semibold uppercase">
                                             Assessment Scores
                                           </p>
                                           <p className="mt-1 text-lg font-semibold text-gray-900">
                                             --
                                           </p>
-                                          <p className="text-xs text-muted-foreground">
+                                          <p className="text-muted-foreground text-xs">
                                             No scores yet
                                           </p>
                                         </div>
                                         <div className="rounded-lg border bg-white/90 p-3">
-                                          <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                          <p className="text-muted-foreground text-xs font-semibold uppercase">
                                             Questions Asked
                                           </p>
                                           <p className="mt-1 text-lg font-semibold text-gray-900">
@@ -4466,7 +4466,7 @@ FEEDBACK: [your explanation]`
                                               0
                                             )}
                                           </p>
-                                          <p className="text-xs text-muted-foreground">
+                                          <p className="text-muted-foreground text-xs">
                                             Live student responses
                                           </p>
                                         </div>
@@ -4490,12 +4490,12 @@ FEEDBACK: [your explanation]`
                                                 <p className="text-sm font-semibold text-gray-900">
                                                   {task.title}
                                                 </p>
-                                                <p className="text-xs text-muted-foreground">
+                                                <p className="text-muted-foreground text-xs">
                                                   Polls: {task.polls.length} • Questions:{' '}
                                                   {task.questions.length}
                                                 </p>
                                               </div>
-                                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                              <div className="text-muted-foreground flex items-center gap-2 text-xs">
                                                 <span>Poll responses: {pollResponses}</span>
                                                 <span>Question answers: {questionResponses}</span>
                                               </div>
@@ -4536,7 +4536,7 @@ FEEDBACK: [your explanation]`
                                                 <p className="text-xs font-medium text-gray-700">
                                                   {question.prompt}
                                                 </p>
-                                                <p className="mt-1 text-xs text-muted-foreground">
+                                                <p className="text-muted-foreground mt-1 text-xs">
                                                   Answers: {question.responses.length}
                                                 </p>
                                               </div>
@@ -4591,7 +4591,7 @@ FEEDBACK: [your explanation]`
                                     <div className="border-t border-cyan-50/50 bg-cyan-50/20 px-4 py-3">
                                       <div className="flex items-center justify-between gap-3">
                                         <div className="flex items-center gap-2">
-                                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                                          <span className="text-muted-foreground text-[10px] uppercase tracking-wider">
                                             Scale:
                                           </span>
                                           <div className="flex gap-1">
@@ -4682,11 +4682,11 @@ FEEDBACK: [your explanation]`
                   className="h-full w-full flex-1 data-[state=inactive]:hidden"
                 >
                   {/* COMBINED BUILDER: Task & Assessment Tabs */}
-                  <Card className="flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card/95 shadow-xl backdrop-blur-md">
+                  <Card className="border-border bg-card/95 flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border shadow-xl backdrop-blur-md">
                     <CardContent className="flex h-full flex-col overflow-hidden pt-4">
                       {/* Course Name Header - Hidden when hideCourseNameInTabs is true */}
                       {!lessonBankMode && !hideCourseNameInTabs && (
-                        <div className="mb-4 flex items-center gap-2 border-b border-border pb-3">
+                        <div className="border-border mb-4 flex items-center gap-2 border-b pb-3">
                           <span className="h-2 w-2 rounded-full bg-orange-500"></span>
                           <span className="text-base font-semibold">{courseName || 'Course'}</span>
                         </div>
@@ -4697,17 +4697,17 @@ FEEDBACK: [your explanation]`
                         className="flex h-full w-full flex-col"
                       >
                         {/* Main Builder Tabs */}
-                        <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border border-border bg-muted/30 p-1">
+                        <TabsList className="border-border bg-muted/30 mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border p-1">
                           <TabsTrigger
                             value="task"
-                            className="gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                            className="data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:shadow-sm"
                           >
                             <ListTodo className="h-4 w-4 text-orange-500" />
                             Task Builder
                           </TabsTrigger>
                           <TabsTrigger
                             value="assessment"
-                            className="gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                            className="data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:shadow-sm"
                           >
                             <FileQuestion className="h-4 w-4 text-purple-500" />
                             Assessment Builder
@@ -4782,7 +4782,7 @@ FEEDBACK: [your explanation]`
                                 }}
                                 className="flex h-full w-full flex-col"
                               >
-                                <TabsList className="grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+                                <TabsList className="bg-muted grid w-full grid-cols-2 gap-1 rounded-xl border p-1">
                                   <TabsTrigger
                                     value="content"
                                     className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
@@ -4891,7 +4891,7 @@ FEEDBACK: [your explanation]`
                                   <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
                                     <div className="flex-1 space-y-3 overflow-y-auto p-3">
                                       {activeTaskPciMessages.length === 0 && (
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-muted-foreground text-xs">
                                           Start a PCI chat to build instructions with the assistant.
                                         </p>
                                       )}
@@ -5042,7 +5042,7 @@ FEEDBACK: [your explanation]`
                                 </h4>
                                 <div className="min-h-[100px] space-y-2 rounded-lg bg-slate-50 p-3">
                                   {taskBuilder.extensions.length === 0 ? (
-                                    <p className="text-xs text-muted-foreground">
+                                    <p className="text-muted-foreground text-xs">
                                       No extensions added
                                     </p>
                                   ) : (
@@ -5113,7 +5113,7 @@ FEEDBACK: [your explanation]`
                                 }}
                                 className="flex h-full w-full flex-col"
                               >
-                                <TabsList className="grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+                                <TabsList className="bg-muted grid w-full grid-cols-2 gap-1 rounded-xl border p-1">
                                   <TabsTrigger
                                     value="content"
                                     className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
@@ -5179,7 +5179,7 @@ FEEDBACK: [your explanation]`
                                   <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
                                     <div className="flex-1 space-y-3 overflow-y-auto p-3">
                                       {assessmentPciMessages.length === 0 && (
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-muted-foreground text-xs">
                                           Start a PCI chat to build instructions with the assistant.
                                         </p>
                                       )}
@@ -5707,7 +5707,7 @@ FEEDBACK: [your explanation]`
               <div className="space-y-4 py-4">
                 {nodes.length === 0 || nodes.every(m => m.lessons.length === 0) ? (
                   <div className="py-4 text-center">
-                    <p className="mb-4 text-sm text-muted-foreground">
+                    <p className="text-muted-foreground mb-4 text-sm">
                       No lessons available. A new lesson will be created automatically.
                     </p>
                     <Button
@@ -5733,7 +5733,7 @@ FEEDBACK: [your explanation]`
                       <Label>Select Target Lesson</Label>
                       {nodes.map(mod => (
                         <div key={mod.id} className="space-y-1">
-                          <p className="px-2 text-xs font-medium text-muted-foreground">
+                          <p className="text-muted-foreground px-2 text-xs font-medium">
                             {mod.title}
                           </p>
                           {mod.lessons.map(lesson => (
@@ -5807,7 +5807,7 @@ FEEDBACK: [your explanation]`
                 <DialogDescription>Select a lesson to import into this course.</DialogDescription>
               </DialogHeader>
               {lessonBankCourseBuilderNodes.length === 0 ? (
-                <div className="py-6 text-center text-sm text-muted-foreground">
+                <div className="text-muted-foreground py-6 text-center text-sm">
                   No lesson bank content found. Build lessons in the Lesson Bank first.
                 </div>
               ) : (
@@ -6063,7 +6063,7 @@ FEEDBACK: [your explanation]`
               <div className="max-h-[400px] overflow-y-auto py-4">
                 {(mainBuilderTab === 'task' ? taskDmiVersions : assessmentDmiVersions).length ===
                 0 ? (
-                  <div className="py-6 text-center text-sm text-muted-foreground">
+                  <div className="text-muted-foreground py-6 text-center text-sm">
                     No DMI versions yet. Generate a DMI to create your first version.
                   </div>
                 ) : (
@@ -6074,16 +6074,16 @@ FEEDBACK: [your explanation]`
                       .map(version => (
                         <div
                           key={version.id}
-                          className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50"
+                          className="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-3"
                         >
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <span className="font-medium">Version {version.versionNumber}</span>
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-muted-foreground text-xs">
                                 {new Date(version.createdAt).toLocaleDateString()}
                               </span>
                             </div>
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-muted-foreground text-xs">
                               {version.items.length} question{version.items.length !== 1 ? 's' : ''}
                             </div>
                           </div>
@@ -6098,7 +6098,7 @@ FEEDBACK: [your explanation]`
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              className="text-muted-foreground hover:text-destructive h-8 w-8"
                               onClick={() => handleDeleteDmiVersion(version.id, mainBuilderTab)}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -6145,7 +6145,7 @@ FEEDBACK: [your explanation]`
                   </div>
                   <div className="text-left">
                     <p className="font-medium">Extract Text Content</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       Parse the slides and extract all text content for editing
                     </p>
                   </div>
@@ -6160,7 +6160,7 @@ FEEDBACK: [your explanation]`
                   </div>
                   <div className="text-left">
                     <p className="font-medium">Display as Presentation</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       Keep the file as a presentation to display slides during class
                     </p>
                   </div>

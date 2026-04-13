@@ -73,7 +73,7 @@ export default function PaymentCancelPage() {
         <div className="safe-top safe-bottom flex min-h-screen items-center justify-center bg-gray-50 p-4">
           <Card className="w-full max-w-md">
             <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Loading...</p>
+              <p className="text-muted-foreground text-sm">Loading...</p>
             </CardContent>
           </Card>
         </div>

@@ -17,21 +17,24 @@ export async function GET() {
     const response = await fetch('https://api.moonshot.cn/v1/models', {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${process.env.KIMI_API_KEY || ''}`,
+        Authorization: `Bearer ${process.env.KIMI_API_KEY || ''}`,
       },
     })
-    
+
     return NextResponse.json({
       status: 'ok',
       kimiApiReachable: response.ok,
       kimiApiStatus: response.status,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    return NextResponse.json({
-      status: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString()
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    )
   }
 }

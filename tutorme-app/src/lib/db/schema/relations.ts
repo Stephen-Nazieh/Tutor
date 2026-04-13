@@ -27,6 +27,7 @@ import {
   paymentOnPayout,
   conversation,
   directMessage,
+  message,
   mention,
   tutorFollow,
   lessonSession,
@@ -255,23 +256,23 @@ export const familyMemberRelations = relations(familyMember, ({ one }) => ({
 }))
 
 export const familyPaymentRelations = relations(familyPayment, ({ one }) => ({
-  parent: one(familyAccount, {
+  parent: one(user, {
     fields: [familyPayment.parentId],
-    references: [familyAccount.familyAccountId],
+    references: [user.userId],
   }),
 }))
 
 export const familyNotificationRelations = relations(familyNotification, ({ one }) => ({
-  parent: one(familyAccount, {
+  parent: one(user, {
     fields: [familyNotification.parentId],
-    references: [familyAccount.familyAccountId],
+    references: [user.userId],
   }),
 }))
 
 export const parentActivityLogRelations = relations(parentActivityLog, ({ one }) => ({
-  parent: one(familyAccount, {
+  parent: one(user, {
     fields: [parentActivityLog.parentId],
-    references: [familyAccount.familyAccountId],
+    references: [user.userId],
   }),
 }))
 
@@ -308,9 +309,9 @@ export const directMessageRelations = relations(directMessage, ({ one }) => ({
 }))
 
 export const mentionRelations = relations(mention, ({ one }) => ({
-  message: one(directMessage, {
+  message: one(message, {
     fields: [mention.messageId],
-    references: [directMessage.directMessageId],
+    references: [message.messageId],
   }),
   mentioner: one(user, {
     fields: [mention.mentionerId],

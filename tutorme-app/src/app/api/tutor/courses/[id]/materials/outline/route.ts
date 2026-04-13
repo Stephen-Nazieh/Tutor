@@ -34,8 +34,7 @@ export const POST = withCsrf(
         typeof body.typicalLessonMinutes === 'number'
           ? Math.min(120, Math.max(15, body.typicalLessonMinutes))
           : DEFAULT_LESSON_MINUTES
-      const bodyCourseText =
-        typeof body.courseText === 'string' ? body.courseText.trim() : ''
+      const bodyCourseText = typeof body.courseText === 'string' ? body.courseText.trim() : ''
       const bodyNotesText = typeof body.notesText === 'string' ? body.notesText.trim() : ''
 
       // courseMaterials column doesn't exist
@@ -51,8 +50,7 @@ export const POST = withCsrf(
       if (!hasContent) {
         return NextResponse.json(
           {
-            error:
-              'Upload at least one of course, notes, or topics before generating the outline.',
+            error: 'Upload at least one of course, notes, or topics before generating the outline.',
           },
           { status: 400 }
         )
@@ -63,8 +61,7 @@ export const POST = withCsrf(
 
       const notesText = bodyNotesText || (materials.notesText as string) || ''
       const generated = await generateCourseOutlineAsModules({
-        courseText:
-          courseText.trim() || notesOnly || '(No course; generate from notes.)',
+        courseText: courseText.trim() || notesOnly || '(No course; generate from notes.)',
         notesText: courseText.trim() && notesText ? notesText : undefined,
         subject: courseRow.subject?.[0] || '',
         typicalLessonMinutes,

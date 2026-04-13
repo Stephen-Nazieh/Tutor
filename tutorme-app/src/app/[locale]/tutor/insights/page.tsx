@@ -323,7 +323,7 @@ export default function TutorInsightsPage() {
                 <Wrench className="h-8 w-8 text-blue-500" />
                 <div>
                   <h1 className="text-lg font-semibold">Opening Insights…</h1>
-                  <p className="text-sm text-muted-foreground">Loading your latest course.</p>
+                  <p className="text-muted-foreground text-sm">Loading your latest course.</p>
                 </div>
                 <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
               </CardContent>
@@ -346,7 +346,7 @@ export default function TutorInsightsPage() {
                   <h1 className="text-lg font-semibold">
                     {courses.length > 0 ? 'Select a course' : 'No courses yet'}
                   </h1>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     {courses.length > 0
                       ? 'Pick a course to open the Insights builder.'
                       : 'Create a course to access the Insights builder.'}
@@ -370,7 +370,7 @@ export default function TutorInsightsPage() {
                       >
                         <div>
                           <p className="text-sm font-semibold text-gray-900">{course.name}</p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-muted-foreground text-xs">
                             Last updated{' '}
                             {course.updatedAt
                               ? new Date(course.updatedAt).toLocaleString()

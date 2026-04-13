@@ -124,7 +124,7 @@ export function AssessmentBuilderModal({
             </DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
-            <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+            <TabsList className="bg-muted mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border p-1">
               <TabsTrigger
                 value="edit"
                 className="rounded-lg border border-gray-400 bg-white transition-all duration-200 data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
@@ -140,7 +140,7 @@ export function AssessmentBuilderModal({
             </TabsList>
             <TabsContent
               value="edit"
-              className="mt-4 space-y-4 rounded-2xl border border-border bg-card/95 p-6 py-4 shadow-xl backdrop-blur-md"
+              className="border-border bg-card/95 mt-4 space-y-4 rounded-2xl border p-6 py-4 shadow-xl backdrop-blur-md"
             >
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
@@ -292,7 +292,7 @@ export function AssessmentBuilderModal({
                               <Badge variant="secondary">
                                 Q{idx + 1} - {q.type.toUpperCase()}
                               </Badge>
-                              <label className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <label className="text-muted-foreground flex items-center gap-1 text-xs">
                                 <input
                                   type="checkbox"
                                   checked={q.extendEnabled ?? false}
@@ -312,7 +312,7 @@ export function AssessmentBuilderModal({
                                   updateQuestion(idx, { points: parseInt(e.target.value) || 1 })
                                 }
                               />
-                              <span className="text-sm text-muted-foreground">pts</span>
+                              <span className="text-muted-foreground text-sm">pts</span>
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -471,7 +471,7 @@ export function AssessmentBuilderModal({
                             })
                           }
                         />
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-muted-foreground text-xs">
                           Percentage deducted for late submissions
                         </p>
                       </div>
@@ -520,7 +520,7 @@ export function AssessmentBuilderModal({
                             setData({ ...data, answerKeyProtected: checked })
                           }
                         />
-                        <Label className="text-xs text-muted-foreground">
+                        <Label className="text-muted-foreground text-xs">
                           <Lock className="mr-1 inline h-3 w-3" />
                           Protect answer key (never visible to students)
                         </Label>
@@ -529,7 +529,7 @@ export function AssessmentBuilderModal({
                   ) : (
                     <div className="rounded border border-dashed border-gray-400 bg-gray-50 p-3 text-center">
                       <Lock className="mx-auto mb-1 h-4 w-4 text-gray-400" />
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-muted-foreground text-xs">
                         Answer key is hidden. Click "Show" to view/edit.
                       </span>
                     </div>
@@ -541,14 +541,14 @@ export function AssessmentBuilderModal({
               value="preview"
               className="mt-4 space-y-4 rounded-2xl bg-white/95 p-6 py-4 shadow-2xl backdrop-blur-md"
             >
-              <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+              <div className="bg-muted/30 space-y-3 rounded-lg border p-4">
                 <h3 className="font-semibold">{data.title}</h3>
                 {data.description && (
-                  <p className="text-sm text-muted-foreground">{data.description}</p>
+                  <p className="text-muted-foreground text-sm">{data.description}</p>
                 )}
                 {data.instructions && (
                   <div className="text-sm">
-                    <span className="font-medium text-muted-foreground">Instructions: </span>
+                    <span className="text-muted-foreground font-medium">Instructions: </span>
                     {data.instructions}
                   </div>
                 )}
@@ -559,7 +559,7 @@ export function AssessmentBuilderModal({
                 )}
                 {!isTask && data.sourceDocument && (
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">
+                    <p className="text-muted-foreground text-xs font-medium">
                       Imported material (editable)
                     </p>
                     <Textarea

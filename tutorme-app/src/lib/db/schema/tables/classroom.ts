@@ -12,6 +12,7 @@ import {
   uniqueIndex,
   index,
   uuid,
+  date,
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
 import { user } from './auth'
@@ -32,7 +33,7 @@ export const breakoutSession = pgTable(
     distributionMode: text('distributionMode').notNull(),
     timeLimit: integer('timeLimit').notNull(),
     aiAssistantEnabled: boolean('aiAssistantEnabled').notNull(),
-    status: text('status').notNull(),
+    status: enums.breakoutStatusEnum('status').notNull(),
     startedAt: timestamp('startedAt', { withTimezone: true }),
     endedAt: timestamp('endedAt', { withTimezone: true }),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
@@ -55,7 +56,7 @@ export const breakoutRoom = pgTable(
     aiEnabled: boolean('aiEnabled').notNull(),
     aiMode: text('aiMode').notNull(),
     assignedTaskId: text('assignedTaskId'),
-    status: text('status').notNull(),
+    status: enums.breakoutStatusEnum('status').notNull(),
     endsAt: timestamp('endsAt', { withTimezone: true }),
     aiNotes: jsonb('aiNotes').notNull(),
     alerts: jsonb('alerts').notNull(),
@@ -149,6 +150,7 @@ export const studentMemoryProfile = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -169,6 +171,7 @@ export const studentLearningState = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -205,7 +208,7 @@ export const aITutorDailyUsage = pgTable(
     userId: text('userId')
       .notNull()
       .references(() => user.userId, { onDelete: 'cascade' }),
-    date: timestamp('date', { withTimezone: true }).notNull().defaultNow(),
+    date: date('date').notNull().defaultNow(),
     sessionCount: integer('sessionCount').notNull(),
     messageCount: integer('messageCount').notNull(),
     minutesUsed: integer('minutesUsed').notNull(),
@@ -221,7 +224,10 @@ export const aITutorDailyUsage = pgTable(
 
 export const aITutorSubscription = pgTable('AITutorSubscription', {
   subscriptionId: text('id').primaryKey().notNull(),
-  userId: text('userId').notNull().unique(),
+  userId: text('userId')
+    .notNull()
+    .unique()
+    .references(() => user.userId, { onDelete: 'cascade' }),
   tier: enums.tierEnum('tier').notNull(),
   dailySessions: integer('dailySessions').notNull(),
   dailyMessages: integer('dailyMessages').notNull(),

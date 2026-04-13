@@ -211,7 +211,7 @@ export function ThemeSwitcher() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <div className="px-2 py-1.5 text-sm font-medium text-muted-foreground">Color Theme</div>
+        <div className="text-muted-foreground px-2 py-1.5 text-sm font-medium">Color Theme</div>
         {themes.map(t => (
           <DropdownMenuItem
             key={t.value}
@@ -220,15 +220,15 @@ export function ThemeSwitcher() {
           >
             <div className="flex flex-col">
               <span>{t.label}</span>
-              <span className="text-xs text-muted-foreground">{t.description}</span>
+              <span className="text-muted-foreground text-xs">{t.description}</span>
             </div>
-            {theme === t.value && <Check className="h-4 w-4 text-primary" />}
+            {theme === t.value && <Check className="text-primary h-4 w-4" />}
           </DropdownMenuItem>
         ))}
 
         <DropdownMenuSeparator />
 
-        <div className="px-2 py-1.5 text-sm font-medium text-muted-foreground">Mode</div>
+        <div className="text-muted-foreground px-2 py-1.5 text-sm font-medium">Mode</div>
         {modes.map(m => (
           <DropdownMenuItem
             key={m.value}
@@ -239,14 +239,14 @@ export function ThemeSwitcher() {
               {m.icon}
               <span>{m.label}</span>
             </div>
-            {mode === m.value && <Check className="h-4 w-4 text-primary" />}
+            {mode === m.value && <Check className="text-primary h-4 w-4" />}
           </DropdownMenuItem>
         ))}
 
         {mode === 'system' && (
           <>
             <DropdownMenuSeparator />
-            <div className="px-2 py-1 text-xs text-muted-foreground">
+            <div className="text-muted-foreground px-2 py-1 text-xs">
               Currently: {resolvedMode === 'dark' ? 'Dark' : 'Light'}
             </div>
           </>

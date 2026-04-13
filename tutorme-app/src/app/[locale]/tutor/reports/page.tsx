@@ -710,7 +710,7 @@ function CoursesAndClassesTab() {
                       {course.type === 'class' ? 'Class' : 'Course'}
                     </Badge>
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-muted-foreground text-sm">
                     {course.description || course.subject}
                   </div>
                   <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
@@ -729,11 +729,11 @@ function CoursesAndClassesTab() {
             </CardHeader>
             <CardContent className="max-h-[420px] space-y-3 overflow-y-auto">
               {sessionsLoading ? (
-                <div className="flex items-center justify-center py-10 text-sm text-muted-foreground">
+                <div className="text-muted-foreground flex items-center justify-center py-10 text-sm">
                   Loading sessions...
                 </div>
               ) : sessionsOverview.length === 0 ? (
-                <div className="py-10 text-center text-sm text-muted-foreground">
+                <div className="text-muted-foreground py-10 text-center text-sm">
                   No sessions found.
                 </div>
               ) : (
@@ -749,7 +749,7 @@ function CoursesAndClassesTab() {
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <p className="text-sm font-semibold text-gray-900">{sessionItem.title}</p>
-                          <p className="text-xs text-muted-foreground">{sessionItem.subject}</p>
+                          <p className="text-muted-foreground text-xs">{sessionItem.subject}</p>
                         </div>
                         <Badge variant={isOngoing ? 'default' : isEnded ? 'secondary' : 'outline'}>
                           {statusLabel}

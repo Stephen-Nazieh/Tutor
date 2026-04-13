@@ -241,7 +241,7 @@ export default function StudentDashboardDetails() {
               variant="outline"
               size="sm"
               onClick={() => fetchDashboardData()}
-              className="shrink-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="focus-visible:ring-ring shrink-0 focus-visible:ring-2 focus-visible:ring-offset-2"
             >
               {strings.retry}
             </Button>

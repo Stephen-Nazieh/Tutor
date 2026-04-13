@@ -423,26 +423,26 @@ export default function CoursePage() {
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {isFollowingLoading ? (
                     [1, 2, 3].map(i => (
-                      <Card key={i} className="animate-pulse border-border bg-card">
+                      <Card key={i} className="border-border bg-card animate-pulse">
                         <CardHeader className="space-y-3">
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-muted" />
+                            <div className="bg-muted h-10 w-10 rounded-full" />
                             <div className="flex-1 space-y-2">
-                              <div className="h-4 w-3/4 rounded bg-muted" />
-                              <div className="h-3 w-1/2 rounded bg-muted" />
+                              <div className="bg-muted h-4 w-3/4 rounded" />
+                              <div className="bg-muted h-3 w-1/2 rounded" />
                             </div>
                           </div>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                          <div className="h-4 rounded bg-muted" />
-                          <div className="h-4 rounded bg-muted" />
+                          <div className="bg-muted h-4 rounded" />
+                          <div className="bg-muted h-4 rounded" />
                         </CardContent>
                       </Card>
                     ))
                   ) : followingTutors.length === 0 ? (
-                    <Card className="col-span-full border-border bg-card px-4 py-8 text-center">
-                      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                        <Heart className="h-6 w-6 text-muted-foreground" />
+                    <Card className="border-border bg-card col-span-full px-4 py-8 text-center">
+                      <div className="bg-muted mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                        <Heart className="text-muted-foreground h-6 w-6" />
                       </div>
                       <CardTitle className="mb-1 text-lg">No followed tutors</CardTitle>
                       <CardDescription className="mb-4">
@@ -458,7 +458,7 @@ export default function CoursePage() {
                     followingTutors.map(tutor => (
                       <Card
                         key={tutor.id}
-                        className="relative overflow-hidden border-border bg-card transition-all hover:-translate-y-0.5 hover:shadow-md"
+                        className="border-border bg-card relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md"
                       >
                         <CardHeader className="space-y-3">
                           <div className="flex items-start gap-3">
@@ -466,22 +466,22 @@ export default function CoursePage() {
                               <img
                                 src={tutor.avatarUrl}
                                 alt={tutor.name}
-                                className="h-12 w-12 shrink-0 rounded-full border border-border object-cover"
+                                className="border-border h-12 w-12 shrink-0 rounded-full border object-cover"
                               />
                             ) : (
-                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-lg font-bold">
+                              <div className="border-border bg-muted flex h-12 w-12 shrink-0 items-center justify-center rounded-full border text-lg font-bold">
                                 {tutor.name?.charAt(0)}
                               </div>
                             )}
                             <div className="min-w-0 flex-1">
-                              <CardTitle className="truncate text-lg text-foreground">
+                              <CardTitle className="text-foreground truncate text-lg">
                                 {tutor.name}
                               </CardTitle>
                               <CardDescription>@{tutor.username}</CardDescription>
                             </div>
                           </div>
                           {tutor.bio && (
-                            <p className="line-clamp-2 text-sm text-muted-foreground">
+                            <p className="text-muted-foreground line-clamp-2 text-sm">
                               {tutor.bio}
                             </p>
                           )}

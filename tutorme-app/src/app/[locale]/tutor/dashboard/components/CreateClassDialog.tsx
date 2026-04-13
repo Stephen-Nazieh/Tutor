@@ -37,8 +37,6 @@ const SUBJECTS = [
   { value: 'toefl', label: 'TOEFL' },
 ]
 
-
-
 interface CreateClassDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void

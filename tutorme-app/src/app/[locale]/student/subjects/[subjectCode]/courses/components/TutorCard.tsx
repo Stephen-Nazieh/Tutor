@@ -41,8 +41,8 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
     return (
       <div className="flex items-center gap-1">
         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-        <span className="font-medium text-foreground">{rating.toFixed(1)}</span>
-        <span className="text-sm text-muted-foreground">({tutor.reviewCount} reviews)</span>
+        <span className="text-foreground font-medium">{rating.toFixed(1)}</span>
+        <span className="text-muted-foreground text-sm">({tutor.reviewCount} reviews)</span>
       </div>
     )
   }
@@ -88,29 +88,29 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
         <div className="flex flex-col gap-4 sm:flex-row">
           {/* Avatar and Basic Info */}
           <div className="flex flex-1 items-start gap-4">
-            <Avatar className="h-16 w-16 border-2 border-border">
+            <Avatar className="border-border h-16 w-16 border-2">
               <AvatarImage src={tutor.avatar || undefined} alt={tutor.name} />
-              <AvatarFallback className="bg-primary/10 text-lg text-primary">
+              <AvatarFallback className="bg-primary/10 text-primary text-lg">
                 {initials}
               </AvatarFallback>
             </Avatar>
 
             <div className="min-w-0 flex-1">
-              <h3 className="truncate text-lg font-semibold text-foreground">{tutor.name}</h3>
+              <h3 className="text-foreground truncate text-lg font-semibold">{tutor.name}</h3>
 
               {/* Rating */}
               <div className="mt-1">{renderStars(tutor.rating)}</div>
 
               {/* Bio - truncated */}
-              <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{tutor.bio}</p>
+              <p className="text-muted-foreground mt-2 line-clamp-2 text-sm">{tutor.bio}</p>
 
               {/* Stats */}
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                <Badge variant="secondary" className="flex items-center gap-1 bg-muted">
+              <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-3 text-sm">
+                <Badge variant="secondary" className="bg-muted flex items-center gap-1">
                   <Users className="h-3 w-3" />
                   {tutor.totalStudents} students
                 </Badge>
-                <Badge variant="secondary" className="flex items-center gap-1 bg-muted">
+                <Badge variant="secondary" className="bg-muted flex items-center gap-1">
                   <Clock className="h-3 w-3" />
                   {tutor.totalClasses} classes
                 </Badge>
@@ -119,9 +119,9 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
           </div>
 
           {/* Price and Action */}
-          <div className="flex flex-col items-start justify-between gap-3 sm:min-w-[160px] sm:items-end sm:border-l sm:border-border sm:pl-4">
+          <div className="sm:border-border flex flex-col items-start justify-between gap-3 sm:min-w-[160px] sm:items-end sm:border-l sm:pl-4">
             <div className="text-right">
-              <div className="text-lg text-foreground">{formatPrice()}</div>
+              <div className="text-foreground text-lg">{formatPrice()}</div>
               <div className="mt-1 text-sm">{formatAvailability()}</div>
             </div>
 

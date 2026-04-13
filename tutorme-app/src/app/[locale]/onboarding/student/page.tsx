@@ -7,8 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress'
 import { Loader2, CheckCircle } from 'lucide-react'
 
-
-
 const SUBJECTS = [
   { id: 'math', name: 'Mathematics', icon: '📐' },
   { id: 'physics', name: 'Physics', icon: '⚡' },
@@ -146,10 +144,7 @@ export default function StudentOnboarding() {
           <CardHeader>
             <CardTitle>Complete Your Profile</CardTitle>
             <CardDescription>
-              Step {step} of 2:{' '}
-              {step === 1
-                ? 'Choose Subjects'
-                : 'Diagnostic Quiz'}
+              Step {step} of 2: {step === 1 ? 'Choose Subjects' : 'Diagnostic Quiz'}
             </CardDescription>
             <Progress value={progress} className="mt-2" />
           </CardHeader>

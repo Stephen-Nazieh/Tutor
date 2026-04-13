@@ -818,7 +818,7 @@ export default function TutorCoursePage() {
   if (!id) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="text-center text-muted-foreground">
+        <div className="text-muted-foreground text-center">
           <Loader2 className="mx-auto mb-2 h-8 w-8 animate-spin" />
           <p>Loading course…</p>
         </div>
@@ -1267,12 +1267,12 @@ export default function TutorCoursePage() {
                 Pricing
               </h3>
               <div className="space-y-6">
-                <div className="flex items-center justify-between rounded-lg border bg-muted/30 p-3">
+                <div className="bg-muted/30 flex items-center justify-between rounded-lg border p-3">
                   <div>
                     <Label htmlFor="isFree" className="text-sm font-medium">
                       Free course
                     </Label>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       Students can enroll without payment.
                     </p>
                   </div>
@@ -1305,7 +1305,7 @@ export default function TutorCoursePage() {
                   </div>
                 </div>
                 {!isFree && price && Number(price) > 0 && (
-                  <div className="rounded-lg border bg-muted/30 p-3">
+                  <div className="bg-muted/30 rounded-lg border p-3">
                     <p className="text-sm">
                       <span className="font-medium">Cost per session:</span> USD{' '}
                       {Number(price).toFixed(2)}
@@ -1340,13 +1340,13 @@ export default function TutorCoursePage() {
                 )
                 const revenue = cost * 0.7
                 return (
-                  <div className="grid grid-cols-2 gap-3 rounded-lg border bg-muted/30 p-3 text-sm">
+                  <div className="bg-muted/30 grid grid-cols-2 gap-3 rounded-lg border p-3 text-sm">
                     <div>
-                      <div className="text-xs text-muted-foreground">Cost for course</div>
+                      <div className="text-muted-foreground text-xs">Cost for course</div>
                       <div className="font-medium">USD {cost.toFixed(2)}</div>
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-muted-foreground text-xs">
                         Revenue (after 30% commission)
                       </div>
                       <div className="font-medium">USD {revenue.toFixed(2)}</div>
@@ -1356,7 +1356,7 @@ export default function TutorCoursePage() {
               })()}
 
             {/* Weekly repeat option */}
-            <div className="flex flex-wrap items-center gap-4 rounded-lg border bg-muted/30 p-3">
+            <div className="bg-muted/30 flex flex-wrap items-center gap-4 rounded-lg border p-3">
               <label className="flex cursor-pointer items-center gap-2">
                 <input
                   type="checkbox"
@@ -1384,7 +1384,7 @@ export default function TutorCoursePage() {
                       className="h-8 w-20 text-sm"
                     />
                     {totalSessionsDesired !== '' && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-muted-foreground text-xs">
                         = {effectiveWeeks} weeks from {totalSessionsDesired} sessions
                       </span>
                     )}
@@ -1405,7 +1405,7 @@ export default function TutorCoursePage() {
                       }
                       className="h-8 w-24 text-sm"
                     />
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-muted-foreground text-xs">
                       sessions (weeks = sessions ÷ slots per week)
                     </span>
                   </div>
@@ -1418,7 +1418,7 @@ export default function TutorCoursePage() {
               key={`week-${scheduleWeekStart.getTime()}`}
               className="overflow-hidden rounded-lg border"
             >
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/30 px-2 py-2">
+              <div className="bg-muted/30 flex flex-wrap items-center justify-between gap-2 border-b px-2 py-2">
                 <div className="flex items-center gap-1">
                   <Button
                     type="button"
@@ -1444,9 +1444,9 @@ export default function TutorCoursePage() {
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
-                <span className="text-xs text-muted-foreground">{scheduleMonthLabel}</span>
+                <span className="text-muted-foreground text-xs">{scheduleMonthLabel}</span>
                 <div className="flex items-center gap-1">
-                  <span className="mr-1 text-[10px] text-muted-foreground">Month:</span>
+                  <span className="text-muted-foreground mr-1 text-[10px]">Month:</span>
                   <Button
                     type="button"
                     variant="ghost"
@@ -1469,10 +1469,10 @@ export default function TutorCoursePage() {
                   </Button>
                 </div>
               </div>
-              <p className="border-b bg-muted/20 px-2 py-1 text-xs text-muted-foreground">
+              <p className="bg-muted/20 text-muted-foreground border-b px-2 py-1 text-xs">
                 Click a time slot to add or remove a 1-hour session.
               </p>
-              <div className="grid grid-cols-8 border-b bg-muted/30">
+              <div className="bg-muted/30 grid grid-cols-8 border-b">
                 <div className="border-r p-2 text-center text-xs font-medium">Time</div>
                 {DAYS.map((day, i) => {
                   const d = weekDates[i]
@@ -1482,7 +1482,7 @@ export default function TutorCoursePage() {
                       className="border-r p-2 text-center text-xs font-medium"
                     >
                       <div>{day.slice(0, 3)}</div>
-                      <div className="mt-0.5 text-[10px] font-normal text-muted-foreground">
+                      <div className="text-muted-foreground mt-0.5 text-[10px] font-normal">
                         {d.getDate()}
                       </div>
                     </div>
@@ -1499,7 +1499,7 @@ export default function TutorCoursePage() {
                     const displayTime = `${startLabel}-${endLabel}`
                     return (
                       <div key={timeStr} className="contents">
-                        <div className="border-b border-r border-dashed p-1 text-center text-[10px] text-muted-foreground">
+                        <div className="text-muted-foreground border-b border-r border-dashed p-1 text-center text-[10px]">
                           {displayTime}
                         </div>
                         {DAYS.map((day, dayIndex) => {
@@ -1614,10 +1614,10 @@ export default function TutorCoursePage() {
 
             {/* Schedule Summary - sessions, duration, cost/revenue, interactive by day */}
             {scheduleSummary.length > 0 && (
-              <Card className="overflow-hidden border-2 border-primary/20 shadow-lg">
+              <Card className="border-primary/20 overflow-hidden border-2 shadow-lg">
                 <CardHeader className="border-b bg-gradient-to-r from-slate-50 to-blue-50/50 pb-3">
                   <CardTitle className="flex items-center gap-2 text-base">
-                    <CalendarIcon className="h-5 w-5 text-primary" />
+                    <CalendarIcon className="text-primary h-5 w-5" />
                     Schedule Summary
                   </CardTitle>
                   <CardDescription className="text-xs">Times in {timezoneLabel}</CardDescription>

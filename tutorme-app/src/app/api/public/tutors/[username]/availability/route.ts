@@ -5,13 +5,16 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { user, profile, calendarAvailability, calendarException, calendarEvent } from '@/lib/db/schema'
+import {
+  user,
+  profile,
+  calendarAvailability,
+  calendarException,
+  calendarEvent,
+} from '@/lib/db/schema'
 import { eq, and, or, gte, lte, asc, isNull } from 'drizzle-orm'
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ username: string }> }
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ username: string }> }) {
   const { searchParams } = new URL(req.url)
   const start = searchParams.get('start')
   const end = searchParams.get('end')

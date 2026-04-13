@@ -76,11 +76,11 @@ export function CourseBuilderInsightsRoute({
 
   return (
     <div
-      className="flex h-screen w-full flex-col items-stretch overflow-hidden bg-[#fafafc] text-foreground"
+      className="text-foreground flex h-screen w-full flex-col items-stretch overflow-hidden bg-[#fafafc]"
       data-tutor-route="insights-builder"
       style={model.themeStyle}
     >
-      <div className="sticky top-0 z-10 w-full border-b border-border bg-card">
+      <div className="border-border bg-card sticky top-0 z-10 w-full border-b">
         <div className="flex w-full items-center justify-between gap-4 px-4 py-1 sm:px-6">
           <Button variant="ghost" size="sm" className="shrink-0" asChild>
             <Link href="/tutor/dashboard">
@@ -89,10 +89,10 @@ export function CourseBuilderInsightsRoute({
             </Link>
           </Button>
           <div className="flex shrink-0 items-center gap-3">
-            <h1 className="text-lg font-bold tracking-tight text-foreground">
+            <h1 className="text-foreground text-lg font-bold tracking-tight">
               Live Session
               {model.course?.name && (
-                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                <span className="text-muted-foreground ml-2 text-sm font-normal">
                   — {model.course.name}
                 </span>
               )}
@@ -131,22 +131,22 @@ export function CourseBuilderInsightsRoute({
         </div>
       </div>
 
-      <div className="flex w-full flex-1 flex-col overflow-hidden px-6 pb-6 pt-4 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2">
+      <div className="[&::-webkit-scrollbar-thumb]:bg-border flex w-full flex-1 flex-col overflow-hidden px-6 pb-6 pt-4 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2">
         {model.savedVariants.length > 0 && (
           <Card className="mb-8 w-full border border-emerald-200/50 bg-emerald-50/30 shadow-xl backdrop-blur-md">
             <CardHeader className="pb-2 pt-4">
-              <CardTitle className="text-sm text-foreground">Adaptive Variant Join Links</CardTitle>
+              <CardTitle className="text-foreground text-sm">Adaptive Variant Join Links</CardTitle>
               <CardDescription>
                 Share the correct link with students for each difficulty level.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2 pb-4">
               {model.savedVariants.map(variant => (
-                <div key={variant.batchId} className="rounded-md border bg-card p-2.5">
+                <div key={variant.batchId} className="bg-card rounded-md border p-2.5">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="text-xs font-medium capitalize">{variant.difficulty}</p>
-                      <p className="truncate text-[11px] text-muted-foreground">
+                      <p className="text-muted-foreground truncate text-[11px]">
                         {variant.batchName}
                       </p>
                     </div>
@@ -167,7 +167,7 @@ export function CourseBuilderInsightsRoute({
                       Copy Link
                     </Button>
                   </div>
-                  <p className="mt-1 break-all text-[11px] text-muted-foreground">
+                  <p className="text-muted-foreground mt-1 break-all text-[11px]">
                     {variant.joinLink}
                   </p>
                 </div>

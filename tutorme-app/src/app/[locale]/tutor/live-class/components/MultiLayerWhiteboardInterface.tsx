@@ -343,7 +343,7 @@ export function MultiLayerWhiteboardInterface({
               />
             </TabsContent>
             <TabsContent value="student-pdf" className="m-0 h-[calc(100%-40px)] overflow-auto">
-              <div className="flex h-full items-center justify-center text-muted-foreground">
+              <div className="text-muted-foreground flex h-full items-center justify-center">
                 PDF tutoring feature has been deprecated
               </div>
             </TabsContent>

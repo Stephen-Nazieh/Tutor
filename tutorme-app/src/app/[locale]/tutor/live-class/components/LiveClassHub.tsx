@@ -759,7 +759,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
         <div className="flex-1 overflow-hidden p-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full flex-col">
             <div className="w-full overflow-x-auto pb-1">
-              <TabsList className="inline-flex min-w-max gap-1 rounded-lg bg-muted p-1">
+              <TabsList className="bg-muted inline-flex min-w-max gap-1 rounded-lg p-1">
                 <TabsTrigger
                   value="students"
                   onClick={() => setActiveTab('students')}
@@ -905,7 +905,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
               {/* Multi-Layer Controls */}
               <Card className="shrink-0">
                 <CardHeader className="px-3 py-2">
-                  <CardTitle className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <CardTitle className="text-muted-foreground flex items-center gap-1.5 text-xs">
                     <Layers className="h-3 w-3" />
                     Whiteboard Status
                   </CardTitle>
@@ -933,7 +933,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
               {/* AI Teaching Assistant - Top Priority */}
               <div className="min-h-0">
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-muted-foreground">
+                  <span className="text-muted-foreground text-xs font-semibold">
                     AI Teaching Assistant
                   </span>
                   <Button
@@ -955,7 +955,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
                     />
                   </div>
                 ) : (
-                  <div className="rounded border border-dashed p-3 text-xs text-muted-foreground">
+                  <div className="text-muted-foreground rounded border border-dashed p-3 text-xs">
                     Teaching assistant hidden.
                   </div>
                 )}

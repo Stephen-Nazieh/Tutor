@@ -157,7 +157,7 @@ export function AssignCourseModal({
               {selectedCourse && (
                 <div className="rounded-lg bg-gray-50 p-3 text-sm">
                   <p className="text-muted-foreground">{selectedCourse.description}</p>
-                  <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
+                  <div className="text-muted-foreground mt-2 flex gap-4 text-xs">
                     <span>{selectedCourse.stats.moduleCount} modules</span>
                     <span>{selectedCourse.stats.lessonCount} lessons</span>
                     <span>{selectedCourse.stats.quizCount} quizzes</span>
@@ -193,13 +193,13 @@ export function AssignCourseModal({
               {selectedBatch && (
                 <div className="rounded-lg bg-gray-50 p-3">
                   <div className="mb-2 flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <Users className="text-muted-foreground h-4 w-4" />
                     <span className="text-sm">
                       {selectedBatch.enrollmentCount} students enrolled
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                    <BarChart3 className="text-muted-foreground h-4 w-4" />
                     <span className="text-sm">Difficulty: </span>
                     <Badge className={cn('text-xs', DIFFICULTY_COLORS[selectedBatch.difficulty])}>
                       {DIFFICULTY_LABELS[selectedBatch.difficulty]}
@@ -226,12 +226,12 @@ export function AssignCourseModal({
               <div className="flex items-center gap-4">
                 <div>
                   <p className="text-sm font-medium">{selectedCourse?.name}</p>
-                  <p className="text-xs text-muted-foreground">Course</p>
+                  <p className="text-muted-foreground text-xs">Course</p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <ArrowRight className="text-muted-foreground h-4 w-4" />
                 <div>
                   <p className="text-sm font-medium">{selectedBatch?.name}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     {DIFFICULTY_LABELS[selectedBatch?.difficulty || 'beginner']} Group
                   </p>
                 </div>
@@ -245,7 +245,7 @@ export function AssignCourseModal({
             {previewLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                <span className="ml-2 text-muted-foreground">Generating preview...</span>
+                <span className="text-muted-foreground ml-2">Generating preview...</span>
               </div>
             ) : preview ? (
               <>
@@ -253,25 +253,25 @@ export function AssignCourseModal({
                 <div className="grid grid-cols-4 gap-3">
                   <div className="rounded-lg bg-gray-50 p-3 text-center">
                     <p className="text-2xl font-bold">{preview.resolution.totalModules}</p>
-                    <p className="text-xs text-muted-foreground">Total Modules</p>
+                    <p className="text-muted-foreground text-xs">Total Modules</p>
                   </div>
                   <div className="rounded-lg bg-green-50 p-3 text-center">
                     <p className="text-2xl font-bold text-green-600">
                       {preview.resolution.visibleModules}
                     </p>
-                    <p className="text-xs text-muted-foreground">Visible</p>
+                    <p className="text-muted-foreground text-xs">Visible</p>
                   </div>
                   <div className="rounded-lg bg-amber-50 p-3 text-center">
                     <p className="text-2xl font-bold text-amber-600">
                       {preview.resolution.adaptedContent}
                     </p>
-                    <p className="text-xs text-muted-foreground">Adapted</p>
+                    <p className="text-muted-foreground text-xs">Adapted</p>
                   </div>
                   <div className="rounded-lg bg-red-50 p-3 text-center">
                     <p className="text-2xl font-bold text-red-600">
                       {preview.resolution.hiddenModules}
                     </p>
-                    <p className="text-xs text-muted-foreground">Hidden</p>
+                    <p className="text-muted-foreground text-xs">Hidden</p>
                   </div>
                 </div>
 
@@ -302,7 +302,7 @@ export function AssignCourseModal({
                         {preview.adaptedItems.map((item, idx) => (
                           <div key={idx} className="rounded bg-gray-50 p-2 text-sm">
                             <p className="font-medium">{item.title}</p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-muted-foreground text-xs">
                               {item.field}: {item.originalValue} → {item.adaptedValue}
                             </p>
                           </div>

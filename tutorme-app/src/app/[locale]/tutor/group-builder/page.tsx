@@ -431,7 +431,7 @@ export default function GroupBuilderPage() {
       {batches.length === 0 ? (
         <Card>
           <CardContent className="p-8">
-            <p className="mb-4 text-muted-foreground">No groups created yet.</p>
+            <p className="text-muted-foreground mb-4">No groups created yet.</p>
             <div className="flex gap-2">
               <Input
                 placeholder="Group name (e.g. Batch 1, Jan 2025)"
@@ -497,7 +497,7 @@ export default function GroupBuilderPage() {
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-semibold">{batch.name}</h2>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     {String(batch.enrollmentCount)} student{batch.enrollmentCount !== 1 ? 's' : ''}{' '}
                     enrolled
                   </p>
@@ -646,7 +646,7 @@ export default function GroupBuilderPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-muted-foreground text-xs">
                         Set a custom price for this group. Leave empty to use the default course
                         price.
                       </p>
@@ -671,7 +671,7 @@ export default function GroupBuilderPage() {
                   {!batch.assignedCourses || batch.assignedCourses.length === 0 ? (
                     <div className="py-8 text-center">
                       <BookOpen className="mx-auto mb-3 h-12 w-12 text-gray-300" />
-                      <p className="mb-4 text-muted-foreground">
+                      <p className="text-muted-foreground mb-4">
                         No courses assigned to this group yet.
                       </p>
                       <Button size="sm" onClick={() => openAssignCourse(batch.id)}>
@@ -693,10 +693,10 @@ export default function GroupBuilderPage() {
                                 {course.difficulty}
                               </Badge>
                             </div>
-                            <p className="line-clamp-1 text-sm text-muted-foreground">
+                            <p className="text-muted-foreground line-clamp-1 text-sm">
                               {course.description || 'No description'}
                             </p>
-                            <div className="mt-1 flex items-center gap-4 text-xs text-muted-foreground">
+                            <div className="text-muted-foreground mt-1 flex items-center gap-4 text-xs">
                               <span>Subject: {course.subject}</span>
                               <span>
                                 Assigned: {new Date(course.assignedAt).toLocaleDateString()}
@@ -732,7 +732,7 @@ export default function GroupBuilderPage() {
                 </CardHeader>
                 <CardContent>
                   {batch.schedule.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       No schedule set. Add class slots to define when this group meets.
                     </p>
                   ) : (
@@ -766,7 +766,7 @@ export default function GroupBuilderPage() {
                             className="w-[120px]"
                           />
                           <div className="flex flex-1 items-center gap-2">
-                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <Clock className="text-muted-foreground h-4 w-4" />
                             <Input
                               type="number"
                               min={15}
@@ -780,7 +780,7 @@ export default function GroupBuilderPage() {
                               }
                               className="w-[80px]"
                             />
-                            <span className="text-sm text-muted-foreground">minutes</span>
+                            <span className="text-muted-foreground text-sm">minutes</span>
                           </div>
                           <Button
                             variant="ghost"
@@ -806,7 +806,7 @@ export default function GroupBuilderPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     Share this group link for students to join this specific group.
                   </p>
                   <div className="flex gap-2">

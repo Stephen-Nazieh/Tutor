@@ -986,15 +986,15 @@ export function InteractiveCalendar({
                       timeZone: timezone,
                     })
                   : 'Select a date'}
-                <span className="ml-2 text-xs text-muted-foreground">Timezone: {timezone}</span>
+                <span className="text-muted-foreground ml-2 text-xs">Timezone: {timezone}</span>
               </DialogDescription>
             </DialogHeader>
             {availabilityLoading ? (
-              <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+              <div className="bg-muted/30 text-muted-foreground rounded-lg border p-4 text-sm">
                 Loading availability...
               </div>
             ) : availabilitySlotsForDay.length === 0 ? (
-              <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+              <div className="bg-muted/30 text-muted-foreground rounded-lg border p-4 text-sm">
                 No time slots configured.
               </div>
             ) : (
@@ -1637,7 +1637,7 @@ function AvailabilityView({ availability, onToggle, onSave }: any) {
                   )}
                   <h4 className="font-medium">{day}</h4>
                 </div>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-muted-foreground text-xs">
                   {dayBlocks.filter((b: AvailabilityBlock) => b.isAvailable).length} selected
                 </span>
               </button>

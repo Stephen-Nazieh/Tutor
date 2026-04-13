@@ -35,6 +35,7 @@ export const calendarConnection = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -76,6 +77,7 @@ export const calendarEvent = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
     createdBy: text('createdBy')
       .notNull()
@@ -117,6 +119,7 @@ export const calendarAvailability = pgTable(
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({
@@ -161,7 +164,9 @@ export const oneOnOneBookingRequest = pgTable(
     tutorId: text('tutorId')
       .notNull()
       .references(() => user.userId, { onDelete: 'cascade' }),
-    studentId: text('studentId').notNull(),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     requestedDate: timestamp('requestedDate', { withTimezone: true }).notNull(),
     startTime: text('startTime').notNull(),
     endTime: text('endTime').notNull(),
@@ -173,10 +178,13 @@ export const oneOnOneBookingRequest = pgTable(
     tutorNotes: text('tutorNotes'),
     paymentDueAt: timestamp('paymentDueAt', { withTimezone: true }),
     paidAt: timestamp('paidAt', { withTimezone: true }),
-    calendarEventId: text('calendarEventId'),
+    calendarEventId: text('calendarEventId').references(() => calendarEvent.eventId, {
+      onDelete: 'set null',
+    }),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
+      .defaultNow()
       .$onUpdate(() => new Date()),
   },
   table => ({

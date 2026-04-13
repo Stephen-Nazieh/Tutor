@@ -224,7 +224,7 @@ export function QuestionEditor({
           </Button>
         </div>
         {questions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No questions to preview</p>
+          <p className="text-muted-foreground text-sm">No questions to preview</p>
         ) : (
           questions.map((q, idx) => (
             <Card key={q.id}>
@@ -236,7 +236,7 @@ export function QuestionEditor({
                   <Badge variant="outline" className="text-xs capitalize">
                     {q.type}
                   </Badge>
-                  <span className="ml-auto text-xs text-muted-foreground">{q.points} pts</span>
+                  <span className="text-muted-foreground ml-auto text-xs">{q.points} pts</span>
                 </div>
                 <p className="mb-3 text-sm font-medium">{q.question || '(No question text)'}</p>
                 {q.type === 'mcq' && q.options && (
@@ -246,7 +246,7 @@ export function QuestionEditor({
                         key={i}
                         className="flex items-center gap-2 rounded-lg border p-2 text-sm hover:bg-gray-50"
                       >
-                        <span className="w-5 font-medium text-muted-foreground">
+                        <span className="text-muted-foreground w-5 font-medium">
                           {String.fromCharCode(65 + i)}.
                         </span>
                         {opt || `Option ${i + 1}`}
@@ -266,7 +266,7 @@ export function QuestionEditor({
                 {(q.type === 'shortanswer' || q.type === 'essay') && (
                   <div
                     className={cn(
-                      'rounded-lg border bg-gray-50 p-2 text-sm text-muted-foreground',
+                      'text-muted-foreground rounded-lg border bg-gray-50 p-2 text-sm',
                       q.type === 'essay' ? 'h-24' : 'h-10'
                     )}
                   >
@@ -288,7 +288,7 @@ export function QuestionEditor({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">Questions ({questions.length})</span>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-muted-foreground text-xs">
             {questions.reduce((s, q) => s + q.points, 0)} pts total
           </span>
         </div>
@@ -333,7 +333,7 @@ export function QuestionEditor({
                 Generate
               </Button>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-xs">
               AI will generate 5 questions and add them to your list
             </p>
           </CardContent>
@@ -347,7 +347,7 @@ export function QuestionEditor({
             {/* Question Header */}
             <div className="flex items-center gap-2">
               <button
-                className="cursor-grab text-muted-foreground hover:text-gray-600"
+                className="text-muted-foreground cursor-grab hover:text-gray-600"
                 title="Drag to reorder"
                 onMouseDown={() => {}}
               >
@@ -367,15 +367,15 @@ export function QuestionEditor({
               <Badge variant="outline" className="text-xs capitalize">
                 {q.type}
               </Badge>
-              <span className="flex-1 truncate text-xs text-muted-foreground">
+              <span className="text-muted-foreground flex-1 truncate text-xs">
                 {q.question || '(Untitled)'}
               </span>
-              <span className="text-xs text-muted-foreground">{q.points} pts</span>
+              <span className="text-muted-foreground text-xs">{q.points} pts</span>
               <div className="flex items-center gap-0.5">
                 {idx > 0 && (
                   <button
                     onClick={() => moveQuestion(idx, idx - 1)}
-                    className="p-1 text-xs text-muted-foreground hover:text-gray-600"
+                    className="text-muted-foreground p-1 text-xs hover:text-gray-600"
                     title="Move up"
                   >
                     ↑
@@ -384,7 +384,7 @@ export function QuestionEditor({
                 {idx < questions.length - 1 && (
                   <button
                     onClick={() => moveQuestion(idx, idx + 1)}
-                    className="p-1 text-xs text-muted-foreground hover:text-gray-600"
+                    className="text-muted-foreground p-1 text-xs hover:text-gray-600"
                     title="Move down"
                   >
                     ↓
@@ -392,14 +392,14 @@ export function QuestionEditor({
                 )}
                 <button
                   onClick={() => duplicateQuestion(q.id)}
-                  className="p-1 text-muted-foreground hover:text-blue-600"
+                  className="text-muted-foreground p-1 hover:text-blue-600"
                   title="Duplicate"
                 >
                   <Copy className="h-3 w-3" />
                 </button>
                 <button
                   onClick={() => removeQuestion(q.id)}
-                  className="p-1 text-muted-foreground hover:text-red-600"
+                  className="text-muted-foreground p-1 hover:text-red-600"
                   title="Remove"
                 >
                   <Trash2 className="h-3 w-3" />
@@ -486,7 +486,7 @@ export function QuestionEditor({
                             {q.correctAnswer === opt ? (
                               <CheckCircle className="h-3.5 w-3.5" />
                             ) : (
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-muted-foreground text-xs">
                                 {String.fromCharCode(65 + oi)}
                               </span>
                             )}
