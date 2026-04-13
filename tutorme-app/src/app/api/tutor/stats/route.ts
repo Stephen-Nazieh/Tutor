@@ -41,7 +41,7 @@ export const GET = withAuth(
             .where(
               and(
                 eq(liveSession.tutorId, tutorId),
-                or(gte(liveSession.scheduledAt, now), eq(liveSession.status, 'ACTIVE'))
+                or(gte(liveSession.scheduledAt, now), eq(liveSession.status, 'active'))
               )
             ),
 

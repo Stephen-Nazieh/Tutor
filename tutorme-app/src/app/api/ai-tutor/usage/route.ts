@@ -35,13 +35,14 @@ async function checkUsage(userId: string) {
     }
   }
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const todayStr = new Date().toISOString().split('T')[0]
+  const todayDate = new Date()
+  todayDate.setHours(0, 0, 0, 0)
 
   const [existing] = await drizzleDb
     .select()
     .from(aITutorDailyUsage)
-    .where(and(eq(aITutorDailyUsage.userId, userId), eq(aITutorDailyUsage.date, today)))
+    .where(and(eq(aITutorDailyUsage.userId, userId), eq(aITutorDailyUsage.date, todayStr)))
     .limit(1)
 
   let dailyUsage: { messageCount: number; sessionCount: number }
@@ -53,7 +54,7 @@ async function checkUsage(userId: string) {
       .values({
         usageId: crypto.randomUUID(),
         userId,
-        date: today,
+        date: todayStr,
         sessionCount: 0,
         messageCount: 0,
         minutesUsed: 0,
@@ -78,7 +79,7 @@ async function checkUsage(userId: string) {
     remainingMessages,
     remainingSessions,
     tier: subscription.tier,
-    resetsAt: new Date(today.getTime() + 24 * 60 * 60 * 1000),
+    resetsAt: new Date(todayDate.getTime() + 24 * 60 * 60 * 1000),
   }
 }
 
@@ -92,8 +93,7 @@ export const POST = withCsrf(
         throw new ValidationError('Invalid usage type')
       }
 
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
+      const today = new Date().toISOString().split('T')[0]
 
       const [row] = await drizzleDb
         .select()

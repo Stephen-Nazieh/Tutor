@@ -29,7 +29,7 @@ export const POST = withCsrf(
         throw new NotFoundError('Class session not found')
       }
 
-      if (classSessionRow.status !== 'ACTIVE') {
+      if (classSessionRow.status !== 'active') {
         throw new ValidationError('Class session is not active')
       }
 

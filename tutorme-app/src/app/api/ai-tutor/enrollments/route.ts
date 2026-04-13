@@ -24,8 +24,7 @@ async function getHandler(_req: NextRequest, session: Session) {
       )
       .orderBy(desc(aITutorEnrollment.lastSessionAt))
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = new Date().toISOString().split('T')[0]
     const [dailyUsage] = await drizzleDb
       .select()
       .from(aITutorDailyUsage)

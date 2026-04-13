@@ -40,7 +40,7 @@ export async function GET(_req: NextRequest) {
       .where(
         and(
           inArray(liveSession.sessionId, sessionIds),
-          inArray(liveSession.status, ['completed', 'ended'])
+          inArray(liveSession.status, ['ended'])
         )
       )
       .orderBy(desc(liveSession.endedAt))

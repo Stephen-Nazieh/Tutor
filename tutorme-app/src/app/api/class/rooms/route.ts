@@ -68,7 +68,7 @@ export const POST = withCsrf(
           roomId: room.id,
           maxStudents: data.maxStudents,
           scheduledAt,
-          status: isScheduledForFuture ? 'SCHEDULED' : 'ACTIVE',
+          status: isScheduledForFuture ? 'scheduled' : 'active',
         })
         .returning()
 
@@ -93,7 +93,7 @@ export const GET = withAuth(async (req, session) => {
 
   // Build filter
   const filtersOfRequest: SQL[] = [
-    eq(liveSession.status, 'ACTIVE'),
+    eq(liveSession.status, 'active'),
     gte(liveSession.scheduledAt, new Date(Date.now() - 4 * 60 * 60 * 1000)),
   ]
 

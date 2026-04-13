@@ -23,7 +23,9 @@ export const GET = withAuth(
     const offset = parseBoundedInt(searchParams.get('offset'), 0, { min: 0, max: 10000 })
 
     const whereConditions = [eq(payout.tutorId, tutorId)]
-    if (status) whereConditions.push(eq(payout.status, status))
+    if (status && ['PENDING', 'PROCESSING', 'COMPLETED', 'REJECTED'].includes(status)) {
+      whereConditions.push(eq(payout.status, status as 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'REJECTED'))
+    }
 
     const [payouts, totalCountResult] = await Promise.all([
       drizzleDb.query.payout.findMany({

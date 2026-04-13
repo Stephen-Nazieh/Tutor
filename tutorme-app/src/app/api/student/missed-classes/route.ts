@@ -82,12 +82,12 @@ export async function GET(req: NextRequest) {
     const missedWhere = dateFilter
       ? and(
           inArray(liveSession.tutorId, tutorIds),
-          inArray(liveSession.status, ['completed', 'ended']),
+          inArray(liveSession.status, ['ended']),
           gte(liveSession.scheduledAt!, dateFilter)
         )
       : and(
           inArray(liveSession.tutorId, tutorIds),
-          inArray(liveSession.status, ['completed', 'ended'])
+          inArray(liveSession.status, ['ended'])
         )
 
     const missedSessionRows = await drizzleDb

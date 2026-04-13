@@ -33,12 +33,13 @@ export const GET = withAuth(
       subscription = created!
     }
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const todayStr = new Date().toISOString().split('T')[0]
+    const todayDate = new Date()
+    todayDate.setHours(0, 0, 0, 0)
     const [dailyUsage] = await drizzleDb
       .select()
       .from(aITutorDailyUsage)
-      .where(and(eq(aITutorDailyUsage.userId, session.user.id), eq(aITutorDailyUsage.date, today)))
+      .where(and(eq(aITutorDailyUsage.userId, session.user.id), eq(aITutorDailyUsage.date, todayStr)))
       .limit(1)
 
     return NextResponse.json({
@@ -53,7 +54,7 @@ export const GET = withAuth(
       usage: {
         sessionsCount: dailyUsage?.sessionCount || 0,
         messageCount: dailyUsage?.messageCount || 0,
-        resetsAt: new Date(today.getTime() + 24 * 60 * 60 * 1000), // Tomorrow
+        resetsAt: new Date(todayDate.getTime() + 24 * 60 * 60 * 1000), // Tomorrow
       },
     })
   },

@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     const completedSessions = await drizzleDb
       .select({ sessionId: liveSession.sessionId, tutorId: liveSession.tutorId })
       .from(liveSession)
-      .where(and(ilike(liveSession.category, subjectCode), eq(liveSession.status, 'completed')))
+      .where(and(ilike(liveSession.category, subjectCode), eq(liveSession.status, 'ended')))
     const sessionIds = completedSessions.map(s => s.sessionId)
     const participantCounts =
       sessionIds.length > 0

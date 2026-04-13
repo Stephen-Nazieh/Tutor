@@ -34,16 +34,16 @@ export const PATCH = withAuth(
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
 
-    if (existingSession.status === 'ENDED') {
+    if (existingSession.status === 'ended') {
       return NextResponse.json({ error: 'Session has already ended' }, { status: 400 })
     }
 
-    // Mark session as ENDED with cancellation note
+    // Mark session as ended with cancellation note
     const cancellationNote = reason ? ` [Cancelled by tutor: ${reason}]` : ' [Cancelled by tutor]'
     const updatedSession = await drizzleDb
       .update(liveSessionTable)
       .set({
-        status: 'ENDED',
+        status: 'ended',
         endedAt: new Date(),
         description: (existingSession.description || '') + cancellationNote,
       })

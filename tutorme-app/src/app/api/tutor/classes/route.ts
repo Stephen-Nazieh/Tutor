@@ -26,7 +26,7 @@ export const GET = withAuth(
         ? eq(liveSessionTable.tutorId, tutorId)
         : or(
             and(eq(liveSessionTable.tutorId, tutorId), gte(liveSessionTable.scheduledAt, now)),
-            and(eq(liveSessionTable.tutorId, tutorId), eq(liveSessionTable.status, 'ACTIVE'))
+            and(eq(liveSessionTable.tutorId, tutorId), eq(liveSessionTable.status, 'active'))
           ),
       with: {
         participants: {

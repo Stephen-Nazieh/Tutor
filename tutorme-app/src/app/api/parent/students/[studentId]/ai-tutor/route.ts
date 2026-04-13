@@ -36,6 +36,7 @@ export const GET = withAuth(
 
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0]
 
     // Parallel fetching of all AI-related data
     const [sessions, enrollmentsData, dailyUsageData, activities, interactions] = await Promise.all(
@@ -56,7 +57,7 @@ export const GET = withAuth(
         drizzleDb.query.aITutorDailyUsage.findMany({
           where: and(
             eq(aITutorDailyUsage.userId, studentId),
-            gte(aITutorDailyUsage.date, thirtyDaysAgo)
+            gte(aITutorDailyUsage.date, thirtyDaysAgoStr)
           ),
           orderBy: [desc(aITutorDailyUsage.date)],
           limit: 30,

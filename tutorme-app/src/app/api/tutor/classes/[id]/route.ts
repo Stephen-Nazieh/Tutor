@@ -231,14 +231,14 @@ export const POST = withCsrf(
         )
       }
 
-      if (liveSessionRow.status === 'COMPLETED') {
+      if (liveSessionRow.status === 'ended') {
         return NextResponse.json({ error: 'Cannot start a completed class' }, { status: 400 })
       }
 
       const [updated] = await drizzleDb
         .update(liveSession)
         .set({
-          status: 'ACTIVE',
+          status: 'active',
           startedAt: liveSessionRow.startedAt || new Date(),
         })
         .where(eq(liveSession.sessionId, classId))
@@ -279,15 +279,15 @@ export const PATCH = withCsrf(
         )
       }
 
-      if (liveSessionRow.status === 'COMPLETED') {
-        return NextResponse.json({ success: true, status: 'COMPLETED', alreadyEnded: true })
+      if (liveSessionRow.status === 'ended') {
+        return NextResponse.json({ success: true, status: 'ended', alreadyEnded: true })
       }
 
       const endedAt = new Date()
       await drizzleDb
         .update(liveSession)
         .set({
-          status: 'COMPLETED',
+          status: 'ended',
           endedAt,
           recordingAvailableAt: liveSessionRow.recordingUrl ? endedAt : null,
         })
@@ -433,14 +433,14 @@ export const DELETE = withAuth(
         )
       }
 
-      if (liveSessionRow.status === 'ACTIVE') {
+      if (liveSessionRow.status === 'active') {
         return NextResponse.json(
           { error: 'Cannot delete an active class. Please end the class first.' },
           { status: 400 }
         )
       }
 
-      if (liveSessionRow.status === 'COMPLETED') {
+      if (liveSessionRow.status === 'ended') {
         return NextResponse.json({ error: 'Cannot delete a completed class' }, { status: 400 })
       }
 

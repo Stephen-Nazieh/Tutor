@@ -88,7 +88,7 @@ function isActiveSession(
   return Boolean(startedAt)
 }
 
-const ACTIVE_STATUSES = ['active', 'live', 'in_progress', 'inprogress', 'ongoing']
+const ACTIVE_STATUSES = ['active', 'live', 'preparing'] as const
 
 export async function GET(req: NextRequest) {
   const { session, response } = await requireAdmin(req, Permissions.ANALYTICS_READ)
