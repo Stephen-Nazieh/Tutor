@@ -18,7 +18,7 @@ export interface CourseShareData {
   name: string
   description: string | null
   subject: string
-  gradeLevel: string | null
+
   difficulty: string
   estimatedHours: number
   price: number | null

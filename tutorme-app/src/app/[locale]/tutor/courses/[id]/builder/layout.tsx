@@ -210,8 +210,6 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
   const [launchingLiveClass, setLaunchingLiveClass] = useState(false)
   const [courseSource, setCourseSource] = useState<'PLATFORM' | 'UPLOADED'>('PLATFORM')
   const [outlineSource, setOutlineSource] = useState<'SELF' | 'AI'>('SELF')
-  const [courseCatalog, setCourseCatalog] = useState<{ id: string; name: string }[]>([])
-  const [loadingCatalog, setLoadingCatalog] = useState(false)
   const [uploadText, setUploadText] = useState({ course: '', notes: '', topics: '' })
   const [fileExtracting, setFileExtracting] = useState(false)
   const [editableCourse, setEditableCourse] = useState('')
@@ -284,18 +282,6 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
           (data.course?.courseSource as 'PLATFORM' | 'UPLOADED') ?? 'PLATFORM'
         )
         setOutlineSource((data.course?.outlineSource as 'SELF' | 'AI') ?? 'SELF')
-
-        // Load course catalog for subject
-        if (data.course?.subject) {
-          setLoadingCatalog(true)
-          fetch(`/api/courses/catalog?subject=${encodeURIComponent(data.course.subject)}`, {
-            credentials: 'include',
-          })
-            .then(res => res.json())
-            .then(data => setCourseCatalog(data.courses ?? []))
-            .catch(() => setCourseCatalog([]))
-            .finally(() => setLoadingCatalog(false))
-        }
       }
     } catch {
       toast.error('Failed to load course')
@@ -574,7 +560,6 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
           : 60
 
       const normalizedDescription = String(course.description || '').trim()
-      const normalizedGradeLevel = String(course.gradeLevel || '').trim()
       const payload: Record<string, unknown> = {
         title: String(course.name || 'Live Class'),
         subject: String(course.subject || 'General'),
@@ -583,7 +568,6 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
         durationMinutes: Math.max(15, Math.min(480, durationFromCourseSchedule)),
       }
       if (normalizedDescription) payload.description = normalizedDescription
-      if (normalizedGradeLevel) payload.gradeLevel = normalizedGradeLevel
 
       const createRes = await fetch('/api/class/rooms', {
         method: 'POST',

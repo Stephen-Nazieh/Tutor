@@ -48,7 +48,6 @@ export default function StudentSettings() {
     // Profile
     avatarUrl: '',
     bio: '',
-    gradeLevel: null as number | null,
     subjectsOfInterest: [] as string[],
     preferredLanguages: [] as string[],
     // Preferences
@@ -70,7 +69,6 @@ export default function StudentSettings() {
             studentUniqueId: data.profile.studentUniqueId || '',
             avatarUrl: data.profile.avatarUrl || '',
             bio: data.profile.bio || '',
-            gradeLevel: data.profile.gradeLevel != null ? Number(data.profile.gradeLevel) : null,
             subjectsOfInterest: data.profile.subjectsOfInterest || [],
             preferredLanguages: data.profile.preferredLanguages || [],
             timezone: data.profile.timezone || 'Asia/Shanghai',
@@ -119,7 +117,6 @@ export default function StudentSettings() {
           // Profile
           avatarUrl: formData.avatarUrl,
           bio: formData.bio,
-          gradeLevel: formData.gradeLevel,
           subjectsOfInterest: formData.subjectsOfInterest,
           preferredLanguages: formData.preferredLanguages,
           // Preferences
@@ -283,28 +280,6 @@ export default function StudentSettings() {
 
                     <div className="border-t pt-6">
                       <h3 className="mb-4 text-lg font-medium">Academic & Interests</h3>
-
-                      <div className="mb-6">
-                        <Label className="mb-3 block">Current Grade Level</Label>
-                        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                          {GRADE_LEVELS.map(grade => (
-                            <button
-                              key={grade.id}
-                              type="button"
-                              onClick={() =>
-                                setFormData(prev => ({ ...prev, gradeLevel: grade.id }))
-                              }
-                              className={`rounded-lg border p-2 text-sm transition-colors ${
-                                formData.gradeLevel === grade.id
-                                  ? 'border-blue-500 bg-blue-50 font-medium text-blue-700'
-                                  : 'border-gray-200 hover:border-gray-300'
-                              }`}
-                            >
-                              {grade.name}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
 
                       <div className="mb-6">
                         <Label className="mb-3 block">Subjects of Interest</Label>

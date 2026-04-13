@@ -332,7 +332,6 @@ export async function performRegistration(
       timezone: profileData?.timezone ?? 'Asia/Shanghai',
       emailNotifications: true,
       smsNotifications: false,
-      gradeLevel: null,
       studentUniqueId: role === 'STUDENT' ? `STU-${nanoid(12)}` : null,
       subjectsOfInterest: [],
       preferredLanguages: profileData?.preferredLanguage ? [profileData.preferredLanguage] : [],

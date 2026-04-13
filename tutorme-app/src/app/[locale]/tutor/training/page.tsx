@@ -28,7 +28,6 @@ export default function TutorTrainingPage() {
         body: JSON.stringify({
           title: 'Training Session',
           subject: 'Training',
-          gradeLevel: 'mixed',
           maxStudents: 50,
           duration: 60,
           scheduledAt: new Date().toISOString(),

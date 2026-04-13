@@ -120,7 +120,6 @@ export const UpdateProfileSchema = z.object({
   name: z.string().min(2).max(100).optional(),
   bio: z.string().max(1000).optional(),
   avatarUrl: z.string().url().optional(),
-  gradeLevel: z.string().optional(),
   hourlyRate: z.number().min(0).max(10000).optional(),
   subjects: z.array(z.string()).optional(),
 })
@@ -135,7 +134,6 @@ export const CreateRoomSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100).optional(),
   subject: z.string().min(2, 'Subject must be at least 2 characters').max(50),
   description: z.string().max(1000).optional(),
-  gradeLevel: z.string().optional(),
   courseId: cuidOrUuid.optional(),
   scheduledAt: z.string().datetime('Invalid scheduled date/time').optional(),
   maxStudents: z.number().int().min(1).max(500).default(50),
@@ -205,7 +203,6 @@ export const CreateCourseSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(2000).optional(),
   subject: z.string().min(1).optional(),
-  gradeLevel: z.string().max(50).optional(),
   difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
   estimatedHours: z.number().min(0).max(1000).optional(),
   isLiveOnline: z.boolean().optional(),
@@ -224,7 +221,6 @@ export const EnrollCourseSchema = z.object({
 export const UpdateCourseSettingsSchema = z.object({
   name: z.string().min(1).max(200).optional().nullable(),
   description: z.string().max(2000).optional().nullable(),
-  gradeLevel: z.string().max(50).optional().nullable(),
   difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional().nullable(),
   languageOfInstruction: z.string().min(1).max(20).optional().nullable(),
   price: z.number().min(0).optional().nullable(),
@@ -252,7 +248,6 @@ export const UpdateProgressSchema = z.object({
 export const AITutorEnrollSchema = z.object({
   studentId: z.string().cuid('Invalid student ID'),
   subjectCode: z.string().min(1, 'Subject code required'),
-  gradeLevel: z.string().optional(),
 })
 
 export const AITutorQuerySchema = z.object({
@@ -327,7 +322,6 @@ export const FilterSchema = z.object({
   search: z.string().max(200).optional(),
   status: z.string().optional(),
   subject: z.string().optional(),
-  gradeLevel: z.string().optional(),
   dateFrom: z.coerce.date().optional(),
   dateTo: z.coerce.date().optional(),
 })

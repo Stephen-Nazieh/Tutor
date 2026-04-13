@@ -28,7 +28,6 @@ export const GET = withAuth(
           .map((m: any) => ({
             id: m.userId || m.id,
             name: m.user?.profile?.name || m.name,
-            grade: m.user?.profile?.gradeLevel || 'Not set',
             avatar: (m.name || '?').slice(0, 2).toUpperCase(),
             upcomingClasses: 0,
             assignmentsDue: 0,

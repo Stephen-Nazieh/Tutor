@@ -35,7 +35,6 @@ function buildPrompt(input: {
   tutorInstruction: string
   references: string
   subject: string
-  gradeLevel: string | null
 }) {
   const referenceBlock = input.references.trim()
     ? `Reference material:\n${input.references.slice(0, 18000)}`
@@ -48,7 +47,6 @@ Tutor instruction:
 ${input.tutorInstruction}
 
 Subject: ${input.subject || 'general'}
-Grade level: ${input.gradeLevel || 'mixed'}
 
 ${referenceBlock}
 
@@ -161,7 +159,6 @@ export const POST = withAuth(
       tutorInstruction,
       references,
       subject: courseRow.subject?.[0] || '',
-      gradeLevel: '',
     })
 
     const ai = await generateWithFallback(prompt, {

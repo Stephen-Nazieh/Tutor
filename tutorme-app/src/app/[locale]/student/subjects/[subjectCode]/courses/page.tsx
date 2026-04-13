@@ -27,7 +27,6 @@ interface CourseListItem {
   estimatedHours: number
   price: number | null
   currency: string | null
-  gradeLevel: string | null
   modulesCount: number
   lessonsCount: number
   studentCount: number
@@ -172,10 +171,9 @@ export default function SubjectCoursesPage() {
                     <Card className="border-border bg-card transition-colors hover:border-accent">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-lg text-foreground">{c.name}</CardTitle>
-                        {(c.gradeLevel || c.difficulty) && (
+                        {c.difficulty && (
                           <CardDescription className="mt-1 flex flex-wrap gap-2">
-                            {c.gradeLevel && <span>{c.gradeLevel}</span>}
-                            {c.difficulty && <span className="capitalize">{c.difficulty}</span>}
+                            <span className="capitalize">{c.difficulty}</span>
                           </CardDescription>
                         )}
                       </CardHeader>

@@ -34,6 +34,8 @@ export const builderTask = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
     publishedAt: timestamp('publishedAt', { withTimezone: true }),
+    // Soft delete
+    deletedAt: timestamp('deletedAt', { withTimezone: true }),
   },
   table => ({
     BuilderTask_courseId_idx: index('BuilderTask_courseId_idx').on(table.courseId),

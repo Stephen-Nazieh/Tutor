@@ -213,7 +213,6 @@ export const DEFAULT_LESSON = (order: number): Lesson => ({
   assessments: [],
   homework: [],
   worksheets: [],
-  quizzes: [],
   difficultyMode: 'all',
   variants: {},
 })
@@ -521,11 +520,12 @@ export function normalizeCourseBuilderNodesForAssessments(
     lessons: (mod.lessons && mod.lessons.length > 0 ? mod.lessons : [DEFAULT_LESSON(0)]).map(
       lesson => {
         const existingAssessments = lesson.homework || []
-        const migratedAssessments = (lesson.quizzes || []).map(convertQuizToAssessment)
+        // Legacy migration: quizzes were migrated to homework (assessments)
+        const legacyQuizzes = (lesson as any).quizzes || []
+        const migratedAssessments = legacyQuizzes.map(convertQuizToAssessment)
         return {
           ...lesson,
           homework: [...existingAssessments, ...migratedAssessments],
-          quizzes: [],
         }
       }
     ),

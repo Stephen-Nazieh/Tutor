@@ -3,7 +3,6 @@ export interface MockTutorCourse {
   name: string
   description: string
   subject: string
-  gradeLevel: string
   difficulty: string
   estimatedHours: number
   enrollmentCount: number
@@ -40,7 +39,6 @@ export const MOCK_TUTORS: MockTutorProfile[] = [
         name: 'Adaptive Algebra Mastery',
         description: 'Build algebra intuition from fundamentals through advanced manipulations.',
         subject: 'Mathematics',
-        gradeLevel: 'High School (10-12)',
         difficulty: 'Intermediate',
         estimatedHours: 18,
         enrollmentCount: 132,
@@ -53,7 +51,6 @@ export const MOCK_TUTORS: MockTutorProfile[] = [
         name: 'SAT Quant Sprint',
         description: 'Timed strategies, error analysis, and confidence-building routines.',
         subject: 'Mathematics',
-        gradeLevel: 'High School (10-12)',
         difficulty: 'Advanced',
         estimatedHours: 12,
         enrollmentCount: 94,
@@ -78,7 +75,6 @@ export const MOCK_TUTORS: MockTutorProfile[] = [
         name: 'Physics Through Experiments',
         description: 'Conceptual mechanics and electromagnetism tied to real lab workflows.',
         subject: 'Physics',
-        gradeLevel: 'High School (10-12)',
         difficulty: 'Intermediate',
         estimatedHours: 20,
         enrollmentCount: 87,
@@ -103,7 +99,6 @@ export const MOCK_TUTORS: MockTutorProfile[] = [
         name: 'Essay Excellence Studio',
         description: 'From thesis design to polished essays with actionable feedback loops.',
         subject: 'English',
-        gradeLevel: 'Middle School (7-9)',
         difficulty: 'Beginner',
         estimatedHours: 16,
         enrollmentCount: 141,

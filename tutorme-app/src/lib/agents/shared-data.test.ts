@@ -39,7 +39,6 @@ describe('shared-data', () => {
       updatedAt: now,
       profile: {
         name: 'Test Student',
-        gradeLevel: 'Grade 5',
         subjectsOfInterest: ['math'],
         learningGoals: [],
       },

@@ -46,6 +46,8 @@ export const course = pgTable(
     country: text('country'), // Hong Kong, Korea, Singapore, etc. (null for Global)
     parentCourseId: text('parentCourseId'), // Links related courses (e.g., all TOEFL variants)
     isVariant: boolean('isVariant').notNull().default(false), // True if this is a country-specific variant
+    // Soft delete
+    deletedAt: timestamp('deletedAt', { withTimezone: true }),
   },
   table => ({
     Course_isPublished_idx: index('Course_isPublished_idx').on(table.isPublished),
@@ -53,28 +55,6 @@ export const course = pgTable(
     Course_parentCourseId_idx: index('Course_parentCourseId_idx').on(table.parentCourseId),
     Course_country_idx: index('Course_country_idx').on(table.country),
     Course_region_idx: index('Course_region_idx').on(table.region),
-  })
-)
-
-/**
- * @deprecated CourseCatalog is being replaced by the category system.
- * Kept for backward compatibility during migration.
- */
-export const courseCatalog = pgTable(
-  'CourseCatalog',
-  {
-    catalogId: text('id').primaryKey().notNull(),
-    category: text('category').notNull(),
-    name: text('name').notNull(),
-    code: text('code'),
-    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
-  },
-  table => ({
-    CourseCatalog_category_idx: index('CourseCatalog_category_idx').on(table.category),
-    CourseCatalog_category_name_key: uniqueIndex('CourseCatalog_category_name_key').on(
-      table.category,
-      table.name
-    ),
   })
 )
 
@@ -120,6 +100,8 @@ export const courseLesson = pgTable(
       .notNull()
       .defaultNow()
       .$onUpdate(() => new Date()),
+    // Soft delete
+    deletedAt: timestamp('deletedAt', { withTimezone: true }),
   },
   table => ({
     CourseLesson_courseId_idx: index('CourseLesson_courseId_idx').on(table.courseId),
@@ -173,6 +155,9 @@ export const courseLessonProgress = pgTable(
   table => ({
     CourseLessonProgress_studentId_idx: index('CourseLessonProgress_studentId_idx').on(
       table.studentId
+    ),
+    CourseLessonProgress_lessonId_idx: index('CourseLessonProgress_lessonId_idx').on(
+      table.lessonId
     ),
     CourseLessonProgress_lessonId_studentId_key: uniqueIndex(
       'CourseLessonProgress_lessonId_studentId_key'

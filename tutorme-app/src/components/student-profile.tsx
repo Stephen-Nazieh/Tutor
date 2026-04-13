@@ -36,7 +36,6 @@ interface UserProfile {
   email: string | null
   image: string | null
   profile?: {
-    gradeLevel?: string
     school?: string
     targetScore?: number
     studyHours?: number
@@ -61,7 +60,6 @@ export function StudentProfile() {
   const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState({
     name: '',
-    gradeLevel: '',
     school: '',
     bio: '',
   })
@@ -79,7 +77,6 @@ export function StudentProfile() {
         setProfile(profileData.profile)
         setEditForm({
           name: profileData.profile.name || '',
-          gradeLevel: profileData.profile.gradeLevel || '',
           school: profileData.profile.school || '',
           bio: profileData.profile.bio || '',
         })
@@ -173,7 +170,7 @@ export function StudentProfile() {
                       <div className="mt-2 flex gap-2">
                         <Badge variant="secondary" className="text-xs">
                           <GraduationCap className="mr-1 h-3 w-3" />
-                          Grade {profile?.profile?.gradeLevel || 'N/A'}
+                          Student
                         </Badge>
                       </div>
                     </div>
@@ -193,14 +190,6 @@ export function StudentProfile() {
                         id="name"
                         value={editForm.name}
                         onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="grade">Grade Level</Label>
-                      <Input
-                        id="grade"
-                        value={editForm.gradeLevel}
-                        onChange={e => setEditForm({ ...editForm, gradeLevel: e.target.value })}
                       />
                     </div>
                     <div>

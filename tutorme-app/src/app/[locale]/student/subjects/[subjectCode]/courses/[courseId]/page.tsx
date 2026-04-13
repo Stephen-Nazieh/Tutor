@@ -18,7 +18,6 @@ interface CourseDetail {
   estimatedHours: number
   price: number | null
   currency: string | null
-  gradeLevel: string | null
   modulesCount: number
   lessonsCount: number
   enrolled?: boolean
@@ -186,12 +185,9 @@ export default function CourseEnrollPage() {
               <BookOpen className="h-5 w-5" />
               {course.name}
             </CardTitle>
-            {(course.gradeLevel || course.difficulty) && (
+            {course.difficulty && (
               <CardDescription className="flex flex-wrap gap-2">
-                {course.gradeLevel && <span>{course.gradeLevel}</span>}
-                {course.difficulty && (
-                  <span className="capitalize">{course.difficulty}</span>
-                )}
+                <span className="capitalize">{course.difficulty}</span>
               </CardDescription>
             )}
           </CardHeader>

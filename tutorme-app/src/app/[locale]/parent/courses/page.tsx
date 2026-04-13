@@ -12,7 +12,6 @@ interface SharedCourse {
   name: string
   description: string | null
   subject: string
-  gradeLevel: string | null
   estimatedHours: number
   price: number | null
   currency: string

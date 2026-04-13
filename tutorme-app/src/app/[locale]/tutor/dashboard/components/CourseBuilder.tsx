@@ -118,7 +118,6 @@ export type {
   Lesson,
   CourseBuilderNodeQuiz,
   CourseBuilderNode,
-  Module,
   InsightsSessionOption,
   CourseBuilderInsightsProps,
   CourseBuilderProps,
@@ -1036,7 +1035,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       order,
       tasks: (lesson.tasks || []).map(cloneTask),
       homework: (lesson.homework || []).map(cloneAssessment),
-      quizzes: (lesson.quizzes || []).map(q => ({ ...q, id: `quiz-${generateId()}` })),
     })
 
     const handlePciSend = async (type: 'task' | 'assessment') => {

@@ -24,22 +24,7 @@ import {
 import { toast } from 'sonner'
 import { Loader2, BookOpen, Plus, X } from 'lucide-react'
 
-const GRADE_LEVELS = [
-  { value: 'Grade 1', label: 'Grade 1' },
-  { value: 'Grade 2', label: 'Grade 2' },
-  { value: 'Grade 3', label: 'Grade 3' },
-  { value: 'Grade 4', label: 'Grade 4' },
-  { value: 'Grade 5', label: 'Grade 5' },
-  { value: 'Grade 6', label: 'Grade 6' },
-  { value: 'Grade 7', label: 'Grade 7' },
-  { value: 'Grade 8', label: 'Grade 8' },
-  { value: 'Grade 9', label: 'Grade 9' },
-  { value: 'Grade 10', label: 'Grade 10' },
-  { value: 'Grade 11', label: 'Grade 11' },
-  { value: 'Grade 12', label: 'Grade 12' },
-  { value: 'College', label: 'College' },
-  { value: 'Adult Education', label: 'Adult Education' },
-]
+
 
 interface CreateCourseDialogProps {
   open: boolean
@@ -62,7 +47,6 @@ export function CreateCourseDialog({
   const [form, setForm] = useState({
     subject: '',
     description: '',
-    gradeLevel: '',
     isLiveOnline: false,
   })
   const [generatingDescription, setGeneratingDescription] = useState(false)
@@ -169,7 +153,7 @@ export function CreateCourseDialog({
           title,
           description: form.description.trim() || undefined,
           subject: form.subject,
-          gradeLevel: form.gradeLevel || undefined,
+
           isLiveOnline: form.isLiveOnline,
           categories: selectedCategories,
         }),
@@ -180,7 +164,7 @@ export function CreateCourseDialog({
         toast.success(data.message ?? 'Course created successfully')
         onOpenChange(false)
         onCourseCreated?.()
-        setForm({ subject: '', description: '', gradeLevel: '', isLiveOnline: false })
+        setForm({ subject: '', description: '', isLiveOnline: false })
         setCategories([])
         setSubjects([])
         setCategoryInput('')
@@ -316,25 +300,6 @@ export function CreateCourseDialog({
           </div>
 
           <div>
-            <Label>Grade</Label>
-            <Select
-              value={form.gradeLevel}
-              onValueChange={v => setForm({ ...form, gradeLevel: v })}
-            >
-              <SelectTrigger disabled={creating}>
-                <SelectValue placeholder="Select grade" />
-              </SelectTrigger>
-              <SelectContent>
-                {GRADE_LEVELS.map(g => (
-                  <SelectItem key={g.value} value={g.value}>
-                    {g.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
             <Label>Description</Label>
             <div className="flex gap-2">
               <Button
@@ -351,7 +316,6 @@ export function CreateCourseDialog({
                       credentials: 'include',
                       body: JSON.stringify({
                         subject: form.subject,
-                        gradeLevel: form.gradeLevel || undefined,
                       }),
                     })
                     const data = await res.json()

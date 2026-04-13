@@ -24,7 +24,6 @@ describe('course-service', () => {
 
     const res = await generateCourseDescription({
       subject: 'Math',
-      gradeLevel: '8',
       difficulty: 'easy',
     })
     expect(res.description).toBe('A short description.')

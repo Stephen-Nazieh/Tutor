@@ -91,7 +91,6 @@ type EnrolledCourse = {
   id: string
   name: string
   subject: string
-  gradeLevel?: string | null
   isPublished?: boolean | null
   price?: number | null
   currency?: string | null
@@ -104,7 +103,6 @@ type CourseSession = {
   title: string
   subject: string
   description?: string | null
-  gradeLevel?: string | null
   scheduledAt: string | null
   startedAt: string | null
   endedAt: string | null
@@ -389,7 +387,6 @@ function TutorDashboardContent() {
             courseId: course.id,
             title: course.name,
             subject: course.subject,
-            gradeLevel: course.gradeLevel || undefined,
             maxStudents: 50,
             durationMinutes: 60,
           }),
@@ -701,7 +698,6 @@ function TutorDashboardContent() {
                           </div>
                           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                             <span>{course.subject}</span>
-                            {course.gradeLevel ? <span>• {course.gradeLevel}</span> : null}
                             {course.price ? (
                               <span>
                                 • {course.currency ?? 'USD'} {course.price}

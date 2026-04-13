@@ -32,15 +32,7 @@ const STEPS = [
   },
 ]
 
-const GRADE_LEVELS = [
-  { id: 6, name: '6th Grade' },
-  { id: 7, name: '7th Grade' },
-  { id: 8, name: '8th Grade' },
-  { id: 9, name: '9th Grade' },
-  { id: 10, name: '10th Grade' },
-  { id: 11, name: '11th Grade' },
-  { id: 12, name: '12th Grade' },
-]
+
 
 const SUBJECTS = [
   { id: 'math', name: 'Mathematics', icon: '📐' },
@@ -68,7 +60,6 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     goals: [] as string[],
-    gradeLevel: null as number | null,
     subjectsOfInterest: [] as string[],
     preferredLanguage: 'en', // default
   })
@@ -117,7 +108,6 @@ export default function OnboardingPage() {
         },
         body: JSON.stringify({
           learningGoals: formData.goals,
-          gradeLevel: formData.gradeLevel,
           subjectsOfInterest: formData.subjectsOfInterest,
           preferredLanguages: [formData.preferredLanguage],
           isOnboarded: true,
@@ -230,27 +220,7 @@ export default function OnboardingPage() {
             {step === 1 && (
               <div className="space-y-6 duration-300 animate-in fade-in slide-in-from-right-4">
                 <div>
-                  <Label className="mb-3 block text-base">What grade are you in?</Label>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    {GRADE_LEVELS.map(grade => (
-                      <button
-                        key={grade.id}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, gradeLevel: grade.id })}
-                        className={cn(
-                          'rounded-lg border-2 p-3 text-sm font-medium transition-all',
-                          formData.gradeLevel === grade.id
-                            ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm'
-                            : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-gray-300'
-                        )}
-                      >
-                        {grade.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-8">
+                  <Label className="mb-3 block text-base">Preferred Language</Label>
                   <Label className="mb-3 block text-base">Preferred Language</Label>
                   <select
                     className="w-full rounded-lg border bg-gray-50 p-3"
@@ -304,7 +274,7 @@ export default function OnboardingPage() {
             </Button>
             <Button
               onClick={handleNext}
-              disabled={loading || (step === 1 && !formData.gradeLevel)}
+              disabled={loading}
               className="min-w-[120px] bg-blue-600 text-white hover:bg-blue-700"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

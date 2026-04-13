@@ -37,16 +37,7 @@ const SUBJECTS = [
   { value: 'toefl', label: 'TOEFL' },
 ]
 
-const GRADE_LEVELS = [
-  { value: '6', label: 'Grade 6' },
-  { value: '7', label: 'Grade 7' },
-  { value: '8', label: 'Grade 8' },
-  { value: '9', label: 'Grade 9' },
-  { value: '10', label: 'Grade 10' },
-  { value: '11', label: 'Grade 11' },
-  { value: '12', label: 'Grade 12' },
-  { value: 'college', label: 'College' },
-]
+
 
 interface CreateClassDialogProps {
   open: boolean
@@ -70,7 +61,6 @@ export function CreateClassDialog({
     title: '',
     subject: '',
     description: '',
-    gradeLevel: '',
     maxStudents: 50,
     durationMinutes: 60,
     scheduledAt: '',
@@ -98,10 +88,6 @@ export function CreateClassDialog({
     }
     if (!form.subject) {
       toast.error('Please select a subject')
-      return
-    }
-    if (!form.gradeLevel) {
-      toast.error('Please select a grade level')
       return
     }
     if (!form.scheduledAt) {
@@ -134,7 +120,6 @@ export function CreateClassDialog({
         body: JSON.stringify({
           title: form.title,
           subject: form.subject,
-          gradeLevel: form.gradeLevel,
           description: form.description,
           maxStudents: form.maxStudents,
           durationMinutes: form.durationMinutes,
@@ -214,40 +199,20 @@ export function CreateClassDialog({
               aria-invalid={!!apiError}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Subject *</Label>
-              <Select value={form.subject} onValueChange={v => setForm({ ...form, subject: v })}>
-                <SelectTrigger disabled={creating}>
-                  <SelectValue placeholder="Select subject" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SUBJECTS.map(s => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Grade Level *</Label>
-              <Select
-                value={form.gradeLevel}
-                onValueChange={v => setForm({ ...form, gradeLevel: v })}
-              >
-                <SelectTrigger disabled={creating}>
-                  <SelectValue placeholder="Select grade" />
-                </SelectTrigger>
-                <SelectContent>
-                  {GRADE_LEVELS.map(g => (
-                    <SelectItem key={g.value} value={g.value}>
-                      {g.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div>
+            <Label>Subject *</Label>
+            <Select value={form.subject} onValueChange={v => setForm({ ...form, subject: v })}>
+              <SelectTrigger disabled={creating}>
+                <SelectValue placeholder="Select subject" />
+              </SelectTrigger>
+              <SelectContent>
+                {SUBJECTS.map(s => (
+                  <SelectItem key={s.value} value={s.value}>
+                    {s.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Description</Label>

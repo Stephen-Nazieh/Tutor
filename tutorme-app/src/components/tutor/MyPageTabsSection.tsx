@@ -29,7 +29,7 @@ interface PublicCourse {
   name: string
   description?: string | null
   subject: string
-  gradeLevel?: string | null
+
   difficulty?: string | null
   publishedAt?: string
   sessions?: number
@@ -340,9 +340,6 @@ export function MyPageTabsSection() {
                         </p>
                         <div className="mt-2 flex flex-wrap gap-2">
                           <Badge variant="outline">{course.subject}</Badge>
-                          {course.gradeLevel && (
-                            <Badge variant="outline">{course.gradeLevel}</Badge>
-                          )}
                           {course.difficulty && (
                             <Badge variant="outline" className="capitalize">
                               {course.difficulty}
@@ -458,7 +455,6 @@ export function MyPageTabsSection() {
                 <CardContent className="pt-0">
                   <div className="mb-4 flex flex-wrap gap-2">
                     <Badge variant="outline">{course.subject}</Badge>
-                    {course.gradeLevel && <Badge variant="outline">{course.gradeLevel}</Badge>}
                     {course.difficulty && (
                       <Badge variant="outline" className="capitalize">
                         {course.difficulty}

@@ -217,7 +217,7 @@ export class AISecurityManager {
   static createSafeTutoringPrompt(
     studentId: string,
     subject: string,
-    gradeLevel: string,
+    difficulty: string,
     question: string
   ): { systemPrompt: string; userPrompt: string } {
     // Anonymize student identifier
@@ -228,13 +228,13 @@ export class AISecurityManager {
 
     if (sanitizedQuestion.length === 0) {
       return {
-        systemPrompt: this.createProtectedSystemPrompt(subject, gradeLevel),
+        systemPrompt: this.createProtectedSystemPrompt(subject, difficulty),
         userPrompt: 'Student provided invalid input - please redirect to proper input format',
       }
     }
 
     return {
-      systemPrompt: this.createProtectedSystemPrompt(subject, gradeLevel, studentHash),
+      systemPrompt: this.createProtectedSystemPrompt(subject, difficulty, studentHash),
       userPrompt: `<user_input>\n${sanitizedQuestion}\n</user_input>`,
     }
   }
@@ -244,11 +244,11 @@ export class AISecurityManager {
    */
   private static createProtectedSystemPrompt(
     subject: string,
-    gradeLevel: string,
+    difficulty: string,
     studentHash?: string
   ): string {
     return `
-You are an AI tutor specializing in ${subject} for ${gradeLevel} level students.
+You are an AI tutor specializing in ${subject} for ${difficulty} level students.
 
 SAFETY RULES STRICTLY ENFORCED:
 1. **NEVER** provide direct answers - use Socratic method (guiding questions)
@@ -271,7 +271,7 @@ RESPONSE GUIDELINES:
 
 CURRENT CONTEXT:
 - Subject: ${subject}
-- Level: ${gradeLevel}
+- Difficulty: ${difficulty}
 - Anonymized Student ID: ${studentHash || 'anonymous'}
 - Current Date: ${new Date().toISOString()}
 `.trim()

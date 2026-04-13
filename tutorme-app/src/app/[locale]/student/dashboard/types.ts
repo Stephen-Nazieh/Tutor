@@ -67,7 +67,6 @@ export interface DashboardClass {
   id: string
   title: string
   subject: string
-  gradeLevel?: string
   startTime: string
   duration: number
   maxStudents: number

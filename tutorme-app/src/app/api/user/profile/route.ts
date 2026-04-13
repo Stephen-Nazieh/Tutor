@@ -44,7 +44,6 @@ async function putHandler(req: NextRequest, session: Session) {
       subjects,
       availability,
       hourlyRate,
-      gradeLevel,
       subjectsOfInterest,
       preferredLanguages,
       paidClassesEnabled,
@@ -74,7 +73,6 @@ async function putHandler(req: NextRequest, session: Session) {
     }
 
     // Student fields
-    if (gradeLevel !== undefined) updateData.gradeLevel = gradeLevel.toString()
     if (subjectsOfInterest !== undefined) updateData.subjectsOfInterest = subjectsOfInterest
     if (preferredLanguages !== undefined)
       updateData.preferredLanguages = Array.isArray(preferredLanguages) ? preferredLanguages : []

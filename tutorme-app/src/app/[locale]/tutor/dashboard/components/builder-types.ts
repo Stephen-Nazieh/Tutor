@@ -247,8 +247,6 @@ export interface Lesson extends WithDifficultyVariants {
   /** Homework folder - contains homework items */
   homework: Assessment[]
   worksheets?: any[]
-  /** @deprecated legacy lesson quiz items are migrated into `homework` (Assessment) */
-  quizzes?: Quiz[]
 }
 
 export interface CourseBuilderNodeQuiz extends Quiz, WithDifficultyVariants {
@@ -265,12 +263,6 @@ export interface CourseBuilderNode extends WithDifficultyVariants {
   lessons: Lesson[]
   quizzes: CourseBuilderNodeQuiz[]
 }
-
-/** @deprecated Use CourseBuilderNode instead - kept for backward compatibility */
-export type Module = CourseBuilderNode
-
-/** @deprecated Use CourseBuilderNode instead - kept for backward compatibility */
-export type CourseBuilderModule = CourseBuilderNode
 
 /** Worksheet type for legacy compatibility */
 export interface Worksheet {

@@ -51,7 +51,6 @@ interface ClassItem {
   type: 'online' | 'in-person'
   students: number
   maxStudents: number
-  gradeLevel?: string
   isBooked?: boolean
   requiresPayment?: boolean
   price?: number | null
@@ -138,7 +137,6 @@ export function DashboardCalendar({
               type: c.type || 'online',
               students: c._count?.participants || 0,
               maxStudents: c.maxStudents || 50,
-              gradeLevel: c.gradeLevel,
               isBooked: c.isBooked,
               requiresPayment: c.requiresPayment,
               price: c.price,

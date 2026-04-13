@@ -7,15 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress'
 import { Loader2, CheckCircle } from 'lucide-react'
 
-const GRADE_LEVELS = [
-  { id: 6, name: '6th Grade' },
-  { id: 7, name: '7th Grade' },
-  { id: 8, name: '8th Grade' },
-  { id: 9, name: '9th Grade' },
-  { id: 10, name: '10th Grade' },
-  { id: 11, name: '11th Grade' },
-  { id: 12, name: '12th Grade' },
-]
+
 
 const SUBJECTS = [
   { id: 'math', name: 'Mathematics', icon: '📐' },
@@ -66,10 +58,7 @@ export default function StudentOnboarding() {
   const [completed, setCompleted] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Step 1: Grade Level
-  const [gradeLevel, setGradeLevel] = useState<number | null>(null)
-
-  // Step 2: Subjects
+  // Step 1: Subjects
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
 
   // Step 3: Diagnostic Quiz
@@ -109,7 +98,6 @@ export default function StudentOnboarding() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          gradeLevel,
           subjectsOfInterest: selectedSubjects,
         }),
       })
@@ -158,43 +146,16 @@ export default function StudentOnboarding() {
           <CardHeader>
             <CardTitle>Complete Your Profile</CardTitle>
             <CardDescription>
-              Step {step} of 3:{' '}
+              Step {step} of 2:{' '}
               {step === 1
-                ? 'Select Your Grade'
-                : step === 2
-                  ? 'Choose Subjects'
-                  : 'Diagnostic Quiz'}
+                ? 'Choose Subjects'
+                : 'Diagnostic Quiz'}
             </CardDescription>
             <Progress value={progress} className="mt-2" />
           </CardHeader>
           <CardContent>
-            {/* Step 1: Grade Level */}
+            {/* Step 1: Subjects */}
             {step === 1 && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">What grade are you in?</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {GRADE_LEVELS.map(grade => (
-                    <button
-                      key={grade.id}
-                      onClick={() => setGradeLevel(grade.id)}
-                      className={`rounded-lg border p-4 text-left transition-colors ${
-                        gradeLevel === grade.id
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      {grade.name}
-                    </button>
-                  ))}
-                </div>
-                <Button className="mt-4 w-full" disabled={!gradeLevel} onClick={() => setStep(2)}>
-                  Continue
-                </Button>
-              </div>
-            )}
-
-            {/* Step 2: Subjects */}
-            {step === 2 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-medium">What subjects do you want to learn?</h3>
@@ -217,13 +178,10 @@ export default function StudentOnboarding() {
                   ))}
                 </div>
                 <div className="mt-4 flex gap-3">
-                  <Button variant="outline" onClick={() => setStep(1)}>
-                    Back
-                  </Button>
                   <Button
                     className="flex-1"
                     disabled={selectedSubjects.length === 0}
-                    onClick={() => setStep(3)}
+                    onClick={() => setStep(2)}
                   >
                     Continue
                   </Button>
@@ -231,8 +189,8 @@ export default function StudentOnboarding() {
               </div>
             )}
 
-            {/* Step 3: Diagnostic Quiz */}
-            {step === 3 && !showResults && (
+            {/* Step 2: Diagnostic Quiz */}
+            {step === 2 && !showResults && (
               <div className="space-y-6">
                 <div>
                   <h3 className="mb-2 text-lg font-medium">Quick Assessment</h3>
@@ -259,7 +217,7 @@ export default function StudentOnboarding() {
             )}
 
             {/* Quiz Results */}
-            {step === 3 && showResults && (
+            {step === 2 && showResults && (
               <div className="space-y-6 text-center">
                 <h3 className="text-lg font-medium">Assessment Complete!</h3>
                 <div className="rounded-lg bg-gray-50 p-6">

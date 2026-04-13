@@ -35,7 +35,6 @@ interface CourseDetails {
   estimatedHours: number
   price: number | null
   currency: string | null
-  gradeLevel: string | null
   languageOfInstruction: string | null
   schedule: ScheduleSlot[] | null
   isLiveOnline: boolean
@@ -169,7 +168,6 @@ export default function CourseDetailsPage() {
               <div className="min-w-0 flex-1">
                 <CardTitle className="text-xl">{data.name}</CardTitle>
                 <CardDescription className="mt-1 flex flex-wrap gap-2">
-                  {data.gradeLevel && <span>{data.gradeLevel}</span>}
                   {data.difficulty && (
                     <Badge variant="secondary" className="capitalize">
                       {data.difficulty}

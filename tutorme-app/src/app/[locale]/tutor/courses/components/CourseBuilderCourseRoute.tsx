@@ -35,7 +35,6 @@ interface Course {
   id: string
   name: string
   subject?: string | null
-  gradeLevel?: string | null
 }
 
 export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null }) {
@@ -333,7 +332,6 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
               id: data.course.id,
               name: data.course.name,
               subject: data.course.subject,
-              gradeLevel: data.course.gradeLevel,
             }
             setCourses([newCourse])
             setCurrentCourse(newCourse)

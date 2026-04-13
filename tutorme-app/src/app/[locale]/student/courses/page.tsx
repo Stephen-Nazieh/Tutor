@@ -56,7 +56,6 @@ interface Course {
   name: string
   description: string | null
   subject: string
-  gradeLevel: string | null
   difficulty: string
   estimatedHours: number
   hasOutline?: boolean

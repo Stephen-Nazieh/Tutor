@@ -228,7 +228,6 @@ export default function TutorClassesPage() {
         body: JSON.stringify({
           title: 'Instant Live Class',
           subject: 'General',
-          gradeLevel: 'mixed',
           maxStudents: 50,
           duration: 60,
           scheduledAt: new Date().toISOString(),
@@ -268,7 +267,6 @@ export default function TutorClassesPage() {
         body: JSON.stringify({
           title: scheduleForm.title,
           subject: scheduleForm.subject,
-          gradeLevel: 'mixed',
           maxStudents: 50,
           duration: scheduleForm.duration,
           scheduledAt: scheduledAt.toISOString(),

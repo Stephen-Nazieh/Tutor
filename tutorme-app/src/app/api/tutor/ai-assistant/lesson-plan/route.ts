@@ -17,7 +17,6 @@ import { randomUUID } from 'crypto'
 const LessonPlanRequestSchema = z.object({
   topic: z.string().min(1),
   subject: z.string().min(1),
-  gradeLevel: z.string().optional(),
   duration: z.number().min(15).max(180).default(60),
   classSize: z.number().min(1).max(100).optional(),
   objectives: z.array(z.string()).optional(),
@@ -72,7 +71,6 @@ Create a detailed lesson plan for the following:
 
 TOPIC: ${params.topic}
 SUBJECT: ${params.subject}
-${params.gradeLevel ? `GRADE LEVEL: ${params.gradeLevel}` : ''}
 DURATION: ${params.duration} minutes
 TEACHING STYLE: ${params.teachingStyle}
 ${params.classSize ? `CLASS SIZE: ${params.classSize} students` : ''}

@@ -26,7 +26,6 @@ const GenerateRequestSchema = z.object({
   type: z.enum(GenerationTypes),
   topic: z.string().min(1),
   subject: z.string().min(1),
-  gradeLevel: z.string().optional(),
   context: z.string().optional(),
   difficulty: z.enum(['beginner', 'intermediate', 'advanced']).default('intermediate'),
   format: z.enum(['plain', 'markdown', 'structured', 'bullet_points']).default('markdown'),
@@ -70,7 +69,6 @@ The explanation should:
 - Break down the concept into digestible parts
 - Explain the "why" and "how", not just the "what"
 - Use clear, precise language appropriate for ${params.difficulty} level
-${params.gradeLevel ? `- Be appropriate for ${params.gradeLevel} students` : ''}
 ${lengthMap[params.length]}
 ${formatInstructions[params.format]}`,
 
@@ -81,7 +79,6 @@ Include:
 - Step-by-step solutions with clear reasoning
 - Common pitfalls to avoid
 - Variations that students might encounter
-${params.gradeLevel ? `- Difficulty appropriate for ${params.gradeLevel}` : ''}
 ${lengthMap[params.length]}
 ${formatInstructions[params.format]}`,
 
@@ -109,7 +106,6 @@ Include:
 - Grouping strategy
 - Estimated time
 - Assessment checkpoints
-${params.gradeLevel ? `- Designed for ${params.gradeLevel} students` : ''}
 Make it interactive and engaging.`,
 
     assessment: `
@@ -119,7 +115,6 @@ Include:
 - Performance criteria (3-4 levels)
 - Clear descriptors for each level
 - Point values or grading scale
-${params.gradeLevel ? `- Appropriate for ${params.gradeLevel}` : ''}
 Focus on measuring understanding, not just memorization.`,
   }
 
