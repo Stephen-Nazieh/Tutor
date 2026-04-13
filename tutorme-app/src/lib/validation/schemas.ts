@@ -207,7 +207,12 @@ export const CreateCourseSchema = z.object({
   estimatedHours: z.number().min(0).max(1000).optional(),
   isLiveOnline: z.boolean().optional(),
   categories: z.array(z.string()).optional(),
-  schedule: z.array(ScheduleItemSchema).optional(),
+  schedule: z
+    .preprocess(
+      val => (val === '' || val === undefined || val === null ? [] : val),
+      z.array(ScheduleItemSchema).optional()
+    )
+    .default([]),
   // Multi-course publishing fields
   region: z.string().optional(), // Asia, Europe, Global, etc.
   countries: z.array(z.string()).optional(), // ['Hong Kong', 'Korea', 'Singapore'] or empty for Global
