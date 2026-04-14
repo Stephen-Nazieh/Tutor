@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import type { LiveStudent, BreakoutRoom } from '@/types/live-session'
+import type { LiveStudent } from '@/types/live-session'
 import {
   Users,
   Hand,
@@ -33,24 +33,19 @@ import {
 
 interface StudentListProps {
   students: LiveStudent[]
-  breakoutRooms: BreakoutRoom[]
+  // breakoutRooms removed - feature deleted
   onCallOn?: (studentId: string) => void
-  onAssignToRoom?: (studentId: string, roomId: string) => void
-  onRemoveFromRoom?: (studentId: string) => void
+  // onAssignToRoom, onRemoveFromRoom removed - feature deleted
   onPushHint?: (studentId: string, hint: string, type?: 'socratic' | 'encouragement') => void
   onSendNudge?: (studentId: string) => void
-  onInviteToBreakout?: (studentId: string) => void
+  // onInviteToBreakout removed - feature deleted
 }
 
 export function StudentList({
   students,
-  breakoutRooms,
   onCallOn,
-  onAssignToRoom,
-  onRemoveFromRoom,
   onPushHint,
   onSendNudge,
-  onInviteToBreakout,
 }: StudentListProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'online' | 'away' | 'hand-raised'>('all')
@@ -193,11 +188,7 @@ export function StudentList({
                       >
                         {student.engagementScore}% engaged
                       </span>
-                      {student.breakoutRoomId && (
-                        <span className="text-blue-600">
-                          {breakoutRooms.find(r => r.id === student.breakoutRoomId)?.name}
-                        </span>
-                      )}
+                      {/* BREAKOUT ROOM FEATURE REMOVED - breakout room display deleted */}
                     </div>
                   </div>
 
@@ -226,32 +217,7 @@ export function StudentList({
                           Send Message
                         </DropdownMenuItem>
 
-                        {breakoutRooms.length > 0 && !student.breakoutRoomId && (
-                          <DropdownMenuItem asChild>
-                            <div className="relative">
-                              <UserPlus className="mr-2 h-4 w-4" />
-                              Assign to Room
-                              <div className="absolute left-full top-0 ml-1 min-w-[120px] rounded-lg border bg-white p-1 shadow-lg">
-                                {breakoutRooms.map(room => (
-                                  <button
-                                    key={room.id}
-                                    className="w-full rounded px-2 py-1 text-left text-sm hover:bg-gray-100"
-                                    onClick={() => onAssignToRoom?.(student.id, room.id)}
-                                  >
-                                    {room.name}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          </DropdownMenuItem>
-                        )}
-
-                        {student.breakoutRoomId && (
-                          <DropdownMenuItem onClick={() => onRemoveFromRoom?.(student.id)}>
-                            <LogOut className="mr-2 h-4 w-4" />
-                            Remove from Room
-                          </DropdownMenuItem>
-                        )}
+                        {/* BREAKOUT ROOM FEATURE REMOVED - assign/remove from room deleted */}
 
                         <DropdownMenuItem
                           onClick={() =>
@@ -271,12 +237,7 @@ export function StudentList({
                           Send Nudge
                         </DropdownMenuItem>
 
-                        {breakoutRooms.length > 0 && (
-                          <DropdownMenuItem onClick={() => onInviteToBreakout?.(student.id)}>
-                            <LayoutGrid className="mr-2 h-4 w-4" />
-                            Invite to Breakout
-                          </DropdownMenuItem>
-                        )}
+                        {/* BREAKOUT ROOM FEATURE REMOVED - invite to breakout deleted */}
 
                         <DropdownMenuItem className="text-red-600">
                           <MicOff className="mr-2 h-4 w-4" />

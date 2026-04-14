@@ -25,7 +25,7 @@ import { ScreenShareView } from './ScreenShareView'
 import { RecordingIndicator } from './RecordingIndicator'
 import { ReactionsOverlay } from './ReactionsOverlay'
 import { PollCreator } from './PollCreator'
-import { BreakoutRoomControl } from './BreakoutRoomControl'
+// BreakoutRoomControl removed - feature deleted
 import {
   Mic,
   MicOff,
@@ -127,7 +127,7 @@ export function VideoClassroom({
   const [showScreenShare, setShowScreenShare] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showPollCreator, setShowPollCreator] = useState(false)
-  const [showBreakoutControl, setShowBreakoutControl] = useState(false)
+  // showBreakoutControl removed - feature deleted
   const [showEndDialog, setShowEndDialog] = useState(false)
   const [showReactions, setShowReactions] = useState(false)
   const [activeReactions, setActiveReactions] = useState<Reaction[]>([])
@@ -856,16 +856,7 @@ export function VideoClassroom({
                     <BarChart3 className="mr-2 h-4 w-4" />
                     Create Poll
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowBreakoutControl(true)
-                      setShowSettings(false)
-                    }}
-                  >
-                    <Users className="mr-2 h-4 w-4" />
-                    Breakout Rooms
-                  </Button>
+                  {/* BREAKOUT ROOMS BUTTON REMOVED - feature deleted */}
                 </div>
               </div>
             </div>
@@ -901,15 +892,7 @@ export function VideoClassroom({
           </DialogContent>
         </Dialog>
 
-        {/* Breakout Rooms Dialog */}
-        <Dialog open={showBreakoutControl} onOpenChange={setShowBreakoutControl}>
-          <DialogContent className="sm:max-w-2xl">
-            <BreakoutRoomControl
-              onClose={() => setShowBreakoutControl(false)}
-              participants={participants}
-            />
-          </DialogContent>
-        </Dialog>
+        {/* BREAKOUT ROOMS DIALOG REMOVED - feature deleted */}
       </div>
     </TooltipProvider>
   )

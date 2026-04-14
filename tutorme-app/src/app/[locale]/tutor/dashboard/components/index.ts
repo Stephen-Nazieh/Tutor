@@ -8,7 +8,7 @@ export {
 } from './StudentsNeedingAttentionCard'
 export { AIInsightsCard } from './AIInsightsCard'
 export { QuickActionsCard } from './QuickActionsCard'
-export { AITeachingAssistantWidget } from './AITeachingAssistantWidget'
+// AITeachingAssistantWidget removed - feature deleted
 export { StudentProgressCard } from './StudentProgressCard'
 export { RevenueDashboard } from './RevenueDashboard'
 export { CommunicationCenter } from './CommunicationCenter'
