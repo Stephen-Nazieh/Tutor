@@ -148,41 +148,49 @@ export async function POST(req: NextRequest) {
     // Create all courses in a transaction
     await drizzleDb.transaction(async tx => {
       for (const courseData of coursesToCreate) {
-        // Build insert values
-        // Ensure categories is always a proper array (not an empty object {})
+        // Build insert values with safe defaults
+        // Ensure categories is always a proper array
         const categories =
           Array.isArray(data.categories) && data.categories.length > 0
             ? data.categories
             : [data.subject ?? 'general']
 
-        const schedule = Array.isArray(data.schedule) ? data.schedule : []
+        // Ensure schedule is a proper array for jsonb
+        const schedule = Array.isArray(data.schedule) && data.schedule.length > 0
+          ? data.schedule
+          : []
 
-        // Insert course directly without type casting
+        // Build insert values object with all required defaults
+        const insertValues = {
+          courseId: courseData.courseId,
+          name: courseData.name,
+          description: data.description || null,
+          isPublished: false,
+          isLiveOnline: data.isLiveOnline ?? false,
+          isFree: false,
+          categories: categories,
+          currency: 'USD',
+          schedule: schedule,
+          createdAt: now,
+          updatedAt: now,
+          creatorId: userId,
+          // Multi-course publishing fields with defaults
+          region: courseData.region || 'Global',
+          country: courseData.country || null,
+          parentCourseId: courseData.isVariant ? parentCourseId : null,
+          isVariant: courseData.isVariant ?? false,
+          // Optional fields with explicit defaults
+          languageOfInstruction: null,
+          price: null,
+          deletedAt: null,
+        }
+
+        console.log('[Course Create] Insert values:', JSON.stringify(insertValues, null, 2))
+
+        // Insert course
         const [newCourse] = await tx
           .insert(courseTable)
-          .values({
-            courseId: courseData.courseId,
-            name: courseData.name,
-            description: data.description ?? null,
-            isPublished: false,
-            isLiveOnline: data.isLiveOnline ?? false,
-            isFree: false,
-            categories: categories,
-            currency: 'USD',
-            schedule,
-            createdAt: now,
-            updatedAt: now,
-            creatorId: userId,
-            // Multi-course publishing fields
-            region: courseData.region,
-            country: courseData.country,
-            parentCourseId: courseData.isVariant ? parentCourseId : null,
-            isVariant: courseData.isVariant,
-            // Ensure these are explicitly set to avoid column mismatch
-            languageOfInstruction: null,
-            price: null,
-            deletedAt: null,
-          })
+          .values(insertValues)
           .returning()
 
         // Create a default lesson for each course
