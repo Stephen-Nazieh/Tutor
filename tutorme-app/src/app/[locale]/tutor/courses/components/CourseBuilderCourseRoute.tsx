@@ -97,6 +97,9 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
         if (res.ok) {
           const data = await res.json()
           setLoadedLessons(data.lessons || [])
+        } else {
+          const errorData = await res.json().catch(() => ({}))
+          toast.error(errorData.error || 'Failed to load course builder data')
         }
       } catch (error) {
         toast.error('Failed to load course')
@@ -174,7 +177,6 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
         credentials: 'include',
         body: JSON.stringify({
           title: newCourseName.trim(),
-          subject: 'general',
           categories: [],
           schedule: [],
           isLiveOnline: false,
@@ -331,7 +333,6 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
             const newCourse = {
               id: data.course.id,
               name: data.course.name,
-              subject: data.course.subject,
             }
             setCourses([newCourse])
             setCurrentCourse(newCourse)

@@ -211,8 +211,10 @@ export async function POST(req: NextRequest) {
             docs: [],
             content: [],
             tasks: [],
+            assessments: [],
             homework: [],
             quizzes: [],
+            worksheets: [],
           },
         })
 

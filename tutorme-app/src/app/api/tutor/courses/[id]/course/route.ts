@@ -10,22 +10,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { CourseBuilderService } from '@/lib/services/course-builder.service'
 
-/** Extract the course ID from the URL path. */
-function getCourseId(req: NextRequest): string {
-  const parts = req.nextUrl.pathname.split('/')
-  const idx = parts.indexOf('courses')
-  return parts[idx + 1]
-}
-
 // ---- GET — Load builder tree from DB ----
 
-export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions, req)
   if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const courseId = getCourseId(req)
+  const { id: courseId } = await params
   const userId = session.user.id
 
   try {
@@ -42,13 +35,13 @@ export async function GET(req: NextRequest) {
 
 // ---- PUT — Save builder tree to DB (upsert) ----
 
-export async function PUT(req: NextRequest) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions, req)
   if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const courseId = getCourseId(req)
+  const { id: courseId } = await params
   const userId = session.user.id
 
   console.log('[CourseBuilder PUT] Starting save for courseId:', courseId, 'userId:', userId)

@@ -14,8 +14,10 @@ export interface BuilderLessonData {
   docs?: any[]
   content?: any[]
   tasks?: any[]
+  assessments?: any[]
   homework?: any[]
   quizzes?: any[]
+  worksheets?: any[]
   difficultyMode?: string
   variants?: any
 }
@@ -60,8 +62,10 @@ export class CourseBuilderService {
         docs: bData.docs || [],
         content: bData.content || [],
         tasks: bData.tasks || [],
+        assessments: bData.assessments || [],
         homework: bData.homework || [],
         quizzes: bData.quizzes || [],
+        worksheets: bData.worksheets || [],
         difficultyMode: bData.difficultyMode || 'all',
         variants: bData.variants || {},
       }
@@ -118,8 +122,10 @@ export class CourseBuilderService {
           docs: les.docs ?? [],
           content: les.content ?? [],
           tasks: les.tasks ?? [],
+          assessments: les.assessments ?? [],
           homework: les.homework ?? [],
           quizzes: les.quizzes ?? [],
+          worksheets: les.worksheets ?? [],
         }
 
         await tx
