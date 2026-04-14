@@ -254,10 +254,26 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create course'
+    // Extract more details from database errors
+    const dbError = error as { 
+      message?: string; 
+      code?: string; 
+      detail?: string; 
+      hint?: string;
+      stack?: string;
+    }
+    
+    const errorMessage = dbError.message || 'Failed to create course'
+    const errorCode = dbError.code || 'UNKNOWN'
+    const errorDetail = dbError.detail || ''
 
     return NextResponse.json(
-      { error: errorMessage, details: error instanceof Error ? error.stack : undefined },
+      { 
+        error: errorMessage, 
+        code: errorCode,
+        detail: errorDetail,
+        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error)),
+      },
       { status: 500 }
     )
   }
