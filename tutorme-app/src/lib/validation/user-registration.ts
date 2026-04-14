@@ -44,7 +44,7 @@ export const tutorAdditionalDataSchema = z
       }),
     tutoringCountries: z.array(z.string()).optional().default([]),
     countrySubjectSelections: z.record(z.string(), z.array(z.string())).optional().default({}),
-    categories: z.array(z.string()).min(1, 'Select at least one tutoring category'),
+    categories: z.array(z.string()).optional().default([]),
     username: z
       .string()
       .min(3, 'Handle must be at least 3 characters')
