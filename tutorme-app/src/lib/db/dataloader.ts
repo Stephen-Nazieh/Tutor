@@ -6,7 +6,7 @@
 import { inArray, and } from 'drizzle-orm'
 import { drizzleDb } from './drizzle'
 import { cache } from './index'
-import { user, profile, contentProgress, aITutorEnrollment } from '@/lib/db/schema'
+import { user, profile, contentProgress } from '@/lib/db/schema'
 
 export async function batchLoadUsers(userIds: string[]) {
   const cacheKey = `users:${[...userIds].sort().join(',')}`
@@ -106,23 +106,8 @@ export async function batchLoadAchievements(userIds: string[]) {
   return userIds.map(() => [])
 }
 
+// AI Tutor enrollment table removed - feature deleted
+// Returning empty arrays for backward compatibility
 export async function batchLoadEnrollments(userIds: string[]) {
-  const cacheKey = `enrollments:${[...userIds].sort().join(',')}`
-  return cache.getOrSet(
-    cacheKey,
-    async () => {
-      if (userIds.length === 0) return userIds.map(() => [])
-      const enrollments = await drizzleDb
-        .select()
-        .from(aITutorEnrollment)
-        .where(inArray(aITutorEnrollment.studentId, userIds))
-      const grouped = new Map<string, typeof enrollments>()
-      for (const e of enrollments) {
-        if (!grouped.has(e.studentId)) grouped.set(e.studentId, [])
-        grouped.get(e.studentId)!.push(e)
-      }
-      return userIds.map(id => grouped.get(id) ?? [])
-    },
-    120
-  )
+  return userIds.map(() => [])
 }

@@ -26,7 +26,6 @@ import {
   courseEnrollment,
   course,
   message,
-  aITutorEnrollment,
   payment,
 } from '@/lib/db/schema'
 import { eq, and, inArray, desc } from 'drizzle-orm'
@@ -236,14 +235,8 @@ export const PIPL_ARTICLE_15 = {
       .orderBy(desc(message.timestamp))
       .limit(500)
 
-    const aiEnrollments = await drizzleDb
-      .select({
-        subjectCode: aITutorEnrollment.subjectCode,
-        status: aITutorEnrollment.status,
-        enrolledAt: aITutorEnrollment.enrolledAt,
-      })
-      .from(aITutorEnrollment)
-      .where(eq(aITutorEnrollment.studentId, userRow?.userId ?? userId))
+    // AI Tutor enrollment table removed - feature deleted
+    const aiEnrollments: { subjectCode: string; status: string; enrolledAt: Date }[] = []
 
     // Quiz attempts removed - now using task submissions
     const quizAttempts: { attemptId: string; score: number; completedAt: Date }[] = []

@@ -1,7 +1,4 @@
 import crypto from 'crypto'
-import { eq } from 'drizzle-orm'
-import { drizzleDb } from '@/lib/db/drizzle'
-import { aITutorEnrollment, aITutorSubscription, aIInteractionSession } from '@/lib/db/schema'
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
 import { generateWithFallback } from './orchestrator-llm'
 import { buildCompletePrompt, type PromptConfig } from '@/lib/ai/teaching-prompts/prompt-builder'
@@ -44,6 +41,9 @@ function sanitizeChatHistory(chatHistory: Array<{ role?: string; content?: strin
 /**
  * Canonical tutor chat entrypoint for API routes and UI features.
  * Lives under `lib/agents` so "AI agent" features share one orchestration boundary.
+ * 
+ * NOTE: AI Tutor enrollment/subscription tables have been removed.
+ * This function now uses a simplified flow without database checks.
  */
 export async function runTutorChat(input: TutorChatInput): Promise<TutorChatOutput> {
   const safeMessage = AISecurityManager.sanitizeAiInput(String(input.message))
@@ -53,18 +53,9 @@ export async function runTutorChat(input: TutorChatInput): Promise<TutorChatOutp
 
   const safeChatHistory = sanitizeChatHistory(input.chatHistory)
 
-  await drizzleDb
-    .select()
-    .from(aITutorEnrollment)
-    .where(eq(aITutorEnrollment.studentId, input.userId))
-    .limit(1)
-
-  const [subscription] = await drizzleDb
-    .select()
-    .from(aITutorSubscription)
-    .where(eq(aITutorSubscription.userId, input.userId))
-    .limit(1)
-  const tier = (subscription?.tier as string) ?? 'FREE'
+  // AI Tutor enrollment/subscription checks removed - feature deleted
+  // Defaulting to FREE tier
+  const tier = 'FREE'
 
   const promptConfig: PromptConfig = {
     language: 'en',
@@ -102,15 +93,7 @@ export async function runTutorChat(input: TutorChatInput): Promise<TutorChatOutp
   const suggestedNextSteps = extractNextSteps(aiResponse.content)
   const whiteboardItems = extractWhiteboardItems(aiResponse.content)
 
-  const studentHash = AISecurityManager.createStudentHash(input.userId)
-
-  await drizzleDb.insert(aIInteractionSession).values({
-    interactionId: crypto.randomUUID(),
-    studentId: input.userId,
-    subjectCode: input.subject || 'chat',
-    messageCount: 0,
-    topicsCovered: [],
-  })
+  // AI interaction session tracking removed - feature deleted
 
   return {
     response: aiResponse.content,

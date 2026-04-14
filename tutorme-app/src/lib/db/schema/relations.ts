@@ -31,9 +31,7 @@ import {
   mention,
   tutorFollow,
   lessonSession,
-  aITutorEnrollment,
-  aIInteractionSession,
-  aITutorDailyUsage,
+  // AI Tutor tables removed - feature deleted
   userActivityLog,
   builderTask,
   builderTaskExtension,
@@ -362,26 +360,8 @@ export const lessonSessionRelations = relations(lessonSession, ({ one }) => ({
   }),
 }))
 
-export const aITutorEnrollmentRelations = relations(aITutorEnrollment, ({ one }) => ({
-  student: one(user, {
-    fields: [aITutorEnrollment.studentId],
-    references: [user.userId],
-  }),
-}))
-
-export const aIInteractionSessionRelations = relations(aIInteractionSession, ({ one }) => ({
-  student: one(user, {
-    fields: [aIInteractionSession.studentId],
-    references: [user.userId],
-  }),
-}))
-
-export const aITutorDailyUsageRelations = relations(aITutorDailyUsage, ({ one }) => ({
-  user: one(user, {
-    fields: [aITutorDailyUsage.userId],
-    references: [user.userId],
-  }),
-}))
+// AI Tutor relations removed - tables deleted
+// Relations removed: aITutorEnrollmentRelations, aIInteractionSessionRelations, aITutorDailyUsageRelations
 
 export const userActivityLogRelations = relations(userActivityLog, ({ one }) => ({
   user: one(user, {
