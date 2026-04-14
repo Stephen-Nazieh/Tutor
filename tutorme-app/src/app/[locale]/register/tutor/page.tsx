@@ -27,15 +27,7 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  MapPin,
-  BookOpen,
-  Award,
-  School,
-  Flag,
   X,
-  Search,
-  Plus,
-  Check,
 } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
@@ -45,9 +37,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Badge } from '@/components/ui/badge'
+
 import { cn } from '@/lib/utils'
 
 type GlobalExamState = {
@@ -1830,108 +1820,11 @@ export default function TutorRegistrationPage() {
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
   const [selectedCountries, setSelectedCountries] = useState<string[]>([])
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [activeTab, setActiveTab] = useState('global')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [customCategory, setCustomCategory] = useState('')
 
   const passwordMismatch =
     formData.password.length > 0 &&
     formData.confirmPassword.length > 0 &&
     formData.password !== formData.confirmPassword
-
-  // Keep for backward compatibility - now just returns selectedCategories
-  const categorySelections = useMemo(() => {
-    return selectedCategories
-  }, [selectedCategories])
-
-  // New computed values for category selection
-  const availableCountries = useMemo(() => {
-    if (selectedRegions.length === 0) return []
-    const countries: CountryData[] = []
-    selectedRegions.forEach(regionId => {
-      const region = REGIONS.find(r => r.id === regionId)
-      if (region) {
-        countries.push(...region.countries)
-      }
-    })
-    return countries
-  }, [selectedRegions])
-
-  const nationalExams = useMemo(() => {
-    if (selectedCountries.length === 0) return []
-    const exams: ExamCategory[] = []
-    selectedCountries.forEach(countryCode => {
-      const country = availableCountries.find(c => c.code === countryCode)
-      if (country && country.nationalExams.length > 0) {
-        exams.push(...country.nationalExams)
-      }
-    })
-    return exams
-  }, [selectedCountries, availableCountries])
-
-  // New toggle functions for category selection
-  const toggleRegionSelection = (regionId: string) => {
-    setSelectedRegions(prev => {
-      const newRegions = prev.includes(regionId)
-        ? prev.filter(r => r !== regionId)
-        : [...prev, regionId]
-
-      // Remove countries from unselected regions
-      if (prev.includes(regionId)) {
-        const region = REGIONS.find(r => r.id === regionId)
-        if (region) {
-          const countryCodes = region.countries.map(c => c.code)
-          setSelectedCountries(prevCountries =>
-            prevCountries.filter(c => !countryCodes.includes(c))
-          )
-        }
-      }
-      return newRegions
-    })
-  }
-
-  const toggleCountrySelection = (countryCode: string) => {
-    setSelectedCountries(prev =>
-      prev.includes(countryCode) ? prev.filter(c => c !== countryCode) : [...prev, countryCode]
-    )
-  }
-
-  const toggleCategory = (category: string) => {
-    setSelectedCategories(prev =>
-      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
-    )
-    // Also update formData for submission
-    setFormData(prev => ({
-      ...prev,
-      selectedCategories: prev.selectedCategories.includes(category)
-        ? prev.selectedCategories.filter(c => c !== category)
-        : [...prev.selectedCategories, category],
-    }))
-  }
-
-  const addCustomCategory = () => {
-    if (customCategory.trim() && !selectedCategories.includes(customCategory.trim())) {
-      setSelectedCategories(prev => [...prev, customCategory.trim()])
-      setFormData(prev => ({
-        ...prev,
-        selectedCategories: [...prev.selectedCategories, customCategory.trim()],
-      }))
-      setCustomCategory('')
-    }
-  }
-
-  const removeCategory = (category: string) => {
-    setSelectedCategories(prev => prev.filter(c => c !== category))
-    setFormData(prev => ({
-      ...prev,
-      selectedCategories: prev.selectedCategories.filter(c => c !== category),
-    }))
-  }
-
-  const clearAllSelections = () => {
-    setSelectedCategories([])
-    setFormData(prev => ({ ...prev, selectedCategories: [] }))
-  }
 
   // Updated: No dots allowed, use underscores instead
   const normalizeUsernameInput = (value: string) =>
@@ -2086,9 +1979,9 @@ export default function TutorRegistrationPage() {
     return () => clearTimeout(handle)
   }, [formData.username])
 
-  // Auto-suggest username when entering step 3
+  // Auto-suggest username when entering step 2
   useEffect(() => {
-    if (step === 3 && !formData.username && formData.firstName && formData.lastName) {
+    if (step === 2 && !formData.username && formData.firstName && formData.lastName) {
       const suggestion = generateUsernameSuggestion()
       if (suggestion) {
         // Set username and immediately check availability
@@ -2138,19 +2031,7 @@ export default function TutorRegistrationPage() {
     return true
   }
 
-  const validateStepTwo = () => {
-    if (selectedCategories.length === 0) {
-      toast.error('Select at least one tutoring category')
-      return false
-    }
-    if (selectedCountries.length === 0 && !selectedRegions.includes('global')) {
-      toast.error('Select at least one student nationality you want to tutor (or select Global)')
-      return false
-    }
-    return true
-  }
-
-  const validateStepThree = async () => {
+  const validateStepTwo = async () => {
     if (!formData.username) {
       toast.error('Username is required')
       return false
@@ -2297,13 +2178,12 @@ export default function TutorRegistrationPage() {
     }
   }
 
-  // Updated steps - removed Credentials (step 2) and Certifications (step 3)
+  // Updated steps - removed Tutoring (step 2)
   const steps = [
     { number: 1, title: 'Account' },
-    { number: 2, title: 'Tutoring' },
-    { number: 3, title: 'Profile' },
-    { number: 4, title: 'Review' },
-    { number: 5, title: 'Terms' },
+    { number: 2, title: 'Profile' },
+    { number: 3, title: 'Review' },
+    { number: 4, title: 'Terms' },
   ]
 
   return (
@@ -2340,17 +2220,15 @@ export default function TutorRegistrationPage() {
           <CardHeader>
             <CardTitle>
               {step === 1 && 'Become a Solocorn Tutor'}
-              {step === 2 && 'Tutoring'}
-              {step === 3 && 'Profile'}
-              {step === 4 && 'Review'}
-              {step === 5 && 'Terms and Agreements'}
+              {step === 2 && 'Profile'}
+              {step === 3 && 'Review'}
+              {step === 4 && 'Terms and Agreements'}
             </CardTitle>
             <CardDescription>
               {step === 1 && 'Tell us who you are'}
-              {step === 2 && 'Select the exams, subjects, and countries you tutor'}
-              {step === 3 && 'Complete your profile information'}
-              {step === 4 && 'Review your application before registering'}
-              {step === 5 && 'Accept the terms to finalize your application'}
+              {step === 2 && 'Complete your profile information'}
+              {step === 3 && 'Review your application before registering'}
+              {step === 4 && 'Accept the terms to finalize your application'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -2498,494 +2376,6 @@ export default function TutorRegistrationPage() {
 
             {step === 2 && (
               <>
-                {/* Header */}
-                <div className="mb-6 text-center">
-                  <h3 className="mb-2 text-xl font-bold text-[#1F2933]">
-                    Select Student Nationalities You Tutor
-                  </h3>
-                  <p className="text-gray-600">
-                    Which nationalities of students would you like to offer tutoring services to?
-                    Select regions/countries or Global for all.
-                  </p>
-                </div>
-
-                {/* Region & Country Selection - At the TOP */}
-                <Card>
-                  <CardContent className="pt-4">
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      {/* Region Selection */}
-                      <div className="space-y-2">
-                        <Label className="flex items-center gap-2 text-sm font-medium">
-                          <Globe className="h-4 w-4 text-[#4FD1C5]" />
-                          Regions
-                        </Label>
-                        <div className="max-h-[150px] overflow-y-auto rounded-md border p-2">
-                          {REGIONS.map(region => (
-                            <label
-                              key={region.id}
-                              className="flex cursor-pointer items-center gap-2 rounded p-1.5 hover:bg-gray-50"
-                            >
-                              <Checkbox
-                                checked={selectedRegions.includes(region.id)}
-                                onCheckedChange={() => toggleRegionSelection(region.id)}
-                              />
-                              <span className="text-sm">{region.name}</span>
-                            </label>
-                          ))}
-                        </div>
-                        <p className="text-xs text-gray-500">{selectedRegions.length} selected</p>
-                      </div>
-
-                      {/* Country Selection */}
-                      <div className="space-y-2">
-                        <Label className="flex items-center gap-2 text-sm font-medium">
-                          <MapPin className="h-4 w-4 text-[#F17623]" />
-                          Countries
-                        </Label>
-                        <div className="max-h-[150px] overflow-y-auto rounded-md border p-2">
-                          {availableCountries.length === 0 ? (
-                            <p className="p-1.5 text-sm text-gray-400">Select regions first</p>
-                          ) : (
-                            availableCountries.map(country => (
-                              <label
-                                key={country.code}
-                                className="flex cursor-pointer items-center gap-2 rounded p-1.5 hover:bg-gray-50"
-                              >
-                                <Checkbox
-                                  checked={selectedCountries.includes(country.code)}
-                                  onCheckedChange={() => toggleCountrySelection(country.code)}
-                                />
-                                <span className="text-sm">{country.name}</span>
-                              </label>
-                            ))
-                          )}
-                        </div>
-                        <p className="text-xs text-gray-500">{selectedCountries.length} selected</p>
-                      </div>
-                    </div>
-
-                    {/* Selected Count */}
-                    {selectedCategories.length > 0 && (
-                      <div className="mt-3 flex items-center gap-2 border-t pt-3">
-                        <Check className="h-4 w-4 text-green-500" />
-                        <span className="text-sm text-gray-600">
-                          {selectedCategories.length} categor
-                          {selectedCategories.length === 1 ? 'y' : 'ies'} selected
-                        </span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-                  {/* Left Column - Categories Tabs & Custom Category */}
-                  <div className="space-y-4 lg:col-span-3">
-                    {/* Categories Tabs - Auto-populate based on country selection */}
-                    <Card className="flex h-[400px] flex-col">
-                      <Tabs
-                        value={activeTab}
-                        onValueChange={setActiveTab}
-                        className="flex h-full flex-col"
-                      >
-                        <CardHeader className="pb-0 pt-4">
-                          <TabsList className="grid w-full grid-cols-6">
-                            <TabsTrigger value="global" className="text-xs">
-                              <Globe className="mr-1 h-3 w-3" />
-                              Global
-                            </TabsTrigger>
-                            <TabsTrigger value="ap" className="text-xs">
-                              <Award className="mr-1 h-3 w-3" />
-                              AP
-                            </TabsTrigger>
-                            <TabsTrigger value="alevel" className="text-xs">
-                              <GraduationCap className="mr-1 h-3 w-3" />A Level
-                            </TabsTrigger>
-                            <TabsTrigger value="ib" className="text-xs">
-                              <BookOpen className="mr-1 h-3 w-3" />
-                              IB
-                            </TabsTrigger>
-                            <TabsTrigger value="igcse" className="text-xs">
-                              <School className="mr-1 h-3 w-3" />
-                              IGCSE
-                            </TabsTrigger>
-                            <TabsTrigger
-                              value="national"
-                              className="text-xs"
-                              disabled={nationalExams.length === 0}
-                            >
-                              <Flag className="mr-1 h-3 w-3" />
-                              National
-                            </TabsTrigger>
-                          </TabsList>
-                        </CardHeader>
-
-                        <CardContent className="flex-1 overflow-hidden pt-4">
-                          {/* Search Bar */}
-                          <div className="relative mb-3">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                            <Input
-                              placeholder="Search categories..."
-                              value={searchQuery}
-                              onChange={e => setSearchQuery(e.target.value)}
-                              className="pl-9"
-                            />
-                          </div>
-
-                          {/* Tab Contents */}
-                          <div className="h-[calc(100%-40px)]">
-                            <ScrollArea className="h-full pr-4">
-                              <TabsContent value="global" className="mt-0">
-                                <div className="space-y-4 pb-4">
-                                  {GLOBAL_EXAMS_CATEGORIES.filter(
-                                    cat =>
-                                      !searchQuery ||
-                                      cat.exams.some(e =>
-                                        e.toLowerCase().includes(searchQuery.toLowerCase())
-                                      )
-                                  ).map(category => (
-                                    <div key={category.id} className="space-y-2">
-                                      <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                        <BookOpen className="h-4 w-4 text-[#1D4ED8]" />
-                                        {category.label}
-                                      </h4>
-                                      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                                        {category.exams
-                                          .filter(
-                                            exam =>
-                                              !searchQuery ||
-                                              exam.toLowerCase().includes(searchQuery.toLowerCase())
-                                          )
-                                          .map(exam => (
-                                            <label
-                                              key={exam}
-                                              className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
-                                            >
-                                              <Checkbox
-                                                checked={selectedCategories.includes(exam)}
-                                                onCheckedChange={() => toggleCategory(exam)}
-                                              />
-                                              <span className="text-sm">{exam}</span>
-                                            </label>
-                                          ))}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </TabsContent>
-
-                              <TabsContent value="ap" className="mt-0">
-                                <div className="space-y-4 pb-4">
-                                  {AP_CATEGORIES.filter(
-                                    cat =>
-                                      !searchQuery ||
-                                      cat.exams.some(e =>
-                                        e.toLowerCase().includes(searchQuery.toLowerCase())
-                                      )
-                                  ).map(category => (
-                                    <div key={category.id} className="space-y-2">
-                                      <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                        <Award className="h-4 w-4 text-[#1D4ED8]" />
-                                        {category.label}
-                                      </h4>
-                                      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                                        {category.exams
-                                          .filter(
-                                            exam =>
-                                              !searchQuery ||
-                                              exam.toLowerCase().includes(searchQuery.toLowerCase())
-                                          )
-                                          .map(exam => (
-                                            <label
-                                              key={exam}
-                                              className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
-                                            >
-                                              <Checkbox
-                                                checked={selectedCategories.includes(exam)}
-                                                onCheckedChange={() => toggleCategory(exam)}
-                                              />
-                                              <span className="text-sm">{exam}</span>
-                                            </label>
-                                          ))}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </TabsContent>
-
-                              <TabsContent value="alevel" className="mt-0">
-                                <div className="space-y-4 pb-4">
-                                  {A_LEVEL_CATEGORIES.filter(
-                                    cat =>
-                                      !searchQuery ||
-                                      cat.exams.some(e =>
-                                        e.toLowerCase().includes(searchQuery.toLowerCase())
-                                      )
-                                  ).map(category => (
-                                    <div key={category.id} className="space-y-2">
-                                      <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                        <GraduationCap className="h-4 w-4 text-[#1D4ED8]" />
-                                        {category.label}
-                                      </h4>
-                                      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                                        {category.exams
-                                          .filter(
-                                            exam =>
-                                              !searchQuery ||
-                                              exam.toLowerCase().includes(searchQuery.toLowerCase())
-                                          )
-                                          .map(exam => (
-                                            <label
-                                              key={exam}
-                                              className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
-                                            >
-                                              <Checkbox
-                                                checked={selectedCategories.includes(exam)}
-                                                onCheckedChange={() => toggleCategory(exam)}
-                                              />
-                                              <span className="text-sm">{exam}</span>
-                                            </label>
-                                          ))}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </TabsContent>
-
-                              <TabsContent value="ib" className="mt-0">
-                                <div className="space-y-4 pb-4">
-                                  {IB_CATEGORIES.filter(
-                                    cat =>
-                                      !searchQuery ||
-                                      cat.exams.some(e =>
-                                        e.toLowerCase().includes(searchQuery.toLowerCase())
-                                      )
-                                  ).map(category => (
-                                    <div key={category.id} className="space-y-2">
-                                      <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                        <BookOpen className="h-4 w-4 text-[#1D4ED8]" />
-                                        {category.label}
-                                      </h4>
-                                      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                                        {category.exams
-                                          .filter(
-                                            exam =>
-                                              !searchQuery ||
-                                              exam.toLowerCase().includes(searchQuery.toLowerCase())
-                                          )
-                                          .map(exam => (
-                                            <label
-                                              key={exam}
-                                              className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
-                                            >
-                                              <Checkbox
-                                                checked={selectedCategories.includes(exam)}
-                                                onCheckedChange={() => toggleCategory(exam)}
-                                              />
-                                              <span className="text-sm">{exam}</span>
-                                            </label>
-                                          ))}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </TabsContent>
-
-                              <TabsContent value="igcse" className="mt-0">
-                                <div className="space-y-4 pb-4">
-                                  {IGCSE_CATEGORIES.filter(
-                                    cat =>
-                                      !searchQuery ||
-                                      cat.exams.some(e =>
-                                        e.toLowerCase().includes(searchQuery.toLowerCase())
-                                      )
-                                  ).map(category => (
-                                    <div key={category.id} className="space-y-2">
-                                      <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                        <School className="h-4 w-4 text-[#1D4ED8]" />
-                                        {category.label}
-                                      </h4>
-                                      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                                        {category.exams
-                                          .filter(
-                                            exam =>
-                                              !searchQuery ||
-                                              exam.toLowerCase().includes(searchQuery.toLowerCase())
-                                          )
-                                          .map(exam => (
-                                            <label
-                                              key={exam}
-                                              className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
-                                            >
-                                              <Checkbox
-                                                checked={selectedCategories.includes(exam)}
-                                                onCheckedChange={() => toggleCategory(exam)}
-                                              />
-                                              <span className="text-sm">{exam}</span>
-                                            </label>
-                                          ))}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </TabsContent>
-
-                              <TabsContent value="national" className="mt-0">
-                                <div className="space-y-4 pb-4">
-                                  {nationalExams.length === 0 ? (
-                                    <div className="py-8 text-center text-gray-500">
-                                      <Flag className="mx-auto mb-3 h-12 w-12 text-gray-300" />
-                                      <p>No national exams available for selected countries.</p>
-                                    </div>
-                                  ) : (
-                                    nationalExams
-                                      .filter(
-                                        cat =>
-                                          !searchQuery ||
-                                          cat.exams.some(e =>
-                                            e.toLowerCase().includes(searchQuery.toLowerCase())
-                                          )
-                                      )
-                                      .map(category => (
-                                        <div key={category.id} className="space-y-2">
-                                          <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                            <Flag className="h-4 w-4 text-[#1D4ED8]" />
-                                            {category.label}
-                                          </h4>
-                                          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                                            {category.exams
-                                              .filter(
-                                                exam =>
-                                                  !searchQuery ||
-                                                  exam
-                                                    .toLowerCase()
-                                                    .includes(searchQuery.toLowerCase())
-                                              )
-                                              .map(exam => (
-                                                <label
-                                                  key={exam}
-                                                  className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
-                                                >
-                                                  <Checkbox
-                                                    checked={selectedCategories.includes(exam)}
-                                                    onCheckedChange={() => toggleCategory(exam)}
-                                                  />
-                                                  <span className="text-sm">{exam}</span>
-                                                </label>
-                                              ))}
-                                          </div>
-                                        </div>
-                                      ))
-                                  )}
-                                </div>
-                              </TabsContent>
-                            </ScrollArea>
-                          </div>
-                        </CardContent>
-                      </Tabs>
-                    </Card>
-
-                    {/* Your Own Category */}
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="flex items-center gap-2 text-base">
-                          <Plus className="h-4 w-4 text-[#4FD1C5]" />
-                          Your Own Category
-                        </CardTitle>
-                        <CardDescription className="text-xs">
-                          Add a custom category if you don&apos;t see what you&apos;re looking for
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="Enter your own category..."
-                            value={customCategory}
-                            onChange={e => setCustomCategory(e.target.value)}
-                            onKeyDown={e => {
-                              if (e.key === 'Enter') {
-                                addCustomCategory()
-                              }
-                            }}
-                          />
-                          <Button onClick={addCustomCategory} disabled={!customCategory.trim()}>
-                            <Plus className="mr-1 h-4 w-4" />
-                            Add
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Right Column - Selected Categories Sidebar */}
-                  <div className="space-y-4">
-                    <Card className="flex h-[300px] flex-col">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="flex items-center gap-2 text-base">
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#4FD1C5] text-xs text-white">
-                            {selectedCategories.length}
-                          </span>
-                          Selected
-                        </CardTitle>
-                        <CardDescription className="text-xs">
-                          {selectedCategories.length === 0
-                            ? 'No categories selected'
-                            : `${selectedCategories.length} selected`}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="flex-1 overflow-hidden">
-                        <ScrollArea className="h-full pr-2">
-                          <div className="flex flex-wrap gap-2">
-                            {selectedCategories.map(cat => (
-                              <Badge
-                                key={cat}
-                                variant="secondary"
-                                className="cursor-pointer bg-[#4FD1C5]/20 pr-1 text-[#1F2933] hover:bg-[#4FD1C5]/30"
-                              >
-                                {cat}
-                                <button
-                                  onClick={() => removeCategory(cat)}
-                                  className="ml-1 rounded-full p-0.5 hover:bg-red-100"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </Badge>
-                            ))}
-                          </div>
-                        </ScrollArea>
-                      </CardContent>
-                      {selectedCategories.length > 0 && (
-                        <CardContent className="pt-0">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={clearAllSelections}
-                            className="w-full"
-                          >
-                            Clear All
-                          </Button>
-                        </CardContent>
-                      )}
-                    </Card>
-                  </div>
-                </div>
-
-                <div className="mt-6 flex gap-3 border-t pt-4">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>
-                    Back
-                  </Button>
-                  <Button
-                    className="flex-1 bg-[#F17623] hover:bg-[#e06613]"
-                    onClick={() => validateStepTwo() && setStep(3)}
-                    disabled={selectedCategories.length === 0}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {step === 3 && (
-              <>
                 <div className="space-y-2">
                   <Label>Solocorn Username</Label>
                   <div className="flex items-center gap-2">
@@ -3081,14 +2471,14 @@ export default function TutorRegistrationPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>
+                  <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>
                     Back
                   </Button>
                   <Button
                     className="flex-1 bg-[#F17623] hover:bg-[#e06613]"
                     onClick={async () => {
-                      const isValid = await validateStepThree()
-                      if (isValid) setStep(4)
+                      const isValid = await validateStepTwo()
+                      if (isValid) setStep(3)
                     }}
                   >
                     Next
@@ -3097,7 +2487,7 @@ export default function TutorRegistrationPage() {
               </>
             )}
 
-            {step === 4 && (
+            {step === 3 && (
               <>
                 <div className="space-y-4">
                   <div className="rounded-lg bg-gray-50 p-4">
@@ -3152,12 +2542,12 @@ export default function TutorRegistrationPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(3)}>
+                  <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>
                     Back
                   </Button>
                   <Button
                     className="flex-1 bg-[#F17623] hover:bg-[#e06613]"
-                    onClick={() => setStep(5)}
+                    onClick={() => setStep(4)}
                   >
                     Register
                   </Button>
@@ -3165,7 +2555,7 @@ export default function TutorRegistrationPage() {
               </>
             )}
 
-            {step === 5 && (
+            {step === 4 && (
               <>
                 <div className="space-y-4">
                   <div className="flex items-start space-x-3">
@@ -3184,7 +2574,7 @@ export default function TutorRegistrationPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(4)}>
+                  <Button variant="outline" className="flex-1" onClick={() => setStep(3)}>
                     Back
                   </Button>
                   <Button
