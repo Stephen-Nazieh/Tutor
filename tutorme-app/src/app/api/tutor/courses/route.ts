@@ -288,16 +288,20 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // Extract more details from database errors
-    const dbError = error as { 
+    // Extract more details from database errors (prefer underlying pg error)
+    const dbError = rootError as { 
       message?: string; 
       code?: string; 
       detail?: string; 
       hint?: string;
+      table?: string;
+      column?: string;
+      constraint?: string;
+      severity?: string;
       stack?: string;
     }
     
-    const errorMessage = dbError.message || 'Failed to create course'
+    const errorMessage = dbError.message || (error as Error)?.message || 'Failed to create course'
     const errorCode = dbError.code || 'UNKNOWN'
     const errorDetail = dbError.detail || ''
 
@@ -306,7 +310,15 @@ export async function POST(req: NextRequest) {
         error: errorMessage, 
         code: errorCode,
         detail: errorDetail,
+        pgHint: dbError.hint,
+        pgTable: dbError.table,
+        pgColumn: dbError.column,
+        pgConstraint: dbError.constraint,
+        pgSeverity: dbError.severity,
         fullError: JSON.stringify(error, Object.getOwnPropertyNames(error)),
+        fullCause: rootError && rootError !== error
+          ? JSON.stringify(rootError, Object.getOwnPropertyNames(rootError))
+          : null,
       },
       { status: 500 }
     )
