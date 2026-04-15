@@ -42,61 +42,27 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const now = new Date()
 
-    // If this is a parent course and publishVariants is true, publish all variants
-    if (!existingCourse.isVariant && publishVariants && existingCourse.parentCourseId === null) {
-      // This is a parent course - publish it and all its variants
-      const coursesToPublish = await drizzleDb.query.course.findMany({
-        where: (course, { eq, and, or }) =>
-          and(
-            eq(course.creatorId, session.user.id),
-            or(eq(course.courseId, courseId), eq(course.parentCourseId, courseId))
-          ),
+    // Publish this single course
+    // (variant publishing requires parentCourseId/isVariant columns not yet in production)
+    const [updated] = await drizzleDb
+      .update(courseTable)
+      .set({ isPublished: true, updatedAt: now })
+      .where(eq(courseTable.courseId, courseId))
+      .returning({
+        courseId: courseTable.courseId,
+        name: courseTable.name,
       })
 
-      const courseIdsToPublish = coursesToPublish.map(c => c.courseId)
-
-      if (courseIdsToPublish.length > 0) {
-        const updatedCourses = await drizzleDb
-          .update(courseTable)
-          .set({ isPublished: true, updatedAt: now })
-          .where(inArray(courseTable.courseId, courseIdsToPublish))
-          .returning()
-
-        const publishedCourses = updatedCourses.map(updated => ({
+    return NextResponse.json({
+      success: true,
+      message: 'Course published successfully',
+      courses: [
+        {
           id: updated.courseId,
           name: updated.name,
-          country: updated.country,
-          isVariant: updated.isVariant,
-        }))
-
-        return NextResponse.json({
-          success: true,
-          message: `Published ${publishedCourses.length} course(s)`,
-          courses: publishedCourses,
-        })
-      }
-      return NextResponse.json({ success: true, message: 'No courses to publish', courses: [] })
-    } else {
-      // Just publish this single course
-      const [updated] = await drizzleDb
-        .update(courseTable)
-        .set({ isPublished: true, updatedAt: now })
-        .where(eq(courseTable.courseId, courseId))
-        .returning()
-
-      return NextResponse.json({
-        success: true,
-        message: 'Course published successfully',
-        courses: [
-          {
-            id: updated.courseId,
-            name: updated.name,
-            country: updated.country,
-            isVariant: updated.isVariant,
-          },
-        ],
-      })
-    }
+        },
+      ],
+    })
   } catch (error) {
     console.error('Course publish error:', error)
     return NextResponse.json({ error: 'Failed to publish course' }, { status: 500 })
@@ -129,58 +95,28 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     }
 
     const now = new Date()
-    const unpublishedCourses = []
 
-    // If this is a parent course and unpublishVariants is true, unpublish all variants
-    if (!existingCourse.isVariant && unpublishVariants && existingCourse.parentCourseId === null) {
-      // This is a parent course - unpublish it and all its variants
-      const coursesToUnpublish = await drizzleDb.query.course.findMany({
-        where: (course, { eq, and, or }) =>
-          and(
-            eq(course.creatorId, session.user.id),
-            or(eq(course.courseId, courseId), eq(course.parentCourseId, courseId))
-          ),
+    // Unpublish this single course
+    // (variant unpublishing requires parentCourseId/isVariant columns not yet in production)
+    const [updated] = await drizzleDb
+      .update(courseTable)
+      .set({ isPublished: false, updatedAt: now })
+      .where(eq(courseTable.courseId, courseId))
+      .returning({
+        courseId: courseTable.courseId,
+        name: courseTable.name,
       })
 
-      for (const course of coursesToUnpublish) {
-        const [updated] = await drizzleDb
-          .update(courseTable)
-          .set({ isPublished: false, updatedAt: now })
-          .where(eq(courseTable.courseId, course.courseId))
-          .returning()
-
-        unpublishedCourses.push({
+    return NextResponse.json({
+      success: true,
+      message: 'Course unpublished successfully',
+      courses: [
+        {
           id: updated.courseId,
           name: updated.name,
-          country: updated.country,
-        })
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: `Unpublished ${unpublishedCourses.length} course(s)`,
-        courses: unpublishedCourses,
-      })
-    } else {
-      // Just unpublish this single course
-      const [updated] = await drizzleDb
-        .update(courseTable)
-        .set({ isPublished: false, updatedAt: now })
-        .where(eq(courseTable.courseId, courseId))
-        .returning()
-
-      return NextResponse.json({
-        success: true,
-        message: 'Course unpublished successfully',
-        courses: [
-          {
-            id: updated.courseId,
-            name: updated.name,
-            country: updated.country,
-          },
-        ],
-      })
-    }
+        },
+      ],
+    })
   } catch (error) {
     console.error('Course unpublish error:', error)
     return NextResponse.json({ error: 'Failed to unpublish course' }, { status: 500 })

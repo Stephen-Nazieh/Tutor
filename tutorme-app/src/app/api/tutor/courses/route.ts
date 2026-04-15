@@ -26,10 +26,6 @@ export async function GET() {
         isLiveOnline: true,
         createdAt: true,
         updatedAt: true,
-        region: true,
-        country: true,
-        isVariant: true,
-        parentCourseId: true,
       },
     })
 
@@ -43,10 +39,6 @@ export async function GET() {
       isLiveOnline: c.isLiveOnline,
       createdAt: c.createdAt,
       updatedAt: c.updatedAt,
-      region: c.region,
-      country: c.country,
-      isVariant: c.isVariant,
-      parentCourseId: c.parentCourseId,
     }))
 
     return NextResponse.json({ courses })
@@ -94,9 +86,6 @@ export async function POST(req: NextRequest) {
     const coursesToCreate: Array<{
       courseId: string
       name: string
-      region: string | null
-      country: string | null
-      isVariant: boolean
     }> = []
 
     if (hasGlobal) {
@@ -104,18 +93,12 @@ export async function POST(req: NextRequest) {
       coursesToCreate.push({
         courseId: parentCourseId,
         name: data.title,
-        region: data.region || 'Global',
-        country: null,
-        isVariant: false,
       })
     } else {
       // Create a parent course (template) - not published, just for reference
       coursesToCreate.push({
         courseId: parentCourseId,
         name: data.title,
-        region: data.region || null,
-        country: null,
-        isVariant: false,
       })
 
       // Create a course for each country
@@ -123,9 +106,6 @@ export async function POST(req: NextRequest) {
         coursesToCreate.push({
           courseId: crypto.randomUUID(),
           name: `${data.title} - ${country}`,
-          region: data.region || null,
-          country: country,
-          isVariant: true,
         })
       }
     }
@@ -139,10 +119,6 @@ export async function POST(req: NextRequest) {
       isLiveOnline: boolean
       createdAt: string
       updatedAt: string
-      region: string | null
-      country: string | null
-      isVariant: boolean
-      parentCourseId: string | null
     }> = []
 
     // Create all courses in a transaction
@@ -241,10 +217,6 @@ export async function POST(req: NextRequest) {
           isLiveOnline: newCourse.isLiveOnline,
           createdAt: newCourse.createdAt?.toISOString?.() ?? newCourse.createdAt,
           updatedAt: newCourse.updatedAt?.toISOString?.() ?? newCourse.updatedAt,
-          region: courseData.region || 'Global',
-          country: courseData.country || null,
-          isVariant: courseData.isVariant,
-          parentCourseId: courseData.isVariant ? parentCourseId : null,
         })
 
         console.log('Course created:', newCourse.courseId, '-', newCourse.name)

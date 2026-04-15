@@ -797,7 +797,7 @@ class CacheManager {
    */
   private async serializeEntry<T>(entry: CacheEntry<T>, options: CacheOptions<T>): Promise<string> {
     // First serialize the entry to JSON
-    const serialized = JSON.stringify(entry)
+    let serialized = JSON.stringify(entry)
 
     // Compression
     const shouldCompress =
