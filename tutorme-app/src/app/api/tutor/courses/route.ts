@@ -154,16 +154,6 @@ export async function POST(req: NextRequest) {
           // Optional fields with explicit defaults
           languageOfInstruction: null,
           price: null,
-          // Deprecated columns — safe defaults for backward compatibility
-          // with production DB that still has these columns
-          subject: data.subject ?? 'general',
-          estimatedHours: data.estimatedHours ?? 0,
-          gradeLevel: null,
-          difficulty: null,
-          coursePitch: null,
-          courseMaterials: null,
-          outlineSource: null,
-          curriculumSource: null,
         }
 
         console.log('[Course Create] Insert values:', JSON.stringify(insertValues, null, 2))

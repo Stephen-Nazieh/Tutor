@@ -16,7 +16,7 @@ interface TutorCoursesApiCourse {
   id: string
   name: string
   description?: string | null
-  subject: string
+  categories?: string[] | null
   isPublished: boolean
   createdAt?: string
   updatedAt?: string
@@ -43,7 +43,7 @@ function normalizeTutorCourse(course: TutorCoursesApiCourse): CourseWithAssignme
     id: course.id,
     name: course.name,
     description: course.description ?? undefined,
-    subject: course.subject,
+    subject: course.categories?.[0] ?? '',
     isPublished: course.isPublished,
     createdAt: course.createdAt ?? '',
     updatedAt: course.updatedAt ?? '',

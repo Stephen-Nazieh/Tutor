@@ -115,10 +115,9 @@ describe('Tutor courses and batches API integration', () => {
     const res = await createCourse(req as any)
     expect(res.status).toBe(200)
     const data = await res.json()
-    expect(data.course).toBeDefined()
-    expect(data.course.name).toBe('Test Course')
-    expect(data.course.subject).toBe('math')
-    courseId = data.course.id
+    expect(data.courses).toBeDefined()
+    expect(data.courses[0].name).toBe('Test Course')
+    courseId = data.courses[0].id
     expect(courseId).toBeDefined()
   })
 

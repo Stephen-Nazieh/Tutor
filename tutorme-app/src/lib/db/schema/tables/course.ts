@@ -42,16 +42,6 @@ export const course = pgTable(
     currency: text('currency'),
     isFree: boolean('isFree').notNull().default(false),
     schedule: jsonb('schedule'),
-    // Deprecated columns — kept for production DB compatibility
-    // TODO: remove after production DB migrations are fully applied
-    subject: text('subject').default('general'),
-    gradeLevel: text('gradeLevel'),
-    difficulty: text('difficulty'),
-    estimatedHours: integer('estimatedHours').default(0),
-    curriculumSource: text('curriculumSource').default('PLATFORM'),
-    outlineSource: text('outlineSource').default('SELF'),
-    courseMaterials: jsonb('courseMaterials'),
-    coursePitch: text('coursePitch'),
   },
   table => ({
     Course_isPublished_idx: index('Course_isPublished_idx').on(table.isPublished),

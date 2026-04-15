@@ -118,15 +118,6 @@ export const POST = withCsrf(
           isFree: false,
           createdAt: now,
           updatedAt: now,
-          // Deprecated columns — safe defaults for production DB compatibility
-          subject: subjectKey,
-          estimatedHours: 0,
-          gradeLevel: null,
-          difficulty: null,
-          curriculumSource: 'PLATFORM',
-          outlineSource: 'SELF',
-          courseMaterials: null,
-          coursePitch: null,
         }
 
         await drizzleDb
