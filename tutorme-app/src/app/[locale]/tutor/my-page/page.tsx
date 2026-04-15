@@ -412,6 +412,7 @@ export default function TutorMyPage() {
   const [activeCourses, setActiveCourses] = useState<number | null>(null)
   const [profileCategories, setProfileCategories] = useState<string[]>([])
   const [editableCategories, setEditableCategories] = useState<string[]>([])
+  const [publishedCourseCategories, setPublishedCourseCategories] = useState<string[]>([])
   const [socialAccounts, setSocialAccounts] = useState({
     youtube: '',
     instagram: '',
@@ -533,6 +534,16 @@ export default function TutorMyPage() {
         })
         const specs = Array.isArray(data?.profile?.specialties) ? data.profile.specialties : []
         setExpertiseInput(specs.filter((s: unknown) => typeof s === 'string').join(', '))
+
+        // Derive categories from published courses
+        const courses = Array.isArray(data?.courses) ? data.courses : []
+        const categorySet = new Set<string>()
+        for (const c of courses as Array<{ categories?: string[] }>) {
+          for (const cat of c.categories || []) {
+            categorySet.add(cat)
+          }
+        }
+        setPublishedCourseCategories(Array.from(categorySet).sort())
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Failed to load data')
       } finally {
@@ -665,11 +676,6 @@ export default function TutorMyPage() {
             youtube: socialAccounts.youtube.trim().replace(/^@+/, ''),
             facebook: socialAccounts.facebook.trim().replace(/^@+/, ''),
           },
-          specialties: expertiseInput
-            .split(',')
-            .map(s => s.trim())
-            .filter(Boolean)
-            .slice(0, 40),
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -1204,23 +1210,20 @@ export default function TutorMyPage() {
                       Categories
                     </div>
                     <div className="mt-3 flex flex-wrap gap-1.5">
-                      {expertiseInput
-                        .split(',')
-                        .map(s => s.trim())
-                        .filter(Boolean)
-                        .map((s, i) => (
+                      {publishedCourseCategories.length > 0 ? (
+                        publishedCourseCategories.map((cat, i) => (
                           <span
-                            key={`${s}-${i}`}
+                            key={`${cat}-${i}`}
                             className="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-[#0F172A] shadow-sm ring-1 ring-[#E2E8F0]"
                           >
-                            {s}
+                            {cat}
                           </span>
-                        ))}
-                      {!expertiseInput.trim() ? (
+                        ))
+                      ) : (
                         <span className="text-sm text-[#64748B]">
-                          Add categories in profile settings
+                          Categories appear here after you publish a course
                         </span>
-                      ) : null}
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1396,26 +1399,24 @@ export default function TutorMyPage() {
                   </div>
 
                   <div className="space-y-2 border-t border-[#E2E8F0] pt-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <Label className="text-[#1F2933]">Categories</Label>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setExpertiseAddOpen(true)}
-                        disabled={loading || saving}
-                        className="h-8 border-[#E2E8F0] bg-white px-3"
-                      >
-                        +Add
-                      </Button>
+                    <Label className="text-[#1F2933]">Categories</Label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {publishedCourseCategories.length > 0 ? (
+                        publishedCourseCategories.map((cat, i) => (
+                          <span
+                            key={`settings-${cat}-${i}`}
+                            className="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-[#0F172A] shadow-sm ring-1 ring-[#E2E8F0]"
+                          >
+                            {cat}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-sm text-[#64748B]">
+                          Categories are automatically populated when you publish a course with
+                          nationalities and categories.
+                        </span>
+                      )}
                     </div>
-                    <Input
-                      value={expertiseInput}
-                      onChange={e => setExpertiseInput(e.target.value)}
-                      disabled={loading || saving}
-                      placeholder="Comma-separated, e.g. Algebra, SAT Math, Physics"
-                      className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
-                    />
                   </div>
                 </div>
               </div>

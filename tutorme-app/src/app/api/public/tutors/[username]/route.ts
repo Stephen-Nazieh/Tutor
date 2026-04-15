@@ -95,6 +95,11 @@ export async function GET(
       .from(course)
       .where(and(eq(course.creatorId, tutorId), eq(course.isPublished, true)))
 
+    // Derive specialties from published course categories
+    const derivedSpecialties = Array.from(
+      new Set(publishedCourses.flatMap(c => c.categories || []))
+    )
+
     // Build tutor response
     const tutorResponse = {
       id: tutorId,
@@ -102,7 +107,7 @@ export async function GET(
       username: profileData.username || normalizedUsername,
       bio: profileData.bio || 'Experienced tutor ready to help you improve quickly.',
       avatarUrl: profileData.avatarUrl,
-      specialties: profileData.specialties || [],
+      specialties: derivedSpecialties.length > 0 ? derivedSpecialties : profileData.specialties || [],
       credentials: profileData.credentials || '',
       hourlyRate: profileData.hourlyRate,
       oneOnOneEnabled: profileData.oneOnOneEnabled ?? true, // Default to true

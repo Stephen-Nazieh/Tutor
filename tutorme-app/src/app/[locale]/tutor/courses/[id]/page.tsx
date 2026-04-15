@@ -1731,26 +1731,47 @@ export default function TutorCoursePage() {
           <Button
             size="sm"
             onClick={async () => {
-              // Save first, then publish
+              // Save first, then publish with variants
               const saveSuccess = await handleSaveAll()
               if (!saveSuccess) return
 
-              // Publish the course (toggle isPublished via PATCH)
+              if (selectedCountries.length === 0) {
+                toast.error('Select at least one country/nationality before publishing')
+                return
+              }
+              if (selectedCategories.length === 0) {
+                toast.error('Select at least one category before publishing')
+                return
+              }
+
+              // Map country codes to names
+              const selectedCountryNames = selectedCountries
+                .map(code => {
+                  const c = REGIONS.flatMap(r => r.countries).find(ctry => ctry.code === code)
+                  return c?.name || code
+                })
+                .filter(Boolean)
+
               try {
                 const csrf = await getCsrf()
-                const res = await fetch(`/api/tutor/courses/${id}`, {
-                  method: 'PATCH',
+                const res = await fetch(`/api/tutor/courses/${id}/publish`, {
+                  method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
                     ...(csrf && { 'X-CSRF-Token': csrf }),
                   },
                   credentials: 'include',
-                  body: JSON.stringify({ isPublished: true }),
+                  body: JSON.stringify({
+                    countries: selectedCountryNames,
+                    categories: selectedCategories,
+                  }),
                 })
                 if (res.ok) {
                   const data = await res.json()
-                  setCourse(prev => (prev ? { ...prev, isPublished: true } : (data.course ?? prev)))
-                  toast.success('Course published successfully!')
+                  toast.success(
+                    `Published ${data.publishedCount} course variant${data.publishedCount === 1 ? '' : 's'} successfully!`
+                  )
+                  router.push('/tutor/dashboard')
                 } else {
                   const data = await res.json().catch(() => null)
                   toast.error(data?.error || 'Failed to publish course')

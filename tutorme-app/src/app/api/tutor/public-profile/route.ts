@@ -85,13 +85,18 @@ export const GET = withAuth(
       .orderBy(desc(course.updatedAt))
       .limit(50)
 
+    // Derive specialties from published course categories
+    const derivedSpecialties = Array.from(
+      new Set(courses.flatMap(c => c.categories || []))
+    )
+
     return NextResponse.json({
       profile: {
         name: prof?.name || userRow.email.split('@')[0],
         username: prof?.username ?? null,
         bio: prof?.bio ?? '',
         avatarUrl: prof?.avatarUrl ?? null,
-        specialties: prof?.specialties ?? [],
+        specialties: derivedSpecialties.length > 0 ? derivedSpecialties : prof?.specialties ?? [],
         credentials: prof?.credentials ?? '',
         hourlyRate: prof?.hourlyRate ?? null,
         createdAt: application?.createdAt ?? prof?.createdAt ?? null,

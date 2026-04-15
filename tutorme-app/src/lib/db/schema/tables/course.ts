@@ -328,3 +328,34 @@ export const feedbackWorkflow = pgTable(
     FeedbackWorkflow_status_idx: index('FeedbackWorkflow_status_idx').on(table.status),
   })
 )
+
+// Tracks published course variants generated from a template course.
+// A tutor selects nationalities and categories on the course details page;
+// publishing creates one published course per (category × nationality) combination.
+export const courseVariant = pgTable(
+  'CourseVariant',
+  {
+    variantId: text('id').primaryKey().notNull(),
+    templateCourseId: text('templateCourseId')
+      .notNull()
+      .references(() => course.courseId, { onDelete: 'cascade' }),
+    publishedCourseId: text('publishedCourseId')
+      .notNull()
+      .references(() => course.courseId, { onDelete: 'cascade' }),
+    nationality: text('nationality').notNull(),
+    category: text('category').notNull(),
+    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  table => ({
+    CourseVariant_templateCourseId_idx: index('CourseVariant_templateCourseId_idx').on(
+      table.templateCourseId
+    ),
+    CourseVariant_publishedCourseId_idx: index('CourseVariant_publishedCourseId_idx').on(
+      table.publishedCourseId
+    ),
+  })
+)
