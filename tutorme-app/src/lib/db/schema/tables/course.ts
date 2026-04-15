@@ -97,8 +97,6 @@ export const courseLesson = pgTable(
       .notNull()
       .defaultNow()
       .$onUpdate(() => new Date()),
-    // Soft delete
-    deletedAt: timestamp('deletedAt', { withTimezone: true }),
   },
   table => ({
     CourseLesson_courseId_idx: index('CourseLesson_courseId_idx').on(table.courseId),
