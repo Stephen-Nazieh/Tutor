@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course as courseTable, courseLesson } from '@/lib/db/schema'
-import { eq, sql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { CreateCourseSchema } from '@/lib/validation/schemas'
 import { ZodError } from 'zod'
 
@@ -160,45 +160,52 @@ export async function POST(req: NextRequest) {
           ? data.schedule
           : []
 
-        console.log('[Course Create] Preparing raw SQL insert for course:', courseData.courseId)
-
-        // Use raw SQL to avoid Drizzle including columns that may not exist in production yet
-        const courseInsertResult = await tx.execute(sql`
-          INSERT INTO "Course" (
-            "id", "name", "description", "categories", "isPublished",
-            "createdAt", "updatedAt", "creatorId", "isLiveOnline",
-            "languageOfInstruction", "price", "currency", "isFree", "schedule",
-            "subject", "gradeLevel", "difficulty", "estimatedHours",
-            "curriculumSource", "outlineSource", "courseMaterials", "coursePitch"
-          ) VALUES (
-            ${courseData.courseId}, ${courseData.name}, ${data.description || null}, ${categories}, false,
-            ${now}, ${now}, ${userId}, ${data.isLiveOnline ?? false},
-            ${null}, ${null}, ${'USD'}, false, ${schedule},
-            ${data.subject ?? 'general'}, ${null}, ${null}, 0,
-            ${'PLATFORM'}, ${'SELF'}, ${null}, ${null}
-          )
-          RETURNING "id", "name", "description", "categories", "isPublished",
-                    "createdAt", "updatedAt", "creatorId", "isLiveOnline",
-                    "languageOfInstruction", "price", "currency", "isFree", "schedule"
-        `)
-
-        const newCourseRow = courseInsertResult.rows[0] as any
-        const newCourse = {
-          courseId: newCourseRow.id,
-          name: newCourseRow.name,
-          description: newCourseRow.description,
-          categories: newCourseRow.categories,
-          isPublished: newCourseRow.isPublished,
-          createdAt: newCourseRow.createdAt,
-          updatedAt: newCourseRow.updatedAt,
-          creatorId: newCourseRow.creatorId,
-          isLiveOnline: newCourseRow.isLiveOnline,
-          languageOfInstruction: newCourseRow.languageOfInstruction,
-          price: newCourseRow.price,
-          currency: newCourseRow.currency,
-          isFree: newCourseRow.isFree,
-          schedule: newCourseRow.schedule,
+        // Build insert values object with all required defaults
+        // Only include columns known to exist in production DB
+        const insertValues = {
+          courseId: courseData.courseId,
+          name: courseData.name,
+          description: data.description || null,
+          isPublished: false,
+          isLiveOnline: data.isLiveOnline ?? false,
+          isFree: false,
+          categories: categories,
+          currency: 'USD',
+          schedule: schedule,
+          createdAt: now,
+          updatedAt: now,
+          creatorId: userId,
+          // Optional fields with explicit defaults
+          languageOfInstruction: null,
+          price: null,
+          // Deprecated columns — safe defaults for backward compatibility
+          // with production DB that still has these columns
+          subject: data.subject ?? 'general',
+          estimatedHours: data.estimatedHours ?? 0,
+          gradeLevel: null,
+          difficulty: null,
+          coursePitch: null,
+          courseMaterials: null,
+          outlineSource: null,
+          curriculumSource: null,
         }
+
+        console.log('[Course Create] Insert values:', JSON.stringify(insertValues, null, 2))
+
+        // Insert course — only return columns known to exist in production DB
+        const [newCourse] = await tx
+          .insert(courseTable)
+          .values(insertValues)
+          .returning({
+            courseId: courseTable.courseId,
+            name: courseTable.name,
+            description: courseTable.description,
+            categories: courseTable.categories,
+            isPublished: courseTable.isPublished,
+            isLiveOnline: courseTable.isLiveOnline,
+            createdAt: courseTable.createdAt,
+            updatedAt: courseTable.updatedAt,
+          })
 
         // Create a default lesson for each course
         await tx.insert(courseLesson).values({

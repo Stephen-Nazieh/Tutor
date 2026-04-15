@@ -132,7 +132,6 @@ export const POST = withCsrf(
         await drizzleDb
           .insert(course)
           .values(courseValues as typeof course.$inferInsert)
-          .returning()
         await createDefaultLessons(courseId, subjectCode)
       }
 
