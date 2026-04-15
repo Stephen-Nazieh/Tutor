@@ -327,12 +327,13 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
           const data = await res.json().catch(() => ({}))
           console.log('[CourseBuilder] Create course response:', { ok: res.ok, data })
 
-          if (res.ok && data.course?.id) {
+          const createdCourse = data.courses?.[0]
+          if (res.ok && createdCourse?.id) {
             toast.success('Created new course!')
             // Add the new course to the list and set it as current
             const newCourse = {
-              id: data.course.id,
-              name: data.course.name,
+              id: createdCourse.id,
+              name: createdCourse.name,
             }
             setCourses([newCourse])
             setCurrentCourse(newCourse)

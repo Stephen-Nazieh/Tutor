@@ -42,9 +42,10 @@ export default function CourseBuilderPage() {
       })
 
       const data = await res.json().catch(() => ({}))
-      if (res.ok && data.course?.id) {
+      const createdCourse = data.courses?.[0]
+      if (res.ok && createdCourse?.id) {
         toast.success('Course created! Opening builder...')
-        router.push(`/tutor/courses/${data.course.id}/builder`)
+        router.push(`/tutor/courses/${createdCourse.id}/builder`)
         return
       }
 

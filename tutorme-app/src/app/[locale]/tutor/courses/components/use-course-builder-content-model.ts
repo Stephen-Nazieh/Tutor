@@ -210,8 +210,11 @@ export function useCourseBuilderContentModel({
           throw new Error(err.error ?? 'Failed to create course')
         }
 
-        const newCourse = await createRes.json()
-        currentCourseId = newCourse.id
+        const newCourseData = await createRes.json()
+        currentCourseId = newCourseData.courses?.[0]?.id
+        if (!currentCourseId) {
+          throw new Error('Course creation response missing course ID')
+        }
         router.replace(`/tutor/courses/${currentCourseId}/builder`)
       }
 
