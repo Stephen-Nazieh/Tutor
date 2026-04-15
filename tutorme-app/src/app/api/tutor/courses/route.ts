@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course as courseTable, courseLesson } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { CreateCourseSchema } from '@/lib/validation/schemas'
 import { ZodError } from 'zod'
 
@@ -160,50 +160,45 @@ export async function POST(req: NextRequest) {
           ? data.schedule
           : []
 
-        // Build insert values object with all required defaults
-        // Include deprecated columns with defaults for backward compatibility
-        // until production database migrations are fully applied
-        const insertValues = {
-          courseId: courseData.courseId,
-          name: courseData.name,
-          description: data.description || null,
-          isPublished: false,
-          isLiveOnline: data.isLiveOnline ?? false,
-          isFree: false,
-          categories: categories,
-          currency: 'USD',
-          schedule: schedule,
-          createdAt: now,
-          updatedAt: now,
-          creatorId: userId,
-          // Multi-course publishing fields with defaults
-          region: courseData.region || 'Global',
-          country: courseData.country || null,
-          parentCourseId: courseData.isVariant ? parentCourseId : null,
-          isVariant: courseData.isVariant ?? false,
-          // Optional fields with explicit defaults
-          languageOfInstruction: null,
-          price: null,
-          deletedAt: null,
-          // Deprecated columns — safe defaults for backward compatibility
-          // with production DB that may still have these columns
-          subject: data.subject ?? 'general',
-          estimatedHours: data.estimatedHours ?? 0,
-          gradeLevel: null,
-          difficulty: null,
-          coursePitch: null,
-          courseMaterials: null,
-          outlineSource: null,
-          curriculumSource: null,
+        console.log('[Course Create] Preparing raw SQL insert for course:', courseData.courseId)
+
+        // Use raw SQL to avoid Drizzle including columns that may not exist in production yet
+        const courseInsertResult = await tx.execute(sql`
+          INSERT INTO "Course" (
+            "id", "name", "description", "categories", "isPublished",
+            "createdAt", "updatedAt", "creatorId", "isLiveOnline",
+            "languageOfInstruction", "price", "currency", "isFree", "schedule",
+            "subject", "gradeLevel", "difficulty", "estimatedHours",
+            "curriculumSource", "outlineSource", "courseMaterials", "coursePitch"
+          ) VALUES (
+            ${courseData.courseId}, ${courseData.name}, ${data.description || null}, ${categories}, false,
+            ${now}, ${now}, ${userId}, ${data.isLiveOnline ?? false},
+            ${null}, ${null}, ${'USD'}, false, ${schedule},
+            ${data.subject ?? 'general'}, ${null}, ${null}, 0,
+            ${'PLATFORM'}, ${'SELF'}, ${null}, ${null}
+          )
+          RETURNING "id", "name", "description", "categories", "isPublished",
+                    "createdAt", "updatedAt", "creatorId", "isLiveOnline",
+                    "languageOfInstruction", "price", "currency", "isFree", "schedule"
+        `)
+
+        const newCourseRow = courseInsertResult.rows[0] as any
+        const newCourse = {
+          courseId: newCourseRow.id,
+          name: newCourseRow.name,
+          description: newCourseRow.description,
+          categories: newCourseRow.categories,
+          isPublished: newCourseRow.isPublished,
+          createdAt: newCourseRow.createdAt,
+          updatedAt: newCourseRow.updatedAt,
+          creatorId: newCourseRow.creatorId,
+          isLiveOnline: newCourseRow.isLiveOnline,
+          languageOfInstruction: newCourseRow.languageOfInstruction,
+          price: newCourseRow.price,
+          currency: newCourseRow.currency,
+          isFree: newCourseRow.isFree,
+          schedule: newCourseRow.schedule,
         }
-
-        console.log('[Course Create] Insert values:', JSON.stringify(insertValues, null, 2))
-
-        // Insert course
-        const [newCourse] = await tx
-          .insert(courseTable)
-          .values(insertValues)
-          .returning()
 
         // Create a default lesson for each course
         await tx.insert(courseLesson).values({
@@ -239,8 +234,8 @@ export async function POST(req: NextRequest) {
           isLiveOnline: newCourse.isLiveOnline,
           createdAt: newCourse.createdAt?.toISOString?.() ?? newCourse.createdAt,
           updatedAt: newCourse.updatedAt?.toISOString?.() ?? newCourse.updatedAt,
-          region: newCourse.region,
-          country: newCourse.country,
+          region: courseData.region || 'Global',
+          country: courseData.country || null,
           isVariant: courseData.isVariant,
           parentCourseId: courseData.isVariant ? parentCourseId : null,
         })
