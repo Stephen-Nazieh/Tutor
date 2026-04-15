@@ -111,6 +111,7 @@ export async function PUT(req: NextRequest) {
             url: asset.url || null,
             mimeType: asset.mimeType || null,
             size: asset.size || null,
+            updatedAt: new Date(),
           })
           .onConflictDoUpdate({
             target: tutorAsset.assetId,

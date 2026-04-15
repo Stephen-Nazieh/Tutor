@@ -138,6 +138,8 @@ export class CourseBuilderService {
             duration: les.duration ?? 60,
             order: idx,
             builderData,
+            createdAt: new Date(),
+            updatedAt: new Date(),
           })
           .onConflictDoUpdate({
             target: courseLesson.lessonId,
@@ -147,6 +149,7 @@ export class CourseBuilderService {
               duration: les.duration ?? 60,
               order: idx,
               builderData,
+              updatedAt: new Date(),
             },
           })
       }

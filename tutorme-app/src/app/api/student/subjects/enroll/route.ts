@@ -162,6 +162,8 @@ async function createDefaultLessons(courseId: string, subjectCode: string) {
       title: lesson.title,
       description: lesson.description,
       order: i,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     })
   }
 }
