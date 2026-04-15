@@ -184,8 +184,9 @@ export function CourseBuilderCourseRoute({ courseId }: { courseId: string | null
       })
 
       const data = await res.json()
-      if (res.ok && data.course) {
-        const newCourse = data.course
+      const createdCourse = data.courses?.[0]
+      if (res.ok && createdCourse?.id) {
+        const newCourse = createdCourse
         setCourses(prev => [...prev, newCourse])
         setCurrentCourse(newCourse)
         setCourseName(newCourse.name)
