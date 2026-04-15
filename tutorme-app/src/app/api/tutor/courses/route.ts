@@ -161,6 +161,8 @@ export async function POST(req: NextRequest) {
           : []
 
         // Build insert values object with all required defaults
+        // Include deprecated columns with defaults for backward compatibility
+        // until production database migrations are fully applied
         const insertValues = {
           courseId: courseData.courseId,
           name: courseData.name,
@@ -183,6 +185,16 @@ export async function POST(req: NextRequest) {
           languageOfInstruction: null,
           price: null,
           deletedAt: null,
+          // Deprecated columns — safe defaults for backward compatibility
+          // with production DB that may still have these columns
+          subject: data.subject ?? 'general',
+          estimatedHours: data.estimatedHours ?? 0,
+          gradeLevel: null,
+          difficulty: null,
+          coursePitch: null,
+          courseMaterials: null,
+          outlineSource: null,
+          curriculumSource: null,
         }
 
         console.log('[Course Create] Insert values:', JSON.stringify(insertValues, null, 2))
@@ -245,14 +257,34 @@ export async function POST(req: NextRequest) {
         : `Created ${createdCourses.length - 1} course variants for ${countries.join(', ')}`,
     })
   } catch (error) {
-    console.error('Course creation error:', error)
+    // Unwrap DrizzleQueryError to get the real PostgreSQL error
+    const rootError = (error as { cause?: Error }).cause ?? error
+
+    console.error('Course creation error:', rootError)
 
     // Log detailed error for debugging
-    if (error instanceof Error) {
+    if (rootError instanceof Error) {
+      const pgError = rootError as {
+        code?: string
+        detail?: string
+        hint?: string
+        table?: string
+        column?: string
+        constraint?: string
+        severity?: string
+        message?: string
+        stack?: string
+      }
       console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
+        message: pgError.message,
+        code: pgError.code,
+        detail: pgError.detail,
+        hint: pgError.hint,
+        table: pgError.table,
+        column: pgError.column,
+        constraint: pgError.constraint,
+        severity: pgError.severity,
+        stack: pgError.stack,
       })
     }
 

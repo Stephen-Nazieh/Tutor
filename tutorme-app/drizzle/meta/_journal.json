@@ -253,6 +253,34 @@
       "when": 1744350000000,
       "tag": "0035_add_indexes_and_soft_deletes",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1744537620000,
+      "tag": "0036_schema_integrity_and_enums",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1744537740000,
+      "tag": "0037_cleanup_deprecated_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1744598940000,
+      "tag": "0038_cleanup_additional_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1744601640000,
+      "tag": "0039_fix_course_columns",
+      "breakpoints": true
     }
   ]
 }
