@@ -176,7 +176,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false)
   const [panelSeenCounts, setPanelSeenCounts] = useState({ messages: 0, handRaises: 0, alerts: 0 })
   const [classTitle, setClassTitle] = useState('Live Class')
-  const [classSubject, setClassSubject] = useState('General')
+  const [classSubject, setClassSubject] = useState('general')
   const [classRoomId, setClassRoomId] = useState<string | null>(null)
   const [linkedCourseId, setLinkedCourseId] = useState<string | null>(null)
   const [linkedCourseName, setLinkedCourseName] = useState<string | null>(null)
@@ -331,7 +331,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
         if (cancelled) return
 
         setClassTitle(data.session.title || 'Live Class')
-        setClassSubject(data.session.subject || 'General')
+        setClassSubject(data.session.subject || 'general')
         setClassRoomId(data.session.roomId || null)
         setLinkedCourseId(data.session.linkedCourseId || null)
         setStudents(data.students || [])

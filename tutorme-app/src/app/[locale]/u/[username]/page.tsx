@@ -626,7 +626,7 @@ export default function PublicTutorPage() {
         body: JSON.stringify({
           courseId: course.id,
           title: course.name,
-          subject: course.categories[0] || 'General',
+          subject: course.categories[0] || 'general',
           description: course.description || undefined,
           maxStudents: 50,
           durationMinutes: 60,
@@ -1032,7 +1032,7 @@ export default function PublicTutorPage() {
                             {course.name}
                           </h3>
                           <Badge variant="secondary" className="shrink-0 text-[10px] sm:text-xs">
-                            {course.categories[0] || 'General'}
+                            {course.categories[0] || 'general'}
                           </Badge>
                         </div>
                         <p className="mt-0.5 text-xs font-medium text-slate-500">

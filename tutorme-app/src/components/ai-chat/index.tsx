@@ -44,7 +44,7 @@ export function AIChat({ context, className }: AIChatProps) {
               <Bot className="h-5 w-5" />
               <div>
                 <h3 className="font-semibold">AI Tutor</h3>
-                <p className="text-xs text-blue-100">{context?.subject || 'General'} Help</p>
+                <p className="text-xs text-blue-100">{context?.subject || 'general'} Help</p>
               </div>
             </div>
             <Button

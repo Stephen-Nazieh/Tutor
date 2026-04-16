@@ -240,7 +240,7 @@ export async function GET(req: NextRequest) {
           sessionId: live.sessionId,
           tutorId,
           studentId,
-          subject: live.title || 'General',
+          subject: live.title || 'general',
           status: active ? 'ACTIVE' : 'RECENT',
           isActive: active,
           startedAt: live.startedAt?.toISOString() ?? null,

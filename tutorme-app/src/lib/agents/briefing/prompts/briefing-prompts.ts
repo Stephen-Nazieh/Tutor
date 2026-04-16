@@ -45,7 +45,7 @@ export function buildClassBriefingPrompt(context: BriefingContext): string {
 CLASS INFO:
 - Subject: ${context.course.subject}
 - Students: ${context.students.length}
-- Topic: ${context.course.modules[0]?.title || 'General'}
+- Topic: ${context.course.modules[0]?.title || 'general'}
 
 STUDENT PROFILES:
 ${studentSummaries}

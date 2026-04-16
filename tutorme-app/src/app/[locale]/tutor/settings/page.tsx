@@ -44,7 +44,7 @@ import {
   Pencil,
   X,
 } from 'lucide-react'
-import { REGIONS } from '@/lib/tutoring/categories-new'
+import { REGIONS } from '@/lib/data/tutor-categories'
 import Image from 'next/image'
 import { BackButton } from '@/components/navigation'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'

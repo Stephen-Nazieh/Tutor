@@ -227,7 +227,7 @@ export default function TutorClassesPage() {
         credentials: 'include',
         body: JSON.stringify({
           title: 'Instant Live Class',
-          subject: 'General',
+          subject: 'general',
           maxStudents: 50,
           duration: 60,
           scheduledAt: new Date().toISOString(),
@@ -789,7 +789,7 @@ export default function TutorClassesPage() {
                       <SelectItem value="Chemistry">Chemistry</SelectItem>
                       <SelectItem value="Biology">Biology</SelectItem>
                       <SelectItem value="English">English</SelectItem>
-                      <SelectItem value="General">General</SelectItem>
+                      <SelectItem value="general">General</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

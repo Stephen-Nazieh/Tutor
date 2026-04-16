@@ -17,7 +17,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
 import { BookOpen, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
-import { REGIONS } from '@/lib/tutoring/categories-new'
+import { REGIONS } from '@/lib/data/tutor-categories'
 import { BackButton } from '@/components/navigation'
 
 const STEPS = [

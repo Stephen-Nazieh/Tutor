@@ -450,7 +450,7 @@ export function SpacedRepetitionDashboard({
                     id: `temp-${contentId}`,
                     contentId,
                     contentTitle: contentTitle || 'Review Item',
-                    subjectName: 'General',
+                    subjectName: 'general',
                     subjectColor: '#3B82F6',
                     currentRetention: 50,
                     daysUntilDue: 0,
