@@ -662,6 +662,11 @@ export const NATIONAL_EXAMS_DATA: Record<string, ExamCategory[]> = {
 
 export const REGIONS: Region[] = [
   {
+    id: 'global',
+    name: 'Global',
+    countries: [{ code: 'GL', name: 'Global', nationalExams: [] }],
+  },
+  {
     id: 'asia',
     name: 'Asia',
     countries: [

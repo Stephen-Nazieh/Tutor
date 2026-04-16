@@ -15,7 +15,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const userId = session.user.id
   const body = await req.json().catch(() => ({}))
 
-  const countries: string[] = Array.isArray(body.countries)
+  let countries: string[] = Array.isArray(body.countries)
     ? body.countries.filter((c: unknown) => typeof c === 'string')
     : []
   const categories: string[] = Array.isArray(body.categories)
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     : []
 
   if (countries.length === 0) {
-    return NextResponse.json({ error: 'Select at least one nationality/country' }, { status: 400 })
+    countries = ['Global']
   }
   if (categories.length === 0) {
     return NextResponse.json({ error: 'Select at least one category' }, { status: 400 })
