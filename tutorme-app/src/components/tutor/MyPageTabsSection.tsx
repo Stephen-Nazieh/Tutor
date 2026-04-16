@@ -28,7 +28,7 @@ interface PublicCourse {
   id: string
   name: string
   description?: string | null
-  subject: string
+  categories?: string[] | null
 
   difficulty?: string | null
   publishedAt?: string
@@ -126,7 +126,7 @@ export function MyPageTabsSection() {
   const filteredCourses = allCourses.filter(
     course =>
       course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.subject.toLowerCase().includes(searchQuery.toLowerCase())
+      (course.categories || []).some(c => c.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
   const publishedCourses = filteredCourses.filter(c => c.isPublished)
@@ -339,7 +339,7 @@ export function MyPageTabsSection() {
                           {course.description || 'No description'}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-2">
-                          <Badge variant="outline">{course.subject}</Badge>
+                          <Badge variant="outline">{(course.categories || [])[0] || 'Untitled'}</Badge>
                           {course.difficulty && (
                             <Badge variant="outline" className="capitalize">
                               {course.difficulty}
@@ -454,7 +454,7 @@ export function MyPageTabsSection() {
                 </CardHeader>
                 <CardContent className="pt-0">
                   <div className="mb-4 flex flex-wrap gap-2">
-                    <Badge variant="outline">{course.subject}</Badge>
+                    <Badge variant="outline">{(course.categories || [])[0] || 'Untitled'}</Badge>
                     {course.difficulty && (
                       <Badge variant="outline" className="capitalize">
                         {course.difficulty}
@@ -588,7 +588,7 @@ export function MyPageTabsSection() {
                   Ask AI about this course or students
                 </p>
                 <AIChat
-                  context={`Course: ${selectedCourse.name}. Subject: ${selectedCourse.subject}.`}
+                  context={`Course: ${selectedCourse.name}. Subject: ${(selectedCourse.categories || [])[0] || 'Untitled'}.`}
                   placeholder="Ask about student performance, course insights, or recommendations..."
                 />
               </div>
@@ -665,7 +665,7 @@ export function MyPageTabsSection() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="truncate font-medium">{course.name}</span>
-                        <Badge variant="secondary">{course.subject}</Badge>
+                        <Badge variant="secondary">{(course.categories || [])[0] || 'Untitled'}</Badge>
                         <Badge
                           variant="outline"
                           className="border-amber-200 bg-amber-50 text-amber-600"
@@ -734,7 +734,7 @@ export function MyPageTabsSection() {
                     <div className="font-medium">{item.name}</div>
                     <Badge variant="outline">Closed</Badge>
                   </div>
-                  <div className="text-muted-foreground text-sm">{item.subject}</div>
+                  <div className="text-muted-foreground text-sm">{(item.categories || [])[0] || 'Untitled'}</div>
                   <div className="mt-2 text-xs text-gray-500">
                     Published: {formatDate(item.publishedAt || '')}
                   </div>

@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     const categories =
       Array.isArray(data.categories) && data.categories.length > 0
         ? data.categories
-        : [data.subject ?? 'general']
+        : []
 
     const schedule =
       Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : []

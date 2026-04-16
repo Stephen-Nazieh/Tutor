@@ -43,7 +43,7 @@ function normalizeTutorCourse(course: TutorCoursesApiCourse): CourseWithAssignme
     id: course.id,
     name: course.name,
     description: course.description ?? undefined,
-    subject: course.categories?.[0] ?? '',
+    categories: course.categories,
     isPublished: course.isPublished,
     createdAt: course.createdAt ?? '',
     updatedAt: course.updatedAt ?? '',

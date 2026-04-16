@@ -116,7 +116,7 @@ export interface CourseWithAssignments {
   id: string
   name: string
   description?: string
-  subject: string
+  categories?: string[] | null
   isPublished: boolean
   createdAt: string
   updatedAt: string

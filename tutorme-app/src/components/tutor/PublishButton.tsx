@@ -25,7 +25,7 @@ interface Course {
   id: string
   name: string | null
   description: string | null
-  subject: string | null
+  categories?: string[] | null
   price: number | null
   currency: string | null
   isPublished: boolean
@@ -196,7 +196,7 @@ export function PublishButton({
             id: course.id,
             name: course.name,
             description: course.description,
-            subject: course.subject,
+            categories: course.categories,
             price: course.price,
             currency: course.currency,
             modules: course.modules,

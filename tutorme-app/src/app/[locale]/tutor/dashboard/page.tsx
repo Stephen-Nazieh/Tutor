@@ -90,7 +90,7 @@ const defaultStats = {
 type EnrolledCourse = {
   id: string
   name: string
-  subject: string
+  categories?: string[] | null
   isPublished?: boolean | null
   price?: number | null
   currency?: string | null
@@ -386,7 +386,7 @@ function TutorDashboardContent() {
           body: JSON.stringify({
             courseId: course.id,
             title: course.name,
-            subject: course.subject,
+            subject: (course.categories || [])[0] || '',
             maxStudents: 50,
             durationMinutes: 60,
           }),
@@ -697,7 +697,7 @@ function TutorDashboardContent() {
                             )}
                           </div>
                           <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
-                            <span>{course.subject}</span>
+                            <span>{(course.categories || [])[0] || 'Untitled'}</span>
                             {course.price ? (
                               <span>
                                 • {course.currency ?? 'USD'} {course.price}

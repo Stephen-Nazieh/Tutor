@@ -51,7 +51,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 interface ClassOption {
   id: string
   title: string
-  subject: string
+  categories?: string[]
   type: 'class' | 'course'
 }
 
@@ -111,7 +111,7 @@ const MOCK_COURSES = [
     id: 'course-1',
     name: 'Advanced Mathematics - Calculus',
     description: 'Comprehensive calculus course covering limits, derivatives, and integrals',
-    subject: 'Mathematics',
+    categories: ['Mathematics'],
     publishedAt: '2024-12-15T10:00:00Z',
     sessions: 24,
     tasks: 48,
@@ -124,7 +124,7 @@ const MOCK_COURSES = [
     id: 'course-2',
     name: 'AP Physics 1 - Mechanics',
     description: 'Preparation for AP Physics 1 exam with focus on mechanics',
-    subject: 'Physics',
+    categories: ['Physics'],
     publishedAt: '2024-11-20T14:00:00Z',
     sessions: 20,
     tasks: 40,
@@ -137,7 +137,7 @@ const MOCK_COURSES = [
     id: 'course-3',
     name: 'IELTS Academic Writing',
     description: 'Intensive writing practice for IELTS Academic test',
-    subject: 'English',
+    categories: ['English'],
     publishedAt: '2024-10-05T09:00:00Z',
     sessions: 16,
     tasks: 32,
@@ -150,7 +150,7 @@ const MOCK_COURSES = [
     id: 'class-1',
     name: 'SAT Math Prep - December Intensive',
     description: 'SAT Mathematics',
-    subject: 'Mathematics',
+    categories: ['Mathematics'],
     publishedAt: '2024-12-01T08:00:00Z',
     sessions: 1,
     tasks: 12,
@@ -163,7 +163,7 @@ const MOCK_COURSES = [
     id: 'class-2',
     name: 'IB Chemistry Lab Session',
     description: 'Chemistry',
-    subject: 'Chemistry',
+    categories: ['Chemistry'],
     publishedAt: '2024-11-15T13:00:00Z',
     sessions: 1,
     tasks: 8,
@@ -290,9 +290,9 @@ export default function TutorReports() {
     setTimeout(() => {
       setStudents(mockStudents)
       setAvailableClasses([
-        { id: 'class-1', title: 'Mathematics 101', subject: 'Math', type: 'class' },
-        { id: 'course-1', title: 'Advanced Physics', subject: 'Physics', type: 'course' },
-        { id: 'class-2', title: 'English Literature', subject: 'English', type: 'class' },
+        { id: 'class-1', title: 'Mathematics 101', categories: ['Math'], type: 'class' },
+        { id: 'course-1', title: 'Advanced Physics', categories: ['Physics'], type: 'course' },
+        { id: 'class-2', title: 'English Literature', categories: ['English'], type: 'class' },
       ])
       setGlobalAttentionStudents(mockStudents.filter(s => s.cluster === 'struggling'))
       setGlobalAllStudents(mockStudents)
@@ -711,7 +711,7 @@ function CoursesAndClassesTab() {
                     </Badge>
                   </div>
                   <div className="text-muted-foreground text-sm">
-                    {course.description || course.subject}
+                    {course.description || (course.categories || [])[0] || 'Untitled'}
                   </div>
                   <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
                     <Calendar className="h-3 w-3" />

@@ -558,7 +558,7 @@ export default function CourseBuilderLayout({ children }: { children: React.Reac
       const normalizedDescription = String(course.description || '').trim()
       const payload: Record<string, unknown> = {
         title: String(course.name || 'Live Class'),
-        subject: String(course.subject || 'general'),
+        subject: (course.categories || [])[0] || '',
         courseId: course.courseId || courseId,
         maxStudents: 50,
         durationMinutes: Math.max(15, Math.min(480, durationFromCourseSchedule)),

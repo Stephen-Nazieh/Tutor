@@ -78,7 +78,7 @@ interface Course {
   id: string
   name: string
   description?: string | null
-  subject?: string | null
+  categories?: string[] | null
   isPublished: boolean
   isLiveOnline?: boolean
   studentCount?: number
@@ -310,7 +310,7 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
                       )}
                     </div>
                     <p className="mt-1 text-sm text-[#64748B]">
-                      {course.subject || 'general'} • {course.studentCount || 0} students • Updated{' '}
+                      {(course.categories || [])[0] || 'Untitled'} • {course.studentCount || 0} students • Updated{' '}
                       {new Date(course.updatedAt).toLocaleDateString()}
                     </p>
                     {activeTab === 'catalogued' && course.lastSessionDate && (
@@ -940,7 +940,7 @@ export default function TutorMyPage() {
       const csrfToken = csrfData?.token ?? null
 
       const defaultSubject = 'math'
-      const defaultCategory = selectedCategories.length > 0 ? selectedCategories[0] : 'general'
+      const defaultCategory = selectedCategories.length > 0 ? selectedCategories[0] : undefined
 
       const res = await fetch('/api/tutor/courses', {
         method: 'POST',
@@ -952,8 +952,7 @@ export default function TutorMyPage() {
         body: JSON.stringify({
           title: 'Untitled Course',
           description: '',
-          subject: defaultSubject,
-          categories: [defaultCategory],
+          categories: defaultCategory ? [defaultCategory] : [],
           schedule: [],
           isLiveOnline: false,
         }),

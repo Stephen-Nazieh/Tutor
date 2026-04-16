@@ -54,7 +54,7 @@ interface AssignedCourse {
   courseId: string
   name: string
   description: string | null
-  subject: string
+  categories?: string[] | null
   difficulty: string
   assignedAt: string
 }
@@ -198,7 +198,7 @@ export default function GroupBuilderPage() {
             id: c.id,
             name: c.name,
             description: c.description,
-            subject: c.subject,
+            categories: c.categories,
             difficulty: c.difficulty,
             stats: {
               moduleCount: c._count?.modules || 0,
@@ -353,7 +353,7 @@ export default function GroupBuilderPage() {
               courseId: course.id,
               name: course.name,
               description: course.description || null,
-              subject: course.subject,
+              categories: course.categories,
               difficulty: (course as any).difficulty || 'beginner',
               assignedAt: new Date().toISOString(),
             },
@@ -697,7 +697,7 @@ export default function GroupBuilderPage() {
                               {course.description || 'No description'}
                             </p>
                             <div className="text-muted-foreground mt-1 flex items-center gap-4 text-xs">
-                              <span>Subject: {course.subject}</span>
+                              <span>Subject: {(course.categories || [])[0] || 'Untitled'}</span>
                               <span>
                                 Assigned: {new Date(course.assignedAt).toLocaleDateString()}
                               </span>

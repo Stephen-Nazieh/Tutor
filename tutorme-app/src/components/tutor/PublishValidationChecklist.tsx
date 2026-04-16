@@ -12,7 +12,7 @@ interface Course {
   id: string
   name: string | null
   description: string | null
-  subject: string | null
+  categories?: string[] | null
   price: number | null
   currency: string | null
   modules: CourseModule[]
@@ -33,9 +33,9 @@ const validations: ValidationItem[] = [
     required: true,
   },
   {
-    id: 'subject',
-    label: 'Subject is selected',
-    check: c => !!c.subject,
+    id: 'categories',
+    label: 'At least one category is selected',
+    check: c => Array.isArray(c.categories) && c.categories.length > 0,
     required: true,
   },
   {

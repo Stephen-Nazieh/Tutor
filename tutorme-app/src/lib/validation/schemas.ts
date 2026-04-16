@@ -202,7 +202,6 @@ const ScheduleItemSchema = z.object({
 export const CreateCourseSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(2000).optional(),
-  subject: z.string().min(1).optional(),
   difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
   estimatedHours: z.number().min(0).max(1000).optional(),
   isLiveOnline: z.boolean().optional(),
