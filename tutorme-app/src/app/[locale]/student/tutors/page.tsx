@@ -62,6 +62,7 @@ interface TutorDirectoryItem {
   courseCount: number
   totalEnrollments: number
   categories: string[]
+  tutorNationalities?: string[]
   latestCourseUpdatedAt: string | null
   coursePreview: TutorCoursePreview[]
   averageRating?: number
@@ -102,8 +103,10 @@ export default function StudentTutorDirectoryPage() {
   const [loading, setLoading] = useState(true)
   const [tutors, setTutors] = useState<TutorDirectoryItem[]>([])
   const [categories, setCategories] = useState<string[]>([])
+  const [nationalities, setNationalities] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [nationalityFilter, setNationalityFilter] = useState('all')
   const [sortBy, setSortBy] = useState<'popular' | 'newest' | 'courses' | 'rate'>('popular')
   const [activeTutor, setActiveTutor] = useState<TutorDirectoryItem | null>(null)
   const [dataSource, setDataSource] = useState<'db' | 'mock'>('db')
@@ -189,6 +192,7 @@ export default function StudentTutorDirectoryPage() {
         const qs = new URLSearchParams()
         if (searchQuery.trim()) qs.set('q', searchQuery.trim())
         if (categoryFilter !== 'all') qs.set('subject', categoryFilter)
+        if (nationalityFilter !== 'all') qs.set('nationality', nationalityFilter)
         qs.set('sort', sortBy)
 
         const res = await fetch(`/api/public/tutors?${qs.toString()}`, {
@@ -204,6 +208,7 @@ export default function StudentTutorDirectoryPage() {
 
         setTutors(enrichedTutors)
         setCategories(Array.isArray(data?.availableCategories) ? data.availableCategories : [])
+        setNationalities(Array.isArray(data?.availableNationalities) ? data.availableNationalities : [])
         setDataSource(data?.source === 'mock' ? 'mock' : 'db')
       } catch {
         if (!active) return
@@ -218,7 +223,7 @@ export default function StudentTutorDirectoryPage() {
     return () => {
       active = false
     }
-  }, [searchQuery, categoryFilter, sortBy])
+  }, [searchQuery, categoryFilter, nationalityFilter, sortBy])
 
   const headlineMetrics = useMemo(() => {
     const totalCourses = tutors.reduce((sum, tutor) => sum + tutor.courseCount, 0)
@@ -318,11 +323,11 @@ export default function StudentTutorDirectoryPage() {
         <CardHeader>
           <CardTitle className="text-foreground">Search & Filter</CardTitle>
           <CardDescription>
-            Refine by keywords, subject, and ranking.
+            Refine by keywords, subject, country, and ranking.
             {dataSource === 'mock' ? ' Showing demo tutors right now.' : ''}
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-3">
+        <CardContent className="grid gap-3 md:grid-cols-4">
           <div className="relative">
             <Search className="text-muted-foreground pointer-events-none absolute left-3 top-3.5 h-4 w-4" />
             <Input
@@ -341,6 +346,19 @@ export default function StudentTutorDirectoryPage() {
               {categories.map(category => (
                 <SelectItem key={category} value={category.toLowerCase()}>
                   {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={nationalityFilter} onValueChange={setNationalityFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by country" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Countries</SelectItem>
+              {nationalities.map(nat => (
+                <SelectItem key={nat} value={nat.toLowerCase()}>
+                  {nat}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -380,7 +398,7 @@ export default function StudentTutorDirectoryPage() {
                 No tutors match your current filters
               </CardTitle>
               <CardDescription>
-                Try broadening search terms or selecting a different subject.
+                Try broadening search terms or selecting a different subject or country.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -441,6 +459,20 @@ export default function StudentTutorDirectoryPage() {
                     </Badge>
                   ) : null}
                 </div>
+                {(tutor.tutorNationalities || []).length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {(tutor.tutorNationalities || []).slice(0, 3).map(nat => (
+                      <Badge key={`${tutor.id}:nat:${nat}`} variant="outline" className="border-border">
+                        {nat}
+                      </Badge>
+                    ))}
+                    {(tutor.tutorNationalities || []).length > 3 && (
+                      <Badge variant="outline" className="border-border">
+                        +{(tutor.tutorNationalities || []).length - 3}
+                      </Badge>
+                    )}
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="border-border bg-muted/30 rounded-md border p-2">
                     <p className="text-muted-foreground">Courses</p>
@@ -546,6 +578,23 @@ export default function StudentTutorDirectoryPage() {
                     ))}
                   </div>
                 </div>
+
+                {(activeTutor.tutorNationalities || []).length > 0 && (
+                  <div>
+                    <p className="text-foreground mb-2 text-sm font-medium">Countries</p>
+                    <div className="flex flex-wrap gap-2">
+                      {activeTutor.tutorNationalities?.map(nat => (
+                        <Badge
+                          key={`${activeTutor.id}:nat:${nat}`}
+                          variant="outline"
+                          className="border-border"
+                        >
+                          {nat}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-3">
                   <p className="text-foreground text-sm font-medium">Categories & Courses</p>
