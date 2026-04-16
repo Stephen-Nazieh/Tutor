@@ -13,6 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, Globe, DollarSign, Calendar, Languages } from 'lucide-react'
 import { toast } from 'sonner'
@@ -62,8 +69,9 @@ export function VariantManager({
   const [globalPrice, setGlobalPrice] = useState<string>(defaultPrice != null ? String(defaultPrice) : '')
   const [globalCurrency, setGlobalCurrency] = useState(defaultCurrency || 'USD')
   const [globalLanguage, setGlobalLanguage] = useState(defaultLanguage || 'English')
-  const [globalSchedule, setGlobalSchedule] = useState<ScheduleItem[]>(defaultSchedule || [])
   const [variants, setVariants] = useState<VariantConfig[]>([])
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
+  const [scheduleDialogIndex, setScheduleDialogIndex] = useState<number | null>(null)
 
   // Load existing variants on mount
   useEffect(() => {
@@ -96,8 +104,7 @@ export function VariantManager({
     setGlobalPrice(defaultPrice != null ? String(defaultPrice) : '')
     setGlobalCurrency(defaultCurrency || 'USD')
     setGlobalLanguage(defaultLanguage || 'English')
-    setGlobalSchedule(defaultSchedule || [])
-  }, [defaultPrice, defaultCurrency, defaultLanguage, defaultSchedule])
+  }, [defaultPrice, defaultCurrency, defaultLanguage])
 
   // Compute the desired variant keys from current selections
   const desiredKeys = useMemo(() => {
@@ -112,11 +119,12 @@ export function VariantManager({
     return keys
   }, [selectedCategories, selectedCountryCodes])
 
-  // Auto-add missing variants from selections; keep existing configs for already-known keys
+  // Sync variants with desired keys: add missing, remove extras
   useEffect(() => {
     setVariants(prev => {
       const map = new Map(prev.map(v => [`${v.category}|${v.nationality}`, v]))
       let changed = false
+      // Add missing
       for (const key of desiredKeys) {
         if (!map.has(key)) {
           const [category, nationality] = key.split('|')
@@ -127,8 +135,15 @@ export function VariantManager({
             price: globalPrice ? parseFloat(globalPrice) : null,
             currency: globalCurrency,
             languageOfInstruction: globalLanguage,
-            schedule: [...globalSchedule],
+            schedule: [...defaultSchedule],
           })
+          changed = true
+        }
+      }
+      // Remove extras
+      for (const key of map.keys()) {
+        if (!desiredKeys.has(key)) {
+          map.delete(key)
           changed = true
         }
       }
@@ -137,7 +152,7 @@ export function VariantManager({
         `${a.category} - ${a.nationality}`.localeCompare(`${b.category} - ${b.nationality}`)
       )
     })
-  }, [desiredKeys, globalPrice, globalCurrency, globalLanguage, globalSchedule])
+  }, [desiredKeys, globalPrice, globalCurrency, globalLanguage, defaultSchedule])
 
   const applyGlobalsToAll = useCallback(() => {
     const price = globalPrice ? parseFloat(globalPrice) : null
@@ -147,11 +162,10 @@ export function VariantManager({
         price,
         currency: globalCurrency,
         languageOfInstruction: globalLanguage,
-        schedule: [...globalSchedule],
       }))
     )
     toast.success('Global defaults applied to all variants')
-  }, [globalPrice, globalCurrency, globalLanguage, globalSchedule])
+  }, [globalPrice, globalCurrency, globalLanguage])
 
   const updateVariant = useCallback(
     (index: number, updater: (v: VariantConfig) => VariantConfig) => {
@@ -163,6 +177,16 @@ export function VariantManager({
     },
     []
   )
+
+  const openScheduleDialog = (index: number) => {
+    setScheduleDialogIndex(index)
+    setScheduleDialogOpen(true)
+  }
+
+  const closeScheduleDialog = () => {
+    setScheduleDialogOpen(false)
+    setScheduleDialogIndex(null)
+  }
 
   const handleSave = async () => {
     if (variants.length === 0) {
@@ -220,6 +244,8 @@ export function VariantManager({
     )
   }
 
+  const dialogVariant = scheduleDialogIndex != null ? variants[scheduleDialogIndex] : null
+
   return (
     <div className="space-y-6">
       {/* Global Defaults */}
@@ -230,7 +256,7 @@ export function VariantManager({
             Global Defaults
           </CardTitle>
           <CardDescription>
-            Set default price, currency, language, and schedule for all variants.
+            Set default price, currency, and language for all variants.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -280,12 +306,6 @@ export function VariantManager({
               </Button>
             </div>
           </div>
-
-          <CourseScheduleCard
-            schedule={globalSchedule}
-            onScheduleChange={setGlobalSchedule}
-            subtitle="global default"
-          />
         </CardContent>
       </Card>
 
@@ -391,13 +411,22 @@ export function VariantManager({
                 </div>
               </div>
 
-              <CourseScheduleCard
-                schedule={variant.schedule}
-                onScheduleChange={updater =>
-                  updateVariant(index, v => ({ ...v, schedule: updater(v.schedule) }))
-                }
-                subtitle={`${variant.category} - ${variant.nationality}`}
-              />
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">Schedule</p>
+                    <p className="text-xs text-muted-foreground">
+                      {variant.schedule.length > 0
+                        ? `${variant.schedule.length} slot${variant.schedule.length === 1 ? '' : 's'} configured`
+                        : 'No slots configured'}
+                    </p>
+                  </div>
+                </div>
+                <Button type="button" variant="outline" onClick={() => openScheduleDialog(index)}>
+                  {variant.schedule.length > 0 ? 'Edit Schedule' : 'Add Class Slot'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -415,6 +444,36 @@ export function VariantManager({
           {saving ? 'Saving…' : `Save & Publish Variants (${publishedCount})`}
         </Button>
       </div>
+
+      {/* Schedule Dialog */}
+      <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Schedule</DialogTitle>
+            <DialogDescription>
+              {dialogVariant
+                ? `Configure schedule for ${dialogVariant.category} - ${dialogVariant.nationality}`
+                : 'Configure schedule'}
+            </DialogDescription>
+          </DialogHeader>
+          {dialogVariant && scheduleDialogIndex != null && (
+            <div className="py-2">
+              <CourseScheduleCard
+                schedule={dialogVariant.schedule}
+                onScheduleChange={updater =>
+                  updateVariant(scheduleDialogIndex, v => ({ ...v, schedule: updater(v.schedule) }))
+                }
+                subtitle={`${dialogVariant.category} - ${dialogVariant.nationality}`}
+              />
+              <div className="mt-4 flex justify-end">
+                <Button type="button" onClick={closeScheduleDialog}>
+                  Done
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
