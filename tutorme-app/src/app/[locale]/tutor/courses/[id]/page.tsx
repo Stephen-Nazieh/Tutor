@@ -68,6 +68,7 @@ import {
   type CountryData,
   type ExamCategory,
 } from '@/lib/data/tutor-categories'
+import { VariantManager } from './components/VariantManager'
 
 // Flatten all categories into a single list
 const ALL_CATEGORIES = [
@@ -1477,69 +1478,35 @@ export default function TutorCoursePage() {
           </CardContent>
         </Card>
 
+        {/* Variant Manager */}
+        <Card className="border-2 border-gray-400 shadow-sm">
+          <CardHeader>
+            <CardTitle>Publish Variants</CardTitle>
+            <CardDescription>
+              Configure and publish course variants for each category and country combination.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <VariantManager
+              templateCourseId={id}
+              selectedCategories={selectedCategories}
+              selectedCountryCodes={selectedCountries.length > 0 ? selectedCountries : ['GL']}
+              defaultPrice={price === '' ? null : Number(price)}
+              defaultCurrency="USD"
+              defaultLanguage={languageOfInstruction || 'English'}
+              defaultSchedule={schedule}
+              onSaved={() => {
+                // Optionally refresh course data after variants are saved
+              }}
+            />
+          </CardContent>
+        </Card>
+
         {/* Bottom Actions */}
         <div className="flex justify-end gap-3">
           <Button size="sm" variant="outline" onClick={handleSaveAll} disabled={saving}>
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {saving ? 'Saving…' : 'Save'}
-          </Button>
-          <Button
-            size="sm"
-            onClick={async () => {
-              // Save first, then publish with variants
-              const saveSuccess = await handleSaveAll()
-              if (!saveSuccess) return
-
-              if (selectedCountries.length === 0) {
-                toast.error('Select at least one country/nationality before publishing')
-                return
-              }
-              if (selectedCategories.length === 0) {
-                toast.error('Select at least one category before publishing')
-                return
-              }
-
-              // Map country codes to names
-              const selectedCountryNames = selectedCountries
-                .map(code => {
-                  const c = REGIONS.flatMap(r => r.countries).find(ctry => ctry.code === code)
-                  return c?.name || code
-                })
-                .filter(Boolean)
-
-              try {
-                const csrf = await getCsrf()
-                const res = await fetch(`/api/tutor/courses/${id}/publish`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    ...(csrf && { 'X-CSRF-Token': csrf }),
-                  },
-                  credentials: 'include',
-                  body: JSON.stringify({
-                    countries: selectedCountryNames,
-                    categories: selectedCategories,
-                  }),
-                })
-                if (res.ok) {
-                  const data = await res.json()
-                  toast.success(
-                    `Published ${data.publishedCount} course variant${data.publishedCount === 1 ? '' : 's'} successfully!`
-                  )
-                  router.push('/tutor/dashboard')
-                } else {
-                  const data = await res.json().catch(() => null)
-                  toast.error(data?.error || 'Failed to publish course')
-                }
-              } catch (err) {
-                console.error('[Publish] Error:', err)
-                toast.error('Failed to publish course')
-              }
-            }}
-            disabled={saving || !id}
-            className="bg-[#F17623] hover:bg-[#e06613]"
-          >
-            Publish
+            {saving ? 'Saving…' : 'Save Template'}
           </Button>
         </div>
       </div>
