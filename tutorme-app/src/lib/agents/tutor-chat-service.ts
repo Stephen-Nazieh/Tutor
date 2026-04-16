@@ -41,7 +41,7 @@ function sanitizeChatHistory(chatHistory: Array<{ role?: string; content?: strin
 /**
  * Canonical tutor chat entrypoint for API routes and UI features.
  * Lives under `lib/agents` so "AI agent" features share one orchestration boundary.
- * 
+ *
  * NOTE: AI Tutor enrollment/subscription tables have been removed.
  * This function now uses a simplified flow without database checks.
  */

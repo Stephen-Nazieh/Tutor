@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, user, profile } from '@/lib/db/schema'
+import { course, user, profile, courseVariant } from '@/lib/db/schema'
 import { eq, and, inArray, sql } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
@@ -82,20 +82,45 @@ export async function GET(request: NextRequest) {
         username: profile.username,
         bio: profile.bio,
         avatarUrl: profile.avatarUrl,
-        specialties: profile.specialties,
         hourlyRate: profile.hourlyRate,
         oneOnOneEnabled: profile.oneOnOneEnabled,
-        tutorNationalities: profile.tutorNationalities,
-        categoryNationalityCombinations: profile.categoryNationalityCombinations,
       })
       .from(profile)
       .where(inArray(profile.userId, validTutorIds))
+
+    // Get course variants for all published courses
+    const publishedCourseIds = publishedCourses.map(c => c.courseId)
+    const variants = publishedCourseIds.length > 0
+      ? await drizzleDb
+          .select({
+            publishedCourseId: courseVariant.publishedCourseId,
+            nationality: courseVariant.nationality,
+            category: courseVariant.category,
+          })
+          .from(courseVariant)
+          .where(inArray(courseVariant.publishedCourseId, publishedCourseIds))
+      : []
+
+    // Build map: courseId -> variants
+    const variantsByCourseId = new Map<string, { nationality: string; category: string }[]>()
+    for (const v of variants) {
+      const list = variantsByCourseId.get(v.publishedCourseId) || []
+      list.push(v)
+      variantsByCourseId.set(v.publishedCourseId, list)
+    }
 
     // Build tutor map with their courses
     const tutorMap = new Map()
 
     for (const profileData of tutorProfiles) {
       const tutorCourses = publishedCourses.filter(c => c.creatorId === profileData.userId)
+
+      // Gather variants for this tutor's courses
+      const tutorVariants = tutorCourses.flatMap(
+        c => variantsByCourseId.get(c.courseId) || []
+      )
+      const tutorCombinations = [...new Set(tutorVariants.map(v => `${v.category} - ${v.nationality}`))]
+      const tutorNationalities = [...new Set(tutorVariants.map(v => v.nationality))]
 
       // Apply category filter if specified
       if (categoryFilter && categoryFilter !== 'all') {
@@ -107,8 +132,7 @@ export async function GET(request: NextRequest) {
 
       // Apply combination filter (e.g., "IELTS - Korea") if specified
       if (combinationFilter && combinationFilter !== 'all') {
-        const combinations = profileData.categoryNationalityCombinations || []
-        const hasMatchingCombination = combinations.some((combo: string) =>
+        const hasMatchingCombination = tutorCombinations.some((combo: string) =>
           combo.toLowerCase().includes(combinationFilter)
         )
         if (!hasMatchingCombination) continue
@@ -116,8 +140,7 @@ export async function GET(request: NextRequest) {
 
       // Apply nationality filter if specified
       if (nationalityFilter && nationalityFilter !== 'all') {
-        const nationalities = profileData.tutorNationalities || []
-        const hasMatchingNationality = nationalities.some((nat: string) =>
+        const hasMatchingNationality = tutorNationalities.some((nat: string) =>
           nat.toLowerCase().includes(nationalityFilter)
         )
         if (!hasMatchingNationality) continue
@@ -133,8 +156,7 @@ export async function GET(request: NextRequest) {
               c.name?.toLowerCase().includes(searchQuery) ||
               c.categories?.some((cat: string) => cat.toLowerCase().includes(searchQuery))
           ) ||
-          // Also search in combinations
-          (profileData.categoryNationalityCombinations || []).some((combo: string) =>
+          tutorCombinations.some((combo: string) =>
             combo.toLowerCase().includes(searchQuery)
           )
         if (!matchesSearch) continue
@@ -153,11 +175,11 @@ export async function GET(request: NextRequest) {
         username: profileData.username || profileData.userId.slice(0, 8),
         bio: profileData.bio || 'Experienced tutor ready to help you improve quickly.',
         avatarUrl: profileData.avatarUrl,
-        specialties: profileData.specialties || [],
+        specialties: categories,
         hourlyRate: profileData.hourlyRate,
         oneOnOneEnabled: profileData.oneOnOneEnabled ?? true, // Default to true if not set
-        tutorNationalities: profileData.tutorNationalities || [],
-        categoryNationalityCombinations: profileData.categoryNationalityCombinations || [],
+        tutorNationalities,
+        categoryNationalityCombinations: tutorCombinations,
         courseCount: tutorCourses.length,
         totalEnrollments,
         categories,
@@ -215,15 +237,13 @@ export async function GET(request: NextRequest) {
       Boolean
     )
 
-    // Get all unique combinations from all tutor profiles
-    const allCombinations = [
-      ...new Set(tutorProfiles.flatMap(p => p.categoryNationalityCombinations || [])),
-    ].filter(Boolean)
+    // Get all unique combinations from course variants
+    const allCombinations = [...new Set(variants.map(v => `${v.category} - ${v.nationality}`))].filter(
+      Boolean
+    )
 
-    // Get all unique tutor nationalities
-    const allTutorNationalities = [
-      ...new Set(tutorProfiles.flatMap(p => p.tutorNationalities || [])),
-    ].filter(Boolean)
+    // Get all unique tutor nationalities from course variants
+    const allTutorNationalities = [...new Set(variants.map(v => v.nationality))].filter(Boolean)
 
     return NextResponse.json({
       tutors,

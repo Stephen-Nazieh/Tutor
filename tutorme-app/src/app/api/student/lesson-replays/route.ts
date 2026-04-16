@@ -38,10 +38,7 @@ export async function GET(_req: NextRequest) {
       .select()
       .from(liveSession)
       .where(
-        and(
-          inArray(liveSession.sessionId, sessionIds),
-          inArray(liveSession.status, ['ended'])
-        )
+        and(inArray(liveSession.sessionId, sessionIds), inArray(liveSession.status, ['ended']))
       )
       .orderBy(desc(liveSession.endedAt))
       .limit(30)

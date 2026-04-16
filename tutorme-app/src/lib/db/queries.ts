@@ -35,7 +35,6 @@ export async function getUserById(userId: string) {
               subjectsOfInterest: profileRow.subjectsOfInterest,
               isOnboarded: profileRow.isOnboarded,
               hourlyRate: profileRow.hourlyRate,
-              specialties: profileRow.specialties,
             }
           : null,
       }

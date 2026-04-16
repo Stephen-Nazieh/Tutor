@@ -85,13 +85,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
       // Delete existing published courses (variants) and their lessons
       if (existingPublishedIds.length > 0) {
-        await tx
-          .delete(courseLesson)
-          .where(inArray(courseLesson.courseId, existingPublishedIds))
+        await tx.delete(courseLesson).where(inArray(courseLesson.courseId, existingPublishedIds))
         await tx.delete(course).where(inArray(course.courseId, existingPublishedIds))
-        await tx
-          .delete(courseVariant)
-          .where(eq(courseVariant.templateCourseId, templateCourseId))
+        await tx.delete(courseVariant).where(eq(courseVariant.templateCourseId, templateCourseId))
       }
 
       // Create a published course for each (category × country) combination

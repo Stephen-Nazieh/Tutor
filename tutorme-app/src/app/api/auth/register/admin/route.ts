@@ -92,7 +92,6 @@ export async function POST(request: NextRequest) {
         preferredLanguages: [],
         learningGoals: [],
         isOnboarded: true,
-        specialties: [],
         paidClassesEnabled: false,
         createdAt: now,
         updatedAt: now,

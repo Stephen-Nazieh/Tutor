@@ -24,7 +24,9 @@ export const GET = withAuth(
 
     const whereConditions = [eq(payout.tutorId, tutorId)]
     if (status && ['PENDING', 'PROCESSING', 'COMPLETED', 'REJECTED'].includes(status)) {
-      whereConditions.push(eq(payout.status, status as 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'REJECTED'))
+      whereConditions.push(
+        eq(payout.status, status as 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'REJECTED')
+      )
     }
 
     const [payouts, totalCountResult] = await Promise.all([

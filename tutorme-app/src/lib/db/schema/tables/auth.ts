@@ -88,21 +88,13 @@ export const profile = pgTable(
     isOnboarded: boolean('isOnboarded').notNull().default(false),
     hourlyRate: doublePrecision('hourlyRate'),
     oneOnOneEnabled: boolean('oneOnOneEnabled'),
-    specialties: text('specialties').array().notNull().default([]),
     credentials: text('credentials'),
     availability: jsonb('availability').default({}),
     paidClassesEnabled: boolean('paidClassesEnabled').notNull().default(false),
     paymentGatewayPreference: text('paymentGatewayPreference'),
     currency: text('currency'),
-    // New fields for nationality and country of residence
     nationality: text('nationality'),
     countryOfResidence: text('countryOfResidence'),
-    // Fields for tutor search combinations (e.g., "IELTS - Korea", "TOEFL - Hong Kong")
-    tutorNationalities: text('tutorNationalities').array().notNull().default([]),
-    categoryNationalityCombinations: text('categoryNationalityCombinations')
-      .array()
-      .notNull()
-      .default([]),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
@@ -123,13 +115,6 @@ export const profile = pgTable(
       'gin',
       table.preferredLanguages
     ),
-    Profile_tutorNationalities_idx: index('Profile_tutorNationalities_idx').using(
-      'gin',
-      table.tutorNationalities
-    ),
-    Profile_categoryNationalityCombinations_idx: index(
-      'Profile_categoryNationalityCombinations_idx'
-    ).using('gin', table.categoryNationalityCombinations),
   })
 )
 
@@ -154,9 +139,6 @@ export const tutorApplication = pgTable(
     certificateSubjects: text('certificateSubjects'),
     tutoringExperienceRange: text('tutoringExperienceRange').notNull(),
     globalExams: jsonb('globalExams').notNull().default([]),
-    tutoringCountries: text('tutoringCountries').array().notNull().default([]),
-    countrySubjectSelections: jsonb('countrySubjectSelections').notNull().default({}),
-    categories: text('categories').array().notNull().default([]),
     username: text('username').notNull(),
     socialLinks: jsonb('socialLinks').default({}),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),

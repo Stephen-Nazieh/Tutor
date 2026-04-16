@@ -41,12 +41,7 @@ interface StudentListProps {
   // onInviteToBreakout removed - feature deleted
 }
 
-export function StudentList({
-  students,
-  onCallOn,
-  onPushHint,
-  onSendNudge,
-}: StudentListProps) {
+export function StudentList({ students, onCallOn, onPushHint, onSendNudge }: StudentListProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'online' | 'away' | 'hand-raised'>('all')
 

@@ -118,7 +118,6 @@ async function seedAdminSystem() {
           learningGoals: [],
           tosAccepted: true,
           isOnboarded: true,
-          specialties: [],
           paidClassesEnabled: false,
           createdAt: now,
           updatedAt: now,

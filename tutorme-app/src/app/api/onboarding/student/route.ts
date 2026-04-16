@@ -43,7 +43,6 @@ async function postHandler(req: NextRequest, session: Session) {
         learningGoals: [],
         tosAccepted: true,
         isOnboarded: true,
-        specialties: [],
         paidClassesEnabled: false,
       })
       .onConflictDoUpdate({

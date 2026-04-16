@@ -14,7 +14,6 @@ export const GET = withAuth(async (req, session) => {
       handle: user.handle,
       avatarUrl: profile.avatarUrl,
       bio: profile.bio,
-      specialties: profile.specialties,
     })
     .from(tutorFollow)
     .innerJoin(user, eq(tutorFollow.tutorId, user.userId))

@@ -120,9 +120,7 @@ export const POST = withCsrf(
           updatedAt: now,
         }
 
-        await drizzleDb
-          .insert(course)
-          .values(courseValues as typeof course.$inferInsert)
+        await drizzleDb.insert(course).values(courseValues as typeof course.$inferInsert)
         await createDefaultLessons(courseId, subjectCode)
       }
 

@@ -132,9 +132,8 @@ export async function POST(req: NextRequest) {
             : [data.subject ?? 'general']
 
         // Ensure schedule is a proper array for jsonb
-        const schedule = Array.isArray(data.schedule) && data.schedule.length > 0
-          ? data.schedule
-          : []
+        const schedule =
+          Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : []
 
         // Build insert values object with all required defaults
         // Only include columns known to exist in production DB
@@ -159,19 +158,16 @@ export async function POST(req: NextRequest) {
         console.log('[Course Create] Insert values:', JSON.stringify(insertValues, null, 2))
 
         // Insert course — only return columns known to exist in production DB
-        const [newCourse] = await tx
-          .insert(courseTable)
-          .values(insertValues)
-          .returning({
-            courseId: courseTable.courseId,
-            name: courseTable.name,
-            description: courseTable.description,
-            categories: courseTable.categories,
-            isPublished: courseTable.isPublished,
-            isLiveOnline: courseTable.isLiveOnline,
-            createdAt: courseTable.createdAt,
-            updatedAt: courseTable.updatedAt,
-          })
+        const [newCourse] = await tx.insert(courseTable).values(insertValues).returning({
+          courseId: courseTable.courseId,
+          name: courseTable.name,
+          description: courseTable.description,
+          categories: courseTable.categories,
+          isPublished: courseTable.isPublished,
+          isLiveOnline: courseTable.isLiveOnline,
+          createdAt: courseTable.createdAt,
+          updatedAt: courseTable.updatedAt,
+        })
 
         // Create a default lesson for each course
         await tx.insert(courseLesson).values({
@@ -253,25 +249,25 @@ export async function POST(req: NextRequest) {
     }
 
     // Extract more details from database errors (prefer underlying pg error)
-    const dbError = rootError as { 
-      message?: string; 
-      code?: string; 
-      detail?: string; 
-      hint?: string;
-      table?: string;
-      column?: string;
-      constraint?: string;
-      severity?: string;
-      stack?: string;
+    const dbError = rootError as {
+      message?: string
+      code?: string
+      detail?: string
+      hint?: string
+      table?: string
+      column?: string
+      constraint?: string
+      severity?: string
+      stack?: string
     }
-    
+
     const errorMessage = dbError.message || (error as Error)?.message || 'Failed to create course'
     const errorCode = dbError.code || 'UNKNOWN'
     const errorDetail = dbError.detail || ''
 
     return NextResponse.json(
-      { 
-        error: errorMessage, 
+      {
+        error: errorMessage,
         code: errorCode,
         detail: errorDetail,
         pgHint: dbError.hint,
@@ -280,9 +276,10 @@ export async function POST(req: NextRequest) {
         pgConstraint: dbError.constraint,
         pgSeverity: dbError.severity,
         fullError: JSON.stringify(error, Object.getOwnPropertyNames(error)),
-        fullCause: rootError && rootError !== error
-          ? JSON.stringify(rootError, Object.getOwnPropertyNames(rootError))
-          : null,
+        fullCause:
+          rootError && rootError !== error
+            ? JSON.stringify(rootError, Object.getOwnPropertyNames(rootError))
+            : null,
       },
       { status: 500 }
     )

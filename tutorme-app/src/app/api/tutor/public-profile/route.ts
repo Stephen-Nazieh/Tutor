@@ -52,7 +52,6 @@ export const GET = withAuth(
         username: profile.username,
         bio: profile.bio,
         avatarUrl: profile.avatarUrl,
-        specialties: profile.specialties,
         credentials: profile.credentials,
         hourlyRate: profile.hourlyRate,
         createdAt: profile.createdAt,
@@ -64,7 +63,6 @@ export const GET = withAuth(
     const [application] = await drizzleDb
       .select({
         countryOfResidence: tutorApplication.countryOfResidence,
-        categories: tutorApplication.categories,
         socialLinks: tutorApplication.socialLinks,
         createdAt: tutorApplication.createdAt,
       })
@@ -86,9 +84,7 @@ export const GET = withAuth(
       .limit(50)
 
     // Derive specialties from published course categories
-    const derivedSpecialties = Array.from(
-      new Set(courses.flatMap(c => c.categories || []))
-    )
+    const derivedSpecialties = Array.from(new Set(courses.flatMap(c => c.categories || [])))
 
     return NextResponse.json({
       profile: {
@@ -96,12 +92,12 @@ export const GET = withAuth(
         username: prof?.username ?? null,
         bio: prof?.bio ?? '',
         avatarUrl: prof?.avatarUrl ?? null,
-        specialties: derivedSpecialties.length > 0 ? derivedSpecialties : prof?.specialties ?? [],
+        specialties: derivedSpecialties,
         credentials: prof?.credentials ?? '',
         hourlyRate: prof?.hourlyRate ?? null,
         createdAt: application?.createdAt ?? prof?.createdAt ?? null,
         country: application?.countryOfResidence ?? null,
-        categories: application?.categories ?? [],
+        categories: derivedSpecialties,
         socialLinks: application?.socialLinks ?? null,
         activeCourses: courses.length,
       },

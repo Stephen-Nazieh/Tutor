@@ -509,7 +509,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
 
   // BREAKOUT ROOMS FEATURE REMOVED - All breakout room handler functions deleted:
   // - handleInviteToBreakout
-  // - handleAssignToRoom  
+  // - handleAssignToRoom
   // - handleRemoveFromRoom
   // - handleJoinRoom
   // - handleCloseBreakoutModal
@@ -841,9 +841,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
               </Card>
 
               {/* AI Teaching Assistant - Top Priority */}
-              <div className="min-h-0">
-                {/* AI TEACHING ASSISTANT FEATURE REMOVED */}
-              </div>
+              <div className="min-h-0">{/* AI TEACHING ASSISTANT FEATURE REMOVED */}</div>
 
               {/* Hand Raise Queue */}
               <div className="min-h-0 flex-1">

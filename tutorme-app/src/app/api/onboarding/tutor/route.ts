@@ -17,19 +17,13 @@ async function postHandler(req: NextRequest, session: Session) {
 
   try {
     const body = await req.json().catch(() => ({}))
-    const { bio, specialties, hourlyRate } = body
+    const { bio, hourlyRate } = body
     const safeBio = bio !== undefined ? sanitizeHtmlWithMax(String(bio), 2000) : undefined
-    const safeSpecialties = Array.isArray(specialties)
-      ? specialties
-          .map((s: unknown) => sanitizeHtml(String(s)).trim().slice(0, 100))
-          .filter(Boolean)
-      : []
 
     await drizzleDb
       .update(profileTable)
       .set({
         ...(safeBio !== undefined && { bio: safeBio }),
-        specialties: safeSpecialties,
         hourlyRate: typeof hourlyRate === 'number' ? hourlyRate : null,
         isOnboarded: true,
       })

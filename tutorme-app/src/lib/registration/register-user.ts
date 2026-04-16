@@ -371,7 +371,6 @@ export async function performRegistration(
         .update(profile)
         .set({
           credentials: credentialParts.join(' | ').slice(0, 2000) || null,
-          specialties: tutorData.categories,
           hourlyRate: typeof tutorData.hourlyRate === 'number' ? tutorData.hourlyRate : null,
           countryOfResidence: tutorData.countryOfResidence || null,
           isOnboarded: false,
