@@ -135,6 +135,8 @@ export const CreateRoomSchema = z.object({
   subject: z.string().min(2, 'Subject must be at least 2 characters').max(50),
   description: z.string().max(1000).optional(),
   courseId: cuidOrUuid.optional(),
+  variantId: cuidOrUuid.optional(),
+  lessonId: cuidOrUuid.optional(),
   scheduledAt: z.string().datetime('Invalid scheduled date/time').optional(),
   maxStudents: z.number().int().min(1).max(500).default(50),
   durationMinutes: z.number().int().min(15).max(480).default(120),

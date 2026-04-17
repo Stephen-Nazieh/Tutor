@@ -16,10 +16,12 @@ import {
   profile,
   course,
   sessionReplayArtifact,
+  courseLessonProgress,
 } from '@/lib/db/schema'
 import { eq, and, asc, desc, sql } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { generateSessionSummary } from '@/lib/chat/summary'
+import { dailyProvider } from '@/lib/video/daily-provider'
 
 function buildTranscript(
   messages: Array<{
@@ -165,6 +167,13 @@ export const GET = withAuth(
     const linkedCourse = exactNameMatch || containsMatch || subjectSingleton || null
     const deterministicLinkedCourseId = liveSessionRow.courseId || linkedCourse?.id || null
 
+    const token = liveSessionRow.roomId
+      ? await dailyProvider.createMeetingToken(liveSessionRow.roomId, tutorId, {
+          isOwner: true,
+          durationMinutes: 240,
+        })
+      : null
+
     return NextResponse.json({
       session: {
         id: liveSessionRow.sessionId,
@@ -173,10 +182,15 @@ export const GET = withAuth(
         status: liveSessionRow.status,
         roomId: liveSessionRow.roomId,
         roomUrl: liveSessionRow.roomUrl,
+        token,
         scheduledAt: liveSessionRow.scheduledAt?.toISOString?.() ?? null,
         startedAt: liveSessionRow.startedAt?.toISOString?.() ?? null,
         maxStudents: liveSessionRow.maxStudents,
         linkedCourseId: deterministicLinkedCourseId,
+        topic: liveSessionRow.topic,
+        objectives: liveSessionRow.objectives,
+        nationality: liveSessionRow.nationality,
+        languageOfInstruction: liveSessionRow.languageOfInstruction,
       },
       students,
       messages: messages.map(m => ({
@@ -292,6 +306,37 @@ export const PATCH = withCsrf(
           recordingAvailableAt: liveSessionRow.recordingUrl ? endedAt : null,
         })
         .where(eq(liveSession.sessionId, classId))
+
+      // Track lesson progression for attending students
+      if (liveSessionRow.lessonId) {
+        const attendingParticipants = await drizzleDb
+          .select({ studentId: sessionParticipant.studentId })
+          .from(sessionParticipant)
+          .where(eq(sessionParticipant.sessionId, classId))
+
+        for (const { studentId } of attendingParticipants) {
+          if (!studentId) continue
+          await drizzleDb
+            .insert(courseLessonProgress)
+            .values({
+              progressId: randomUUID(),
+              studentId,
+              lessonId: liveSessionRow.lessonId,
+              status: 'completed',
+              currentSection: 'completed',
+              completedAt: new Date(),
+              updatedAt: new Date(),
+            })
+            .onConflictDoUpdate({
+              target: [courseLessonProgress.lessonId, courseLessonProgress.studentId],
+              set: {
+                status: 'completed',
+                completedAt: new Date(),
+                updatedAt: new Date(),
+              },
+            })
+        }
+      }
 
       const [partCount, messagesCountResult] = await Promise.all([
         drizzleDb

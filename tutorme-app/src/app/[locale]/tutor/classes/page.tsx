@@ -34,6 +34,7 @@ import {
   Zap,
   ChevronRight,
   MoreVertical,
+  Loader2,
 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -49,6 +50,7 @@ import { cn } from '@/lib/utils'
 
 interface TutorClass {
   id: string
+  courseId?: string
   title: string
   subject: string
   scheduledAt: string
@@ -56,6 +58,18 @@ interface TutorClass {
   maxStudents: number
   enrolledStudents: number
   status: 'scheduled' | 'live' | 'completed' | 'cancelled' | 'upcoming' | 'active'
+}
+
+interface CourseVariant {
+  variantId: string
+  category: string
+  nationality: string
+  languageOfInstruction?: string | null
+}
+
+interface CourseLesson {
+  lessonId: string
+  title: string
 }
 
 type FilterStatus = 'all' | 'live' | 'upcoming' | 'scheduled' | 'completed'
@@ -114,6 +128,15 @@ export default function TutorClassesPage() {
     hour: 9,
     minute: 0,
   })
+
+  // Variant / Lesson selection dialog state
+  const [sessionDialogOpen, setSessionDialogOpen] = useState(false)
+  const [selectedCourseForSession, setSelectedCourseForSession] = useState<TutorClass | null>(null)
+  const [courseVariants, setCourseVariants] = useState<CourseVariant[]>([])
+  const [courseLessons, setCourseLessons] = useState<CourseLesson[]>([])
+  const [selectedVariantId, setSelectedVariantId] = useState('')
+  const [selectedLessonId, setSelectedLessonId] = useState('')
+  const [dialogLoading, setDialogLoading] = useState(false)
 
   useEffect(() => {
     fetch('/api/tutor/classes', { credentials: 'include' })
@@ -212,7 +235,10 @@ export default function TutorClassesPage() {
     return filtered
   }, [classes, filterStatus, categorizedClasses, searchQuery])
 
-  const handleCreateInstantClass = async () => {
+  const createLiveSession = async (
+    payload: Record<string, unknown>,
+    onSuccess?: (data: { room: { id: string } }) => void
+  ) => {
     try {
       const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
       const csrfData = await csrfRes.json().catch(() => ({}))
@@ -225,25 +251,131 @@ export default function TutorClassesPage() {
           ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
         },
         credentials: 'include',
-        body: JSON.stringify({
-          title: 'Instant Live Class',
-          subject: 'general',
-          maxStudents: 50,
-          duration: 60,
-          scheduledAt: new Date().toISOString(),
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (res.ok) {
         const data = await res.json()
-        toast.success('Instant class created!')
-        router.push(`/tutor/insights?sessionId=${data.room.id}`)
+        onSuccess?.(data)
+        return data
       } else {
-        toast.error('Failed to create instant class')
+        toast.error('Failed to create live session')
       }
-    } catch (error) {
-      toast.error('Failed to create instant class')
+    } catch {
+      toast.error('Failed to create live session')
     }
+    return null
+  }
+
+  const handleCreateInstantClass = async () => {
+    const data = await createLiveSession({
+      title: 'Instant Live Class',
+      subject: 'general',
+      maxStudents: 50,
+      duration: 60,
+      scheduledAt: new Date().toISOString(),
+    })
+    if (data) {
+      toast.success('Instant class created!')
+      router.push(`/tutor/insights?sessionId=${data.room.id}`)
+    }
+  }
+
+  const handleGoLive = async (cls: TutorClass) => {
+    if (!cls.courseId) {
+      // No course association; navigate directly to the existing session
+      router.push(`/tutor/insights?sessionId=${cls.id}`)
+      return
+    }
+
+    setDialogLoading(true)
+    setSelectedCourseForSession(cls)
+
+    try {
+      const [variantsRes, courseRes] = await Promise.all([
+        fetch(`/api/tutor/courses/${cls.courseId}/publish`, { credentials: 'include' }),
+        fetch(`/api/tutor/courses/${cls.courseId}`, { credentials: 'include' }),
+      ])
+
+      const variantsData = variantsRes.ok ? await variantsRes.json() : { variants: [] }
+      const courseData = courseRes.ok ? await courseRes.json() : { course: null }
+
+      const variants: CourseVariant[] = (variantsData.variants || []).map((v: any) => ({
+        variantId: v.variantId,
+        category: v.category,
+        nationality: v.nationality,
+        languageOfInstruction: v.languageOfInstruction,
+      }))
+
+      const lessons: CourseLesson[] =
+        courseData.course?.modules?.[0]?.lessons?.map((l: any) => ({
+          lessonId: l.id,
+          title: l.title,
+        })) || []
+
+      setCourseVariants(variants)
+      setCourseLessons(lessons)
+
+      if (variants.length === 1 && lessons.length === 1) {
+        // Auto-select and create session immediately
+        const data = await createLiveSession({
+          title: cls.title,
+          subject: cls.subject,
+          courseId: cls.courseId,
+          variantId: variants[0].variantId,
+          lessonId: lessons[0].lessonId,
+          maxStudents: cls.maxStudents,
+          duration: cls.duration,
+          scheduledAt: cls.scheduledAt,
+        })
+        if (data) {
+          router.push(`/tutor/insights?sessionId=${data.room.id}`)
+        }
+        resetDialog()
+      } else {
+        // Pre-select first items if available
+        setSelectedVariantId(variants[0]?.variantId || '')
+        setSelectedLessonId(lessons[0]?.lessonId || '')
+        setSessionDialogOpen(true)
+      }
+    } catch {
+      toast.error('Failed to load course details')
+      router.push(`/tutor/insights?sessionId=${cls.id}`)
+    } finally {
+      setDialogLoading(false)
+    }
+  }
+
+  const confirmSessionStart = async () => {
+    if (!selectedCourseForSession) return
+    const cls = selectedCourseForSession
+
+    setDialogLoading(true)
+    const data = await createLiveSession({
+      title: cls.title,
+      subject: cls.subject,
+      courseId: cls.courseId,
+      variantId: selectedVariantId || undefined,
+      lessonId: selectedLessonId || undefined,
+      maxStudents: cls.maxStudents,
+      duration: cls.duration,
+      scheduledAt: cls.scheduledAt,
+    })
+    setDialogLoading(false)
+
+    if (data) {
+      setSessionDialogOpen(false)
+      resetDialog()
+      router.push(`/tutor/insights?sessionId=${data.room.id}`)
+    }
+  }
+
+  const resetDialog = () => {
+    setSelectedCourseForSession(null)
+    setCourseVariants([])
+    setCourseLessons([])
+    setSelectedVariantId('')
+    setSelectedLessonId('')
   }
 
   const handleScheduleTraining = async () => {
@@ -405,19 +537,27 @@ export default function TutorClassesPage() {
           >
             <Copy className="h-4 w-4" />
           </Button>
-          <Link href={`/tutor/insights?sessionId=${cls.id}`}>
-            <Button size="sm" className={cn(isLive && 'bg-red-600 hover:bg-red-700')}>
-              {isLive ? (
-                <>
-                  <Play className="mr-1 h-4 w-4" /> Enter
-                </>
+          {isLive ? (
+            <Link href={`/tutor/insights?sessionId=${cls.id}`}>
+              <Button size="sm" className={cn(isLive && 'bg-red-600 hover:bg-red-700')}>
+                <Play className="mr-1 h-4 w-4" /> Enter
+              </Button>
+            </Link>
+          ) : (
+            <Button
+              size="sm"
+              className={cn(isLive && 'bg-red-600 hover:bg-red-700')}
+              onClick={() => handleGoLive(cls)}
+              disabled={dialogLoading && selectedCourseForSession?.id === cls.id}
+            >
+              {dialogLoading && selectedCourseForSession?.id === cls.id ? (
+                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
               ) : (
-                <>
-                  <Play className="mr-1 h-4 w-4" /> Go Live
-                </>
+                <Play className="mr-1 h-4 w-4" />
               )}
+              Go Live
             </Button>
-          </Link>
+          )}
         </div>
       </div>
     )
@@ -854,6 +994,95 @@ export default function TutorClassesPage() {
               </Button>
               <Button onClick={handleScheduleTraining} disabled={!scheduleForm.title.trim()}>
                 Schedule Session
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Variant / Lesson Selection Dialog */}
+        <Dialog
+          open={sessionDialogOpen}
+          onOpenChange={open => {
+            if (!open) {
+              setSessionDialogOpen(false)
+              resetDialog()
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Start Live Session</DialogTitle>
+              <DialogDescription>
+                Select a variant and lesson for{' '}
+                <strong>{selectedCourseForSession?.title}</strong>.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Variant</Label>
+                <Select value={selectedVariantId} onValueChange={setSelectedVariantId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select variant" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courseVariants.map(v => (
+                      <SelectItem key={v.variantId} value={v.variantId}>
+                        {v.category} - {v.nationality}
+                      </SelectItem>
+                    ))}
+                    {courseVariants.length === 0 && (
+                      <SelectItem value="none" disabled>
+                        No variants available
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Lesson</Label>
+                <Select value={selectedLessonId} onValueChange={setSelectedLessonId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select lesson" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courseLessons.map(l => (
+                      <SelectItem key={l.lessonId} value={l.lessonId}>
+                        {l.title}
+                      </SelectItem>
+                    ))}
+                    {courseLessons.length === 0 && (
+                      <SelectItem value="none" disabled>
+                        No lessons available
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSessionDialogOpen(false)
+                  resetDialog()
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmSessionStart}
+                disabled={
+                  dialogLoading ||
+                  (courseVariants.length > 0 && !selectedVariantId) ||
+                  (courseLessons.length > 0 && !selectedLessonId)
+                }
+              >
+                {dialogLoading ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : (
+                  <Play className="mr-1 h-4 w-4" />
+                )}
+                Start Session
               </Button>
             </DialogFooter>
           </DialogContent>

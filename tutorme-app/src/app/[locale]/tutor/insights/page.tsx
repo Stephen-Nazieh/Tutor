@@ -424,6 +424,7 @@ export default function TutorInsightsPage() {
           isRecording,
           recordingDuration: recordingDurationSeconds,
           onToggleRecording: handleToggleRecording,
+          socket,
         }}
       />
     </div>

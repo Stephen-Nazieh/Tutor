@@ -66,7 +66,7 @@ export function CourseBuilderInsightsRoute({
       }
 
       toast.success('Session ended. Recording saved.')
-      model.router.push('/tutor/classes')
+      model.router.push(`/tutor/sessions/${insightsProps.sessionId}`)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to end session')
     } finally {

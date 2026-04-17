@@ -168,6 +168,7 @@ interface EnhancedWhiteboardProps {
   onPageIndexChange?: (index: number) => void
   students?: Student[]
   onPushHint?: (studentId: string, hint: string) => void
+  initialLessonContent?: { title?: string; objectives?: string[]; diagrams?: any[] }
 }
 
 const BACKGROUND_COLORS = [
@@ -194,6 +195,7 @@ export function EnhancedWhiteboard({
   onPageIndexChange,
   students: externalStudents,
   onPushHint,
+  initialLessonContent,
 }: EnhancedWhiteboardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -218,6 +220,51 @@ export function EnhancedWhiteboard({
   const currentPageIndex = externalPageIndex ?? internalPageIndex
   const setPages = onPagesChange ?? setInternalPages
   const setCurrentPageIndex = onPageIndexChange ?? setInternalPageIndex
+
+  // Pre-populate page 1 with lesson content when initializing
+  const initialLessonAppliedRef = useRef(false)
+  useEffect(() => {
+    if (initialLessonAppliedRef.current) return
+    if (!initialLessonContent?.title && !initialLessonContent?.objectives?.length) return
+    initialLessonAppliedRef.current = true
+
+    const titleText: TextElement = {
+      id: `lesson-title-${Date.now()}`,
+      text: initialLessonContent.title || '',
+      x: 40,
+      y: 40,
+      color: '#1f2937',
+      fontSize: 28,
+      format: { bold: true, align: 'left' },
+      width: 600,
+      height: 50,
+    }
+
+    const objectiveTexts: TextElement[] = (initialLessonContent.objectives || []).map(
+      (obj, idx) => ({
+        id: `lesson-obj-${Date.now()}-${idx}`,
+        text: `${idx + 1}. ${obj}`,
+        x: 40,
+        y: 110 + idx * 36,
+        color: '#374151',
+        fontSize: 18,
+        format: { align: 'left' },
+        width: 700,
+        height: 36,
+      })
+    )
+
+    setInternalPages(prev => {
+      if (prev.length === 0) return prev
+      const next = [...prev]
+      next[0] = {
+        ...next[0],
+        texts: [...next[0].texts, titleText, ...objectiveTexts],
+      }
+      onPagesChange?.(next)
+      return next
+    })
+  }, [initialLessonContent, onPagesChange])
 
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false)

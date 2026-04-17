@@ -14,13 +14,16 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Input } from '@/components/ui/input'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { useSocket } from '@/hooks/use-socket'
 import { toast } from 'sonner'
 import { ListTodo, MessageSquare, Send, Bell, Loader2, Layout, ArrowLeft } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
-import type { LiveTask, LiveTaskPoll, LiveTaskQuestion } from '@/lib/socket'
+import { DailyVideoFrame } from '@/components/class/daily-video-frame'
+import type { LiveTask, LiveTaskPoll, LiveTaskQuestion, ChatMessage } from '@/lib/socket'
 
 type WhiteboardPages = NonNullable<ComponentProps<typeof EnhancedWhiteboard>['pages']>
 type WhiteboardPage = WhiteboardPages[number]
@@ -74,6 +77,13 @@ function StudentFeedbackContent() {
   const [unseenTaskIds, setUnseenTaskIds] = useState<string[]>([])
   const [questionDrafts, setQuestionDrafts] = useState<Record<string, string>>({})
   const [chatInput, setChatInput] = useState('')
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [sessionContext, setSessionContext] = useState<{
+    topic: string | null
+    objectives: string[] | null
+    roomUrl: string | null
+    token: string | null
+  } | null>(null)
   const [myBoardPages, setMyBoardPages] = useState<WhiteboardPage[]>(createDefaultWhiteboardPages)
   const [myBoardPageIndex, setMyBoardPageIndex] = useState(0)
   const [tutorBoardPages, setTutorBoardPages] = useState<WhiteboardPage[]>(
@@ -130,7 +140,47 @@ function StudentFeedbackContent() {
     setMyBoardPageIndex(0)
     setTutorBoardPages(createDefaultWhiteboardPages())
     setTutorBoardPageIndex(0)
+    setChatMessages([])
   }, [selectedSessionId])
+
+  useEffect(() => {
+    if (!selectedSessionId) return
+    let cancelled = false
+    const loadSession = async () => {
+      try {
+        const res = await fetch(`/api/class/rooms/${selectedSessionId}/join`, {
+          method: 'POST',
+          credentials: 'include',
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        if (cancelled) return
+        setSessionContext({
+          topic: data?.session?.topic ?? null,
+          objectives: data?.session?.objectives ?? null,
+          roomUrl: data?.roomUrl ?? null,
+          token: data?.token ?? null,
+        })
+      } catch {
+        // ignore
+      }
+    }
+    loadSession()
+    return () => {
+      cancelled = true
+    }
+  }, [selectedSessionId])
+
+  useEffect(() => {
+    if (!socket) return
+    const handleChatMessage = (message: ChatMessage) => {
+      setChatMessages(prev => [...prev.slice(-19), message])
+    }
+    socket.on('chat_message', handleChatMessage)
+    return () => {
+      socket.off('chat_message', handleChatMessage)
+    }
+  }, [socket])
 
   useEffect(() => {
     if (!selectedSessionId || typeof window === 'undefined') return
@@ -286,7 +336,34 @@ function StudentFeedbackContent() {
             </div>
           </div>
         </div>
+        {sessionContext && (sessionContext.topic || sessionContext.objectives) && (
+          <div className="border-t border-blue-100 bg-blue-50/60 px-4 py-2 text-sm text-blue-900">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              {sessionContext.topic && (
+                <span>
+                  <span className="font-semibold">Lesson:</span> {sessionContext.topic}
+                </span>
+              )}
+            </div>
+            {sessionContext.objectives && sessionContext.objectives.length > 0 && (
+              <div className="mt-1 text-xs text-blue-800">
+                <span className="font-semibold">Objectives:</span>{' '}
+                {sessionContext.objectives.map((obj, idx) => (
+                  <span key={idx}>
+                    {idx + 1}) {obj}{' '}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
+      {sessionContext?.roomUrl && (
+        <div className="h-44 w-full border-b bg-black sm:h-52">
+          <DailyVideoFrame roomUrl={sessionContext.roomUrl} token={sessionContext.token} />
+        </div>
+      )}
 
       <div className="flex-1 p-4 sm:p-6">
         <div className="flex h-full flex-col gap-6">
@@ -385,16 +462,30 @@ function StudentFeedbackContent() {
         <div className="mx-auto flex max-w-5xl items-end gap-3">
           <div className="relative flex-1">
             <AutoTextarea
-              placeholder="Ask your AI coach or share a reflection..."
+              placeholder="Type a message to the class..."
               className="min-h-[52px] w-full pr-12"
               value={chatInput}
               onChange={event => setChatInput(event.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  if (chatInput.trim() && socket) {
+                    socket.emit('chat_message', { text: chatInput.trim() })
+                    setChatInput('')
+                  }
+                }
+              }}
             />
             <Button
               size="icon"
               className="absolute bottom-2 right-2 h-8 w-8"
-              disabled={!chatInput.trim()}
-              onClick={() => setChatInput('')}
+              disabled={!chatInput.trim() || !socket}
+              onClick={() => {
+                if (chatInput.trim() && socket) {
+                  socket.emit('chat_message', { text: chatInput.trim() })
+                  setChatInput('')
+                }
+              }}
             >
               <Send className="h-4 w-4" />
             </Button>
@@ -523,6 +614,55 @@ function StudentFeedbackContent() {
                     Waiting for tutor insights to appear here.
                   </p>
                 )}
+
+                <div className="border-t pt-4">
+                  <p className="mb-2 text-xs font-semibold uppercase text-gray-500">Class Chat</p>
+                  <ScrollArea className="h-48 rounded-lg border bg-gray-50 p-2">
+                    <div className="space-y-2">
+                      {chatMessages.length === 0 && (
+                        <p className="text-center text-xs text-gray-400">No messages yet.</p>
+                      )}
+                      {chatMessages.map(msg => (
+                        <div key={msg.id} className="flex flex-col text-sm">
+                          <span className="text-[10px] text-gray-500">{msg.name}</span>
+                          <div className="w-fit max-w-[90%] rounded-lg bg-white px-2.5 py-1.5 text-xs text-gray-800 shadow-sm">
+                            {msg.text}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                  <div className="mt-2 flex items-end gap-2">
+                    <Input
+                      placeholder="Type a message..."
+                      value={chatInput}
+                      onChange={e => setChatInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault()
+                          if (chatInput.trim() && socket) {
+                            socket.emit('chat_message', { text: chatInput.trim() })
+                            setChatInput('')
+                          }
+                        }
+                      }}
+                      className="min-h-[36px] flex-1 text-xs"
+                    />
+                    <Button
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      disabled={!chatInput.trim() || !socket}
+                      onClick={() => {
+                        if (chatInput.trim() && socket) {
+                          socket.emit('chat_message', { text: chatInput.trim() })
+                          setChatInput('')
+                        }
+                      }}
+                    >
+                      <Send className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </div>

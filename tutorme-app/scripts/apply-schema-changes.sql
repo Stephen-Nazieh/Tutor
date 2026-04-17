@@ -67,3 +67,25 @@ BEGIN
       FOREIGN KEY ("studentId") REFERENCES "User"("userId") ON DELETE CASCADE;
   END IF;
 END $$;
+
+-- LiveSession extensions for variant and lesson context
+ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "variantId" text;
+ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "lessonId" text;
+ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "topic" text;
+ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "objectives" text[];
+ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "languageOfInstruction" text;
+ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "nationality" text;
+ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "maxStudents" integer DEFAULT 50 NOT NULL;
+
+-- Foreign keys (if not exists)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'LiveSession_variantId_fkey') THEN
+    ALTER TABLE "LiveSession" ADD CONSTRAINT "LiveSession_variantId_fkey" FOREIGN KEY ("variantId") REFERENCES "CourseVariant"("variantId") ON DELETE SET NULL;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'LiveSession_lessonId_fkey') THEN
+    ALTER TABLE "LiveSession" ADD CONSTRAINT "LiveSession_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "CourseLesson"("lessonId") ON DELETE SET NULL;
+  END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS "LiveSession_variantId_idx" ON "LiveSession"("variantId");

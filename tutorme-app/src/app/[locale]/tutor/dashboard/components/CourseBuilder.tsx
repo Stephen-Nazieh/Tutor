@@ -60,6 +60,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
+import { DailyVideoFrame } from '@/components/class/daily-video-frame'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -69,7 +70,7 @@ import {
 import { cn } from '@/lib/utils'
 import { extractTextFromFile } from '@/lib/extract-file-text'
 import { toast } from 'sonner'
-import type { LiveTask } from '@/lib/socket'
+import type { LiveTask, ChatMessage } from '@/lib/socket'
 import type { LiveStudent, EngagementMetrics } from '@/types/live-session'
 import type {
   Video,
@@ -194,6 +195,7 @@ import {
   Upload,
   CheckCircle,
   Clock,
+  Timer,
   GraduationCap,
   ListTodo,
   FolderOpen,
@@ -471,6 +473,10 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [testPciLoading, setTestPciLoading] = useState(false)
     const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
     const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
+    const [sessionScheduledAt, setSessionScheduledAt] = useState<string | null>(null)
+    const [sessionPlannedDurationMinutes, setSessionPlannedDurationMinutes] = useState<number>(60)
+    const [countdownText, setCountdownText] = useState<string | null>(null)
+    const [countdownOverdue, setCountdownOverdue] = useState(false)
     const [taskDmiItems, setTaskDmiItems] = useState<DMIQuestion[]>([])
     const [assessmentDmiItems, setAssessmentDmiItems] = useState<DMIQuestion[]>([])
 
@@ -494,9 +500,23 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [showInsightsPanel, setShowInsightsPanel] = useState(true)
 
     // Insights panel state
-    const [insightsTab, setInsightsTab] = useState<'analytics' | 'poll' | 'question'>('analytics')
+    const [insightsTab, setInsightsTab] = useState<'analytics' | 'poll' | 'question' | 'chat'>('analytics')
     const [pollPrompt, setPollPrompt] = useState('Did you find this task difficult')
     const [questionPrompt, setQuestionPrompt] = useState('Do you have a question about this task?')
+
+    // Live session context
+    const [sessionContext, setSessionContext] = useState<{
+      topic: string | null
+      objectives: string[] | null
+      nationality: string | null
+      languageOfInstruction: string | null
+      roomUrl: string | null
+      token: string | null
+    } | null>(null)
+
+    // Chat state
+    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+    const [chatInput, setChatInput] = useState('')
 
     // Question Bank modal state
     const [questionBankOpen, setQuestionBankOpen] = useState(false)
@@ -659,6 +679,79 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         // Ignore malformed cache.
       }
     }, [insightsProps?.sessionId])
+
+    useEffect(() => {
+      if (!insightsProps?.sessionId) return
+      let cancelled = false
+      const loadSession = async () => {
+        try {
+          const res = await fetch(`/api/tutor/classes/${insightsProps.sessionId}`, {
+            credentials: 'include',
+          })
+          if (!res.ok) return
+          const data = await res.json()
+          if (cancelled) return
+          if (data?.session?.scheduledAt) {
+            setSessionScheduledAt(data.session.scheduledAt)
+          }
+          // Default planned duration is 60 minutes; prefer metrics.classDuration if session already active
+          const planned =
+            typeof data?.metrics?.classDuration === 'number' && data.metrics.classDuration > 0
+              ? data.metrics.classDuration
+              : 60
+          setSessionPlannedDurationMinutes(planned)
+          setSessionContext({
+            topic: data?.session?.topic ?? null,
+            objectives: data?.session?.objectives ?? null,
+            nationality: data?.session?.nationality ?? null,
+            languageOfInstruction: data?.session?.languageOfInstruction ?? null,
+            roomUrl: data?.session?.roomUrl ?? null,
+            token: data?.session?.token ?? null,
+          })
+        } catch {
+          // ignore
+        }
+      }
+      loadSession()
+      return () => {
+        cancelled = true
+      }
+    }, [insightsProps?.sessionId])
+
+    useEffect(() => {
+      if (!insightsProps?.socket) return
+      const socket = insightsProps.socket
+      const handleChatMessage = (message: ChatMessage) => {
+        setChatMessages(prev => [...prev.slice(-19), message])
+      }
+      socket.on('chat_message', handleChatMessage)
+      return () => {
+        socket.off('chat_message', handleChatMessage)
+      }
+    }, [insightsProps?.socket])
+
+    useEffect(() => {
+      if (!sessionScheduledAt) {
+        setCountdownText(null)
+        return
+      }
+      const updateCountdown = () => {
+        const scheduled = new Date(sessionScheduledAt).getTime()
+        const endTime = scheduled + sessionPlannedDurationMinutes * 60 * 1000
+        const now = Date.now()
+        const diff = endTime - now
+        const isOverdue = diff < 0
+        setCountdownOverdue(isOverdue)
+        const absDiff = Math.abs(diff)
+        const minutes = Math.floor(absDiff / 60000)
+        const seconds = Math.floor((absDiff % 60000) / 1000)
+        const text = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${isOverdue ? 'over' : 'remaining'}`
+        setCountdownText(text)
+      }
+      updateCountdown()
+      const interval = setInterval(updateCountdown, 1000)
+      return () => clearInterval(interval)
+    }, [sessionScheduledAt, sessionPlannedDurationMinutes])
 
     useEffect(() => {
       if (!insightsProps?.sessionId || typeof window === 'undefined') return
@@ -3230,6 +3323,34 @@ FEEDBACK: [your explanation]`
           panelMode === 'live-class' && 'pt-3'
         )}
       >
+        {insightsProps && sessionContext && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50/60 px-4 py-2 text-sm text-blue-900 shadow-sm">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span>
+                <span className="font-semibold">Lesson:</span> {sessionContext.topic || '—'}
+              </span>
+              <span className="hidden text-blue-300 sm:inline">•</span>
+              <span>
+                <span className="font-semibold">Language:</span>{' '}
+                {sessionContext.languageOfInstruction || '—'}
+              </span>
+              <span className="hidden text-blue-300 sm:inline">•</span>
+              <span>
+                <span className="font-semibold">Region:</span> {sessionContext.nationality || '—'}
+              </span>
+            </div>
+            {sessionContext.objectives && sessionContext.objectives.length > 0 && (
+              <div className="mt-1 text-xs text-blue-800">
+                <span className="font-semibold">Objectives:</span>{' '}
+                {sessionContext.objectives.map((obj, idx) => (
+                  <span key={idx}>
+                    {idx + 1}) {obj}{' '}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <div className="flex h-full w-full min-w-0 flex-1 gap-0">
           {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
           {!leftPanelHidden && (
@@ -4195,6 +4316,17 @@ FEEDBACK: [your explanation]`
                             </>
                           )}
                         </div>
+                        {insightsProps && countdownText && (
+                          <div
+                            className={cn(
+                              'flex items-center gap-1.5 text-xs font-medium',
+                              countdownOverdue ? 'text-orange-600' : 'text-emerald-600'
+                            )}
+                          >
+                            <Timer className="h-4 w-4" />
+                            <span>⏱ {countdownText}</span>
+                          </div>
+                        )}
                         {insightsProps && (
                           <Button
                             variant="outline"
@@ -4258,43 +4390,62 @@ FEEDBACK: [your explanation]`
                                   value={tab.id}
                                   className="mt-2 flex h-full w-full min-w-0 flex-1 flex-col self-stretch overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                 >
-                                  <div className="bg-muted flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg p-4">
-                                    <p className="text-muted-foreground whitespace-pre-wrap text-sm">
-                                      {testPciContent[tab.id] || `${tab.label} view content`}
-                                    </p>
-                                    {/* Show AI scores if any */}
-                                    {testPciScores[tab.id]?.length > 0 && (
-                                      <div className="mt-3 border-t border-gray-400 pt-3">
-                                        <p className="mb-2 text-xs font-medium text-gray-600">
-                                          AI Feedback:
-                                        </p>
-                                        {testPciScores[tab.id].map((score, idx) => (
-                                          <div
-                                            key={idx}
-                                            className="mb-2 rounded border border-gray-400 bg-white p-2"
-                                          >
-                                            <div className="flex items-center gap-2">
-                                              <Badge
-                                                variant={
-                                                  score.score >= 80
-                                                    ? 'default'
-                                                    : score.score >= 50
-                                                      ? 'secondary'
-                                                      : 'destructive'
-                                                }
-                                                className="text-[10px]"
-                                              >
-                                                {score.score}%
-                                              </Badge>
+                                  {insightsProps && tab.id === 'student1' ? (
+                                    <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-lg">
+                                      <EnhancedWhiteboard
+                                        pages={insightsBoardPages}
+                                        currentPageIndex={insightsBoardPageIndex}
+                                        onPagesChange={setInsightsBoardPages}
+                                        onPageIndexChange={setInsightsBoardPageIndex}
+                                        initialLessonContent={
+                                          sessionContext?.topic || sessionContext?.objectives
+                                            ? {
+                                                title: sessionContext.topic || undefined,
+                                                objectives: sessionContext.objectives || undefined,
+                                              }
+                                            : undefined
+                                        }
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="bg-muted flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg p-4">
+                                      <p className="text-muted-foreground whitespace-pre-wrap text-sm">
+                                        {testPciContent[tab.id] || `${tab.label} view content`}
+                                      </p>
+                                      {/* Show AI scores if any */}
+                                      {testPciScores[tab.id]?.length > 0 && (
+                                        <div className="mt-3 border-t border-gray-400 pt-3">
+                                          <p className="mb-2 text-xs font-medium text-gray-600">
+                                            AI Feedback:
+                                          </p>
+                                          {testPciScores[tab.id].map((score, idx) => (
+                                            <div
+                                              key={idx}
+                                              className="mb-2 rounded border border-gray-400 bg-white p-2"
+                                            >
+                                              <div className="flex items-center gap-2">
+                                                <Badge
+                                                  variant={
+                                                    score.score >= 80
+                                                      ? 'default'
+                                                      : score.score >= 50
+                                                        ? 'secondary'
+                                                        : 'destructive'
+                                                  }
+                                                  className="text-[10px]"
+                                                >
+                                                  {score.score}%
+                                                </Badge>
+                                              </div>
+                                              <p className="mt-1 text-xs text-gray-600">
+                                                {score.feedback}
+                                              </p>
                                             </div>
-                                            <p className="mt-1 text-xs text-gray-600">
-                                              {score.feedback}
-                                            </p>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                                 </TabsContent>
                               ))}
                             </Tabs>
@@ -4390,12 +4541,12 @@ FEEDBACK: [your explanation]`
                                 }
                                 className="flex h-full min-h-0 flex-col"
                               >
-                                <TabsList className="mb-4 grid w-full grid-cols-3 gap-1 rounded-xl border border-cyan-200/70 bg-white/80 p-1 shadow-sm">
+                                <TabsList className="mb-4 grid w-full grid-cols-4 gap-1 rounded-xl border border-cyan-200/70 bg-white/80 p-1 shadow-sm">
                                   <TabsTrigger
                                     value="analytics"
                                     className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
                                   >
-                                    Class Analytics
+                                    Analytics
                                   </TabsTrigger>
                                   <TabsTrigger
                                     value="poll"
@@ -4408,6 +4559,12 @@ FEEDBACK: [your explanation]`
                                     className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
                                   >
                                     Question
+                                  </TabsTrigger>
+                                  <TabsTrigger
+                                    value="chat"
+                                    className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
+                                  >
+                                    Chat
                                   </TabsTrigger>
                                 </TabsList>
 
@@ -4665,6 +4822,67 @@ FEEDBACK: [your explanation]`
                                           AI Integrated
                                         </Badge>
                                       </div>
+                                    </div>
+                                  </div>
+                                </TabsContent>
+
+                                <TabsContent value="chat" className="flex min-h-0 flex-1 flex-col pt-2">
+                                  <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-cyan-100 bg-white/60 p-3 shadow-sm">
+                                    <div className="flex-1 space-y-2 overflow-y-auto pr-1">
+                                      {chatMessages.length === 0 && (
+                                        <p className="text-center text-xs text-gray-500">
+                                          No messages yet.
+                                        </p>
+                                      )}
+                                      {chatMessages.map(msg => (
+                                        <div
+                                          key={msg.id}
+                                          className={`flex flex-col text-sm ${msg.userId === (insightsProps?.socket?.id ? 'self-end items-end' : 'self-start items-start')}`}
+                                        >
+                                          <span className="text-[10px] text-gray-500">
+                                            {msg.name}
+                                          </span>
+                                          <div
+                                            className={`max-w-[90%] rounded-lg px-2.5 py-1.5 text-xs ${msg.userId === (typeof window !== 'undefined' ? '' : '') ? 'bg-cyan-100 text-cyan-900' : 'bg-white text-gray-800'}`}
+                                          >
+                                            {msg.text}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <div className="mt-2 flex items-end gap-2">
+                                      <Input
+                                        placeholder="Type a message..."
+                                        value={chatInput}
+                                        onChange={e => setChatInput(e.target.value)}
+                                        onKeyDown={e => {
+                                          if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault()
+                                            if (chatInput.trim() && insightsProps?.socket) {
+                                              insightsProps.socket.emit('chat_message', {
+                                                text: chatInput.trim(),
+                                              })
+                                              setChatInput('')
+                                            }
+                                          }
+                                        }}
+                                        className="min-h-[36px] flex-1 text-xs"
+                                      />
+                                      <Button
+                                        size="icon"
+                                        className="h-8 w-8 shrink-0"
+                                        disabled={!chatInput.trim() || !insightsProps?.socket}
+                                        onClick={() => {
+                                          if (chatInput.trim() && insightsProps?.socket) {
+                                            insightsProps.socket.emit('chat_message', {
+                                              text: chatInput.trim(),
+                                            })
+                                            setChatInput('')
+                                          }
+                                        }}
+                                      >
+                                        <Send className="h-3.5 w-3.5" />
+                                      </Button>
                                     </div>
                                   </div>
                                 </TabsContent>
@@ -6177,6 +6395,13 @@ FEEDBACK: [your explanation]`
             </DialogContent>
           </Dialog>
         </div>
+
+        {/* Daily.co Video Frame for Tutor */}
+        {insightsProps && sessionContext?.roomUrl && (
+          <div className="fixed bottom-4 right-4 z-50 w-72 overflow-hidden rounded-xl border border-slate-600 bg-black shadow-2xl sm:w-80">
+            <DailyVideoFrame roomUrl={sessionContext.roomUrl} token={sessionContext.token} />
+          </div>
+        )}
       </div>
     )
   }

@@ -9,7 +9,7 @@ import { withAuth, withCsrf } from '@/lib/api/middleware'
 import { CreateRoomSchema, validateRequest } from '@/lib/validation/schemas'
 import { dailyProvider } from '@/lib/video/daily-provider'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { liveSession, course, user, profile, sessionParticipant } from '@/lib/db/schema'
+import { liveSession, course, user, profile, sessionParticipant, courseVariant, courseLesson } from '@/lib/db/schema'
 import crypto from 'crypto'
 
 // POST /api/class/rooms - Create a new class room
@@ -54,6 +54,58 @@ export const POST = withCsrf(
         durationMinutes: data.durationMinutes,
       })
 
+      // Look up variant and lesson context if provided
+      let topic: string | null = null
+      let objectives: string[] | null = null
+      let languageOfInstruction: string | null = null
+      let nationality: string | null = null
+      let category = data.subject
+
+      if (data.variantId) {
+        const [variantRow] = await drizzleDb
+          .select({
+            category: courseVariant.category,
+            nationality: courseVariant.nationality,
+          })
+          .from(courseVariant)
+          .where(eq(courseVariant.variantId, data.variantId))
+          .limit(1)
+        if (variantRow) {
+          category = variantRow.category
+          nationality = variantRow.nationality
+        }
+      }
+
+      if (data.lessonId) {
+        const [lessonRow] = await drizzleDb
+          .select({
+            title: courseLesson.title,
+            builderData: courseLesson.builderData,
+          })
+          .from(courseLesson)
+          .where(eq(courseLesson.lessonId, data.lessonId))
+          .limit(1)
+        if (lessonRow) {
+          topic = lessonRow.title
+          const bd = lessonRow.builderData as Record<string, unknown> | null
+          if (bd && Array.isArray(bd.learningObjectives)) {
+            objectives = bd.learningObjectives as string[]
+          }
+        }
+      }
+
+      // Derive language of instruction from course if available
+      if (data.courseId) {
+        const [courseRow] = await drizzleDb
+          .select({ languageOfInstruction: course.languageOfInstruction })
+          .from(course)
+          .where(eq(course.courseId, data.courseId))
+          .limit(1)
+        if (courseRow?.languageOfInstruction) {
+          languageOfInstruction = courseRow.languageOfInstruction
+        }
+      }
+
       // Store class session in database
       const [classSessionResult] = await drizzleDb
         .insert(liveSession)
@@ -61,9 +113,15 @@ export const POST = withCsrf(
           sessionId: crypto.randomUUID(),
           tutorId: userId,
           courseId: data.courseId || null,
+          variantId: data.variantId || null,
+          lessonId: data.lessonId || null,
           title: data.title || `${data.subject} Class`,
-          category: data.subject,
+          category,
           description: data.description || null,
+          topic,
+          objectives,
+          languageOfInstruction,
+          nationality,
           roomUrl: room.url,
           roomId: room.id,
           maxStudents: data.maxStudents,

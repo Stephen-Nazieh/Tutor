@@ -45,6 +45,9 @@ import {
   notification,
   notificationPreference,
   contentItem,
+  poll,
+  pollOption,
+  pollResponse,
   videoWatchEvent,
   calendarConnection,
   studentMemoryProfile,
@@ -556,6 +559,37 @@ export const engagementSnapshotRelations = relations(engagementSnapshot, ({ one 
 export const sessionRelations = relations(session, ({ one }) => ({
   user: one(user, {
     fields: [session.userId],
+    references: [user.userId],
+  }),
+}))
+
+export const pollRelations = relations(poll, ({ one, many }) => ({
+  session: one(liveSession, {
+    fields: [poll.sessionId],
+    references: [liveSession.sessionId],
+  }),
+  tutor: one(user, {
+    fields: [poll.tutorId],
+    references: [user.userId],
+  }),
+  options: many(pollOption),
+  responses: many(pollResponse),
+}))
+
+export const pollOptionRelations = relations(pollOption, ({ one }) => ({
+  poll: one(poll, {
+    fields: [pollOption.pollId],
+    references: [poll.pollId],
+  }),
+}))
+
+export const pollResponseRelations = relations(pollResponse, ({ one }) => ({
+  poll: one(poll, {
+    fields: [pollResponse.pollId],
+    references: [poll.pollId],
+  }),
+  student: one(user, {
+    fields: [pollResponse.studentId],
     references: [user.userId],
   }),
 }))
