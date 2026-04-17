@@ -104,7 +104,7 @@ jobs:
           echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
 
       - name: Run database migrations
-        run: cd tutorme-app && npx drizzle-kit migrate
+        run: npx drizzle-kit migrate
         env:
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
 
