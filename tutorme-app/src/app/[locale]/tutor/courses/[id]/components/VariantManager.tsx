@@ -23,7 +23,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Loader2, Globe, DollarSign, Calendar, Languages } from 'lucide-react'
 import { toast } from 'sonner'
-import { CourseScheduleCard } from './CourseScheduleCard'
+import { VariantScheduleEditor } from './VariantScheduleEditor'
 import type { ScheduleItem } from '../constants'
 import { REGIONS } from '@/lib/data/tutor-categories'
 
@@ -447,31 +447,35 @@ export function VariantManager({
 
       {/* Schedule Dialog */}
       <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Schedule</DialogTitle>
-            <DialogDescription>
-              {dialogVariant
-                ? `Configure schedule for ${dialogVariant.category} - ${dialogVariant.nationality}`
-                : 'Configure schedule'}
-            </DialogDescription>
-          </DialogHeader>
-          {dialogVariant && scheduleDialogIndex != null && (
-            <div className="py-2">
-              <CourseScheduleCard
-                schedule={dialogVariant.schedule}
-                onScheduleChange={updater =>
-                  updateVariant(scheduleDialogIndex, v => ({ ...v, schedule: updater(v.schedule) }))
-                }
-                subtitle={`${dialogVariant.category} - ${dialogVariant.nationality}`}
-              />
-              <div className="mt-4 flex justify-end">
+        <DialogContent className="max-h-[95vh] h-[95vh] max-w-[95vw] w-[95vw] overflow-hidden p-0">
+          <div className="flex h-full flex-col">
+            <DialogHeader className="border-b px-6 py-4">
+              <DialogTitle>Edit Schedule</DialogTitle>
+              <DialogDescription>
+                {dialogVariant
+                  ? `Configure schedule for ${dialogVariant.category} - ${dialogVariant.nationality}`
+                  : 'Configure schedule'}
+              </DialogDescription>
+            </DialogHeader>
+            {dialogVariant && scheduleDialogIndex != null && (
+              <div className="flex-1 overflow-y-auto px-6 py-4">
+                <VariantScheduleEditor
+                  schedule={dialogVariant.schedule}
+                  onScheduleChange={updater =>
+                    updateVariant(scheduleDialogIndex, v => ({ ...v, schedule: updater(v.schedule) }))
+                  }
+                  price={dialogVariant.price}
+                />
+              </div>
+            )}
+            <div className="border-t px-6 py-4">
+              <div className="flex justify-end">
                 <Button type="button" onClick={closeScheduleDialog}>
                   Done
                 </Button>
               </div>
             </div>
-          )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
