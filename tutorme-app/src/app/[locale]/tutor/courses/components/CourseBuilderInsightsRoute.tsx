@@ -7,7 +7,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
@@ -41,7 +41,6 @@ export function CourseBuilderInsightsRoute({
     detachedCourseName,
   })
 
-  const [isBuilderVisible, setIsBuilderVisible] = useState(false)
   const [endingSession, setEndingSession] = useState(false)
 
   const handleEndSession = async () => {
@@ -120,24 +119,6 @@ export function CourseBuilderInsightsRoute({
                 {endingSession ? 'Ending…' : 'End Session'}
               </Button>
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsBuilderVisible(!isBuilderVisible)}
-              className="gap-2"
-            >
-              {isBuilderVisible ? (
-                <>
-                  <ChevronUp className="h-4 w-4" />
-                  Hide Builder
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="h-4 w-4" />
-                  Show Builder
-                </>
-              )}
-            </Button>
           </div>
         </div>
       </div>
@@ -199,7 +180,6 @@ export function CourseBuilderInsightsRoute({
             initialLessons={model.loadedLessons ?? undefined}
             onSave={model.handleSave}
             insightsProps={insightsProps}
-            isCollapsed={!isBuilderVisible}
           />
         )}
       </div>

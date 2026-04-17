@@ -386,7 +386,7 @@ function TutorDashboardContent() {
           body: JSON.stringify({
             courseId: course.id,
             title: course.name,
-            subject: (course.categories || [])[0] || '',
+            subject: (course.categories || [])[0] || course.name || 'General',
             maxStudents: 50,
             durationMinutes: 60,
           }),

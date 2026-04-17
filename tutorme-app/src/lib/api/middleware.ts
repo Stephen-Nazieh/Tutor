@@ -82,9 +82,11 @@ export function handleApiError(
 ): NextResponse {
   const errorId = createErrorId()
   logApiError(errorId, logLabel, error)
+  const isValidation = error instanceof ValidationError
+  const status = isValidation ? 400 : 500
   const message = error instanceof Error ? error.message : defaultMessage
   const isDev = process.env.NODE_ENV !== 'production'
-  return NextResponse.json({ error: isDev ? message : defaultMessage, errorId }, { status: 500 })
+  return NextResponse.json({ error: isDev || isValidation ? message : defaultMessage, errorId }, { status })
 }
 
 type RouteContext = {

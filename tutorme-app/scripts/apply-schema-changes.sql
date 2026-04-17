@@ -69,13 +69,23 @@ BEGIN
 END $$;
 
 DO $$
+DECLARE
+  family_pk_col text;
 BEGIN
-  IF NOT EXISTS (
+  -- Discover FamilyAccount PK column name
+  SELECT column_name INTO family_pk_col
+  FROM information_schema.columns
+  WHERE table_name = 'FamilyAccount' AND column_name IN ('familyAccountId', 'id')
+  LIMIT 1;
+
+  IF family_pk_col IS NOT NULL AND NOT EXISTS (
     SELECT 1 FROM information_schema.table_constraints 
     WHERE constraint_name = 'EmergencyContact_parentId_fkey' AND table_name = 'EmergencyContact'
   ) THEN
-    ALTER TABLE "EmergencyContact" ADD CONSTRAINT "EmergencyContact_parentId_fkey" 
-      FOREIGN KEY ("parentId") REFERENCES "FamilyAccount"("familyAccountId") ON DELETE CASCADE;
+    EXECUTE format(
+      'ALTER TABLE "EmergencyContact" ADD CONSTRAINT "EmergencyContact_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "FamilyAccount"(%I) ON DELETE CASCADE',
+      family_pk_col
+    );
   END IF;
 END $$;
 
