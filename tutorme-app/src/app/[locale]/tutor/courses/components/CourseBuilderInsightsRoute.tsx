@@ -7,6 +7,15 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -22,6 +31,18 @@ type Props = UseCourseBuilderContentArgs & {
   insightsProps: CourseBuilderInsightsProps
   sessionCategory?: string | null
   sessionNationality?: string | null
+  onSaveCourse?: (lessons: any[], options?: any) => void
+  onCreateCourse?: () => void
+  onDeleteCourse?: () => void
+  isCreateDialogOpen?: boolean
+  setIsCreateDialogOpen?: (v: boolean) => void
+  newCourseName?: string
+  setNewCourseName?: (v: string) => void
+  onCreateNewCourse?: () => void
+  isDeleteDialogOpen?: boolean
+  setIsDeleteDialogOpen?: (v: boolean) => void
+  onDeleteCourseConfirm?: () => void
+  courses?: { id: string; name: string }[]
 }
 
 export function CourseBuilderInsightsRoute({
@@ -32,6 +53,18 @@ export function CourseBuilderInsightsRoute({
   detachedCourseName,
   sessionCategory,
   sessionNationality,
+  onSaveCourse,
+  onCreateCourse,
+  onDeleteCourse,
+  isCreateDialogOpen,
+  setIsCreateDialogOpen,
+  newCourseName,
+  setNewCourseName,
+  onCreateNewCourse,
+  isDeleteDialogOpen,
+  setIsDeleteDialogOpen,
+  onDeleteCourseConfirm,
+  courses,
 }: Props) {
   const model = useCourseBuilderContentModel({
     courseId,
@@ -119,6 +152,32 @@ export function CourseBuilderInsightsRoute({
                 {endingSession ? 'Ending…' : 'End Session'}
               </Button>
             )}
+
+            {/* Builder controls */}
+            {onSaveCourse && (
+              <Button
+                size="sm"
+                onClick={() => {
+                  const cb = (model.courseBuilderRef.current as any)?.saveAll
+                  if (typeof cb === 'function') cb()
+                  else onSaveCourse([])
+                }}
+              >
+                Save
+              </Button>
+            )}
+
+            {onCreateCourse && !insightsProps.sessionId && (
+              <Button size="sm" variant="outline" onClick={onCreateCourse}>
+                New Course
+              </Button>
+            )}
+
+            {onDeleteCourse && !insightsProps.sessionId && courses && courses.length > 1 && (
+              <Button size="sm" variant="outline" onClick={onDeleteCourse}>
+                Delete
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -178,11 +237,46 @@ export function CourseBuilderInsightsRoute({
             courseId={courseId ?? ''}
             courseName={model.course?.name}
             initialLessons={model.loadedLessons ?? undefined}
-            onSave={model.handleSave}
+            onSave={onSaveCourse}
             insightsProps={insightsProps}
           />
         )}
       </div>
+      {/* Create Course Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Course</DialogTitle>
+            <DialogDescription>Enter a name for your new course.</DialogDescription>
+          </DialogHeader>
+          <Input
+            value={newCourseName}
+            onChange={e => setNewCourseName?.(e.target.value)}
+            placeholder="Course name"
+            onKeyDown={e => { if (e.key === 'Enter') onCreateNewCourse?.() }}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen?.(false)}>Cancel</Button>
+            <Button onClick={onCreateNewCourse}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Course Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Course</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this course? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen?.(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={onDeleteCourseConfirm}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

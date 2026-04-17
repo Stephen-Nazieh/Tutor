@@ -231,7 +231,6 @@ import {
   Layers2,
   GripHorizontal,
   CornerDownLeft,
-  RefreshCw,
 } from 'lucide-react'
 import { ChevronLeft as ChevronLeftIcon } from 'lucide-react'
 
@@ -944,8 +943,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     })
 
     // Expose save method via ref
-    useImperativeHandle(ref, () => ({
-      save: () => {
+    useImperativeHandle(ref, () => {
+      const doSave = () => {
         // If courseName is missing (e.g. builder-draft), prompt for properties
         if (!courseName && !coursePropsModal.name) {
           setCoursePropsModal(prev => ({ ...prev, isOpen: true }))
@@ -963,8 +962,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
             }
           )
         }
-      },
-    }))
+      }
+
+      return {
+        save: doSave,
+        saveAll: doSave,
+      }
+    })
 
     const trackObjectUrl = useCallback((url: string) => {
       if (url.startsWith('blob:')) {
@@ -3403,7 +3407,7 @@ FEEDBACK: [your explanation]`
               >
                 <Card className="border-border bg-card flex h-full min-h-0 flex-1 flex-col rounded-2xl border shadow-xl ring-1 ring-black/5">
                   <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden pt-3">
-                    {/* Header with Hide, Import, +Lesson, and Sync buttons */}
+                    {/* Header with Hide, Import, and +Lesson buttons */}
                     <div className="mb-3 flex items-center justify-between">
                       <Button
                         variant="ghost"
@@ -3416,23 +3420,6 @@ FEEDBACK: [your explanation]`
                         <ChevronLeftIcon className="h-4 w-4" />
                       </Button>
                       <div className="flex items-center gap-1">
-                        {insightsProps && mainTab === 'builder' && (
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => {
-                              onSave?.(
-                                nodes.map(n => n.lessons[0] || ({} as any)),
-                                { developmentMode: devMode, previewDifficulty }
-                              )
-                              toast.success('Synced to live session')
-                            }}
-                            className="h-7 gap-1 px-2 text-xs"
-                          >
-                            <RefreshCw className="h-3 w-3" />
-                            Sync
-                          </Button>
-                        )}
                         {(!insightsProps || mainTab === 'builder') && !lessonBankMode && (
                           <Button
                             size="sm"

@@ -6,6 +6,15 @@ import { useSearchParams } from 'next/navigation'
 import { CourseBuilderInsightsRoute } from '../courses/components/CourseBuilderInsightsRoute'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { Loader2, Wrench } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSocket } from '@/hooks/use-socket'
@@ -45,6 +54,10 @@ export default function TutorInsightsPage() {
   const [isRecording, setIsRecording] = useState(false)
   const [recordingDurationSeconds, setRecordingDurationSeconds] = useState(0)
   const courseIdFromQuery = searchParams.get('courseId')
+
+  const [newCourseName, setNewCourseName] = useState('')
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   useEffect(() => {
     if (!isRecording) {
@@ -105,6 +118,116 @@ export default function TutorInsightsPage() {
       toast.error(error instanceof Error ? error.message : 'Recording action failed')
     }
   }, [generateReplayArtifact, isRecording, persistRecordingState])
+
+  const handleSave = useCallback(
+    async (lessons: any[], options?: any) => {
+      if (!courseId || courseId === 'insights-draft') return
+      try {
+        const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+        const csrfData = await csrfRes.json().catch(() => ({}))
+        const csrfToken = csrfData?.token ?? null
+
+        const res = await fetch(`/api/tutor/courses/${courseId}/course`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+          },
+          credentials: 'include',
+          body: JSON.stringify({ lessons }),
+        })
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          console.error('[Insights] Save failed:', data)
+          if (!options?.isAutoSave) {
+            toast.error(data.details || data.error || 'Failed to save course')
+          }
+        } else {
+          if (!options?.isAutoSave) toast.success('Course saved successfully')
+        }
+      } catch {
+        if (!options?.isAutoSave) toast.error('Failed to save course')
+      }
+    },
+    [courseId]
+  )
+
+  const handleCreateNewCourse = useCallback(async () => {
+    if (!newCourseName.trim()) {
+      toast.error('Please enter a course name')
+      return
+    }
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch('/api/tutor/courses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: newCourseName.trim(),
+          categories: [],
+          schedule: [],
+          isLiveOnline: false,
+        }),
+      })
+
+      const data = await res.json()
+      const createdCourse = data.courses?.[0]
+      if (res.ok && createdCourse?.id) {
+        setCourses(prev => [...prev, createdCourse])
+        setCourseId(createdCourse.id)
+        setDetachedCourseName(createdCourse.name)
+        setNewCourseName('')
+        setIsCreateDialogOpen(false)
+        toast.success(`Created course "${createdCourse.name}"`)
+      } else {
+        toast.error(data.error || 'Failed to create course')
+      }
+    } catch {
+      toast.error('Failed to create course')
+    }
+  }, [newCourseName])
+
+  const handleDeleteCourse = useCallback(async () => {
+    if (!courseId || courseId === 'insights-draft') return
+    if (courses.length <= 1) {
+      toast.error('Cannot delete the last course')
+      setIsDeleteDialogOpen(false)
+      return
+    }
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch(`/api/tutor/courses/${courseId}`, {
+        method: 'DELETE',
+        headers: { ...(csrfToken && { 'X-CSRF-Token': csrfToken }) },
+        credentials: 'include',
+      })
+
+      if (res.ok) {
+        const remaining = courses.filter(c => c.id !== courseId)
+        setCourses(remaining)
+        setCourseId(remaining[0].id)
+        setDetachedCourseName(remaining[0].name)
+        setIsDeleteDialogOpen(false)
+        toast.success('Course deleted')
+      } else {
+        const data = await res.json().catch(() => ({}))
+        toast.error(data.error || 'Failed to delete course')
+      }
+    } catch {
+      toast.error('Failed to delete course')
+    }
+  }, [courseId, courses])
 
   useEffect(() => {
     if (!sessionId) {
@@ -432,7 +555,66 @@ export default function TutorInsightsPage() {
         }}
         sessionCategory={sessionCategory}
         sessionNationality={sessionNationality}
+        onSaveCourse={handleSave}
+        onCreateCourse={() => setIsCreateDialogOpen(true)}
+        onDeleteCourse={() => setIsDeleteDialogOpen(true)}
+        isCreateDialogOpen={isCreateDialogOpen}
+        setIsCreateDialogOpen={setIsCreateDialogOpen}
+        newCourseName={newCourseName}
+        setNewCourseName={setNewCourseName}
+        onCreateNewCourse={handleCreateNewCourse}
+        isDeleteDialogOpen={isDeleteDialogOpen}
+        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+        onDeleteCourseConfirm={handleDeleteCourse}
+        courses={courses}
       />
+
+      {/* Create New Course Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Course</DialogTitle>
+            <DialogDescription>Enter a name for your new course.</DialogDescription>
+          </DialogHeader>
+          <Input
+            value={newCourseName}
+            onChange={e => setNewCourseName(e.target.value)}
+            placeholder="Course name"
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                handleCreateNewCourse()
+              }
+            }}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateNewCourse}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Course Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Course</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete &quot;{detachedCourseName}&quot;? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteCourse}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
