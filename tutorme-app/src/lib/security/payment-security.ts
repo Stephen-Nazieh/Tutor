@@ -705,9 +705,6 @@ export class PaymentSecurityValidator {
           return { isValid: false, errors: ['HITPAY_SALT not configured'] }
         }
         const expected = crypto.createHmac('sha256', salt).update(request.body).digest('hex')
-        if (expected.toLowerCase() === signature.toLowerCase()) {
-          return { isValid: true, errors: [] }
-        }
         if (expected.length !== signature.length) {
           return { isValid: false, errors: ['Invalid Hitpay signature'] }
         }
@@ -733,9 +730,6 @@ export class PaymentSecurityValidator {
           .createHmac('sha256', secret)
           .update(`${timestamp}${request.body}`)
           .digest('hex')
-        if (expected.toLowerCase() === signature.toLowerCase()) {
-          return { isValid: true, errors: [] }
-        }
         if (expected.length !== signature.length) {
           return { isValid: false, errors: ['Invalid Airwallex signature'] }
         }

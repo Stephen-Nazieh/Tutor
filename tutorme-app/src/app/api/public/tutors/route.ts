@@ -1,107 +1,152 @@
 /**
  * Public API to get tutors with published courses
- * GET /api/public/tutors?q=&subject=&sort=&combination=
+ * GET /api/public/tutors?q=&subject=&sort=&combination=&page=&pageSize=
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course, user, profile, courseVariant } from '@/lib/db/schema'
-import { eq, and, inArray, sql } from 'drizzle-orm'
+import { eq, and, or, inArray, sql, desc, ilike } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const searchQuery = searchParams.get('q')?.toLowerCase() || ''
-    const categoryFilter = searchParams.get('subject')?.toLowerCase() || ''
-    const combinationFilter = searchParams.get('combination')?.toLowerCase() || ''
-    const nationalityFilter = searchParams.get('nationality')?.toLowerCase() || ''
+    const searchQuery = searchParams.get('q')?.toLowerCase().trim() || ''
+    const categoryFilter = searchParams.get('subject')?.toLowerCase().trim() || ''
+    const combinationFilter = searchParams.get('combination')?.toLowerCase().trim() || ''
+    const nationalityFilter = searchParams.get('nationality')?.toLowerCase().trim() || ''
     const sortBy = searchParams.get('sort') || 'popular'
 
-    // Get all published courses with their creators
-    const publishedCourses = await drizzleDb
+    const page = Math.max(1, Number(searchParams.get('page')) || 1)
+    const pageSize = Math.min(100, Math.max(1, Number(searchParams.get('pageSize')) || 20))
+    const offset = (page - 1) * pageSize
+
+    const searchPattern = searchQuery ? `%${searchQuery}%` : null
+    const categoryPattern = categoryFilter && categoryFilter !== 'all' ? `%${categoryFilter}%` : null
+    const combinationPattern =
+      combinationFilter && combinationFilter !== 'all' ? `%${combinationFilter}%` : null
+    const nationalityPattern =
+      nationalityFilter && nationalityFilter !== 'all' ? `%${nationalityFilter}%` : null
+
+    const orderByClause =
+      sortBy === 'newest'
+        ? desc(sql`max(${course.updatedAt})`)
+        : sortBy === 'courses'
+          ? desc(sql`count(distinct ${course.courseId})`)
+          : sortBy === 'rate'
+            ? desc(sql`max(${profile.hourlyRate})`)
+            : desc(sql`count(distinct ${course.courseId})`)
+
+    const tutorAggSubq = drizzleDb
       .select({
-        courseId: course.courseId,
-        name: course.name,
-        description: course.description,
-        price: course.price,
-        currency: course.currency,
-        isFree: course.isFree,
-        updatedAt: course.updatedAt,
         creatorId: course.creatorId,
-        categories: course.categories,
+        latestUpdatedAt: sql<Date>`max(${course.updatedAt})`.as('latestUpdatedAt'),
+        courseCount: sql<number>`count(distinct ${course.courseId})::int`.as('courseCount'),
+        hourlyRate: sql<number>`max(${profile.hourlyRate})`.as('hourlyRate'),
+        totalCount: sql<number>`count(*) over()::int`.as('totalCount'),
       })
       .from(course)
-      .where(eq(course.isPublished, true))
+      .innerJoin(user, eq(course.creatorId, user.userId))
+      .innerJoin(profile, eq(user.userId, profile.userId))
+      .leftJoin(courseVariant, eq(course.courseId, courseVariant.publishedCourseId))
+      .where(
+        and(
+          eq(course.isPublished, true),
+          eq(user.role, 'TUTOR'),
+          searchPattern
+            ? or(
+                ilike(profile.name, searchPattern),
+                ilike(profile.bio, searchPattern),
+                ilike(course.name, searchPattern),
+                ilike(courseVariant.category, searchPattern),
+                ilike(courseVariant.nationality, searchPattern),
+                sql`exists (
+                  select 1
+                  from jsonb_array_elements_text(${course.categories}) cat
+                  where lower(cat) like ${searchPattern}
+                )`
+              )
+            : undefined,
+          categoryPattern
+            ? sql`exists (
+                select 1
+                from jsonb_array_elements_text(${course.categories}) cat
+                where lower(cat) like ${categoryPattern}
+              )`
+            : undefined,
+          combinationPattern
+            ? sql`lower(${courseVariant.category} || ' - ' || ${courseVariant.nationality}) like ${combinationPattern}`
+            : undefined,
+          nationalityPattern ? ilike(courseVariant.nationality, nationalityPattern) : undefined
+        )
+      )
+      .groupBy(course.creatorId)
+      .orderBy(orderByClause)
+      .limit(pageSize)
+      .offset(offset)
+      .as('tutorAgg')
 
-    if (publishedCourses.length === 0) {
+    const paginated = await drizzleDb.select().from(tutorAggSubq)
+    const total = paginated[0]?.totalCount ?? 0
+    const paginatedIds = paginated.map(p => p.creatorId).filter((id): id is string => !!id)
+
+    if (paginatedIds.length === 0) {
       return NextResponse.json({
         tutors: [],
         availableCategories: [],
+        availableCombinations: [],
+        availableNationalities: [],
         source: 'db',
+        pagination: { page, pageSize, total: 0, totalPages: 0 },
       })
     }
 
-    // Get unique tutor IDs from published courses (filter out nulls)
-    const tutorIds = publishedCourses
-      .map(c => c.creatorId)
-      .filter((id): id is string => id !== null && id !== undefined)
-    const uniqueTutorIds = [...new Set(tutorIds)]
+    // Fetch profiles, courses, and variants for paginated tutors only
+    const [tutorProfiles, publishedCourses, variants] = await Promise.all([
+      drizzleDb
+        .select({
+          userId: profile.userId,
+          name: profile.name,
+          username: profile.username,
+          bio: profile.bio,
+          avatarUrl: profile.avatarUrl,
+          hourlyRate: profile.hourlyRate,
+          oneOnOneEnabled: profile.oneOnOneEnabled,
+        })
+        .from(profile)
+        .where(inArray(profile.userId, paginatedIds)),
+      drizzleDb
+        .select({
+          courseId: course.courseId,
+          name: course.name,
+          description: course.description,
+          price: course.price,
+          currency: course.currency,
+          isFree: course.isFree,
+          updatedAt: course.updatedAt,
+          creatorId: course.creatorId,
+          categories: course.categories,
+        })
+        .from(course)
+        .where(and(eq(course.isPublished, true), inArray(course.creatorId, paginatedIds))),
+      drizzleDb
+        .select({
+          publishedCourseId: courseVariant.publishedCourseId,
+          nationality: courseVariant.nationality,
+          category: courseVariant.category,
+        })
+        .from(courseVariant)
+        .where(
+          inArray(
+            courseVariant.publishedCourseId,
+            drizzleDb
+              .select({ courseId: course.courseId })
+              .from(course)
+              .where(and(eq(course.isPublished, true), inArray(course.creatorId, paginatedIds)))
+          )
+        ),
+    ])
 
-    if (uniqueTutorIds.length === 0) {
-      return NextResponse.json({
-        tutors: [],
-        availableCategories: [],
-        source: 'db',
-      })
-    }
-
-    // Get tutor user data
-    const tutorUsers = await drizzleDb
-      .select({
-        userId: user.userId,
-        email: user.email,
-      })
-      .from(user)
-      .where(and(eq(user.role, 'TUTOR'), inArray(user.userId, uniqueTutorIds)))
-
-    const validTutorIds = tutorUsers.map(u => u.userId)
-
-    if (validTutorIds.length === 0) {
-      return NextResponse.json({
-        tutors: [],
-        availableCategories: [],
-        source: 'db',
-      })
-    }
-
-    // Get tutor profiles
-    const tutorProfiles = await drizzleDb
-      .select({
-        userId: profile.userId,
-        name: profile.name,
-        username: profile.username,
-        bio: profile.bio,
-        avatarUrl: profile.avatarUrl,
-        hourlyRate: profile.hourlyRate,
-        oneOnOneEnabled: profile.oneOnOneEnabled,
-      })
-      .from(profile)
-      .where(inArray(profile.userId, validTutorIds))
-
-    // Get course variants for all published courses
-    const publishedCourseIds = publishedCourses.map(c => c.courseId)
-    const variants = publishedCourseIds.length > 0
-      ? await drizzleDb
-          .select({
-            publishedCourseId: courseVariant.publishedCourseId,
-            nationality: courseVariant.nationality,
-            category: courseVariant.category,
-          })
-          .from(courseVariant)
-          .where(inArray(courseVariant.publishedCourseId, publishedCourseIds))
-      : []
-
-    // Build map: courseId -> variants
     const variantsByCourseId = new Map<string, { nationality: string; category: string }[]>()
     for (const v of variants) {
       const list = variantsByCourseId.get(v.publishedCourseId) || []
@@ -109,141 +154,82 @@ export async function GET(request: NextRequest) {
       variantsByCourseId.set(v.publishedCourseId, list)
     }
 
-    // Build tutor map with their courses
-    const tutorMap = new Map()
+    const profileById = new Map(tutorProfiles.map(p => [p.userId, p]))
+    const coursesByTutorId = new Map<string, typeof publishedCourses>()
+    for (const c of publishedCourses) {
+      const list = coursesByTutorId.get(c.creatorId!) || []
+      list.push(c)
+      coursesByTutorId.set(c.creatorId!, list)
+    }
 
-    for (const profileData of tutorProfiles) {
-      const tutorCourses = publishedCourses.filter(c => c.creatorId === profileData.userId)
-
-      // Gather variants for this tutor's courses
-      const tutorVariants = tutorCourses.flatMap(
-        c => variantsByCourseId.get(c.courseId) || []
-      )
-      const tutorCombinations = [...new Set(tutorVariants.map(v => `${v.category} - ${v.nationality}`))]
+    const tutors = paginatedIds.map(tutorId => {
+      const profileData = profileById.get(tutorId)
+      const tutorCourses = coursesByTutorId.get(tutorId) || []
+      const tutorVariants = tutorCourses.flatMap(c => variantsByCourseId.get(c.courseId) || [])
+      const tutorCombinations = [
+        ...new Set(tutorVariants.map(v => `${v.category} - ${v.nationality}`)),
+      ]
       const tutorNationalities = [...new Set(tutorVariants.map(v => v.nationality))]
+      const allCategories = [...new Set(tutorCourses.flatMap(c => c.categories || []))]
 
-      // Apply category filter if specified
-      if (categoryFilter && categoryFilter !== 'all') {
-        const hasMatchingCategory = tutorCourses.some(c =>
-          c.categories?.some((cat: string) => cat.toLowerCase().includes(categoryFilter))
-        )
-        if (!hasMatchingCategory) continue
-      }
+      const latestCourse = tutorCourses.sort(
+        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      )[0]
 
-      // Apply combination filter (e.g., "IELTS - Korea") if specified
-      if (combinationFilter && combinationFilter !== 'all') {
-        const hasMatchingCombination = tutorCombinations.some((combo: string) =>
-          combo.toLowerCase().includes(combinationFilter)
-        )
-        if (!hasMatchingCombination) continue
-      }
-
-      // Apply nationality filter if specified
-      if (nationalityFilter && nationalityFilter !== 'all') {
-        const hasMatchingNationality = tutorNationalities.some((nat: string) =>
-          nat.toLowerCase().includes(nationalityFilter)
-        )
-        if (!hasMatchingNationality) continue
-      }
-
-      // Apply search filter if specified
-      if (searchQuery) {
-        const matchesSearch =
-          profileData.name?.toLowerCase().includes(searchQuery) ||
-          profileData.bio?.toLowerCase().includes(searchQuery) ||
-          tutorCourses.some(
-            c =>
-              c.name?.toLowerCase().includes(searchQuery) ||
-              c.categories?.some((cat: string) => cat.toLowerCase().includes(searchQuery))
-          ) ||
-          tutorCombinations.some((combo: string) =>
-            combo.toLowerCase().includes(searchQuery)
-          )
-        if (!matchesSearch) continue
-      }
-
-      // Get unique categories from courses (flatten all categories arrays)
-      const allCategories = tutorCourses.flatMap(c => c.categories || [])
-      const categories = [...new Set(allCategories)]
-
-      // Calculate total enrollments (placeholder - would come from actual enrollment data)
-      const totalEnrollments = 0
-
-      tutorMap.set(profileData.userId, {
-        id: profileData.userId,
-        name: profileData.name || 'Anonymous Tutor',
-        username: profileData.username || profileData.userId.slice(0, 8),
-        bio: profileData.bio || 'Experienced tutor ready to help you improve quickly.',
-        avatarUrl: profileData.avatarUrl,
-        specialties: categories,
-        hourlyRate: profileData.hourlyRate,
-        oneOnOneEnabled: profileData.oneOnOneEnabled ?? true, // Default to true if not set
+      return {
+        id: tutorId,
+        name: profileData?.name || 'Anonymous Tutor',
+        username: profileData?.username || tutorId.slice(0, 8),
+        bio: profileData?.bio || 'Experienced tutor ready to help you improve quickly.',
+        avatarUrl: profileData?.avatarUrl,
+        specialties: allCategories,
+        hourlyRate: profileData?.hourlyRate,
+        oneOnOneEnabled: profileData?.oneOnOneEnabled ?? true,
         tutorNationalities,
         categoryNationalityCombinations: tutorCombinations,
         courseCount: tutorCourses.length,
-        totalEnrollments,
-        categories,
-        latestCourseUpdatedAt:
-          tutorCourses.length > 0
-            ? tutorCourses
-                .sort(
-                  (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-                )[0]
-                .updatedAt?.toISOString()
-            : null,
+        totalEnrollments: 0,
+        categories: allCategories,
+        latestCourseUpdatedAt: latestCourse?.updatedAt?.toISOString() || null,
         coursePreview: tutorCourses.map(c => ({
           id: c.courseId,
           name: c.name,
           categories: c.categories || [],
-          enrollmentCount: 0, // Placeholder
-          moduleCount: 1, // Simplified
-          lessonCount: 1, // Would need to fetch from courseLesson
+          enrollmentCount: 0,
+          moduleCount: 1,
+          lessonCount: 1,
           updatedAt: c.updatedAt?.toISOString() || new Date().toISOString(),
           price: c.isFree ? 0 : c.price,
           currency: c.currency || 'USD',
-          rating: 0, // Placeholder
-          reviewCount: 0, // Placeholder
+          rating: 0,
+          reviewCount: 0,
         })),
-        averageRating: 0, // Placeholder
-        totalReviewCount: 0, // Placeholder
-      })
-    }
+        averageRating: 0,
+        totalReviewCount: 0,
+      }
+    })
 
-    const tutors = Array.from(tutorMap.values())
+    // Global filter options (from all published courses/variants)
+    const [allCategoriesResult, allCombinationsResult, allNationalitiesResult] = await Promise.all([
+      drizzleDb
+        .select({ categories: course.categories })
+        .from(course)
+        .where(eq(course.isPublished, true)),
+      drizzleDb
+        .select({ category: courseVariant.category, nationality: courseVariant.nationality })
+        .from(courseVariant),
+      drizzleDb.select({ nationality: courseVariant.nationality }).from(courseVariant),
+    ])
 
-    // Apply sorting
-    switch (sortBy) {
-      case 'newest':
-        tutors.sort((a, b) => {
-          const dateA = a.latestCourseUpdatedAt ? new Date(a.latestCourseUpdatedAt).getTime() : 0
-          const dateB = b.latestCourseUpdatedAt ? new Date(b.latestCourseUpdatedAt).getTime() : 0
-          return dateB - dateA
-        })
-        break
-      case 'courses':
-        tutors.sort((a, b) => b.courseCount - a.courseCount)
-        break
-      case 'rate':
-        tutors.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0))
-        break
-      case 'popular':
-      default:
-        tutors.sort((a, b) => b.totalEnrollments - a.totalEnrollments)
-        break
-    }
-
-    // Get all unique categories for filter dropdown
-    const allCategories = [...new Set(publishedCourses.flatMap(c => c.categories || []))].filter(
+    const allCategories = [
+      ...new Set(allCategoriesResult.flatMap(r => r.categories || [])),
+    ].filter(Boolean)
+    const allCombinations = [
+      ...new Set(allCombinationsResult.map(v => `${v.category} - ${v.nationality}`)),
+    ].filter(Boolean)
+    const allTutorNationalities = [...new Set(allNationalitiesResult.map(v => v.nationality))].filter(
       Boolean
     )
-
-    // Get all unique combinations from course variants
-    const allCombinations = [...new Set(variants.map(v => `${v.category} - ${v.nationality}`))].filter(
-      Boolean
-    )
-
-    // Get all unique tutor nationalities from course variants
-    const allTutorNationalities = [...new Set(variants.map(v => v.nationality))].filter(Boolean)
 
     return NextResponse.json({
       tutors,
@@ -251,6 +237,12 @@ export async function GET(request: NextRequest) {
       availableCombinations: allCombinations,
       availableNationalities: allTutorNationalities,
       source: 'db',
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      },
     })
   } catch (error) {
     console.error('[GET /api/public/tutors] Error:', error)

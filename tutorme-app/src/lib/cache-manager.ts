@@ -243,11 +243,19 @@ class CacheManager {
   private healthCheckInterval: NodeJS.Timeout | null = null
   private isHealthy = false
   private initializationPromise: Promise<void> | null = null
+  private isClientNoOp = typeof window !== 'undefined'
 
   constructor() {
     this.memoryCache = new MemoryCache()
-    this.encryption = new EncryptionService()
+    this.encryption = null as unknown as EncryptionService
     this.metrics = MetricsSchema.parse({})
+
+    if (this.isClientNoOp) {
+      // Skip heavy server-only initialization on the client
+      return
+    }
+
+    this.encryption = new EncryptionService()
 
     // Cleanup expired entries every minute
     setInterval(() => {
@@ -263,6 +271,7 @@ class CacheManager {
    * Initialize Redis connection with China network optimizations
    */
   async initialize(): Promise<void> {
+    if (this.isClientNoOp) return
     if (this.initializationPromise) {
       return this.initializationPromise
     }
@@ -386,6 +395,7 @@ class CacheManager {
    * Check if cache is healthy
    */
   isCacheHealthy(): boolean {
+    if (this.isClientNoOp) return true
     return this.isHealthy || this.redis === null // Healthy if Redis unavailable (fallback mode)
   }
 
@@ -393,6 +403,7 @@ class CacheManager {
    * Get Redis client (for advanced usage)
    */
   getRedisClient(): Redis | null {
+    if (this.isClientNoOp) return null
     return this.redis
   }
 
@@ -404,6 +415,7 @@ class CacheManager {
    * Set performance monitoring hook
    */
   setPerformanceHook(hook: PerformanceHook): void {
+    if (this.isClientNoOp) return
     this.performanceHook = hook
   }
 
@@ -443,6 +455,14 @@ class CacheManager {
    * Get performance metrics
    */
   getMetrics(): CacheMetrics {
+    if (this.isClientNoOp) {
+      return {
+        ...MetricsSchema.parse({}),
+        hitRate: 0,
+        avgLatencyMs: 0,
+      } as CacheMetrics & { hitRate: number; avgLatencyMs: number }
+    }
+
     const hitRate =
       this.metrics.hits + this.metrics.misses > 0
         ? this.metrics.hits / (this.metrics.hits + this.metrics.misses)
@@ -464,6 +484,7 @@ class CacheManager {
    * Reset metrics
    */
   resetMetrics(): void {
+    if (this.isClientNoOp) return
     this.metrics = MetricsSchema.parse({})
   }
 
@@ -475,6 +496,7 @@ class CacheManager {
    * Get cached value with multi-tier lookup
    */
   async get<T>(key: string, options: CacheOptions<T> = {}): Promise<T | null> {
+    if (this.isClientNoOp) return null
     const startTime = Date.now()
     const fullKey = CACHE_CONFIG.PREFIX + key
 
@@ -536,6 +558,7 @@ class CacheManager {
    * Set cached value with compression and encryption
    */
   async set<T>(key: string, value: T, options: CacheOptions<T> = {}): Promise<boolean> {
+    if (this.isClientNoOp) return false
     const startTime = Date.now()
     const fullKey = CACHE_CONFIG.PREFIX + key
     const ttl = options.ttl || CACHE_CONFIG.TTL_DEFAULT
@@ -601,6 +624,7 @@ class CacheManager {
    * Delete cached value
    */
   async delete(key: string): Promise<boolean> {
+    if (this.isClientNoOp) return false
     const startTime = Date.now()
     const fullKey = CACHE_CONFIG.PREFIX + key
 
@@ -641,6 +665,7 @@ class CacheManager {
     factory: () => Promise<T>,
     options: CacheOptions<T> = {}
   ): Promise<T> {
+    if (this.isClientNoOp) return factory()
     const cached = await this.get<T>(key, options)
     if (cached !== null) {
       return cached
@@ -655,6 +680,7 @@ class CacheManager {
    * Clear all cache
    */
   async clear(): Promise<boolean> {
+    if (this.isClientNoOp) return false
     const startTime = Date.now()
 
     try {
@@ -700,6 +726,7 @@ class CacheManager {
    * Invalidate all keys with given tag
    */
   async invalidateTag(tag: string): Promise<number> {
+    if (this.isClientNoOp) return 0
     const startTime = Date.now()
     const tagKey = CACHE_CONFIG.TAG_PREFIX + tag
 
@@ -741,6 +768,7 @@ class CacheManager {
    * Invalidate multiple tags
    */
   async invalidateTags(tags: string[]): Promise<number> {
+    if (this.isClientNoOp) return 0
     let total = 0
     for (const tag of tags) {
       total += await this.invalidateTag(tag)
@@ -877,6 +905,7 @@ class CacheManager {
    * Disconnect from Redis
    */
   async disconnect(): Promise<void> {
+    if (this.isClientNoOp) return
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval)
       this.healthCheckInterval = null

@@ -6,12 +6,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
 import crypto from 'crypto'
-import { withAuth, handleApiError } from '@/lib/api/middleware'
+import { withAuth, withCsrf, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { deletionRequest, user as userTable, profile, consentLog } from '@/lib/db/schema'
 import { logDeletion } from '@/lib/compliance/audit'
 
-export const POST = withAuth(async (req: NextRequest, session) => {
+export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
   const userId = session?.user?.id
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -73,4 +73,4 @@ export const POST = withAuth(async (req: NextRequest, session) => {
   } catch (error) {
     return handleApiError(error, 'Failed to submit deletion request', 'api/user/delete-account')
   }
-})
+}))

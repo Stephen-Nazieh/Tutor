@@ -42,10 +42,13 @@ export const course = pgTable(
     currency: text('currency'),
     isFree: boolean('isFree').notNull().default(false),
     schedule: jsonb('schedule'),
+    deletedAt: timestamp('deletedAt', { withTimezone: true }),
   },
   table => ({
     Course_isPublished_idx: index('Course_isPublished_idx').on(table.isPublished),
     Course_creatorId_idx: index('Course_creatorId_idx').on(table.creatorId),
+    Course_isPublished_creatorId_idx: index('Course_isPublished_creatorId_idx').on(table.isPublished, table.creatorId),
+    Course_deletedAt_idx: index('Course_deletedAt_idx').on(table.deletedAt),
   })
 )
 
@@ -97,6 +100,7 @@ export const courseLesson = pgTable(
       .notNull()
       .defaultNow()
       .$onUpdate(() => new Date()),
+    deletedAt: timestamp('deletedAt', { withTimezone: true }),
   },
   table => ({
     CourseLesson_courseId_idx: index('CourseLesson_courseId_idx').on(table.courseId),
@@ -310,7 +314,7 @@ export const feedbackWorkflow = pgTable(
     aiStrengths: jsonb('aiStrengths').notNull(),
     aiImprovements: jsonb('aiImprovements').notNull(),
     aiResources: jsonb('aiResources').notNull(),
-    status: text('status').notNull(),
+    status: enums.feedbackStatusEnum('status').notNull(),
     modifiedScore: doublePrecision('modifiedScore'),
     modifiedComments: text('modifiedComments'),
     addedNotes: text('addedNotes'),

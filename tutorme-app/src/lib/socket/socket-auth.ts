@@ -31,8 +31,7 @@ export async function validateSocketJWT(
 export function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void) {
   const token = socket.handshake.auth?.token
   if (!token) {
-    next()
-    return
+    return next(new Error('Authentication required'))
   }
   validateSocketJWT(token)
     .then(user => {

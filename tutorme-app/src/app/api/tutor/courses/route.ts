@@ -1,191 +1,187 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { withAuth, withCsrf } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course as courseTable, courseLesson } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
 import { CreateCourseSchema } from '@/lib/validation/schemas'
 import { ZodError } from 'zod'
 
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const coursesData = await drizzleDb.query.course.findMany({
-      where: (course, { eq }) => eq(course.creatorId, session.user.id),
-      orderBy: (course, { desc }) => [desc(course.createdAt)],
-      columns: {
-        courseId: true,
-        name: true,
-        description: true,
-        categories: true,
-        isPublished: true,
-        isLiveOnline: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    })
-
-    // Map courseId to id for frontend compatibility
-    const courses = coursesData.map(c => ({
-      id: c.courseId,
-      name: c.name,
-      description: c.description,
-      categories: c.categories,
-      isPublished: c.isPublished,
-      isLiveOnline: c.isLiveOnline,
-      createdAt: c.createdAt,
-      updatedAt: c.updatedAt,
-    }))
-
-    return NextResponse.json({ courses })
-  } catch (error) {
-    console.error('Failed to fetch courses:', error)
-    return NextResponse.json({ error: 'Failed to fetch courses' }, { status: 500 })
-  }
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const body = await req.json()
-    console.log('Course creation request:', JSON.stringify(body, null, 2))
-
-    let data
+export const GET = withAuth(
+  async (_req: NextRequest, session) => {
     try {
-      data = CreateCourseSchema.parse(body)
-    } catch (parseError) {
-      console.error('Schema validation error:', parseError)
-      if (parseError instanceof ZodError) {
+      const coursesData = await drizzleDb.query.course.findMany({
+        where: (course, { eq }) => eq(course.creatorId, session.user.id),
+        orderBy: (course, { desc }) => [desc(course.createdAt)],
+        columns: {
+          courseId: true,
+          name: true,
+          description: true,
+          categories: true,
+          isPublished: true,
+          isLiveOnline: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      })
+
+      // Map courseId to id for frontend compatibility
+      const courses = coursesData.map(c => ({
+        id: c.courseId,
+        name: c.name,
+        description: c.description,
+        categories: c.categories,
+        isPublished: c.isPublished,
+        isLiveOnline: c.isLiveOnline,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+      }))
+
+      return NextResponse.json({ courses })
+    } catch (error) {
+      console.error('Failed to fetch courses:', error)
+      return NextResponse.json({ error: 'Failed to fetch courses' }, { status: 500 })
+    }
+  },
+  { role: 'TUTOR' }
+)
+
+export const POST = withCsrf(
+  withAuth(
+    async (req: NextRequest, session) => {
+      try {
+        const body = await req.json()
+        console.log('Course creation request:', JSON.stringify(body, null, 2))
+
+        let data
+        try {
+          data = CreateCourseSchema.parse(body)
+        } catch (parseError) {
+          console.error('Schema validation error:', parseError)
+          if (parseError instanceof ZodError) {
+            return NextResponse.json(
+              { error: 'Invalid request data', details: parseError.issues },
+              { status: 400 }
+            )
+          }
+          throw parseError
+        }
+
+        const userId = session.user.id
+        const now = new Date()
+        const courseId = crypto.randomUUID()
+
+        const categories =
+          Array.isArray(data.categories) && data.categories.length > 0
+            ? data.categories
+            : []
+
+        const schedule =
+          Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : []
+
+        const insertValues = {
+          courseId,
+          name: data.title,
+          description: data.description || null,
+          isPublished: false,
+          isLiveOnline: data.isLiveOnline ?? false,
+          isFree: false,
+          categories,
+          currency: 'USD',
+          schedule,
+          createdAt: now,
+          updatedAt: now,
+          creatorId: userId,
+          languageOfInstruction: null,
+          price: null,
+        }
+
+        console.log('[Course Create] Insert values:', JSON.stringify(insertValues, null, 2))
+
+        const [newCourse] = await drizzleDb
+          .insert(courseTable)
+          .values(insertValues)
+          .returning({
+            courseId: courseTable.courseId,
+            name: courseTable.name,
+            description: courseTable.description,
+            categories: courseTable.categories,
+            isPublished: courseTable.isPublished,
+            isLiveOnline: courseTable.isLiveOnline,
+            createdAt: courseTable.createdAt,
+            updatedAt: courseTable.updatedAt,
+          })
+
+        await drizzleDb.insert(courseLesson).values({
+          lessonId: crypto.randomUUID(),
+          courseId: newCourse.courseId,
+          title: 'Introduction',
+          description: 'Introduction to this course.',
+          duration: 60,
+          order: 0,
+          updatedAt: now,
+          builderData: {
+            isPublished: false,
+            duration: 60,
+            difficultyMode: 'all',
+            variants: {},
+            media: { videos: [], images: [] },
+            docs: [],
+            content: [],
+            tasks: [],
+            assessments: [],
+            homework: [],
+            quizzes: [],
+            worksheets: [],
+          },
+        })
+
+        const createdCourse = {
+          id: newCourse.courseId,
+          name: newCourse.name,
+          description: newCourse.description,
+          categories: newCourse.categories,
+          isPublished: newCourse.isPublished,
+          isLiveOnline: newCourse.isLiveOnline,
+          createdAt: newCourse.createdAt?.toISOString?.() ?? newCourse.createdAt,
+          updatedAt: newCourse.updatedAt?.toISOString?.() ?? newCourse.updatedAt,
+        }
+
+        console.log('Course created:', newCourse.courseId, '-', newCourse.name)
+
+        return NextResponse.json({
+          courses: [createdCourse],
+          message: 'Course created successfully',
+        })
+      } catch (error) {
+        // Unwrap DrizzleQueryError to get the real PostgreSQL error
+        const rootError = (error as { cause?: Error }).cause ?? error
+
+        console.error('Course creation error:', rootError)
+
+        // Log detailed error for debugging
+        if (rootError instanceof Error) {
+          const pgError = rootError as {
+            code?: string
+            detail?: string
+            hint?: string
+            message?: string
+          }
+          console.error('PostgreSQL error details:', {
+            code: pgError.code,
+            message: pgError.message,
+            detail: pgError.detail,
+            hint: pgError.hint,
+          })
+        }
+
         return NextResponse.json(
-          { error: 'Invalid request data', details: parseError.issues },
-          { status: 400 }
+          {
+            error: 'Failed to create course',
+            details: rootError instanceof Error ? rootError.message : String(rootError),
+          },
+          { status: 500 }
         )
       }
-      throw parseError
-    }
-
-    const userId = session.user.id
-    const now = new Date()
-    const courseId = crypto.randomUUID()
-
-    const categories =
-      Array.isArray(data.categories) && data.categories.length > 0
-        ? data.categories
-        : []
-
-    const schedule =
-      Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : []
-
-    const insertValues = {
-      courseId,
-      name: data.title,
-      description: data.description || null,
-      isPublished: false,
-      isLiveOnline: data.isLiveOnline ?? false,
-      isFree: false,
-      categories,
-      currency: 'USD',
-      schedule,
-      createdAt: now,
-      updatedAt: now,
-      creatorId: userId,
-      languageOfInstruction: null,
-      price: null,
-    }
-
-    console.log('[Course Create] Insert values:', JSON.stringify(insertValues, null, 2))
-
-    const [newCourse] = await drizzleDb
-      .insert(courseTable)
-      .values(insertValues)
-      .returning({
-        courseId: courseTable.courseId,
-        name: courseTable.name,
-        description: courseTable.description,
-        categories: courseTable.categories,
-        isPublished: courseTable.isPublished,
-        isLiveOnline: courseTable.isLiveOnline,
-        createdAt: courseTable.createdAt,
-        updatedAt: courseTable.updatedAt,
-      })
-
-    await drizzleDb.insert(courseLesson).values({
-      lessonId: crypto.randomUUID(),
-      courseId: newCourse.courseId,
-      title: 'Introduction',
-      description: 'Introduction to this course.',
-      duration: 60,
-      order: 0,
-      updatedAt: now,
-      builderData: {
-        isPublished: false,
-        duration: 60,
-        difficultyMode: 'all',
-        variants: {},
-        media: { videos: [], images: [] },
-        docs: [],
-        content: [],
-        tasks: [],
-        assessments: [],
-        homework: [],
-        quizzes: [],
-        worksheets: [],
-      },
-    })
-
-    const createdCourse = {
-      id: newCourse.courseId,
-      name: newCourse.name,
-      description: newCourse.description,
-      categories: newCourse.categories,
-      isPublished: newCourse.isPublished,
-      isLiveOnline: newCourse.isLiveOnline,
-      createdAt: newCourse.createdAt?.toISOString?.() ?? newCourse.createdAt,
-      updatedAt: newCourse.updatedAt?.toISOString?.() ?? newCourse.updatedAt,
-    }
-
-    console.log('Course created:', newCourse.courseId, '-', newCourse.name)
-
-    return NextResponse.json({
-      courses: [createdCourse],
-      message: 'Course created successfully',
-    })
-  } catch (error) {
-    // Unwrap DrizzleQueryError to get the real PostgreSQL error
-    const rootError = (error as { cause?: Error }).cause ?? error
-
-    console.error('Course creation error:', rootError)
-
-    // Log detailed error for debugging
-    if (rootError instanceof Error) {
-      const pgError = rootError as {
-        code?: string
-        detail?: string
-        hint?: string
-        message?: string
-      }
-      console.error('PostgreSQL error details:', {
-        code: pgError.code,
-        message: pgError.message,
-        detail: pgError.detail,
-        hint: pgError.hint,
-      })
-    }
-
-    return NextResponse.json(
-      {
-        error: 'Failed to create course',
-        details: rootError instanceof Error ? rootError.message : String(rootError),
-      },
-      { status: 500 }
-    )
-  }
-}
+    },
+    { role: 'TUTOR' }
+  )
+)

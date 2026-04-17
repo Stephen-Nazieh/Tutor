@@ -120,3 +120,12 @@ export const payoutStatusEnum = pgEnum('PayoutStatus', [
   'REJECTED',
 ])
 export type PayoutStatus = (typeof payoutStatusEnum.enumValues)[number]
+
+export const feedbackStatusEnum = pgEnum('feedback_status', [
+  'ai_generated',
+  'tutor_modified',
+  'approved',
+  'sent_to_student',
+  'rejected',
+])
+export type FeedbackStatus = (typeof feedbackStatusEnum.enumValues)[number]

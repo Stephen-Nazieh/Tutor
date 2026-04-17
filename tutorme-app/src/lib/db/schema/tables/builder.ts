@@ -35,9 +35,11 @@ export const builderTask = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date()),
     publishedAt: timestamp('publishedAt', { withTimezone: true }),
+    deletedAt: timestamp('deletedAt', { withTimezone: true }),
   },
   table => ({
     BuilderTask_courseId_idx: index('BuilderTask_courseId_idx').on(table.courseId),
+    BuilderTask_deletedAt_idx: index('BuilderTask_deletedAt_idx').on(table.deletedAt),
     BuilderTask_lessonId_idx: index('BuilderTask_lessonId_idx').on(table.lessonId),
     BuilderTask_tutorId_idx: index('BuilderTask_tutorId_idx').on(table.tutorId),
     BuilderTask_type_idx: index('BuilderTask_type_idx').on(table.type),

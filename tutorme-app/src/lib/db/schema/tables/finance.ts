@@ -14,7 +14,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
 import { user } from './auth'
-import { courseEnrollment } from './course'
+import { course, courseEnrollment } from './course'
 
 export const payment = pgTable(
   'Payment',
@@ -39,6 +39,7 @@ export const payment = pgTable(
       onDelete: 'set null',
     }),
     tutorId: text('tutorId').references(() => user.userId, { onDelete: 'set null' }),
+    courseId: text('courseId').references(() => course.courseId, { onDelete: 'set null' }),
   },
   table => ({
     Payment_status_idx: index('Payment_status_idx').on(table.status),
@@ -54,6 +55,7 @@ export const payment = pgTable(
       table.enrollmentId,
       table.status
     ),
+    Payment_courseId_status_idx: index('Payment_courseId_status_idx').on(table.courseId, table.status),
   })
 )
 

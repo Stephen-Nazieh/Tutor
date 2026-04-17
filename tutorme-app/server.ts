@@ -5,39 +5,16 @@
 
 import { createServer } from 'http'
 import { parse } from 'url'
-import { readFileSync, existsSync } from 'fs'
 import { resolve } from 'path'
 import next from 'next'
+import { config as dotenvConfig } from 'dotenv'
 import { initEnhancedSocketServer } from './src/lib/socket-server-enhanced'
 import { validateEnv } from './src/lib/env'
 
 // Load environment variables from .env.local before validation
-function loadEnvFile(filePath: string) {
-  if (!existsSync(filePath)) return
-  const content = readFileSync(filePath, 'utf-8')
-  const lines = content.split('\n')
-  for (const line of lines) {
-    const trimmed = line.trim()
-    if (!trimmed || trimmed.startsWith('#')) continue
-    const eqIndex = trimmed.indexOf('=')
-    if (eqIndex === -1) continue
-    const key = trimmed.slice(0, eqIndex).trim()
-    let value = trimmed.slice(eqIndex + 1).trim()
-    // Remove surrounding quotes if present
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
-      value = value.slice(1, -1)
-    }
-    if (key && !process.env[key]) {
-      process.env[key] = value
-    }
-  }
-}
-
-// Load env files: .env.local first (higher priority), then .env (fallback)
-const envLocalPath = resolve(process.cwd(), '.env.local')
-const envPath = resolve(process.cwd(), '.env')
-loadEnvFile(envLocalPath)
-loadEnvFile(envPath)
+// .env.local takes precedence over .env
+dotenvConfig({ path: resolve(process.cwd(), '.env.local') })
+dotenvConfig({ path: resolve(process.cwd(), '.env') })
 
 // Startup readiness state
 let isReady = false

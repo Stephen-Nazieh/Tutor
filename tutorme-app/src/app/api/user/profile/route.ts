@@ -11,6 +11,28 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import { profile } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { sanitizeHtml, sanitizeHtmlWithMax } from '@/lib/security/sanitize'
+import { z } from 'zod'
+
+const profileUpdateSchema = z.strictObject({
+  name: z.string().max(100).optional(),
+  bio: z.string().max(2000).optional(),
+  credentials: z.string().max(2000).optional(),
+  subjects: z.array(z.string()).optional(),
+  availability: z.record(z.string(), z.unknown()).optional(),
+  hourlyRate: z.number().optional(),
+  subjectsOfInterest: z.array(z.string()).optional(),
+  preferredLanguages: z.array(z.string()).optional(),
+  paidClassesEnabled: z.boolean().optional(),
+  paymentGatewayPreference: z.enum(['HITPAY', 'AIRWALLEX', '']).optional(),
+  currency: z.string().optional(),
+  avatarUrl: z.string().optional(),
+  timezone: z.string().optional(),
+  emailNotifications: z.boolean().optional(),
+  smsNotifications: z.boolean().optional(),
+  isOnboarded: z.boolean().optional(),
+  tosAccepted: z.boolean().optional(),
+  learningGoals: z.array(z.string()).optional(),
+})
 
 async function getHandler(_req: NextRequest, session: Session) {
   try {
@@ -36,7 +58,21 @@ async function putHandler(req: NextRequest, session: Session) {
     const csrfError = await requireCsrf(req)
     if (csrfError) return csrfError
 
-    const body = await req.json()
+    let body: unknown
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
+
+    const parseResult = profileUpdateSchema.safeParse(body)
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: parseResult.error.issues.map(i => i.message).join(', ') },
+        { status: 400 }
+      )
+    }
+
     const {
       name,
       bio,
@@ -49,7 +85,14 @@ async function putHandler(req: NextRequest, session: Session) {
       paidClassesEnabled,
       paymentGatewayPreference,
       currency,
-    } = body
+      avatarUrl,
+      timezone,
+      emailNotifications,
+      smsNotifications,
+      isOnboarded,
+      tosAccepted,
+      learningGoals,
+    } = parseResult.data
 
     // Prepare update data
     const updateData: Record<string, unknown> = {}
@@ -58,16 +101,16 @@ async function putHandler(req: NextRequest, session: Session) {
     if (name !== undefined)
       updateData.name = sanitizeHtml(String(name)).trim().slice(0, 100) || null
     if (bio !== undefined) updateData.bio = sanitizeHtmlWithMax(bio, 2000)
-    if (body.avatarUrl !== undefined)
-      updateData.avatarUrl = sanitizeHtml(String(body.avatarUrl)).trim() || null
-    if (body.timezone !== undefined)
-      updateData.timezone = sanitizeHtml(String(body.timezone)).trim()
-    if (body.emailNotifications !== undefined)
-      updateData.emailNotifications = Boolean(body.emailNotifications)
-    if (body.smsNotifications !== undefined)
-      updateData.smsNotifications = Boolean(body.smsNotifications)
-    if (body.isOnboarded !== undefined) updateData.isOnboarded = Boolean(body.isOnboarded)
-    if (body.tosAccepted === true) {
+    if (avatarUrl !== undefined)
+      updateData.avatarUrl = sanitizeHtml(String(avatarUrl)).trim() || null
+    if (timezone !== undefined)
+      updateData.timezone = sanitizeHtml(String(timezone)).trim()
+    if (emailNotifications !== undefined)
+      updateData.emailNotifications = Boolean(emailNotifications)
+    if (smsNotifications !== undefined)
+      updateData.smsNotifications = Boolean(smsNotifications)
+    if (isOnboarded !== undefined) updateData.isOnboarded = Boolean(isOnboarded)
+    if (tosAccepted === true) {
       updateData.tosAccepted = true
       updateData.tosAcceptedAt = new Date()
     }
@@ -76,8 +119,8 @@ async function putHandler(req: NextRequest, session: Session) {
     if (subjectsOfInterest !== undefined) updateData.subjectsOfInterest = subjectsOfInterest
     if (preferredLanguages !== undefined)
       updateData.preferredLanguages = Array.isArray(preferredLanguages) ? preferredLanguages : []
-    if (body.learningGoals !== undefined)
-      updateData.learningGoals = Array.isArray(body.learningGoals) ? body.learningGoals : []
+    if (learningGoals !== undefined)
+      updateData.learningGoals = Array.isArray(learningGoals) ? learningGoals : []
 
     // Tutor fields
     if (hourlyRate !== undefined) updateData.hourlyRate = hourlyRate

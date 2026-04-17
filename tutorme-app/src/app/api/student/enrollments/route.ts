@@ -32,17 +32,19 @@ export const POST = withAuth(async (req, session) => {
   }
 
   if (!courseRow.isFree && courseRow.price && courseRow.price > 0) {
-    const payments = await drizzleDb
-      .select()
+    const [paymentRow] = await drizzleDb
+      .select({ paymentId: payment.paymentId })
       .from(payment)
-      .where(inArray(payment.status, ['COMPLETED', 'PENDING']))
+      .where(
+        and(
+          inArray(payment.status, ['COMPLETED', 'PENDING']),
+          sql`${payment.metadata}->>'courseId' = ${courseId}`,
+          sql`${payment.metadata}->>'studentId' = ${session.user.id}`
+        )
+      )
+      .limit(1)
 
-    const hasPayment = payments.some(p => {
-      const meta = p.metadata as { courseId?: string; studentId?: string } | null
-      return meta?.courseId === courseId && meta?.studentId === session.user.id
-    })
-
-    if (!hasPayment) {
+    if (!paymentRow) {
       return NextResponse.json(
         {
           error: 'Payment required',
@@ -82,22 +84,24 @@ export const POST = withAuth(async (req, session) => {
   const enrollmentId = crypto.randomUUID()
   const progressId = crypto.randomUUID()
 
-  await drizzleDb.insert(courseEnrollment).values({
-    enrollmentId,
-    studentId: session.user.id,
-    courseId,
-    startDate: startDate ? new Date(startDate) : undefined,
-    lessonsCompleted: 0,
-    enrollmentSource: 'browse',
-  })
+  await drizzleDb.transaction(async tx => {
+    await tx.insert(courseEnrollment).values({
+      enrollmentId,
+      studentId: session.user.id,
+      courseId,
+      startDate: startDate ? new Date(startDate) : undefined,
+      lessonsCompleted: 0,
+      enrollmentSource: 'browse',
+    })
 
-  await drizzleDb.insert(courseProgress).values({
-    progressId,
-    studentId: session.user.id,
-    courseId,
-    lessonsCompleted: 0,
-    totalLessons,
-    isCompleted: false,
+    await tx.insert(courseProgress).values({
+      progressId,
+      studentId: session.user.id,
+      courseId,
+      lessonsCompleted: 0,
+      totalLessons,
+      isCompleted: false,
+    })
   })
 
   const [enrollment] = await drizzleDb

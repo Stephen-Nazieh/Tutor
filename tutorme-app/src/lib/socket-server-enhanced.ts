@@ -9,6 +9,9 @@ import { jwtVerify } from 'jose'
 import Redis from 'ioredis'
 import { promisify } from 'util'
 import * as Sentry from '@sentry/nextjs'
+import { eq } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { liveSession } from '@/lib/db/schema'
 import {
   registerLiveClassWhiteboardHandlers,
   cleanupLcwbPresence,
@@ -507,8 +510,8 @@ async function initRedis() {
 export async function initEnhancedSocketServer(server: NetServer) {
   console.log('[Socket] Initializing enhanced server...')
   validateEnv()
-  // Run Redis initialization in background, don't await to avoid blocking server readiness
-  void initRedis()
+  // Await Redis initialization so adapter attaches before server creation
+  await initRedis()
   const intervalHandles: Array<ReturnType<typeof setInterval>> = []
 
   const io = new SocketIOServer(server, {
@@ -598,10 +601,46 @@ export async function initEnhancedSocketServer(server: NetServer) {
         }
       }
 
+      // Determine effective role — verify tutor privileges against DB before granting them
+      let effectiveRole = role
+      if (effectiveRole !== 'student') {
+        const scheduledTutorId = await (async (): Promise<string | null> => {
+          try {
+            const [session] = await drizzleDb
+              .select({ tutorId: liveSession.tutorId })
+              .from(liveSession)
+              .where(eq(liveSession.roomId, roomId))
+              .limit(1)
+            return session?.tutorId ?? null
+          } catch {
+            return null
+          }
+        })()
+        if (userId !== scheduledTutorId) {
+          effectiveRole = 'student'
+        }
+      }
+
       if (!room) {
+        const roomTutorId =
+          effectiveRole !== 'student'
+            ? userId
+            : await (async (): Promise<string> => {
+                try {
+                  const [session] = await drizzleDb
+                    .select({ tutorId: liveSession.tutorId })
+                    .from(liveSession)
+                    .where(eq(liveSession.roomId, roomId))
+                    .limit(1)
+                  return session?.tutorId ?? ''
+                } catch {
+                  return ''
+                }
+              })()
+
         room = {
           id: roomId,
-          tutorId: userId,
+          tutorId: roomTutorId,
           students: new Map(),
           chatHistory: [],
           tasks: [],
@@ -612,7 +651,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
       }
 
       // Add user to room with activity tracking
-      role === 'student' ? addStudentToRoom(socket, room) : addTutorToRoom(socket, room)
+      effectiveRole === 'student' ? addStudentToRoom(socket, room) : addTutorToRoom(socket, room)
     })
 
     socket.on('task:deploy', async (data: { roomId: string; task: LiveTask }) => {

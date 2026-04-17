@@ -9,16 +9,31 @@
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
 import { generateTranscriptQuiz } from '@/lib/agents/content-generator'
+import { z } from 'zod'
+
+const generateQuizSchema = z.strictObject({
+  contentId: z.string().optional(),
+  transcript: z.string().min(1, 'Transcript is required'),
+  grade: z.number().int().min(1).max(12).optional().default(8),
+  weakAreas: z.array(z.string()).optional().default([]),
+})
 
 export const POST = withCsrf(
   withAuth(
     async req => {
-      const body = await req.json()
-      const { transcript, grade = 8, weakAreas = [] } = body
-
-      if (!transcript) {
-        throw new ValidationError('Transcript is required')
+      let body: unknown
+      try {
+        body = await req.json()
+      } catch {
+        throw new ValidationError('Invalid JSON body')
       }
+
+      const parseResult = generateQuizSchema.safeParse(body)
+      if (!parseResult.success) {
+        throw new ValidationError(parseResult.error.issues.map(i => i.message).join(', '))
+      }
+
+      const { transcript, grade, weakAreas } = parseResult.data
 
       try {
         const result = await generateTranscriptQuiz({

@@ -103,32 +103,10 @@ jobs:
           docker push "$IMAGE"
           echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
 
-      - name: Ensure CourseVariant table exists
+      - name: Run database migrations
+        run: cd tutorme-app && npx drizzle-kit migrate
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
-        run: |
-          node -e "
-          const { Client } = require('pg');
-          const client = new Client({ connectionString: process.env.DIRECT_URL || process.env.DATABASE_URL });
-          client.connect().then(async () => {
-            await client.query(\`
-              CREATE TABLE IF NOT EXISTS \"CourseVariant\" (
-                \"id\" text PRIMARY KEY NOT NULL,
-                \"templateCourseId\" text NOT NULL REFERENCES \"public\".\"Course\"(\"id\") ON DELETE cascade,
-                \"publishedCourseId\" text NOT NULL REFERENCES \"public\".\"Course\"(\"id\") ON DELETE cascade,
-                \"nationality\" text NOT NULL,
-                \"category\" text NOT NULL,
-                \"createdAt\" timestamp with time zone DEFAULT now() NOT NULL,
-                \"updatedAt\" timestamp with time zone NOT NULL DEFAULT now()
-              );
-              CREATE INDEX IF NOT EXISTS \"CourseVariant_templateCourseId_idx\" ON \"CourseVariant\" (\"templateCourseId\");
-              CREATE INDEX IF NOT EXISTS \"CourseVariant_publishedCourseId_idx\" ON \"CourseVariant\" (\"publishedCourseId\");
-            \`);
-            console.log('CourseVariant table ensured');
-            await client.end();
-          }).catch(e => { console.error(e); process.exit(1); });
-          "
 
       - name: Deploy to Cloud Run (100% traffic)
         id: deploy-prod

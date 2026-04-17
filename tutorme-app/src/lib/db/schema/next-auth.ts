@@ -4,10 +4,13 @@
  * Our User and Account are in tables.ts (table names "User", "Account").
  */
 import { pgTable, text, timestamp, primaryKey } from 'drizzle-orm/pg-core'
+import { user } from './tables/auth'
 
 export const session = pgTable('Session', {
   sessionToken: text('sessionToken').primaryKey(),
-  userId: text('userId').notNull(),
+  userId: text('userId')
+    .notNull()
+    .references(() => user.userId, { onDelete: 'cascade' }),
   expires: timestamp('expires', { withTimezone: true }).notNull(),
 })
 

@@ -100,7 +100,7 @@ export const familyBudget = pgTable(
     budgetId: text('id').primaryKey().notNull(),
     parentId: text('parentId')
       .notNull()
-      .references(() => user.userId, { onDelete: 'cascade' }),
+      .references(() => familyAccount.familyAccountId, { onDelete: 'cascade' }),
     month: integer('month').notNull(),
     year: integer('year').notNull(),
     amount: doublePrecision('amount').notNull(),
@@ -250,7 +250,9 @@ export const studentProgressSnapshot = pgTable(
     parentId: text('parentId')
       .notNull()
       .references(() => user.userId, { onDelete: 'cascade' }),
-    studentId: text('studentId').notNull(),
+    studentId: text('studentId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
     data: jsonb('data').notNull(),
     capturedAt: timestamp('capturedAt', { withTimezone: true }).notNull().defaultNow(),
   },

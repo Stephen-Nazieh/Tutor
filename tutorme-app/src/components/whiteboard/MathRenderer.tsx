@@ -90,9 +90,12 @@ export function MathRenderer({
         // Clear previous content
         containerRef.current.innerHTML = ''
 
+        // Strip dangerous \href{javascript:...}{...} before MathJax typesetting
+        const sanitizedLatex = latex.replace(/\\href\{\s*javascript:[^}]*\}\{[^}]*\}/gi, '')
+
         // Create the math element
         const wrapper = document.createElement(displayMode ? 'div' : 'span')
-        wrapper.textContent = latex
+        wrapper.textContent = sanitizedLatex
         containerRef.current.appendChild(wrapper)
 
         // Typeset

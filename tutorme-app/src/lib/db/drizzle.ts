@@ -22,6 +22,7 @@ function getPool(): Pool {
     )
   }
 
+  const isPgBouncer = connectionString.includes('pgbouncer') || process.env.PGBOUNCER === 'true'
   const pool =
     globalForDrizzle.drizzlePool ??
     new Pool({
@@ -29,6 +30,8 @@ function getPool(): Pool {
       max: process.env.NODE_ENV === 'production' ? 50 : 5,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
+      allowExitOnIdle: true,
+      ...(isPgBouncer && { prepare: false }),
     })
 
   if (process.env.NODE_ENV !== 'production') {

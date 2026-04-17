@@ -41,7 +41,18 @@ import {
   builderTaskVersion,
   oneOnOneBookingRequest,
   calendarEvent,
+  courseVariant,
+  notification,
+  notificationPreference,
+  contentItem,
+  videoWatchEvent,
+  calendarConnection,
+  studentMemoryProfile,
+  resource,
+  engagementSnapshot,
 } from './tables'
+import { session } from './next-auth'
+import { consentLog } from './compliance'
 
 export const userRelations = relations(user, ({ one, many }) => ({
   profile: one(profile, {
@@ -460,5 +471,91 @@ export const calendarEventRelations = relations(calendarEvent, ({ one }) => ({
     fields: [calendarEvent.studentId],
     references: [user.userId],
     relationName: 'studentCalendarEvents',
+  }),
+}))
+
+export const courseVariantRelations = relations(courseVariant, ({ one }) => ({
+  templateCourse: one(course, {
+    fields: [courseVariant.templateCourseId],
+    references: [course.courseId],
+  }),
+  publishedCourse: one(course, {
+    fields: [courseVariant.publishedCourseId],
+    references: [course.courseId],
+  }),
+}))
+
+export const notificationRelations = relations(notification, ({ one }) => ({
+  user: one(user, {
+    fields: [notification.userId],
+    references: [user.userId],
+  }),
+}))
+
+export const notificationPreferenceRelations = relations(notificationPreference, ({ one }) => ({
+  user: one(user, {
+    fields: [notificationPreference.userId],
+    references: [user.userId],
+  }),
+}))
+
+export const contentItemRelations = relations(contentItem, ({ many }) => ({
+  videoWatchEvents: many(videoWatchEvent),
+}))
+
+export const videoWatchEventRelations = relations(videoWatchEvent, ({ one }) => ({
+  contentItem: one(contentItem, {
+    fields: [videoWatchEvent.contentId],
+    references: [contentItem.contentId],
+  }),
+  student: one(user, {
+    fields: [videoWatchEvent.studentId],
+    references: [user.userId],
+  }),
+}))
+
+export const calendarConnectionRelations = relations(calendarConnection, ({ one }) => ({
+  user: one(user, {
+    fields: [calendarConnection.userId],
+    references: [user.userId],
+  }),
+}))
+
+export const studentMemoryProfileRelations = relations(studentMemoryProfile, ({ one }) => ({
+  student: one(user, {
+    fields: [studentMemoryProfile.studentId],
+    references: [user.userId],
+  }),
+}))
+
+export const resourceRelations = relations(resource, ({ one }) => ({
+  tutor: one(user, {
+    fields: [resource.tutorId],
+    references: [user.userId],
+  }),
+}))
+
+export const consentLogRelations = relations(consentLog, ({ one }) => ({
+  user: one(user, {
+    fields: [consentLog.userId],
+    references: [user.userId],
+  }),
+}))
+
+export const engagementSnapshotRelations = relations(engagementSnapshot, ({ one }) => ({
+  session: one(liveSession, {
+    fields: [engagementSnapshot.sessionId],
+    references: [liveSession.sessionId],
+  }),
+  student: one(user, {
+    fields: [engagementSnapshot.studentId],
+    references: [user.userId],
+  }),
+}))
+
+export const sessionRelations = relations(session, ({ one }) => ({
+  user: one(user, {
+    fields: [session.userId],
+    references: [user.userId],
   }),
 }))

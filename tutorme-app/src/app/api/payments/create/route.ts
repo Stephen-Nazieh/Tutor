@@ -17,7 +17,6 @@ import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   course,
-  courseEnrollment,
   courseProgress,
   user,
   profile,
@@ -26,13 +25,38 @@ import {
 } from '@/lib/db/schema'
 import { getPaymentGateway, type GatewayName } from '@/lib/payments'
 import { eq, and, isNull } from 'drizzle-orm'
+import { z } from 'zod'
+
+const createPaymentSchema = z
+  .strictObject({
+    bookingId: z.string().optional(),
+    courseId: z.string().optional(),
+    oneOnOneRequestId: z.string().optional(),
+    studentId: z.string().optional(),
+    gateway: z.enum(['HITPAY', 'AIRWALLEX']).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+  })
+  .refine(data => data.bookingId || data.courseId || data.oneOnOneRequestId, {
+    message: 'bookingId, courseId, or oneOnOneRequestId is required',
+  })
 
 export const POST = withCsrf(
   withAuth(async (req: NextRequest, session) => {
     const { response: rateLimitResponse } = await withRateLimitPreset(req, 'paymentCreate')
     if (rateLimitResponse) return rateLimitResponse
 
-    const body = await req.json()
+    let body: unknown
+    try {
+      body = await req.json()
+    } catch {
+      throw new ValidationError('Invalid JSON body')
+    }
+
+    const parseResult = createPaymentSchema.safeParse(body)
+    if (!parseResult.success) {
+      throw new ValidationError(parseResult.error.issues.map(i => i.message).join(', '))
+    }
+
     const {
       bookingId,
       courseId,
@@ -40,7 +64,7 @@ export const POST = withCsrf(
       studentId,
       gateway: requestedGateway,
       metadata: customMetadata,
-    } = body
+    } = parseResult.data
 
     let payerStudentId = session.user.id
     const userRole = (session.user.role || '').toUpperCase()
@@ -150,24 +174,26 @@ export const POST = withCsrf(
       })
 
       const paymentId = crypto.randomUUID()
-      await drizzleDb.insert(payment).values({
-        paymentId,
-        bookingId: null,
-        amount,
-        currency,
-        status: 'PENDING',
-        gateway: gatewayName,
-        tutorId: courseRow.creatorId ?? null,
-        gatewayPaymentId: paymentResponse.paymentId,
-        gatewayCheckoutUrl: paymentResponse.checkoutUrl,
-        metadata: {
-          type: 'course',
-          courseId,
-          studentId: payerStudentId,
-          payerId: session.user.id,
-          payerRole: session.user.role,
-          startDate: customMetadata?.startDate,
-        },
+      await drizzleDb.transaction(async tx => {
+        await tx.insert(payment).values({
+          paymentId,
+          bookingId: null,
+          amount,
+          currency,
+          status: 'PENDING',
+          gateway: gatewayName,
+          tutorId: courseRow.creatorId ?? null,
+          gatewayPaymentId: paymentResponse.paymentId,
+          gatewayCheckoutUrl: paymentResponse.checkoutUrl,
+          metadata: {
+            type: 'course',
+            courseId,
+            studentId: payerStudentId,
+            payerId: session.user.id,
+            payerRole: session.user.role,
+            startDate: customMetadata?.startDate,
+          },
+        })
       })
 
       return NextResponse.json({
@@ -275,24 +301,26 @@ export const POST = withCsrf(
       })
 
       const paymentId = crypto.randomUUID()
-      await drizzleDb.insert(payment).values({
-        paymentId,
-        bookingId: null,
-        amount,
-        currency,
-        status: 'PENDING',
-        gateway: gatewayName,
-        tutorId: requestRow.request.tutorId,
-        gatewayPaymentId: paymentResponse.paymentId,
-        gatewayCheckoutUrl: paymentResponse.checkoutUrl,
-        metadata: {
-          type: 'one-on-one',
-          requestId: oneOnOneRequestId,
+      await drizzleDb.transaction(async tx => {
+        await tx.insert(payment).values({
+          paymentId,
+          bookingId: null,
+          amount,
+          currency,
+          status: 'PENDING',
+          gateway: gatewayName,
           tutorId: requestRow.request.tutorId,
-          studentId: payerStudentId,
-          payerId: session.user.id,
-          payerRole: session.user.role,
-        },
+          gatewayPaymentId: paymentResponse.paymentId,
+          gatewayCheckoutUrl: paymentResponse.checkoutUrl,
+          metadata: {
+            type: 'one-on-one',
+            requestId: oneOnOneRequestId,
+            tutorId: requestRow.request.tutorId,
+            studentId: payerStudentId,
+            payerId: session.user.id,
+            payerRole: session.user.role,
+          },
+        })
       })
 
       return NextResponse.json({

@@ -4,6 +4,19 @@ import { authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course, courseLesson } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
+import { z } from 'zod'
+
+const patchCourseSchema = z.strictObject({
+  name: z.string().min(1).optional(),
+  description: z.string().optional(),
+  languageOfInstruction: z.string().optional(),
+  price: z.number().optional(),
+  currency: z.string().optional(),
+  isFree: z.boolean().optional(),
+  isPublished: z.boolean().optional(),
+  categories: z.array(z.string()).optional(),
+  schedule: z.array(z.record(z.string(), z.unknown())).optional(),
+})
 
 // GET /api/tutor/courses/[id] - Get a single course with lessons
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -103,7 +116,23 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const { id } = await params
     const userId = session.user.id
-    const body = await req.json()
+
+    let body: unknown
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
+
+    const parseResult = patchCourseSchema.safeParse(body)
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: parseResult.error.issues.map(i => i.message).join(', ') },
+        { status: 400 }
+      )
+    }
+
+    const parsedBody = parseResult.data
 
     // Verify ownership
     const existingCourse = await drizzleDb
@@ -119,19 +148,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     // Build update object with only provided fields
     const updateData: Record<string, unknown> = {}
 
-    // Name is required - don't allow null/empty
-    if (body.name !== undefined && body.name !== null && body.name.trim() !== '') {
-      updateData.name = body.name.trim()
-    }
-    if (body.description !== undefined) updateData.description = body.description
-    if (body.languageOfInstruction !== undefined)
-      updateData.languageOfInstruction = body.languageOfInstruction
-    if (body.price !== undefined) updateData.price = body.price
-    if (body.currency !== undefined) updateData.currency = body.currency
-    if (body.isFree !== undefined) updateData.isFree = body.isFree
-    if (body.isPublished !== undefined) updateData.isPublished = body.isPublished
-    if (body.categories !== undefined) updateData.categories = body.categories
-    if (body.schedule !== undefined) updateData.schedule = body.schedule
+    if (parsedBody.name !== undefined) updateData.name = parsedBody.name.trim()
+    if (parsedBody.description !== undefined) updateData.description = parsedBody.description
+    if (parsedBody.languageOfInstruction !== undefined)
+      updateData.languageOfInstruction = parsedBody.languageOfInstruction
+    if (parsedBody.price !== undefined) updateData.price = parsedBody.price
+    if (parsedBody.currency !== undefined) updateData.currency = parsedBody.currency
+    if (parsedBody.isFree !== undefined) updateData.isFree = parsedBody.isFree
+    if (parsedBody.isPublished !== undefined) updateData.isPublished = parsedBody.isPublished
+    if (parsedBody.categories !== undefined) updateData.categories = parsedBody.categories
+    if (parsedBody.schedule !== undefined) updateData.schedule = parsedBody.schedule
 
     // Update the course
     await drizzleDb.update(course).set(updateData).where(eq(course.courseId, id))
