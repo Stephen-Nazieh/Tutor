@@ -34,15 +34,37 @@ END $$;
 ALTER TABLE "Payment" ADD COLUMN IF NOT EXISTS "courseId" text;
 CREATE INDEX IF NOT EXISTS "Payment_courseId_status_idx" ON "Payment"("courseId", "status");
 
--- 5. Foreign key fixes
+-- 5. Foreign key fixes (defensive: skip if referenced column doesn't exist)
 DO $$
+DECLARE
+  user_pk_col text;
 BEGIN
-  IF NOT EXISTS (
+  -- Discover User PK column name (could be 'userId' or 'id')
+  SELECT column_name INTO user_pk_col
+  FROM information_schema.columns
+  WHERE table_name = 'User' AND column_name IN ('userId', 'id')
+  LIMIT 1;
+
+  -- Session -> User FK
+  IF user_pk_col IS NOT NULL AND NOT EXISTS (
     SELECT 1 FROM information_schema.table_constraints 
     WHERE constraint_name = 'Session_userId_fkey' AND table_name = 'Session'
   ) THEN
-    ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" 
-      FOREIGN KEY ("userId") REFERENCES "User"("userId") ON DELETE CASCADE;
+    EXECUTE format(
+      'ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"(%I) ON DELETE CASCADE',
+      user_pk_col
+    );
+  END IF;
+
+  -- StudentProgressSnapshot -> User FK
+  IF user_pk_col IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints 
+    WHERE constraint_name = 'StudentProgressSnapshot_studentId_fkey' AND table_name = 'StudentProgressSnapshot'
+  ) THEN
+    EXECUTE format(
+      'ALTER TABLE "StudentProgressSnapshot" ADD CONSTRAINT "StudentProgressSnapshot_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "User"(%I) ON DELETE CASCADE',
+      user_pk_col
+    );
   END IF;
 END $$;
 
@@ -54,17 +76,6 @@ BEGIN
   ) THEN
     ALTER TABLE "EmergencyContact" ADD CONSTRAINT "EmergencyContact_parentId_fkey" 
       FOREIGN KEY ("parentId") REFERENCES "FamilyAccount"("familyAccountId") ON DELETE CASCADE;
-  END IF;
-END $$;
-
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.table_constraints 
-    WHERE constraint_name = 'StudentProgressSnapshot_studentId_fkey' AND table_name = 'StudentProgressSnapshot'
-  ) THEN
-    ALTER TABLE "StudentProgressSnapshot" ADD CONSTRAINT "StudentProgressSnapshot_studentId_fkey" 
-      FOREIGN KEY ("studentId") REFERENCES "User"("userId") ON DELETE CASCADE;
   END IF;
 END $$;
 
