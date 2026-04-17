@@ -231,6 +231,7 @@ import {
   Layers2,
   GripHorizontal,
   CornerDownLeft,
+  RefreshCw,
 } from 'lucide-react'
 import { ChevronLeft as ChevronLeftIcon } from 'lucide-react'
 
@@ -2744,6 +2745,39 @@ FEEDBACK: [your explanation]`
       setLoadAsModalOpen(true)
     }
 
+    const renderLiveDirectory = () => (
+      <div className="space-y-3 px-1">
+        {nodes.length === 0 && (
+          <div className="text-muted-foreground py-8 text-center">
+            <Layers className="mx-auto mb-2 h-8 w-8 opacity-30" />
+            <p className="text-sm">No lessons in this course.</p>
+          </div>
+        )}
+        {nodes.map(node => (
+          <div key={node.id} className="space-y-1">
+            {node.title && (
+              <div className="text-muted-foreground px-2 text-[10px] font-semibold uppercase tracking-wider">
+                {node.title}
+              </div>
+            )}
+            {node.lessons.map((lesson, lessonIdx) => (
+              <div
+                key={lesson.id}
+                className={cn(
+                  'cursor-pointer rounded px-2 py-1.5 text-sm transition-colors hover:bg-muted',
+                  selectedItem?.type === 'lesson' && selectedItem?.id === lesson.id && 'bg-muted font-medium'
+                )}
+                onClick={() => setSelectedItem({ type: 'lesson', id: lesson.id })}
+              >
+                <span className="text-muted-foreground mr-1.5 text-xs">{lessonIdx + 1}.</span>
+                {lesson.title || `Lesson ${lessonIdx + 1}`}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    )
+
     const renderAssetsFolder = () => (
       <div className="mt-4 rounded-md border">
         <div
@@ -3369,7 +3403,7 @@ FEEDBACK: [your explanation]`
               >
                 <Card className="border-border bg-card flex h-full min-h-0 flex-1 flex-col rounded-2xl border shadow-xl ring-1 ring-black/5">
                   <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden pt-3">
-                    {/* Header with Hide, Import, and +Lesson buttons */}
+                    {/* Header with Hide, Import, +Lesson, and Sync buttons */}
                     <div className="mb-3 flex items-center justify-between">
                       <Button
                         variant="ghost"
@@ -3382,7 +3416,24 @@ FEEDBACK: [your explanation]`
                         <ChevronLeftIcon className="h-4 w-4" />
                       </Button>
                       <div className="flex items-center gap-1">
-                        {!lessonBankMode && (
+                        {insightsProps && mainTab === 'builder' && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => {
+                              onSave?.(
+                                nodes.map(n => n.lessons[0] || ({} as any)),
+                                { developmentMode: devMode, previewDifficulty }
+                              )
+                              toast.success('Synced to live session')
+                            }}
+                            className="h-7 gap-1 px-2 text-xs"
+                          >
+                            <RefreshCw className="h-3 w-3" />
+                            Sync
+                          </Button>
+                        )}
+                        {(!insightsProps || mainTab === 'builder') && !lessonBankMode && (
                           <Button
                             size="sm"
                             variant="outline"
@@ -3420,14 +3471,16 @@ FEEDBACK: [your explanation]`
                             Import
                           </Button>
                         )}
-                        <Button
-                          size="sm"
-                          onClick={addCourseBuilderNode}
-                          className="h-7 gap-1 px-2 text-xs"
-                        >
-                          <Plus className="h-3 w-3" />
-                          Lesson
-                        </Button>
+                        {(!insightsProps || mainTab === 'builder') && (
+                          <Button
+                            size="sm"
+                            onClick={addCourseBuilderNode}
+                            className="h-7 gap-1 px-2 text-xs"
+                          >
+                            <Plus className="h-3 w-3" />
+                            Lesson
+                          </Button>
+                        )}
                       </div>
                     </div>
 
@@ -3441,6 +3494,9 @@ FEEDBACK: [your explanation]`
                     </div>
 
                     <ScrollArea className="min-h-0 flex-1">
+                      {insightsProps && mainTab === 'test-pci' ? (
+                        renderLiveDirectory()
+                      ) : (
                       <DndContext
                         sensors={sensors}
                         collisionDetection={closestCenter}
@@ -4247,9 +4303,12 @@ FEEDBACK: [your explanation]`
                           )}
                         </div>
                       </DndContext>
+                    )}
                     </ScrollArea>
                     {/* Assets Folder added to the bottom of the left panel */}
-                    <div className="mt-4 border-t pt-4">{renderAssetsFolder()}</div>
+                    {(!insightsProps || mainTab !== 'test-pci') && (
+                      <div className="mt-4 border-t pt-4">{renderAssetsFolder()}</div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
