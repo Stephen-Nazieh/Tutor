@@ -139,7 +139,7 @@ export function CourseBuilderInsightsRoute({
             </Link>
           </Button>
           <div className="flex shrink-0 items-center gap-3">
-            {activeMainTab !== 'builder' && (
+            {activeMainTab === 'live' && (
               <h1 className="text-foreground text-lg font-bold tracking-tight">
                 Live Session
                 {model.course?.name && (

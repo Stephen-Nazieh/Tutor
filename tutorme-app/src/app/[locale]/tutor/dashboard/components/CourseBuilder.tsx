@@ -4572,7 +4572,7 @@ FEEDBACK: [your explanation]`
                             </div>
                           </div>
                         </div>
-                        {insightsProps && showInsightsPanel && (
+                        {insightsProps && showInsightsPanel && mainTab === 'live' && (
                           <div className="min-h-0 w-full xl:w-[360px]">
                             <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cyan-200/70 bg-gradient-to-br from-white via-slate-50 to-cyan-50 p-4 shadow-[0_10px_40px_-20px_rgba(14,116,144,0.65)] ring-1 ring-cyan-200/60">
                               {insightsProps.onToggleRecording && (
