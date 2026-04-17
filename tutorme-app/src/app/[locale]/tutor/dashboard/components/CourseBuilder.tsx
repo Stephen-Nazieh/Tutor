@@ -494,8 +494,24 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // Main builder tab (task vs assessment)
     const [mainBuilderTab, setMainBuilderTab] = useState<'task' | 'assessment'>('task')
 
-    // Main section tabs (Test PCI vs Builder)
-    const [mainTab, setMainTab] = useState<'test-pci' | 'builder'>('builder')
+    // Main section tabs (Live, Test PCI vs Builder)
+    const [mainTab, setMainTab] = useState<'live' | 'builder' | 'test-pci'>('builder')
+
+    useEffect(() => {
+      if (!insightsProps) return
+      if (mainTab === 'test-pci') {
+        setTestPciTabs([
+          { id: 'classroom', label: 'Classroom' },
+          { id: 'student1', label: 'Test Student 1' },
+          { id: 'student2', label: 'Test Student 2' },
+        ])
+      } else if (mainTab === 'live') {
+        setTestPciTabs([
+          { id: 'classroom', label: 'Classroom' },
+          { id: 'student1', label: 'Whiteboard' },
+        ])
+      }
+    }, [insightsProps, mainTab])
 
     const [showInsightsPanel, setShowInsightsPanel] = useState(true)
 
@@ -3420,7 +3436,7 @@ FEEDBACK: [your explanation]`
                         <ChevronLeftIcon className="h-4 w-4" />
                       </Button>
                       <div className="flex items-center gap-1">
-                        {(!insightsProps || mainTab === 'builder') && !lessonBankMode && (
+                        {(!insightsProps || mainTab !== 'live') && !lessonBankMode && (
                           <Button
                             size="sm"
                             variant="outline"
@@ -3458,7 +3474,7 @@ FEEDBACK: [your explanation]`
                             Import
                           </Button>
                         )}
-                        {(!insightsProps || mainTab === 'builder') && (
+                        {(!insightsProps || mainTab !== 'live') && (
                           <Button
                             size="sm"
                             onClick={addCourseBuilderNode}
@@ -3481,7 +3497,7 @@ FEEDBACK: [your explanation]`
                     </div>
 
                     <ScrollArea className="min-h-0 flex-1">
-                      {insightsProps && mainTab === 'test-pci' ? (
+                      {insightsProps && mainTab === 'live' ? (
                         renderLiveDirectory()
                       ) : (
                       <DndContext
@@ -4293,7 +4309,7 @@ FEEDBACK: [your explanation]`
                     )}
                     </ScrollArea>
                     {/* Assets Folder added to the bottom of the left panel */}
-                    {(!insightsProps || mainTab !== 'test-pci') && (
+                    {(!insightsProps || mainTab !== 'live') && (
                       <div className="mt-4 border-t pt-4">{renderAssetsFolder()}</div>
                     )}
                   </CardContent>
@@ -4331,19 +4347,31 @@ FEEDBACK: [your explanation]`
                 </div>
               )}
 
-              {/* Main Tabs: Test PCI and Builder */}
+              {/* Main Tabs: Live, Test, and Builder */}
               <Tabs
                 value={mainTab}
-                onValueChange={v => setMainTab(v as 'test-pci' | 'builder')}
+                onValueChange={v => setMainTab(v as 'live' | 'builder' | 'test-pci')}
                 className="flex h-full w-full flex-1 flex-col"
               >
-                <TabsList className="bg-muted/30 mb-4 grid w-full grid-cols-2 gap-1 rounded-xl p-1">
+                <TabsList className={cn(
+                  "bg-muted/30 mb-4 grid w-full gap-1 rounded-xl p-1",
+                  insightsProps ? "grid-cols-3" : "grid-cols-2"
+                )}>
+                  {insightsProps && (
+                    <TabsTrigger
+                      value="live"
+                      className="data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg bg-transparent data-[state=active]:shadow-sm"
+                    >
+                      <Radio className="h-4 w-4 text-blue-500" />
+                      Live
+                    </TabsTrigger>
+                  )}
                   <TabsTrigger
                     value="test-pci"
                     className="data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg bg-transparent data-[state=active]:shadow-sm"
                   >
                     <BrainCircuit className="h-4 w-4 text-blue-500" />
-                    {insightsProps ? 'Live' : 'Test'}
+                    Test
                   </TabsTrigger>
                   <TabsTrigger
                     value="builder"
@@ -4354,10 +4382,8 @@ FEEDBACK: [your explanation]`
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent
-                  value="test-pci"
-                  className="h-full w-full flex-1 data-[state=inactive]:hidden"
-                >
+                {mainTab !== 'builder' && (
+                  <div className="h-full w-full flex-1">
                   <Card className="border-border bg-card flex h-full w-full min-w-0 flex-1 overflow-hidden rounded-2xl border shadow-xl ring-1 ring-black/5">
                     <CardContent className="flex h-full min-h-0 w-full flex-col overflow-hidden p-0 pt-4">
                       <CardTitle className="mb-3 flex items-center justify-between gap-2 px-4 text-base font-semibold">
@@ -4443,7 +4469,7 @@ FEEDBACK: [your explanation]`
                                   value={tab.id}
                                   className="mt-2 flex h-full w-full min-w-0 flex-1 flex-col self-stretch overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                 >
-                                  {insightsProps && tab.id === 'student1' ? (
+                                  {mainTab === 'live' && tab.id === 'student1' ? (
                                     <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-lg">
                                       <EnhancedWhiteboard
                                         pages={insightsBoardPages}
@@ -4946,7 +4972,8 @@ FEEDBACK: [your explanation]`
                       </div>
                     </CardContent>
                   </Card>
-                </TabsContent>
+                </div>
+                )}
 
                 <TabsContent
                   value="builder"
