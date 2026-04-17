@@ -223,7 +223,7 @@ export const emergencyContact = pgTable(
     contactId: text('id').primaryKey().notNull(),
     parentId: text('parentId')
       .notNull()
-      .references(() => user.userId, { onDelete: 'cascade' }),
+      .references(() => familyAccount.familyAccountId, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     relation: text('relation').notNull(),
     phone: text('phone').notNull(),
