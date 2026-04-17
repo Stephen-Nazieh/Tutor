@@ -20,6 +20,8 @@ import {
 
 type Props = UseCourseBuilderContentArgs & {
   insightsProps: CourseBuilderInsightsProps
+  sessionCategory?: string | null
+  sessionNationality?: string | null
 }
 
 export function CourseBuilderInsightsRoute({
@@ -28,6 +30,8 @@ export function CourseBuilderInsightsRoute({
   dataMode = 'default',
   detachedStorageKey,
   detachedCourseName,
+  sessionCategory,
+  sessionNationality,
 }: Props) {
   const model = useCourseBuilderContentModel({
     courseId,
@@ -97,6 +101,13 @@ export function CourseBuilderInsightsRoute({
                 </span>
               )}
             </h1>
+            {(sessionCategory || sessionNationality) && (
+              <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
+                {sessionCategory && sessionNationality
+                  ? `${sessionCategory} — ${sessionNationality}`
+                  : sessionCategory || sessionNationality}
+              </span>
+            )}
           </div>
           <div className="flex shrink-0 items-center gap-2">
             {insightsProps.sessionId && (

@@ -508,6 +508,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [sessionContext, setSessionContext] = useState<{
       topic: string | null
       objectives: string[] | null
+      category: string | null
       nationality: string | null
       languageOfInstruction: string | null
       roomUrl: string | null
@@ -703,6 +704,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           setSessionContext({
             topic: data?.session?.topic ?? null,
             objectives: data?.session?.objectives ?? null,
+            category: data?.session?.category ?? null,
             nationality: data?.session?.nationality ?? null,
             languageOfInstruction: data?.session?.languageOfInstruction ?? null,
             roomUrl: data?.session?.roomUrl ?? null,
@@ -3328,6 +3330,11 @@ FEEDBACK: [your explanation]`
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
               <span>
                 <span className="font-semibold">Lesson:</span> {sessionContext.topic || '—'}
+              </span>
+              <span className="hidden text-blue-300 sm:inline">•</span>
+              <span>
+                <span className="font-semibold">Category:</span>{' '}
+                {sessionContext.category || '—'}
               </span>
               <span className="hidden text-blue-300 sm:inline">•</span>
               <span>

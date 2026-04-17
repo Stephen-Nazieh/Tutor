@@ -36,6 +36,8 @@ export default function TutorInsightsPage() {
   const [sessions, setSessions] = useState<InsightsSessionOption[]>([])
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [linkedCourseId, setLinkedCourseId] = useState<string | null>(null)
+  const [sessionCategory, setSessionCategory] = useState<string | null>(null)
+  const [sessionNationality, setSessionNationality] = useState<string | null>(null)
   const [liveTasks, setLiveTasks] = useState<LiveTask[]>([])
   const [students, setStudents] = useState<LiveStudent[]>([])
   const [metrics, setMetrics] = useState<EngagementMetrics | null>(null)
@@ -216,6 +218,8 @@ export default function TutorInsightsPage() {
         const data = await res.json()
         if (cancelled) return
         setLinkedCourseId(data?.session?.linkedCourseId || null)
+        setSessionCategory(data?.session?.category || null)
+        setSessionNationality(data?.session?.nationality || null)
       } catch {
         // Ignore; keep existing selection
       }
@@ -426,6 +430,8 @@ export default function TutorInsightsPage() {
           onToggleRecording: handleToggleRecording,
           socket,
         }}
+        sessionCategory={sessionCategory}
+        sessionNationality={sessionNationality}
       />
     </div>
   )

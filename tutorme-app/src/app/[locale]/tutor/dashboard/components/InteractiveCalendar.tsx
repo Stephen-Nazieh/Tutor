@@ -283,9 +283,9 @@ const DEFAULT_TIMEZONE =
 const generateAvailability = (): AvailabilityBlock[] => {
   const slots: AvailabilityBlock[] = []
   for (let day = 0; day <= 6; day += 1) {
-    for (let i = 0; i < TIME_SLOTS.length; i += 1) {
+    for (let i = 0; i < TIME_SLOTS.length - 1; i += 1) {
       const startTime = TIME_SLOTS[i]
-      const endTime = TIME_SLOTS[i + 1] || '22:00'
+      const endTime = TIME_SLOTS[i + 1]
       slots.push({
         id: `${day}-${startTime}`,
         dayOfWeek: day,

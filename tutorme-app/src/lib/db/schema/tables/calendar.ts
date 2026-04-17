@@ -20,7 +20,7 @@ import { course } from './course'
 export const calendarConnection = pgTable(
   'CalendarConnection',
   {
-    connectionId: text('id').primaryKey().notNull(),
+    connectionId: text('connectionId').primaryKey().notNull(),
     userId: text('userId')
       .notNull()
       .references(() => user.userId, { onDelete: 'cascade' }),
@@ -105,7 +105,7 @@ export const calendarEvent = pgTable(
 export const calendarAvailability = pgTable(
   'CalendarAvailability',
   {
-    availabilityId: text('id').primaryKey().notNull(),
+    availabilityId: text('availabilityId').primaryKey().notNull(),
     tutorId: text('tutorId')
       .notNull()
       .references(() => user.userId, { onDelete: 'cascade' }),
@@ -136,7 +136,7 @@ export const calendarAvailability = pgTable(
 export const calendarException = pgTable(
   'CalendarException',
   {
-    exceptionId: text('id').primaryKey().notNull(),
+    exceptionId: text('exceptionId').primaryKey().notNull(),
     tutorId: text('tutorId')
       .notNull()
       .references(() => user.userId, { onDelete: 'cascade' }),

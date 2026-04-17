@@ -189,6 +189,7 @@ export const GET = withAuth(
         linkedCourseId: deterministicLinkedCourseId,
         topic: liveSessionRow.topic,
         objectives: liveSessionRow.objectives,
+        category: liveSessionRow.category,
         nationality: liveSessionRow.nationality,
         languageOfInstruction: liveSessionRow.languageOfInstruction,
       },
