@@ -88,6 +88,7 @@ export function CourseBuilderInsightsRoute({
 
   const [endingSession, setEndingSession] = useState(false)
   const [themeId, setThemeId] = useState('current')
+  const [activeMainTab, setActiveMainTab] = useState<'live' | 'builder' | 'test-pci'>('builder')
 
   const handleEndSession = async () => {
     if (!insightsProps.sessionId || endingSession) return
@@ -138,14 +139,16 @@ export function CourseBuilderInsightsRoute({
             </Link>
           </Button>
           <div className="flex shrink-0 items-center gap-3">
-            <h1 className="text-foreground text-lg font-bold tracking-tight">
-              Live Session
-              {model.course?.name && (
-                <span className="text-muted-foreground ml-2 text-sm font-normal">
-                  — {model.course.name}
-                </span>
-              )}
-            </h1>
+            {activeMainTab !== 'builder' && (
+              <h1 className="text-foreground text-lg font-bold tracking-tight">
+                Live Session
+                {model.course?.name && (
+                  <span className="text-muted-foreground ml-2 text-sm font-normal">
+                    — {model.course.name}
+                  </span>
+                )}
+              </h1>
+            )}
             {(sessionCategory || sessionNationality) && (
               <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
                 {sessionCategory && sessionNationality
@@ -155,33 +158,37 @@ export function CourseBuilderInsightsRoute({
             )}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <BookOpen className="text-muted-foreground h-4 w-4" />
-            {courses && courses.length > 0 && insightsProps.onCourseChange && (
-              <Select
-                value={courseId ?? ''}
-                onValueChange={v => insightsProps.onCourseChange?.(v)}
-              >
-                <SelectTrigger className="h-8 w-[160px] text-xs">
-                  <SelectValue placeholder="Select course" />
-                </SelectTrigger>
-                <SelectContent>
-                  {courses.map(c => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {activeMainTab !== 'live' && (
+              <>
+                <BookOpen className="text-muted-foreground h-4 w-4" />
+                {courses && courses.length > 0 && insightsProps.onCourseChange && (
+                  <Select
+                    value={courseId ?? ''}
+                    onValueChange={v => insightsProps.onCourseChange?.(v)}
+                  >
+                    <SelectTrigger className="h-8 w-[160px] text-xs">
+                      <SelectValue placeholder="Select course" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {courses.map(c => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                {onCourseNameChange && (
+                  <Input
+                    value={courseName || ''}
+                    onChange={e => onCourseNameChange(e.target.value)}
+                    className="h-8 w-[200px] text-sm font-semibold"
+                    placeholder="Course name"
+                  />
+                )}
+              </>
             )}
-            {onCourseNameChange && (
-              <Input
-                value={courseName || ''}
-                onChange={e => onCourseNameChange(e.target.value)}
-                className="h-8 w-[200px] text-sm font-semibold"
-                placeholder="Course name"
-              />
-            )}
-            {courseId && courseId !== 'insights-draft' && (
+            {activeMainTab === 'builder' && courseId && courseId !== 'insights-draft' && (
               <Button size="sm" variant="outline" className="gap-1" asChild>
                 <Link href={`/tutor/courses/${courseId}`}>
                   Next
@@ -189,18 +196,20 @@ export function CourseBuilderInsightsRoute({
                 </Link>
               </Button>
             )}
-            <Select value={themeId} onValueChange={setThemeId}>
-              <SelectTrigger className="border-border bg-card text-foreground h-8 w-[180px]">
-                <SelectValue placeholder="Select theme" />
-              </SelectTrigger>
-              <SelectContent>
-                {DASHBOARD_THEMES.map(theme => (
-                  <SelectItem key={theme.id} value={theme.id}>
-                    {theme.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {activeMainTab === 'builder' && (
+              <Select value={themeId} onValueChange={setThemeId}>
+                <SelectTrigger className="border-border bg-card text-foreground h-8 w-[180px]">
+                  <SelectValue placeholder="Select theme" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DASHBOARD_THEMES.map(theme => (
+                    <SelectItem key={theme.id} value={theme.id}>
+                      {theme.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             {insightsProps.sessionId && (
               <Button
                 variant="destructive"
@@ -211,7 +220,7 @@ export function CourseBuilderInsightsRoute({
                 {endingSession ? 'Ending…' : 'End Session'}
               </Button>
             )}
-            {onSaveCourse && (
+            {activeMainTab === 'builder' && onSaveCourse && (
               <Button
                 size="sm"
                 onClick={() => {
@@ -223,12 +232,12 @@ export function CourseBuilderInsightsRoute({
                 Save
               </Button>
             )}
-            {onCreateCourse && !insightsProps.sessionId && (
+            {activeMainTab === 'builder' && onCreateCourse && !insightsProps.sessionId && (
               <Button size="sm" variant="outline" onClick={onCreateCourse}>
                 New Course
               </Button>
             )}
-            {onDeleteCourse && !insightsProps.sessionId && courses && courses.length > 1 && (
+            {activeMainTab === 'builder' && onDeleteCourse && !insightsProps.sessionId && courses && courses.length > 1 && (
               <Button size="sm" variant="outline" onClick={onDeleteCourse}>
                 Delete
               </Button>
@@ -294,6 +303,7 @@ export function CourseBuilderInsightsRoute({
             initialLessons={model.loadedLessons ?? undefined}
             onSave={onSaveCourse}
             insightsProps={insightsProps}
+            onMainTabChange={setActiveMainTab}
           />
         )}
       </div>

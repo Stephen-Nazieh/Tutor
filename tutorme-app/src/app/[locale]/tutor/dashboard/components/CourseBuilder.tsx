@@ -298,6 +298,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       onMakeVisibleToStudents,
       insightsProps,
       isCollapsed = false,
+      onMainTabChange,
     },
     ref
   ) {
@@ -496,6 +497,10 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
     // Main section tabs (Live, Test PCI vs Builder)
     const [mainTab, setMainTab] = useState<'live' | 'builder' | 'test-pci'>('builder')
+
+    useEffect(() => {
+      onMainTabChange?.(mainTab)
+    }, [mainTab, onMainTabChange])
 
     useEffect(() => {
       if (!insightsProps) return
@@ -4406,7 +4411,7 @@ FEEDBACK: [your explanation]`
                             <span>⏱ {countdownText}</span>
                           </div>
                         )}
-                        {insightsProps && (
+                        {insightsProps && mainTab === 'live' && (
                           <Button
                             variant="outline"
                             size="sm"
