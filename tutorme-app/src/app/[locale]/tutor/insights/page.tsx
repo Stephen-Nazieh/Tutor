@@ -55,9 +55,46 @@ export default function TutorInsightsPage() {
   const [recordingDurationSeconds, setRecordingDurationSeconds] = useState(0)
   const courseIdFromQuery = searchParams.get('courseId')
 
+  const [courseName, setCourseName] = useState('')
   const [newCourseName, setNewCourseName] = useState('')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+
+  useEffect(() => {
+    const match = courses.find(c => c.id === courseId)
+    if (match) setCourseName(match.name)
+  }, [courseId, courses])
+
+  const handleCourseNameChange = useCallback(
+    async (newName: string) => {
+      setCourseName(newName)
+      if (courseId && newName.trim() && courseId !== 'insights-draft') {
+        const match = courses.find(c => c.id === courseId)
+        if (match && newName !== match.name) {
+          try {
+            const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+            const csrfData = await csrfRes.json().catch(() => ({}))
+            const csrfToken = csrfData?.token ?? null
+            const res = await fetch(`/api/tutor/courses/${courseId}`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+              },
+              credentials: 'include',
+              body: JSON.stringify({ name: newName.trim() }),
+            })
+            if (res.ok) {
+              setCourses(prev => prev.map(c => (c.id === courseId ? { ...c, name: newName.trim() } : c)))
+            }
+          } catch {
+            // silent fail
+          }
+        }
+      }
+    },
+    [courseId, courses]
+  )
 
   useEffect(() => {
     if (!isRecording) {
@@ -567,6 +604,8 @@ export default function TutorInsightsPage() {
         setIsDeleteDialogOpen={setIsDeleteDialogOpen}
         onDeleteCourseConfirm={handleDeleteCourse}
         courses={courses}
+        courseName={courseName}
+        onCourseNameChange={handleCourseNameChange}
       />
 
       {/* Create New Course Dialog */}

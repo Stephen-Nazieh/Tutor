@@ -16,9 +16,17 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2, ChevronRight, BookOpen } from 'lucide-react'
 import Link from 'next/link'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useState } from 'react'
+import { DASHBOARD_THEMES } from '@/components/dashboard-theme'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
 import { toast } from 'sonner'
 import type { CourseBuilderInsightsProps } from './course-builder-types'
@@ -43,6 +51,8 @@ type Props = UseCourseBuilderContentArgs & {
   setIsDeleteDialogOpen?: (v: boolean) => void
   onDeleteCourseConfirm?: () => void
   courses?: { id: string; name: string }[]
+  courseName?: string
+  onCourseNameChange?: (name: string) => void
 }
 
 export function CourseBuilderInsightsRoute({
@@ -65,6 +75,8 @@ export function CourseBuilderInsightsRoute({
   setIsDeleteDialogOpen,
   onDeleteCourseConfirm,
   courses,
+  courseName,
+  onCourseNameChange,
 }: Props) {
   const model = useCourseBuilderContentModel({
     courseId,
@@ -75,6 +87,7 @@ export function CourseBuilderInsightsRoute({
   })
 
   const [endingSession, setEndingSession] = useState(false)
+  const [themeId, setThemeId] = useState('current')
 
   const handleEndSession = async () => {
     if (!insightsProps.sessionId || endingSession) return
@@ -142,6 +155,52 @@ export function CourseBuilderInsightsRoute({
             )}
           </div>
           <div className="flex shrink-0 items-center gap-2">
+            <BookOpen className="text-muted-foreground h-4 w-4" />
+            {courses && courses.length > 0 && insightsProps.onCourseChange && (
+              <Select
+                value={courseId ?? ''}
+                onValueChange={v => insightsProps.onCourseChange?.(v)}
+              >
+                <SelectTrigger className="h-8 w-[160px] text-xs">
+                  <SelectValue placeholder="Select course" />
+                </SelectTrigger>
+                <SelectContent>
+                  {courses.map(c => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {onCourseNameChange && (
+              <Input
+                value={courseName || ''}
+                onChange={e => onCourseNameChange(e.target.value)}
+                className="h-8 w-[200px] text-sm font-semibold"
+                placeholder="Course name"
+              />
+            )}
+            {courseId && courseId !== 'insights-draft' && (
+              <Button size="sm" variant="outline" className="gap-1" asChild>
+                <Link href={`/tutor/courses/${courseId}`}>
+                  Next
+                  <ChevronRight className="h-3 w-3" />
+                </Link>
+              </Button>
+            )}
+            <Select value={themeId} onValueChange={setThemeId}>
+              <SelectTrigger className="border-border bg-card text-foreground h-8 w-[180px]">
+                <SelectValue placeholder="Select theme" />
+              </SelectTrigger>
+              <SelectContent>
+                {DASHBOARD_THEMES.map(theme => (
+                  <SelectItem key={theme.id} value={theme.id}>
+                    {theme.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {insightsProps.sessionId && (
               <Button
                 variant="destructive"
@@ -152,8 +211,6 @@ export function CourseBuilderInsightsRoute({
                 {endingSession ? 'Ending…' : 'End Session'}
               </Button>
             )}
-
-            {/* Builder controls */}
             {onSaveCourse && (
               <Button
                 size="sm"
@@ -166,13 +223,11 @@ export function CourseBuilderInsightsRoute({
                 Save
               </Button>
             )}
-
             {onCreateCourse && !insightsProps.sessionId && (
               <Button size="sm" variant="outline" onClick={onCreateCourse}>
                 New Course
               </Button>
             )}
-
             {onDeleteCourse && !insightsProps.sessionId && courses && courses.length > 1 && (
               <Button size="sm" variant="outline" onClick={onDeleteCourse}>
                 Delete
