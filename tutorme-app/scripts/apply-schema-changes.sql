@@ -98,14 +98,40 @@ ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "languageOfInstruction" text;
 ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "nationality" text;
 ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "maxStudents" integer DEFAULT 50 NOT NULL;
 
--- Foreign keys (if not exists)
+-- Foreign keys (defensive: discover referenced PK column names)
 DO $$
+DECLARE
+  cv_pk_col text;
+  cl_pk_col text;
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'LiveSession_variantId_fkey') THEN
-    ALTER TABLE "LiveSession" ADD CONSTRAINT "LiveSession_variantId_fkey" FOREIGN KEY ("variantId") REFERENCES "CourseVariant"("variantId") ON DELETE SET NULL;
+  -- Discover CourseVariant PK
+  SELECT column_name INTO cv_pk_col
+  FROM information_schema.columns
+  WHERE table_name = 'CourseVariant' AND column_name IN ('variantId', 'id')
+  LIMIT 1;
+
+  -- Discover CourseLesson PK
+  SELECT column_name INTO cl_pk_col
+  FROM information_schema.columns
+  WHERE table_name = 'CourseLesson' AND column_name IN ('lessonId', 'id')
+  LIMIT 1;
+
+  IF cv_pk_col IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'LiveSession_variantId_fkey'
+  ) THEN
+    EXECUTE format(
+      'ALTER TABLE "LiveSession" ADD CONSTRAINT "LiveSession_variantId_fkey" FOREIGN KEY ("variantId") REFERENCES "CourseVariant"(%I) ON DELETE SET NULL',
+      cv_pk_col
+    );
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'LiveSession_lessonId_fkey') THEN
-    ALTER TABLE "LiveSession" ADD CONSTRAINT "LiveSession_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "CourseLesson"("lessonId") ON DELETE SET NULL;
+
+  IF cl_pk_col IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'LiveSession_lessonId_fkey'
+  ) THEN
+    EXECUTE format(
+      'ALTER TABLE "LiveSession" ADD CONSTRAINT "LiveSession_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "CourseLesson"(%I) ON DELETE SET NULL',
+      cl_pk_col
+    );
   END IF;
 END $$;
 
