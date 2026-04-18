@@ -23,7 +23,6 @@ import {
   PanelLeftOpen,
   BookOpen,
   GraduationCap,
-  Wrench,
   LogOut,
   User,
 } from 'lucide-react'
@@ -42,7 +41,6 @@ type NavItem = {
 const navItems: NavItem[] = [
   { href: '/tutor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/tutor/my-page', label: 'My Page', icon: Globe },
-  { href: '/tutor/course-builder', label: 'Course Builder', icon: Wrench },
   { href: '/tutor/insights', label: 'Insights', icon: Lightbulb },
 
   { href: '/tutor/groups', label: 'Groups', icon: Users },

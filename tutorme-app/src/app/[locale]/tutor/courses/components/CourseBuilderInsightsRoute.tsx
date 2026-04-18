@@ -16,15 +16,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import {
-  ArrowLeft,
-  Loader2,
-  ChevronRight,
-  BookOpen,
-  MoreVertical,
-  Palette,
-  RefreshCw,
-} from 'lucide-react'
+import { ArrowLeft, Loader2, BookOpen, MoreVertical, Palette, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import {
   Select,
@@ -154,10 +146,9 @@ export function CourseBuilderInsightsRoute({
     >
       <div className="border-border bg-card sticky top-0 z-10 w-full border-b">
         <div className="flex w-full items-center justify-between gap-4 px-4 py-1 sm:px-6">
-          <Button variant="ghost" size="sm" className="shrink-0" asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" asChild>
             <Link href="/tutor/dashboard">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
+              <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
           {onSaveModeChange && activeMainTab === 'builder' && (
@@ -213,10 +204,13 @@ export function CourseBuilderInsightsRoute({
             )}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            {activeMainTab !== 'live' && (
-              <>
-                <BookOpen className="text-muted-foreground h-4 w-4" />
-                {courses && courses.length > 0 && insightsProps.onCourseChange && (
+            {activeMainTab !== 'live' &&
+              saveMode === 'draft' &&
+              courses &&
+              courses.length > 0 &&
+              insightsProps.onCourseChange && (
+                <>
+                  <BookOpen className="text-muted-foreground h-4 w-4" />
                   <Select
                     value={courseId ?? ''}
                     onValueChange={v => insightsProps.onCourseChange?.(v)}
@@ -232,25 +226,24 @@ export function CourseBuilderInsightsRoute({
                       ))}
                     </SelectContent>
                   </Select>
-                )}
-                {onCourseNameChange && (
-                  <Input
-                    value={courseName || ''}
-                    onChange={e => onCourseNameChange(e.target.value)}
-                    className="h-8 w-[200px] text-sm font-semibold"
-                    placeholder="Course name"
-                  />
-                )}
-              </>
+                </>
+              )}
+            {activeMainTab !== 'live' && onCourseNameChange && (
+              <Input
+                value={courseName || ''}
+                onChange={e => onCourseNameChange(e.target.value)}
+                className="h-8 w-[200px] text-sm font-semibold"
+                placeholder="Course name"
+              />
             )}
-            {activeMainTab === 'builder' && courseId && courseId !== 'insights-draft' && (
-              <Button size="sm" variant="outline" className="gap-1" asChild>
-                <Link href={`/tutor/courses/${courseId}`}>
-                  Next
-                  <ChevronRight className="h-3 w-3" />
-                </Link>
-              </Button>
-            )}
+            {activeMainTab === 'builder' &&
+              saveMode === 'draft' &&
+              courseId &&
+              courseId !== 'insights-draft' && (
+                <Button size="sm" variant="outline" asChild>
+                  <Link href={`/tutor/courses/${courseId}`}>Publish</Link>
+                </Button>
+              )}
             {activeMainTab === 'builder' && (
               <Popover>
                 <PopoverTrigger asChild>
@@ -328,6 +321,7 @@ export function CourseBuilderInsightsRoute({
                     )}
                     {onDeleteCourse &&
                       !insightsProps.sessionId &&
+                      saveMode === 'draft' &&
                       courses &&
                       courses.length > 1 && (
                         <DropdownMenuItem
