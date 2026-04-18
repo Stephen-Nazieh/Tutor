@@ -91,17 +91,22 @@ export default function TutorSessionInsightsPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-[#fafafc]">
-        <p className="text-muted-foreground">Loading session insights…</p>
+      <div className="flex h-screen w-full items-center justify-center bg-[linear-gradient(145deg,#ECEFF3_0%,#D6DBE3_40%,#C9D0DA_60%,#EEF2F6_100%)]">
+        <p className="text-[#7F7C77]">Loading session insights…</p>
       </div>
     )
   }
 
   if (!data) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-[#fafafc]">
-        <p className="text-muted-foreground">Session not found.</p>
-        <Button onClick={() => router.push('/tutor/classes')}>Back to Classes</Button>
+      <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-[linear-gradient(145deg,#ECEFF3_0%,#D6DBE3_40%,#C9D0DA_60%,#EEF2F6_100%)]">
+        <p className="text-[#7F7C77]">Session not found.</p>
+        <Button
+          onClick={() => router.push('/tutor/classes')}
+          className="bg-[#2563EB] text-white hover:brightness-105"
+        >
+          Back to Classes
+        </Button>
       </div>
     )
   }
@@ -118,143 +123,186 @@ export default function TutorSessionInsightsPage() {
     : 'Unknown date'
 
   return (
-    <div className="min-h-screen w-full bg-[#fafafc] p-6">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <Button variant="outline" onClick={() => router.push('/tutor/classes')}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Classes
-          </Button>
-          <Badge variant={session.status === 'ended' ? 'secondary' : 'default'}>
-            {session.status === 'ended' ? 'Ended' : session.status}
-          </Badge>
-        </div>
-
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {session.title || 'Untitled Session'}
-          </h1>
-          {session.subject && <p className="text-muted-foreground mt-1">{session.subject}</p>}
-          <p className="text-muted-foreground mt-1 text-sm">{scheduledDate}</p>
-        </div>
+    <div className="min-h-screen w-full bg-[linear-gradient(145deg,#ECEFF3_0%,#D6DBE3_40%,#C9D0DA_60%,#EEF2F6_100%)] p-6 font-sans">
+      <div className="mx-auto max-w-6xl space-y-6">
+        <Card className="rounded-lg border border-[#E5E7EB] bg-[linear-gradient(145deg,#ECEFF3_0%,#D6DBE3_40%,#C9D0DA_60%,#EEF2F6_100%)] p-4 shadow-[0_10px_30px_rgba(15,23,42,0.08)] ring-1 ring-white/40">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => router.push('/tutor/classes')}
+                className="rounded-lg p-2 text-[#344054] transition hover:bg-white/50"
+                aria-label="Back to Classes"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-[#344054]">
+                  {session.title || 'Untitled Session'}
+                </h1>
+                {session.subject && (
+                  <p className="mt-1 text-sm text-[#7F7C77]">
+                    {session.subject} • {scheduledDate}
+                  </p>
+                )}
+                {!session.subject && <p className="mt-1 text-sm text-[#7F7C77]">{scheduledDate}</p>}
+              </div>
+            </div>
+            <Badge
+              variant={session.status === 'ended' ? 'secondary' : 'default'}
+              className={
+                session.status === 'ended'
+                  ? 'bg-[#D6DBE3] text-[#7F7C77]'
+                  : 'bg-[#4FD1C5] text-white'
+              }
+            >
+              {session.status === 'ended' ? 'Ended' : session.status}
+            </Badge>
+          </div>
+        </Card>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
+          <Card className="rounded-lg border border-[#E5E7EB] bg-[rgba(255,255,255,0.75)] shadow-sm ring-1 ring-white/40 transition-all duration-200 hover:bg-[rgba(255,255,255,0.92)]">
             <CardHeader className="pb-2">
-              <CardTitle className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
-                <Users className="h-4 w-4" />
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold text-[#7F7C77]">
+                <Users className="h-4 w-4 text-[#2563EB]" />
                 Attendance
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-semibold">{metrics.totalStudents}</p>
-              <p className="text-muted-foreground text-xs">{metrics.activeStudents} joined live</p>
+              <p className="text-2xl font-bold text-[#344054]">{metrics.totalStudents}</p>
+              <p className="mt-1 text-xs font-medium text-[#7F7C77]">
+                {metrics.activeStudents} joined live
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="rounded-lg border border-[#E5E7EB] bg-[rgba(255,255,255,0.75)] shadow-sm ring-1 ring-white/40 transition-all duration-200 hover:bg-[rgba(255,255,255,0.92)]">
             <CardHeader className="pb-2">
-              <CardTitle className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
-                <MessageSquare className="h-4 w-4" />
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold text-[#7F7C77]">
+                <MessageSquare className="h-4 w-4 text-[#4FD1C5]" />
                 Messages
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-semibold">{metrics.totalChatMessages}</p>
-              <p className="text-muted-foreground text-xs">Total chat messages</p>
+              <p className="text-2xl font-bold text-[#344054]">{metrics.totalChatMessages}</p>
+              <p className="mt-1 text-xs font-medium text-[#7F7C77]">Total chat messages</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="rounded-lg border border-[#E5E7EB] bg-[rgba(255,255,255,0.75)] shadow-sm ring-1 ring-white/40 transition-all duration-200 hover:bg-[rgba(255,255,255,0.92)]">
             <CardHeader className="pb-2">
-              <CardTitle className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
-                <Hand className="h-4 w-4" />
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold text-[#7F7C77]">
+                <Hand className="h-4 w-4 text-[#F17623]" />
                 Hand Raises
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-semibold">{handRaises}</p>
-              <p className="text-muted-foreground text-xs">From {metrics.totalStudents} students</p>
+              <p className="text-2xl font-bold text-[#344054]">{handRaises}</p>
+              <p className="mt-1 text-xs font-medium text-[#7F7C77]">
+                From {metrics.totalStudents} students
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="rounded-lg border border-[#E5E7EB] bg-[rgba(255,255,255,0.75)] shadow-sm ring-1 ring-white/40 transition-all duration-200 hover:bg-[rgba(255,255,255,0.92)]">
             <CardHeader className="pb-2">
-              <CardTitle className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold text-[#7F7C77]">
                 Duration
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-semibold">{metrics.classDuration}m</p>
-              <p className="text-muted-foreground text-xs">Session length</p>
+              <p className="text-2xl font-bold text-[#344054]">{metrics.classDuration}m</p>
+              <p className="mt-1 text-xs font-medium text-[#7F7C77]">Session length</p>
             </CardContent>
           </Card>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">AI Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {session.summary ? (
-              <div className="space-y-3">
-                <p className="whitespace-pre-wrap text-sm leading-relaxed">{session.summary}</p>
-                {session.summaryJson?.sessionMeta && (
-                  <>
-                    <Separator />
-                    <div className="text-muted-foreground flex flex-wrap gap-4 text-xs">
-                      <span>
-                        Participants: {session.summaryJson.sessionMeta.participants ?? '-'}
-                      </span>
-                      <span>Messages: {session.summaryJson.sessionMeta.messages ?? '-'}</span>
-                      <span>
-                        Generated:{' '}
-                        {session.summaryJson.sessionMeta.generatedAt
-                          ? new Date(session.summaryJson.sessionMeta.generatedAt).toLocaleString()
-                          : '-'}
-                      </span>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card className="flex h-full flex-col rounded-lg border border-[#E5E7EB] bg-white shadow-sm ring-1 ring-black/5">
+            <CardHeader className="rounded-t-lg border-b border-[#E5E7EB] bg-[linear-gradient(145deg,#EEF4FF_0%,#E4EDFF_60%,#F5F9FF_100%)]">
+              <CardTitle className="text-base font-semibold text-[#2563EB]">AI Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 pt-4">
+              {session.summary ? (
+                <div className="space-y-4">
+                  <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-4 text-sm leading-relaxed text-[#3F3D39]">
+                    <p className="whitespace-pre-wrap">{session.summary}</p>
+                  </div>
+                  {session.summaryJson?.sessionMeta && (
+                    <div className="rounded-lg border border-[#C9B7FF] bg-[#F3EEFF] p-3">
+                      <div className="flex flex-wrap gap-4 text-xs font-medium text-[#6D59D8]">
+                        <span>
+                          Participants: {session.summaryJson.sessionMeta.participants ?? '-'}
+                        </span>
+                        <span>Messages: {session.summaryJson.sessionMeta.messages ?? '-'}</span>
+                        <span>
+                          Generated:{' '}
+                          {session.summaryJson.sessionMeta.generatedAt
+                            ? new Date(session.summaryJson.sessionMeta.generatedAt).toLocaleString()
+                            : '-'}
+                        </span>
+                      </div>
                     </div>
-                  </>
-                )}
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">
-                No summary available for this session.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+                  )}
+                </div>
+              ) : (
+                <div className="flex h-full min-h-[120px] items-center justify-center">
+                  <p className="text-sm italic text-[#7F7C77]">
+                    No summary available for this session.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">Attendance List</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {students.length === 0 ? (
-              <p className="text-muted-foreground text-sm">No students attended this session.</p>
-            ) : (
-              <ul className="divide-y">
-                {students.map(student => (
-                  <li key={student.id} className="flex items-center justify-between py-3">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`h-2 w-2 rounded-full ${
-                          student.status === 'online' ? 'bg-emerald-500' : 'bg-gray-300'
-                        }`}
-                      />
-                      <span className="text-sm font-medium">{student.name}</span>
-                    </div>
-                    <div className="text-muted-foreground flex items-center gap-4 text-xs">
-                      <span>Score: {student.engagementScore}</span>
-                      <span>Messages: {student.chatMessages}</span>
-                      {student.handRaised && <Badge variant="outline">Raised hand</Badge>}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+          <Card className="flex h-full flex-col rounded-lg border border-[#E5E7EB] bg-white shadow-sm ring-1 ring-black/5">
+            <CardHeader className="rounded-t-lg border-b border-[#E5E7EB] bg-[linear-gradient(145deg,#ECEFF3_0%,#D6DBE3_40%,#C9D0DA_60%,#EEF2F6_100%)]">
+              <CardTitle className="text-base font-semibold text-[#344054]">
+                Attendance List
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-hidden p-0 pt-0">
+              {students.length === 0 ? (
+                <div className="flex min-h-[120px] items-center justify-center p-6">
+                  <p className="text-sm italic text-[#7F7C77]">
+                    No students attended this session.
+                  </p>
+                </div>
+              ) : (
+                <ul className="max-h-[400px] divide-y divide-[#E5E7EB] overflow-y-auto">
+                  {students.map((student, idx) => (
+                    <li
+                      key={student.id}
+                      className={`flex items-center justify-between p-4 ${idx % 2 === 0 ? 'bg-white' : 'bg-[#F9FAFB]'} transition-colors hover:bg-[#EEF4FF]`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`h-2.5 w-2.5 rounded-full shadow-sm ${
+                            student.status === 'online' ? 'bg-[#2DBE8A]' : 'bg-[#C7CDD4]'
+                          }`}
+                        />
+                        <span className="text-sm font-semibold text-[#344054]">{student.name}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs font-medium">
+                        <span className="rounded-md border border-[#E5E7EB] bg-white px-2 py-1 text-[#3F3D39]">
+                          Score: {student.engagementScore}
+                        </span>
+                        <span className="rounded-md border border-[#E5E7EB] bg-white px-2 py-1 text-[#3F3D39]">
+                          Msgs: {student.chatMessages}
+                        </span>
+                        {student.handRaised && (
+                          <span className="rounded-md border border-[#F5D7B3] bg-[#FFF7ED] px-2 py-1 text-[#F17623]">
+                            Raised hand
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )
