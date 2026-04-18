@@ -672,7 +672,9 @@ export default function RevenuePage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => router.push(`/tutor/courses/${course.id}/builder`)}
+                            onClick={() =>
+                              router.push(`/tutor/insights?tab=builder&courseId=${course.id}`)
+                            }
                           >
                             <ChevronRight className="h-4 w-4" />
                           </Button>

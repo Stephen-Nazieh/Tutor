@@ -169,7 +169,7 @@ export function CreateCourseDialog({
         setSubjectInput('')
         const createdCourse = data.courses?.[0]
         if (createdCourse?.id) {
-          router.push(`/tutor/courses/${createdCourse.id}/builder`)
+          router.push(`/tutor/insights?tab=builder&courseId=${createdCourse.id}`)
         }
       } else {
         const message = data.error || 'Failed to create course. Please try again.'

@@ -3,7 +3,7 @@
  * CONTENT GENERATOR - QUIZ GENERATION PROMPTS
  * ============================================================================
  *
- * UI LOCATION: /tutor/courses/[id]/builder - "Generate Questions" button
+ * UI LOCATION: /tutor/insights?tab=builder&courseId=[id] - "Generate Questions" button
  *
  * EDIT THIS FILE to change how quizzes are generated.
  */

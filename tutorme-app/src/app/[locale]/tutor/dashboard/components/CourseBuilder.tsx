@@ -300,6 +300,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       isCollapsed = false,
       onMainTabChange,
       initialMainTab,
+      showInsightsPanel: showInsightsPanelProp,
+      onToggleInsightsPanel,
     },
     ref
   ) {
@@ -538,7 +540,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       }
     }, [insightsProps, mainTab])
 
-    const [showInsightsPanel, setShowInsightsPanel] = useState(false)
+    const showInsightsPanel = showInsightsPanelProp ?? false
+
+    const formatDuration = (seconds: number) => {
+      const mins = Math.floor(seconds / 60)
+      const secs = seconds % 60
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+    }
 
     // Insights panel state
     const [insightsTab, setInsightsTab] = useState<'analytics' | 'poll' | 'question' | 'chat'>(
@@ -3454,7 +3462,27 @@ FEEDBACK: [your explanation]`
                         </Badge>
                       </div>
                       <div className="flex items-center gap-1">
-                        {!lessonBankMode && (
+                        {mainTab === 'live' && (
+                          <div className="flex items-center gap-2">
+                            {insightsProps?.onToggleRecording && (
+                              <Button
+                                size="sm"
+                                variant={insightsProps.isRecording ? 'destructive' : 'default'}
+                                onClick={insightsProps.onToggleRecording}
+                                className="h-7 gap-1 px-2 text-xs"
+                              >
+                                {insightsProps.isRecording ? '⏹ Stop' : '⏺ Record'}
+                              </Button>
+                            )}
+                            {insightsProps?.isRecording &&
+                              insightsProps?.recordingDuration != null && (
+                                <span className="font-mono text-xs text-red-500">
+                                  {formatDuration(insightsProps.recordingDuration)}
+                                </span>
+                              )}
+                          </div>
+                        )}
+                        {mainTab !== 'live' && mainTab !== 'test-pci' && !lessonBankMode && (
                           <Button
                             size="sm"
                             variant="outline"
@@ -3492,14 +3520,16 @@ FEEDBACK: [your explanation]`
                             Import
                           </Button>
                         )}
-                        <Button
-                          size="sm"
-                          onClick={addCourseBuilderNode}
-                          className="h-7 gap-1 px-2 text-xs"
-                        >
-                          <Plus className="h-3 w-3" />
-                          Lesson
-                        </Button>
+                        {mainTab !== 'live' && mainTab !== 'test-pci' && (
+                          <Button
+                            size="sm"
+                            onClick={addCourseBuilderNode}
+                            className="h-7 gap-1 px-2 text-xs"
+                          >
+                            <Plus className="h-3 w-3" />
+                            Lesson
+                          </Button>
+                        )}
                       </div>
                     </div>
 
@@ -4412,16 +4442,6 @@ FEEDBACK: [your explanation]`
                               </div>
                             )}
                           </div>
-                          {insightsProps && mainTab === 'live' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-7 px-3 text-xs"
-                              onClick={() => setShowInsightsPanel(prev => !prev)}
-                            >
-                              Insights
-                            </Button>
-                          )}
                         </CardTitle>
                         <div
                           className={cn(

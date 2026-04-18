@@ -1,6 +1,6 @@
 /**
  * Insights Layout with Integrated Course Builder
- * Reuses the full course builder from /tutor/courses/[id]/builder
+ * Integrated Course Builder within the Live Session Insights page
  * Adds a hidable Insights panel on the right with Analytics, Poll, and Question tabs
  */
 

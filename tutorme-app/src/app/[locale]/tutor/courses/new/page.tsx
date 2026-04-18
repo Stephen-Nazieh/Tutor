@@ -66,7 +66,7 @@ export default function CreateCoursePage() {
       const createdCourse = data.courses?.[0]
       if (res.ok && createdCourse?.id) {
         toast.success('Course created! Opening builder...')
-        router.push(`/tutor/courses/${createdCourse.id}/builder`)
+        router.push(`/tutor/insights?tab=builder&courseId=${createdCourse.id}`)
       } else {
         const message = data.error || 'Failed to create course. Please try again.'
         toast.error(message)

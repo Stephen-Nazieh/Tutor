@@ -1,7 +1,7 @@
 # 📝 Content Generator Agent
 
 ## UI Location
-**Primary UI:** `/tutor/courses/[id]/builder` - Course Builder  
+**Primary UI:** `/tutor/insights?tab=builder&courseId=[id]` - Course Builder  
 **Secondary UI:** `/admin/content` - Admin content management  
 **Access:** Tutors, Admins
 

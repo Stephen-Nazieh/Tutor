@@ -90,13 +90,8 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   const isCourseBuilder = pathname?.includes('/courses/') && pathname?.includes('/builder')
 
   // Check if we're on the Course Publish page (course detail page) - hide sidebar for focused editing
-  // Pattern: /tutor/courses/[id] but not /tutor/courses/[id]/builder or other sub-paths
+  // Pattern: /tutor/courses/[id] but not sub-paths like /tasks or /enrollments
   const isCoursePublishPage = pathname?.match(/^\/tutor\/courses\/[^\/]+$/) !== null
-
-  // Check if we're in a live class session - if so, don't render the sidebar
-  // Live class should be immersive full-screen experience
-  const isLiveClass =
-    pathname?.includes('/live-class/') && pathname?.split('/live-class/')[1]?.length > 0
 
   // Check if we're on My Page - hide sidebar and show back button instead
   const isMyPage = pathname === '/tutor/my-page' || pathname?.startsWith('/tutor/my-page/')
@@ -106,14 +101,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
 
   const isAccountPage = pathname === '/tutor/settings' || pathname?.startsWith('/tutor/settings/')
 
-  if (
-    isCourseBuilder ||
-    isCoursePublishPage ||
-    isLiveClass ||
-    isMyPage ||
-    isInsightsPage ||
-    isAccountPage
-  ) {
+  if (isCourseBuilder || isCoursePublishPage || isMyPage || isInsightsPage || isAccountPage) {
     return <>{children}</>
   }
 

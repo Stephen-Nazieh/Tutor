@@ -215,7 +215,7 @@ export function useCourseBuilderContentModel({
         if (!currentCourseId) {
           throw new Error('Course creation response missing course ID')
         }
-        router.replace(`/tutor/courses/${currentCourseId}/builder`)
+        router.replace(`/tutor/insights?tab=builder&courseId=${currentCourseId}`)
       }
 
       const res = await fetch(`/api/tutor/courses/${currentCourseId}/course`, {

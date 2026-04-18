@@ -316,7 +316,7 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
                       size="sm"
                       onClick={() => {
                         const prefix = window.location.pathname.replace(/\/tutor\/my-page\/?$/, '')
-                        router.push(`${prefix}/tutor/courses/${course.id}/builder`)
+                        router.push(`${prefix}/tutor/insights?tab=builder&courseId=${course.id}`)
                       }}
                       className="text-[#1D4ED8] hover:bg-[#EFF6FF]"
                     >
@@ -908,7 +908,7 @@ export default function TutorMyPage() {
         toast.success('Course created! Opening builder...')
         setCreateOpen(false)
         resetCourseForm()
-        router.push(`/tutor/courses/${createdCourse.id}/builder`)
+        router.push(`/tutor/insights?tab=builder&courseId=${createdCourse.id}`)
       } else {
         toast.error(data.error || 'Failed to create course')
       }
@@ -950,7 +950,7 @@ export default function TutorMyPage() {
       const createdCourse = data.courses?.[0]
       if (res.ok && createdCourse?.id) {
         toast.success('Course created! Opening builder...')
-        router.push(`/tutor/courses/${createdCourse.id}/builder`)
+        router.push(`/tutor/insights?tab=builder&courseId=${createdCourse.id}`)
       } else {
         toast.error(data.error || 'Failed to create course')
       }

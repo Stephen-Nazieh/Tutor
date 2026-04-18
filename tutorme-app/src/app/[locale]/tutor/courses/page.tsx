@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -8,13 +8,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { Search, Filter, BookOpen, ChevronRight, GraduationCap, Pencil, Play } from 'lucide-react'
+import {
+  Search,
+  Filter,
+  BookOpen,
+  ChevronRight,
+  GraduationCap,
+  Pencil,
+  Play,
+  Loader2,
+} from 'lucide-react'
 
 export default function CoursesPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [allCourses, setAllCourses] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [launchingCourseId, setLaunchingCourseId] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
@@ -37,6 +47,52 @@ export default function CoursesPage() {
       active = false
     }
   }, [])
+
+  const handleEnterLiveSession = useCallback(
+    async (course: any) => {
+      if (launchingCourseId) return
+      setLaunchingCourseId(course.id)
+      try {
+        const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+        const csrfData = await csrfRes.json().catch(() => ({}))
+        const csrfToken = csrfData?.token ?? null
+
+        const res = await fetch('/api/class/rooms', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            courseId: course.id,
+            title: course.name,
+            subject: (course.categories || [])[0] || course.name || 'General',
+            maxStudents: 50,
+            durationMinutes: 60,
+          }),
+        })
+
+        const result = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          toast.error(result?.error || 'Failed to launch classroom')
+          return
+        }
+
+        const sessionId = result?.session?.sessionId
+        if (!sessionId) {
+          toast.error('Classroom created but no session ID returned')
+          return
+        }
+        router.push(`/tutor/insights?sessionId=${sessionId}`)
+      } catch {
+        toast.error('Failed to launch classroom')
+      } finally {
+        setLaunchingCourseId(null)
+      }
+    },
+    [launchingCourseId, router]
+  )
 
   return (
     <div className="w-full p-6">
@@ -118,16 +174,7 @@ export default function CoursesPage() {
                         ))}
                       </div>
 
-                      <div className="mb-4 flex items-center gap-4 text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <BookOpen className="h-4 w-4" />
-                          <span>{course._count?.lessons || 0} lessons</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <GraduationCap className="h-4 w-4" />
-                          <span>{course._count?.enrollments || 0} students</span>
-                        </div>
-                      </div>
+                      {/* Lesson/student counts removed — API does not return _count */}
 
                       {/* Price */}
                       <div className="mb-4">
@@ -138,17 +185,26 @@ export default function CoursesPage() {
 
                       <div className="flex gap-2">
                         <Button asChild variant="outline" size="sm" className="flex-1">
-                          <Link href={`/tutor/courses/${course.id}/builder`}>
+                          <Link href={`/tutor/insights?tab=builder&courseId=${course.id}`}>
                             <Pencil className="mr-1 h-4 w-4" />
                             Edit
                           </Link>
                         </Button>
-                        <Button asChild size="sm" className="flex-1">
-                          <Link href={`/tutor/classes?course=${course.id}`}>
-                            <Play className="mr-1 h-4 w-4" />
-                            Go Live
-                          </Link>
-                        </Button>
+                        {course.isPublished && (
+                          <Button
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => handleEnterLiveSession(course)}
+                            disabled={launchingCourseId === course.id}
+                          >
+                            {launchingCourseId === course.id ? (
+                              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                            ) : (
+                              <Play className="mr-1 h-4 w-4" />
+                            )}
+                            Enter Live Session
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

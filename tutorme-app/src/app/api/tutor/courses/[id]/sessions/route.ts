@@ -4,7 +4,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { eq, and, asc } from 'drizzle-orm'
+import { eq, and, asc, inArray } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { liveSession as liveSessionTable } from '@/lib/db/schema'
@@ -14,8 +14,27 @@ export const GET = withAuth(
     const tutorId = user.id
     const courseId = req.nextUrl.pathname.split('/').slice(-2)[0]
 
+    const statusParam = req.nextUrl.searchParams.get('status')
+    const allowedStatuses = statusParam
+      ? statusParam
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean)
+      : ['scheduled', 'active']
+
     const sessions = await drizzleDb.query.liveSession.findMany({
-      where: and(eq(liveSessionTable.tutorId, tutorId), eq(liveSessionTable.courseId, courseId)),
+      where: and(
+        eq(liveSessionTable.tutorId, tutorId),
+        eq(liveSessionTable.courseId, courseId),
+        allowedStatuses.length > 0
+          ? inArray(
+              liveSessionTable.status,
+              allowedStatuses as Array<
+                'active' | 'scheduled' | 'ended' | 'preparing' | 'live' | 'paused'
+              >
+            )
+          : undefined
+      ),
       with: {
         participants: {
           columns: { sessionId: true, studentId: true },

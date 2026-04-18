@@ -404,7 +404,7 @@ function TutorDashboardContent() {
           return
         }
         // Navigate directly to live session page (Live tab)
-        router.push(withLocalePath(`/tutor/insights?sessionId=${sessionId}&tab=live`))
+        router.push(withLocalePath(`/tutor/insights?sessionId=${sessionId}`))
       } catch {
         toast.error('Failed to launch classroom')
       } finally {
@@ -714,7 +714,11 @@ function TutorDashboardContent() {
                             {launchingCourseId === course.id ? 'Launching…' : 'Open Session'}
                           </Button>
                           <Button asChild variant="outline" size="sm">
-                            <Link href={withLocalePath(`/tutor/courses/${course.id}/builder`)}>
+                            <Link
+                              href={withLocalePath(
+                                `/tutor/insights?tab=builder&courseId=${course.id}`
+                              )}
+                            >
                               Edit
                             </Link>
                           </Button>

@@ -154,7 +154,7 @@ export default function CourseTasksPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Link href={`/tutor/courses/${courseId}/builder`}>
+            <Link href={`/tutor/insights?tab=builder&courseId=${courseId}`}>
               <Button variant="outline" className="gap-1.5">
                 <Plus className="h-4 w-4" /> Create in Builder
               </Button>
@@ -222,7 +222,7 @@ export default function CourseTasksPage() {
                 <p className="mb-4 mt-1 text-sm text-gray-500">
                   Create tasks, quizzes, and homework from the Course Builder
                 </p>
-                <Link href={`/tutor/courses/${courseId}/builder`}>
+                <Link href={`/tutor/insights?tab=builder&courseId=${courseId}`}>
                   <Button className="gap-1.5">
                     <Plus className="h-4 w-4" /> Open Builder
                   </Button>

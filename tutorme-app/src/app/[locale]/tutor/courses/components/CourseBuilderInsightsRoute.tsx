@@ -1,6 +1,6 @@
 /**
  * Insights-only course builder shell — `/tutor/insights`.
- * Does not share JSX with CourseBuilderCourseRoute; edit this file without touching the per-course builder layout.
+ * Standalone insights builder shell — edit this file independently.
  */
 
 'use client'
@@ -112,6 +112,7 @@ export function CourseBuilderInsightsRoute({
   )
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
   const [renameValue, setRenameValue] = useState('')
+  const [showInsightsPanel, setShowInsightsPanel] = useState(false)
 
   const handleEndSession = async () => {
     if (!insightsProps.sessionId || endingSession) return
@@ -195,14 +196,24 @@ export function CourseBuilderInsightsRoute({
           )}
           <div className="flex shrink-0 items-center gap-3">
             {activeMainTab === 'live' && (
-              <h1 className="text-foreground text-lg font-bold tracking-tight">
-                Live Session
-                {model.course?.name && (
-                  <span className="text-muted-foreground ml-2 text-sm font-normal">
-                    — {model.course.name}
-                  </span>
-                )}
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-foreground text-lg font-bold tracking-tight">
+                  Live Session
+                  {model.course?.name && (
+                    <span className="text-muted-foreground ml-2 text-sm font-normal">
+                      — {model.course.name}
+                    </span>
+                  )}
+                </h1>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-3 text-xs"
+                  onClick={() => setShowInsightsPanel(prev => !prev)}
+                >
+                  Insights
+                </Button>
+              </div>
             )}
             {(sessionCategory || sessionNationality) && (
               <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
@@ -438,6 +449,8 @@ export function CourseBuilderInsightsRoute({
             insightsProps={insightsProps}
             onMainTabChange={setActiveMainTab}
             initialMainTab={tabFromUrl ?? 'builder'}
+            showInsightsPanel={showInsightsPanel}
+            onToggleInsightsPanel={() => setShowInsightsPanel(prev => !prev)}
           />
         )}
       </div>

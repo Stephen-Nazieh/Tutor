@@ -5,7 +5,7 @@
 
 import { NextResponse } from 'next/server'
 import { eq, and, gte, desc, SQL } from 'drizzle-orm'
-import { withAuth, withCsrf } from '@/lib/api/middleware'
+import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
 import { CreateRoomSchema, validateRequest } from '@/lib/validation/schemas'
 import { dailyProvider } from '@/lib/video/daily-provider'
 import { drizzleDb } from '@/lib/db/drizzle'
@@ -72,7 +72,7 @@ export const POST = withCsrf(
           )
         }
 
-        const category = data.subject
+        const category = data.subject?.trim() || 'General'
 
         // Store class session in database
         let classSessionResult
@@ -94,9 +94,14 @@ export const POST = withCsrf(
             })
             .returning()
           classSessionResult = result
-        } catch {
+        } catch (error) {
+          const rootError = (error as { cause?: Error }).cause ?? error
+          console.error('[Class Rooms] DB insert failed:', rootError)
           return NextResponse.json(
-            { error: 'Failed to create session. Please try again.' },
+            {
+              error: 'Failed to create session. Please try again.',
+              details: rootError instanceof Error ? rootError.message : String(rootError),
+            },
             { status: 500 }
           )
         }
@@ -108,7 +113,11 @@ export const POST = withCsrf(
             token: tutorToken,
           },
         })
-      } catch {
+      } catch (error) {
+        if (error instanceof ValidationError) {
+          return NextResponse.json({ error: error.message }, { status: 400 })
+        }
+        console.error('[Class Rooms] Unexpected error:', error)
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
       }
     },

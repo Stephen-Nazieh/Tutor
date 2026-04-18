@@ -131,7 +131,7 @@ export const UpdateProfileSchema = z.object({
 const cuidOrUuid = z.string().uuid().or(z.string().cuid())
 
 export const CreateRoomSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters').max(100).optional(),
+  title: z.string().min(1, 'Title must be at least 1 character').max(100).optional(),
   subject: z.string().min(2, 'Subject must be at least 2 characters').max(50),
   description: z.string().max(1000).optional(),
   courseId: cuidOrUuid.optional(),

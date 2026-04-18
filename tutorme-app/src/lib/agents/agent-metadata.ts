@@ -10,7 +10,7 @@ export const AGENT_METADATA = {
   contentGenerator: {
     name: 'Content Generator Agent',
     description: 'Generates quizzes, lessons, and educational content',
-    uiLocations: ['/tutor/courses/[id]/builder', '/admin/content'],
+    uiLocations: ['/tutor/insights?tab=builder&courseId=[id]', '/admin/content'],
     primaryFunction: 'Content creation',
     dataAccess: 'READ: Course, Student | WRITE: Quiz, Question, Lesson',
   },

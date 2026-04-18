@@ -396,7 +396,7 @@ export function MyPageTabsSection() {
                           size="sm"
                           onClick={e => {
                             e.stopPropagation()
-                            router.push(`/tutor/courses/${course.id}/builder`)
+                            router.push(`/tutor/insights?tab=builder&courseId=${course.id}`)
                           }}
                         >
                           <Pencil className="mr-1 h-4 w-4" />
@@ -512,7 +512,7 @@ export function MyPageTabsSection() {
                       className="flex-1"
                       onClick={e => {
                         e.stopPropagation()
-                        router.push(`/tutor/courses/${course.id}/builder`)
+                        router.push(`/tutor/insights?tab=builder&courseId=${course.id}`)
                       }}
                     >
                       <Pencil className="mr-1 h-4 w-4" />
@@ -688,7 +688,9 @@ export function MyPageTabsSection() {
                     <div className="ml-4 flex items-center gap-2">
                       <Button
                         size="sm"
-                        onClick={() => router.push(`/tutor/courses/${course.id}/builder`)}
+                        onClick={() =>
+                          router.push(`/tutor/insights?tab=builder&courseId=${course.id}`)
+                        }
                       >
                         <Pencil className="mr-1 h-4 w-4" />
                         Edit

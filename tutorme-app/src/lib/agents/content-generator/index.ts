@@ -4,8 +4,8 @@
  * ============================================================================
  *
  * UI LOCATIONS:
- * - /tutor/courses/[id]/builder (CourseBuilder.tsx) - "Generate Questions" button
- * - /tutor/courses/[id]/builder - "Generate Lesson Content" button
+ * - /tutor/insights?tab=builder&courseId=[id] (CourseBuilder.tsx) - "Generate Questions" button
+ * - /tutor/insights?tab=builder&courseId=[id] - "Generate Lesson Content" button
  * - /admin/content - Content management interface
  *
  * This agent generates educational content: quizzes, lessons, questions.
@@ -127,7 +127,7 @@ export async function generateTranscriptQuiz(
  * Generate a complete quiz
  *
  * UI FLOW:
- * 1. Tutor in /tutor/courses/[id]/builder selects topic
+ * 1. Tutor in /tutor/insights?tab=builder&courseId=[id] selects topic
  * 2. Clicks "Generate Questions" button
  * 3. Selects difficulty, number of questions, types
  * 4. This function is called

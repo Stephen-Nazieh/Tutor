@@ -35,7 +35,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { CourseWithAssignments } from '@/types/course-assignment'
-import type { BatchItem } from '../[id]/builder/layout'
+import type { BatchItem } from './course-builder-types'
 import { useAssignmentPreview } from '@/hooks/use-course-assignments'
 import { getDifficultyMismatchWarning } from '@/lib/difficulty-resolver'
 
