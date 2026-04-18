@@ -531,6 +531,13 @@ export default function TutorInsightsPage() {
 
   const { socket } = useSocket(socketOptions)
 
+  const handleSyncToLiveSession = useCallback(() => {
+    if (sessionId && socket) {
+      socket.emit('course:sync', { roomId: sessionId, courseId })
+    }
+    toast.success('Course synced to live session')
+  }, [sessionId, socket, courseId])
+
   useEffect(() => {
     if (!socket) return
 
@@ -723,6 +730,7 @@ export default function TutorInsightsPage() {
         sessionCategory={sessionCategory}
         sessionNationality={sessionNationality}
         onSaveCourse={handleSave}
+        onSyncToLiveSession={handleSyncToLiveSession}
         onCreateCourse={() => setIsCreateDialogOpen(true)}
         onDeleteCourse={() => setIsDeleteDialogOpen(true)}
         isCreateDialogOpen={isCreateDialogOpen}

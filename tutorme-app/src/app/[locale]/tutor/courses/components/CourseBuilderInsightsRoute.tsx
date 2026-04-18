@@ -16,7 +16,15 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { ArrowLeft, Loader2, ChevronRight, BookOpen, MoreVertical, Palette } from 'lucide-react'
+import {
+  ArrowLeft,
+  Loader2,
+  ChevronRight,
+  BookOpen,
+  MoreVertical,
+  Palette,
+  RefreshCw,
+} from 'lucide-react'
 import Link from 'next/link'
 import {
   Select,
@@ -48,6 +56,7 @@ type Props = UseCourseBuilderContentArgs & {
   sessionCategory?: string | null
   sessionNationality?: string | null
   onSaveCourse?: (lessons: any[], options?: any) => void
+  onSyncToLiveSession?: () => void
   onCreateCourse?: () => void
   onDeleteCourse?: () => void
   isCreateDialogOpen?: boolean
@@ -74,6 +83,7 @@ export function CourseBuilderInsightsRoute({
   sessionCategory,
   sessionNationality,
   onSaveCourse,
+  onSyncToLiveSession,
   onCreateCourse,
   onDeleteCourse,
   isCreateDialogOpen,
@@ -270,6 +280,20 @@ export function CourseBuilderInsightsRoute({
                 disabled={endingSession}
               >
                 {endingSession ? 'Ending…' : 'End Session'}
+              </Button>
+            )}
+            {activeMainTab === 'builder' && insightsProps.sessionId && onSyncToLiveSession && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const cb = (model.courseBuilderRef.current as any)?.saveAll
+                  if (typeof cb === 'function') cb()
+                  onSyncToLiveSession()
+                }}
+              >
+                <RefreshCw className="mr-1 h-3 w-3" />
+                Sync
               </Button>
             )}
             {activeMainTab === 'builder' &&
