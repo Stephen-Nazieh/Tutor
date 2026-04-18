@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useState } from 'react'
+import { cn } from '@/lib/utils'
 import { DASHBOARD_THEMES } from '@/components/dashboard-theme'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
 import { toast } from 'sonner'
@@ -53,6 +54,8 @@ type Props = UseCourseBuilderContentArgs & {
   courses?: { id: string; name: string }[]
   courseName?: string
   onCourseNameChange?: (name: string) => void
+  saveMode?: 'live' | 'draft'
+  onSaveModeChange?: (mode: 'live' | 'draft') => void
 }
 
 export function CourseBuilderInsightsRoute({
@@ -77,6 +80,8 @@ export function CourseBuilderInsightsRoute({
   courses,
   courseName,
   onCourseNameChange,
+  saveMode,
+  onSaveModeChange,
 }: Props) {
   const model = useCourseBuilderContentModel({
     courseId,
@@ -138,6 +143,34 @@ export function CourseBuilderInsightsRoute({
               Back to Dashboard
             </Link>
           </Button>
+          {onSaveModeChange && (
+            <div className="flex items-center rounded-lg border p-0.5">
+              <button
+                type="button"
+                className={cn(
+                  'px-3 py-1 text-xs font-medium rounded-md transition-colors',
+                  saveMode === 'live'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+                onClick={() => onSaveModeChange('live')}
+              >
+                Live
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  'px-3 py-1 text-xs font-medium rounded-md transition-colors',
+                  saveMode === 'draft'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+                onClick={() => onSaveModeChange('draft')}
+              >
+                Draft
+              </button>
+            </div>
+          )}
           <div className="flex shrink-0 items-center gap-3">
             {activeMainTab === 'live' && (
               <h1 className="text-foreground text-lg font-bold tracking-tight">

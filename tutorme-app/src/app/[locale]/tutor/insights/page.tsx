@@ -59,41 +59,80 @@ export default function TutorInsightsPage() {
   const [newCourseName, setNewCourseName] = useState('')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [saveMode, setSaveMode] = useState<'live' | 'draft'>('live')
+  const [draftCourses, setDraftCourses] = useState<CourseSummary[]>([])
+
+  // Load draft courses from lesson bank localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('lesson-bank-courses-v1')
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed)) {
+          setDraftCourses(
+            parsed.map((c: any) => ({
+              id: c.id,
+              name: c.name,
+              updatedAt: c.updatedAt,
+            }))
+          )
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, [isCreateDialogOpen, isDeleteDialogOpen])
 
   useEffect(() => {
-    const match = courses.find(c => c.id === courseId)
+    const activeList = saveMode === 'live' ? courses : draftCourses
+    const match = activeList.find(c => c.id === courseId)
     if (match) setCourseName(match.name)
-  }, [courseId, courses])
+  }, [courseId, courses, draftCourses, saveMode])
 
   const handleCourseNameChange = useCallback(
     async (newName: string) => {
       setCourseName(newName)
-      if (courseId && newName.trim() && courseId !== 'insights-draft') {
-        const match = courses.find(c => c.id === courseId)
-        if (match && newName !== match.name) {
-          try {
-            const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
-            const csrfData = await csrfRes.json().catch(() => ({}))
-            const csrfToken = csrfData?.token ?? null
-            const res = await fetch(`/api/tutor/courses/${courseId}`, {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json',
-                ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
-              },
-              credentials: 'include',
-              body: JSON.stringify({ name: newName.trim() }),
-            })
-            if (res.ok) {
-              setCourses(prev => prev.map(c => (c.id === courseId ? { ...c, name: newName.trim() } : c)))
-            }
-          } catch {
-            // silent fail
+      if (!courseId || courseId === 'insights-draft' || !newName.trim()) return
+      if (saveMode === 'draft') {
+        try {
+          const raw = localStorage.getItem('lesson-bank-courses-v1')
+          const parsed = raw ? JSON.parse(raw) : []
+          const updated = parsed.map((c: any) =>
+            c.id === courseId ? { ...c, name: newName.trim(), updatedAt: new Date().toISOString() } : c
+          )
+          localStorage.setItem('lesson-bank-courses-v1', JSON.stringify(updated))
+          setDraftCourses(prev =>
+            prev.map(c => (c.id === courseId ? { ...c, name: newName.trim() } : c))
+          )
+        } catch {
+          // silent fail
+        }
+        return
+      }
+      const match = courses.find(c => c.id === courseId)
+      if (match && newName !== match.name) {
+        try {
+          const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+          const csrfData = await csrfRes.json().catch(() => ({}))
+          const csrfToken = csrfData?.token ?? null
+          const res = await fetch(`/api/tutor/courses/${courseId}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+            },
+            credentials: 'include',
+            body: JSON.stringify({ name: newName.trim() }),
+          })
+          if (res.ok) {
+            setCourses(prev => prev.map(c => (c.id === courseId ? { ...c, name: newName.trim() } : c)))
           }
+        } catch {
+          // silent fail
         }
       }
     },
-    [courseId, courses]
+    [courseId, courses, saveMode]
   )
 
   useEffect(() => {
@@ -159,6 +198,20 @@ export default function TutorInsightsPage() {
   const handleSave = useCallback(
     async (lessons: any[], options?: any) => {
       if (!courseId || courseId === 'insights-draft') return
+      if (saveMode === 'draft') {
+        try {
+          const raw = localStorage.getItem('lesson-bank-courses-v1')
+          const parsed = raw ? JSON.parse(raw) : []
+          const updated = parsed.map((c: any) =>
+            c.id === courseId ? { ...c, modules: lessons, updatedAt: new Date().toISOString() } : c
+          )
+          localStorage.setItem('lesson-bank-courses-v1', JSON.stringify(updated))
+          if (!options?.isAutoSave) toast.success('Draft saved')
+        } catch {
+          if (!options?.isAutoSave) toast.error('Failed to save draft')
+        }
+        return
+      }
       try {
         const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
         const csrfData = await csrfRes.json().catch(() => ({}))
@@ -187,12 +240,35 @@ export default function TutorInsightsPage() {
         if (!options?.isAutoSave) toast.error('Failed to save course')
       }
     },
-    [courseId]
+    [courseId, saveMode]
   )
 
   const handleCreateNewCourse = useCallback(async () => {
     if (!newCourseName.trim()) {
       toast.error('Please enter a course name')
+      return
+    }
+    if (saveMode === 'draft') {
+      const newCourse = {
+        id: `course-${Date.now()}`,
+        name: newCourseName.trim(),
+        modules: [],
+        updatedAt: new Date().toISOString(),
+      }
+      try {
+        const raw = localStorage.getItem('lesson-bank-courses-v1')
+        const parsed = raw ? JSON.parse(raw) : []
+        const updated = [...parsed, newCourse]
+        localStorage.setItem('lesson-bank-courses-v1', JSON.stringify(updated))
+        setDraftCourses(prev => [...prev, { id: newCourse.id, name: newCourse.name, updatedAt: newCourse.updatedAt }])
+        setCourseId(newCourse.id)
+        setDetachedCourseName(newCourse.name)
+        setNewCourseName('')
+        setIsCreateDialogOpen(false)
+        toast.success(`Created draft "${newCourse.name}"`)
+      } catch {
+        toast.error('Failed to create draft')
+      }
       return
     }
     try {
@@ -230,10 +306,32 @@ export default function TutorInsightsPage() {
     } catch {
       toast.error('Failed to create course')
     }
-  }, [newCourseName])
+  }, [newCourseName, saveMode])
 
   const handleDeleteCourse = useCallback(async () => {
     if (!courseId || courseId === 'insights-draft') return
+    if (saveMode === 'draft') {
+      if (draftCourses.length <= 1) {
+        toast.error('Cannot delete the last draft')
+        setIsDeleteDialogOpen(false)
+        return
+      }
+      try {
+        const raw = localStorage.getItem('lesson-bank-courses-v1')
+        const parsed = raw ? JSON.parse(raw) : []
+        const updated = parsed.filter((c: any) => c.id !== courseId)
+        localStorage.setItem('lesson-bank-courses-v1', JSON.stringify(updated))
+        const remaining = draftCourses.filter(c => c.id !== courseId)
+        setDraftCourses(remaining)
+        setCourseId(remaining[0].id)
+        setDetachedCourseName(remaining[0].name)
+        setIsDeleteDialogOpen(false)
+        toast.success('Draft deleted')
+      } catch {
+        toast.error('Failed to delete draft')
+      }
+      return
+    }
     if (courses.length <= 1) {
       toast.error('Cannot delete the last course')
       setIsDeleteDialogOpen(false)
@@ -264,7 +362,7 @@ export default function TutorInsightsPage() {
     } catch {
       toast.error('Failed to delete course')
     }
-  }, [courseId, courses])
+  }, [courseId, courses, draftCourses, saveMode])
 
   useEffect(() => {
     if (!sessionId) {
@@ -498,6 +596,28 @@ export default function TutorInsightsPage() {
     )
   }
 
+  const activeCourses = saveMode === 'live' ? courses : draftCourses
+
+  const handleModeChange = useCallback((mode: 'live' | 'draft') => {
+    setSaveMode(mode)
+    if (mode === 'live') {
+      const first = courses[0]
+      if (first) {
+        setCourseId(first.id)
+        setDetachedCourseName(first.name)
+      }
+    } else {
+      const first = draftCourses[0]
+      if (first) {
+        setCourseId(first.id)
+        setDetachedCourseName(first.name)
+      } else {
+        setCourseId('insights-draft')
+        setDetachedCourseName('Draft Builder')
+      }
+    }
+  }, [courses, draftCourses])
+
   if (!courseId) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -508,21 +628,21 @@ export default function TutorInsightsPage() {
                 <Wrench className="h-8 w-8 text-blue-500" />
                 <div>
                   <h1 className="text-lg font-semibold">
-                    {courses.length > 0 ? 'Select a course' : 'No courses yet'}
+                    {activeCourses.length > 0 ? 'Select a course' : 'No courses yet'}
                   </h1>
                   <p className="text-muted-foreground text-sm">
-                    {courses.length > 0
-                      ? 'Pick a course to open the Insights builder.'
-                      : 'Create a course to access the Insights builder.'}
+                    {activeCourses.length > 0
+                      ? `Pick a ${saveMode} course to open the builder.`
+                      : `Create a ${saveMode} course to access the builder.`}
                   </p>
                 </div>
-                {courses.length === 0 ? (
-                  <Button onClick={() => (window.location.href = '/tutor/courses/new')}>
-                    New session
+                {activeCourses.length === 0 ? (
+                  <Button onClick={() => setIsCreateDialogOpen(true)}>
+                    New {saveMode === 'live' ? 'Course' : 'Draft'}
                   </Button>
                 ) : (
                   <div className="mt-4 grid w-full gap-3">
-                    {courses.map(course => (
+                    {activeCourses.map(course => (
                       <button
                         key={course.id}
                         type="button"
@@ -567,10 +687,10 @@ export default function TutorInsightsPage() {
         detachedCourseName={dataMode === 'detached' ? detachedCourseName : undefined}
         insightsProps={{
           courseId,
-          courses: courses.map(course => ({ id: course.id, name: course.name })),
+          courses: activeCourses.map(course => ({ id: course.id, name: course.name })),
           onCourseChange: value => {
             setCourseId(value)
-            const match = courses.find(course => course.id === value)
+            const match = activeCourses.find(course => course.id === value)
             if (match) {
               setDetachedCourseName(match.name)
             }
@@ -603,9 +723,11 @@ export default function TutorInsightsPage() {
         isDeleteDialogOpen={isDeleteDialogOpen}
         setIsDeleteDialogOpen={setIsDeleteDialogOpen}
         onDeleteCourseConfirm={handleDeleteCourse}
-        courses={courses}
+        courses={activeCourses}
         courseName={courseName}
         onCourseNameChange={handleCourseNameChange}
+        saveMode={saveMode}
+        onSaveModeChange={handleModeChange}
       />
 
       {/* Create New Course Dialog */}

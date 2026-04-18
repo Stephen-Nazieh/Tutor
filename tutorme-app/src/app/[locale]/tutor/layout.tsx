@@ -44,7 +44,7 @@ const navItems: NavItem[] = [
   { href: '/tutor/my-page', label: 'My Page', icon: Globe },
   { href: '/tutor/course-builder', label: 'Course Builder', icon: Wrench },
   { href: '/tutor/insights', label: 'Insights', icon: Lightbulb },
-  { href: '/tutor/lessons', label: 'Lesson Bank', icon: BookOpen },
+
   { href: '/tutor/groups', label: 'Groups', icon: Users },
   { href: '/tutor/messages', label: 'Messages', icon: MessageSquare },
   { href: '/tutor/reports', label: 'Analytics', icon: BarChart3 },
@@ -106,8 +106,6 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   // Insights page has its own layout with course builder integrated
   const isInsightsPage = pathname === '/tutor/insights' || pathname?.startsWith('/tutor/insights/')
 
-  // Lesson Bank should use a focused layout without the sidebar
-  const isLessonBank = pathname === '/tutor/lessons' || pathname?.startsWith('/tutor/lessons/')
   const isAccountPage = pathname === '/tutor/settings' || pathname?.startsWith('/tutor/settings/')
 
   if (
@@ -116,7 +114,6 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
     isLiveClass ||
     isMyPage ||
     isInsightsPage ||
-    isLessonBank ||
     isAccountPage
   ) {
     return <>{children}</>
