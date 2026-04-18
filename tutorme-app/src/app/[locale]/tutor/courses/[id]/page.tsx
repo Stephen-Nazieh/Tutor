@@ -364,7 +364,7 @@ export default function TutorCoursePage() {
       }
 
       const data = await res.json()
-      const sessionId = data?.session?.id
+      const sessionId = data?.session?.sessionId
       if (!sessionId) throw new Error('Live class created but session ID is missing')
 
       toast.success('Live class created. Redirecting…')

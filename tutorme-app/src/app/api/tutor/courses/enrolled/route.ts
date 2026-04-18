@@ -4,7 +4,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { desc, eq, sql, count } from 'drizzle-orm'
+import { desc, eq, sql, count, inArray, and } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course, courseEnrollment, liveSession } from '@/lib/db/schema'
@@ -54,7 +54,12 @@ export const GET = withAuth(
           count: count(liveSession.sessionId),
         })
         .from(liveSession)
-        .where(eq(liveSession.tutorId, tutorId))
+        .where(
+          and(
+            eq(liveSession.tutorId, tutorId),
+            inArray(liveSession.status, ['scheduled', 'active'])
+          )
+        )
         .groupBy(liveSession.courseId)
 
       sessionCounts = sessions.map(s => ({

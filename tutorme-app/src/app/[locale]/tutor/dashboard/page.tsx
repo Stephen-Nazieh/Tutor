@@ -398,7 +398,7 @@ function TutorDashboardContent() {
           return
         }
 
-        const sessionId = result?.sessionId
+        const sessionId = result?.session?.sessionId
         if (!sessionId) {
           toast.error('Classroom created but no session ID returned')
           return
@@ -561,19 +561,14 @@ function TutorDashboardContent() {
         <div className="mb-8 space-y-4">
           <Card className="border-border bg-card/95 border shadow-xl backdrop-blur-md">
             <CardContent className="pt-6">
-              <div className="grid grid-cols-1 gap-6 divide-y divide-gray-100 md:grid-cols-3 md:divide-x md:divide-y-0">
+              <div className="grid grid-cols-1 gap-6 divide-y divide-gray-100 md:grid-cols-2 md:divide-x md:divide-y-0">
                 <div className="py-2 text-center md:py-0">
-                  <h3 className="text-lg font-medium text-gray-500">Active Courses</h3>
+                  <h3 className="text-lg font-medium text-gray-500">Total Classes</h3>
                   <p className="mt-2 text-4xl font-bold text-blue-600">{stats.totalClasses}</p>
                 </div>
                 <div className="py-2 text-center md:px-6 md:py-0">
                   <h3 className="text-lg font-medium text-gray-500">Active Students</h3>
                   <p className="mt-2 text-4xl font-bold text-green-600">{stats.totalStudents}</p>
-                </div>
-                <div className="py-2 text-center md:px-6 md:py-0">
-                  <h3 className="text-lg font-medium text-gray-500">Engagement Rate</h3>
-                  <p className="mt-2 text-4xl font-bold text-purple-600">85%</p>
-                  <p className="mt-1 text-sm text-gray-400">Task/Assessment completion</p>
                 </div>
               </div>
             </CardContent>

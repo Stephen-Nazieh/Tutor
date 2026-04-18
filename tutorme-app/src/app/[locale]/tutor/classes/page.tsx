@@ -277,7 +277,7 @@ export default function TutorClassesPage() {
     })
     if (data) {
       toast.success('Instant class created!')
-      router.push(`/tutor/insights?sessionId=${data.room.id}`)
+      router.push(`/tutor/insights?sessionId=${data.session.sessionId}`)
     }
   }
 
@@ -329,7 +329,7 @@ export default function TutorClassesPage() {
           scheduledAt: cls.scheduledAt,
         })
         if (data) {
-          router.push(`/tutor/insights?sessionId=${data.room.id}`)
+          router.push(`/tutor/insights?sessionId=${data.session.sessionId}`)
         }
         resetDialog()
       } else {
@@ -366,7 +366,7 @@ export default function TutorClassesPage() {
     if (data) {
       setSessionDialogOpen(false)
       resetDialog()
-      router.push(`/tutor/insights?sessionId=${data.room.id}`)
+      router.push(`/tutor/insights?sessionId=${data.session.sessionId}`)
     }
   }
 
