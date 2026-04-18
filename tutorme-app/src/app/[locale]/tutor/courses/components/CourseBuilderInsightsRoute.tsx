@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { ArrowLeft, Loader2, ChevronRight, BookOpen } from 'lucide-react'
+import { ArrowLeft, Loader2, ChevronRight, BookOpen, MoreVertical, Palette } from 'lucide-react'
 import Link from 'next/link'
 import {
   Select,
@@ -25,6 +25,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu'
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { DASHBOARD_THEMES } from '@/components/dashboard-theme'
@@ -143,7 +150,7 @@ export function CourseBuilderInsightsRoute({
               Back to Dashboard
             </Link>
           </Button>
-          {onSaveModeChange && (
+          {onSaveModeChange && activeMainTab !== 'live' && (
             <div className="flex items-center rounded-lg border p-0.5">
               <button
                 type="button"
@@ -230,18 +237,30 @@ export function CourseBuilderInsightsRoute({
               </Button>
             )}
             {activeMainTab === 'builder' && (
-              <Select value={themeId} onValueChange={setThemeId}>
-                <SelectTrigger className="border-border bg-card text-foreground h-8 w-[180px]">
-                  <SelectValue placeholder="Select theme" />
-                </SelectTrigger>
-                <SelectContent>
-                  {DASHBOARD_THEMES.map(theme => (
-                    <SelectItem key={theme.id} value={theme.id}>
-                      {theme.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button size="sm" variant="outline">
+                    <Palette className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48 p-1">
+                  <div className="flex flex-col gap-0.5">
+                    {DASHBOARD_THEMES.map(theme => (
+                      <button
+                        key={theme.id}
+                        type="button"
+                        onClick={() => setThemeId(theme.id)}
+                        className={cn(
+                          'text-foreground hover:bg-accent flex items-center rounded-sm px-2 py-1.5 text-left text-sm transition-colors',
+                          themeId === theme.id && 'bg-accent font-medium'
+                        )}
+                      >
+                        {theme.name}
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
             )}
             {insightsProps.sessionId && (
               <Button
@@ -253,31 +272,44 @@ export function CourseBuilderInsightsRoute({
                 {endingSession ? 'Ending…' : 'End Session'}
               </Button>
             )}
-            {activeMainTab === 'builder' && onSaveCourse && (
-              <Button
-                size="sm"
-                onClick={() => {
-                  const cb = (model.courseBuilderRef.current as any)?.saveAll
-                  if (typeof cb === 'function') cb()
-                  else onSaveCourse([])
-                }}
-              >
-                Save
-              </Button>
-            )}
-            {activeMainTab === 'builder' && onCreateCourse && !insightsProps.sessionId && (
-              <Button size="sm" variant="outline" onClick={onCreateCourse}>
-                New Course
-              </Button>
-            )}
             {activeMainTab === 'builder' &&
-              onDeleteCourse &&
-              !insightsProps.sessionId &&
-              courses &&
-              courses.length > 1 && (
-                <Button size="sm" variant="outline" onClick={onDeleteCourse}>
-                  Delete
-                </Button>
+              (onSaveCourse ||
+                (onCreateCourse && !insightsProps.sessionId) ||
+                (onDeleteCourse && !insightsProps.sessionId && courses && courses.length > 1)) && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="outline">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {onSaveCourse && (
+                      <DropdownMenuItem
+                        onClick={() => {
+                          const cb = (model.courseBuilderRef.current as any)?.saveAll
+                          if (typeof cb === 'function') cb()
+                          else onSaveCourse([])
+                        }}
+                      >
+                        Save
+                      </DropdownMenuItem>
+                    )}
+                    {onCreateCourse && !insightsProps.sessionId && (
+                      <DropdownMenuItem onClick={onCreateCourse}>New Course</DropdownMenuItem>
+                    )}
+                    {onDeleteCourse &&
+                      !insightsProps.sessionId &&
+                      courses &&
+                      courses.length > 1 && (
+                        <DropdownMenuItem
+                          onClick={onDeleteCourse}
+                          className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
           </div>
         </div>

@@ -4413,14 +4413,6 @@ FEEDBACK: [your explanation]`
                     <Card className="border-border bg-card flex h-full w-full min-w-0 flex-1 overflow-hidden rounded-2xl border shadow-xl ring-1 ring-black/5">
                       <CardContent className="flex h-full min-h-0 w-full flex-col overflow-hidden p-0 pt-4">
                         <CardTitle className="mb-3 flex items-center justify-between gap-2 px-4 text-base font-semibold">
-                          <div className="flex items-center gap-2">
-                            {!lessonBankMode && !hideCourseNameInTabs && (
-                              <>
-                                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                                {courseName || 'Course'}
-                              </>
-                            )}
-                          </div>
                           {insightsProps && countdownText && (
                             <div
                               className={cn(
@@ -5021,13 +5013,6 @@ FEEDBACK: [your explanation]`
                   {/* COMBINED BUILDER: Task & Assessment Tabs */}
                   <Card className="border-border bg-card/95 flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border shadow-xl backdrop-blur-md">
                     <CardContent className="flex h-full flex-col overflow-hidden pt-4">
-                      {/* Course Name Header - Hidden when hideCourseNameInTabs is true */}
-                      {!lessonBankMode && !hideCourseNameInTabs && (
-                        <div className="border-border mb-4 flex items-center gap-2 border-b pb-3">
-                          <span className="h-2 w-2 rounded-full bg-orange-500"></span>
-                          <span className="text-base font-semibold">{courseName || 'Course'}</span>
-                        </div>
-                      )}
                       <Tabs
                         value={mainBuilderTab}
                         onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
@@ -5058,7 +5043,7 @@ FEEDBACK: [your explanation]`
                         >
                           <div className="flex items-center gap-3">
                             <div className="flex-1">
-                              <div className="grid grid-cols-2 gap-3">
+                              <div className="grid grid-cols-1 gap-3">
                                 <Input
                                   placeholder={
                                     loadedTaskId
@@ -5075,36 +5060,6 @@ FEEDBACK: [your explanation]`
                                     setTaskBuilder(prev => ({ ...prev, title: e.target.value }))
                                   }
                                   disabled={!loadedTaskId || !!taskBuilder.activeExtensionId}
-                                />
-                                <Input
-                                  placeholder={
-                                    loadedTaskId
-                                      ? taskBuilder.activeExtensionId
-                                        ? 'Extension Description'
-                                        : 'Description'
-                                      : 'Select a task to edit description'
-                                  }
-                                  value={
-                                    taskBuilder.activeExtensionId
-                                      ? activeTaskExtension?.description || ''
-                                      : taskBuilder.details
-                                  }
-                                  onChange={(e: any) => {
-                                    const value = e.target.value
-                                    if (taskBuilder.activeExtensionId) {
-                                      setTaskBuilder(prev => ({
-                                        ...prev,
-                                        extensions: prev.extensions.map(ext =>
-                                          ext.id === prev.activeExtensionId
-                                            ? { ...ext, description: value }
-                                            : ext
-                                        ),
-                                      }))
-                                    } else {
-                                      setTaskBuilder(prev => ({ ...prev, details: value }))
-                                    }
-                                  }}
-                                  disabled={!loadedTaskId}
                                 />
                               </div>
                             </div>
