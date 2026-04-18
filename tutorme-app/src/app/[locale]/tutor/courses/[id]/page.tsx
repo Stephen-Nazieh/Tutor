@@ -587,7 +587,7 @@ export default function TutorCoursePage() {
       <div className="w-full space-y-6 p-4 sm:p-6">
         {/* Back to Course Builder */}
         <div className="flex items-center gap-2">
-          <BackButton href={`/tutor/courses/${id}/builder`} />
+          <BackButton href={`/tutor/insights?tab=builder&courseId=${id}`} />
         </div>
 
         {/* Course Details */}

@@ -323,6 +323,7 @@ export interface CourseBuilderProps {
   insightsProps?: CourseBuilderInsightsProps
   isCollapsed?: boolean
   onMainTabChange?: (tab: 'live' | 'builder' | 'test-pci') => void
+  initialMainTab?: 'live' | 'builder' | 'test-pci'
 }
 
 export interface CourseBuilderRef {

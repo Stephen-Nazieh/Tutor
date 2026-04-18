@@ -64,7 +64,13 @@ export const GET = withAuth(
     }
 
     const coursesWithSessionCount = courses.map(c => ({
-      ...c,
+      id: c.courseId,
+      name: c.name,
+      categories: c.categories,
+      isPublished: c.isPublished,
+      price: c.price,
+      currency: c.currency,
+      enrollmentCount: c.enrollmentCount,
       // Map categories to subject for backward compatibility
       subject: c.categories?.[0] ?? null,
       sessionCount: sessionCounts.find(s => s.courseId === c.courseId)?.count ?? 0,

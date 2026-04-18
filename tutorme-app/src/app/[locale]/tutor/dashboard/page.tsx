@@ -398,13 +398,13 @@ function TutorDashboardContent() {
           return
         }
 
-        const sessionId = result?.room?.id || result?.session?.roomId || result?.session?.id
+        const sessionId = result?.sessionId
         if (!sessionId) {
           toast.error('Classroom created but no session ID returned')
           return
         }
-        // Navigate directly to live classroom
-        router.push(`/tutor/live-class/${sessionId}`)
+        // Navigate directly to live session page (Live tab)
+        router.push(withLocalePath(`/tutor/insights?sessionId=${sessionId}&tab=live`))
       } catch {
         toast.error('Failed to launch classroom')
       } finally {

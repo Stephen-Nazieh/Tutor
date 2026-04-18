@@ -299,6 +299,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       insightsProps,
       isCollapsed = false,
       onMainTabChange,
+      initialMainTab,
     },
     ref
   ) {
@@ -496,7 +497,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [mainBuilderTab, setMainBuilderTab] = useState<'task' | 'assessment'>('task')
 
     // Main section tabs (Live, Test PCI vs Builder)
-    const [mainTab, setMainTab] = useState<'live' | 'builder' | 'test-pci'>('builder')
+    const [mainTab, setMainTab] = useState<'live' | 'builder' | 'test-pci'>(
+      initialMainTab ?? 'builder'
+    )
 
     useEffect(() => {
       onMainTabChange?.(mainTab)

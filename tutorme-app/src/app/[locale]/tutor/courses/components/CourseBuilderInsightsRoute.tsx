@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { ArrowLeft, Loader2, BookOpen, MoreVertical, Palette, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Loader2, BookOpen, MoreVertical, Palette, RefreshCw, Plus } from 'lucide-react'
 import Link from 'next/link'
 import {
   Select,
@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { DASHBOARD_THEMES } from '@/components/dashboard-theme'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
@@ -104,7 +105,13 @@ export function CourseBuilderInsightsRoute({
 
   const [endingSession, setEndingSession] = useState(false)
   const [themeId, setThemeId] = useState('current')
-  const [activeMainTab, setActiveMainTab] = useState<'live' | 'builder' | 'test-pci'>('builder')
+  const searchParams = useSearchParams()
+  const tabFromUrl = searchParams.get('tab') as 'live' | 'builder' | 'test-pci' | null
+  const [activeMainTab, setActiveMainTab] = useState<'live' | 'builder' | 'test-pci'>(
+    tabFromUrl ?? 'builder'
+  )
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
+  const [renameValue, setRenameValue] = useState('')
 
   const handleEndSession = async () => {
     if (!insightsProps.sessionId || endingSession) return
@@ -250,29 +257,21 @@ export function CourseBuilderInsightsRoute({
               </>
             )}
             {activeMainTab !== 'live' && onCourseNameChange && (
-              <Input
-                value={courseName || ''}
-                onChange={e => onCourseNameChange(e.target.value)}
-                className="h-8 w-[200px] text-sm font-semibold"
-                placeholder="Course name"
-              />
+              <>
+                <span className="text-sm font-semibold">{courseName || 'Untitled Course'}</span>
+                {activeMainTab === 'builder' && saveMode === 'draft' && onCreateCourse && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    onClick={onCreateCourse}
+                    title="New Course"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </>
             )}
-            {activeMainTab === 'builder' &&
-              saveMode === 'draft' &&
-              courseId &&
-              courseId !== 'insights-draft' && (
-                <Button size="sm" variant="outline" asChild>
-                  <Link href={`/tutor/courses/${courseId}`}>Publish</Link>
-                </Button>
-              )}
-            {activeMainTab === 'builder' &&
-              saveMode === 'live' &&
-              courseId &&
-              courseId !== 'insights-draft' && (
-                <Button size="sm" variant="outline" asChild>
-                  <Link href={`/tutor/courses/${courseId}`}>Publish</Link>
-                </Button>
-              )}
             {activeMainTab === 'builder' && (
               <Popover>
                 <PopoverTrigger asChild>
@@ -326,7 +325,8 @@ export function CourseBuilderInsightsRoute({
             {activeMainTab === 'builder' &&
               (onSaveCourse ||
                 (onCreateCourse && !insightsProps.sessionId) ||
-                (onDeleteCourse && !insightsProps.sessionId && courses && courses.length > 1)) && (
+                (onDeleteCourse && !insightsProps.sessionId && courses && courses.length > 1) ||
+                (onCourseNameChange && courseId && courseId !== 'insights-draft')) && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button size="sm" variant="outline">
@@ -348,7 +348,17 @@ export function CourseBuilderInsightsRoute({
                     {onCreateCourse && !insightsProps.sessionId && saveMode === 'draft' && (
                       <DropdownMenuItem onClick={onCreateCourse}>New Course</DropdownMenuItem>
                     )}
-                    {courseId && courseId !== 'insights-draft' && (
+                    {onCourseNameChange && courseId && courseId !== 'insights-draft' && (
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setRenameValue(courseName || '')
+                          setIsRenameDialogOpen(true)
+                        }}
+                      >
+                        Rename Course
+                      </DropdownMenuItem>
+                    )}
+                    {courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
                       <DropdownMenuItem asChild>
                         <Link href={`/tutor/courses/${courseId}`}>Publish</Link>
                       </DropdownMenuItem>
@@ -430,6 +440,7 @@ export function CourseBuilderInsightsRoute({
             onSave={onSaveCourse}
             insightsProps={insightsProps}
             onMainTabChange={setActiveMainTab}
+            initialMainTab={tabFromUrl ?? 'builder'}
           />
         )}
       </div>
@@ -453,6 +464,40 @@ export function CourseBuilderInsightsRoute({
               Cancel
             </Button>
             <Button onClick={onCreateNewCourse}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rename Course Dialog */}
+      <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename Course</DialogTitle>
+            <DialogDescription>Enter a new name for this course.</DialogDescription>
+          </DialogHeader>
+          <Input
+            value={renameValue}
+            onChange={e => setRenameValue(e.target.value)}
+            placeholder="Course name"
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                onCourseNameChange?.(renameValue)
+                setIsRenameDialogOpen(false)
+              }
+            }}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRenameDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                onCourseNameChange?.(renameValue)
+                setIsRenameDialogOpen(false)
+              }}
+            >
+              Rename
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
