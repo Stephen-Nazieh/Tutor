@@ -499,6 +499,8 @@ export default function PublicTutorPage() {
   })
   const [catalogLayout, setCatalogLayout] = useState<'grid' | 'list' | 'compact'>('compact')
   const [bookDialogOpen, setBookDialogOpen] = useState(false)
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set())
+  const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null)
 
   useEffect(() => {
     loadTutorData()
@@ -508,6 +510,25 @@ export default function PublicTutorPage() {
     if (!data?.tutor?.id) return
     loadFollowState(data.tutor.id)
   }, [data?.tutor?.id])
+
+  useEffect(() => {
+    if (session?.user?.role === 'STUDENT') {
+      loadStudentEnrollments()
+    }
+  }, [session?.user?.role])
+
+  const loadStudentEnrollments = async () => {
+    try {
+      const res = await fetch('/api/student/enrollments', { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        const ids = new Set<string>((data.enrollments || []).map((e: any) => e.courseId))
+        setEnrolledCourseIds(ids)
+      }
+    } catch {
+      // ignore
+    }
+  }
 
   const loadTutorData = async () => {
     setLoading(true)
@@ -734,6 +755,7 @@ export default function PublicTutorPage() {
         }
 
         toast.success(enrollData?.message || 'Enrolled successfully')
+        setEnrolledCourseIds(prev => new Set(prev).add(course.id))
       }
 
       // 2) Join latest active session for this course
@@ -762,6 +784,37 @@ export default function PublicTutorPage() {
       toast.error(e instanceof Error ? e.message : 'Unable to join classroom')
     } finally {
       setStudentJoiningCourseId(null)
+    }
+  }
+
+  const handleEnroll = async (courseId: string) => {
+    if (enrollingCourseId) return
+    setEnrollingCourseId(courseId)
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch(`/api/course/${encodeURIComponent(courseId)}/enroll`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+      })
+
+      const data = await res.json().catch(() => ({}))
+      if (res.ok) {
+        toast.success(data?.message || 'Enrolled successfully')
+        setEnrolledCourseIds(prev => new Set(prev).add(courseId))
+      } else {
+        toast.error(data?.error || 'Failed to enroll')
+      }
+    } catch {
+      toast.error('Failed to enroll')
+    } finally {
+      setEnrollingCourseId(null)
     }
   }
 
@@ -1130,16 +1183,49 @@ export default function PublicTutorPage() {
                               {launchingCourseId === course.id ? 'Launching…' : 'Classroom'}
                             </Button>
                           ) : (
-                            <Button
-                              size="sm"
-                              variant="default"
-                              className={cn(isCompact && 'h-7 text-xs')}
-                              onClick={() => void handleStudentEnterClassroom(course)}
-                              disabled={studentJoiningCourseId === course.id}
-                            >
-                              <FileText className="mr-1 h-3 w-3" />
-                              {studentJoiningCourseId === course.id ? 'Enrolling…' : 'Classroom'}
-                            </Button>
+                            <>
+                              {session?.user?.role === 'STUDENT' &&
+                                course.enrollmentStatus !== 'ended' && (
+                                  <>
+                                    {enrolledCourseIds.has(course.id) ? (
+                                      <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        className={cn(isCompact && 'h-7 text-xs')}
+                                        disabled
+                                      >
+                                        <CheckCircle className="mr-1 h-3 w-3" />
+                                        Enrolled
+                                      </Button>
+                                    ) : (
+                                      <Button
+                                        size="sm"
+                                        variant="default"
+                                        className={cn(isCompact && 'h-7 text-xs')}
+                                        onClick={() => void handleEnroll(course.id)}
+                                        disabled={enrollingCourseId === course.id}
+                                      >
+                                        {enrollingCourseId === course.id ? (
+                                          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                        ) : (
+                                          <UserPlus className="mr-1 h-3 w-3" />
+                                        )}
+                                        {enrollingCourseId === course.id ? 'Enrolling…' : 'Enroll'}
+                                      </Button>
+                                    )}
+                                  </>
+                                )}
+                              <Button
+                                size="sm"
+                                variant="default"
+                                className={cn(isCompact && 'h-7 text-xs')}
+                                onClick={() => void handleStudentEnterClassroom(course)}
+                                disabled={studentJoiningCourseId === course.id}
+                              >
+                                <FileText className="mr-1 h-3 w-3" />
+                                {studentJoiningCourseId === course.id ? 'Enrolling…' : 'Classroom'}
+                              </Button>
+                            </>
                           )}
                           <Button
                             asChild

@@ -231,6 +231,7 @@ import {
   Layers2,
   GripHorizontal,
   CornerDownLeft,
+  Eye,
 } from 'lucide-react'
 import { ChevronLeft as ChevronLeftIcon } from 'lucide-react'
 
@@ -510,6 +511,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [taskDmiVersions, setTaskDmiVersions] = useState<DMIVersion[]>([])
     const [assessmentDmiVersions, setAssessmentDmiVersions] = useState<DMIVersion[]>([])
     const [showDmiVersionList, setShowDmiVersionList] = useState(false)
+    const [previewDmiVersion, setPreviewDmiVersion] = useState<DMIVersion | null>(null)
 
     // Active tab tracking for Enter button
     const [taskBuilderActiveTab, setTaskBuilderActiveTab] = useState<'content' | 'pci'>('content')
@@ -3801,6 +3803,145 @@ FEEDBACK: [your explanation]`
                                                             </>
                                                           )}
                                                           <DropdownMenuItem
+                                                            onClick={e => {
+                                                              e.stopPropagation()
+                                                              // Auto-save current task if switching from another task
+                                                              if (
+                                                                loadedTaskId &&
+                                                                loadedTaskId !== task.id
+                                                              ) {
+                                                                setCourseBuilderNodes(prev =>
+                                                                  prev.map(node => ({
+                                                                    ...node,
+                                                                    lessons: node.lessons.map(
+                                                                      lesson => ({
+                                                                        ...lesson,
+                                                                        tasks: lesson.tasks.map(
+                                                                          t =>
+                                                                            t.id === loadedTaskId
+                                                                              ? {
+                                                                                  ...t,
+                                                                                  title:
+                                                                                    taskBuilder.title,
+                                                                                  description:
+                                                                                    taskBuilder.taskContent,
+                                                                                  instructions:
+                                                                                    taskBuilder.taskPci,
+                                                                                  extensions:
+                                                                                    taskBuilder.extensions,
+                                                                                  dmiItems:
+                                                                                    taskDmiItems,
+                                                                                  sourceDocument:
+                                                                                    t.sourceDocument,
+                                                                                }
+                                                                              : t
+                                                                        ),
+                                                                      })
+                                                                    ),
+                                                                  }))
+                                                                )
+                                                              }
+                                                              // Auto-save current assessment if any is loaded
+                                                              if (loadedAssessmentId) {
+                                                                setCourseBuilderNodes(prev =>
+                                                                  prev.map(mod => ({
+                                                                    ...mod,
+                                                                    lessons: mod.lessons.map(
+                                                                      lesson => ({
+                                                                        ...lesson,
+                                                                        homework:
+                                                                          lesson.homework.map(h =>
+                                                                            h.id ===
+                                                                            loadedAssessmentId
+                                                                              ? {
+                                                                                  ...h,
+                                                                                  title:
+                                                                                    assessmentBuilder.title,
+                                                                                  description:
+                                                                                    assessmentBuilder.taskContent,
+                                                                                  instructions:
+                                                                                    assessmentBuilder.taskPci,
+                                                                                  dmiItems:
+                                                                                    assessmentDmiItems,
+                                                                                  sourceDocument:
+                                                                                    h.sourceDocument,
+                                                                                }
+                                                                              : h
+                                                                          ),
+                                                                      })
+                                                                    ),
+                                                                  }))
+                                                                )
+                                                              }
+                                                              // Load the target task if not already loaded
+                                                              if (loadedTaskId !== task.id) {
+                                                                setSelectedItem({
+                                                                  type: 'task',
+                                                                  id: task.id,
+                                                                })
+                                                                loadTaskIntoBuilder(task)
+                                                              }
+                                                              setMainBuilderTab('task')
+                                                              // Create the extension
+                                                              const currentExtensions =
+                                                                loadedTaskId === task.id
+                                                                  ? taskBuilder.extensions
+                                                                  : task.extensions || []
+                                                              const extNumber =
+                                                                currentExtensions.length + 1
+                                                              const newExtension = {
+                                                                id: `ext-${Date.now()}`,
+                                                                name: `Extension ${extNumber}`,
+                                                                description: '',
+                                                                content: '',
+                                                                pci: '',
+                                                              }
+                                                              setTaskExtensionPciMessages(prev => ({
+                                                                ...prev,
+                                                                [newExtension.id]: [],
+                                                              }))
+                                                              setTaskExtensionPciInputs(prev => ({
+                                                                ...prev,
+                                                                [newExtension.id]: '',
+                                                              }))
+                                                              setTaskBuilder(prev => ({
+                                                                ...prev,
+                                                                extensions: [
+                                                                  ...prev.extensions,
+                                                                  newExtension,
+                                                                ],
+                                                                activeExtensionId: newExtension.id,
+                                                              }))
+                                                              setCourseBuilderNodes(prev =>
+                                                                prev.map(mod => ({
+                                                                  ...mod,
+                                                                  lessons: mod.lessons.map(
+                                                                    lesson => ({
+                                                                      ...lesson,
+                                                                      tasks: lesson.tasks.map(t =>
+                                                                        t.id === task.id
+                                                                          ? {
+                                                                              ...t,
+                                                                              extensions: [
+                                                                                ...(t.extensions ||
+                                                                                  []),
+                                                                                newExtension,
+                                                                              ],
+                                                                            }
+                                                                          : t
+                                                                      ),
+                                                                    })
+                                                                  ),
+                                                                }))
+                                                              )
+                                                              toast.success(
+                                                                `Extension ${newExtension.name} added`
+                                                              )
+                                                            }}
+                                                          >
+                                                            Add Extension
+                                                          </DropdownMenuItem>
+                                                          <DropdownMenuItem
                                                             className="text-red-500"
                                                             onClick={e => {
                                                               e.stopPropagation()
@@ -5302,83 +5443,6 @@ FEEDBACK: [your explanation]`
                                 </Button>
                               </div>
                             </div>
-                            {/* Right panels container */}
-                            <div className="flex flex-col gap-4">
-                              {/* Extensions panel */}
-                              <ResizablePanel
-                                defaultWidth={200}
-                                minWidth={150}
-                                maxWidth={300}
-                                actionButton={
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="w-full"
-                                    onClick={() => {
-                                      if (!loadedTaskId) {
-                                        toast.error('Please select a task first')
-                                        return
-                                      }
-                                      const extNumber = taskBuilder.extensions.length + 1
-                                      const newExtension = {
-                                        id: `ext-${Date.now()}`,
-                                        name: `Extension ${extNumber}`,
-                                        content: '',
-                                        pci: '',
-                                      }
-                                      setTaskBuilder(prev => ({
-                                        ...prev,
-                                        extensions: [...prev.extensions, newExtension],
-                                        activeExtensionId: newExtension.id,
-                                      }))
-                                    }}
-                                  >
-                                    Add Extension
-                                  </Button>
-                                }
-                              >
-                                <h4 className="mb-2 text-sm font-medium">
-                                  {taskBuilder.title || 'Task'} Extensions
-                                </h4>
-                                <div className="min-h-[100px] space-y-2 rounded-lg bg-slate-50 p-3">
-                                  {taskBuilder.extensions.length === 0 ? (
-                                    <p className="text-muted-foreground text-xs">
-                                      No extensions added
-                                    </p>
-                                  ) : (
-                                    taskBuilder.extensions.map(ext => (
-                                      <Button
-                                        key={ext.id}
-                                        variant={
-                                          taskBuilder.activeExtensionId === ext.id
-                                            ? 'default'
-                                            : 'ghost'
-                                        }
-                                        size="sm"
-                                        className="w-full justify-start text-xs"
-                                        onClick={() => {
-                                          if (taskBuilder.activeExtensionId === ext.id) {
-                                            // Deactivate
-                                            setTaskBuilder(prev => ({
-                                              ...prev,
-                                              activeExtensionId: null,
-                                            }))
-                                          } else {
-                                            // Activate extension
-                                            setTaskBuilder(prev => ({
-                                              ...prev,
-                                              activeExtensionId: ext.id,
-                                            }))
-                                          }
-                                        }}
-                                      >
-                                        {ext.name}
-                                      </Button>
-                                    ))
-                                  )}
-                                </div>
-                              </ResizablePanel>
-                            </div>
                           </div>
                         </TabsContent>
 
@@ -5553,7 +5617,7 @@ FEEDBACK: [your explanation]`
                                   </div>
                                 </TabsContent>
                               </Tabs>
-                              {/* Buttons row with Test and Generate DMI */}
+                              {/* Buttons row with Test, Generate DMI, and Version History */}
                               <div className="mt-3 flex gap-2">
                                 <Button
                                   variant="outline"
@@ -5578,52 +5642,41 @@ FEEDBACK: [your explanation]`
                                 >
                                   Test
                                 </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    // Generate DMI from Assessment content
+                                    const content = assessmentBuilder.taskContent
+                                    if (!content.trim()) {
+                                      toast.error('Please add content to the Assessment tab first')
+                                      return
+                                    }
+                                    handleGenerateDMI('assessment')
+                                  }}
+                                >
+                                  Generate DMI
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="px-2"
+                                  onClick={() => setShowDmiVersionList(true)}
+                                  title="View DMI Versions"
+                                >
+                                  <History className="h-4 w-4" />
+                                  {assessmentDmiVersions.length > 0 && (
+                                    <span className="ml-1 text-xs">
+                                      ({assessmentDmiVersions.length})
+                                    </span>
+                                  )}
+                                </Button>
                               </div>
                             </div>
                             {/* Right panels container */}
                             <div className="flex flex-col gap-4">
                               {/* DMI Panel */}
-                              <ResizablePanel
-                                defaultWidth={200}
-                                minWidth={150}
-                                maxWidth={300}
-                                actionButton={
-                                  <div className="flex w-full gap-2">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="flex-1"
-                                      onClick={() => {
-                                        // Generate DMI from Assessment content
-                                        const content = assessmentBuilder.taskContent
-                                        if (!content.trim()) {
-                                          toast.error(
-                                            'Please add content to the Assessment tab first'
-                                          )
-                                          return
-                                        }
-                                        handleGenerateDMI('assessment')
-                                      }}
-                                    >
-                                      Generate DMI
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="px-2"
-                                      onClick={() => setShowDmiVersionList(true)}
-                                      title="View DMI Versions"
-                                    >
-                                      <History className="h-4 w-4" />
-                                      {assessmentDmiVersions.length > 0 && (
-                                        <span className="ml-1 text-xs">
-                                          ({assessmentDmiVersions.length})
-                                        </span>
-                                      )}
-                                    </Button>
-                                  </div>
-                                }
-                              >
+                              <ResizablePanel defaultWidth={200} minWidth={150} maxWidth={300}>
                                 <DMIPanel
                                   items={assessmentDmiItems}
                                   onItemsChange={setAssessmentDmiItems}
@@ -6391,6 +6444,14 @@ FEEDBACK: [your explanation]`
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => setPreviewDmiVersion(version)}
+                            >
+                              <Eye className="mr-1 h-3.5 w-3.5" />
+                              View
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => handleLoadDmiVersion(version, mainBuilderTab)}
                             >
                               Load
@@ -6411,6 +6472,61 @@ FEEDBACK: [your explanation]`
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setShowDmiVersionList(false)}>
+                  Close
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* DMI Version Preview Modal */}
+          <Dialog
+            open={!!previewDmiVersion}
+            onOpenChange={open => {
+              if (!open) setPreviewDmiVersion(null)
+            }}
+          >
+            <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>DMI Preview — Version {previewDmiVersion?.versionNumber}</DialogTitle>
+                <DialogDescription>
+                  {previewDmiVersion?.items.length} question
+                  {previewDmiVersion?.items.length !== 1 ? 's' : ''} ·{' '}
+                  {previewDmiVersion
+                    ? new Date(previewDmiVersion.createdAt).toLocaleDateString()
+                    : ''}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="max-h-[500px] overflow-y-auto py-4">
+                {!previewDmiVersion || previewDmiVersion.items.length === 0 ? (
+                  <div className="text-muted-foreground py-6 text-center text-sm">
+                    No questions in this version.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {previewDmiVersion.items.map((item, idx) => (
+                      <div key={item.id} className="rounded-lg border bg-slate-50 p-4">
+                        <div className="mb-2 text-sm font-semibold text-slate-700">
+                          Question {item.questionNumber}
+                        </div>
+                        <div className="text-sm text-slate-800">{item.questionText}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    if (previewDmiVersion) {
+                      handleLoadDmiVersion(previewDmiVersion, mainBuilderTab)
+                    }
+                    setPreviewDmiVersion(null)
+                  }}
+                >
+                  Load This Version
+                </Button>
+                <Button variant="outline" onClick={() => setPreviewDmiVersion(null)}>
                   Close
                 </Button>
               </DialogFooter>
