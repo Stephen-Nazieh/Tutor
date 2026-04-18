@@ -56,8 +56,10 @@ export const GET = withAuth(
       courseData = courseRow ?? null
     }
 
+    const isEnrolled = !!enrollment || !!progress
+
     return NextResponse.json({
-      isEnrolled: !!enrollment,
+      isEnrolled,
       enrollment: enrollment
         ? {
             ...enrollment,

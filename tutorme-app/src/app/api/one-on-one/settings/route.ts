@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url)
-    const tutorId = searchParams.get('tutorId')
+    const tutorId = searchParams.get('tutorId') || session.user.id
 
     if (!tutorId) {
       return NextResponse.json({ error: 'Tutor ID required' }, { status: 400 })

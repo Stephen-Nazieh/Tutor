@@ -57,9 +57,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Tutor not found' }, { status: 404 })
     }
 
-    if (!tutorProfile.oneOnOneEnabled || !tutorProfile.hourlyRate) {
+    if (!tutorProfile.oneOnOneEnabled) {
       return NextResponse.json(
         { error: 'Tutor does not offer one-on-one sessions' },
+        { status: 400 }
+      )
+    }
+
+    if (!tutorProfile.hourlyRate || tutorProfile.hourlyRate <= 0) {
+      return NextResponse.json(
+        { error: 'Tutor has not set an hourly rate yet. Please check back later.' },
         { status: 400 }
       )
     }

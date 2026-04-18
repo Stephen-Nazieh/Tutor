@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError, withRateLimitPreset } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course, courseEnrollment, courseLesson } from '@/lib/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, sql } from 'drizzle-orm'
 
 const subjectCourseMap: Record<string, { name: string; description: string }> = {
   english: {
@@ -81,7 +81,9 @@ export const POST = withCsrf(
       const [courseByCategory] = await drizzleDb
         .select()
         .from(course)
-        .where(eq(course.categories, [subjectKey]))
+        .where(
+          sql`${course.categories} IS NOT NULL AND ${course.categories} @> ARRAY[${subjectKey}]::text[]`
+        )
         .limit(1)
 
       if (courseByCategory) {

@@ -112,6 +112,8 @@ interface TimeSlot {
 interface AvailabilityData {
   available: boolean
   hourlyRate: number
+  pricingIncomplete?: boolean
+  reason?: string
   currency: string
   timezone: string
   slots: TimeSlot[]
@@ -135,6 +137,7 @@ function Book1on1Dialog({
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [availability, setAvailability] = useState<AvailabilityData | null>(null)
+  const [availabilityError, setAvailabilityError] = useState<string | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null)
   const [hasPendingRequest, setHasPendingRequest] = useState(false)
   const [activeRequest, setActiveRequest] = useState<{ id: string; status: string } | null>(null)
@@ -148,6 +151,8 @@ function Book1on1Dialog({
 
   const loadAvailability = async () => {
     setLoading(true)
+    setAvailabilityError(null)
+    setAvailability(null)
     try {
       const start = new Date().toISOString()
       const end = addDays(new Date(), 21).toISOString() // 3 weeks
@@ -157,11 +162,16 @@ function Book1on1Dialog({
       if (res.ok) {
         const data = await res.json()
         setAvailability(data)
+        if (data.pricingIncomplete) {
+          setAvailabilityError('Pricing not set')
+        }
       } else {
-        const error = await res.json()
+        const error = await res.json().catch(() => ({}))
+        setAvailabilityError(error.error || 'Failed to load availability')
         toast.error(error.error || 'Failed to load availability')
       }
     } catch {
+      setAvailabilityError('Failed to load availability')
       toast.error('Failed to load availability')
     } finally {
       setLoading(false)
@@ -314,9 +324,24 @@ function Book1on1Dialog({
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
           </div>
-        ) : !availability?.available ? (
-          <div className="text-muted-foreground py-6 text-center">
-            This tutor is not currently offering one-on-one sessions.
+        ) : availabilityError ? (
+          <div className="py-6 text-center">
+            {availabilityError === 'Pricing not set' ? (
+              <div className="space-y-2">
+                <p className="font-medium text-amber-700">
+                  This tutor is available for one-on-one sessions but has not set a price yet.
+                </p>
+                <p className="text-sm text-amber-600">
+                  Please check back later or contact the tutor directly.
+                </p>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">
+                {availability?.reason === 'disabled'
+                  ? 'This tutor is not currently offering one-on-one sessions.'
+                  : availabilityError}
+              </p>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -324,14 +349,14 @@ function Book1on1Dialog({
             <div className="flex items-center gap-2 rounded-lg bg-blue-50 p-3 text-blue-800">
               <DollarSign className="h-5 w-5" />
               <span className="font-medium">
-                {availability.currency} {availability.hourlyRate} per session (1 hour)
+                {availability?.currency} {availability?.hourlyRate} per session (1 hour)
               </span>
             </div>
 
             {/* Timezone info */}
             <div className="text-muted-foreground flex items-center gap-2 text-sm">
               <Clock className="h-4 w-4" />
-              <span>Times shown in: {availability.timezone}</span>
+              <span>Times shown in: {availability?.timezone}</span>
             </div>
 
             {/* Calendar slots */}

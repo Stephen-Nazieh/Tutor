@@ -23,26 +23,45 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
     const { username: usernameParam } = await params
     const username = usernameParam.replace(/^@+/, '').toLowerCase()
 
-    // Find tutor by username
-    const tutorData = await drizzleDb.query.user.findFirst({
-      where: eq(user.handle, username),
-      with: {
-        profile: true,
-      },
-    })
+    // Find tutor by profile.username first (matches public profile API), then by userId
+    let tutorProfile = await drizzleDb
+      .select()
+      .from(profile)
+      .where(eq(profile.username, username))
+      .limit(1)
+      .then(rows => rows[0] || null)
 
-    if (!tutorData || tutorData.role !== 'TUTOR') {
+    if (!tutorProfile) {
+      tutorProfile = await drizzleDb
+        .select()
+        .from(profile)
+        .where(eq(profile.userId, username))
+        .limit(1)
+        .then(rows => rows[0] || null)
+    }
+
+    if (!tutorProfile) {
       return NextResponse.json({ error: 'Tutor not found' }, { status: 404 })
     }
 
-    const tutorId = tutorData.userId
-    const tutorProfile = tutorData.profile
+    const tutorId = tutorProfile.userId
+
+    // Verify the user is a tutor
+    const tutorUser = await drizzleDb
+      .select({ userId: user.userId, role: user.role })
+      .from(user)
+      .where(eq(user.userId, tutorId))
+      .limit(1)
+
+    if (tutorUser.length === 0 || tutorUser[0].role !== 'TUTOR') {
+      return NextResponse.json({ error: 'Tutor not found' }, { status: 404 })
+    }
 
     // Check if one-on-one is enabled
-    if (!tutorProfile?.oneOnOneEnabled || !tutorProfile?.hourlyRate) {
+    if (!tutorProfile.oneOnOneEnabled) {
       return NextResponse.json(
-        { error: 'Tutor does not offer one-on-one sessions', available: false },
-        { status: 400 }
+        { error: 'Tutor does not offer one-on-one sessions', available: false, reason: 'disabled' },
+        { status: 200 }
       )
     }
 
@@ -156,9 +175,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
       currentDate.setDate(currentDate.getDate() + 1)
     }
 
+    const hasHourlyRate = typeof tutorProfile.hourlyRate === 'number' && tutorProfile.hourlyRate > 0
+
     return NextResponse.json({
       available: true,
-      hourlyRate: tutorProfile.hourlyRate,
+      hourlyRate: hasHourlyRate ? tutorProfile.hourlyRate : 0,
+      pricingIncomplete: !hasHourlyRate,
       currency: tutorProfile.currency || 'USD',
       timezone: tutorProfile.timezone || 'UTC',
       slots,

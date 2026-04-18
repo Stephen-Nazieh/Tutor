@@ -216,7 +216,7 @@ export default function TutorNotificationsPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex h-64 items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
         </div>
@@ -225,7 +225,7 @@ export default function TutorNotificationsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">

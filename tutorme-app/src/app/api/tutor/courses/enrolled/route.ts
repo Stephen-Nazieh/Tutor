@@ -32,7 +32,7 @@ export const GET = withAuth(
       })
       .from(course)
       .innerJoin(courseEnrollment, eq(courseEnrollment.courseId, course.courseId))
-      .where(eq(course.creatorId, tutorId))
+      .where(and(eq(course.creatorId, tutorId), eq(course.isPublished, true)))
       .groupBy(
         course.courseId,
         course.name,

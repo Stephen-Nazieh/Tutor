@@ -88,10 +88,10 @@ function getInitials(name: string): string {
 
 function StarRating({ rating, count }: { rating: number; count?: number }) {
   return (
-    <div className="flex items-center gap-1">
-      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+    <div className="flex items-center gap-1 text-xs">
+      <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
       <span className="font-medium">{rating.toFixed(1)}</span>
-      {count !== undefined && <span className="text-muted-foreground text-sm">({count})</span>}
+      {count !== undefined && <span className="text-muted-foreground">({count})</span>}
     </div>
   )
 }
@@ -379,17 +379,17 @@ export default function StudentTutorDirectoryPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {loading ? (
           Array.from({ length: 6 }).map((_, index) => (
             <Card key={`loading-${index}`} className="border-border bg-card animate-pulse">
-              <CardHeader className="space-y-3">
-                <div className="bg-muted h-6 w-2/3 rounded" />
-                <div className="bg-muted h-4 w-1/2 rounded" />
+              <CardHeader className="space-y-2 p-4">
+                <div className="bg-muted h-5 w-2/3 rounded" />
+                <div className="bg-muted h-3 w-1/2 rounded" />
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="bg-muted h-4 rounded" />
-                <div className="bg-muted h-4 rounded" />
+              <CardContent className="space-y-2 p-4 pt-0">
+                <div className="bg-muted h-3 rounded" />
+                <div className="bg-muted h-3 rounded" />
               </CardContent>
             </Card>
           ))
@@ -422,28 +422,30 @@ export default function StudentTutorDirectoryPage() {
                   e.stopPropagation()
                   toggleFollow(tutor.id)
                 }}
-                className="absolute right-3 top-3 z-10 h-8 gap-1 rounded-full px-3 text-xs"
+                className="absolute right-2 top-2 z-10 h-7 gap-1 rounded-full px-2.5 text-xs"
               >
                 {following.has(tutor.id) ? 'Following' : 'Follow'}
               </Button>
-              <CardHeader className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <Avatar className="border-border h-12 w-12 border">
+              <CardHeader className="space-y-2 p-4">
+                <div className="flex items-start gap-2">
+                  <Avatar className="border-border h-9 w-9 border">
                     <AvatarImage src={tutor.avatarUrl || undefined} alt={`${tutor.name} avatar`} />
-                    <AvatarFallback className="bg-muted text-foreground">
+                    <AvatarFallback className="bg-muted text-foreground text-xs">
                       {getInitials(tutor.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1 pr-8">
-                    <CardTitle className="text-foreground truncate text-lg">{tutor.name}</CardTitle>
-                    <CardDescription>@{tutor.username}</CardDescription>
+                    <CardTitle className="text-foreground truncate text-base">
+                      {tutor.name}
+                    </CardTitle>
+                    <CardDescription className="text-xs">@{tutor.username}</CardDescription>
                   </div>
                 </div>
-                <p className="text-muted-foreground line-clamp-2 text-sm">
+                <p className="text-muted-foreground line-clamp-1 text-xs">
                   {tutor.bio || 'Experienced tutor ready to help you improve quickly.'}
                 </p>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2 p-4 pt-0">
                 <div className="flex items-center gap-2">
                   {tutor.averageRating && (
                     <StarRating rating={tutor.averageRating} count={tutor.totalReviewCount} />
@@ -480,12 +482,12 @@ export default function StudentTutorDirectoryPage() {
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="border-border bg-muted/30 rounded-md border p-2">
-                    <p className="text-muted-foreground">Courses</p>
+                  <div className="border-border bg-muted/30 rounded-md border p-1.5">
+                    <p className="text-muted-foreground text-[10px]">Courses</p>
                     <p className="text-foreground font-semibold">{tutor.courseCount}</p>
                   </div>
-                  <div className="border-border bg-muted/30 rounded-md border p-2">
-                    <p className="text-muted-foreground">Enrollments</p>
+                  <div className="border-border bg-muted/30 rounded-md border p-1.5">
+                    <p className="text-muted-foreground text-[10px]">Enrollments</p>
                     <p className="text-foreground font-semibold">{tutor.totalEnrollments}</p>
                   </div>
                 </div>

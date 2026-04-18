@@ -201,6 +201,12 @@ function OneOnOneSettingsCard() {
               <p className="text-xs text-gray-500">
                 Students will see this rate when booking a session
               </p>
+              {(!settings.hourlyRate || settings.hourlyRate <= 0) && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                  <span className="font-medium">⚠️ Rate Required:</span> You must set an hourly rate
+                  above $0 for students to be able to book one-on-one sessions with you.
+                </div>
+              )}
             </div>
 
             {/* Session Duration */}
@@ -595,7 +601,7 @@ export default function TutorSettings() {
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
       <header className="sticky top-0 z-10 border-b bg-white shadow-sm">
-        <div className="mx-auto flex max-w-5xl items-center gap-4 px-4 py-4">
+        <div className="flex items-center gap-4 px-4 py-4">
           <BackButton href="/tutor/dashboard" />
           <div>
             <h1 className="text-2xl font-bold">Account</h1>
@@ -604,7 +610,7 @@ export default function TutorSettings() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <main className="px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 md:w-auto md:grid-cols-6">
             <TabsTrigger value="profile" className="gap-2">

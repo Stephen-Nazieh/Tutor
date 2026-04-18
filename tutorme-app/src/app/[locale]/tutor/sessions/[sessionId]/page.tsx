@@ -119,7 +119,7 @@ export default function TutorSessionInsightsPage() {
 
   return (
     <div className="min-h-screen w-full bg-[#fafafc] p-6">
-      <div className="mx-auto max-w-5xl space-y-6">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <Button variant="outline" onClick={() => router.push('/tutor/classes')}>
             <ArrowLeft className="mr-2 h-4 w-4" />

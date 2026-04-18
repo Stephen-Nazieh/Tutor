@@ -65,6 +65,14 @@ export const POST = withAuth(async (req, session) => {
         .where(eq(courseLesson.courseId, courseId))
     )[0]?.count ?? 0
 
+  const [existingEnrollment] = await drizzleDb
+    .select()
+    .from(courseEnrollment)
+    .where(
+      and(eq(courseEnrollment.studentId, session.user.id), eq(courseEnrollment.courseId, courseId))
+    )
+    .limit(1)
+
   const [existingProgress] = await drizzleDb
     .select()
     .from(courseProgress)
@@ -73,10 +81,11 @@ export const POST = withAuth(async (req, session) => {
     )
     .limit(1)
 
-  if (existingProgress) {
+  if (existingEnrollment || existingProgress) {
     return NextResponse.json({
       success: true,
       message: 'Already enrolled',
+      enrollment: existingEnrollment,
       progress: existingProgress,
     })
   }

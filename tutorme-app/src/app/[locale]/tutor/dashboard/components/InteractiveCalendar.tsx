@@ -776,8 +776,8 @@ export function InteractiveCalendar({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <Card className="h-full border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md">
-        <CardHeader className="pb-3">
+      <Card className="flex h-[600px] flex-col border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md">
+        <CardHeader className="shrink-0 pb-3">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
@@ -924,7 +924,7 @@ export function InteractiveCalendar({
           </div>
         </CardHeader>
 
-        <CardContent className="pt-0">
+        <CardContent className="flex-1 overflow-auto pt-0">
           {view === 'month' && (
             <MonthView
               days={calendarDays}
