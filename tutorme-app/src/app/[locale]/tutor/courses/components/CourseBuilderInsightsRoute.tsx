@@ -160,7 +160,7 @@ export function CourseBuilderInsightsRoute({
               Back to Dashboard
             </Link>
           </Button>
-          {onSaveModeChange && activeMainTab !== 'live' && (
+          {onSaveModeChange && activeMainTab === 'builder' && (
             <div className="flex items-center rounded-lg border p-0.5">
               <button
                 type="button"
@@ -187,6 +187,11 @@ export function CourseBuilderInsightsRoute({
                 Draft
               </button>
             </div>
+          )}
+          {activeMainTab === 'test-pci' && saveMode && (
+            <span className="bg-primary text-primary-foreground rounded-md px-3 py-1 text-xs font-medium">
+              {saveMode === 'live' ? 'Live' : 'Draft'}
+            </span>
           )}
           <div className="flex shrink-0 items-center gap-3">
             {activeMainTab === 'live' && (
@@ -318,7 +323,7 @@ export function CourseBuilderInsightsRoute({
                         Save
                       </DropdownMenuItem>
                     )}
-                    {onCreateCourse && !insightsProps.sessionId && (
+                    {onCreateCourse && !insightsProps.sessionId && saveMode === 'draft' && (
                       <DropdownMenuItem onClick={onCreateCourse}>New Course</DropdownMenuItem>
                     )}
                     {onDeleteCourse &&

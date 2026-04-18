@@ -16,7 +16,6 @@ import {
   profile,
   course,
   sessionReplayArtifact,
-  courseLessonProgress,
 } from '@/lib/db/schema'
 import { eq, and, asc, desc, sql } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
@@ -187,11 +186,7 @@ export const GET = withAuth(
         startedAt: liveSessionRow.startedAt?.toISOString?.() ?? null,
         maxStudents: liveSessionRow.maxStudents,
         linkedCourseId: deterministicLinkedCourseId,
-        topic: liveSessionRow.topic,
-        objectives: liveSessionRow.objectives,
         category: liveSessionRow.category,
-        nationality: liveSessionRow.nationality,
-        languageOfInstruction: liveSessionRow.languageOfInstruction,
       },
       students,
       messages: messages.map(m => ({
@@ -307,37 +302,6 @@ export const PATCH = withCsrf(
           recordingAvailableAt: liveSessionRow.recordingUrl ? endedAt : null,
         })
         .where(eq(liveSession.sessionId, classId))
-
-      // Track lesson progression for attending students
-      if (liveSessionRow.lessonId) {
-        const attendingParticipants = await drizzleDb
-          .select({ studentId: sessionParticipant.studentId })
-          .from(sessionParticipant)
-          .where(eq(sessionParticipant.sessionId, classId))
-
-        for (const { studentId } of attendingParticipants) {
-          if (!studentId) continue
-          await drizzleDb
-            .insert(courseLessonProgress)
-            .values({
-              progressId: randomUUID(),
-              studentId,
-              lessonId: liveSessionRow.lessonId,
-              status: 'completed',
-              currentSection: 'completed',
-              completedAt: new Date(),
-              updatedAt: new Date(),
-            })
-            .onConflictDoUpdate({
-              target: [courseLessonProgress.lessonId, courseLessonProgress.studentId],
-              set: {
-                status: 'completed',
-                completedAt: new Date(),
-                updatedAt: new Date(),
-              },
-            })
-        }
-      }
 
       const [partCount, messagesCountResult] = await Promise.all([
         drizzleDb

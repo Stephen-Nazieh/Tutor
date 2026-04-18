@@ -16,7 +16,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import * as enums from '../enums'
 import { user } from './auth'
-import { course, courseVariant, courseLesson } from './course'
+import { course } from './course'
 
 export const liveSession = pgTable(
   'LiveSession',
@@ -37,14 +37,6 @@ export const liveSession = pgTable(
     roomUrl: text('roomUrl'),
     recordingUrl: text('recordingUrl'),
     recordingAvailableAt: timestamp('recordingAvailableAt', { withTimezone: true }),
-    variantId: text('variantId').references(() => courseVariant.variantId, {
-      onDelete: 'set null',
-    }),
-    lessonId: text('lessonId').references(() => courseLesson.lessonId, { onDelete: 'set null' }),
-    topic: text('topic'),
-    objectives: text('objectives').array(),
-    languageOfInstruction: text('languageOfInstruction'),
-    nationality: text('nationality'),
     maxStudents: integer('maxStudents').notNull().default(50),
   },
   table => ({
@@ -52,7 +44,6 @@ export const liveSession = pgTable(
     LiveSession_courseId_idx: index('LiveSession_courseId_idx').on(table.courseId),
     LiveSession_status_idx: index('LiveSession_status_idx').on(table.status),
     LiveSession_scheduledAt_idx: index('LiveSession_scheduledAt_idx').on(table.scheduledAt),
-    LiveSession_variantId_idx: index('LiveSession_variantId_idx').on(table.variantId),
   })
 )
 
