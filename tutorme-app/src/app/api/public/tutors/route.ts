@@ -22,7 +22,8 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * pageSize
 
     const searchPattern = searchQuery ? `%${searchQuery}%` : null
-    const categoryPattern = categoryFilter && categoryFilter !== 'all' ? `%${categoryFilter}%` : null
+    const categoryPattern =
+      categoryFilter && categoryFilter !== 'all' ? `%${categoryFilter}%` : null
     const combinationPattern =
       combinationFilter && combinationFilter !== 'all' ? `%${combinationFilter}%` : null
     const nationalityPattern =
@@ -221,15 +222,15 @@ export async function GET(request: NextRequest) {
       drizzleDb.select({ nationality: courseVariant.nationality }).from(courseVariant),
     ])
 
-    const allCategories = [
-      ...new Set(allCategoriesResult.flatMap(r => r.categories || [])),
-    ].filter(Boolean)
+    const allCategories = [...new Set(allCategoriesResult.flatMap(r => r.categories || []))].filter(
+      Boolean
+    )
     const allCombinations = [
       ...new Set(allCombinationsResult.map(v => `${v.category} - ${v.nationality}`)),
     ].filter(Boolean)
-    const allTutorNationalities = [...new Set(allNationalitiesResult.map(v => v.nationality))].filter(
-      Boolean
-    )
+    const allTutorNationalities = [
+      ...new Set(allNationalitiesResult.map(v => v.nationality)),
+    ].filter(Boolean)
 
     return NextResponse.json({
       tutors,

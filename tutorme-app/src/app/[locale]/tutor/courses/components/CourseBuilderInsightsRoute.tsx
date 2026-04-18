@@ -148,7 +148,7 @@ export function CourseBuilderInsightsRoute({
               <button
                 type="button"
                 className={cn(
-                  'px-3 py-1 text-xs font-medium rounded-md transition-colors',
+                  'rounded-md px-3 py-1 text-xs font-medium transition-colors',
                   saveMode === 'live'
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground'
@@ -160,7 +160,7 @@ export function CourseBuilderInsightsRoute({
               <button
                 type="button"
                 className={cn(
-                  'px-3 py-1 text-xs font-medium rounded-md transition-colors',
+                  'rounded-md px-3 py-1 text-xs font-medium transition-colors',
                   saveMode === 'draft'
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground'
@@ -270,11 +270,15 @@ export function CourseBuilderInsightsRoute({
                 New Course
               </Button>
             )}
-            {activeMainTab === 'builder' && onDeleteCourse && !insightsProps.sessionId && courses && courses.length > 1 && (
-              <Button size="sm" variant="outline" onClick={onDeleteCourse}>
-                Delete
-              </Button>
-            )}
+            {activeMainTab === 'builder' &&
+              onDeleteCourse &&
+              !insightsProps.sessionId &&
+              courses &&
+              courses.length > 1 && (
+                <Button size="sm" variant="outline" onClick={onDeleteCourse}>
+                  Delete
+                </Button>
+              )}
           </div>
         </div>
       </div>
@@ -351,10 +355,14 @@ export function CourseBuilderInsightsRoute({
             value={newCourseName}
             onChange={e => setNewCourseName?.(e.target.value)}
             placeholder="Course name"
-            onKeyDown={e => { if (e.key === 'Enter') onCreateNewCourse?.() }}
+            onKeyDown={e => {
+              if (e.key === 'Enter') onCreateNewCourse?.()
+            }}
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen?.(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen?.(false)}>
+              Cancel
+            </Button>
             <Button onClick={onCreateNewCourse}>Create</Button>
           </DialogFooter>
         </DialogContent>
@@ -370,8 +378,12 @@ export function CourseBuilderInsightsRoute({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen?.(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={onDeleteCourseConfirm}>Delete</Button>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen?.(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={onDeleteCourseConfirm}>
+              Delete
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

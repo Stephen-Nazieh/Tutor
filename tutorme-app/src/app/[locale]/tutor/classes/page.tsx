@@ -1013,8 +1013,7 @@ export default function TutorClassesPage() {
             <DialogHeader>
               <DialogTitle>Start Live Session</DialogTitle>
               <DialogDescription>
-                Select a variant and lesson for{' '}
-                <strong>{selectedCourseForSession?.title}</strong>.
+                Select a variant and lesson for <strong>{selectedCourseForSession?.title}</strong>.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">

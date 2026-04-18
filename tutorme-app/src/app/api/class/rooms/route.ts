@@ -9,7 +9,15 @@ import { withAuth, withCsrf } from '@/lib/api/middleware'
 import { CreateRoomSchema, validateRequest } from '@/lib/validation/schemas'
 import { dailyProvider } from '@/lib/video/daily-provider'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { liveSession, course, user, profile, sessionParticipant, courseVariant, courseLesson } from '@/lib/db/schema'
+import {
+  liveSession,
+  course,
+  user,
+  profile,
+  sessionParticipant,
+  courseVariant,
+  courseLesson,
+} from '@/lib/db/schema'
 import crypto from 'crypto'
 
 // POST /api/class/rooms - Create a new class room

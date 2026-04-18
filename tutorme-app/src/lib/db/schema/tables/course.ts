@@ -47,7 +47,10 @@ export const course = pgTable(
   table => ({
     Course_isPublished_idx: index('Course_isPublished_idx').on(table.isPublished),
     Course_creatorId_idx: index('Course_creatorId_idx').on(table.creatorId),
-    Course_isPublished_creatorId_idx: index('Course_isPublished_creatorId_idx').on(table.isPublished, table.creatorId),
+    Course_isPublished_creatorId_idx: index('Course_isPublished_creatorId_idx').on(
+      table.isPublished,
+      table.creatorId
+    ),
     Course_deletedAt_idx: index('Course_deletedAt_idx').on(table.deletedAt),
   })
 )

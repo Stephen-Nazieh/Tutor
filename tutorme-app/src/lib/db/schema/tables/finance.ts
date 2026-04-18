@@ -55,7 +55,10 @@ export const payment = pgTable(
       table.enrollmentId,
       table.status
     ),
-    Payment_courseId_status_idx: index('Payment_courseId_status_idx').on(table.courseId, table.status),
+    Payment_courseId_status_idx: index('Payment_courseId_status_idx').on(
+      table.courseId,
+      table.status
+    ),
   })
 )
 

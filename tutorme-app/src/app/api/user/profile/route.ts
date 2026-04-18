@@ -103,12 +103,10 @@ async function putHandler(req: NextRequest, session: Session) {
     if (bio !== undefined) updateData.bio = sanitizeHtmlWithMax(bio, 2000)
     if (avatarUrl !== undefined)
       updateData.avatarUrl = sanitizeHtml(String(avatarUrl)).trim() || null
-    if (timezone !== undefined)
-      updateData.timezone = sanitizeHtml(String(timezone)).trim()
+    if (timezone !== undefined) updateData.timezone = sanitizeHtml(String(timezone)).trim()
     if (emailNotifications !== undefined)
       updateData.emailNotifications = Boolean(emailNotifications)
-    if (smsNotifications !== undefined)
-      updateData.smsNotifications = Boolean(smsNotifications)
+    if (smsNotifications !== undefined) updateData.smsNotifications = Boolean(smsNotifications)
     if (isOnboarded !== undefined) updateData.isOnboarded = Boolean(isOnboarded)
     if (tosAccepted === true) {
       updateData.tosAccepted = true

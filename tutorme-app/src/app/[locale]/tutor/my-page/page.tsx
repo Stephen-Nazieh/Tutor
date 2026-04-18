@@ -310,8 +310,8 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
                       )}
                     </div>
                     <p className="mt-1 text-sm text-[#64748B]">
-                      {(course.categories || [])[0] || 'Untitled'} • {course.studentCount || 0} students • Updated{' '}
-                      {new Date(course.updatedAt).toLocaleDateString()}
+                      {(course.categories || [])[0] || 'Untitled'} • {course.studentCount || 0}{' '}
+                      students • Updated {new Date(course.updatedAt).toLocaleDateString()}
                     </p>
                     {activeTab === 'catalogued' && course.lastSessionDate && (
                       <p className="mt-1 text-xs text-gray-500">
@@ -689,8 +689,6 @@ export default function TutorMyPage() {
       setSaving(false)
     }
   }
-
-
 
   const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024
   const ACCEPTED_AVATAR_MIME = ['image/jpeg', 'image/png', 'image/webp']
@@ -1389,7 +1387,6 @@ export default function TutorMyPage() {
           }}
         />
       </div>
-
 
       <Dialog
         open={createOpen}

@@ -98,7 +98,9 @@ export default function TutorInsightsPage() {
           const raw = localStorage.getItem('lesson-bank-courses-v1')
           const parsed = raw ? JSON.parse(raw) : []
           const updated = parsed.map((c: any) =>
-            c.id === courseId ? { ...c, name: newName.trim(), updatedAt: new Date().toISOString() } : c
+            c.id === courseId
+              ? { ...c, name: newName.trim(), updatedAt: new Date().toISOString() }
+              : c
           )
           localStorage.setItem('lesson-bank-courses-v1', JSON.stringify(updated))
           setDraftCourses(prev =>
@@ -125,7 +127,9 @@ export default function TutorInsightsPage() {
             body: JSON.stringify({ name: newName.trim() }),
           })
           if (res.ok) {
-            setCourses(prev => prev.map(c => (c.id === courseId ? { ...c, name: newName.trim() } : c)))
+            setCourses(prev =>
+              prev.map(c => (c.id === courseId ? { ...c, name: newName.trim() } : c))
+            )
           }
         } catch {
           // silent fail
@@ -260,7 +264,10 @@ export default function TutorInsightsPage() {
         const parsed = raw ? JSON.parse(raw) : []
         const updated = [...parsed, newCourse]
         localStorage.setItem('lesson-bank-courses-v1', JSON.stringify(updated))
-        setDraftCourses(prev => [...prev, { id: newCourse.id, name: newCourse.name, updatedAt: newCourse.updatedAt }])
+        setDraftCourses(prev => [
+          ...prev,
+          { id: newCourse.id, name: newCourse.name, updatedAt: newCourse.updatedAt },
+        ])
         setCourseId(newCourse.id)
         setDetachedCourseName(newCourse.name)
         setNewCourseName('')
@@ -575,6 +582,31 @@ export default function TutorInsightsPage() {
     })
   }
 
+  const activeCourses = saveMode === 'live' ? courses : draftCourses
+
+  const handleModeChange = useCallback(
+    (mode: 'live' | 'draft') => {
+      setSaveMode(mode)
+      if (mode === 'live') {
+        const first = courses[0]
+        if (first) {
+          setCourseId(first.id)
+          setDetachedCourseName(first.name)
+        }
+      } else {
+        const first = draftCourses[0]
+        if (first) {
+          setCourseId(first.id)
+          setDetachedCourseName(first.name)
+        } else {
+          setCourseId('insights-draft')
+          setDetachedCourseName('Draft Builder')
+        }
+      }
+    },
+    [courses, draftCourses]
+  )
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -595,28 +627,6 @@ export default function TutorInsightsPage() {
       </div>
     )
   }
-
-  const activeCourses = saveMode === 'live' ? courses : draftCourses
-
-  const handleModeChange = useCallback((mode: 'live' | 'draft') => {
-    setSaveMode(mode)
-    if (mode === 'live') {
-      const first = courses[0]
-      if (first) {
-        setCourseId(first.id)
-        setDetachedCourseName(first.name)
-      }
-    } else {
-      const first = draftCourses[0]
-      if (first) {
-        setCourseId(first.id)
-        setDetachedCourseName(first.name)
-      } else {
-        setCourseId('insights-draft')
-        setDetachedCourseName('Draft Builder')
-      }
-    }
-  }, [courses, draftCourses])
 
   if (!courseId) {
     return (
@@ -762,8 +772,8 @@ export default function TutorInsightsPage() {
           <DialogHeader>
             <DialogTitle>Delete Course</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete &quot;{detachedCourseName}&quot;? This action cannot be
-              undone.
+              Are you sure you want to delete &quot;{detachedCourseName}&quot;? This action cannot
+              be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

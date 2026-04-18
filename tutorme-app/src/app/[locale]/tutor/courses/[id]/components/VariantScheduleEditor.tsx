@@ -53,7 +53,11 @@ const timezoneLabel = (() => {
   }
 })()
 
-export function VariantScheduleEditor({ schedule, onScheduleChange, price }: VariantScheduleEditorProps) {
+export function VariantScheduleEditor({
+  schedule,
+  onScheduleChange,
+  price,
+}: VariantScheduleEditorProps) {
   const [scheduleWeekOffset, setScheduleWeekOffset] = useState(0)
   const [scheduleRepeatWeekly, setScheduleRepeatWeekly] = useState(false)
   const [numberOfWeeks, setNumberOfWeeks] = useState(4)
@@ -118,16 +122,22 @@ export function VariantScheduleEditor({ schedule, onScheduleChange, price }: Var
   }, 0)
   const totalRevenue = scheduleCost * 0.7
   const totalSessions = scheduleSummary.length
-  const totalDurationMinutes = scheduleSummary.reduce((sum, slot) => sum + (slot.durationMinutes ?? 0), 0)
+  const totalDurationMinutes = scheduleSummary.reduce(
+    (sum, slot) => sum + (slot.durationMinutes ?? 0),
+    0
+  )
   const totalDurationHours = (totalDurationMinutes / 60).toFixed(1)
 
-  const scheduleByDay = scheduleSummary.reduce((acc, slot) => {
-    const day = slot?.dayOfWeek
-    if (!day) return acc
-    if (!acc[day]) acc[day] = []
-    acc[day].push(slot)
-    return acc
-  }, {} as Record<string, ScheduleItem[]>)
+  const scheduleByDay = scheduleSummary.reduce(
+    (acc, slot) => {
+      const day = slot?.dayOfWeek
+      if (!day) return acc
+      if (!acc[day]) acc[day] = []
+      acc[day].push(slot)
+      return acc
+    },
+    {} as Record<string, ScheduleItem[]>
+  )
 
   const toggleSlot = (day: string, dateKey: string, timeStr: string) => {
     onScheduleChange(prev => {
@@ -222,7 +232,9 @@ export function VariantScheduleEditor({ schedule, onScheduleChange, price }: Var
                 }
                 className="h-8 w-24 text-sm"
               />
-              <span className="text-muted-foreground text-xs">sessions (weeks = sessions ÷ slots per week)</span>
+              <span className="text-muted-foreground text-xs">
+                sessions (weeks = sessions ÷ slots per week)
+              </span>
             </div>
           </>
         )}
@@ -245,7 +257,9 @@ export function VariantScheduleEditor({ schedule, onScheduleChange, price }: Var
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="min-w-[140px] text-center text-xs font-medium">{scheduleWeekLabel}</span>
+            <span className="min-w-[140px] text-center text-xs font-medium">
+              {scheduleWeekLabel}
+            </span>
             <Button
               type="button"
               variant="ghost"
@@ -295,7 +309,9 @@ export function VariantScheduleEditor({ schedule, onScheduleChange, price }: Var
                 className="border-r p-2 text-center text-xs font-medium"
               >
                 <div>{day.slice(0, 3)}</div>
-                <div className="text-muted-foreground mt-0.5 text-[10px] font-normal">{d.getDate()}</div>
+                <div className="text-muted-foreground mt-0.5 text-[10px] font-normal">
+                  {d.getDate()}
+                </div>
               </div>
             )
           })}
@@ -402,7 +418,9 @@ export function VariantScheduleEditor({ schedule, onScheduleChange, price }: Var
             {/* Sessions & duration */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
-                <div className="text-xs font-medium uppercase tracking-wide text-blue-700">Sessions</div>
+                <div className="text-xs font-medium uppercase tracking-wide text-blue-700">
+                  Sessions
+                </div>
                 <div className="mt-0.5 text-2xl font-bold text-blue-900">{totalSessions}</div>
                 {scheduleRepeatWeekly && schedule.length > 0 && totalSessions > schedule.length && (
                   <div className="mt-0.5 text-xs text-blue-600">
@@ -411,18 +429,30 @@ export function VariantScheduleEditor({ schedule, onScheduleChange, price }: Var
                 )}
               </div>
               <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3">
-                <div className="text-xs font-medium uppercase tracking-wide text-emerald-700">Total duration</div>
-                <div className="mt-0.5 text-2xl font-bold text-emerald-900">{totalDurationHours} h</div>
+                <div className="text-xs font-medium uppercase tracking-wide text-emerald-700">
+                  Total duration
+                </div>
+                <div className="mt-0.5 text-2xl font-bold text-emerald-900">
+                  {totalDurationHours} h
+                </div>
               </div>
               {priceNumber > 0 && (
                 <>
                   <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                    <div className="text-xs font-medium uppercase tracking-wide text-slate-600">Cost</div>
-                    <div className="mt-0.5 text-xl font-bold text-slate-900">USD {scheduleCost.toFixed(2)}</div>
+                    <div className="text-xs font-medium uppercase tracking-wide text-slate-600">
+                      Cost
+                    </div>
+                    <div className="mt-0.5 text-xl font-bold text-slate-900">
+                      USD {scheduleCost.toFixed(2)}
+                    </div>
                   </div>
                   <div className="rounded-xl border border-amber-100 bg-amber-50 p-3">
-                    <div className="text-xs font-medium uppercase tracking-wide text-amber-700">Revenue (70%)</div>
-                    <div className="mt-0.5 text-xl font-bold text-amber-900">USD {totalRevenue.toFixed(2)}</div>
+                    <div className="text-xs font-medium uppercase tracking-wide text-amber-700">
+                      Revenue (70%)
+                    </div>
+                    <div className="mt-0.5 text-xl font-bold text-amber-900">
+                      USD {totalRevenue.toFixed(2)}
+                    </div>
                   </div>
                 </>
               )}
@@ -440,7 +470,8 @@ export function VariantScheduleEditor({ schedule, onScheduleChange, price }: Var
                     <div className="mb-2 flex items-center justify-between text-sm font-semibold text-slate-800">
                       <span>{day}</span>
                       <Badge variant="secondary" className="text-xs">
-                        {scheduleByDay[day].length} session{scheduleByDay[day].length !== 1 ? 's' : ''}
+                        {scheduleByDay[day].length} session
+                        {scheduleByDay[day].length !== 1 ? 's' : ''}
                       </Badge>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -460,7 +491,9 @@ export function VariantScheduleEditor({ schedule, onScheduleChange, price }: Var
                               </span>
                             )}
                             <span>{formatTimeRange(slot.startTime, slot.durationMinutes)}</span>
-                            <span className="text-xs text-slate-500">• {slot.durationMinutes}m</span>
+                            <span className="text-xs text-slate-500">
+                              • {slot.durationMinutes}m
+                            </span>
                             <span className="text-xs text-slate-500">• 0 students</span>
                           </div>
                         ))}

@@ -339,7 +339,9 @@ export function MyPageTabsSection() {
                           {course.description || 'No description'}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-2">
-                          <Badge variant="outline">{(course.categories || [])[0] || 'Untitled'}</Badge>
+                          <Badge variant="outline">
+                            {(course.categories || [])[0] || 'Untitled'}
+                          </Badge>
                           {course.difficulty && (
                             <Badge variant="outline" className="capitalize">
                               {course.difficulty}
@@ -665,7 +667,9 @@ export function MyPageTabsSection() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="truncate font-medium">{course.name}</span>
-                        <Badge variant="secondary">{(course.categories || [])[0] || 'Untitled'}</Badge>
+                        <Badge variant="secondary">
+                          {(course.categories || [])[0] || 'Untitled'}
+                        </Badge>
                         <Badge
                           variant="outline"
                           className="border-amber-200 bg-amber-50 text-amber-600"
@@ -734,7 +738,9 @@ export function MyPageTabsSection() {
                     <div className="font-medium">{item.name}</div>
                     <Badge variant="outline">Closed</Badge>
                   </div>
-                  <div className="text-muted-foreground text-sm">{(item.categories || [])[0] || 'Untitled'}</div>
+                  <div className="text-muted-foreground text-sm">
+                    {(item.categories || [])[0] || 'Untitled'}
+                  </div>
                   <div className="mt-2 text-xs text-gray-500">
                     Published: {formatDate(item.publishedAt || '')}
                   </div>

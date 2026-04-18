@@ -56,7 +56,9 @@ export function DailyVideoFrame({ roomUrl, token, className }: DailyVideoFramePr
   }
 
   return (
-    <div className={`relative flex flex-col overflow-hidden rounded-lg bg-black ${className || ''}`}>
+    <div
+      className={`relative flex flex-col overflow-hidden rounded-lg bg-black ${className || ''}`}
+    >
       <div ref={containerRef} className="flex-1" />
       <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-sm">
         <button

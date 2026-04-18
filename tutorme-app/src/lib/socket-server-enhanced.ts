@@ -647,7 +647,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
           const enrolled = await drizzleDb.query.courseEnrollment.findFirst({
             where: and(
               eq(courseEnrollment.studentId, userId),
-              eq(courseEnrollment.courseId, liveSessionRow.courseId),
+              eq(courseEnrollment.courseId, liveSessionRow.courseId)
             ),
           })
           if (!enrolled) {
@@ -697,8 +697,14 @@ export async function initEnhancedSocketServer(server: NetServer) {
           })
           if (activeDbPolls.length > 0) {
             const pollIds = activeDbPolls.map(p => p.pollId)
-            const allOptions = await drizzleDb.select().from(pollOption).where(inArray(pollOption.pollId, pollIds))
-            const allResponses = await drizzleDb.select().from(pollResponse).where(inArray(pollResponse.pollId, pollIds))
+            const allOptions = await drizzleDb
+              .select()
+              .from(pollOption)
+              .where(inArray(pollOption.pollId, pollIds))
+            const allResponses = await drizzleDb
+              .select()
+              .from(pollResponse)
+              .where(inArray(pollResponse.pollId, pollIds))
             for (const dbPoll of activeDbPolls) {
               const options = allOptions.filter(o => o.pollId === dbPoll.pollId)
               const responses = allResponses.filter(r => r.pollId === dbPoll.pollId)
@@ -707,11 +713,16 @@ export async function initEnhancedSocketServer(server: NetServer) {
                 sessionId: dbPoll.sessionId,
                 tutorId: dbPoll.tutorId,
                 question: dbPoll.question,
-                type: dbPoll.type === 'MULTIPLE_CHOICE' ? 'multiple_choice'
-                  : dbPoll.type === 'TRUE_FALSE' ? 'true_false'
-                  : dbPoll.type === 'RATING' ? 'rating'
-                  : dbPoll.type === 'SHORT_ANSWER' ? 'short_answer'
-                  : 'word_cloud',
+                type:
+                  dbPoll.type === 'MULTIPLE_CHOICE'
+                    ? 'multiple_choice'
+                    : dbPoll.type === 'TRUE_FALSE'
+                      ? 'true_false'
+                      : dbPoll.type === 'RATING'
+                        ? 'rating'
+                        : dbPoll.type === 'SHORT_ANSWER'
+                          ? 'short_answer'
+                          : 'word_cloud',
                 options: options.map(opt => ({
                   id: opt.optionId,
                   label: opt.label,
@@ -722,7 +733,12 @@ export async function initEnhancedSocketServer(server: NetServer) {
                 allowMultiple: dbPoll.allowMultiple,
                 showResults: dbPoll.showResults,
                 timeLimit: dbPoll.timeLimit ?? undefined,
-                status: dbPoll.status === 'ACTIVE' ? 'active' : dbPoll.status === 'CLOSED' ? 'closed' : 'draft',
+                status:
+                  dbPoll.status === 'ACTIVE'
+                    ? 'active'
+                    : dbPoll.status === 'CLOSED'
+                      ? 'closed'
+                      : 'draft',
                 startedAt: dbPoll.startedAt ? new Date(dbPoll.startedAt).getTime() : undefined,
                 endedAt: dbPoll.endedAt ? new Date(dbPoll.endedAt).getTime() : undefined,
                 responses: responses.map(resp => ({
@@ -762,88 +778,96 @@ export async function initEnhancedSocketServer(server: NetServer) {
       delete socket.data.pollSessionId
     })
 
-    socket.on('poll:create', async (data: {
-      sessionId: string
-      question: string
-      type: string
-      options: { label: string; text: string }[]
-      isAnonymous: boolean
-      allowMultiple: boolean
-      showResults: boolean
-      timeLimit?: number
-    }) => {
-      if (socket.data.role !== 'tutor') return
+    socket.on(
+      'poll:create',
+      async (data: {
+        sessionId: string
+        question: string
+        type: string
+        options: { label: string; text: string }[]
+        isAnonymous: boolean
+        allowMultiple: boolean
+        showResults: boolean
+        timeLimit?: number
+      }) => {
+        if (socket.data.role !== 'tutor') return
 
-      const liveSessionRow = await drizzleDb.query.liveSession.findFirst({
-        where: eq(liveSession.roomId, data.sessionId),
-      })
-      const dbSessionId = liveSessionRow?.sessionId ?? data.sessionId
+        const liveSessionRow = await drizzleDb.query.liveSession.findFirst({
+          where: eq(liveSession.roomId, data.sessionId),
+        })
+        const dbSessionId = liveSessionRow?.sessionId ?? data.sessionId
 
-      const pollId = crypto.randomUUID()
-      const now = new Date()
+        const pollId = crypto.randomUUID()
+        const now = new Date()
 
-      await drizzleDb.insert(poll).values({
-        pollId,
-        sessionId: dbSessionId,
-        tutorId: socket.data.userId,
-        question: data.question,
-        type: data.type === 'multiple_choice' ? 'MULTIPLE_CHOICE'
-          : data.type === 'true_false' ? 'TRUE_FALSE'
-          : data.type === 'rating' ? 'RATING'
-          : data.type === 'short_answer' ? 'SHORT_ANSWER'
-          : 'WORD_CLOUD',
-        isAnonymous: data.isAnonymous,
-        allowMultiple: data.allowMultiple,
-        showResults: data.showResults,
-        timeLimit: data.timeLimit,
-        status: 'ACTIVE',
-        totalResponses: 0,
-        createdAt: now,
-        updatedAt: now,
-      })
+        await drizzleDb.insert(poll).values({
+          pollId,
+          sessionId: dbSessionId,
+          tutorId: socket.data.userId,
+          question: data.question,
+          type:
+            data.type === 'multiple_choice'
+              ? 'MULTIPLE_CHOICE'
+              : data.type === 'true_false'
+                ? 'TRUE_FALSE'
+                : data.type === 'rating'
+                  ? 'RATING'
+                  : data.type === 'short_answer'
+                    ? 'SHORT_ANSWER'
+                    : 'WORD_CLOUD',
+          isAnonymous: data.isAnonymous,
+          allowMultiple: data.allowMultiple,
+          showResults: data.showResults,
+          timeLimit: data.timeLimit,
+          status: 'ACTIVE',
+          totalResponses: 0,
+          createdAt: now,
+          updatedAt: now,
+        })
 
-      const optionsToInsert = data.options.map((opt, i) => ({
-        optionId: `opt-${pollId}-${i}`,
-        pollId,
-        label: opt.label || String.fromCharCode(65 + i),
-        text: opt.text,
-        color: getPollOptionColor(i),
-        responseCount: 0,
-        percentage: 0,
-      }))
-
-      if (optionsToInsert.length > 0) {
-        await drizzleDb.insert(pollOption).values(optionsToInsert)
-      }
-
-      const pollState: PollState = {
-        id: pollId,
-        sessionId: data.sessionId,
-        tutorId: socket.data.userId,
-        question: data.question,
-        type: data.type as PollState['type'],
-        options: optionsToInsert.map(opt => ({
-          id: opt.optionId,
-          label: opt.label,
+        const optionsToInsert = data.options.map((opt, i) => ({
+          optionId: `opt-${pollId}-${i}`,
+          pollId,
+          label: opt.label || String.fromCharCode(65 + i),
           text: opt.text,
-          color: opt.color,
-        })),
-        isAnonymous: data.isAnonymous,
-        allowMultiple: data.allowMultiple,
-        showResults: data.showResults,
-        timeLimit: data.timeLimit,
-        status: 'active',
-        responses: [],
-      }
+          color: getPollOptionColor(i),
+          responseCount: 0,
+          percentage: 0,
+        }))
 
-      activePolls.set(pollId, pollState)
-      if (!sessionPolls.has(data.sessionId)) {
-        sessionPolls.set(data.sessionId, new Set())
-      }
-      sessionPolls.get(data.sessionId)!.add(pollId)
+        if (optionsToInsert.length > 0) {
+          await drizzleDb.insert(pollOption).values(optionsToInsert)
+        }
 
-      io.to(`poll:${data.sessionId}`).emit('poll:created', formatPollForBroadcast(pollState))
-    })
+        const pollState: PollState = {
+          id: pollId,
+          sessionId: data.sessionId,
+          tutorId: socket.data.userId,
+          question: data.question,
+          type: data.type as PollState['type'],
+          options: optionsToInsert.map(opt => ({
+            id: opt.optionId,
+            label: opt.label,
+            text: opt.text,
+            color: opt.color,
+          })),
+          isAnonymous: data.isAnonymous,
+          allowMultiple: data.allowMultiple,
+          showResults: data.showResults,
+          timeLimit: data.timeLimit,
+          status: 'active',
+          responses: [],
+        }
+
+        activePolls.set(pollId, pollState)
+        if (!sessionPolls.has(data.sessionId)) {
+          sessionPolls.set(data.sessionId, new Set())
+        }
+        sessionPolls.get(data.sessionId)!.add(pollId)
+
+        io.to(`poll:${data.sessionId}`).emit('poll:created', formatPollForBroadcast(pollState))
+      }
+    )
 
     socket.on('poll:start', (data: { pollId: string; sessionId: string }) => {
       if (socket.data.role !== 'tutor') return
@@ -866,10 +890,13 @@ export async function initEnhancedSocketServer(server: NetServer) {
     socket.on('poll:end', async (data: { pollId: string; sessionId: string }) => {
       if (socket.data.role !== 'tutor') return
 
-      await drizzleDb.update(poll).set({
-        status: 'CLOSED',
-        endedAt: new Date(),
-      }).where(eq(poll.pollId, data.pollId))
+      await drizzleDb
+        .update(poll)
+        .set({
+          status: 'CLOSED',
+          endedAt: new Date(),
+        })
+        .where(eq(poll.pollId, data.pollId))
 
       endPoll(io, data.pollId)
     })
@@ -880,10 +907,13 @@ export async function initEnhancedSocketServer(server: NetServer) {
       const pollState = activePolls.get(data.pollId)
       if (!pollState || pollState.sessionId !== data.sessionId) return
 
-      await drizzleDb.update(poll).set({
-        status: 'CLOSED',
-        endedAt: new Date(),
-      }).where(eq(poll.pollId, data.pollId))
+      await drizzleDb
+        .update(poll)
+        .set({
+          status: 'CLOSED',
+          endedAt: new Date(),
+        })
+        .where(eq(poll.pollId, data.pollId))
 
       if (pollState.timer) {
         clearTimeout(pollState.timer)
@@ -895,57 +925,62 @@ export async function initEnhancedSocketServer(server: NetServer) {
       io.to(`poll:${data.sessionId}`).emit('poll:deleted', data.pollId)
     })
 
-    socket.on('poll:vote', async (data: {
-      pollId: string
-      sessionId: string
-      optionIds?: string[]
-      rating?: number
-      textAnswer?: string
-    }) => {
-      const pollState = activePolls.get(data.pollId)
-      if (!pollState || pollState.sessionId !== data.sessionId) return
-      if (pollState.status !== 'active') return
+    socket.on(
+      'poll:vote',
+      async (data: {
+        pollId: string
+        sessionId: string
+        optionIds?: string[]
+        rating?: number
+        textAnswer?: string
+      }) => {
+        const pollState = activePolls.get(data.pollId)
+        if (!pollState || pollState.sessionId !== data.sessionId) return
+        if (pollState.status !== 'active') return
 
-      const userId = socket.data.userId
+        const userId = socket.data.userId
 
-      if (!pollState.isAnonymous) {
-        const existingVote = pollState.responses.find(r => r.studentId === userId)
-        if (existingVote) return
-      } else {
-        const respondentHash = await hashString(`${userId}:${data.pollId}`)
-        const existingVote = pollState.responses.find(r => r.respondentHash === respondentHash)
-        if (existingVote) return
+        if (!pollState.isAnonymous) {
+          const existingVote = pollState.responses.find(r => r.studentId === userId)
+          if (existingVote) return
+        } else {
+          const respondentHash = await hashString(`${userId}:${data.pollId}`)
+          const existingVote = pollState.responses.find(r => r.respondentHash === respondentHash)
+          if (existingVote) return
+        }
+
+        const responseId = crypto.randomUUID()
+        const respondentHash = pollState.isAnonymous
+          ? await hashString(`${userId}:${data.pollId}`)
+          : undefined
+
+        await drizzleDb.insert(pollResponse).values({
+          responseId,
+          pollId: data.pollId,
+          respondentHash,
+          optionIds: data.optionIds || [],
+          rating: data.rating,
+          textAnswer: data.textAnswer,
+          studentId: pollState.isAnonymous ? undefined : userId,
+          createdAt: new Date(),
+        })
+
+        const response = {
+          id: responseId,
+          respondentHash,
+          optionIds: data.optionIds,
+          rating: data.rating,
+          textAnswer: data.textAnswer,
+          studentId: pollState.isAnonymous ? undefined : userId,
+          createdAt: Date.now(),
+        }
+
+        pollState.responses.push(response)
+
+        io.to(`poll:${data.sessionId}`).emit('poll:updated', formatPollForBroadcast(pollState))
+        socket.emit('poll:vote:confirmed', { pollId: data.pollId })
       }
-
-      const responseId = crypto.randomUUID()
-      const respondentHash = pollState.isAnonymous ? await hashString(`${userId}:${data.pollId}`) : undefined
-
-      await drizzleDb.insert(pollResponse).values({
-        responseId,
-        pollId: data.pollId,
-        respondentHash,
-        optionIds: data.optionIds || [],
-        rating: data.rating,
-        textAnswer: data.textAnswer,
-        studentId: pollState.isAnonymous ? undefined : userId,
-        createdAt: new Date(),
-      })
-
-      const response = {
-        id: responseId,
-        respondentHash,
-        optionIds: data.optionIds,
-        rating: data.rating,
-        textAnswer: data.textAnswer,
-        studentId: pollState.isAnonymous ? undefined : userId,
-        createdAt: Date.now(),
-      }
-
-      pollState.responses.push(response)
-
-      io.to(`poll:${data.sessionId}`).emit('poll:updated', formatPollForBroadcast(pollState))
-      socket.emit('poll:vote:confirmed', { pollId: data.pollId })
-    })
+    )
 
     socket.on('task:deploy', async (data: { roomId: string; task: LiveTask }) => {
       if (socket.data.role !== 'tutor') return
@@ -1230,14 +1265,7 @@ function endPoll(io: SocketIOServer, pollId: string) {
 }
 
 function getPollOptionColor(index: number): string {
-  const colors = [
-    '#3b82f6',
-    '#10b981',
-    '#f59e0b',
-    '#ef4444',
-    '#8b5cf6',
-    '#ec4899',
-  ]
+  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
   return colors[index % colors.length]
 }
 

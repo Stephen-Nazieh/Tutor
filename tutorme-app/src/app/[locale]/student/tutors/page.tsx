@@ -208,7 +208,9 @@ export default function StudentTutorDirectoryPage() {
 
         setTutors(enrichedTutors)
         setCategories(Array.isArray(data?.availableCategories) ? data.availableCategories : [])
-        setNationalities(Array.isArray(data?.availableNationalities) ? data.availableNationalities : [])
+        setNationalities(
+          Array.isArray(data?.availableNationalities) ? data.availableNationalities : []
+        )
         setDataSource(data?.source === 'mock' ? 'mock' : 'db')
       } catch {
         if (!active) return
@@ -462,7 +464,11 @@ export default function StudentTutorDirectoryPage() {
                 {(tutor.tutorNationalities || []).length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {(tutor.tutorNationalities || []).slice(0, 3).map(nat => (
-                      <Badge key={`${tutor.id}:nat:${nat}`} variant="outline" className="border-border">
+                      <Badge
+                        key={`${tutor.id}:nat:${nat}`}
+                        variant="outline"
+                        className="border-border"
+                      >
                         {nat}
                       </Badge>
                     ))}

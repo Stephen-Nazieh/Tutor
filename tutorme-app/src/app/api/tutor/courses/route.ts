@@ -70,9 +70,7 @@ export const POST = withCsrf(
         const courseId = crypto.randomUUID()
 
         const categories =
-          Array.isArray(data.categories) && data.categories.length > 0
-            ? data.categories
-            : []
+          Array.isArray(data.categories) && data.categories.length > 0 ? data.categories : []
 
         const schedule =
           Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : []
@@ -96,19 +94,16 @@ export const POST = withCsrf(
 
         console.log('[Course Create] Insert values:', JSON.stringify(insertValues, null, 2))
 
-        const [newCourse] = await drizzleDb
-          .insert(courseTable)
-          .values(insertValues)
-          .returning({
-            courseId: courseTable.courseId,
-            name: courseTable.name,
-            description: courseTable.description,
-            categories: courseTable.categories,
-            isPublished: courseTable.isPublished,
-            isLiveOnline: courseTable.isLiveOnline,
-            createdAt: courseTable.createdAt,
-            updatedAt: courseTable.updatedAt,
-          })
+        const [newCourse] = await drizzleDb.insert(courseTable).values(insertValues).returning({
+          courseId: courseTable.courseId,
+          name: courseTable.name,
+          description: courseTable.description,
+          categories: courseTable.categories,
+          isPublished: courseTable.isPublished,
+          isLiveOnline: courseTable.isLiveOnline,
+          createdAt: courseTable.createdAt,
+          updatedAt: courseTable.updatedAt,
+        })
 
         await drizzleDb.insert(courseLesson).values({
           lessonId: crypto.randomUUID(),

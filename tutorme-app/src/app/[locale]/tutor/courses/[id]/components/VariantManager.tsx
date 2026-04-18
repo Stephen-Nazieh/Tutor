@@ -66,7 +66,9 @@ export function VariantManager({
 }: VariantManagerProps) {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [globalPrice, setGlobalPrice] = useState<string>(defaultPrice != null ? String(defaultPrice) : '')
+  const [globalPrice, setGlobalPrice] = useState<string>(
+    defaultPrice != null ? String(defaultPrice) : ''
+  )
   const [globalCurrency, setGlobalCurrency] = useState(defaultCurrency || 'USD')
   const [globalLanguage, setGlobalLanguage] = useState(defaultLanguage || 'English')
   const [variants, setVariants] = useState<VariantConfig[]>([])
@@ -237,8 +239,8 @@ export function VariantManager({
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-10">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          <span className="ml-2 text-muted-foreground">Loading variants…</span>
+          <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+          <span className="text-muted-foreground ml-2">Loading variants…</span>
         </CardContent>
       </Card>
     )
@@ -264,7 +266,7 @@ export function VariantManager({
             <div className="space-y-1">
               <Label className="text-xs">Price</Label>
               <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <DollarSign className="text-muted-foreground h-4 w-4" />
                 <Input
                   type="number"
                   min={0}
@@ -292,7 +294,7 @@ export function VariantManager({
             <div className="space-y-1">
               <Label className="text-xs">Language</Label>
               <div className="flex items-center gap-2">
-                <Languages className="h-4 w-4 text-muted-foreground" />
+                <Languages className="text-muted-foreground h-4 w-4" />
                 <Input
                   value={globalLanguage}
                   onChange={e => setGlobalLanguage(e.target.value)}
@@ -301,7 +303,12 @@ export function VariantManager({
               </div>
             </div>
             <div className="flex items-end">
-              <Button type="button" variant="secondary" onClick={applyGlobalsToAll} className="w-full">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={applyGlobalsToAll}
+                className="w-full"
+              >
                 Apply to all
               </Button>
             </div>
@@ -313,7 +320,7 @@ export function VariantManager({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Course Variants</h3>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="text-muted-foreground flex items-center gap-2 text-sm">
             <Badge variant="outline">{variants.length} total</Badge>
             <Badge variant="default">{publishedCount} published</Badge>
           </div>
@@ -321,7 +328,7 @@ export function VariantManager({
 
         {variants.length === 0 && (
           <Card className="border-dashed">
-            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+            <CardContent className="text-muted-foreground py-8 text-center text-sm">
               Select categories and countries above to generate variant courses.
             </CardContent>
           </Card>
@@ -336,13 +343,15 @@ export function VariantManager({
                     {variant.category} - {variant.nationality}
                   </CardTitle>
                   {variant.isPublished ? (
-                    <Badge className="bg-emerald-500 text-white hover:bg-emerald-600">Published</Badge>
+                    <Badge className="bg-emerald-500 text-white hover:bg-emerald-600">
+                      Published
+                    </Badge>
                   ) : (
                     <Badge variant="secondary">Draft</Badge>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-muted-foreground text-sm">
                     {variant.isPublished ? 'Published' : 'Unpublished'}
                   </span>
                   <Switch
@@ -359,7 +368,7 @@ export function VariantManager({
                 <div className="space-y-1">
                   <Label className="text-xs">Price</Label>
                   <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <DollarSign className="text-muted-foreground h-4 w-4" />
                     <Input
                       type="number"
                       min={0}
@@ -396,7 +405,7 @@ export function VariantManager({
                 <div className="space-y-1">
                   <Label className="text-xs">Language</Label>
                   <div className="flex items-center gap-2">
-                    <Languages className="h-4 w-4 text-muted-foreground" />
+                    <Languages className="text-muted-foreground h-4 w-4" />
                     <Input
                       value={variant.languageOfInstruction}
                       onChange={e =>
@@ -413,10 +422,10 @@ export function VariantManager({
 
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div className="flex items-center gap-3">
-                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                  <Calendar className="text-muted-foreground h-5 w-5" />
                   <div>
                     <p className="text-sm font-medium">Schedule</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       {variant.schedule.length > 0
                         ? `${variant.schedule.length} slot${variant.schedule.length === 1 ? '' : 's'} configured`
                         : 'No slots configured'}
@@ -447,7 +456,7 @@ export function VariantManager({
 
       {/* Schedule Dialog */}
       <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
-        <DialogContent className="max-h-[95vh] h-[95vh] max-w-[95vw] w-[95vw] overflow-hidden p-0">
+        <DialogContent className="h-[95vh] max-h-[95vh] w-[95vw] max-w-[95vw] overflow-hidden p-0">
           <div className="flex h-full flex-col">
             <DialogHeader className="border-b px-6 py-4">
               <DialogTitle>Edit Schedule</DialogTitle>
@@ -462,7 +471,10 @@ export function VariantManager({
                 <VariantScheduleEditor
                   schedule={dialogVariant.schedule}
                   onScheduleChange={updater =>
-                    updateVariant(scheduleDialogIndex, v => ({ ...v, schedule: updater(v.schedule) }))
+                    updateVariant(scheduleDialogIndex, v => ({
+                      ...v,
+                      schedule: updater(v.schedule),
+                    }))
                   }
                   price={dialogVariant.price}
                 />

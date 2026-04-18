@@ -37,7 +37,9 @@ export const liveSession = pgTable(
     roomUrl: text('roomUrl'),
     recordingUrl: text('recordingUrl'),
     recordingAvailableAt: timestamp('recordingAvailableAt', { withTimezone: true }),
-    variantId: text('variantId').references(() => courseVariant.variantId, { onDelete: 'set null' }),
+    variantId: text('variantId').references(() => courseVariant.variantId, {
+      onDelete: 'set null',
+    }),
     lessonId: text('lessonId').references(() => courseLesson.lessonId, { onDelete: 'set null' }),
     topic: text('topic'),
     objectives: text('objectives').array(),

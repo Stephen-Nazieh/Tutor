@@ -1078,7 +1078,6 @@ export default function TutorCoursePage() {
           </CardContent>
         </Card>
 
-
         {/* Variant Manager */}
         <Card className="border-2 border-gray-400 shadow-sm">
           <CardHeader>

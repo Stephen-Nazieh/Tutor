@@ -45,10 +45,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ variants: rows })
   } catch (error: any) {
     console.error('[GET /api/tutor/courses/[id]/publish] Error:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to load variants' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: error.message || 'Failed to load variants' }, { status: 500 })
   }
 }
 
@@ -82,7 +79,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     : []
 
   if (variants.length === 0) {
-    return NextResponse.json({ error: 'Provide at least one variant configuration' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Provide at least one variant configuration' },
+      { status: 400 }
+    )
   }
 
   try {
@@ -144,9 +144,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         .from(courseVariant)
         .where(eq(courseVariant.templateCourseId, templateCourseId))
 
-      const existingMap = new Map(
-        existingRows.map(r => [`${r.category}|${r.nationality}`, r])
-      )
+      const existingMap = new Map(existingRows.map(r => [`${r.category}|${r.nationality}`, r]))
 
       const requestedKeys = new Set<string>()
 

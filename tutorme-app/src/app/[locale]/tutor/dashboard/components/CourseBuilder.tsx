@@ -521,7 +521,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [showInsightsPanel, setShowInsightsPanel] = useState(true)
 
     // Insights panel state
-    const [insightsTab, setInsightsTab] = useState<'analytics' | 'poll' | 'question' | 'chat'>('analytics')
+    const [insightsTab, setInsightsTab] = useState<'analytics' | 'poll' | 'question' | 'chat'>(
+      'analytics'
+    )
     const [pollPrompt, setPollPrompt] = useState('Did you find this task difficult')
     const [questionPrompt, setQuestionPrompt] = useState('Do you have a question about this task?')
 
@@ -2789,8 +2791,10 @@ FEEDBACK: [your explanation]`
               <div
                 key={lesson.id}
                 className={cn(
-                  'cursor-pointer rounded px-2 py-1.5 text-sm transition-colors hover:bg-muted',
-                  selectedItem?.type === 'lesson' && selectedItem?.id === lesson.id && 'bg-muted font-medium'
+                  'hover:bg-muted cursor-pointer rounded px-2 py-1.5 text-sm transition-colors',
+                  selectedItem?.type === 'lesson' &&
+                    selectedItem?.id === lesson.id &&
+                    'bg-muted font-medium'
                 )}
                 onClick={() => setSelectedItem({ type: 'lesson', id: lesson.id })}
               >
@@ -3392,8 +3396,7 @@ FEEDBACK: [your explanation]`
               </span>
               <span className="hidden text-blue-300 sm:inline">•</span>
               <span>
-                <span className="font-semibold">Category:</span>{' '}
-                {sessionContext.category || '—'}
+                <span className="font-semibold">Category:</span> {sessionContext.category || '—'}
               </span>
               <span className="hidden text-blue-300 sm:inline">•</span>
               <span>
@@ -3505,197 +3508,538 @@ FEEDBACK: [your explanation]`
                       {insightsProps && mainTab === 'live' ? (
                         renderLiveDirectory()
                       ) : (
-                      <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragStart={handleDragStart}
-                        onDragEnd={handleDragEnd}
-                      >
-                        <div className="space-y-1">
-                          {/* Lessons (formerly nodes) - with drag sorting */}
-                          <SortableContext
-                            items={filteredCourseBuilderNodes.map(node => node.id)}
-                            strategy={verticalListSortingStrategy}
-                          >
-                            {filteredCourseBuilderNodes.map((node, nodeIdx) => {
-                              const primaryLesson = node.lessons[0] ?? DEFAULT_LESSON(0)
-                              const taskCount = primaryLesson.tasks?.length || 0
-                              const assessments = (primaryLesson.homework || []).filter(
-                                h => h.category !== 'homework'
-                              )
-                              const totalItems = taskCount + assessments.length
-                              return (
-                                <SortableTreeItem
-                                  key={node.id}
-                                  id={node.id}
-                                  depth={1}
-                                  isLast={nodeIdx === nodes.length - 1}
-                                  inlineDragHandle
-                                >
-                                  <div className="group">
-                                    <div
-                                      className={cn(
-                                        'flex w-full cursor-pointer flex-wrap items-center gap-1.5 rounded px-2 py-1.5 transition-colors',
-                                        'border border-blue-400 bg-blue-50 hover:bg-blue-100'
-                                      )}
-                                      onClick={() => toggleCourseBuilderNode(node.id)}
-                                    >
-                                      {expandedCourseBuilderNodes.has(node.id) ? (
-                                        <ChevronDown className="h-3 w-3 text-blue-600" />
-                                      ) : (
-                                        <ChevronRight className="h-3 w-3 text-blue-600" />
-                                      )}
-                                      <Layers className="h-3 w-3 text-blue-600" />
-                                      <span
-                                        className="group/tooltip relative max-w-[180px] truncate text-sm font-medium"
-                                        title={node.title}
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragStart={handleDragStart}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <div className="space-y-1">
+                            {/* Lessons (formerly nodes) - with drag sorting */}
+                            <SortableContext
+                              items={filteredCourseBuilderNodes.map(node => node.id)}
+                              strategy={verticalListSortingStrategy}
+                            >
+                              {filteredCourseBuilderNodes.map((node, nodeIdx) => {
+                                const primaryLesson = node.lessons[0] ?? DEFAULT_LESSON(0)
+                                const taskCount = primaryLesson.tasks?.length || 0
+                                const assessments = (primaryLesson.homework || []).filter(
+                                  h => h.category !== 'homework'
+                                )
+                                const totalItems = taskCount + assessments.length
+                                return (
+                                  <SortableTreeItem
+                                    key={node.id}
+                                    id={node.id}
+                                    depth={1}
+                                    isLast={nodeIdx === nodes.length - 1}
+                                    inlineDragHandle
+                                  >
+                                    <div className="group">
+                                      <div
+                                        className={cn(
+                                          'flex w-full cursor-pointer flex-wrap items-center gap-1.5 rounded px-2 py-1.5 transition-colors',
+                                          'border border-blue-400 bg-blue-50 hover:bg-blue-100'
+                                        )}
+                                        onClick={() => toggleCourseBuilderNode(node.id)}
                                       >
-                                        {node.title}
-                                        {/* Custom Tooltip */}
-                                        <span className="absolute -top-8 left-0 z-50 hidden whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white group-hover/tooltip:block">
+                                        {expandedCourseBuilderNodes.has(node.id) ? (
+                                          <ChevronDown className="h-3 w-3 text-blue-600" />
+                                        ) : (
+                                          <ChevronRight className="h-3 w-3 text-blue-600" />
+                                        )}
+                                        <Layers className="h-3 w-3 text-blue-600" />
+                                        <span
+                                          className="group/tooltip relative max-w-[180px] truncate text-sm font-medium"
+                                          title={node.title}
+                                        >
                                           {node.title}
-                                          <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
+                                          {/* Custom Tooltip */}
+                                          <span className="absolute -top-8 left-0 z-50 hidden whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white group-hover/tooltip:block">
+                                            {node.title}
+                                            <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
+                                          </span>
                                         </span>
-                                      </span>
-                                      <span className="text-blue-400">:</span>
-                                      <div className="flex-1" />
-                                      <Badge
-                                        variant="secondary"
-                                        className="h-4 shrink-0 text-[10px]"
-                                      >
-                                        {totalItems}
-                                      </Badge>
+                                        <span className="text-blue-400">:</span>
+                                        <div className="flex-1" />
+                                        <Badge
+                                          variant="secondary"
+                                          className="h-4 shrink-0 text-[10px]"
+                                        >
+                                          {totalItems}
+                                        </Badge>
 
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                                        onClick={(e: any) => {
-                                          e.stopPropagation()
-                                          deleteCourseBuilderNode(node.id)
-                                        }}
-                                      >
-                                        <Trash2 className="h-3 w-3 text-red-500" />
-                                      </Button>
-                                    </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                                          onClick={(e: any) => {
+                                            e.stopPropagation()
+                                            deleteCourseBuilderNode(node.id)
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3 text-red-500" />
+                                        </Button>
+                                      </div>
 
-                                    {expandedCourseBuilderNodes.has(node.id) && (
-                                      <div className="mt-1 space-y-1">
-                                        {/* Tasks - droppable so homework can be moved here */}
-                                        <TreeItem depth={0} isLast={false}>
-                                          <DroppableTaskZone
-                                            nodeId={node.id}
-                                            lessonId={primaryLesson.id}
-                                            className="flex w-full items-center gap-1.5 rounded-lg border-b-2 border-blue-600 bg-gradient-to-r from-blue-400 to-blue-500 px-3 py-0.5 shadow-sm transition-all"
-                                          >
-                                            <Button
-                                              variant="ghost"
-                                              size="icon"
-                                              className="h-5 w-5 hover:bg-white/20"
-                                              onClick={() => toggleSection(node.id, 'task')}
-                                              aria-label={
-                                                isSectionCollapsed(node.id, 'task')
-                                                  ? 'Expand tasks'
-                                                  : 'Collapse tasks'
-                                              }
+                                      {expandedCourseBuilderNodes.has(node.id) && (
+                                        <div className="mt-1 space-y-1">
+                                          {/* Tasks - droppable so homework can be moved here */}
+                                          <TreeItem depth={0} isLast={false}>
+                                            <DroppableTaskZone
+                                              nodeId={node.id}
+                                              lessonId={primaryLesson.id}
+                                              className="flex w-full items-center gap-1.5 rounded-lg border-b-2 border-blue-600 bg-gradient-to-r from-blue-400 to-blue-500 px-3 py-0.5 shadow-sm transition-all"
                                             >
-                                              {isSectionCollapsed(node.id, 'task') ? (
-                                                <ChevronRight className="h-4 w-4 text-white" />
-                                              ) : (
-                                                <ChevronDown className="h-4 w-4 text-white" />
-                                              )}
-                                            </Button>
-                                            <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
-                                              Tasks
-                                            </span>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="ml-auto h-5 w-5 gap-0 rounded-full border border-white/50 bg-transparent p-0 text-white hover:bg-white/20"
-                                              onClick={() => addTask(node.id, primaryLesson.id)}
+                                              <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-5 w-5 hover:bg-white/20"
+                                                onClick={() => toggleSection(node.id, 'task')}
+                                                aria-label={
+                                                  isSectionCollapsed(node.id, 'task')
+                                                    ? 'Expand tasks'
+                                                    : 'Collapse tasks'
+                                                }
+                                              >
+                                                {isSectionCollapsed(node.id, 'task') ? (
+                                                  <ChevronRight className="h-4 w-4 text-white" />
+                                                ) : (
+                                                  <ChevronDown className="h-4 w-4 text-white" />
+                                                )}
+                                              </Button>
+                                              <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
+                                                Tasks
+                                              </span>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="ml-auto h-5 w-5 gap-0 rounded-full border border-white/50 bg-transparent p-0 text-white hover:bg-white/20"
+                                                onClick={() => addTask(node.id, primaryLesson.id)}
+                                              >
+                                                <Plus className="h-3 w-3" />
+                                              </Button>
+                                            </DroppableTaskZone>
+                                          </TreeItem>
+                                          {!isSectionCollapsed(node.id, 'task') && (
+                                            <>
+                                              <SortableContext
+                                                items={primaryLesson.tasks?.map(t => t.id) || []}
+                                                strategy={verticalListSortingStrategy}
+                                              >
+                                                {(primaryLesson.tasks || []).map((task, idx) => (
+                                                  <div key={task.id} className="contents">
+                                                    <SortableTreeItem
+                                                      id={task.id}
+                                                      depth={2}
+                                                      isLast={
+                                                        idx ===
+                                                        (primaryLesson.tasks?.length || 0) - 1
+                                                      }
+                                                    >
+                                                      <div
+                                                        className={cn(
+                                                          'group/item flex cursor-pointer items-center gap-1.5 rounded border px-2 py-1 transition-colors',
+                                                          selectedItem?.type === 'task' &&
+                                                            selectedItem?.id === task.id
+                                                            ? 'border-orange-400 bg-orange-200 ring-1 ring-orange-400'
+                                                            : 'border-orange-400 bg-orange-50 hover:bg-orange-100'
+                                                        )}
+                                                        onClick={e => {
+                                                          if (
+                                                            (e.target as HTMLElement).closest(
+                                                              'input'
+                                                            )
+                                                          )
+                                                            return
+                                                          // Auto-save current assessment if switching from one
+                                                          if (loadedAssessmentId) {
+                                                            setCourseBuilderNodes(prev =>
+                                                              prev.map(node => ({
+                                                                ...node,
+                                                                lessons: node.lessons.map(
+                                                                  lesson => ({
+                                                                    ...lesson,
+                                                                    homework: lesson.homework.map(
+                                                                      hw =>
+                                                                        hw.id === loadedAssessmentId
+                                                                          ? {
+                                                                              ...hw,
+                                                                              title:
+                                                                                assessmentBuilder.title,
+                                                                              description:
+                                                                                assessmentBuilder.taskContent,
+                                                                              instructions:
+                                                                                assessmentBuilder.taskPci,
+                                                                              dmiItems:
+                                                                                assessmentDmiItems,
+                                                                              sourceDocument:
+                                                                                hw.sourceDocument,
+                                                                            }
+                                                                          : hw
+                                                                    ),
+                                                                  })
+                                                                ),
+                                                              }))
+                                                            )
+                                                          }
+                                                          // Auto-save current task if switching from another task
+                                                          if (
+                                                            loadedTaskId &&
+                                                            loadedTaskId !== task.id
+                                                          ) {
+                                                            setCourseBuilderNodes(prev =>
+                                                              prev.map(node => ({
+                                                                ...node,
+                                                                lessons: node.lessons.map(
+                                                                  lesson => ({
+                                                                    ...lesson,
+                                                                    tasks: lesson.tasks.map(t =>
+                                                                      t.id === loadedTaskId
+                                                                        ? {
+                                                                            ...t,
+                                                                            title:
+                                                                              taskBuilder.title,
+                                                                            description:
+                                                                              taskBuilder.taskContent,
+                                                                            instructions:
+                                                                              taskBuilder.taskPci,
+                                                                            extensions:
+                                                                              taskBuilder.extensions,
+                                                                            dmiItems: taskDmiItems,
+                                                                            sourceDocument:
+                                                                              t.sourceDocument,
+                                                                          }
+                                                                        : t
+                                                                    ),
+                                                                  })
+                                                                ),
+                                                              }))
+                                                            )
+                                                          }
+                                                          setSelectedItem({
+                                                            type: 'task',
+                                                            id: task.id,
+                                                          })
+                                                          loadTaskIntoBuilder(task)
+                                                          setMainBuilderTab('task')
+                                                        }}
+                                                      >
+                                                        <ListTodo className="h-3 w-3 shrink-0 text-orange-500" />
+                                                        <span className="shrink-0 text-[10px] font-semibold text-orange-700">
+                                                          {idx + 1}. {task.title}:
+                                                        </span>
+                                                        <div className="flex-1" />
+                                                        <DropdownMenu>
+                                                          <DropdownMenuTrigger asChild>
+                                                            <Button
+                                                              variant="ghost"
+                                                              size="icon"
+                                                              className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                                              onClick={e => e.stopPropagation()}
+                                                            >
+                                                              <MoreVertical className="h-3 w-3 text-slate-500" />
+                                                            </Button>
+                                                          </DropdownMenuTrigger>
+                                                          <DropdownMenuContent align="end">
+                                                            {!lessonBankMode && (
+                                                              <>
+                                                                <DropdownMenuItem
+                                                                  onClick={e => {
+                                                                    e.stopPropagation()
+                                                                    moveToHomework(
+                                                                      node.id,
+                                                                      primaryLesson.id,
+                                                                      'task',
+                                                                      task
+                                                                    )
+                                                                  }}
+                                                                >
+                                                                  Move to homework
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                  onClick={e => {
+                                                                    e.stopPropagation()
+                                                                    setEditingData(task)
+                                                                    setActiveModal({
+                                                                      type: 'task',
+                                                                      isOpen: true,
+                                                                      nodeId: node.id,
+                                                                      lessonId: primaryLesson.id,
+                                                                      itemId: task.id,
+                                                                    })
+                                                                  }}
+                                                                >
+                                                                  Edit
+                                                                </DropdownMenuItem>
+                                                              </>
+                                                            )}
+                                                            <DropdownMenuItem
+                                                              className="text-red-500"
+                                                              onClick={e => {
+                                                                e.stopPropagation()
+                                                                if (
+                                                                  !confirm(
+                                                                    `Delete "${task.title}"?`
+                                                                  )
+                                                                )
+                                                                  return
+                                                                deleteTask(
+                                                                  node.id,
+                                                                  primaryLesson.id,
+                                                                  task.id
+                                                                )
+                                                              }}
+                                                            >
+                                                              Delete
+                                                            </DropdownMenuItem>
+                                                          </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                      </div>
+                                                    </SortableTreeItem>
+                                                    {loadedTaskId === task.id &&
+                                                      taskBuilder.extensions.length > 0 && (
+                                                        <div className="ml-12 mt-1 space-y-1 border-l border-orange-400 pl-2">
+                                                          <div
+                                                            className="flex cursor-pointer items-center gap-2 rounded border bg-white px-2 py-1 text-[10px]"
+                                                            onClick={() =>
+                                                              toggleExtensions(task.id)
+                                                            }
+                                                          >
+                                                            {isExtensionsCollapsed(task.id) ? (
+                                                              <ChevronRight className="h-3 w-3 text-orange-600" />
+                                                            ) : (
+                                                              <ChevronDown className="h-3 w-3 text-orange-600" />
+                                                            )}
+                                                            <FolderOpen className="h-3 w-3 text-orange-600" />
+                                                            <span className="font-semibold text-orange-700">
+                                                              Extensions
+                                                            </span>
+                                                            <span className="text-muted-foreground">
+                                                              ({taskBuilder.extensions.length})
+                                                            </span>
+                                                          </div>
+                                                          {!isExtensionsCollapsed(task.id) && (
+                                                            <div className="ml-3 space-y-1">
+                                                              {taskBuilder.extensions.map(
+                                                                (ext, extIdx) => (
+                                                                  <div
+                                                                    key={ext.id}
+                                                                    className={cn(
+                                                                      'group/extension flex cursor-pointer items-center gap-2 rounded border px-2 py-1 text-[10px]',
+                                                                      taskBuilder.activeExtensionId ===
+                                                                        ext.id
+                                                                        ? 'border-orange-300 bg-orange-100'
+                                                                        : 'border-orange-100 bg-white hover:bg-orange-50'
+                                                                    )}
+                                                                    onClick={() => {
+                                                                      setSelectedItem({
+                                                                        type: 'task',
+                                                                        id: task.id,
+                                                                      })
+                                                                      loadTaskIntoBuilder(
+                                                                        task,
+                                                                        ext.id
+                                                                      )
+                                                                      setMainBuilderTab('task')
+                                                                    }}
+                                                                  >
+                                                                    <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
+                                                                    <span className="font-semibold text-orange-700">
+                                                                      {idx + 1}.{extIdx + 1}
+                                                                    </span>
+                                                                    <span className="text-muted-foreground flex-1 truncate">
+                                                                      {ext.name}
+                                                                    </span>
+                                                                    {!lessonBankMode && (
+                                                                      <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="h-5 gap-1 px-1 text-[10px] opacity-0 group-hover/extension:opacity-100"
+                                                                        onClick={(e: any) => {
+                                                                          e.stopPropagation()
+                                                                          setQuestionBankTarget(
+                                                                            `extension-${ext.id}`
+                                                                          )
+                                                                          setQuestionBankOpen(true)
+                                                                        }}
+                                                                      >
+                                                                        Import
+                                                                      </Button>
+                                                                    )}
+                                                                    <Button
+                                                                      variant="ghost"
+                                                                      size="icon"
+                                                                      className="h-5 w-5 opacity-0 group-hover/extension:opacity-100"
+                                                                      onClick={(e: any) => {
+                                                                        e.stopPropagation()
+                                                                        if (
+                                                                          !confirm(
+                                                                            `Delete "${ext.name}"?`
+                                                                          )
+                                                                        )
+                                                                          return
+                                                                        setTaskExtensionPciMessages(
+                                                                          prev => {
+                                                                            const next = { ...prev }
+                                                                            delete next[ext.id]
+                                                                            return next
+                                                                          }
+                                                                        )
+                                                                        setTaskExtensionPciInputs(
+                                                                          prev => {
+                                                                            const next = { ...prev }
+                                                                            delete next[ext.id]
+                                                                            return next
+                                                                          }
+                                                                        )
+                                                                        setTaskBuilder(prev => ({
+                                                                          ...prev,
+                                                                          extensions:
+                                                                            prev.extensions.filter(
+                                                                              e => e.id !== ext.id
+                                                                            ),
+                                                                          activeExtensionId:
+                                                                            prev.activeExtensionId ===
+                                                                            ext.id
+                                                                              ? null
+                                                                              : prev.activeExtensionId,
+                                                                        }))
+                                                                        if (loadedTaskId) {
+                                                                          setCourseBuilderNodes(
+                                                                            prev =>
+                                                                              prev.map(mod => ({
+                                                                                ...mod,
+                                                                                lessons:
+                                                                                  mod.lessons.map(
+                                                                                    lesson => ({
+                                                                                      ...lesson,
+                                                                                      tasks:
+                                                                                        lesson.tasks.map(
+                                                                                          t =>
+                                                                                            t.id ===
+                                                                                            loadedTaskId
+                                                                                              ? {
+                                                                                                  ...t,
+                                                                                                  extensions:
+                                                                                                    (
+                                                                                                      t.extensions ||
+                                                                                                      []
+                                                                                                    ).filter(
+                                                                                                      e =>
+                                                                                                        e.id !==
+                                                                                                        ext.id
+                                                                                                    ),
+                                                                                                }
+                                                                                              : t
+                                                                                        ),
+                                                                                    })
+                                                                                  ),
+                                                                              }))
+                                                                          )
+                                                                        }
+                                                                      }}
+                                                                    >
+                                                                      <Trash2 className="h-3 w-3 text-red-500" />
+                                                                    </Button>
+                                                                  </div>
+                                                                )
+                                                              )}
+                                                            </div>
+                                                          )}
+                                                        </div>
+                                                      )}
+                                                  </div>
+                                                ))}
+                                              </SortableContext>
+                                            </>
+                                          )}
+
+                                          {/* Assessments - droppable so homework can be moved here */}
+                                          <TreeItem depth={0} isLast={false}>
+                                            <DroppableAssessmentZone
+                                              nodeId={node.id}
+                                              lessonId={primaryLesson.id}
+                                              className="flex w-full items-center gap-1.5 rounded-lg border-b-2 border-indigo-600 bg-gradient-to-r from-indigo-400 to-indigo-500 px-3 py-0.5 shadow-sm transition-all"
                                             >
-                                              <Plus className="h-3 w-3" />
-                                            </Button>
-                                          </DroppableTaskZone>
-                                        </TreeItem>
-                                        {!isSectionCollapsed(node.id, 'task') && (
-                                          <>
-                                            <SortableContext
-                                              items={primaryLesson.tasks?.map(t => t.id) || []}
-                                              strategy={verticalListSortingStrategy}
-                                            >
-                                              {(primaryLesson.tasks || []).map((task, idx) => (
-                                                <div key={task.id} className="contents">
+                                              <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-5 w-5 hover:bg-white/20"
+                                                onClick={() => toggleSection(node.id, 'assessment')}
+                                                aria-label={
+                                                  isSectionCollapsed(node.id, 'assessment')
+                                                    ? 'Expand assessments'
+                                                    : 'Collapse assessments'
+                                                }
+                                              >
+                                                {isSectionCollapsed(node.id, 'assessment') ? (
+                                                  <ChevronRight className="h-4 w-4 text-white" />
+                                                ) : (
+                                                  <ChevronDown className="h-4 w-4 text-white" />
+                                                )}
+                                              </Button>
+                                              <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
+                                                Assessments
+                                              </span>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="ml-auto h-5 w-5 gap-0 rounded-full border border-white/50 bg-transparent p-0 text-white hover:bg-white/20"
+                                                onClick={() =>
+                                                  addAssessment(node.id, primaryLesson.id)
+                                                }
+                                              >
+                                                <Plus className="h-3 w-3" />
+                                              </Button>
+                                            </DroppableAssessmentZone>
+                                          </TreeItem>
+                                          {!isSectionCollapsed(node.id, 'assessment') && (
+                                            <>
+                                              <SortableContext
+                                                items={assessments.map(h => h.id)}
+                                                strategy={verticalListSortingStrategy}
+                                              >
+                                                {assessments.map((hw, idx) => (
                                                   <SortableTreeItem
-                                                    id={task.id}
+                                                    key={hw.id}
+                                                    id={hw.id}
                                                     depth={2}
-                                                    isLast={
-                                                      idx === (primaryLesson.tasks?.length || 0) - 1
-                                                    }
+                                                    isLast={idx === assessments.length - 1}
                                                   >
                                                     <div
                                                       className={cn(
                                                         'group/item flex cursor-pointer items-center gap-1.5 rounded border px-2 py-1 transition-colors',
-                                                        selectedItem?.type === 'task' &&
-                                                          selectedItem?.id === task.id
-                                                          ? 'border-orange-400 bg-orange-200 ring-1 ring-orange-400'
-                                                          : 'border-orange-400 bg-orange-50 hover:bg-orange-100'
+                                                        selectedItem?.type === 'homework' &&
+                                                          selectedItem?.id === hw.id
+                                                          ? 'border-purple-400 bg-purple-200 ring-1 ring-purple-400'
+                                                          : 'border-purple-400 bg-purple-50 hover:bg-purple-100'
                                                       )}
                                                       onClick={e => {
                                                         if (
                                                           (e.target as HTMLElement).closest('input')
                                                         )
                                                           return
-                                                        // Auto-save current assessment if switching from one
-                                                        if (loadedAssessmentId) {
+                                                        // Auto-save current task if switching from one
+                                                        if (loadedTaskId) {
                                                           setCourseBuilderNodes(prev =>
-                                                            prev.map(node => ({
-                                                              ...node,
-                                                              lessons: node.lessons.map(lesson => ({
-                                                                ...lesson,
-                                                                homework: lesson.homework.map(hw =>
-                                                                  hw.id === loadedAssessmentId
-                                                                    ? {
-                                                                        ...hw,
-                                                                        title:
-                                                                          assessmentBuilder.title,
-                                                                        description:
-                                                                          assessmentBuilder.taskContent,
-                                                                        instructions:
-                                                                          assessmentBuilder.taskPci,
-                                                                        dmiItems:
-                                                                          assessmentDmiItems,
-                                                                        sourceDocument:
-                                                                          hw.sourceDocument,
-                                                                      }
-                                                                    : hw
-                                                                ),
-                                                              })),
-                                                            }))
-                                                          )
-                                                        }
-                                                        // Auto-save current task if switching from another task
-                                                        if (
-                                                          loadedTaskId &&
-                                                          loadedTaskId !== task.id
-                                                        ) {
-                                                          setCourseBuilderNodes(prev =>
-                                                            prev.map(node => ({
-                                                              ...node,
-                                                              lessons: node.lessons.map(lesson => ({
+                                                            prev.map(mod => ({
+                                                              ...mod,
+                                                              lessons: mod.lessons.map(lesson => ({
                                                                 ...lesson,
                                                                 tasks: lesson.tasks.map(t =>
                                                                   t.id === loadedTaskId
                                                                     ? {
                                                                         ...t,
                                                                         title: taskBuilder.title,
+                                                                        shortDescription:
+                                                                          taskBuilder.details,
                                                                         description:
                                                                           taskBuilder.taskContent,
                                                                         instructions:
                                                                           taskBuilder.taskPci,
                                                                         extensions:
                                                                           taskBuilder.extensions,
-                                                                        dmiItems: taskDmiItems,
                                                                         sourceDocument:
                                                                           t.sourceDocument,
                                                                       }
@@ -3705,19 +4049,49 @@ FEEDBACK: [your explanation]`
                                                             }))
                                                           )
                                                         }
+                                                        // Auto-save current assessment if switching from another assessment
+                                                        if (
+                                                          loadedAssessmentId &&
+                                                          loadedAssessmentId !== hw.id
+                                                        ) {
+                                                          setCourseBuilderNodes(prev =>
+                                                            prev.map(mod => ({
+                                                              ...mod,
+                                                              lessons: mod.lessons.map(lesson => ({
+                                                                ...lesson,
+                                                                homework: lesson.homework.map(h =>
+                                                                  h.id === loadedAssessmentId
+                                                                    ? {
+                                                                        ...h,
+                                                                        title:
+                                                                          assessmentBuilder.title,
+                                                                        description:
+                                                                          assessmentBuilder.taskContent,
+                                                                        instructions:
+                                                                          assessmentBuilder.taskPci,
+                                                                        sourceDocument:
+                                                                          h.sourceDocument,
+                                                                      }
+                                                                    : h
+                                                                ),
+                                                              })),
+                                                            }))
+                                                          )
+                                                        }
                                                         setSelectedItem({
-                                                          type: 'task',
-                                                          id: task.id,
+                                                          type: 'homework',
+                                                          id: hw.id,
                                                         })
-                                                        loadTaskIntoBuilder(task)
-                                                        setMainBuilderTab('task')
+                                                        loadAssessmentIntoBuilder(hw)
+                                                        setMainBuilderTab('assessment')
                                                       }}
                                                     >
-                                                      <ListTodo className="h-3 w-3 shrink-0 text-orange-500" />
-                                                      <span className="shrink-0 text-[10px] font-semibold text-orange-700">
-                                                        {idx + 1}. {task.title}:
+                                                      <FileQuestion className="h-3 w-3 shrink-0 text-purple-500" />
+                                                      <span className="shrink-0 text-[10px] font-semibold text-purple-700">
+                                                        {idx + 1}. {hw.title}:
                                                       </span>
                                                       <div className="flex-1" />
+
                                                       <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
                                                           <Button
@@ -3738,8 +4112,8 @@ FEEDBACK: [your explanation]`
                                                                   moveToHomework(
                                                                     node.id,
                                                                     primaryLesson.id,
-                                                                    'task',
-                                                                    task
+                                                                    'assessment',
+                                                                    hw
                                                                   )
                                                                 }}
                                                               >
@@ -3748,13 +4122,13 @@ FEEDBACK: [your explanation]`
                                                               <DropdownMenuItem
                                                                 onClick={e => {
                                                                   e.stopPropagation()
-                                                                  setEditingData(task)
+                                                                  setEditingData(hw)
                                                                   setActiveModal({
-                                                                    type: 'task',
+                                                                    type: 'homework',
                                                                     isOpen: true,
                                                                     nodeId: node.id,
                                                                     lessonId: primaryLesson.id,
-                                                                    itemId: task.id,
+                                                                    itemId: hw.id,
                                                                   })
                                                                 }}
                                                               >
@@ -3766,14 +4140,12 @@ FEEDBACK: [your explanation]`
                                                             className="text-red-500"
                                                             onClick={e => {
                                                               e.stopPropagation()
-                                                              if (
-                                                                !confirm(`Delete "${task.title}"?`)
-                                                              )
+                                                              if (!confirm(`Delete "${hw.title}"?`))
                                                                 return
-                                                              deleteTask(
+                                                              deleteAssessment(
                                                                 node.id,
                                                                 primaryLesson.id,
-                                                                task.id
+                                                                hw.id
                                                               )
                                                             }}
                                                           >
@@ -3783,535 +4155,182 @@ FEEDBACK: [your explanation]`
                                                       </DropdownMenu>
                                                     </div>
                                                   </SortableTreeItem>
-                                                  {loadedTaskId === task.id &&
-                                                    taskBuilder.extensions.length > 0 && (
-                                                      <div className="ml-12 mt-1 space-y-1 border-l border-orange-400 pl-2">
-                                                        <div
-                                                          className="flex cursor-pointer items-center gap-2 rounded border bg-white px-2 py-1 text-[10px]"
-                                                          onClick={() => toggleExtensions(task.id)}
-                                                        >
-                                                          {isExtensionsCollapsed(task.id) ? (
-                                                            <ChevronRight className="h-3 w-3 text-orange-600" />
-                                                          ) : (
-                                                            <ChevronDown className="h-3 w-3 text-orange-600" />
-                                                          )}
-                                                          <FolderOpen className="h-3 w-3 text-orange-600" />
-                                                          <span className="font-semibold text-orange-700">
-                                                            Extensions
-                                                          </span>
-                                                          <span className="text-muted-foreground">
-                                                            ({taskBuilder.extensions.length})
-                                                          </span>
-                                                        </div>
-                                                        {!isExtensionsCollapsed(task.id) && (
-                                                          <div className="ml-3 space-y-1">
-                                                            {taskBuilder.extensions.map(
-                                                              (ext, extIdx) => (
-                                                                <div
-                                                                  key={ext.id}
-                                                                  className={cn(
-                                                                    'group/extension flex cursor-pointer items-center gap-2 rounded border px-2 py-1 text-[10px]',
-                                                                    taskBuilder.activeExtensionId ===
-                                                                      ext.id
-                                                                      ? 'border-orange-300 bg-orange-100'
-                                                                      : 'border-orange-100 bg-white hover:bg-orange-50'
-                                                                  )}
-                                                                  onClick={() => {
-                                                                    setSelectedItem({
-                                                                      type: 'task',
-                                                                      id: task.id,
-                                                                    })
-                                                                    loadTaskIntoBuilder(
-                                                                      task,
-                                                                      ext.id
-                                                                    )
-                                                                    setMainBuilderTab('task')
-                                                                  }}
-                                                                >
-                                                                  <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
-                                                                  <span className="font-semibold text-orange-700">
-                                                                    {idx + 1}.{extIdx + 1}
-                                                                  </span>
-                                                                  <span className="text-muted-foreground flex-1 truncate">
-                                                                    {ext.name}
-                                                                  </span>
-                                                                  {!lessonBankMode && (
-                                                                    <Button
-                                                                      variant="ghost"
-                                                                      size="sm"
-                                                                      className="h-5 gap-1 px-1 text-[10px] opacity-0 group-hover/extension:opacity-100"
-                                                                      onClick={(e: any) => {
-                                                                        e.stopPropagation()
-                                                                        setQuestionBankTarget(
-                                                                          `extension-${ext.id}`
-                                                                        )
-                                                                        setQuestionBankOpen(true)
-                                                                      }}
-                                                                    >
-                                                                      Import
-                                                                    </Button>
-                                                                  )}
-                                                                  <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="h-5 w-5 opacity-0 group-hover/extension:opacity-100"
-                                                                    onClick={(e: any) => {
-                                                                      e.stopPropagation()
-                                                                      if (
-                                                                        !confirm(
-                                                                          `Delete "${ext.name}"?`
-                                                                        )
-                                                                      )
-                                                                        return
-                                                                      setTaskExtensionPciMessages(
-                                                                        prev => {
-                                                                          const next = { ...prev }
-                                                                          delete next[ext.id]
-                                                                          return next
-                                                                        }
-                                                                      )
-                                                                      setTaskExtensionPciInputs(
-                                                                        prev => {
-                                                                          const next = { ...prev }
-                                                                          delete next[ext.id]
-                                                                          return next
-                                                                        }
-                                                                      )
-                                                                      setTaskBuilder(prev => ({
-                                                                        ...prev,
-                                                                        extensions:
-                                                                          prev.extensions.filter(
-                                                                            e => e.id !== ext.id
-                                                                          ),
-                                                                        activeExtensionId:
-                                                                          prev.activeExtensionId ===
-                                                                          ext.id
-                                                                            ? null
-                                                                            : prev.activeExtensionId,
-                                                                      }))
-                                                                      if (loadedTaskId) {
-                                                                        setCourseBuilderNodes(
-                                                                          prev =>
-                                                                            prev.map(mod => ({
-                                                                              ...mod,
-                                                                              lessons:
-                                                                                mod.lessons.map(
-                                                                                  lesson => ({
-                                                                                    ...lesson,
-                                                                                    tasks:
-                                                                                      lesson.tasks.map(
-                                                                                        t =>
-                                                                                          t.id ===
-                                                                                          loadedTaskId
-                                                                                            ? {
-                                                                                                ...t,
-                                                                                                extensions:
-                                                                                                  (
-                                                                                                    t.extensions ||
-                                                                                                    []
-                                                                                                  ).filter(
-                                                                                                    e =>
-                                                                                                      e.id !==
-                                                                                                      ext.id
-                                                                                                  ),
-                                                                                              }
-                                                                                            : t
-                                                                                      ),
-                                                                                  })
-                                                                                ),
-                                                                            }))
-                                                                        )
-                                                                      }
-                                                                    }}
-                                                                  >
-                                                                    <Trash2 className="h-3 w-3 text-red-500" />
-                                                                  </Button>
-                                                                </div>
-                                                              )
-                                                            )}
-                                                          </div>
-                                                        )}
-                                                      </div>
-                                                    )}
-                                                </div>
-                                              ))}
-                                            </SortableContext>
-                                          </>
-                                        )}
+                                                ))}
+                                              </SortableContext>
+                                            </>
+                                          )}
 
-                                        {/* Assessments - droppable so homework can be moved here */}
-                                        <TreeItem depth={0} isLast={false}>
-                                          <DroppableAssessmentZone
-                                            nodeId={node.id}
-                                            lessonId={primaryLesson.id}
-                                            className="flex w-full items-center gap-1.5 rounded-lg border-b-2 border-indigo-600 bg-gradient-to-r from-indigo-400 to-indigo-500 px-3 py-0.5 shadow-sm transition-all"
-                                          >
-                                            <Button
-                                              variant="ghost"
-                                              size="icon"
-                                              className="h-5 w-5 hover:bg-white/20"
-                                              onClick={() => toggleSection(node.id, 'assessment')}
-                                              aria-label={
-                                                isSectionCollapsed(node.id, 'assessment')
-                                                  ? 'Expand assessments'
-                                                  : 'Collapse assessments'
-                                              }
-                                            >
-                                              {isSectionCollapsed(node.id, 'assessment') ? (
-                                                <ChevronRight className="h-4 w-4 text-white" />
-                                              ) : (
-                                                <ChevronDown className="h-4 w-4 text-white" />
-                                              )}
-                                            </Button>
-                                            <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
-                                              Assessments
-                                            </span>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="ml-auto h-5 w-5 gap-0 rounded-full border border-white/50 bg-transparent p-0 text-white hover:bg-white/20"
-                                              onClick={() =>
-                                                addAssessment(node.id, primaryLesson.id)
-                                              }
-                                            >
-                                              <Plus className="h-3 w-3" />
-                                            </Button>
-                                          </DroppableAssessmentZone>
-                                        </TreeItem>
-                                        {!isSectionCollapsed(node.id, 'assessment') && (
-                                          <>
-                                            <SortableContext
-                                              items={assessments.map(h => h.id)}
-                                              strategy={verticalListSortingStrategy}
-                                            >
-                                              {assessments.map((hw, idx) => (
-                                                <SortableTreeItem
-                                                  key={hw.id}
-                                                  id={hw.id}
-                                                  depth={2}
-                                                  isLast={idx === assessments.length - 1}
-                                                >
-                                                  <div
-                                                    className={cn(
-                                                      'group/item flex cursor-pointer items-center gap-1.5 rounded border px-2 py-1 transition-colors',
-                                                      selectedItem?.type === 'homework' &&
-                                                        selectedItem?.id === hw.id
-                                                        ? 'border-purple-400 bg-purple-200 ring-1 ring-purple-400'
-                                                        : 'border-purple-400 bg-purple-50 hover:bg-purple-100'
-                                                    )}
-                                                    onClick={e => {
-                                                      if (
-                                                        (e.target as HTMLElement).closest('input')
-                                                      )
-                                                        return
-                                                      // Auto-save current task if switching from one
-                                                      if (loadedTaskId) {
-                                                        setCourseBuilderNodes(prev =>
-                                                          prev.map(mod => ({
-                                                            ...mod,
-                                                            lessons: mod.lessons.map(lesson => ({
-                                                              ...lesson,
-                                                              tasks: lesson.tasks.map(t =>
-                                                                t.id === loadedTaskId
-                                                                  ? {
-                                                                      ...t,
-                                                                      title: taskBuilder.title,
-                                                                      shortDescription:
-                                                                        taskBuilder.details,
-                                                                      description:
-                                                                        taskBuilder.taskContent,
-                                                                      instructions:
-                                                                        taskBuilder.taskPci,
-                                                                      extensions:
-                                                                        taskBuilder.extensions,
-                                                                      sourceDocument:
-                                                                        t.sourceDocument,
-                                                                    }
-                                                                  : t
-                                                              ),
-                                                            })),
-                                                          }))
-                                                        )
-                                                      }
-                                                      // Auto-save current assessment if switching from another assessment
-                                                      if (
-                                                        loadedAssessmentId &&
-                                                        loadedAssessmentId !== hw.id
-                                                      ) {
-                                                        setCourseBuilderNodes(prev =>
-                                                          prev.map(mod => ({
-                                                            ...mod,
-                                                            lessons: mod.lessons.map(lesson => ({
-                                                              ...lesson,
-                                                              homework: lesson.homework.map(h =>
-                                                                h.id === loadedAssessmentId
-                                                                  ? {
-                                                                      ...h,
-                                                                      title:
-                                                                        assessmentBuilder.title,
-                                                                      description:
-                                                                        assessmentBuilder.taskContent,
-                                                                      instructions:
-                                                                        assessmentBuilder.taskPci,
-                                                                      sourceDocument:
-                                                                        h.sourceDocument,
-                                                                    }
-                                                                  : h
-                                                              ),
-                                                            })),
-                                                          }))
-                                                        )
-                                                      }
-                                                      setSelectedItem({
-                                                        type: 'homework',
-                                                        id: hw.id,
-                                                      })
-                                                      loadAssessmentIntoBuilder(hw)
-                                                      setMainBuilderTab('assessment')
-                                                    }}
-                                                  >
-                                                    <FileQuestion className="h-3 w-3 shrink-0 text-purple-500" />
-                                                    <span className="shrink-0 text-[10px] font-semibold text-purple-700">
-                                                      {idx + 1}. {hw.title}:
-                                                    </span>
-                                                    <div className="flex-1" />
-
-                                                    <DropdownMenu>
-                                                      <DropdownMenuTrigger asChild>
-                                                        <Button
-                                                          variant="ghost"
-                                                          size="icon"
-                                                          className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                                          onClick={e => e.stopPropagation()}
-                                                        >
-                                                          <MoreVertical className="h-3 w-3 text-slate-500" />
-                                                        </Button>
-                                                      </DropdownMenuTrigger>
-                                                      <DropdownMenuContent align="end">
-                                                        {!lessonBankMode && (
-                                                          <>
-                                                            <DropdownMenuItem
-                                                              onClick={e => {
-                                                                e.stopPropagation()
-                                                                moveToHomework(
-                                                                  node.id,
-                                                                  primaryLesson.id,
-                                                                  'assessment',
-                                                                  hw
-                                                                )
-                                                              }}
-                                                            >
-                                                              Move to homework
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                              onClick={e => {
-                                                                e.stopPropagation()
-                                                                setEditingData(hw)
-                                                                setActiveModal({
-                                                                  type: 'homework',
-                                                                  isOpen: true,
-                                                                  nodeId: node.id,
-                                                                  lessonId: primaryLesson.id,
-                                                                  itemId: hw.id,
-                                                                })
-                                                              }}
-                                                            >
-                                                              Edit
-                                                            </DropdownMenuItem>
-                                                          </>
-                                                        )}
-                                                        <DropdownMenuItem
-                                                          className="text-red-500"
-                                                          onClick={e => {
-                                                            e.stopPropagation()
-                                                            if (!confirm(`Delete "${hw.title}"?`))
-                                                              return
-                                                            deleteAssessment(
-                                                              node.id,
-                                                              primaryLesson.id,
-                                                              hw.id
-                                                            )
-                                                          }}
-                                                        >
-                                                          Delete
-                                                        </DropdownMenuItem>
-                                                      </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                  </div>
-                                                </SortableTreeItem>
-                                              ))}
-                                            </SortableContext>
-                                          </>
-                                        )}
-
-                                        {/* Homework (per-lesson) - drop zone; header + description in one box; sortable items with drag handle */}
-                                        {!lessonBankMode &&
-                                          (() => {
-                                            const hwItems = (primaryLesson.homework || []).filter(
-                                              h => h.category === 'homework'
-                                            )
-                                            return (
-                                              <>
-                                                <TreeItem depth={0} isLast={false}>
-                                                  <DroppableHomeworkZone
-                                                    nodeId={node.id}
-                                                    lessonId={primaryLesson.id}
-                                                    className="flex items-center gap-1.5 rounded-lg border-b-2 border-emerald-600 bg-gradient-to-r from-emerald-400 to-emerald-500 px-3 py-0.5 shadow-sm transition-all"
-                                                  >
-                                                    <div className="flex items-center gap-1.5">
-                                                      <FolderOpen className="h-4 w-4 text-white" />
-                                                      <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
-                                                        Homework {hwItems.length}:
-                                                      </span>
-                                                    </div>
-                                                  </DroppableHomeworkZone>
-                                                </TreeItem>
-                                                <SortableContext
-                                                  items={hwItems.map(h => h.id)}
-                                                  strategy={verticalListSortingStrategy}
-                                                >
-                                                  {hwItems.map((hw, hwIdx) => (
-                                                    <SortableTreeItem
-                                                      key={hw.id}
-                                                      id={hw.id}
-                                                      depth={2}
-                                                      isLast={hwIdx === hwItems.length - 1}
+                                          {/* Homework (per-lesson) - drop zone; header + description in one box; sortable items with drag handle */}
+                                          {!lessonBankMode &&
+                                            (() => {
+                                              const hwItems = (primaryLesson.homework || []).filter(
+                                                h => h.category === 'homework'
+                                              )
+                                              return (
+                                                <>
+                                                  <TreeItem depth={0} isLast={false}>
+                                                    <DroppableHomeworkZone
+                                                      nodeId={node.id}
+                                                      lessonId={primaryLesson.id}
+                                                      className="flex items-center gap-1.5 rounded-lg border-b-2 border-emerald-600 bg-gradient-to-r from-emerald-400 to-emerald-500 px-3 py-0.5 shadow-sm transition-all"
                                                     >
-                                                      <div
-                                                        className={cn(
-                                                          'group/item flex cursor-pointer items-center gap-1.5 rounded border border-emerald-400 bg-emerald-50 px-2 py-1 transition-colors hover:bg-emerald-100',
-                                                          selectedItem?.type === 'homework' &&
-                                                            selectedItem?.id === hw.id &&
-                                                            'ring-1 ring-emerald-400'
-                                                        )}
-                                                        onClick={() => {
-                                                          setSelectedItem({
-                                                            type: 'homework',
-                                                            id: hw.id,
-                                                          })
-                                                          loadAssessmentIntoBuilder(hw)
-                                                          setMainBuilderTab('assessment')
-                                                        }}
-                                                      >
-                                                        <FileQuestion className="h-3 w-3 shrink-0 text-emerald-600" />
-                                                        <span className="flex-1 truncate text-[10px] text-emerald-700">
-                                                          {hw.title}
+                                                      <div className="flex items-center gap-1.5">
+                                                        <FolderOpen className="h-4 w-4 text-white" />
+                                                        <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
+                                                          Homework {hwItems.length}:
                                                         </span>
-                                                        <Button
-                                                          variant="ghost"
-                                                          size="icon"
-                                                          className="h-5 w-5 shrink-0 opacity-0 group-hover/item:opacity-100"
-                                                          onClick={(e: any) => {
-                                                            e.stopPropagation()
-                                                            if (!confirm(`Delete "${hw.title}"?`))
-                                                              return
-                                                            setCourseBuilderNodes(prev =>
-                                                              prev.map(mod =>
-                                                                mod.id !== node.id
-                                                                  ? mod
-                                                                  : {
-                                                                      ...mod,
-                                                                      lessons: mod.lessons.map(
-                                                                        les =>
-                                                                          les.id !==
-                                                                          primaryLesson.id
-                                                                            ? les
-                                                                            : {
-                                                                                ...les,
-                                                                                homework: (
-                                                                                  les.homework || []
-                                                                                ).filter(
-                                                                                  x =>
-                                                                                    x.id !== hw.id
-                                                                                ),
-                                                                              }
-                                                                      ),
-                                                                    }
-                                                              )
-                                                            )
+                                                      </div>
+                                                    </DroppableHomeworkZone>
+                                                  </TreeItem>
+                                                  <SortableContext
+                                                    items={hwItems.map(h => h.id)}
+                                                    strategy={verticalListSortingStrategy}
+                                                  >
+                                                    {hwItems.map((hw, hwIdx) => (
+                                                      <SortableTreeItem
+                                                        key={hw.id}
+                                                        id={hw.id}
+                                                        depth={2}
+                                                        isLast={hwIdx === hwItems.length - 1}
+                                                      >
+                                                        <div
+                                                          className={cn(
+                                                            'group/item flex cursor-pointer items-center gap-1.5 rounded border border-emerald-400 bg-emerald-50 px-2 py-1 transition-colors hover:bg-emerald-100',
+                                                            selectedItem?.type === 'homework' &&
+                                                              selectedItem?.id === hw.id &&
+                                                              'ring-1 ring-emerald-400'
+                                                          )}
+                                                          onClick={() => {
+                                                            setSelectedItem({
+                                                              type: 'homework',
+                                                              id: hw.id,
+                                                            })
+                                                            loadAssessmentIntoBuilder(hw)
+                                                            setMainBuilderTab('assessment')
                                                           }}
                                                         >
-                                                          <Trash2 className="h-3 w-3 text-red-500" />
-                                                        </Button>
-                                                      </div>
-                                                    </SortableTreeItem>
-                                                  ))}
-                                                </SortableContext>
-                                              </>
-                                            )
-                                          })()}
+                                                          <FileQuestion className="h-3 w-3 shrink-0 text-emerald-600" />
+                                                          <span className="flex-1 truncate text-[10px] text-emerald-700">
+                                                            {hw.title}
+                                                          </span>
+                                                          <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-5 w-5 shrink-0 opacity-0 group-hover/item:opacity-100"
+                                                            onClick={(e: any) => {
+                                                              e.stopPropagation()
+                                                              if (!confirm(`Delete "${hw.title}"?`))
+                                                                return
+                                                              setCourseBuilderNodes(prev =>
+                                                                prev.map(mod =>
+                                                                  mod.id !== node.id
+                                                                    ? mod
+                                                                    : {
+                                                                        ...mod,
+                                                                        lessons: mod.lessons.map(
+                                                                          les =>
+                                                                            les.id !==
+                                                                            primaryLesson.id
+                                                                              ? les
+                                                                              : {
+                                                                                  ...les,
+                                                                                  homework: (
+                                                                                    les.homework ||
+                                                                                    []
+                                                                                  ).filter(
+                                                                                    x =>
+                                                                                      x.id !== hw.id
+                                                                                  ),
+                                                                                }
+                                                                        ),
+                                                                      }
+                                                                )
+                                                              )
+                                                            }}
+                                                          >
+                                                            <Trash2 className="h-3 w-3 text-red-500" />
+                                                          </Button>
+                                                        </div>
+                                                      </SortableTreeItem>
+                                                    ))}
+                                                  </SortableContext>
+                                                </>
+                                              )
+                                            })()}
 
-                                        {/* End of CourseBuilderNode Quizzes */}
-                                        {(node.quizzes || []).map((quiz, quizIdx) => (
-                                          <TreeItem
-                                            key={quiz.id}
-                                            depth={2}
-                                            isLast={quizIdx === (node.quizzes?.length || 0) - 1}
-                                          >
-                                            <div
-                                              className="group flex cursor-pointer items-center gap-1.5 rounded border border-red-300 bg-red-100 px-2 py-1 hover:bg-red-200"
-                                              onClick={() =>
-                                                setSelectedItem({ type: 'nodeQuiz', id: quiz.id })
-                                              }
+                                          {/* End of CourseBuilderNode Quizzes */}
+                                          {(node.quizzes || []).map((quiz, quizIdx) => (
+                                            <TreeItem
+                                              key={quiz.id}
+                                              depth={2}
+                                              isLast={quizIdx === (node.quizzes?.length || 0) - 1}
                                             >
-                                              <FileQuestion className="h-3 w-3 text-red-600" />
-                                              <span className="flex-1 truncate text-xs font-medium">
-                                                {quiz.title}
-                                              </span>
-                                              <Badge
-                                                variant="default"
-                                                className="h-4 bg-red-600 px-1 text-[8px]"
+                                              <div
+                                                className="group flex cursor-pointer items-center gap-1.5 rounded border border-red-300 bg-red-100 px-2 py-1 hover:bg-red-200"
+                                                onClick={() =>
+                                                  setSelectedItem({ type: 'nodeQuiz', id: quiz.id })
+                                                }
                                               >
-                                                Summative
-                                              </Badge>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-5 gap-1 px-1 text-[10px] opacity-0 group-hover:opacity-100"
-                                                onClick={(e: any) => {
-                                                  e.stopPropagation()
-                                                  setEditingData(quiz)
-                                                  setActiveModal({
-                                                    type: 'nodeQuiz',
-                                                    isOpen: true,
-                                                    nodeId: node.id,
-                                                    itemId: quiz.id,
-                                                  })
-                                                }}
-                                              >
-                                                Edit
-                                              </Button>
-                                              <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-5 w-5 opacity-0 group-hover:opacity-100"
-                                                onClick={(e: any) => {
-                                                  e.stopPropagation()
-                                                  deleteCourseBuilderNodeQuiz(node.id, quiz.id)
-                                                }}
-                                              >
-                                                <Trash2 className="h-3 w-3 text-red-500" />
-                                              </Button>
-                                            </div>
-                                          </TreeItem>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                </SortableTreeItem>
-                              )
-                            })}
-                          </SortableContext>
+                                                <FileQuestion className="h-3 w-3 text-red-600" />
+                                                <span className="flex-1 truncate text-xs font-medium">
+                                                  {quiz.title}
+                                                </span>
+                                                <Badge
+                                                  variant="default"
+                                                  className="h-4 bg-red-600 px-1 text-[8px]"
+                                                >
+                                                  Summative
+                                                </Badge>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-5 gap-1 px-1 text-[10px] opacity-0 group-hover:opacity-100"
+                                                  onClick={(e: any) => {
+                                                    e.stopPropagation()
+                                                    setEditingData(quiz)
+                                                    setActiveModal({
+                                                      type: 'nodeQuiz',
+                                                      isOpen: true,
+                                                      nodeId: node.id,
+                                                      itemId: quiz.id,
+                                                    })
+                                                  }}
+                                                >
+                                                  Edit
+                                                </Button>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="icon"
+                                                  className="h-5 w-5 opacity-0 group-hover:opacity-100"
+                                                  onClick={(e: any) => {
+                                                    e.stopPropagation()
+                                                    deleteCourseBuilderNodeQuiz(node.id, quiz.id)
+                                                  }}
+                                                >
+                                                  <Trash2 className="h-3 w-3 text-red-500" />
+                                                </Button>
+                                              </div>
+                                            </TreeItem>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </SortableTreeItem>
+                                )
+                              })}
+                            </SortableContext>
 
-                          {nodes.length === 0 && (
-                            <div className="text-muted-foreground py-8 text-center">
-                              <Layers className="mx-auto mb-2 h-8 w-8 opacity-30" />
-                              <p className="text-sm">No lessons yet. Click "Lesson" to add one.</p>
-                            </div>
-                          )}
-                        </div>
-                      </DndContext>
-                    )}
+                            {nodes.length === 0 && (
+                              <div className="text-muted-foreground py-8 text-center">
+                                <Layers className="mx-auto mb-2 h-8 w-8 opacity-30" />
+                                <p className="text-sm">
+                                  No lessons yet. Click "Lesson" to add one.
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </DndContext>
+                      )}
                     </ScrollArea>
                     {/* Assets Folder added to the bottom of the left panel */}
                     {(!insightsProps || mainTab !== 'live') && (
@@ -4358,10 +4377,12 @@ FEEDBACK: [your explanation]`
                 onValueChange={v => setMainTab(v as 'live' | 'builder' | 'test-pci')}
                 className="flex h-full w-full flex-1 flex-col"
               >
-                <TabsList className={cn(
-                  "bg-muted/30 mb-4 grid w-full gap-1 rounded-xl p-1",
-                  insightsProps ? "grid-cols-3" : "grid-cols-2"
-                )}>
+                <TabsList
+                  className={cn(
+                    'bg-muted/30 mb-4 grid w-full gap-1 rounded-xl p-1',
+                    insightsProps ? 'grid-cols-3' : 'grid-cols-2'
+                  )}
+                >
                   {insightsProps && (
                     <TabsTrigger
                       value="live"
@@ -4389,595 +4410,608 @@ FEEDBACK: [your explanation]`
 
                 {mainTab !== 'builder' && (
                   <div className="h-full w-full flex-1">
-                  <Card className="border-border bg-card flex h-full w-full min-w-0 flex-1 overflow-hidden rounded-2xl border shadow-xl ring-1 ring-black/5">
-                    <CardContent className="flex h-full min-h-0 w-full flex-col overflow-hidden p-0 pt-4">
-                      <CardTitle className="mb-3 flex items-center justify-between gap-2 px-4 text-base font-semibold">
-                        <div className="flex items-center gap-2">
-                          {!lessonBankMode && !hideCourseNameInTabs && (
-                            <>
-                              <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                              {courseName || 'Course'}
-                            </>
-                          )}
-                        </div>
-                        {insightsProps && countdownText && (
-                          <div
-                            className={cn(
-                              'flex items-center gap-1.5 text-xs font-medium',
-                              countdownOverdue ? 'text-orange-600' : 'text-emerald-600'
+                    <Card className="border-border bg-card flex h-full w-full min-w-0 flex-1 overflow-hidden rounded-2xl border shadow-xl ring-1 ring-black/5">
+                      <CardContent className="flex h-full min-h-0 w-full flex-col overflow-hidden p-0 pt-4">
+                        <CardTitle className="mb-3 flex items-center justify-between gap-2 px-4 text-base font-semibold">
+                          <div className="flex items-center gap-2">
+                            {!lessonBankMode && !hideCourseNameInTabs && (
+                              <>
+                                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                                {courseName || 'Course'}
+                              </>
                             )}
-                          >
-                            <Timer className="h-4 w-4" />
-                            <span>⏱ {countdownText}</span>
                           </div>
-                        )}
-                        {insightsProps && mainTab === 'live' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 px-3 text-xs"
-                            onClick={() => setShowInsightsPanel(prev => !prev)}
-                          >
-                            Insights
-                          </Button>
-                        )}
-                      </CardTitle>
-                      <div
-                        className={cn(
-                          'flex min-h-0 w-full flex-1 flex-col items-stretch gap-0 overflow-hidden',
-                          insightsProps && showInsightsPanel && 'xl:flex-row'
-                        )}
-                      >
-                        {/* Main content with tabs */}
-                        <div className="flex h-full w-full min-w-0 flex-1 flex-col pb-0">
-                          <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden px-0">
-                            <Tabs
-                              value={testPciActiveTab}
-                              onValueChange={setTestPciActiveTab}
-                              className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-hidden"
+                          {insightsProps && countdownText && (
+                            <div
+                              className={cn(
+                                'flex items-center gap-1.5 text-xs font-medium',
+                                countdownOverdue ? 'text-orange-600' : 'text-emerald-600'
+                              )}
                             >
-                              <TabsList className="bg-muted flex min-h-[3.2rem] w-full shrink-0 flex-nowrap items-stretch gap-1 rounded-xl border p-1">
-                                {testPciTabs.map(tab => (
-                                  <div key={tab.id} className="relative min-w-0 flex-1 basis-0">
-                                    {editingTabId === tab.id ? (
-                                      <Input
-                                        value={tab.label}
-                                        onChange={(e: any) => {
-                                          setTestPciTabs(prev =>
-                                            prev.map(t =>
-                                              t.id === tab.id ? { ...t, label: e.target.value } : t
+                              <Timer className="h-4 w-4" />
+                              <span>⏱ {countdownText}</span>
+                            </div>
+                          )}
+                          {insightsProps && mainTab === 'live' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-3 text-xs"
+                              onClick={() => setShowInsightsPanel(prev => !prev)}
+                            >
+                              Insights
+                            </Button>
+                          )}
+                        </CardTitle>
+                        <div
+                          className={cn(
+                            'flex min-h-0 w-full flex-1 flex-col items-stretch gap-0 overflow-hidden',
+                            insightsProps && showInsightsPanel && 'xl:flex-row'
+                          )}
+                        >
+                          {/* Main content with tabs */}
+                          <div className="flex h-full w-full min-w-0 flex-1 flex-col pb-0">
+                            <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden px-0">
+                              <Tabs
+                                value={testPciActiveTab}
+                                onValueChange={setTestPciActiveTab}
+                                className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-hidden"
+                              >
+                                <TabsList className="bg-muted flex min-h-[3.2rem] w-full shrink-0 flex-nowrap items-stretch gap-1 rounded-xl border p-1">
+                                  {testPciTabs.map(tab => (
+                                    <div key={tab.id} className="relative min-w-0 flex-1 basis-0">
+                                      {editingTabId === tab.id ? (
+                                        <Input
+                                          value={tab.label}
+                                          onChange={(e: any) => {
+                                            setTestPciTabs(prev =>
+                                              prev.map(t =>
+                                                t.id === tab.id
+                                                  ? { ...t, label: e.target.value }
+                                                  : t
+                                              )
                                             )
-                                          )
-                                        }}
-                                        onBlur={() => setEditingTabId(null)}
-                                        onKeyDown={(e: any) => {
-                                          if (e.key === 'Enter') setEditingTabId(null)
-                                        }}
-                                        className="h-[3.2rem] min-w-0 text-center text-xs font-medium"
-                                        autoFocus
-                                      />
-                                    ) : (
-                                      <TabsTrigger
-                                        value={tab.id}
-                                        className="h-[3.2rem] w-full min-w-0 truncate rounded-lg border border-gray-400 bg-white px-2 text-xs font-medium data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 sm:text-sm"
-                                        onDoubleClick={() => setEditingTabId(tab.id)}
-                                      >
-                                        {tab.label}
-                                      </TabsTrigger>
-                                    )}
-                                  </div>
-                                ))}
-                              </TabsList>
-                              {testPciTabs.map(tab => (
-                                <TabsContent
-                                  key={tab.id}
-                                  value={tab.id}
-                                  className="mt-2 flex h-full w-full min-w-0 flex-1 flex-col self-stretch overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
-                                >
-                                  {mainTab === 'live' && tab.id === 'student1' ? (
-                                    <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-lg">
-                                      <EnhancedWhiteboard
-                                        pages={insightsBoardPages}
-                                        currentPageIndex={insightsBoardPageIndex}
-                                        onPagesChange={setInsightsBoardPages}
-                                        onPageIndexChange={setInsightsBoardPageIndex}
-                                        initialLessonContent={
-                                          sessionContext?.topic || sessionContext?.objectives
-                                            ? {
-                                                title: sessionContext.topic || undefined,
-                                                objectives: sessionContext.objectives || undefined,
-                                              }
-                                            : undefined
-                                        }
-                                      />
-                                    </div>
-                                  ) : (
-                                    <div className="bg-muted flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg p-4">
-                                      <p className="text-muted-foreground whitespace-pre-wrap text-sm">
-                                        {testPciContent[tab.id] || `${tab.label} view content`}
-                                      </p>
-                                      {/* Show AI scores if any */}
-                                      {testPciScores[tab.id]?.length > 0 && (
-                                        <div className="mt-3 border-t border-gray-400 pt-3">
-                                          <p className="mb-2 text-xs font-medium text-gray-600">
-                                            AI Feedback:
-                                          </p>
-                                          {testPciScores[tab.id].map((score, idx) => (
-                                            <div
-                                              key={idx}
-                                              className="mb-2 rounded border border-gray-400 bg-white p-2"
-                                            >
-                                              <div className="flex items-center gap-2">
-                                                <Badge
-                                                  variant={
-                                                    score.score >= 80
-                                                      ? 'default'
-                                                      : score.score >= 50
-                                                        ? 'secondary'
-                                                        : 'destructive'
-                                                  }
-                                                  className="text-[10px]"
-                                                >
-                                                  {score.score}%
-                                                </Badge>
-                                              </div>
-                                              <p className="mt-1 text-xs text-gray-600">
-                                                {score.feedback}
-                                              </p>
-                                            </div>
-                                          ))}
-                                        </div>
+                                          }}
+                                          onBlur={() => setEditingTabId(null)}
+                                          onKeyDown={(e: any) => {
+                                            if (e.key === 'Enter') setEditingTabId(null)
+                                          }}
+                                          className="h-[3.2rem] min-w-0 text-center text-xs font-medium"
+                                          autoFocus
+                                        />
+                                      ) : (
+                                        <TabsTrigger
+                                          value={tab.id}
+                                          className="h-[3.2rem] w-full min-w-0 truncate rounded-lg border border-gray-400 bg-white px-2 text-xs font-medium data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 sm:text-sm"
+                                          onDoubleClick={() => setEditingTabId(tab.id)}
+                                        >
+                                          {tab.label}
+                                        </TabsTrigger>
                                       )}
                                     </div>
-                                  )}
-                                </TabsContent>
-                              ))}
-                            </Tabs>
-                            {/* Enhanced text input styled as Kimi AI */}
-                            <div className="border-border bg-background mt-4 rounded-2xl border shadow-xl backdrop-blur-md">
-                              <div className="relative p-1">
-                                <AutoTextarea
-                                  className="min-h-[100px] w-full border-0 bg-transparent py-4 pl-4 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                                  placeholder={
-                                    testPciActiveTab === 'classroom'
-                                      ? 'Enter answer (goes to both students)...'
-                                      : 'Ask your AI coach or share a reflection...'
-                                  }
-                                  value={testPciInput}
-                                  onChange={(e: any) => setTestPciInput(e.target.value)}
-                                  onKeyDown={(e: any) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                      if (testPciInput.trim() && !testPciLoading) {
-                                        e.preventDefault()
-                                        handleTestPciSubmit()
-                                      }
+                                  ))}
+                                </TabsList>
+                                {testPciTabs.map(tab => (
+                                  <TabsContent
+                                    key={tab.id}
+                                    value={tab.id}
+                                    className="mt-2 flex h-full w-full min-w-0 flex-1 flex-col self-stretch overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                                  >
+                                    {mainTab === 'live' && tab.id === 'student1' ? (
+                                      <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-lg">
+                                        <EnhancedWhiteboard
+                                          pages={insightsBoardPages}
+                                          currentPageIndex={insightsBoardPageIndex}
+                                          onPagesChange={setInsightsBoardPages}
+                                          onPageIndexChange={setInsightsBoardPageIndex}
+                                          initialLessonContent={
+                                            sessionContext?.topic || sessionContext?.objectives
+                                              ? {
+                                                  title: sessionContext.topic || undefined,
+                                                  objectives:
+                                                    sessionContext.objectives || undefined,
+                                                }
+                                              : undefined
+                                          }
+                                        />
+                                      </div>
+                                    ) : (
+                                      <div className="bg-muted flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg p-4">
+                                        <p className="text-muted-foreground whitespace-pre-wrap text-sm">
+                                          {testPciContent[tab.id] || `${tab.label} view content`}
+                                        </p>
+                                        {/* Show AI scores if any */}
+                                        {testPciScores[tab.id]?.length > 0 && (
+                                          <div className="mt-3 border-t border-gray-400 pt-3">
+                                            <p className="mb-2 text-xs font-medium text-gray-600">
+                                              AI Feedback:
+                                            </p>
+                                            {testPciScores[tab.id].map((score, idx) => (
+                                              <div
+                                                key={idx}
+                                                className="mb-2 rounded border border-gray-400 bg-white p-2"
+                                              >
+                                                <div className="flex items-center gap-2">
+                                                  <Badge
+                                                    variant={
+                                                      score.score >= 80
+                                                        ? 'default'
+                                                        : score.score >= 50
+                                                          ? 'secondary'
+                                                          : 'destructive'
+                                                    }
+                                                    className="text-[10px]"
+                                                  >
+                                                    {score.score}%
+                                                  </Badge>
+                                                </div>
+                                                <p className="mt-1 text-xs text-gray-600">
+                                                  {score.feedback}
+                                                </p>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </TabsContent>
+                                ))}
+                              </Tabs>
+                              {/* Enhanced text input styled as Kimi AI */}
+                              <div className="border-border bg-background mt-4 rounded-2xl border shadow-xl backdrop-blur-md">
+                                <div className="relative p-1">
+                                  <AutoTextarea
+                                    className="min-h-[100px] w-full border-0 bg-transparent py-4 pl-4 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                    placeholder={
+                                      testPciActiveTab === 'classroom'
+                                        ? 'Enter answer (goes to both students)...'
+                                        : 'Ask your AI coach or share a reflection...'
                                     }
-                                  }}
-                                />
-                                <Button
-                                  size="icon"
-                                  className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-slate-600 shadow-lg hover:bg-slate-700 disabled:opacity-30"
-                                  disabled={!testPciInput.trim() || testPciLoading}
-                                  onClick={handleTestPciSubmit}
-                                >
-                                  <Send className="h-4 w-4" />
-                                </Button>
-                              </div>
-                              <div className="border-border/50 bg-muted/20 border-t px-4 py-2.5">
-                                <p className="text-muted-foreground text-[10px]">
-                                  Tip: Start line with &quot;1.&quot;, &quot;-&quot;, or
-                                  &quot;a.&quot; for auto-numbering. Use Tab/Shift+Tab to indent.
-                                </p>
+                                    value={testPciInput}
+                                    onChange={(e: any) => setTestPciInput(e.target.value)}
+                                    onKeyDown={(e: any) => {
+                                      if (e.key === 'Enter' && !e.shiftKey) {
+                                        if (testPciInput.trim() && !testPciLoading) {
+                                          e.preventDefault()
+                                          handleTestPciSubmit()
+                                        }
+                                      }
+                                    }}
+                                  />
+                                  <Button
+                                    size="icon"
+                                    className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-slate-600 shadow-lg hover:bg-slate-700 disabled:opacity-30"
+                                    disabled={!testPciInput.trim() || testPciLoading}
+                                    onClick={handleTestPciSubmit}
+                                  >
+                                    <Send className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <div className="border-border/50 bg-muted/20 border-t px-4 py-2.5">
+                                  <p className="text-muted-foreground text-[10px]">
+                                    Tip: Start line with &quot;1.&quot;, &quot;-&quot;, or
+                                    &quot;a.&quot; for auto-numbering. Use Tab/Shift+Tab to indent.
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                        {insightsProps && showInsightsPanel && mainTab === 'live' && (
-                          <div className="min-h-0 w-full xl:w-[360px]">
-                            <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cyan-200/70 bg-gradient-to-br from-white via-slate-50 to-cyan-50 p-4 shadow-[0_10px_40px_-20px_rgba(14,116,144,0.65)] ring-1 ring-cyan-200/60">
-                              {insightsProps.onToggleRecording && (
-                                <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-cyan-100 bg-white/50 p-2 shadow-sm">
-                                  <div className="flex items-center gap-2 pl-1">
-                                    <div
-                                      className={cn(
-                                        'h-2 w-2 rounded-full',
-                                        insightsProps.isRecording
-                                          ? 'animate-pulse bg-red-500'
-                                          : 'bg-gray-300'
-                                      )}
-                                    />
-                                    <span className="text-xs font-medium text-gray-600">
-                                      {insightsProps.isRecording ? (
-                                        <>
-                                          REC{' '}
-                                          {Math.floor((insightsProps.recordingDuration ?? 0) / 60)}m{' '}
-                                          {String(
-                                            (insightsProps.recordingDuration ?? 0) % 60
-                                          ).padStart(2, '0')}
-                                          s
-                                        </>
-                                      ) : (
-                                        'Not Recording'
-                                      )}
-                                    </span>
-                                  </div>
-                                  <Button
-                                    variant={insightsProps.isRecording ? 'destructive' : 'outline'}
-                                    size="sm"
-                                    className="h-8 gap-2 px-3 text-xs font-semibold shadow-sm"
-                                    onClick={insightsProps.onToggleRecording}
-                                  >
-                                    <Radio
-                                      className={cn(
-                                        'h-3.5 w-3.5',
-                                        insightsProps.isRecording && 'animate-pulse'
-                                      )}
-                                    />
-                                    {insightsProps.isRecording ? 'Stop' : 'Record'}
-                                  </Button>
-                                </div>
-                              )}
-
-                              <Tabs
-                                value={insightsTab}
-                                onValueChange={value =>
-                                  setInsightsTab(value as 'analytics' | 'poll' | 'question')
-                                }
-                                className="flex h-full min-h-0 flex-col"
-                              >
-                                <TabsList className="mb-4 grid w-full grid-cols-4 gap-1 rounded-xl border border-cyan-200/70 bg-white/80 p-1 shadow-sm">
-                                  <TabsTrigger
-                                    value="analytics"
-                                    className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
-                                  >
-                                    Analytics
-                                  </TabsTrigger>
-                                  <TabsTrigger
-                                    value="poll"
-                                    className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
-                                  >
-                                    Poll
-                                  </TabsTrigger>
-                                  <TabsTrigger
-                                    value="question"
-                                    className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
-                                  >
-                                    Question
-                                  </TabsTrigger>
-                                  <TabsTrigger
-                                    value="chat"
-                                    className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
-                                  >
-                                    Chat
-                                  </TabsTrigger>
-                                </TabsList>
-
-                                <TabsContent
-                                  value="analytics"
-                                  className="mx-[-16px] flex-1 space-y-4"
-                                >
-                                  {insightsProps.liveTasks.length > 0 && (
-                                    <div className="space-y-4">
-                                      <div className="flex flex-wrap items-center gap-3">
-                                        <Badge variant="secondary" className="text-xs">
-                                          Tasks deployed: {insightsProps.liveTasks.length}
-                                        </Badge>
-                                        <Badge variant="secondary" className="text-xs">
-                                          Active task:{' '}
-                                          {activeInsightsTask?.title ||
-                                            'Select a task in the builder'}
-                                        </Badge>
-                                      </div>
-                                      <div className="grid gap-3">
-                                        <div className="rounded-lg border bg-white/90 p-3">
-                                          <p className="text-muted-foreground text-xs font-semibold uppercase">
-                                            Task Completion
-                                          </p>
-                                          <p className="mt-1 text-lg font-semibold text-gray-900">
-                                            --
-                                          </p>
-                                          <p className="text-muted-foreground text-xs">
-                                            Waiting for submissions
-                                          </p>
-                                        </div>
-                                        <div className="rounded-lg border bg-white/90 p-3">
-                                          <p className="text-muted-foreground text-xs font-semibold uppercase">
-                                            Assessment Scores
-                                          </p>
-                                          <p className="mt-1 text-lg font-semibold text-gray-900">
-                                            --
-                                          </p>
-                                          <p className="text-muted-foreground text-xs">
-                                            No scores yet
-                                          </p>
-                                        </div>
-                                        <div className="rounded-lg border bg-white/90 p-3">
-                                          <p className="text-muted-foreground text-xs font-semibold uppercase">
-                                            Questions Asked
-                                          </p>
-                                          <p className="mt-1 text-lg font-semibold text-gray-900">
-                                            {insightsProps.liveTasks.reduce(
-                                              (sum, task) =>
-                                                sum +
-                                                task.questions.reduce(
-                                                  (questionSum, question) =>
-                                                    questionSum + question.responses.length,
-                                                  0
-                                                ),
-                                              0
+                          {insightsProps && showInsightsPanel && mainTab === 'live' && (
+                            <div className="min-h-0 w-full xl:w-[360px]">
+                              <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cyan-200/70 bg-gradient-to-br from-white via-slate-50 to-cyan-50 p-4 shadow-[0_10px_40px_-20px_rgba(14,116,144,0.65)] ring-1 ring-cyan-200/60">
+                                {insightsProps.onToggleRecording && (
+                                  <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-cyan-100 bg-white/50 p-2 shadow-sm">
+                                    <div className="flex items-center gap-2 pl-1">
+                                      <div
+                                        className={cn(
+                                          'h-2 w-2 rounded-full',
+                                          insightsProps.isRecording
+                                            ? 'animate-pulse bg-red-500'
+                                            : 'bg-gray-300'
+                                        )}
+                                      />
+                                      <span className="text-xs font-medium text-gray-600">
+                                        {insightsProps.isRecording ? (
+                                          <>
+                                            REC{' '}
+                                            {Math.floor(
+                                              (insightsProps.recordingDuration ?? 0) / 60
                                             )}
-                                          </p>
-                                          <p className="text-muted-foreground text-xs">
-                                            Live student responses
-                                          </p>
+                                            m{' '}
+                                            {String(
+                                              (insightsProps.recordingDuration ?? 0) % 60
+                                            ).padStart(2, '0')}
+                                            s
+                                          </>
+                                        ) : (
+                                          'Not Recording'
+                                        )}
+                                      </span>
+                                    </div>
+                                    <Button
+                                      variant={
+                                        insightsProps.isRecording ? 'destructive' : 'outline'
+                                      }
+                                      size="sm"
+                                      className="h-8 gap-2 px-3 text-xs font-semibold shadow-sm"
+                                      onClick={insightsProps.onToggleRecording}
+                                    >
+                                      <Radio
+                                        className={cn(
+                                          'h-3.5 w-3.5',
+                                          insightsProps.isRecording && 'animate-pulse'
+                                        )}
+                                      />
+                                      {insightsProps.isRecording ? 'Stop' : 'Record'}
+                                    </Button>
+                                  </div>
+                                )}
+
+                                <Tabs
+                                  value={insightsTab}
+                                  onValueChange={value =>
+                                    setInsightsTab(value as 'analytics' | 'poll' | 'question')
+                                  }
+                                  className="flex h-full min-h-0 flex-col"
+                                >
+                                  <TabsList className="mb-4 grid w-full grid-cols-4 gap-1 rounded-xl border border-cyan-200/70 bg-white/80 p-1 shadow-sm">
+                                    <TabsTrigger
+                                      value="analytics"
+                                      className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
+                                    >
+                                      Analytics
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                      value="poll"
+                                      className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
+                                    >
+                                      Poll
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                      value="question"
+                                      className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
+                                    >
+                                      Question
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                      value="chat"
+                                      className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
+                                    >
+                                      Chat
+                                    </TabsTrigger>
+                                  </TabsList>
+
+                                  <TabsContent
+                                    value="analytics"
+                                    className="mx-[-16px] flex-1 space-y-4"
+                                  >
+                                    {insightsProps.liveTasks.length > 0 && (
+                                      <div className="space-y-4">
+                                        <div className="flex flex-wrap items-center gap-3">
+                                          <Badge variant="secondary" className="text-xs">
+                                            Tasks deployed: {insightsProps.liveTasks.length}
+                                          </Badge>
+                                          <Badge variant="secondary" className="text-xs">
+                                            Active task:{' '}
+                                            {activeInsightsTask?.title ||
+                                              'Select a task in the builder'}
+                                          </Badge>
                                         </div>
-                                      </div>
-                                      {insightsProps.liveTasks.map(task => {
-                                        const pollResponses = task.polls.reduce(
-                                          (sum, poll) => sum + poll.responses.length,
-                                          0
-                                        )
-                                        const questionResponses = task.questions.reduce(
-                                          (sum, q) => sum + q.responses.length,
-                                          0
-                                        )
-                                        return (
-                                          <div
-                                            key={task.id}
-                                            className="rounded-lg border bg-white/90 p-4"
-                                          >
-                                            <div className="flex flex-wrap items-center justify-between gap-2">
-                                              <div>
-                                                <p className="text-sm font-semibold text-gray-900">
-                                                  {task.title}
-                                                </p>
-                                                <p className="text-muted-foreground text-xs">
-                                                  Polls: {task.polls.length} • Questions:{' '}
-                                                  {task.questions.length}
-                                                </p>
+                                        <div className="grid gap-3">
+                                          <div className="rounded-lg border bg-white/90 p-3">
+                                            <p className="text-muted-foreground text-xs font-semibold uppercase">
+                                              Task Completion
+                                            </p>
+                                            <p className="mt-1 text-lg font-semibold text-gray-900">
+                                              --
+                                            </p>
+                                            <p className="text-muted-foreground text-xs">
+                                              Waiting for submissions
+                                            </p>
+                                          </div>
+                                          <div className="rounded-lg border bg-white/90 p-3">
+                                            <p className="text-muted-foreground text-xs font-semibold uppercase">
+                                              Assessment Scores
+                                            </p>
+                                            <p className="mt-1 text-lg font-semibold text-gray-900">
+                                              --
+                                            </p>
+                                            <p className="text-muted-foreground text-xs">
+                                              No scores yet
+                                            </p>
+                                          </div>
+                                          <div className="rounded-lg border bg-white/90 p-3">
+                                            <p className="text-muted-foreground text-xs font-semibold uppercase">
+                                              Questions Asked
+                                            </p>
+                                            <p className="mt-1 text-lg font-semibold text-gray-900">
+                                              {insightsProps.liveTasks.reduce(
+                                                (sum, task) =>
+                                                  sum +
+                                                  task.questions.reduce(
+                                                    (questionSum, question) =>
+                                                      questionSum + question.responses.length,
+                                                    0
+                                                  ),
+                                                0
+                                              )}
+                                            </p>
+                                            <p className="text-muted-foreground text-xs">
+                                              Live student responses
+                                            </p>
+                                          </div>
+                                        </div>
+                                        {insightsProps.liveTasks.map(task => {
+                                          const pollResponses = task.polls.reduce(
+                                            (sum, poll) => sum + poll.responses.length,
+                                            0
+                                          )
+                                          const questionResponses = task.questions.reduce(
+                                            (sum, q) => sum + q.responses.length,
+                                            0
+                                          )
+                                          return (
+                                            <div
+                                              key={task.id}
+                                              className="rounded-lg border bg-white/90 p-4"
+                                            >
+                                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                                <div>
+                                                  <p className="text-sm font-semibold text-gray-900">
+                                                    {task.title}
+                                                  </p>
+                                                  <p className="text-muted-foreground text-xs">
+                                                    Polls: {task.polls.length} • Questions:{' '}
+                                                    {task.questions.length}
+                                                  </p>
+                                                </div>
+                                                <div className="text-muted-foreground flex items-center gap-2 text-xs">
+                                                  <span>Poll responses: {pollResponses}</span>
+                                                  <span>Question answers: {questionResponses}</span>
+                                                </div>
                                               </div>
-                                              <div className="text-muted-foreground flex items-center gap-2 text-xs">
-                                                <span>Poll responses: {pollResponses}</span>
-                                                <span>Question answers: {questionResponses}</span>
-                                              </div>
-                                            </div>
-                                            {task.polls.map(poll => {
-                                              const counts = poll.options.map(option => ({
-                                                option,
-                                                count: poll.responses.filter(
-                                                  r => r.value === option
-                                                ).length,
-                                              }))
-                                              return (
+                                              {task.polls.map(poll => {
+                                                const counts = poll.options.map(option => ({
+                                                  option,
+                                                  count: poll.responses.filter(
+                                                    r => r.value === option
+                                                  ).length,
+                                                }))
+                                                return (
+                                                  <div
+                                                    key={poll.id}
+                                                    className="mt-3 rounded-md border bg-slate-50/80 p-3"
+                                                  >
+                                                    <p className="text-xs font-medium text-gray-700">
+                                                      {poll.question}
+                                                    </p>
+                                                    <div className="mt-2 flex flex-wrap gap-2">
+                                                      {counts.map(entry => (
+                                                        <span
+                                                          key={`${poll.id}-${entry.option}`}
+                                                          className="rounded-full bg-white px-2 py-1 text-[11px] text-gray-600"
+                                                        >
+                                                          {entry.option}: {entry.count}
+                                                        </span>
+                                                      ))}
+                                                    </div>
+                                                  </div>
+                                                )
+                                              })}
+                                              {task.questions.map(question => (
                                                 <div
-                                                  key={poll.id}
+                                                  key={question.id}
                                                   className="mt-3 rounded-md border bg-slate-50/80 p-3"
                                                 >
                                                   <p className="text-xs font-medium text-gray-700">
-                                                    {poll.question}
+                                                    {question.prompt}
                                                   </p>
-                                                  <div className="mt-2 flex flex-wrap gap-2">
-                                                    {counts.map(entry => (
-                                                      <span
-                                                        key={`${poll.id}-${entry.option}`}
-                                                        className="rounded-full bg-white px-2 py-1 text-[11px] text-gray-600"
-                                                      >
-                                                        {entry.option}: {entry.count}
-                                                      </span>
-                                                    ))}
-                                                  </div>
+                                                  <p className="text-muted-foreground mt-1 text-xs">
+                                                    Answers: {question.responses.length}
+                                                  </p>
                                                 </div>
+                                              ))}
+                                            </div>
+                                          )
+                                        })}
+                                      </div>
+                                    )}
+                                  </TabsContent>
+
+                                  <TabsContent value="poll" className="space-y-4 pt-2">
+                                    <div className="rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
+                                      <div className="space-y-2 p-3">
+                                        <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
+                                          Poll question
+                                        </Label>
+                                        <div className="relative">
+                                          <AutoTextarea
+                                            className="min-h-[100px] w-full border-0 bg-transparent py-4 pl-3 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                            placeholder="What should students answer?"
+                                            value={pollPrompt}
+                                            onChange={event => setPollPrompt(event.target.value)}
+                                          />
+                                          <Button
+                                            size="icon"
+                                            className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-cyan-600 shadow-lg hover:bg-cyan-700 disabled:opacity-30"
+                                            disabled={
+                                              !activeInsightsTaskId ||
+                                              !activeInsightsTask ||
+                                              !insightsProps.sessionId ||
+                                              !pollPrompt.trim()
+                                            }
+                                            onClick={() => {
+                                              if (
+                                                !activeInsightsTaskId ||
+                                                !activeInsightsTask ||
+                                                !insightsProps.sessionId
                                               )
-                                            })}
-                                            {task.questions.map(question => (
-                                              <div
-                                                key={question.id}
-                                                className="mt-3 rounded-md border bg-slate-50/80 p-3"
-                                              >
-                                                <p className="text-xs font-medium text-gray-700">
-                                                  {question.prompt}
-                                                </p>
-                                                <p className="text-muted-foreground mt-1 text-xs">
-                                                  Answers: {question.responses.length}
-                                                </p>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        )
-                                      })}
-                                    </div>
-                                  )}
-                                </TabsContent>
-
-                                <TabsContent value="poll" className="space-y-4 pt-2">
-                                  <div className="rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
-                                    <div className="space-y-2 p-3">
-                                      <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
-                                        Poll question
-                                      </Label>
-                                      <div className="relative">
-                                        <AutoTextarea
-                                          className="min-h-[100px] w-full border-0 bg-transparent py-4 pl-3 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                                          placeholder="What should students answer?"
-                                          value={pollPrompt}
-                                          onChange={event => setPollPrompt(event.target.value)}
-                                        />
-                                        <Button
-                                          size="icon"
-                                          className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-cyan-600 shadow-lg hover:bg-cyan-700 disabled:opacity-30"
-                                          disabled={
-                                            !activeInsightsTaskId ||
-                                            !activeInsightsTask ||
-                                            !insightsProps.sessionId ||
-                                            !pollPrompt.trim()
-                                          }
-                                          onClick={() => {
-                                            if (
-                                              !activeInsightsTaskId ||
-                                              !activeInsightsTask ||
-                                              !insightsProps.sessionId
-                                            )
-                                              return
-                                            insightsProps.onSendPoll({
-                                              taskId: activeInsightsTaskId,
-                                              question: pollPrompt,
-                                            })
-                                            setPollPrompt('')
-                                          }}
-                                        >
-                                          <Send className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                    <div className="border-t border-cyan-50/50 bg-cyan-50/20 px-4 py-3">
-                                      <div className="flex items-center justify-between gap-3">
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-muted-foreground text-[10px] uppercase tracking-wider">
-                                            Scale:
-                                          </span>
-                                          <div className="flex gap-1">
-                                            {[1, 2, 3, 4, 5].map(v => (
-                                              <span
-                                                key={v}
-                                                className="flex h-5 w-5 items-center justify-center rounded-md border border-cyan-100 bg-white text-[10px] font-medium text-cyan-600 shadow-sm"
-                                              >
-                                                {v}
-                                              </span>
-                                            ))}
-                                          </div>
-                                        </div>
-                                        <p className="max-w-[140px] truncate text-[10px] font-medium text-cyan-600">
-                                          Task: {activeInsightsTask?.title || 'None Selected'}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </TabsContent>
-
-                                <TabsContent value="question" className="space-y-4 pt-2">
-                                  <div className="rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
-                                    <div className="space-y-2 p-3">
-                                      <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
-                                        Question prompt
-                                      </Label>
-                                      <div className="relative">
-                                        <AutoTextarea
-                                          className="min-h-[120px] w-full border-0 bg-transparent py-4 pl-3 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                                          placeholder="Ask your AI coach or share a reflection..."
-                                          value={questionPrompt}
-                                          onChange={event => setQuestionPrompt(event.target.value)}
-                                        />
-                                        <Button
-                                          size="icon"
-                                          className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-cyan-600 shadow-lg hover:bg-cyan-700 disabled:opacity-30"
-                                          disabled={
-                                            !activeInsightsTaskId ||
-                                            !activeInsightsTask ||
-                                            !insightsProps.sessionId ||
-                                            !questionPrompt.trim()
-                                          }
-                                          onClick={() => {
-                                            if (
-                                              !activeInsightsTaskId ||
-                                              !activeInsightsTask ||
-                                              !insightsProps.sessionId
-                                            )
-                                              return
-                                            insightsProps.onSendQuestion({
-                                              taskId: activeInsightsTaskId,
-                                              prompt: questionPrompt,
-                                            })
-                                            setQuestionPrompt('')
-                                          }}
-                                        >
-                                          <Send className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                    <div className="border-t border-cyan-50/50 bg-cyan-50/20 px-4 py-3 text-[10px]">
-                                      <div className="flex items-center justify-between">
-                                        <p className="font-medium text-cyan-600">
-                                          Topic: {activeInsightsTask?.title || 'General'}
-                                        </p>
-                                        <Badge
-                                          variant="outline"
-                                          className="border-cyan-200 bg-white/50 text-cyan-700"
-                                        >
-                                          AI Integrated
-                                        </Badge>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </TabsContent>
-
-                                <TabsContent value="chat" className="flex min-h-0 flex-1 flex-col pt-2">
-                                  <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-cyan-100 bg-white/60 p-3 shadow-sm">
-                                    <div className="flex-1 space-y-2 overflow-y-auto pr-1">
-                                      {chatMessages.length === 0 && (
-                                        <p className="text-center text-xs text-gray-500">
-                                          No messages yet.
-                                        </p>
-                                      )}
-                                      {chatMessages.map(msg => (
-                                        <div
-                                          key={msg.id}
-                                          className={`flex flex-col text-sm ${msg.userId === (insightsProps?.socket?.id ? 'self-end items-end' : 'self-start items-start')}`}
-                                        >
-                                          <span className="text-[10px] text-gray-500">
-                                            {msg.name}
-                                          </span>
-                                          <div
-                                            className={`max-w-[90%] rounded-lg px-2.5 py-1.5 text-xs ${msg.userId === (typeof window !== 'undefined' ? '' : '') ? 'bg-cyan-100 text-cyan-900' : 'bg-white text-gray-800'}`}
+                                                return
+                                              insightsProps.onSendPoll({
+                                                taskId: activeInsightsTaskId,
+                                                question: pollPrompt,
+                                              })
+                                              setPollPrompt('')
+                                            }}
                                           >
-                                            {msg.text}
-                                          </div>
+                                            <Send className="h-4 w-4" />
+                                          </Button>
                                         </div>
-                                      ))}
+                                      </div>
+                                      <div className="border-t border-cyan-50/50 bg-cyan-50/20 px-4 py-3">
+                                        <div className="flex items-center justify-between gap-3">
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-muted-foreground text-[10px] uppercase tracking-wider">
+                                              Scale:
+                                            </span>
+                                            <div className="flex gap-1">
+                                              {[1, 2, 3, 4, 5].map(v => (
+                                                <span
+                                                  key={v}
+                                                  className="flex h-5 w-5 items-center justify-center rounded-md border border-cyan-100 bg-white text-[10px] font-medium text-cyan-600 shadow-sm"
+                                                >
+                                                  {v}
+                                                </span>
+                                              ))}
+                                            </div>
+                                          </div>
+                                          <p className="max-w-[140px] truncate text-[10px] font-medium text-cyan-600">
+                                            Task: {activeInsightsTask?.title || 'None Selected'}
+                                          </p>
+                                        </div>
+                                      </div>
                                     </div>
-                                    <div className="mt-2 flex items-end gap-2">
-                                      <Input
-                                        placeholder="Type a message..."
-                                        value={chatInput}
-                                        onChange={e => setChatInput(e.target.value)}
-                                        onKeyDown={e => {
-                                          if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault()
+                                  </TabsContent>
+
+                                  <TabsContent value="question" className="space-y-4 pt-2">
+                                    <div className="rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
+                                      <div className="space-y-2 p-3">
+                                        <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
+                                          Question prompt
+                                        </Label>
+                                        <div className="relative">
+                                          <AutoTextarea
+                                            className="min-h-[120px] w-full border-0 bg-transparent py-4 pl-3 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                            placeholder="Ask your AI coach or share a reflection..."
+                                            value={questionPrompt}
+                                            onChange={event =>
+                                              setQuestionPrompt(event.target.value)
+                                            }
+                                          />
+                                          <Button
+                                            size="icon"
+                                            className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-cyan-600 shadow-lg hover:bg-cyan-700 disabled:opacity-30"
+                                            disabled={
+                                              !activeInsightsTaskId ||
+                                              !activeInsightsTask ||
+                                              !insightsProps.sessionId ||
+                                              !questionPrompt.trim()
+                                            }
+                                            onClick={() => {
+                                              if (
+                                                !activeInsightsTaskId ||
+                                                !activeInsightsTask ||
+                                                !insightsProps.sessionId
+                                              )
+                                                return
+                                              insightsProps.onSendQuestion({
+                                                taskId: activeInsightsTaskId,
+                                                prompt: questionPrompt,
+                                              })
+                                              setQuestionPrompt('')
+                                            }}
+                                          >
+                                            <Send className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                      <div className="border-t border-cyan-50/50 bg-cyan-50/20 px-4 py-3 text-[10px]">
+                                        <div className="flex items-center justify-between">
+                                          <p className="font-medium text-cyan-600">
+                                            Topic: {activeInsightsTask?.title || 'General'}
+                                          </p>
+                                          <Badge
+                                            variant="outline"
+                                            className="border-cyan-200 bg-white/50 text-cyan-700"
+                                          >
+                                            AI Integrated
+                                          </Badge>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </TabsContent>
+
+                                  <TabsContent
+                                    value="chat"
+                                    className="flex min-h-0 flex-1 flex-col pt-2"
+                                  >
+                                    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-cyan-100 bg-white/60 p-3 shadow-sm">
+                                      <div className="flex-1 space-y-2 overflow-y-auto pr-1">
+                                        {chatMessages.length === 0 && (
+                                          <p className="text-center text-xs text-gray-500">
+                                            No messages yet.
+                                          </p>
+                                        )}
+                                        {chatMessages.map(msg => (
+                                          <div
+                                            key={msg.id}
+                                            className={`flex flex-col text-sm ${msg.userId === (insightsProps?.socket?.id ? 'items-end self-end' : 'items-start self-start')}`}
+                                          >
+                                            <span className="text-[10px] text-gray-500">
+                                              {msg.name}
+                                            </span>
+                                            <div
+                                              className={`max-w-[90%] rounded-lg px-2.5 py-1.5 text-xs ${msg.userId === (typeof window !== 'undefined' ? '' : '') ? 'bg-cyan-100 text-cyan-900' : 'bg-white text-gray-800'}`}
+                                            >
+                                              {msg.text}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                      <div className="mt-2 flex items-end gap-2">
+                                        <Input
+                                          placeholder="Type a message..."
+                                          value={chatInput}
+                                          onChange={e => setChatInput(e.target.value)}
+                                          onKeyDown={e => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                              e.preventDefault()
+                                              if (chatInput.trim() && insightsProps?.socket) {
+                                                insightsProps.socket.emit('chat_message', {
+                                                  text: chatInput.trim(),
+                                                })
+                                                setChatInput('')
+                                              }
+                                            }
+                                          }}
+                                          className="min-h-[36px] flex-1 text-xs"
+                                        />
+                                        <Button
+                                          size="icon"
+                                          className="h-8 w-8 shrink-0"
+                                          disabled={!chatInput.trim() || !insightsProps?.socket}
+                                          onClick={() => {
                                             if (chatInput.trim() && insightsProps?.socket) {
                                               insightsProps.socket.emit('chat_message', {
                                                 text: chatInput.trim(),
                                               })
                                               setChatInput('')
                                             }
-                                          }
-                                        }}
-                                        className="min-h-[36px] flex-1 text-xs"
-                                      />
-                                      <Button
-                                        size="icon"
-                                        className="h-8 w-8 shrink-0"
-                                        disabled={!chatInput.trim() || !insightsProps?.socket}
-                                        onClick={() => {
-                                          if (chatInput.trim() && insightsProps?.socket) {
-                                            insightsProps.socket.emit('chat_message', {
-                                              text: chatInput.trim(),
-                                            })
-                                            setChatInput('')
-                                          }
-                                        }}
-                                      >
-                                        <Send className="h-3.5 w-3.5" />
-                                      </Button>
+                                          }}
+                                        >
+                                          <Send className="h-3.5 w-3.5" />
+                                        </Button>
+                                      </div>
                                     </div>
-                                  </div>
-                                </TabsContent>
-                              </Tabs>
+                                  </TabsContent>
+                                </Tabs>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
                 )}
 
                 <TabsContent

@@ -131,7 +131,9 @@ export default function TutorSessionInsightsPage() {
         </div>
 
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{session.title || 'Untitled Session'}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {session.title || 'Untitled Session'}
+          </h1>
           {session.subject && <p className="text-muted-foreground mt-1">{session.subject}</p>}
           <p className="text-muted-foreground mt-1 text-sm">{scheduledDate}</p>
         </div>
@@ -201,7 +203,9 @@ export default function TutorSessionInsightsPage() {
                   <>
                     <Separator />
                     <div className="text-muted-foreground flex flex-wrap gap-4 text-xs">
-                      <span>Participants: {session.summaryJson.sessionMeta.participants ?? '-'}</span>
+                      <span>
+                        Participants: {session.summaryJson.sessionMeta.participants ?? '-'}
+                      </span>
                       <span>Messages: {session.summaryJson.sessionMeta.messages ?? '-'}</span>
                       <span>
                         Generated:{' '}
@@ -214,7 +218,9 @@ export default function TutorSessionInsightsPage() {
                 )}
               </div>
             ) : (
-              <p className="text-muted-foreground text-sm">No summary available for this session.</p>
+              <p className="text-muted-foreground text-sm">
+                No summary available for this session.
+              </p>
             )}
           </CardContent>
         </Card>
