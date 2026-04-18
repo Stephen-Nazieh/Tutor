@@ -1,7 +1,7 @@
 # Multi-stage build for production
 FROM node:20-slim AS base
 WORKDIR /app
-RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y ca-certificates curl libreoffice-writer libreoffice-impress libreoffice-calc && rm -rf /var/lib/apt/lists/*
 
 # Dependencies
 FROM base AS deps

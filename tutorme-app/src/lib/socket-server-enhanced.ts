@@ -91,6 +91,12 @@ export interface LiveTaskDmiItem {
   questionText: string
 }
 
+export interface LiveTaskSourceDocument {
+  fileName: string
+  fileUrl: string
+  mimeType: string
+}
+
 export interface LiveTask {
   id: string
   title: string
@@ -100,6 +106,7 @@ export interface LiveTask {
   deployedAt: number
   polls: LiveTaskPoll[]
   questions: LiveTaskQuestion[]
+  sourceDocument?: LiveTaskSourceDocument
 }
 
 // Environment validation

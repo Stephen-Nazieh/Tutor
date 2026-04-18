@@ -19,7 +19,16 @@ import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useSocket } from '@/hooks/use-socket'
 import { toast } from 'sonner'
-import { ListTodo, MessageSquare, Send, Bell, Loader2, Layout, ArrowLeft } from 'lucide-react'
+import {
+  ListTodo,
+  MessageSquare,
+  Send,
+  Bell,
+  Loader2,
+  Layout,
+  ArrowLeft,
+  FileText,
+} from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
 import { DailyVideoFrame } from '@/components/class/daily-video-frame'
@@ -373,7 +382,7 @@ function StudentFeedbackContent() {
                 value="task"
                 className="rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
               >
-                Current Task
+                Classroom
               </TabsTrigger>
               <TabsTrigger
                 value="my-board"
@@ -402,9 +411,45 @@ function StudentFeedbackContent() {
                 <CardContent className="space-y-4">
                   {activeTask ? (
                     <div className="space-y-4">
-                      <div className="rounded-lg border bg-white p-4 text-sm text-gray-700">
-                        <p className="whitespace-pre-wrap">{activeTask.content}</p>
-                      </div>
+                      {activeTask.sourceDocument ? (
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold uppercase text-gray-500">Document</p>
+                          {activeTask.sourceDocument.mimeType === 'application/pdf' ? (
+                            <div className="overflow-hidden rounded border">
+                              <iframe
+                                src={activeTask.sourceDocument.fileUrl}
+                                title={activeTask.sourceDocument.fileName}
+                                className="h-[500px] w-full"
+                              />
+                            </div>
+                          ) : activeTask.sourceDocument.mimeType.startsWith('image/') ? (
+                            <div className="overflow-hidden rounded border">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={activeTask.sourceDocument.fileUrl}
+                                alt={activeTask.sourceDocument.fileName}
+                                className="h-auto max-h-[500px] w-full object-contain"
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 rounded border bg-white p-4">
+                              <FileText className="h-5 w-5 text-blue-600" />
+                              <a
+                                href={activeTask.sourceDocument.fileUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-sm text-blue-600 underline"
+                              >
+                                Open {activeTask.sourceDocument.fileName}
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="rounded-lg border bg-white p-4 text-sm text-gray-700">
+                          <p className="whitespace-pre-wrap">{activeTask.content}</p>
+                        </div>
+                      )}
                       {activeTask.dmiItems && activeTask.dmiItems.length > 0 && (
                         <div className="space-y-2">
                           <p className="text-xs font-semibold uppercase text-gray-500">

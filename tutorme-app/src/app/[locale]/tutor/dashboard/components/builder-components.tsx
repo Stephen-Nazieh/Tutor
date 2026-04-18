@@ -58,7 +58,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { extractTextFromFile } from '@/lib/extract-file-text'
+
 import type {
   ImportedLearningResource,
   QuizQuestion,
@@ -104,12 +104,11 @@ export function ResourceImportPanel<
     questions?: QuizQuestion[]
     submissionType?: string
   },
->({ data, setData, targetField }: ResourceImportPanelProps<T>) {
-  const [extracting, setExtracting] = useState(false)
+>({ data, setData }: Omit<ResourceImportPanelProps<T>, 'targetField'>) {
+  const [uploading, setUploading] = useState(false)
   const [resources, setResources] = useState<
     Array<{ id: string; name: string; url: string; mimeType: string | null }>
   >([])
-  const [resourceId, setResourceId] = useState('')
   const previousBlobUrlRef = useRef<string | null>(null)
 
   useEffect(() => {
@@ -154,9 +153,8 @@ export function ResourceImportPanel<
   const handleImport = async (fileList: FileList | null) => {
     const file = fileList?.[0]
     if (!file) return
-    setExtracting(true)
+    setUploading(true)
     try {
-      const extractedText = await extractTextFromFile(file)
       const localObjectUrl = URL.createObjectURL(file)
       let fileUrl = localObjectUrl
       try {
@@ -181,31 +179,34 @@ export function ResourceImportPanel<
         fileName: file.name,
         mimeType: file.type || 'application/octet-stream',
         fileUrl,
-        extractedText: extractedText || '',
         uploadedAt: new Date().toISOString(),
       }
-      const currentTarget = (data as Record<string, unknown>)[targetField]
-      if (!String(currentTarget || '').trim() && extractedText) {
-        setData({ ...data, sourceDocument, [targetField]: extractedText.slice(0, 4000) } as T)
-      } else {
-        setData({ ...data, sourceDocument } as T)
-      }
-      toast.success('Document imported. You can edit it in preview.')
+      setData({ ...data, sourceDocument } as T)
+      toast.success('Document uploaded successfully.')
     } catch {
-      toast.error('Failed to extract text from file')
+      toast.error('Failed to upload document')
     } finally {
-      setExtracting(false)
+      setUploading(false)
     }
   }
 
+  const handleRemove = () => {
+    const current = data.sourceDocument?.fileUrl
+    if (current && current.startsWith('blob:')) {
+      URL.revokeObjectURL(current)
+    }
+    setData({ ...data, sourceDocument: undefined } as T)
+  }
+
   const source = data.sourceDocument
+  const isPdf = source?.mimeType === 'application/pdf'
 
   return (
     <div className="space-y-2 rounded-lg border border-dashed p-3">
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" size="sm" disabled={extracting} asChild>
+        <Button variant="outline" size="sm" disabled={uploading} asChild>
           <label className="cursor-pointer" title="Supports .pdf, .docx, .pptx, images">
-            {extracting ? (
+            {uploading ? (
               <Loader2 className="mr-1 h-3 w-3 animate-spin" />
             ) : (
               <Upload className="mr-1 h-3 w-3" />
@@ -235,42 +236,47 @@ export function ResourceImportPanel<
       </div>
       {source && (
         <div className="bg-muted/20 space-y-2 rounded border p-3">
-          <div className="text-muted-foreground text-xs">
-            Imported: <span className="text-foreground font-medium">{source.fileName}</span>
+          <div className="flex items-center justify-between">
+            <div className="text-muted-foreground text-xs">
+              Uploaded: <span className="text-foreground font-medium">{source.fileName}</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-xs text-red-600"
+              onClick={handleRemove}
+            >
+              <Trash2 className="mr-1 h-3 w-3" />
+              Remove
+            </Button>
           </div>
-          <Textarea
-            value={source.extractedText}
-            onChange={(e: any) =>
-              setData({
-                ...data,
-                sourceDocument: {
-                  ...source,
-                  extractedText: e.target.value,
-                },
-              } as T)
-            }
-            rows={6}
-            placeholder="Imported content text (editable)"
-          />
-          {source.mimeType.startsWith('image/') && (
-            <a
-              href={source.fileUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-xs text-blue-600 underline"
-            >
-              Open image preview
-            </a>
+          {isPdf && (
+            <div className="overflow-hidden rounded border">
+              <iframe src={source.fileUrl} title={source.fileName} className="h-64 w-full" />
+            </div>
           )}
-          {source.mimeType === 'application/pdf' && (
-            <a
-              href={source.fileUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-xs text-blue-600 underline"
-            >
-              Open PDF preview
-            </a>
+          {!isPdf && source.mimeType.startsWith('image/') && (
+            <div className="overflow-hidden rounded border">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={source.fileUrl}
+                alt={source.fileName}
+                className="h-64 w-full object-contain"
+              />
+            </div>
+          )}
+          {!isPdf && !source.mimeType.startsWith('image/') && (
+            <div className="flex items-center gap-2 rounded border bg-white p-3">
+              <FileText className="h-5 w-5 text-blue-600" />
+              <a
+                href={source.fileUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-blue-600 underline"
+              >
+                Open {source.fileName}
+              </a>
+            </div>
           )}
         </div>
       )}
@@ -371,6 +377,7 @@ export function PreviewCard({
       itemType: type as any,
       content: normalizedItem.description || normalizedItem.instructions || '',
       questions: normalizedItem.questions,
+      sourceDocument: normalizedItem.sourceDocument,
     }
     onMakeVisibleToStudents(payload)
     toast.success(`Shared "${normalizedItem.title}" with students`)

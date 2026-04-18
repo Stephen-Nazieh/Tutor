@@ -128,7 +128,6 @@ export type {
 import { DMIPanel } from './DMIPanel'
 import { QuestionBankModal } from './QuestionBankModal'
 import {
-  ResourceImportPanel,
   MatchingPairsEditor,
   QuestionBankQuickImport,
   ManualQuestionComposer,
@@ -475,6 +474,12 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [assessmentUploadedFiles, setAssessmentUploadedFiles] = useState<
       { id: string; name: string }[]
     >([])
+    const [taskSourceDocument, setTaskSourceDocument] = useState<
+      ImportedLearningResource | undefined
+    >(undefined)
+    const [assessmentSourceDocument, setAssessmentSourceDocument] = useState<
+      ImportedLearningResource | undefined
+    >(undefined)
 
     // Test PCI state
     const [testPciInput, setTestPciInput] = useState('')
@@ -662,6 +667,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         setTaskUploadedFiles(
           task.sourceDocument ? [{ id: 'source', name: task.sourceDocument.fileName }] : []
         )
+        setTaskSourceDocument(task.sourceDocument)
       },
       []
     )
@@ -685,6 +691,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           ? [{ id: 'source', name: assessment.sourceDocument.fileName }]
           : []
       )
+      setAssessmentSourceDocument(assessment.sourceDocument)
     }, [])
 
     // Load tutor assets from API on mount
@@ -1612,6 +1619,13 @@ FEEDBACK: [your explanation]`
         deployedAt: Date.now(),
         polls: [],
         questions: [],
+        sourceDocument: assessmentSourceDocument
+          ? {
+              fileName: assessmentSourceDocument.fileName,
+              fileUrl: assessmentSourceDocument.fileUrl,
+              mimeType: assessmentSourceDocument.mimeType,
+            }
+          : undefined,
       }
 
       insightsProps.onDeployTask(task)

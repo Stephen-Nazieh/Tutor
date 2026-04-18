@@ -1,7 +1,8 @@
 # Solocorn production image (Next.js + custom server with Socket.io)
 # Build and run: used by docker-compose for production deploys
 
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
+RUN apt-get update && apt-get install -y libreoffice-writer libreoffice-impress libreoffice-calc ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Dependencies
 FROM base AS deps

@@ -23,7 +23,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ListTodo, Home, FileQuestion, Plus, X, Shield, Unlock, Lock, BookOpen } from 'lucide-react'
+import {
+  ListTodo,
+  Home,
+  FileQuestion,
+  Plus,
+  X,
+  Shield,
+  Unlock,
+  Lock,
+  BookOpen,
+  FileText,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import type { Task, Assessment, QuizQuestion } from './builder-types'
 import { DEFAULT_TASK, DEFAULT_HOMEWORK } from './builder-utils'
@@ -554,27 +565,33 @@ export function AssessmentBuilderModal({
                 )}
                 {!isTask && (
                   <div className="space-y-3">
-                    <ResourceImportPanel data={data} setData={setData} targetField="instructions" />
+                    <ResourceImportPanel data={data} setData={setData} />
                   </div>
                 )}
                 {!isTask && data.sourceDocument && (
                   <div className="space-y-2">
-                    <p className="text-muted-foreground text-xs font-medium">
-                      Imported material (editable)
-                    </p>
-                    <Textarea
-                      value={data.sourceDocument.extractedText}
-                      onChange={(e: any) =>
-                        setData({
-                          ...data,
-                          sourceDocument: {
-                            ...data.sourceDocument!,
-                            extractedText: e.target.value,
-                          },
-                        })
-                      }
-                      rows={6}
-                    />
+                    <p className="text-muted-foreground text-xs font-medium">Uploaded document</p>
+                    {data.sourceDocument.mimeType === 'application/pdf' ? (
+                      <div className="overflow-hidden rounded border">
+                        <iframe
+                          src={data.sourceDocument.fileUrl}
+                          title={data.sourceDocument.fileName}
+                          className="h-64 w-full"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 rounded border bg-white p-3">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <a
+                          href={data.sourceDocument.fileUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-blue-600 underline"
+                        >
+                          Open {data.sourceDocument.fileName}
+                        </a>
+                      </div>
+                    )}
                   </div>
                 )}
                 {!isTask && (
