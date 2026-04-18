@@ -256,21 +256,16 @@ export function CourseBuilderInsightsRoute({
                 </Select>
               </>
             )}
-            {activeMainTab !== 'live' && onCourseNameChange && (
-              <>
-                <span className="text-sm font-semibold">{courseName || 'Untitled Course'}</span>
-                {activeMainTab === 'builder' && saveMode === 'draft' && onCreateCourse && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-8 w-8 p-0"
-                    onClick={onCreateCourse}
-                    title="New Course"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                )}
-              </>
+            {activeMainTab === 'builder' && saveMode === 'draft' && onCreateCourse && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={onCreateCourse}
+                title="New Course"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
             )}
             {activeMainTab === 'builder' && (
               <Popover>
@@ -315,6 +310,8 @@ export function CourseBuilderInsightsRoute({
                 onClick={() => {
                   const cb = (model.courseBuilderRef.current as any)?.saveAll
                   if (typeof cb === 'function') cb()
+                  const syncCb = (model.courseBuilderRef.current as any)?.syncToLive
+                  if (typeof syncCb === 'function') syncCb()
                   onSyncToLiveSession()
                 }}
               >

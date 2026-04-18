@@ -303,6 +303,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     },
     ref
   ) {
+    // Main section tabs (Live, Test PCI vs Builder)
+    const [mainTab, setMainTab] = useState<'live' | 'builder' | 'test-pci'>(
+      initialMainTab ?? 'builder'
+    )
+
     const resolvedInitialCourseBuilderNodes = useMemo(() => {
       return (initialLessons || []).map((lesson, idx) => ({
         id: `node-${lesson.id || idx}`,
@@ -324,7 +329,24 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       }
     }, [resolvedInitialCourseBuilderNodes])
     const lastInitialCourseBuilderNodesKeyRef = useRef<string | null>(null)
-    const [nodes, setCourseBuilderNodes] = useState<CourseBuilderNode[]>([])
+    const [builderNodes, setBuilderNodes] = useState<CourseBuilderNode[]>([])
+    const [liveNodes, setLiveNodes] = useState<CourseBuilderNode[]>([])
+
+    const nodes = useMemo(
+      () => (mainTab === 'live' ? liveNodes : builderNodes),
+      [mainTab, liveNodes, builderNodes]
+    )
+
+    const setCourseBuilderNodes = useCallback(
+      (updater: React.SetStateAction<CourseBuilderNode[]>) => {
+        if (mainTab === 'live') {
+          setLiveNodes(updater)
+        } else {
+          setBuilderNodes(updater)
+        }
+      },
+      [mainTab]
+    )
     const [expandedCourseBuilderNodes, setExpandedCourseBuilderNodes] = useState<Set<string>>(
       new Set()
     )
@@ -495,11 +517,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
     // Main builder tab (task vs assessment)
     const [mainBuilderTab, setMainBuilderTab] = useState<'task' | 'assessment'>('task')
-
-    // Main section tabs (Live, Test PCI vs Builder)
-    const [mainTab, setMainTab] = useState<'live' | 'builder' | 'test-pci'>(
-      initialMainTab ?? 'builder'
-    )
 
     useEffect(() => {
       onMainTabChange?.(mainTab)
@@ -993,8 +1010,18 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       return {
         save: doSave,
         saveAll: doSave,
+        syncToLive: () => setLiveNodes(builderNodes),
       }
-    })
+    }, [
+      nodes,
+      courseName,
+      coursePropsModal.name,
+      coursePropsModal.description,
+      devMode,
+      previewDifficulty,
+      onSave,
+      builderNodes,
+    ])
 
     const trackObjectUrl = useCallback((url: string) => {
       if (url.startsWith('blob:')) {
@@ -1609,9 +1636,11 @@ FEEDBACK: [your explanation]`
     useEffect(() => {
       if (lastInitialCourseBuilderNodesKeyRef.current === initialCourseBuilderNodesKey) return
       lastInitialCourseBuilderNodesKeyRef.current = initialCourseBuilderNodesKey
-      setCourseBuilderNodes(
-        normalizeCourseBuilderNodesForAssessments(resolvedInitialCourseBuilderNodes)
+      const normalized = normalizeCourseBuilderNodesForAssessments(
+        resolvedInitialCourseBuilderNodes
       )
+      setBuilderNodes(normalized)
+      setLiveNodes(normalized)
     }, [initialCourseBuilderNodesKey, resolvedInitialCourseBuilderNodes])
 
     // Helper to get effective value based on difficulty mode and preview
@@ -3401,16 +3430,29 @@ FEEDBACK: [your explanation]`
                   <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden pt-3">
                     {/* Header with Hide, Import, and +Lesson buttons */}
                     <div className="mb-3 flex items-center justify-between">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => setLeftPanelHidden(true)}
-                        title="Hide panel"
-                        aria-label="Hide panel"
-                      >
-                        <ChevronLeftIcon className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => setLeftPanelHidden(true)}
+                          title="Hide panel"
+                          aria-label="Hide panel"
+                        >
+                          <ChevronLeftIcon className="h-4 w-4" />
+                        </Button>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            'h-5 text-[10px] font-normal',
+                            mainTab === 'live' && 'border-blue-300 text-blue-600',
+                            mainTab === 'test-pci' && 'border-amber-300 text-amber-600',
+                            mainTab === 'builder' && 'border-emerald-300 text-emerald-600'
+                          )}
+                        >
+                          {mainTab === 'live' ? 'Live' : mainTab === 'test-pci' ? 'Test' : 'Build'}
+                        </Badge>
+                      </div>
                       <div className="flex items-center gap-1">
                         {!lessonBankMode && (
                           <Button

@@ -328,4 +328,5 @@ export interface CourseBuilderProps {
 
 export interface CourseBuilderRef {
   save: () => void
+  syncToLive?: () => void
 }
