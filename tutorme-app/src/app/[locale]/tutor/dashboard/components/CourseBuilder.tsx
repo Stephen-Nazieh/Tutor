@@ -518,7 +518,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       }
     }, [insightsProps, mainTab])
 
-    const [showInsightsPanel, setShowInsightsPanel] = useState(true)
+    const [showInsightsPanel, setShowInsightsPanel] = useState(false)
 
     // Insights panel state
     const [insightsTab, setInsightsTab] = useState<'analytics' | 'poll' | 'question' | 'chat'>(
@@ -4354,17 +4354,19 @@ FEEDBACK: [your explanation]`
                     <Card className="border-border bg-card flex h-full w-full min-w-0 flex-1 overflow-hidden rounded-2xl border shadow-xl ring-1 ring-black/5">
                       <CardContent className="flex h-full min-h-0 w-full flex-col overflow-hidden p-0 pt-4">
                         <CardTitle className="mb-3 flex items-center justify-between gap-2 px-4 text-base font-semibold">
-                          {insightsProps && countdownText && (
-                            <div
-                              className={cn(
-                                'flex items-center gap-1.5 text-xs font-medium',
-                                countdownOverdue ? 'text-orange-600' : 'text-emerald-600'
-                              )}
-                            >
-                              <Timer className="h-4 w-4" />
-                              <span>⏱ {countdownText}</span>
-                            </div>
-                          )}
+                          <div>
+                            {insightsProps && countdownText && (
+                              <div
+                                className={cn(
+                                  'flex items-center gap-1.5 text-xs font-medium',
+                                  countdownOverdue ? 'text-orange-600' : 'text-emerald-600'
+                                )}
+                              >
+                                <Timer className="h-4 w-4" />
+                                <span>⏱ {countdownText}</span>
+                              </div>
+                            )}
+                          </div>
                           {insightsProps && mainTab === 'live' && (
                             <Button
                               variant="outline"

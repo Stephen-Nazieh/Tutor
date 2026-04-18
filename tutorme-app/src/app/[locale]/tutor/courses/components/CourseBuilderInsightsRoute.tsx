@@ -60,6 +60,7 @@ type Props = UseCourseBuilderContentArgs & {
   setIsDeleteDialogOpen?: (v: boolean) => void
   onDeleteCourseConfirm?: () => void
   courses?: { id: string; name: string }[]
+  draftCourses?: { id: string; name: string }[]
   courseName?: string
   onCourseNameChange?: (name: string) => void
   saveMode?: 'live' | 'draft'
@@ -87,6 +88,7 @@ export function CourseBuilderInsightsRoute({
   setIsDeleteDialogOpen,
   onDeleteCourseConfirm,
   courses,
+  draftCourses,
   courseName,
   onCourseNameChange,
   saveMode,
@@ -204,30 +206,49 @@ export function CourseBuilderInsightsRoute({
             )}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            {activeMainTab !== 'live' &&
-              saveMode === 'draft' &&
-              courses &&
-              courses.length > 0 &&
-              insightsProps.onCourseChange && (
-                <>
-                  <BookOpen className="text-muted-foreground h-4 w-4" />
-                  <Select
-                    value={courseId ?? ''}
-                    onValueChange={v => insightsProps.onCourseChange?.(v)}
-                  >
-                    <SelectTrigger className="h-8 w-[160px] text-xs">
-                      <SelectValue placeholder="Select course" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {courses.map(c => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
+            {activeMainTab !== 'live' && saveMode === 'draft' && insightsProps.onCourseChange && (
+              <>
+                <BookOpen className="text-muted-foreground h-4 w-4" />
+                <Select
+                  value={courseId ?? ''}
+                  onValueChange={v => insightsProps.onCourseChange?.(v)}
+                >
+                  <SelectTrigger className="h-8 w-[160px] text-xs">
+                    <SelectValue placeholder="Select course" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courses && courses.length > 0 && (
+                      <SelectItem
+                        value="__live-header__"
+                        disabled
+                        className="text-muted-foreground text-xs font-semibold"
+                      >
+                        Live Courses
+                      </SelectItem>
+                    )}
+                    {courses?.map(c => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                    {draftCourses && draftCourses.length > 0 && (
+                      <SelectItem
+                        value="__draft-header__"
+                        disabled
+                        className="text-muted-foreground text-xs font-semibold"
+                      >
+                        Draft Courses
+                      </SelectItem>
+                    )}
+                    {draftCourses?.map(c => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
             {activeMainTab !== 'live' && onCourseNameChange && (
               <Input
                 value={courseName || ''}
@@ -238,6 +259,14 @@ export function CourseBuilderInsightsRoute({
             )}
             {activeMainTab === 'builder' &&
               saveMode === 'draft' &&
+              courseId &&
+              courseId !== 'insights-draft' && (
+                <Button size="sm" variant="outline" asChild>
+                  <Link href={`/tutor/courses/${courseId}`}>Publish</Link>
+                </Button>
+              )}
+            {activeMainTab === 'builder' &&
+              saveMode === 'live' &&
               courseId &&
               courseId !== 'insights-draft' && (
                 <Button size="sm" variant="outline" asChild>
@@ -319,11 +348,16 @@ export function CourseBuilderInsightsRoute({
                     {onCreateCourse && !insightsProps.sessionId && saveMode === 'draft' && (
                       <DropdownMenuItem onClick={onCreateCourse}>New Course</DropdownMenuItem>
                     )}
+                    {courseId && courseId !== 'insights-draft' && (
+                      <DropdownMenuItem asChild>
+                        <Link href={`/tutor/courses/${courseId}`}>Publish</Link>
+                      </DropdownMenuItem>
+                    )}
                     {onDeleteCourse &&
                       !insightsProps.sessionId &&
                       saveMode === 'draft' &&
-                      courses &&
-                      courses.length > 1 && (
+                      ((courses && courses.length > 1) ||
+                        (draftCourses && draftCourses.length > 1)) && (
                         <DropdownMenuItem
                           onClick={onDeleteCourse}
                           className="text-destructive focus:text-destructive focus:bg-destructive/10"

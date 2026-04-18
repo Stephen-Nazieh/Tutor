@@ -704,10 +704,10 @@ export default function TutorInsightsPage() {
         detachedCourseName={dataMode === 'detached' ? detachedCourseName : undefined}
         insightsProps={{
           courseId,
-          courses: activeCourses.map(course => ({ id: course.id, name: course.name })),
+          courses: courses.map(course => ({ id: course.id, name: course.name })),
           onCourseChange: value => {
             setCourseId(value)
-            const match = activeCourses.find(course => course.id === value)
+            const match = [...courses, ...draftCourses].find(course => course.id === value)
             if (match) {
               setDetachedCourseName(match.name)
             }
@@ -741,7 +741,8 @@ export default function TutorInsightsPage() {
         isDeleteDialogOpen={isDeleteDialogOpen}
         setIsDeleteDialogOpen={setIsDeleteDialogOpen}
         onDeleteCourseConfirm={handleDeleteCourse}
-        courses={activeCourses}
+        courses={courses}
+        draftCourses={draftCourses}
         courseName={courseName}
         onCourseNameChange={handleCourseNameChange}
         saveMode={saveMode}
