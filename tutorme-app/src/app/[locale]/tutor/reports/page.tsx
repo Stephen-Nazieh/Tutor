@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -90,9 +90,11 @@ interface Student {
   id: string
   name: string
   email?: string
-  averageScore: number
-  completionRate: number
-  cluster: string
+  averageScore?: number
+  completionRate?: number
+  cluster?: string
+  courseCount?: number
+  classCount?: number
 }
 
 interface SessionOverviewItem {
@@ -103,103 +105,23 @@ interface SessionOverviewItem {
   scheduledAt: string
   startedAt?: string | null
   endedAt?: string | null
+  courseId?: string | null
 }
 
-// Mock Courses Data
-const MOCK_COURSES = [
-  {
-    id: 'course-1',
-    name: 'Advanced Mathematics - Calculus',
-    description: 'Comprehensive calculus course covering limits, derivatives, and integrals',
-    categories: ['Mathematics'],
-    publishedAt: '2024-12-15T10:00:00Z',
-    sessions: 24,
-    tasks: 48,
-    assessments: 8,
-    avgScore: 78,
-    completionRate: 85,
-    type: 'course' as const,
-  },
-  {
-    id: 'course-2',
-    name: 'AP Physics 1 - Mechanics',
-    description: 'Preparation for AP Physics 1 exam with focus on mechanics',
-    categories: ['Physics'],
-    publishedAt: '2024-11-20T14:00:00Z',
-    sessions: 20,
-    tasks: 40,
-    assessments: 6,
-    avgScore: 82,
-    completionRate: 92,
-    type: 'course' as const,
-  },
-  {
-    id: 'course-3',
-    name: 'IELTS Academic Writing',
-    description: 'Intensive writing practice for IELTS Academic test',
-    categories: ['English'],
-    publishedAt: '2024-10-05T09:00:00Z',
-    sessions: 16,
-    tasks: 32,
-    assessments: 4,
-    avgScore: 75,
-    completionRate: 78,
-    type: 'course' as const,
-  },
-  {
-    id: 'class-1',
-    name: 'SAT Math Prep - December Intensive',
-    description: 'SAT Mathematics',
-    categories: ['Mathematics'],
-    publishedAt: '2024-12-01T08:00:00Z',
-    sessions: 1,
-    tasks: 12,
-    assessments: 2,
-    avgScore: 88,
-    completionRate: 95,
-    type: 'class' as const,
-  },
-  {
-    id: 'class-2',
-    name: 'IB Chemistry Lab Session',
-    description: 'Chemistry',
-    categories: ['Chemistry'],
-    publishedAt: '2024-11-15T13:00:00Z',
-    sessions: 1,
-    tasks: 8,
-    assessments: 1,
-    avgScore: 81,
-    completionRate: 88,
-    type: 'class' as const,
-  },
-]
+interface CourseItem {
+  id: string
+  name: string
+  description: string | null
+  categories: string[]
+  isPublished: boolean
+  createdAt: string
+  updatedAt: string
+}
 
-// Mock AI Chat Responses
-const MOCK_AI_RESPONSES: Record<string, string> = {
-  'average completion rate':
-    'Based on the data from "Advanced Mathematics - Calculus", the average completion rate is 85%. This is 5% higher than your other courses. The high completion rate is likely due to the structured lesson plan and regular assessments.',
-  'completion rate':
-    'Based on the data from "Advanced Mathematics - Calculus", the average completion rate is 85%. This is 5% higher than your other courses. The high completion rate is likely due to the structured lesson plan and regular assessments.',
-  'students struggling':
-    'I\'ve identified 3 students who may need additional support in "AP Physics 1 - Mechanics":\n\n1. Alex Johnson (avg score: 62%) - struggling with kinematics\n2. Maria Garcia (avg score: 58%) - needs help with force diagrams\n3. David Lee (avg score: 55%) - difficulty with energy conservation\n\nConsider offering extra office hours or supplementary materials on these topics.',
-  struggling:
-    'I\'ve identified 3 students who may need additional support in "AP Physics 1 - Mechanics":\n\n1. Alex Johnson (avg score: 62%) - struggling with kinematics\n2. Maria Garcia (avg score: 58%) - needs help with force diagrams\n3. David Lee (avg score: 55%) - difficulty with energy conservation\n\nConsider offering extra office hours or supplementary materials on these topics.',
-  'difficult topics':
-    'Analysis of assessment data for "IELTS Academic Writing" shows students are struggling most with:\n\n1. Task 2 Essay Structure (avg score: 68%)\n2. Academic Vocabulary Usage (avg score: 71%)\n3. Coherence and Cohesion (avg score: 73%)\n\nConsider adding more practice exercises in these areas.',
-  topics:
-    'Analysis of assessment data for "IELTS Academic Writing" shows students are struggling most with:\n\n1. Task 2 Essay Structure (avg score: 68%)\n2. Academic Vocabulary Usage (avg score: 71%)\n3. Coherence and Cohesion (avg score: 73%)\n\nConsider adding more practice exercises in these areas.',
-  improvements:
-    'Here are my recommendations for improving "Advanced Mathematics - Calculus":\n\n1. Add more interactive exercises between sessions 5-10 where the dropout rate is highest\n2. Consider breaking down the integration techniques module into smaller chunks\n3. Add formative assessments after each major concept\n4. Provide video solutions for the most challenging homework problems\n\nImplementing these could improve completion rates by an estimated 10-15%.',
-  recommendations:
-    'Here are my recommendations for improving "Advanced Mathematics - Calculus":\n\n1. Add more interactive exercises between sessions 5-10 where the dropout rate is highest\n2. Consider breaking down the integration techniques module into smaller chunks\n3. Add formative assessments after each major concept\n4. Provide video solutions for the most challenging homework problems\n\nImplementing these could improve completion rates by an estimated 10-15%.',
-  compare:
-    'Comparing your top 3 courses:\n\n1. SAT Math Prep - Highest avg score (88%), shortest duration\n2. AP Physics 1 - Best completion rate (92%), good engagement\n3. Advanced Mathematics - Most comprehensive, moderate scores\n\nThe SAT prep success suggests your intensive format works well. Consider applying similar pacing to other courses.',
-  performance:
-    'Overall course performance summary:\n\n• Total Students: 127 across all courses\n• Average Course Rating: 4.6/5.0\n• Most Popular: AP Physics 1 (45 enrollments)\n• Highest Completion: SAT Math Prep (95%)\n• Area for Improvement: IELTS Writing (78% completion)\n\nYour STEM courses are performing exceptionally well!',
-  enrollment:
-    'Recent enrollment trends:\n\n• December 2024: +23 new students (+18%)\n• November 2024: +19 new students (+15%)\n• October 2024: +15 new students (+12%)\n\nYour mathematics courses are driving most growth. Consider creating more advanced math content to capitalize on this trend.',
-  default:
-    "I've analyzed the data for this course. Here are some insights:\n\n• The course has a solid foundation with good student engagement\n• Assessment scores are within the expected range\n• Consider reviewing the materials for sessions where completion drops\n• Overall, this is performing at or above average compared to similar courses\n\nWould you like me to dive deeper into any specific aspect?",
+interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+  id: string
 }
 
 export default function TutorReports() {
@@ -213,92 +135,56 @@ export default function TutorReports() {
   const [isExporting, setIsExporting] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCluster, setSelectedCluster] = useState<string>('all')
-  const [globalAttentionStudents, setGlobalAttentionStudents] = useState<any[]>([])
-  const [globalAllStudents, setGlobalAllStudents] = useState<any[]>([])
+  const [globalAttentionStudents, setGlobalAttentionStudents] = useState<Student[]>([])
+  const [globalAllStudents, setGlobalAllStudents] = useState<Student[]>([])
   const [loadingGlobals, setLoadingGlobals] = useState(true)
 
-  // Mock data for initial load
-  const mockStudents: Student[] = [
-    {
-      id: '1',
-      name: 'Alice Johnson',
-      email: 'alice@example.com',
-      averageScore: 92,
-      completionRate: 95,
-      cluster: 'advanced',
-    },
-    {
-      id: '2',
-      name: 'Bob Smith',
-      email: 'bob@example.com',
-      averageScore: 78,
-      completionRate: 82,
-      cluster: 'intermediate',
-    },
-    {
-      id: '3',
-      name: 'Charlie Brown',
-      email: 'charlie@example.com',
-      averageScore: 65,
-      completionRate: 70,
-      cluster: 'intermediate',
-    },
-    {
-      id: '4',
-      name: 'Diana Prince',
-      email: 'diana@example.com',
-      averageScore: 88,
-      completionRate: 90,
-      cluster: 'advanced',
-    },
-    {
-      id: '5',
-      name: 'Eve Davis',
-      email: 'eve@example.com',
-      averageScore: 55,
-      completionRate: 60,
-      cluster: 'struggling',
-    },
-    {
-      id: '6',
-      name: 'Frank Wilson',
-      email: 'frank@example.com',
-      averageScore: 72,
-      completionRate: 75,
-      cluster: 'intermediate',
-    },
-    {
-      id: '7',
-      name: 'Grace Lee',
-      email: 'grace@example.com',
-      averageScore: 95,
-      completionRate: 98,
-      cluster: 'advanced',
-    },
-    {
-      id: '8',
-      name: 'Henry Taylor',
-      email: 'henry@example.com',
-      averageScore: 48,
-      completionRate: 55,
-      cluster: 'struggling',
-    },
-  ]
-
+  // Fetch real students and classes on mount
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      setStudents(mockStudents)
-      setAvailableClasses([
-        { id: 'class-1', title: 'Mathematics 101', categories: ['Math'], type: 'class' },
-        { id: 'course-1', title: 'Advanced Physics', categories: ['Physics'], type: 'course' },
-        { id: 'class-2', title: 'English Literature', categories: ['English'], type: 'class' },
-      ])
-      setGlobalAttentionStudents(mockStudents.filter(s => s.cluster === 'struggling'))
-      setGlobalAllStudents(mockStudents)
-      setLoadingGlobals(false)
-      setIsLoading(false)
-    }, 1000)
+    const loadData = async () => {
+      setLoadingGlobals(true)
+      try {
+        // Fetch students
+        const studentsRes = await fetch('/api/tutor/students', { credentials: 'include' })
+        let studentList: Student[] = []
+        if (studentsRes.ok) {
+          const data = await studentsRes.json()
+          studentList = (data.students ?? []).map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            email: s.email,
+            courseCount: s.courseCount ?? 0,
+            classCount: s.classCount ?? 0,
+            // We don't have real performance data yet; leave optional fields undefined
+          }))
+        }
+        setStudents(studentList)
+        setGlobalAllStudents(studentList)
+        setGlobalAttentionStudents(studentList.filter((s: Student) => s.cluster === 'struggling'))
+
+        // Fetch available classes for dropdown
+        const classesRes = await fetch('/api/tutor/classes?includeEnded=1', {
+          credentials: 'include',
+        })
+        if (classesRes.ok) {
+          const data = await classesRes.json()
+          const classes: ClassOption[] = (data.classes ?? []).map((c: any) => ({
+            id: c.id,
+            title: c.title,
+            categories: c.subject ? [c.subject] : [],
+            type: 'class',
+          }))
+          setAvailableClasses(classes)
+        }
+      } catch (error) {
+        console.error('Error loading report data:', error)
+      } finally {
+        setLoadingGlobals(false)
+        setIsLoading(false)
+      }
+    }
+
+    loadData()
   }, [])
 
   // Fetch report data when selected class changes
@@ -311,76 +197,36 @@ export default function TutorReports() {
     const fetchReportData = async () => {
       setIsLoading(true)
       try {
-        // Mock data
+        // Build report from real student data (performance metrics not yet available)
+        const relevantStudents = students.length > 0 ? students : []
         const mockData: ClassReportData = {
           classInfo: {
             id: selectedClassId,
-            totalStudents: mockStudents.length,
-            averageScore: Math.round(
-              mockStudents.reduce((acc, s) => acc + s.averageScore, 0) / mockStudents.length
-            ),
+            totalStudents: relevantStudents.length,
+            averageScore: 0,
           },
           charts: {
             scoreDistribution: [
-              { range: '0-59', count: mockStudents.filter(s => s.averageScore < 60).length },
-              {
-                range: '60-69',
-                count: mockStudents.filter(s => s.averageScore >= 60 && s.averageScore < 70).length,
-              },
-              {
-                range: '70-79',
-                count: mockStudents.filter(s => s.averageScore >= 70 && s.averageScore < 80).length,
-              },
-              {
-                range: '80-89',
-                count: mockStudents.filter(s => s.averageScore >= 80 && s.averageScore < 90).length,
-              },
-              { range: '90-100', count: mockStudents.filter(s => s.averageScore >= 90).length },
+              { range: '0-59', count: 0 },
+              { range: '60-69', count: 0 },
+              { range: '70-79', count: 0 },
+              { range: '80-89', count: 0 },
+              { range: '90-100', count: 0 },
             ],
             clusterDistribution: [
-              {
-                name: 'Advanced',
-                count: mockStudents.filter(s => s.cluster === 'advanced').length,
-                color: '#22c55e',
-              },
-              {
-                name: 'Intermediate',
-                count: mockStudents.filter(s => s.cluster === 'intermediate').length,
-                color: '#eab308',
-              },
-              {
-                name: 'Struggling',
-                count: mockStudents.filter(s => s.cluster === 'struggling').length,
-                color: '#ef4444',
-              },
+              { name: 'Advanced', count: 0, color: '#22c55e' },
+              { name: 'Intermediate', count: 0, color: '#eab308' },
+              { name: 'Struggling', count: 0, color: '#ef4444' },
             ],
           },
-          topStudents: mockStudents
-            .sort((a, b) => b.averageScore - a.averageScore)
-            .slice(0, 5)
-            .map(s => ({
-              id: s.id,
-              name: s.name,
-              averageScore: s.averageScore,
-              completionRate: s.completionRate,
-            })),
-          studentsNeedingAttention: mockStudents
-            .filter(s => s.averageScore < 60 || s.cluster === 'struggling')
-            .slice(0, 5)
-            .map(s => ({
-              id: s.id,
-              name: s.name,
-              averageScore: s.averageScore,
-              issue: s.averageScore < 60 ? 'Low scores' : 'Needs support',
-            })),
+          topStudents: [],
+          studentsNeedingAttention: [],
           summary: {
-            totalStudents: mockStudents.length,
-            averageScore: Math.round(
-              mockStudents.reduce((acc, s) => acc + s.averageScore, 0) / mockStudents.length
-            ),
-            advancedCount: mockStudents.filter(s => s.cluster === 'advanced').length,
-            intermediateCount: mockStudents.filter(s => s.cluster === 'intermediate').length,
-            strugglingCount: mockStudents.filter(s => s.cluster === 'struggling').length,
+            totalStudents: relevantStudents.length,
+            averageScore: 0,
+            advancedCount: 0,
+            intermediateCount: 0,
+            strugglingCount: 0,
           },
         }
         setClassData(mockData)
@@ -392,7 +238,7 @@ export default function TutorReports() {
     }
 
     fetchReportData()
-  }, [selectedClassId])
+  }, [selectedClassId, students])
 
   const handleExportReport = async (format: 'pdf' | 'excel' | 'csv') => {
     setIsExporting(true)
@@ -409,12 +255,12 @@ export default function TutorReports() {
   const filteredStudents = students.filter(student => {
     const matchesSearch =
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.email?.toLowerCase().includes(searchQuery.toLowerCase())
+      (student.email?.toLowerCase() ?? '').includes(searchQuery.toLowerCase())
     const matchesCluster = selectedCluster === 'all' || student.cluster === selectedCluster
     return matchesSearch && matchesCluster
   })
 
-  const getClusterBadgeClass = (cluster: string) => {
+  const getClusterBadgeClass = (cluster?: string) => {
     switch (cluster) {
       case 'advanced':
         return 'bg-green-100 text-green-700 hover:bg-green-100'
@@ -427,7 +273,7 @@ export default function TutorReports() {
     }
   }
 
-  const getClusterLabel = (cluster: string) => {
+  const getClusterLabel = (cluster?: string) => {
     switch (cluster) {
       case 'advanced':
         return 'Advanced'
@@ -436,11 +282,11 @@ export default function TutorReports() {
       case 'struggling':
         return 'Needs Support'
       default:
-        return cluster
+        return 'Not Assessed'
     }
   }
 
-  if (isLoading && availableClasses.length === 0) {
+  if (isLoading && availableClasses.length === 0 && loadingGlobals) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
@@ -557,40 +403,48 @@ export default function TutorReports() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {filteredStudents.map(student => (
-                    <div
-                      key={student.id}
-                      className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-gray-50"
-                    >
-                      <div className="flex items-center gap-4">
-                        <Avatar>
-                          <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{student.name}</p>
-                          <p className="text-sm text-gray-500">{student.email}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className="text-sm text-gray-500">Average Score</p>
-                          <p className="font-medium">{student.averageScore}%</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm text-gray-500">Completion</p>
-                          <p className="font-medium">{student.completionRate}%</p>
-                        </div>
-                        <Badge className={getClusterBadgeClass(student.cluster)}>
-                          {getClusterLabel(student.cluster)}
-                        </Badge>
-                        <Link href={`/tutor/reports/${student.id}`}>
-                          <Button variant="ghost" size="icon">
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      </div>
+                  {filteredStudents.length === 0 ? (
+                    <div className="py-10 text-center text-sm text-gray-500">
+                      {searchQuery ? 'No students match your search.' : 'No students enrolled yet.'}
                     </div>
-                  ))}
+                  ) : (
+                    filteredStudents.map(student => (
+                      <div
+                        key={student.id}
+                        className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-gray-50"
+                      >
+                        <div className="flex items-center gap-4">
+                          <Avatar>
+                            <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{student.name}</p>
+                            <p className="text-sm text-gray-500">{student.email}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <p className="text-sm text-gray-500">Courses</p>
+                            <p className="font-medium">{student.courseCount ?? 0}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm text-gray-500">Classes</p>
+                            <p className="font-medium">{student.classCount ?? 0}</p>
+                          </div>
+                          {student.cluster && (
+                            <Badge className={getClusterBadgeClass(student.cluster)}>
+                              {getClusterLabel(student.cluster)}
+                            </Badge>
+                          )}
+                          <Link href={`/tutor/reports/${student.id}`}>
+                            <Button variant="ghost" size="icon">
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -609,21 +463,247 @@ export default function TutorReports() {
   )
 }
 
+// Inline AI Chat for course insights
+function CourseAIChat({
+  course,
+  sessions,
+  students,
+}: {
+  course: CourseItem | null
+  sessions: SessionOverviewItem[]
+  students: Student[]
+}) {
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [input, setInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, isLoading])
+
+  const handleSend = useCallback(async () => {
+    const text = input.trim()
+    if (!text || isLoading) return
+
+    const userMsg: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: text,
+    }
+    setMessages(prev => [...prev, userMsg])
+    setInput('')
+    setIsLoading(true)
+
+    try {
+      const courseSessions = sessions.filter(
+        s => s.courseId === course?.id || s.subject === course?.name
+      )
+
+      const contextPayload = {
+        courseName: course?.name,
+        courseDescription: course?.description,
+        courseCategory: course?.categories?.[0],
+        sessionCount: courseSessions.length,
+        sessions: courseSessions.map(s => ({
+          title: s.title,
+          status: s.status,
+          scheduledAt: s.scheduledAt,
+        })),
+        enrolledStudents: students.map(s => ({
+          name: s.name,
+          courses: s.courseCount ?? 0,
+        })),
+      }
+
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          subject: course?.categories?.[0] ?? 'general',
+          context: {
+            ...contextPayload,
+            previousMessages: [...messages, userMsg].slice(-6).map(m => ({
+              role: m.role,
+              content: m.content,
+            })),
+          },
+        }),
+      })
+
+      const data = await res.json()
+      const assistantMsg: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content:
+          data.response ||
+          'I apologize, but I am having trouble responding right now. Please try again.',
+      }
+      setMessages(prev => [...prev, assistantMsg])
+    } catch {
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: 'I apologize, but I am having trouble responding right now. Please try again.',
+        },
+      ])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [input, isLoading, course, sessions, students, messages])
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault()
+        handleSend()
+      }
+    },
+    [handleSend]
+  )
+
+  return (
+    <Card className="border-2 border-gray-400 shadow-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Bot className="h-5 w-5 text-purple-500" />
+          Ask AI about this course
+        </CardTitle>
+        <CardDescription>
+          Ask questions about student performance, course insights, or recommendations.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {/* Chat History */}
+          {messages.length > 0 && (
+            <ScrollArea className="h-[300px] rounded-lg border bg-gray-50 p-4">
+              <div className="space-y-4">
+                {messages.map(msg => (
+                  <div
+                    key={msg.id}
+                    className={cn(
+                      'flex gap-3',
+                      msg.role === 'user' ? 'justify-end' : 'justify-start'
+                    )}
+                  >
+                    {msg.role === 'assistant' && (
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-purple-100">
+                        <Bot className="h-4 w-4 text-purple-600" />
+                      </div>
+                    )}
+                    <div
+                      className={cn(
+                        'max-w-[80%] rounded-lg p-3 text-sm',
+                        msg.role === 'user' ? 'bg-blue-500 text-white' : 'border bg-white shadow-sm'
+                      )}
+                    >
+                      <div className="whitespace-pre-line">{msg.content}</div>
+                    </div>
+                    {msg.role === 'user' && (
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-100">
+                        <User className="h-4 w-4 text-blue-600" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex gap-3">
+                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-purple-100">
+                      <Bot className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <div className="rounded-lg border bg-white p-3 shadow-sm">
+                      <div className="flex gap-1">
+                        <div className="h-2 w-2 animate-bounce rounded-full bg-purple-400" />
+                        <div className="h-2 w-2 animate-bounce rounded-full bg-purple-400 delay-100" />
+                        <div className="h-2 w-2 animate-bounce rounded-full bg-purple-400 delay-200" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+          )}
+
+          {/* Input Area */}
+          <div className="flex gap-2">
+            <Input
+              placeholder="e.g., Which students are struggling with this course?"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+            <Button onClick={handleSend} disabled={!input.trim() || isLoading}>
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Example Questions */}
+          <div className="text-xs text-gray-500">
+            Example questions:
+            <div className="mt-2 flex flex-wrap gap-2">
+              {[
+                'What is the average completion rate?',
+                'Which students are struggling?',
+                'Recommend improvements',
+                'Compare with other courses',
+              ].map(q => (
+                <button
+                  key={q}
+                  onClick={() => setInput(q)}
+                  className="rounded bg-gray-100 px-2 py-1 text-xs transition-colors hover:bg-gray-200"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 // Courses & Classes Tab Component
 function CoursesAndClassesTab() {
-  const [courses] = useState(MOCK_COURSES)
+  const [courses, setCourses] = useState<CourseItem[]>([])
+  const [coursesLoading, setCoursesLoading] = useState(true)
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
-  const [chatQuery, setChatQuery] = useState('')
-  const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'ai'; message: string }>>(
-    []
-  )
-  const [isAiTyping, setIsAiTyping] = useState(false)
   const [sessionsOverview, setSessionsOverview] = useState<SessionOverviewItem[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
+  const [students, setStudents] = useState<Student[]>([])
 
   const selectedCourse = courses.find(c => c.id === selectedCourseId)
 
   useEffect(() => {
+    const loadCourses = async () => {
+      setCoursesLoading(true)
+      try {
+        const res = await fetch('/api/tutor/courses', { credentials: 'include' })
+        if (!res.ok) throw new Error('Failed to load courses')
+        const data = await res.json()
+        const allCourses: CourseItem[] = (data.courses ?? []).map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          description: c.description,
+          categories: Array.isArray(c.categories) ? c.categories : [],
+          isPublished: c.isPublished,
+          createdAt: c.createdAt,
+          updatedAt: c.updatedAt,
+        }))
+        // Filter to published courses only
+        setCourses(allCourses.filter(c => c.isPublished))
+      } catch {
+        setCourses([])
+      } finally {
+        setCoursesLoading(false)
+      }
+    }
+
     const loadSessionsOverview = async () => {
       setSessionsLoading(true)
       try {
@@ -637,7 +717,29 @@ function CoursesAndClassesTab() {
         setSessionsLoading(false)
       }
     }
+
+    const loadStudents = async () => {
+      try {
+        const res = await fetch('/api/tutor/students', { credentials: 'include' })
+        if (!res.ok) throw new Error('Failed to load students')
+        const data = await res.json()
+        setStudents(
+          (data.students ?? []).map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            email: s.email,
+            courseCount: s.courseCount ?? 0,
+            classCount: s.classCount ?? 0,
+          }))
+        )
+      } catch {
+        setStudents([])
+      }
+    }
+
+    loadCourses()
     loadSessionsOverview()
+    loadStudents()
   }, [])
 
   const formatDate = (dateString: string) => {
@@ -648,34 +750,11 @@ function CoursesAndClassesTab() {
     })
   }
 
-  const handleAskQuestion = async () => {
-    if (!chatQuery.trim() || !selectedCourse) return
-
-    const question = chatQuery.trim()
-    setChatHistory(prev => [...prev, { role: 'user', message: question }])
-    setChatQuery('')
-    setIsAiTyping(true)
-
-    // Simulate AI processing delay
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
-    // Find matching response or use default
-    const lowerQuestion = question.toLowerCase()
-    let response = MOCK_AI_RESPONSES.default
-
-    for (const [key, value] of Object.entries(MOCK_AI_RESPONSES)) {
-      if (key !== 'default' && lowerQuestion.includes(key)) {
-        response = value
-        break
-      }
-    }
-
-    // Replace course name in response
-    response = response.replace(/"[^"]+"/, `"${selectedCourse.name}"`)
-
-    setChatHistory(prev => [...prev, { role: 'ai', message: response }])
-    setIsAiTyping(false)
-  }
+  const courseSessions = selectedCourse
+    ? sessionsOverview.filter(
+        s => s.courseId === selectedCourse.id || s.subject === selectedCourse.name
+      )
+    : []
 
   return (
     <TabsContent value="overview" className="space-y-6">
@@ -690,35 +769,43 @@ function CoursesAndClassesTab() {
               </CardDescription>
             </CardHeader>
             <CardContent className="max-h-[500px] space-y-2 overflow-y-auto">
-              {courses.map(course => (
-                <div
-                  key={course.id}
-                  className={cn(
-                    'cursor-pointer rounded border p-3 transition-colors',
-                    selectedCourseId === course.id
-                      ? 'border-blue-300 bg-blue-50'
-                      : 'hover:bg-gray-50'
-                  )}
-                  onClick={() => {
-                    setSelectedCourseId(course.id === selectedCourseId ? null : course.id)
-                    setChatHistory([]) // Clear chat when switching courses
-                  }}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="font-medium">{course.name}</div>
-                    <Badge variant={course.type === 'class' ? 'default' : 'secondary'}>
-                      {course.type === 'class' ? 'Class' : 'Course'}
-                    </Badge>
-                  </div>
-                  <div className="text-muted-foreground text-sm">
-                    {course.description || (course.categories || [])[0] || 'Untitled'}
-                  </div>
-                  <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
-                    <Calendar className="h-3 w-3" />
-                    Published: {formatDate(course.publishedAt)}
-                  </div>
+              {coursesLoading ? (
+                <div className="flex items-center justify-center py-10 text-sm text-gray-500">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading courses...
                 </div>
-              ))}
+              ) : courses.length === 0 ? (
+                <div className="py-10 text-center text-sm text-gray-500">
+                  No published courses found.
+                </div>
+              ) : (
+                courses.map(course => (
+                  <div
+                    key={course.id}
+                    className={cn(
+                      'cursor-pointer rounded border p-3 transition-colors',
+                      selectedCourseId === course.id
+                        ? 'border-blue-300 bg-blue-50'
+                        : 'hover:bg-gray-50'
+                    )}
+                    onClick={() => {
+                      setSelectedCourseId(course.id === selectedCourseId ? null : course.id)
+                    }}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="font-medium">{course.name}</div>
+                      <Badge variant="secondary">Course</Badge>
+                    </div>
+                    <div className="text-muted-foreground text-sm">
+                      {course.description || course.categories[0] || 'Untitled'}
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                      <Calendar className="h-3 w-3" />
+                      Published: {formatDate(course.createdAt)}
+                    </div>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
 
@@ -784,140 +871,25 @@ function CoursesAndClassesTab() {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-lg bg-gray-50 p-3">
                       <p className="text-xs text-gray-500">Date Published</p>
-                      <p className="font-medium">{formatDate(selectedCourse.publishedAt)}</p>
+                      <p className="font-medium">{formatDate(selectedCourse.createdAt)}</p>
                     </div>
                     <div className="rounded-lg bg-gray-50 p-3">
                       <p className="text-xs text-gray-500">No. of Sessions</p>
-                      <p className="font-medium">{selectedCourse.sessions}</p>
+                      <p className="font-medium">{courseSessions.length}</p>
                     </div>
                     <div className="rounded-lg bg-gray-50 p-3">
-                      <p className="text-xs text-gray-500">Task Completion Rate</p>
-                      <p className="font-medium">{selectedCourse.completionRate}%</p>
+                      <p className="text-xs text-gray-500">Category</p>
+                      <p className="font-medium">{selectedCourse.categories[0] || 'N/A'}</p>
                     </div>
                     <div className="rounded-lg bg-gray-50 p-3">
-                      <p className="text-xs text-gray-500">Number of Tasks</p>
-                      <p className="font-medium">{selectedCourse.tasks}</p>
-                    </div>
-                    <div className="rounded-lg bg-gray-50 p-3">
-                      <p className="text-xs text-gray-500">Number of Assessments</p>
-                      <p className="font-medium">{selectedCourse.assessments}</p>
-                    </div>
-                    <div className="rounded-lg bg-gray-50 p-3">
-                      <p className="text-xs text-gray-500">Avg Score on Assessments</p>
-                      <p className="font-medium">{selectedCourse.avgScore}%</p>
+                      <p className="text-xs text-gray-500">Enrolled Students</p>
+                      <p className="font-medium">{students.length}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* AI Chat Area */}
-              <Card className="border-2 border-gray-400 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Bot className="h-5 w-5 text-purple-500" />
-                    Ask AI about this {selectedCourse.type}
-                  </CardTitle>
-                  <CardDescription>
-                    Ask questions about student performance, course insights, or recommendations.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {/* Chat History */}
-                    {chatHistory.length > 0 && (
-                      <ScrollArea className="h-[300px] rounded-lg border bg-gray-50 p-4">
-                        <div className="space-y-4">
-                          {chatHistory.map((msg, idx) => (
-                            <div
-                              key={idx}
-                              className={cn(
-                                'flex gap-3',
-                                msg.role === 'user' ? 'justify-end' : 'justify-start'
-                              )}
-                            >
-                              {msg.role === 'ai' && (
-                                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-purple-100">
-                                  <Bot className="h-4 w-4 text-purple-600" />
-                                </div>
-                              )}
-                              <div
-                                className={cn(
-                                  'max-w-[80%] rounded-lg p-3 text-sm',
-                                  msg.role === 'user'
-                                    ? 'bg-blue-500 text-white'
-                                    : 'border bg-white shadow-sm'
-                                )}
-                              >
-                                <div className="whitespace-pre-line">{msg.message}</div>
-                              </div>
-                              {msg.role === 'user' && (
-                                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-100">
-                                  <User className="h-4 w-4 text-blue-600" />
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                          {isAiTyping && (
-                            <div className="flex gap-3">
-                              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-purple-100">
-                                <Bot className="h-4 w-4 text-purple-600" />
-                              </div>
-                              <div className="rounded-lg border bg-white p-3 shadow-sm">
-                                <div className="flex gap-1">
-                                  <div className="h-2 w-2 animate-bounce rounded-full bg-purple-400" />
-                                  <div className="h-2 w-2 animate-bounce rounded-full bg-purple-400 delay-100" />
-                                  <div className="h-2 w-2 animate-bounce rounded-full bg-purple-400 delay-200" />
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </ScrollArea>
-                    )}
-
-                    {/* Input Area */}
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="e.g., Which students are struggling with this course?"
-                        value={chatQuery}
-                        onChange={e => setChatQuery(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter' && chatQuery.trim()) {
-                            handleAskQuestion()
-                          }
-                        }}
-                      />
-                      <Button
-                        onClick={handleAskQuestion}
-                        disabled={!chatQuery.trim() || isAiTyping}
-                      >
-                        <Send className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    {/* Example Questions */}
-                    <div className="text-xs text-gray-500">
-                      Example questions:
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {[
-                          'What is the average completion rate?',
-                          'Which students are struggling?',
-                          'Recommend improvements',
-                          'Compare with other courses',
-                        ].map(q => (
-                          <button
-                            key={q}
-                            onClick={() => setChatQuery(q)}
-                            className="rounded bg-gray-100 px-2 py-1 text-xs transition-colors hover:bg-gray-200"
-                          >
-                            {q}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <CourseAIChat course={selectedCourse} sessions={courseSessions} students={students} />
             </>
           ) : (
             <Card className="flex h-full min-h-[400px] items-center justify-center border-2 border-gray-400 shadow-sm">

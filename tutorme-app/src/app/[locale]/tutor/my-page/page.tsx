@@ -180,20 +180,10 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
     for (const course of courses) {
       if (!course.isPublished) {
         unpublished.push(course)
-      } else if (
-        course.hasSessions &&
-        course.hasStudents &&
-        course.lastSessionDate &&
-        !course.upcomingSessionsCount
-      ) {
-        // Course was published, had sessions and students, but no upcoming sessions
-        // Check if last session has ended (lastSessionDate is in the past)
-        const lastSession = new Date(course.lastSessionDate)
-        if (lastSession < new Date()) {
-          catalogued.push(course)
-        } else {
-          active.push(course)
-        }
+      } else if (!course.upcomingSessionsCount && (course.hasSessions || course.hasStudents)) {
+        // Course was published and had sessions or students in the past,
+        // but has no upcoming sessions
+        catalogued.push(course)
       } else {
         active.push(course)
       }

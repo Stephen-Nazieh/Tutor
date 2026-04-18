@@ -465,7 +465,7 @@ function TutorDashboardContent() {
       if (res.ok) {
         setCourseSessions(prev =>
           prev.map(s =>
-            s.id === sessionId ? { ...s, status: 'ENDED', endedAt: new Date().toISOString() } : s
+            s.id === sessionId ? { ...s, status: 'ended', endedAt: new Date().toISOString() } : s
           )
         )
         toast.success('Session cancelled successfully')
@@ -790,9 +790,9 @@ function TutorDashboardContent() {
                 <ScrollArea className="max-h-[400px]">
                   <div className="space-y-3 pr-4">
                     {courseSessions.map(session => {
-                      const isScheduled = session.status === 'SCHEDULED'
-                      const isActive = session.status === 'ACTIVE'
-                      const isEnded = session.status === 'ENDED'
+                      const isScheduled = session.status === 'scheduled'
+                      const isActive = session.status === 'active'
+                      const isEnded = session.status === 'ended'
                       const canCancel = isScheduled || isActive
 
                       return (

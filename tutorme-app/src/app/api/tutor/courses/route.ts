@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course as courseTable, courseLesson } from '@/lib/db/schema'
+import { course as courseTable, courseLesson, liveSession, courseEnrollment } from '@/lib/db/schema'
 import { CreateCourseSchema } from '@/lib/validation/schemas'
 import { ZodError } from 'zod'
+import { sql, inArray } from 'drizzle-orm'
 
 export const GET = withAuth(
   async (_req: NextRequest, session) => {
@@ -23,17 +24,60 @@ export const GET = withAuth(
         },
       })
 
+      const courseIds = coursesData.map(c => c.courseId)
+
+      const [sessionAgg, enrollmentAgg] = await Promise.all([
+        courseIds.length > 0
+          ? drizzleDb
+              .select({
+                courseId: liveSession.courseId,
+                hasSessions: sql<boolean>`count(*) > 0`.as('hasSessions'),
+                lastSessionDate: sql<Date | null>`max(${liveSession.scheduledAt})`.as(
+                  'lastSessionDate'
+                ),
+                upcomingSessionsCount:
+                  sql<number>`count(*) filter (where ${liveSession.scheduledAt} > now())`.as(
+                    'upcomingSessionsCount'
+                  ),
+              })
+              .from(liveSession)
+              .where(inArray(liveSession.courseId, courseIds))
+              .groupBy(liveSession.courseId)
+          : Promise.resolve([]),
+        courseIds.length > 0
+          ? drizzleDb
+              .select({
+                courseId: courseEnrollment.courseId,
+                hasStudents: sql<boolean>`count(*) > 0`.as('hasStudents'),
+              })
+              .from(courseEnrollment)
+              .where(inArray(courseEnrollment.courseId, courseIds))
+              .groupBy(courseEnrollment.courseId)
+          : Promise.resolve([]),
+      ])
+
+      const sessionMap = new Map(sessionAgg.map(s => [s.courseId, s]))
+      const enrollmentMap = new Map(enrollmentAgg.map(e => [e.courseId, e]))
+
       // Map courseId to id for frontend compatibility
-      const courses = coursesData.map(c => ({
-        id: c.courseId,
-        name: c.name,
-        description: c.description,
-        categories: c.categories,
-        isPublished: c.isPublished,
-        isLiveOnline: c.isLiveOnline,
-        createdAt: c.createdAt,
-        updatedAt: c.updatedAt,
-      }))
+      const courses = coursesData.map(c => {
+        const sessionMeta = sessionMap.get(c.courseId)
+        const enrollmentMeta = enrollmentMap.get(c.courseId)
+        return {
+          id: c.courseId,
+          name: c.name,
+          description: c.description,
+          categories: c.categories,
+          isPublished: c.isPublished,
+          isLiveOnline: c.isLiveOnline,
+          createdAt: c.createdAt,
+          updatedAt: c.updatedAt,
+          hasSessions: sessionMeta?.hasSessions ?? false,
+          hasStudents: enrollmentMeta?.hasStudents ?? false,
+          lastSessionDate: sessionMeta?.lastSessionDate ?? null,
+          upcomingSessionsCount: sessionMeta?.upcomingSessionsCount ?? 0,
+        }
+      })
 
       return NextResponse.json({ courses })
     } catch (error) {
