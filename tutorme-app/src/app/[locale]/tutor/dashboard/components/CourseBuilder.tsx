@@ -3360,11 +3360,11 @@ FEEDBACK: [your explanation]`
 
               {/* Toolbar — aligned with the two panels below */}
               <div className="flex gap-4">
-                <div className="w-[22rem] shrink-0">
+                <div className="w-64 shrink-0">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-1 rounded-full border-0 bg-teal-400 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500"
+                    className="w-full gap-1 rounded-full border-0 bg-teal-400 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500"
                     onClick={() => {
                       const name = prompt('Folder name:')
                       if (name && name.trim()) {
@@ -3393,7 +3393,7 @@ FEEDBACK: [your explanation]`
               {/* Body: folders left, assets right — both as white rounded cards */}
               <div className="flex flex-1 gap-4 overflow-hidden">
                 {/* Folder list card */}
-                <div className="flex w-[22rem] shrink-0 flex-col rounded-xl bg-white p-3 shadow-sm">
+                <div className="flex w-64 shrink-0 flex-col rounded-xl bg-white p-3 shadow-sm">
                   <ScrollArea className="flex-1">
                     <div className="space-y-1">
                       {assetFolders.map(folder => (
