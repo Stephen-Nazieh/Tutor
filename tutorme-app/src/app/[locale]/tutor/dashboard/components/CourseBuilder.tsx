@@ -1070,6 +1070,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         save: doSave,
         saveAll: doSave,
         syncToLive: () => setLiveNodes(builderNodes),
+        getLessons: () => nodes.map(n => n.lessons[0]),
       }
     }, [
       nodes,
