@@ -1,428 +1,304 @@
-# Solocorn - AI Coding Agent Guide
+# Solocorn — AI Coding Agent Guide
+
+> **Last updated:** 2026-04-19  
+> **Covers:** `tutorme-app/` (main Next.js app), `landing-page/` (Vite landing page), `services/adk/` (Google ADK microservice)
+
+---
 
 ## Project Overview
 
-Solocorn (also known as CogniClass) is an AI-human hybrid tutoring platform that combines 24/7 AI-powered Socratic tutoring with live group clinics led by human tutors. The platform supports multiple user roles (Student, Tutor, Parent, Admin) and is designed for global markets with focus on Chinese market adaptation.
+Solocorn (also marketed as CogniClass) is an AI-human hybrid tutoring platform. It provides 24/7 Socratic AI tutoring alongside live group clinics led by human tutors. The platform supports four user roles — **Student**, **Tutor**, **Parent**, and **Admin** — and is built for global deployment with particular focus on Chinese market adaptation.
 
-**Core Value Proposition:**
-- AI tutors use Socratic method (never give direct answers, guide students to discover)
-- Live clinics with 1 tutor managing up to 50 students with real-time AI monitoring
-- Video learning with inline quizzes and AI-generated assessments
-- Gamification system with missions, achievements, badges, and leaderboards
-- Multi-role dashboards: Student, Tutor, Parent, and Admin
+**Core capabilities**
+- AI tutors use the Socratic method (never give direct answers; guide students to discover).
+- Live clinics: 1 tutor can manage up to 50 students with real-time AI monitoring.
+- Video learning with inline quizzes and AI-generated assessments.
+- Gamification: XP, missions, achievements, badges, and leaderboards.
+- Multi-role dashboards with distinct feature sets per role.
+- Collaborative whiteboard (tldraw + Yjs + Fabric.js).
+- Real-time polling, chat, and presence via Socket.io.
+- Payment processing through Airwallex, Hitpay, WeChat Pay, and Alipay.
 
-**Target Ratio:** 1 tutor : 50 students  
-**Primary Languages:** English (en) with Chinese (zh-CN) and 8 other languages  
-**Default Port:** 3003
+**Target tutor-to-student ratio:** 1 : 50  
+**Supported locales:** `en` (default), `zh-CN`, `es`, `fr`, `de`, `ja`, `ko`, `pt`, `ru`, `ar`  
+**Main app default port:** `3003`  
+**Landing page default port:** `3000`
+
+---
+
+## Monorepo Layout
+
+```
+/workspaces/Tutor/
+│
+├── tutorme-app/              # Main Next.js application (all backend + primary frontend)
+│   ├── src/
+│   │   ├── app/              # Next.js App Router
+│   │   │   ├── [locale]/     # i18n route segments (pages per role)
+│   │   │   │   ├── student/
+│   │   │   │   ├── tutor/
+│   │   │   │   ├── parent/
+│   │   │   │   ├── admin/
+│   │   │   │   ├── login/
+│   │   │   │   ├── register/
+│   │   │   │   ├── onboarding/
+│   │   │   │   ├── payment/
+│   │   │   │   └── ...
+│   │   │   └── api/          # REST API routes (hundreds of endpoints)
+│   │   ├── components/       # React components (feature-organized)
+│   │   ├── lib/              # Business logic, utilities, AI, db, security, etc.
+│   │   ├── hooks/            # Custom React hooks
+│   │   ├── stores/           # Zustand client stores
+│   │   ├── __tests__/        # Unit, integration, accessibility tests
+│   │   └── i18n/             # next-intl configuration
+│   ├── e2e/                  # Playwright E2E specs
+│   ├── drizzle/              # Drizzle migration files
+│   ├── messages/             # next-intl JSON translations (en.json, zh-CN.json, ...)
+│   ├── scripts/              # Build & deployment scripts (build-sw.js, migrate.js, load/)
+│   ├── server.ts             # Custom Next.js HTTP server with Socket.io
+│   └── package.json          # Node scripts & dependencies
+│
+├── landing-page/             # Vite + React + TypeScript marketing site
+│   ├── src/
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── tsconfig.json
+│
+└── services/adk/             # Google ADK microservice (Express + TypeScript)
+    ├── src/
+    ├── package.json
+    └── Dockerfile
+```
 
 ---
 
 ## Technology Stack
 
-| Layer | Technology | Version | Purpose |
-|-------|------------|---------|---------|
-| **Frontend** | Next.js | 16.1.6 (App Router) | Web application framework |
-| **UI** | React | 18 | Component library |
-| **Language** | TypeScript | 5.9.3 | Type-safe development |
-| **Styling** | Tailwind CSS | 3.4.1 | Utility-first CSS |
-| **Components** | shadcn/ui + Radix UI | latest | Headless UI components |
-| **Backend** | Next.js API Routes + Node.js | 16.1.6 | Server-side logic |
-| **Real-time** | Socket.io | 4.8.3 | WebSocket connections |
-| **ORM** | Drizzle ORM | 0.38.x | Type-safe SQL queries |
-| **Database** | PostgreSQL | 16 | Primary data store |
-| **Connection Pool** | PgBouncer | latest | Connection pooling |
-| **Cache** | Redis | 7 | Sessions, caching, real-time state |
-| **Auth** | NextAuth.js | 4.24.13 | JWT-based authentication |
-| **i18n** | next-intl | 4.8.3 | Internationalization (10 languages) |
-| **Video** | Daily.co | 0.87.0 | Video conferencing |
-| **Whiteboard** | tldraw + Yjs + Fabric.js | - | Collaborative whiteboard |
-| **Validation** | Zod | 4.3.6 | Schema validation |
-| **Testing** | Vitest + Playwright + k6 | - | Unit, E2E, load tests |
-| **Monitoring** | Sentry | 10.39.0 | Error tracking |
-| **State** | Zustand | 5.0.11 | Client-side state |
-| **Drag & Drop** | @dnd-kit | latest | Sortable UI components |
-| **Animation** | framer-motion | 12.34.0 | UI animations |
+| Layer | Technology | Version / Notes |
+|-------|------------|-----------------|
+| **Framework** | Next.js (App Router) | `^16.1.6` |
+| **Language** | TypeScript | `^5.9.3`, strict mode |
+| **UI** | React | `^18` |
+| **Styling** | Tailwind CSS | `^3.4.1` |
+| **Components** | shadcn/ui + Radix UI | Headless primitives |
+| **Animation** | framer-motion | `^12.34.0` |
+| **State** | Zustand | `^5.0.11` |
+| **Drag & Drop** | @dnd-kit | latest |
+| **ORM** | Drizzle ORM | `^0.45.2` (primary; Prisma is **not** used) |
+| **DB Driver** | pg (node-postgres) | Connection pooling |
+| **Database** | PostgreSQL | 16 (recommended) |
+| **Cache / PubSub** | Redis | `^7` via `ioredis` |
+| **Real-time** | Socket.io | `^4.8.3` (server + client) |
+| **Auth** | NextAuth.js | `^4.24.13`, JWT sessions, CredentialsProvider |
+| **i18n** | next-intl | `^4.8.3`, 10 locales, RTL support for `ar` |
+| **Validation** | Zod | `^4.3.6` |
+| **Video** | Daily.co | `@daily-co/daily-js ^0.87.0` |
+| **Whiteboard** | tldraw + Yjs + Fabric.js | Collaborative canvas |
+| **AI Providers** | Kimi K2.5 (Moonshot) | Primary via `@/lib/ai/kimi.ts` |
+| **AI Orchestration** | `@/lib/agents/orchestrator-llm.ts` | Fallback + response caching |
+| **ADK Service** | Google ADK | Optional microservice in `services/adk/` |
+| **Payments** | Airwallex, Hitpay, WeChat Pay, Alipay | Gateway abstraction in `lib/payments/` |
+| **Monitoring** | Sentry | `@sentry/nextjs ^10.39.0` (optional) |
+| **Testing (unit)** | Vitest | `^4.1.0` with jsdom |
+| **Testing (E2E)** | Playwright | `@playwright/test ^1.49.0` |
+| **Load testing** | k6 | Scripts in `scripts/load/` |
+| **Build tool** | esbuild | Service worker build, dev compile |
+| **Server runner** | tsx | `server.ts` in dev; `node` in production |
 
 ---
 
-## Project Structure
+## Build, Dev & Deploy Commands
 
-```
-Solocornkimi/
-│
-├── landing-page/                 # Vite + React Landing Page (NEW - Solocorn brand)
-│   ├── src/
-│   │   ├── App.tsx               # Main landing page component
-│   │   ├── components/
-│   │   │   ├── Layout.tsx        # Navbar, shared UI
-│   │   │   ├── RegistrationPage.tsx
-│   │   │   └── ProfilePage.tsx
-│   │   └── main.tsx              # Entry point
-│   ├── .env.local                # Environment variables
-│   ├── package.json              # Vite dependencies
-│   ├── vite.config.ts            # Vite configuration
-│   └── README.md                 # Landing page docs
-│
-├── tutorme-app/                  # Main Next.js Application
-│   ├── src/
-│   │   ├── app/                  # Next.js App Router
-│   │   ├── [locale]/             # i18n route segments (en, zh-CN, es, fr, de, ja, ko, pt, ru, ar)
-│   │   │   ├── (student)/        # Student route group (curriculum)
-│   │   │   ├── student/          # Student dashboard & features
-│   │   │   ├── tutor/            # Tutor dashboard & features
-│   │   │   ├── parent/           # Parent dashboard & features
-│   │   │   ├── admin/            # Admin dashboard & features
-│   │   │   ├── payment/          # Payment processing pages
-│   │   │   ├── login/            # Login page
-│   │   │   ├── register/         # Registration pages
-│   │   │   └── onboarding/       # User onboarding flows
-│   │   ├── api/                  # API routes (REST endpoints)
-│   │   ├── layout.tsx            # Root layout with i18n
-│   │   ├── globals.css           # Global styles + CSS variables
-│   │   └── page.tsx              # Landing page
-│   │
-│   ├── components/               # React components
-│   │   ├── ui/                   # shadcn/ui components (Button, Card, Dialog, etc.)
-│   │   ├── admin/                # Admin dashboard components
-│   │   ├── ai-chat/              # AI chat interface
-│   │   ├── ai-tutor/             # AI tutor components
-│   │   ├── class/                # Classroom components (whiteboard, polls, breakout)
-│   │   ├── gamification/         # XP, missions, badges UI
-│   │   ├── parent/               # Parent dashboard components
-│   │   ├── quiz/                 # Quiz components
-│   │   ├── polls/                # Live polling components
-│   │   └── video-player/         # Video components
-│   │
-│   ├── lib/                      # Utility code & business logic
-│   │   ├── ai/                   # AI provider implementations
-│   │   │   ├── kimi.ts           # Kimi K2.5 API integration
-│   │   │   ├── orchestrator.ts   # Provider fallback chain (compat)
-│   │   │   ├── prompts.ts        # AI prompts
-│   │   │   └── teaching-prompts/ # Modular prompt system
-│   │   ├── api/                  # API utilities
-│   │   ├── auth.ts               # NextAuth configuration (Drizzle adapter)
-│   │   ├── cache/                # Redis caching layer
-│   │   ├── db/                   # Database client and schema
-│   │   │   ├── drizzle.ts        # Drizzle client
-│   │   │   └── schema/           # Drizzle schema (tables, enums, relations)
-│   │   ├── payments/             # Payment gateway integrations
-│   │   ├── security/             # Rate limiting, RBAC, sanitization
-│   │   ├── socket-server-enhanced.ts  # Socket.io server
-│   │   ├── video/                # Daily.co video provider
-│   │   ├── whiteboard/           # Whiteboard utilities
-│   │   ├── curriculum/           # Curriculum lesson controller
-│   │   ├── gamification/         # XP, missions logic
-│   │   └── i18n/                 # i18n configuration
-│   │
-│   ├── hooks/                    # Custom React hooks
-│   │   ├── use-socket.ts         # Socket.io client hook
-│   │   └── useParent.ts          # Parent data hooks
-│   │
-│   ├── stores/                   # Zustand stores
-│   │   ├── live-class.store.ts   # Live class state
-│   │   └── communication.store.ts # Messaging state
-│   │
-│   ├── __tests__/                # Unit & integration tests
-│   │   ├── setup.ts              # Vitest setup
-│   │   ├── integration/          # API integration tests
-│   │   └── accessibility/        # a11y tests
-│   │
-│   ├── middleware.ts             # Next.js middleware (auth + i18n + rate limit)
-│   ├── i18n/                     # i18n configuration
-│   │   ├── request.ts            # next-intl request config
-│   │   └── routing.ts            # Locale routing re-export
-│   └── types/                    # TypeScript type definitions
-│
-├── drizzle/                      # Drizzle migrations (source of truth for SQL schema)
-│
-├── e2e/                          # Playwright E2E tests
-│   ├── ai-tutor.spec.ts
-│   ├── payment.spec.ts
-│   ├── registration.spec.ts
-│   └── tutor-clinic.spec.ts
-│
-├── scripts/                      # Development & deployment scripts
-│   ├── initialize.sh             # Full initialization (DB + app)
-│   ├── dev.sh                    # Start dev environment
-│   ├── setup-db.sh               # Setup database only
-│   ├── reset.sh                  # Full reset (destructive)
-│   ├── check-db.sh               # Database health check
-│   ├── build-sw.js               # Build service worker
-│   └── load/                     # k6 load testing scripts
-│
-├── messages/                     # i18n translation files
-│   ├── en.json                   # English (default)
-│   └── zh-CN.json                # Chinese (Simplified)
-│
-├── docs/                         # Project documentation
-│
-├── server.ts                     # Custom Next.js server with Socket.io
-├── docker-compose.yml            # Postgres + Redis + PgBouncer
-├── next.config.mjs               # Next.js configuration with CSP
-├── tailwind.config.ts            # Tailwind + design tokens
-├── tsconfig.json                 # TypeScript configuration
-├── vitest.config.ts              # Vitest unit test config
-├── vitest.integration.config.ts  # Vitest integration test config
-├── playwright.config.ts          # Playwright E2E config
-├── drizzle.config.ts             # Drizzle Kit configuration
-└── eslint.config.mjs             # ESLint flat config
-```
+All primary commands run from **`tutorme-app/`** unless noted.
 
----
-
-## Landing Page Integration (Solocorn Landing → Solocorn App)
-
-The project includes a separate **landing page** built with Vite + React + TypeScript. It serves as the entry point that links to the main Solocorn Next.js application.
-
-### Architecture
-
-```
-Landing Page (Solocorn)              Main App (Solocorn)
-├─ Port: 3000 (Vite)                 ├─ Port: 3003 (Next.js)
-├─ Brand: Solocorn                   ├─ Brand: Solocorn/CogniClass
-└─ Links to main app via             └─ Receives users from
-   "Get Started" button                 landing page
-```
-
-### Running Both Apps
-
-**Terminal 1 - Landing Page:**
-```bash
-cd landing-page
-npm install
-npm run dev              # http://localhost:3000
-```
-
-**Terminal 2 - Main App:**
-```bash
-cd tutorme-app
-npm run initialize       # http://localhost:3003
-```
-
-### Configuration
-
-**Landing Page** (`.env.local`):
-```bash
-VITE_MAIN_APP_URL=http://localhost:3003
-```
-
-**Next.js Middleware** (`src/middleware.ts`):
-CORS headers are configured to allow requests from the landing page origins:
-- `http://localhost:3000` - Vite landing page
-- `http://localhost:5173` - Vite default port
-- `http://localhost:3003` - Next.js app
-
-### Integration Points
-
-1. **Navbar "Get Started" button** - Direct link to main app
-2. **"Launch Academy" card** - Opens Solocorn app
-3. **"Partner with Us" card** - Opens Solocorn app
-
-See `landing-page/README.md` for detailed documentation.
-
----
-
-## Build and Development Commands
-
-All commands run from `tutorme-app/` directory:
+### Development
 
 ```bash
-# Full Development Environment (recommended)
-npm run initialize          # One-command setup: DB + migrations + seed + dev server
-npm run dev:all             # Start Docker + migrations + dev server
+# Start the custom Next.js server with Socket.io (production mode locally)
+npm run dev
 
-# Development Server (requires Docker running)
-npm run dev                 # Start Next.js + Socket.io server on port 3003 (via server.ts)
-npm run dev:next            # Start only Next.js dev server
+# Start only the Next.js dev server (no Socket.io)
+npm run dev:next
 
-# Database Operations
-npm run db:setup            # Setup database containers
-npm run db:migrate          # Run Drizzle migrations (drizzle-kit push)
-npm run db:migrate:deploy   # Deploy migrations via script
-npm run drizzle:generate    # Generate Drizzle migrations
-npm run drizzle:studio      # Open Drizzle Studio
-npm run db:seed             # Seed database with sample data
-npm run db:seed:admin       # Seed admin user
-npm run db:reset            # Full database reset (DESTRUCTIVE!)
-npm run studio              # Open Drizzle Studio (via script)
-npm run db:check            # Check database health
+# Landing page (from landing-page/ directory)
+cd ../landing-page && npm run dev     # http://localhost:3000
+```
 
-# Docker Operations
-npm run docker:up           # Start all Docker containers
-npm run docker:down         # Stop Docker containers
-npm run docker:logs         # View container logs
+> **Note:** `npm run dev` in `tutorme-app` sets `NODE_ENV=production` and launches `server.ts` via `tsx`. This is the intended local development path because it includes Socket.io and matches production behavior.
 
-# Testing
-npm run test                # Run Vitest unit tests
-npm run test:unit           # Alias for test
-npm run test:watch          # Run Vitest in watch mode
-npm run test:integration    # Run integration tests
-npm run test:e2e            # Run Playwright E2E tests
-npm run test:e2e:ui         # Run E2E tests with UI
-npm run test:e2e:a11y       # Run accessibility tests
-npm run test:load           # k6 load test (concurrent users)
-npm run test:load:ai        # k6 load test (AI stress)
-npm run test:load:ws        # k6 load test (WebSocket)
+### Production Build
 
-# Code Quality
-npm run lint                # Run ESLint
-npm run lint:fix            # Fix ESLint issues
-npm run format              # Format code with Prettier
-npm run format:check        # Check code formatting
-npm run typecheck           # TypeScript type checking
+```bash
+npm run build        # Builds service worker + Next.js standalone output
+npm run build:sw     # Compiles src/lib/pwa/service-worker.ts → public/sw.js
+npm run start        # Production Next.js start (used inside Docker)
+```
 
-# Production Build
-npm run build               # Build for production (includes service worker)
-npm run build:sw            # Build service worker only
-npm run start               # Start production server
+### Database
 
-# Utilities
-npm run data-retention      # Run data retention cleanup
-npm run test:register       # Test registration flow
-npm run security:check      # Run npm audit
+```bash
+npm run db:migrate           # Run pending Drizzle migrations (drizzle-kit migrate)
+npm run db:migrate:deploy    # Deploy migrations via script (scripts/migrate.js)
+npm run drizzle:generate     # Generate new migration SQL
+npm run drizzle:studio       # Open Drizzle Studio (https://local.drizzle.studio)
+npm run drizzle:push         # Push schema changes (force)
+npm run db:seed              # Seed sample data
+npm run db:seed:admin        # Seed admin user only
+```
+
+### Testing
+
+```bash
+npm run test                 # Vitest unit tests (jsdom)
+npm run test:watch           # Vitest watch mode
+npm run test:integration     # Integration tests (node env; needs Postgres)
+npm run test:e2e             # Playwright E2E tests
+npm run test:e2e:ui          # Playwright with interactive UI
+npm run test:e2e:a11y        # Accessibility tests (Playwright)
+```
+
+> **E2E requirements:** The app must be running (default `http://localhost:3003`). Some specs expect seeded test users (e.g., `student@example.com` / `Password1`).  
+> **Integration requirements:** Requires `DATABASE_URL` pointing to a test database (e.g., `tutorme_test`).
+
+### Code Quality
+
+```bash
+npm run lint                 # ESLint flat config (eslint.config.mjs)
+npm run lint:fix             # Auto-fix ESLint issues
+npm run format               # Prettier format src/**/*.{ts,tsx}
+npm run format:check         # Check formatting without writing
+npm run typecheck            # tsc --noEmit
+npm run security:check       # npm audit --audit-level=high
+```
+
+### ADK Service (optional)
+
+```bash
+cd services/adk
+npm run dev       # tsx src/server/index.ts (port configured internally)
+npm run build     # tsc build
+npm run start     # node dist/server/index.js
 ```
 
 ---
 
 ## Environment Configuration
 
-Copy `.env.example` to `.env.local` and configure:
+Copy `tutorme-app/.env.example` to `tutorme-app/.env.local` and configure.
+
+**Critical variables**
 
 ```bash
-# =============================================================================
-# Database Configuration
-# =============================================================================
-
-# Primary database connection
+# Database (required)
 DATABASE_URL="postgresql://tutorme:tutorme_password@localhost:5433/tutorme"
-
-# Direct URL for migrations (same as DATABASE_URL when using port 5433)
 DIRECT_URL="postgresql://tutorme:tutorme_password@localhost:5433/tutorme"
 
-# Redis Cache
+# Redis (required for cache + Socket.io adapter)
 REDIS_URL="redis://localhost:6379"
 
-# =============================================================================
-# =============================================================================
-
-# Kimi K2.5 (Moonshot AI) - Primary
-KIMI_API_KEY="your_kimi_api_key_here"
-
-
-# ADK Service (optional)
-ADK_BASE_URL="http://localhost:4310"
-ADK_AUTH_TOKEN="dev-token"
-
-# =============================================================================
-# Video Conferencing (Daily.co)
-# =============================================================================
-
-DAILY_API_KEY="your_daily_api_key_here"
-
-# =============================================================================
-# Authentication (NextAuth.js)
-# =============================================================================
-
-NEXTAUTH_SECRET="your_random_secret_here_min_32_chars"
+# Auth (required)
+NEXTAUTH_SECRET="min_32_chars_random"
 NEXTAUTH_URL="http://localhost:3003"
 
-# WeChat OAuth (optional)
-WECHAT_APP_ID="your_wechat_app_id"
-WECHAT_APP_SECRET="your_wechat_app_secret"
+# AI (required for AI features)
+KIMI_API_KEY="your_kimi_api_key"
+ADK_BASE_URL="http://localhost:4310"   # optional
+ADK_AUTH_TOKEN="dev-token"             # optional
 
-# =============================================================================
-# Global Security Configuration
-# =============================================================================
+# Video (required for live clinics)
+DAILY_API_KEY="your_daily_api_key"
 
-SECURITY_COMPRESS=true
-SECURITY_ENCRYPT=true
-SECURITY_AUDIT=true
-SECURITY_RATE_LIMIT=300
-SECURITY_MAX_REQUESTS_PER_MINUTE=1000
+# Payments (required for checkout flows)
+AIRWALLEX_CLIENT_ID=...
+AIRWALLEX_API_KEY=...
+HITPAY_API_KEY=...
+HITPAY_SALT=...
+PAYMENT_DEFAULT_GATEWAY=HITPAY
 
-# =============================================================================
-# Sentry (Error monitoring)
-# =============================================================================
+# Sentry (optional)
+SENTRY_DSN=...
+SENTRY_ORG=...
+SENTRY_PROJECT=...
 
-SENTRY_DSN=your_sentry_dsn
-NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn
-
-# =============================================================================
-# Application Settings
-# =============================================================================
-
+# App
 NEXT_PUBLIC_APP_URL="http://localhost:3003"
 NODE_ENV="development"
-
-# Cache TTL settings (in seconds)
-CACHE_TTL_DEFAULT=60
-CACHE_TTL_USER=300
-CACHE_TTL_LEADERBOARD=300
-CACHE_TTL_CONTENT=600
-CACHE_TTL_PARENT_DASHBOARD=180
-CACHE_TTL_STUDENT_ANALYTICS=45
-CACHE_TTL_PARENT_FINANCIAL=120
-CACHE_TTL_PARENT_FAMILY=300
-
-# =============================================================================
-# Payment Gateways
-# =============================================================================
-
-# Airwallex Configuration
-AIRWALLEX_CLIENT_ID=your_client_id
-AIRWALLEX_API_KEY=your_api_key
-AIRWALLEX_ENV=sandbox  # or 'production'
-
-# Hitpay Configuration
-HITPAY_API_KEY=your_api_key
-HITPAY_SALT=your_salt_key
-HITPAY_ENV=sandbox  # or 'production'
-
-# Payment Settings
-PAYMENT_DEFAULT_GATEWAY=HITPAY  # or 'AIRWALLEX'
-
-# Chinese Payment Gateways
-WECHAT_MCH_ID=your_merchant_id
-WECHAT_PAY_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
-WECHAT_PAY_API_V3_KEY=your_32_char_api_v3_key
-ALIPAY_APP_ID=your_alipay_app_id
-ALIPAY_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
 ```
+
+There is **no `middleware.ts` at the Next.js app root** in this project. Route guards, i18n routing, CSP, and rate-limiting are handled via:
+- `next-intl` routing configuration (`src/lib/i18n/config.ts`)
+- API route middleware utilities (`src/lib/api/middleware.ts`)
+- Edge-oriented helpers (`src/lib/middleware-edge/`)
+
+---
+
+## Code Organization
+
+### App Router (`src/app/`)
+
+- `src/app/[locale]/` — All user-facing pages grouped by role (`student/`, `tutor/`, `parent/`, `admin/`) plus shared pages (`login/`, `register/`, `onboarding/`, `payment/`, `legal/`).
+- `src/app/api/` — REST API endpoints mirroring the UI structure. Each folder contains `route.ts` (or segment-specific route files).
+- `src/app/layout.tsx` — Root layout with metadata, PWA manifest, and top-level providers (`Providers`, `PerformanceProviders`).
+- `src/app/[locale]/layout.tsx` — Locale layout wrapping `NextIntlClientProvider`, `ThemeProvider`, `AuthProvider`, `Toaster`, and `PWAInstallPrompt`.
+
+### Components (`src/components/`)
+
+Organized by feature domain:
+- `ui/` — shadcn/ui primitives (Button, Card, Dialog, etc.)
+- `ai-chat/`, `ai-tutor/` — AI interaction UIs
+- `class/` — Live classroom (whiteboard, polls, breakout, engagement)
+- `student/`, `tutor/`, `parent/`, `admin/` — Role-specific dashboards
+- `video-player/`, `quiz/`, `polls/` — Content & assessment UIs
+- `whiteboard/` — Collaborative canvas components
+- `providers/` — Context providers (Auth, Theme, etc.)
+
+### Library (`src/lib/`)
+
+Domain-organized business logic:
+- `lib/ai/` — AI provider integrations (`kimi.ts`), prompts, teaching prompts, types
+- `lib/agents/` — Orchestrator (`orchestrator-llm.ts`), tutor agents, grading, live-monitor, content-generator
+- `lib/db/` — Drizzle client (`drizzle.ts`), schema (`schema/`), and migrations
+- `lib/payments/` — Payment gateway integrations (Airwallex, Hitpay, Chinese gateways)
+- `lib/security/` — RBAC, rate limiting, CSRF, admin IP restrictions, suspicious-activity logging
+- `lib/socket/` & `lib/socket-server-enhanced.ts` — Socket.io server and realtime state
+- `lib/video/` — Daily.co provider
+- `lib/whiteboard/` — Whiteboard utilities
+- `lib/cache/` — Redis caching layer
+- `lib/i18n/` & `lib/localization/` — i18n config and helpers
+- `lib/validation/` — Zod schemas
+- `lib/reports/`, `lib/analytics/` — Reporting & analytics
+- `lib/monitoring/`, `lib/performance/` — Observability helpers
+
+### Hooks (`src/hooks/`)
+
+Custom React hooks including `use-socket.ts`, `use-whiteboard-socket.ts`, `use-daily-call.ts`, `use-realm-session.ts`, and parent-specific hooks.
+
+### Stores (`src/stores/`)
+
+Zustand stores for client state: `classroom-store.ts`, `communication-store.ts`.
 
 ---
 
 ## Database Architecture
 
-### ORM and schema
+### ORM & Schema
 
-The **tutorme-app** uses **Drizzle ORM** only for database access and schema (`src/lib/db/schema/`, `drizzle/` migrations). There is no Prisma client dependency in the application package.
+- **Drizzle ORM** is the only ORM in use. No Prisma client is present.
+- Schema source of truth: `src/lib/db/schema/`
+  - `enums.ts` — PostgreSQL enums (Role, PollType, PaymentStatus, LiveSessionStatus, etc.)
+  - `tables/` — Table definitions (14 table modules: admin, analytics, assistant, auth, builder, calendar, classroom, collaboration, content, course, family, finance, index, live)
+  - `relations.ts` — Drizzle relational definitions
+  - `next-auth.ts` — NextAuth.js Drizzle adapter tables
+  - `compliance.ts` — GDPR / compliance tables
+- Migrations live in `drizzle/` and are managed by `drizzle-kit`.
+- Runtime client: `src/lib/db/drizzle.ts` uses `pg.Pool` with singleton pooling (dev pool cached on `globalThis`).
 
-### Key Models
+### Connection Strategy
 
-| Model | Purpose |
-|-------|---------|
-| **User** | Core user with role (STUDENT/TUTOR/PARENT/ADMIN) |
-| **Profile** | Extended profile with role-specific fields |
-| **Curriculum** | Course structure with modules and lessons |
-| **CurriculumModule** | Course modules containing lessons |
-| **CurriculumLesson** | Individual lessons with learning objectives |
-| **CourseBatch** | Group-level course instances |
-| **ContentItem** | Video learning content with transcripts |
-| **QuizAttempt** | Student quiz responses with AI grading |
-| **LiveSession** | Scheduled clinic sessions |
-| **BreakoutSession** | Group breakout room sessions |
-| **AITutorEnrollment** | AI tutor subject enrollments |
-| **UserGamification** | XP, level, streak data |
-| **FamilyMember** | Parent-student relationships |
-| **Poll** | Live class polls |
-| **Whiteboard** | Collaborative whiteboard data |
-| **Payment** | Payment transactions |
-
-### Connection Architecture
-
-- **PostgreSQL** (port 5433): Direct connection for application (via launcher script)
-- **PgBouncer** (port 6432): Connection pooler for production scaling
-- **Redis** (port 6379): Caching and real-time state
+- `DATABASE_URL` / `DIRECT_URL` — Standard connections.
+- `DATABASE_POOL_URL` — Optional PgBouncer connection string for production.
+- Pool sizes: 5 in development, 50 in production.
+- Redis is used for caching, session-like state, and the Socket.io Redis adapter.
 
 ---
 
@@ -430,10 +306,10 @@ The **tutorme-app** uses **Drizzle ORM** only for database access and schema (`s
 
 ### TypeScript
 
-- **Strict mode enabled** - All code must be type-safe
-- Use `interface` for object shapes, `type` for unions/complex types
-- Prefer explicit return types on exported functions
-- Use path alias `@/*` for imports from src/
+- **Strict mode enabled** (`strict: true` in `tsconfig.json`).
+- Use `interface` for object shapes; `type` for unions and complex types.
+- Prefer explicit return types on exported functions.
+- Path alias: `@/*` maps to `src/*`.
 
 ```typescript
 // Good
@@ -450,411 +326,257 @@ export async function fetchUser(id: string): Promise<User | null> {
 
 ### React Components
 
-- Use functional components with explicit props interfaces
-- shadcn/ui components follow Radix UI patterns
-- Components use `forwardRef` for ref forwarding
-- Style with Tailwind using `cn()` utility for conditional classes
-
-```typescript
-import { cn } from "@/lib/utils";
-
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary";
-}
-
-export function Button({ className, variant = "primary", ...props }: ButtonProps) {
-  return (
-    <button
-      className={cn(
-        "px-4 py-2 rounded-md",
-        variant === "primary" && "bg-primary text-white",
-        className
-      )}
-      {...props}
-    />
-  );
-}
-```
+- Functional components with explicit props interfaces.
+- shadcn/ui components follow Radix UI patterns and use `forwardRef`.
+- Use `cn()` utility for conditional Tailwind classes.
 
 ### Naming Conventions
 
 | Type | Convention | Example |
 |------|------------|---------|
-| **Files** | PascalCase for React components, kebab-case for non-components | `Button.tsx`, `format-date.ts` |
-| **Components** | PascalCase | `StudentDashboard`, `AIChat` |
-| **Functions** | camelCase, async with verb prefix | `fetchUserData`, `handleSubmit` |
-| **Constants** | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
-| **Database Models** | PascalCase | `QuizAttempt`, `LiveSession` |
-| **API Routes** | kebab-case folders, route.ts files | `api/ai-chat/route.ts` |
-| **Environment Variables** | UPPER_SNAKE_CASE | `DATABASE_URL` |
+| Files (components) | PascalCase | `Button.tsx`, `StudentDashboard.tsx` |
+| Files (non-components) | kebab-case | `format-date.ts`, `use-socket.ts` |
+| Components | PascalCase | `AIChatPanel` |
+| Functions | camelCase, verb prefix | `fetchUserData`, `handleSubmit` |
+| Constants | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
+| Database models | PascalCase | `QuizAttempt`, `LiveSession` |
+| API routes | kebab-case folders | `api/ai-chat/route.ts` |
+| Environment vars | UPPER_SNAKE_CASE | `DATABASE_URL` |
 
-### AI Integration Patterns
+### ESLint Rules (excerpt)
 
-```typescript
-// Always use the agents module for AI calls, not direct providers
-import { generateWithFallback, chatWithFallback } from '@/lib/agents'
+- `@typescript-eslint/no-explicit-any`: `warn`
+- `@typescript-eslint/no-unused-vars`: `warn` (ignores `_` prefixes)
+- `no-console`: `warn` in production, `off` in development
+- `prefer-const`: `error`
+- `no-var`: `error`
+- `react-hooks/exhaustive-deps`: `warn`
+- `jsx-a11y/alt-text`: `off` (project uses explicit a11y patterns)
 
-const result = await generateWithFallback(prompt, { temperature: 0.7 })
+### Prettier
 
-// Chat with history
-const response = await chatWithFallback(messages, { maxTokens: 2048 })
-
-
-// MOCK MODE for testing without AI providers
-if (process.env.MOCK_AI === 'true') {
-  // Returns mock responses
-}
-```
-
-### Database Access Patterns
-
-```typescript
-// Use Drizzle for new code
-import { drizzleDb } from '@/lib/db/drizzle'
-import { user, profile } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
-
-// Query
-const [userRow] = await drizzleDb
-  .select()
-  .from(user)
-  .where(eq(user.id, id))
-  .limit(1)
-
-// With relations
-const result = await drizzleDb.query.user.findFirst({
-  where: eq(user.id, id),
-  with: { profile: true }
-})
-```
-
-### Internationalization (i18n)
-
-- 10 languages supported: en, zh-CN, es, fr, de, ja, ko, pt, ru, ar
-- Default locale: "en" (English)
-- Translations in `/messages/{locale}.json`
-- Use next-intl's `useTranslations` hook in components
-- RTL support for Arabic (ar)
-
-```typescript
-import { useTranslations } from 'next-intl';
-
-export function Component() {
-  const t = useTranslations('namespace');
-  return <h1>{t('key')}</h1>;
-}
-```
+- `prettier-plugin-tailwindcss` is used.
+- `lint-staged` runs `prettier --write` and `eslint --fix` on staged `*.{ts,tsx}`.
 
 ---
 
-## Testing Instructions
+## Testing Strategy
 
 ### Unit Tests (Vitest)
 
-```bash
-# Run all unit tests
-npm run test
+- **Config:** `vitest.config.ts`
+- **Environment:** jsdom
+- **Setup:** `src/__tests__/setup.ts` (imports `@testing-library/jest-dom/vitest`, mocks `@google/genai`)
+- **Include:** `src/**/*.test.{ts,tsx}` and `src/**/__tests__/**/*.{test,spec}.{ts,tsx}`
+- **Exclude:** `node_modules`, `.next`, integration, accessibility
+- **No database required.**
 
-# Run in watch mode
-npm run test:watch
+### Integration Tests (Vitest)
 
-# Run with coverage
-npm run test:coverage
-```
-
-Test files location:
-- `src/**/*.test.ts` - Unit tests co-located with source
-- `src/__tests__/setup.ts` - Test setup and configuration
-- `src/lib/**/*.test.ts` - Library utility tests
-
-### Integration Tests
-
-```bash
-# Run API integration tests
-npm run test:integration
-```
-
-Located in `src/__tests__/integration/`. **Requires a running database.**
+- **Config:** `vitest.integration.config.ts`
+- **Environment:** node
+- **Timeout:** 15 seconds
+- **Include:** `src/__tests__/integration/**/*.test.ts`
+- **Requires:** A running PostgreSQL instance. Set `DATABASE_URL` to a dedicated test database and run migrations before testing.
 
 ### E2E Tests (Playwright)
 
-```bash
-# Run all E2E tests
-npm run test:e2e
+- **Config:** `playwright.config.ts`
+- **Match:** `e2e/**/*.spec.ts` and `src/__tests__/accessibility/**/*.test.ts`
+- **Base URL:** `http://localhost:3003` (override with `PLAYWRIGHT_BASE_URL`)
+- **Browsers:** Chromium (Desktop Chrome)
+- **WebServer:** Playwright can auto-start the app with `npm run dev:next` when not in CI.
+- **Credentials:** Some specs rely on seeded users. Default E2E student: `student@example.com` / `Password1` (customize via `E2E_STUDENT_EMAIL` and `E2E_STUDENT_PASSWORD`).
 
-# Run with UI for debugging
-npm run test:e2e:ui
+### Load Tests (k6)
 
-# Run specific test file
-npx playwright test e2e/ai-tutor.spec.ts
-```
+- **Location:** `scripts/load/`
+- **Scripts:** `concurrent-users.js`, `ai-stress.js`, `websocket.js`
+- **Run:** `k6 run scripts/load/concurrent-users.js` (requires app running)
 
-Test files:
-- `e2e/ai-tutor.spec.ts` - AI tutor feature tests
-- `e2e/payment.spec.ts` - Payment flow tests
-- `e2e/registration.spec.ts` - User registration tests
-- `e2e/tutor-clinic.spec.ts` - Live clinic tests
+### CI Pipeline (GitHub Actions)
 
-### Load Testing (k6)
+`.github/workflows/ci.yml` runs the following jobs on `push`/`pull_request` to `main` and `develop`:
+1. **typecheck** — `drizzle-kit generate` then `tsc --noEmit`
+2. **build** — install Linux native bindings, clean `.next`, generate Drizzle types, `npm run build`
+3. **test** — install Rollup Linux binding, run `npm run test`
+4. **lint** — `npm run lint:check -- --max-warnings=999999`
+5. **format** — `npm run format:check` (continue-on-error)
+6. **security** — `npm run security:check` (continue-on-error)
 
-```bash
-# Test concurrent users
-npm run test:load
-
-# Test AI endpoint stress
-npm run test:load:ai
-
-# Test WebSocket connections
-npm run test:load:ws
-```
-
-Load test scripts located in `scripts/load/`.
+> **Working directory for CI:** `tutorme-app`
 
 ---
 
 ## Security Considerations
 
-### PII Handling
-
-- **Never include real names or PII in AI prompts** - Use studentId hashes
-- Student identifiers in AI context should be anonymized
-- All user data access goes through authenticated API routes
-
-### API Keys
-
-- All API keys stored in `.env.local` (gitignored)
-- Keys never committed to repository
-- Different keys for dev/staging/production
-
 ### Authentication & Authorization
 
-- NextAuth.js with JWT session strategy
-- Role-based access control (STUDENT/TUTOR/PARENT/ADMIN)
-- Middleware (`src/middleware.ts`) handles:
-  - i18n locale routing
-  - Route protection based on role
-  - Rate limiting (100 requests/minute per IP for API)
-  - Stricter rate limiting for login (5 attempts per 15 minutes)
-  - Security headers (CSP, X-Frame-Options, etc.)
-- Onboarding flow redirects new users to complete profile
-- TOS acceptance enforced for all users
+- **NextAuth.js** with JWT session strategy and a custom `CredentialsProvider`.
+- **Realm-scoped sessions** allow a user to stay logged in as both Tutor and Student in separate tabs (cookie names: `tutor_session`, `student_session`).
+- Role-based access control (`STUDENT`, `TUTOR`, `PARENT`, `ADMIN`) enforced in API routes via `hasPermission()` in `lib/security/rbac.ts`.
+- Onboarding and TOS acceptance are tracked in the `profile` table and enforced in auth flows.
+
+### API Middleware (`src/lib/api/middleware.ts`)
+
+Exported helpers for route handlers:
+- `withAuth` — require login
+- `withRole` / `withPermission` — RBAC enforcement
+- `withRateLimit` — per-IP / per-user rate limiting
+- `withCsrf` — CSRF token verification
+- `withAdminIp` — admin IP allowlisting
+- `handleApiError` — standardized error responses
+
+Custom error classes: `UnauthorizedError`, `ForbiddenError`, `ValidationError`, `NotFoundError`.
 
 ### Rate Limiting
 
-```typescript
-// Configured in middleware.ts
-const API_RATE_LIMIT_MAX = 100 // per minute per IP
-const RATE_LIMIT_SKIP = ['/api/auth', '/api/health', '/api/payments/webhooks']
+Implemented in `lib/security/rate-limit.ts`:
+- General API: configurable per preset
+- Stricter limits for login and sensitive endpoints
+- Redis-backed sliding-window counters
 
-// Stricter limits for login attempts
-const LOGIN_RATE_LIMIT = 5 // attempts per 15 minutes
-```
+### Data Protection
 
-### Security Headers
+- **PII:** Never include real names or PII in AI prompts. Use anonymized student identifiers.
+- **SQL Injection:** Prevented by Drizzle ORM (parameterized queries).
+- **XSS:** Input sanitization with DOMPurify (`isomorphic-dompurify`).
+- **CSP:** Configured dynamically; nonce-based CSP headers managed by edge middleware helpers.
+- **Security headers** on `/sw.js`: `no-cache, no-store, must-revalidate`.
 
-Configured in both `next.config.mjs` and `middleware.ts`:
+### Payment Security
 
-- X-Content-Type-Options: nosniff
-- X-Frame-Options: SAMEORIGIN
-- Referrer-Policy: strict-origin-when-cross-origin
-- Content-Security-Policy: Strict CSP with script/style/connect restrictions
-- upgrade-insecure-requests (production only)
-
-### Database Security
-
-- Drizzle ORM (parameterized queries) prevents SQL injection
-- Connection strings in environment only
-- Row-level security via application logic
-- Security event logging
-
----
-
-## Development Conventions
-
-### Local-First AI Strategy
-
-1. **Kimi K2.5** is always the first choice
-3. All AI calls go through `@/lib/agents` (`orchestrator-llm.ts`) which handles this chain
-4. Set `MOCK_AI=true` for testing without AI providers
-
-### Socratic Method Requirement
-
-AI tutors must NEVER give direct answers. Use prompts in `lib/ai/prompts.ts`:
-- `socraticTutorPrompt` - Main tutoring interaction
-- `chatResponsePrompt` - General chat widget
-- `quizGeneratorPrompt` - Create assessments
-- `gradingPrompt` - Grade short answers
-
-### Mobile-First Design
-
-- All UI must be responsive (minimum 320px width via `xs` breakpoint)
-- Touch-friendly controls (min 44px touch targets via `min-h-touch`)
-- Test on mobile devices/screensizes
-- PWA support with service worker
-
-### Docker-First Development
-
-- All services run in Docker for consistency
-- No local PostgreSQL/Redis installations required
-- Production deployment uses same containers
-- PgBouncer for connection pooling at scale
-
-### Code Organization Principles
-
-1. **Co-location**: Keep tests, styles, and components together
-2. **Feature-based folders**: Group by feature (ai-tutor/, class/, gamification/)
-3. **API routes mirror UI**: `/app/api/ai-tutor/` matches `/app/student/ai-tutor/`
-4. **Lib organization**: Group by domain (ai/, payments/, security/)
-
----
-
-## Common Tasks
-
-### Add a New shadcn/ui Component
-
-```bash
-npx shadcn@latest add <component-name>
-```
-
-Components are installed to `src/components/ui/`.
-
-### Create a New Database Migration
-
-```bash
-# Generate Drizzle migration
-npm run drizzle:generate
-
-# Apply migration
-npm run db:migrate
-```
-
-### Reset Development Environment
-
-```bash
-# Warning: Deletes all data!
-npm run db:reset
-```
-
-### Add a New API Route
-
-Create file in `src/app/api/<route>/route.ts`:
-
-```typescript
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-
-export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-  
-  // Handler logic
-  return NextResponse.json({ data: 'response' })
-}
-```
-
-### Open Drizzle Studio
-
-```bash
-npm run drizzle:studio
-# Opens at https://local.drizzle.studio
-```
+- Webhook endpoints verify signatures (Airwallex, Hitpay).
+- Chinese gateway credentials (WeChat Pay, Alipay) are stored as PEM/private keys in environment variables only.
 
 ---
 
 ## Deployment
 
-### Production Infrastructure
+### Docker
 
-- **VPS**: 8-core, 32GB RAM, 1x GPU (recommended)
-- **Container Orchestration**: Docker Compose or Kubernetes
-- **Reverse Proxy**: Nginx with SSL (Let's Encrypt)
-- **Monitoring**: Prometheus/Grafana (postgres-exporter included)
-- **Backups**: Automated database backups
+Two Dockerfiles exist in `tutorme-app/`:
+- **`Dockerfile`** — Multi-stage build using `node:20-slim`. Builds the app, copies `.next`, `server.ts`, `src`, `drizzle`, and `scripts`, then runs `scripts/start-prod.js`. Includes LibreOffice for document conversion.
+- **`Dockerfile.production`** — Standalone-output focused multi-stage build. Copies `.next/standalone`, static assets, and drizzle migrations. Includes a health check on `/api/health`.
+
+### GCP Deployment
+
+`.github/workflows/deploy-gcp.yml` handles GCP Cloud Run deployment. The `.cursorrules` file specifies GCP Cloud Run as the primary deployment target.
 
 ### Environment Variables for Production
 
-- Update `NEXTAUTH_URL` to production domain
-- Use production API keys for AI/video services
-- Configure WeChat Pay/Alipay credentials for Chinese market
-- Set `NODE_ENV=production`
-- Configure `DATABASE_POOL_URL` for PgBouncer
+- `NODE_ENV=production`
+- `NEXTAUTH_URL` set to production domain
+- `DATABASE_POOL_URL` for PgBouncer if used
+- Production API keys for AI, video, and payment services
+- `NEXT_PUBLIC_APP_URL` pointing to the production domain
 
-### Build for Production
+---
+
+## AI Integration Patterns
+
+Always route AI calls through the orchestrator rather than direct provider imports:
+
+```typescript
+import { generateWithFallback, chatWithFallback } from '@/lib/agents'
+
+const result = await generateWithFallback(prompt, { temperature: 0.7 })
+const response = await chatWithFallback(messages, { maxTokens: 2048 })
+```
+
+- **Primary provider:** Kimi K2.5 (Moonshot AI)
+- **Optional fallback:** Google ADK service (`services/adk/`)
+- **Caching:** AI responses are cached in Redis for 5 minutes for identical prompts.
+- **Mock mode:** Set `MOCK_AI=true` to return mock responses for testing without API keys.
+
+### Socratic Method Requirement
+
+AI tutors must **never** give direct answers. Use the prompt system in `lib/ai/prompts.ts`:
+- `socraticTutorPrompt` — Main tutoring interaction
+- `chatResponsePrompt` — General chat widget
+- `quizGeneratorPrompt` — Assessment creation
+- `gradingPrompt` — Short-answer grading
+
+---
+
+## Common Tasks
+
+### Add a shadcn/ui Component
 
 ```bash
-npm run build
-npm run start
+npx shadcn@latest add <component-name>
 ```
+Components install to `src/components/ui/`.
+
+### Create a Drizzle Migration
+
+```bash
+npm run drizzle:generate   # Generates SQL in drizzle/
+npm run db:migrate         # Applies pending migrations
+```
+
+### Build the Service Worker
+
+```bash
+npm run build:sw
+```
+Compiles `src/lib/pwa/service-worker.ts` into `public/sw.js` via esbuild.
+
+### Open Drizzle Studio
+
+```bash
+npm run drizzle:studio
+```
+Opens at `https://local.drizzle.studio`.
+
+### Reset Dev Environment
+
+There is **no built-in `db:reset` script** in the current `package.json`. To fully reset:
+1. Drop and recreate the Postgres database.
+2. Re-run `npm run db:migrate` and `npm run db:seed`.
 
 ---
 
 ## Troubleshooting
 
-### Docker containers won't start
+### Server won’t start / port binding issues
+- Verify `DATABASE_URL` and `REDIS_URL` are set.
+- Check that port `3003` is free.
+- Review `server.ts` logs: it binds the port immediately and initializes Next.js + Socket.io in the background.
 
-```bash
-docker-compose down -v  # Remove volumes
-docker-compose up -d    # Fresh start
-```
+### AI features not responding
+- Verify `KIMI_API_KEY` is set.
+- Check Redis connectivity (used for AI response caching).
+- Use `MOCK_AI=true` to test without external providers.
 
-### Database connection issues
-
-```bash
-# Check database status
-docker exec tutorme-db pg_isready -U tutorme -d tutorme
-
-# View connection pool status
-docker logs tutorme-pgbouncer
-
-# Reset connection pool
-docker restart tutorme-pgbouncer
-
-# Check with script
-npm run db:check
-```
-
-
-- Check server logs for provider errors or rate limits
-- Set `MOCK_AI=true` to test without external providers
-
-### Socket.io connection issues
-
-```bash
-# Check if server.ts is being used (not next dev)
-npm run dev  # Uses server.ts with Socket.io
-
-# Verify Socket.io is initialized in logs
-# Look for: "✅ Socket.io server initialized"
-```
+### Socket.io not working
+- Ensure you started with `npm run dev` (uses `server.ts`), not `npm run dev:next`.
+- Look for the log line: `✅ Socket.io server initialized`.
 
 ### TypeScript errors
-
 ```bash
-# Check for errors
 npm run typecheck
-
-# View detailed error log
-cat ts_errors.log
 ```
+
+### Build failures on Linux / CI
+Native bindings may be missing. The CI installs:
+- `@parcel/watcher-linux-x64-glibc`
+- `@swc/core-linux-x64-gnu`
+- `@next/swc-linux-x64-gnu`
+- `@rollup/rollup-linux-x64-gnu` (for Vitest)
+
+Install these locally if building on Linux without prebuilt binaries.
 
 ---
 
 ## Resources
 
-- **Project Docs**: See `docs/` directory in `tutorme-app/`
-- **Testing Guide**: See `tutorme-app/TESTING.md`
-- **Implementation Plans**: See various `*_IMPLEMENTATION_PLAN.md` files in docs/
-
-### External Documentation
-
-- **shadcn/ui**: https://ui.shadcn.com/docs
-- **Drizzle ORM**: https://orm.drizzle.team/docs
-- **Next.js**: https://nextjs.org/docs
-- **NextAuth.js**: https://next-auth.js.org
-- **Socket.io**: https://socket.io/docs/
-- **next-intl**: https://next-intl-docs.vercel.app/
-- **Daily.co**: https://docs.daily.co/
-- **Kimi API**: https://platform.moonshot.cn/docs
+- **Next.js:** https://nextjs.org/docs
+- **Drizzle ORM:** https://orm.drizzle.team/docs
+- **NextAuth.js:** https://next-auth.js.org
+- **next-intl:** https://next-intl-docs.vercel.app/
+- **shadcn/ui:** https://ui.shadcn.com/docs
+- **Socket.io:** https://socket.io/docs/
+- **Daily.co:** https://docs.daily.co/
+- **Kimi API:** https://platform.moonshot.cn/docs
+- **Project docs:** `tutorme-app/docs/`, `tutorme-app/TESTING.md`, `tutorme-app/CURRICULUM_SYSTEM.md`
