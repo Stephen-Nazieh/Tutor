@@ -222,11 +222,11 @@ export default function TutorCoursePage() {
         setCourse(data.course)
       } else {
         toast.error('Course not found')
-        router.push(`/${locale}/tutor/courses`)
+        router.push(`/${locale}/tutor/insights?tab=builder`)
       }
     } catch {
       toast.error('Failed to load course')
-      router.push(`/${locale}/tutor/courses`)
+      router.push(`/${locale}/tutor/insights?tab=builder`)
     } finally {
       setLoading(false)
     }

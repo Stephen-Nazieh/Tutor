@@ -2952,7 +2952,9 @@ FEEDBACK: [your explanation]`
                         if (uploadRes.ok) {
                           const uploadData = await uploadRes.json()
                           fileUrl = uploadData.url || ''
-                          fileMimeType = uploadData.type || 'application/pdf'
+                          fileMimeType = uploadData.isPdf
+                            ? 'application/pdf'
+                            : (uploadData.type || 'application/pdf')
                         }
                       } catch {
                         // Fallback: no server URL
