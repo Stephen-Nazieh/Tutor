@@ -703,7 +703,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // Load assessment data into assessmentBuilder
     const loadAssessmentIntoBuilder = useCallback((assessment: Assessment) => {
       // Prioritize description over sourceDocument - description holds edited content
-      const content = assessment.description || assessment.sourceDocument?.extractedText || ''
+      // Do NOT fall back to extractedText; the raw PDF is rendered via iframe.
+      const content = assessment.description || ''
       setAssessmentBuilder({
         title: assessment.title || '',
         taskContent: content,
@@ -1344,6 +1345,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
             ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.name
             : undefined
 
+        const sourceDocument = !isTask && assessmentSourceDocument
+          ? {
+              fileName: assessmentSourceDocument.fileName,
+              fileUrl: assessmentSourceDocument.fileUrl,
+              mimeType: assessmentSourceDocument.mimeType,
+            }
+          : undefined
+
         const response = await fetch('/api/ai/pci-master', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1356,6 +1365,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
               content: slideContent,
               pci,
               extensionName,
+              sourceDocument,
             },
           }),
         })
@@ -3170,9 +3180,10 @@ FEEDBACK: [your explanation]`
                         nodes[nodeIndex].lessons[lessonIndex].homework.length,
                         'assessment'
                       )
-                      const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
-
-                      newAssess.description = textToInsert
+                      // Leave description empty for PDF assets so the raw document
+                      // preview is shown instead of extracted text (which loses
+                      // images, diagrams, formulas, and math).
+                      newAssess.description = ''
                       if (assetToLoad.url && assetToLoad.mimeType) {
                         newAssess.sourceDocument = {
                           fileName: assetToLoad.name,
@@ -3494,7 +3505,7 @@ FEEDBACK: [your explanation]`
                                     <MoreVertical className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="z-[100]">
+                                <DropdownMenuContent align="end" className="z-[600]">
                                   <DropdownMenuItem
                                     onClick={() => {
                                       handleLoadAsset(asset)
@@ -5831,77 +5842,117 @@ FEEDBACK: [your explanation]`
                                   className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                 >
                                   <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
-                                    <AutoTextarea
-                                      placeholder="Enter assessment content or drop files here..."
-                                      className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                                      disableAutoResize
-                                      onDrop={(e: any) =>
-                                        handleDragFiles(
-                                          e,
-                                          text => {
-                                            setAssessmentBuilder(prev => {
-                                              const combined =
-                                                prev.taskContent +
-                                                (prev.taskContent ? '\n\n' : '') +
-                                                text
-                                              return {
-                                                ...prev,
-                                                taskContent: combined,
-                                              }
-                                            })
-                                          },
-                                          'assessment'
-                                        )
-                                      }
-                                      value={assessmentBuilder.taskContent}
-                                      onChange={(e: any) => {
-                                        const newContent = e.target.value
-                                        // Auto-create assessment if none loaded
-                                        if (!loadedAssessmentId) {
-                                          autoCreateAssessment()
-                                        }
-                                        setAssessmentBuilder(prev => ({
-                                          ...prev,
-                                          taskContent: newContent,
-                                        }))
-                                      }}
-                                    />
-                                    {assessmentSourceDocument?.mimeType === 'application/pdf' && (
-                                      <div className="shrink-0 border-t">
-                                        <iframe
-                                          src={assessmentSourceDocument.fileUrl}
-                                          title={assessmentSourceDocument.fileName}
-                                          className="h-48 w-full"
-                                        />
-                                      </div>
-                                    )}
-                                    {assessmentSourceDocument &&
-                                      assessmentSourceDocument.mimeType !== 'application/pdf' &&
-                                      assessmentSourceDocument.mimeType.startsWith('image/') && (
-                                        <div className="shrink-0 border-t p-2">
-                                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                                          <img
+                                    {assessmentSourceDocument?.mimeType === 'application/pdf' ? (
+                                      <>
+                                        <div className="min-h-0 flex-1 border-b">
+                                          <iframe
                                             src={assessmentSourceDocument.fileUrl}
-                                            alt={assessmentSourceDocument.fileName}
-                                            className="h-48 w-full object-contain"
+                                            title={assessmentSourceDocument.fileName}
+                                            className="h-full w-full"
                                           />
                                         </div>
-                                      )}
-                                    {assessmentSourceDocument &&
-                                      assessmentSourceDocument.mimeType !== 'application/pdf' &&
-                                      !assessmentSourceDocument.mimeType.startsWith('image/') && (
-                                        <div className="flex shrink-0 items-center gap-2 border-t bg-gray-50 p-2">
-                                          <FileText className="h-4 w-4 text-blue-600" />
-                                          <a
-                                            href={assessmentSourceDocument.fileUrl}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="text-xs text-blue-600 underline"
-                                          >
-                                            Open {assessmentSourceDocument.fileName}
-                                          </a>
-                                        </div>
-                                      )}
+                                        <AutoTextarea
+                                          placeholder="Optional notes or instructions..."
+                                          className="h-24 shrink-0 w-full resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                          disableAutoResize
+                                          onDrop={(e: any) =>
+                                            handleDragFiles(
+                                              e,
+                                              text => {
+                                                setAssessmentBuilder(prev => {
+                                                  const combined =
+                                                    prev.taskContent +
+                                                    (prev.taskContent ? '\n\n' : '') +
+                                                    text
+                                                  return {
+                                                    ...prev,
+                                                    taskContent: combined,
+                                                  }
+                                                })
+                                              },
+                                              'assessment'
+                                            )
+                                          }
+                                          value={assessmentBuilder.taskContent}
+                                          onChange={(e: any) => {
+                                            const newContent = e.target.value
+                                            // Auto-create assessment if none loaded
+                                            if (!loadedAssessmentId) {
+                                              autoCreateAssessment()
+                                            }
+                                            setAssessmentBuilder(prev => ({
+                                              ...prev,
+                                              taskContent: newContent,
+                                            }))
+                                          }}
+                                        />
+                                      </>
+                                    ) : (
+                                      <>
+                                        <AutoTextarea
+                                          placeholder="Enter assessment content or drop files here..."
+                                          className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                          disableAutoResize
+                                          onDrop={(e: any) =>
+                                            handleDragFiles(
+                                              e,
+                                              text => {
+                                                setAssessmentBuilder(prev => {
+                                                  const combined =
+                                                    prev.taskContent +
+                                                    (prev.taskContent ? '\n\n' : '') +
+                                                    text
+                                                  return {
+                                                    ...prev,
+                                                    taskContent: combined,
+                                                  }
+                                                })
+                                              },
+                                              'assessment'
+                                            )
+                                          }
+                                          value={assessmentBuilder.taskContent}
+                                          onChange={(e: any) => {
+                                            const newContent = e.target.value
+                                            // Auto-create assessment if none loaded
+                                            if (!loadedAssessmentId) {
+                                              autoCreateAssessment()
+                                            }
+                                            setAssessmentBuilder(prev => ({
+                                              ...prev,
+                                              taskContent: newContent,
+                                            }))
+                                          }}
+                                        />
+                                        {assessmentSourceDocument &&
+                                          assessmentSourceDocument.mimeType !== 'application/pdf' &&
+                                          assessmentSourceDocument.mimeType.startsWith('image/') && (
+                                            <div className="shrink-0 border-t p-2">
+                                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                                              <img
+                                                src={assessmentSourceDocument.fileUrl}
+                                                alt={assessmentSourceDocument.fileName}
+                                                className="h-48 w-full object-contain"
+                                              />
+                                            </div>
+                                          )}
+                                        {assessmentSourceDocument &&
+                                          assessmentSourceDocument.mimeType !== 'application/pdf' &&
+                                          !assessmentSourceDocument.mimeType.startsWith('image/') && (
+                                            <div className="flex shrink-0 items-center gap-2 border-t bg-gray-50 p-2">
+                                              <FileText className="h-4 w-4 text-blue-600" />
+                                              <a
+                                                href={assessmentSourceDocument.fileUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-xs text-blue-600 underline"
+                                              >
+                                                Open {assessmentSourceDocument.fileName}
+                                              </a>
+                                            </div>
+                                          )}
+                                      </>
+                                    )}
                                   </div>
                                   {/* Uploaded Files List - only show for assessment (not extensions) */}
                                   {/* Upload button - only for assessment (not extensions) */}

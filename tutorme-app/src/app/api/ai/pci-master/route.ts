@@ -22,6 +22,13 @@ const PciMasterRequestSchema = z.object({
       content: z.string().max(50000).optional(),
       pci: z.string().max(50000).optional(),
       extensionName: z.string().max(200).optional(),
+      sourceDocument: z
+        .object({
+          fileName: z.string().max(500).optional(),
+          fileUrl: z.string().max(2000).optional(),
+          mimeType: z.string().max(200).optional(),
+        })
+        .optional(),
     })
     .optional(),
 })
@@ -114,6 +121,8 @@ export async function POST(request: NextRequest) {
       context?.content && `Content:\n${truncate(context.content, 12000)}`,
       context?.pci && `Current PCI:\n${truncate(context.pci, 12000)}`,
       context?.extensionName && `Extension Name: ${context.extensionName}`,
+      context?.sourceDocument &&
+        `Attached Document: ${context.sourceDocument.fileName} (${context.sourceDocument.mimeType})\nURL: ${context.sourceDocument.fileUrl}`,
     ]
       .filter(Boolean)
       .join('\n\n')
