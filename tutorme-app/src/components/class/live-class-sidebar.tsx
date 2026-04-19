@@ -43,7 +43,6 @@ const teachingItems = [
   { id: 'whiteboards', label: 'Whiteboards', href: '/tutor/whiteboards', icon: Palette },
   { id: 'courses', label: 'My Page & Courses', href: '/tutor/my-page', icon: BookOpen },
   { id: 'quizzes', label: 'Quizzes', href: '/tutor/quizzes', icon: FileQuestion },
-  { id: 'question-bank', label: 'Question Bank', href: '/tutor/question-bank', icon: Database },
   { id: 'resources', label: 'Resources', href: '/tutor/resources', icon: FolderOpen },
 ]
 

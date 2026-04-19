@@ -11,8 +11,6 @@ import { eq, and, inArray } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { liveSession, poll, pollOption, pollResponse, courseEnrollment } from '@/lib/db/schema'
 import {
-  registerLiveClassWhiteboardHandlers,
-  cleanupLcwbPresence,
   initFeedbackHandlers,
 } from './socket-server'
 import { activePolls, sessionPolls, cleanupStaleSocketState } from '@/lib/socket'
@@ -510,9 +508,6 @@ export async function initEnhancedSocketServer(server: NetServer) {
 
     // Apply token-bucket limiting to every incoming event packet.
     socket.use((_packet, next) => rateLimitMiddleware(socket, next))
-
-    // Live-class whiteboard (lcwb_*) handlers — shared with socket-server.ts
-    registerLiveClassWhiteboardHandlers(io, socket)
 
     // Feedback & Insights handlers — shared with socket-server.ts
     initFeedbackHandlers(io, socket)
@@ -1083,8 +1078,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
           room.lastActivity = Date.now()
           socket.to(roomId).emit('student_left', { userId })
         }
-        io.to(roomId).emit('lcwb_cursor_remove', { userId })
-        cleanupLcwbPresence(io, roomId, userId)
+        // Whiteboard cleanup removed
       }
 
       // Connection rate limit cleanup

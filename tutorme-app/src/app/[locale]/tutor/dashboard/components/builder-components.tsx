@@ -76,7 +76,6 @@ import type {
 } from './builder-types'
 import {
   generateId,
-  mapQuestionBankToBuilderQuestion,
   generateQuestionPaperPDF,
 } from './builder-utils'
 import {
@@ -240,11 +239,6 @@ export function ResourceImportPanel<
             Open Resources
           </a>
         </Button>
-        <Button type="button" variant="outline" size="sm" asChild>
-          <a href="/tutor/question-bank" target="_blank" rel="noreferrer">
-            Open Question Bank
-          </a>
-        </Button>
       </div>
       {source && (
         <div className="bg-muted/20 space-y-3 rounded border p-3">
@@ -355,7 +349,6 @@ export function PreviewCard({
     fileName: string
     blob: Blob
   } | null>(null)
-  const [questionBankOpen, setQuestionBankOpen] = useState(false)
   const [showPreviewAnswerKey, setShowPreviewAnswerKey] = useState(false)
   const [isAssigned, setIsAssigned] = useState(false)
   const normalizedItem = item as (
@@ -1119,81 +1112,6 @@ export function MatchingPairsEditor({
       </Button>
       <div className="text-muted-foreground text-xs">
         Use the arrow as a visual cue for linking pairs. Students will match Column A to Column B.
-      </div>
-    </div>
-  )
-}
-
-export function QuestionBankQuickImport({
-  onImport,
-  className,
-  showOpenButton = true,
-  triggerClassName,
-}: {
-  onImport: (questions: QuizQuestion[]) => void
-  className?: string
-  showOpenButton?: boolean
-  triggerClassName?: string
-}) {
-  const [loading, setLoading] = useState(false)
-  const [items, setItems] = useState<any[]>([])
-  const [selectedId, setSelectedId] = useState('')
-
-  useEffect(() => {
-    let active = true
-    const load = async () => {
-      setLoading(true)
-      try {
-        const res = await fetch('/api/tutor/question-bank?limit=100', { credentials: 'include' })
-        if (!res.ok) return
-        const data = await res.json()
-        const next = Array.isArray(data.questions) ? data.questions : []
-        if (active) setItems(next)
-      } catch {
-        // Non-fatal.
-      } finally {
-        if (active) setLoading(false)
-      }
-    }
-    load()
-    return () => {
-      active = false
-    }
-  }, [])
-
-  const handleSelect = (value: string) => {
-    setSelectedId(value)
-    const selected = items.find(item => item.id === value)
-    if (!selected) return
-    onImport([mapQuestionBankToBuilderQuestion(selected)])
-    toast.success('Question imported from question bank')
-    setSelectedId('')
-  }
-
-  return (
-    <div className={cn('bg-background/80 rounded border border-dashed p-2.5', className)}>
-      <div className="flex flex-wrap items-center gap-2">
-        <Select value={selectedId} onValueChange={handleSelect}>
-          <SelectTrigger className={cn('h-8 min-w-[260px]', triggerClassName)}>
-            <SelectValue
-              placeholder={loading ? 'Loading question bank...' : 'Import from question bank'}
-            />
-          </SelectTrigger>
-          <SelectContent>
-            {items.map(item => (
-              <SelectItem key={item.id} value={item.id}>
-                {item.question.slice(0, 70)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {showOpenButton && (
-          <Button type="button" variant="ghost" size="sm" asChild>
-            <a href="/tutor/question-bank" target="_blank" rel="noreferrer">
-              Open Question Bank
-            </a>
-          </Button>
-        )}
       </div>
     </div>
   )

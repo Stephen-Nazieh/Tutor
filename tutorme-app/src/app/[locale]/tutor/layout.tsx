@@ -21,12 +21,9 @@ import {
   Globe,
   PanelLeftClose,
   PanelLeftOpen,
-  BookOpen,
   GraduationCap,
   LogOut,
   User,
-  LayoutGrid,
-  PenTool,
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -52,9 +49,6 @@ const navItems: NavItem[] = [
   { href: '/tutor/support', label: 'Support', icon: HelpCircle },
 
   // Whiteboard audit links
-  { href: '/tutor/dashboard', label: 'WB: Course Builder', icon: BookOpen },
-  { href: '/tutor/whiteboards', label: 'WB: Manager', icon: LayoutGrid },
-  { href: '/tutor/whiteboards', label: 'WB: Editor', icon: PenTool },
 ]
 
 const bottomNavItems = [{ href: '/tutor/settings', label: 'Account', icon: User }]

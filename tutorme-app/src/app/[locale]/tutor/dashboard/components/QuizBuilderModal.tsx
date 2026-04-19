@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { FileQuestion, Plus, X, BookOpen, Shield, CheckCircle, FileText } from 'lucide-react'
+import { FileQuestion, Plus, X, Shield, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Quiz, CourseBuilderNodeQuiz, QuizQuestion, BuilderModalProps } from './builder-types'
 import { ResourceImportPanel, MatchingPairsEditor, QuestionsPreview } from './builder-components'
@@ -31,7 +31,6 @@ import {
   DEFAULT_QUIZ,
   DEFAULT_NODE_QUIZ,
   generateId,
-  mapQuestionBankToBuilderQuestion,
 } from './builder-utils'
 
 function formatMatchingExplanation(pairs: { left: string; right: string }[]) {
@@ -48,9 +47,8 @@ export function QuizBuilderModal({
   const [data, setData] = useState<Quiz | CourseBuilderNodeQuiz>(
     initialData || (isCourseBuilderNodeQuiz ? DEFAULT_NODE_QUIZ(0) : DEFAULT_QUIZ(0))
   )
-  const [showQuestionBankModal, setShowQuestionBankModal] = useState(false)
 
-  const addQuestion = async (type: QuizQuestion['type']) => {
+  const addQuestion = (type: QuizQuestion['type']) => {
     const matchingPairs =
       type === 'matching'
         ? [
@@ -69,31 +67,6 @@ export function QuizBuilderModal({
       correctAnswer: matchingPairs ? matchingPairs.map(pair => pair.right) : undefined,
     }
     setData({ ...data, questions: [...data.questions, newQuestion] })
-
-    // Auto-save to question bank
-    try {
-      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
-      const csrfData = await csrfRes.json().catch(() => ({}))
-      const csrfToken = csrfData?.token ?? null
-
-      await fetch('/api/tutor/question-bank', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          question: newQuestion.question || '[Empty Question]',
-          type: newQuestion.type,
-          options: newQuestion.options,
-          correctAnswer: newQuestion.correctAnswer,
-          explanation: newQuestion.explanation || '',
-        }),
-      })
-    } catch {
-      // Silent fail - question is still added to the assessment
-    }
   }
 
   const updateQuestion = (index: number, updates: Partial<QuizQuestion>) => {
@@ -345,14 +318,6 @@ export function QuizBuilderModal({
 
                   {/* Add Questions Bar */}
                   <div className="flex flex-wrap items-center gap-2 border-t pt-4">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setShowQuestionBankModal(true)}
-                    >
-                      <BookOpen className="mr-1 h-4 w-4" /> Add from question bank
-                    </Button>
-                    <div className="bg-border mx-1 h-6 w-px" />
                     <Button variant="outline" size="sm" onClick={() => addQuestion('mcq')}>
                       <Plus className="mr-1 h-4 w-4" /> MCQ
                     </Button>
@@ -432,137 +397,6 @@ export function QuizBuilderModal({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Question Bank Modal */}
-      <Dialog open={showQuestionBankModal} onOpenChange={setShowQuestionBankModal}>
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-blue-500" />
-              Question Bank
-            </DialogTitle>
-          </DialogHeader>
-          <QuestionBankSelector
-            onSelect={questions => {
-              setData({ ...data, questions: [...data.questions, ...questions] })
-              setShowQuestionBankModal(false)
-              toast.success(`${questions.length} question(s) added`)
-            }}
-          />
-        </DialogContent>
-      </Dialog>
     </>
-  )
-}
-
-interface QuestionBankItemLite {
-  id: string
-  type: string
-  question: string
-  options?: string[]
-  correctAnswer?: string | string[] | null
-  points?: number
-}
-
-function QuestionBankSelector({ onSelect }: { onSelect: (questions: QuizQuestion[]) => void }) {
-  const [loading, setLoading] = useState(false)
-  const [items, setItems] = useState<QuestionBankItemLite[]>([])
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [filter, setFilter] = useState('')
-
-  useEffect(() => {
-    let active = true
-    const load = async () => {
-      setLoading(true)
-      try {
-        const res = await fetch('/api/tutor/question-bank?limit=200', { credentials: 'include' })
-        if (!res.ok) return
-        const data = await res.json()
-        const next = Array.isArray(data.questions) ? data.questions : []
-        if (active) setItems(next)
-      } catch {
-        // Non-fatal.
-      } finally {
-        if (active) setLoading(false)
-      }
-    }
-    load()
-    return () => {
-      active = false
-    }
-  }, [])
-
-  const toggleSelection = (id: string) => {
-    const next = new Set(selectedIds)
-    if (next.has(id)) next.delete(id)
-    else next.add(id)
-    setSelectedIds(next)
-  }
-
-  const filteredItems = items.filter(
-    item =>
-      item.question.toLowerCase().includes(filter.toLowerCase()) ||
-      item.type.toLowerCase().includes(filter.toLowerCase())
-  )
-
-  return (
-    <div className="space-y-4">
-      <Input
-        placeholder="Search questions..."
-        value={filter}
-        onChange={(e: any) => setFilter(e.target.value)}
-        className="w-full"
-      />
-      <div className="max-h-[400px] overflow-y-auto rounded-lg border">
-        {loading ? (
-          <div className="text-muted-foreground p-8 text-center">Loading...</div>
-        ) : filteredItems.length === 0 ? (
-          <div className="text-muted-foreground p-8 text-center">No questions found</div>
-        ) : (
-          <div className="divide-y">
-            {filteredItems.map(item => (
-              <div
-                key={item.id}
-                className={`hover:bg-muted/50 cursor-pointer p-3 transition-colors ${
-                  selectedIds.has(item.id) ? 'bg-blue-50 hover:bg-blue-100' : ''
-                }`}
-                onClick={() => toggleSelection(item.id)}
-              >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded border ${
-                      selectedIds.has(item.id) ? 'border-blue-500 bg-blue-500' : 'border-gray-500'
-                    }`}
-                  >
-                    {selectedIds.has(item.id) && <CheckCircle className="h-3 w-3 text-white" />}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        {item.type.toUpperCase()}
-                      </Badge>
-                      <span className="text-muted-foreground text-xs">
-                        {item.options?.length || 0} options
-                      </span>
-                    </div>
-                    <p className="line-clamp-2 text-sm">{item.question}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      <div className="flex justify-end">
-        <Button
-          onClick={() =>
-            onSelect(items.filter(i => selectedIds.has(i.id)).map(mapQuestionBankToBuilderQuestion))
-          }
-          disabled={selectedIds.size === 0}
-        >
-          Add Selected ({selectedIds.size})
-        </Button>
-      </div>
-    </div>
   )
 }

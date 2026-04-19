@@ -1,6 +1,6 @@
 /**
  * Client-side helper to obtain a JWT for Socket.io authentication.
- * Used by use-socket, use-simple-socket, use-whiteboard-socket, etc.
+ * Used by use-socket, use-simple-socket, etc.
  */
 
 export async function getSocketToken(timeoutMs = 5000): Promise<string | null> {

@@ -42,7 +42,6 @@ import {
   ResourceImportPanel,
   MatchingPairsEditor,
   QuestionsPreview,
-  QuestionBankQuickImport,
   ManualQuestionComposer,
   formatMatchingExplanation,
 } from './builder-components'
@@ -77,7 +76,6 @@ export function AssessmentBuilderModal({
         : DEFAULT_HOMEWORK(0, builderType === 'homework' ? 'homework' : 'assessment'))
   )
   const [showAnswerKey, setShowAnswerKey] = useState(false)
-  const [showQuestionBankModal, setShowQuestionBankModal] = useState(false)
   const isTask = builderType === 'task'
   const isHomework = builderType === 'homework'
   const titleLabel = isTask ? 'Task' : isHomework ? 'Homework' : 'Assessment'
@@ -279,14 +277,6 @@ export function AssessmentBuilderModal({
                         </Button>
                       </div>
                     </div>
-                    <QuestionBankQuickImport
-                      onImport={incomingQuestions =>
-                        setData({
-                          ...data,
-                          questions: [...(data.questions || []), ...incomingQuestions],
-                        })
-                      }
-                    />
                     <ManualQuestionComposer
                       onImport={incomingQuestions =>
                         setData({
