@@ -234,6 +234,75 @@ export async function* streamKimi(
 }
 
 /**
+ * Generate text using Kimi K2.5 with vision (images + text)
+ * Supports OpenAI-compatible vision format:
+ *   { type: 'text', text: '...' }
+ *   { type: 'image_url', image_url: { url: 'data:image/png;base64,...' } }
+ */
+export async function generateWithKimiVision(
+  promptItems: Array<
+    | { type: 'text'; text: string }
+    | { type: 'image_url'; image_url: { url: string } }
+  >,
+  options: {
+    model?: string
+    temperature?: number
+    maxTokens?: number
+    systemPrompt?: string
+    timeoutMs?: number
+    retries?: number
+  } = {}
+): Promise<string> {
+  const apiKey = process.env.KIMI_API_KEY
+
+  if (!apiKey) {
+    throw new Error('KIMI_API_KEY not configured in environment variables')
+  }
+
+  const messages: Array<{
+    role: 'system' | 'user' | 'assistant'
+    content: string | Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }>
+  }> = []
+
+  if (options.systemPrompt) {
+    messages.push({ role: 'system', content: options.systemPrompt })
+  }
+
+  messages.push({ role: 'user', content: promptItems })
+
+  try {
+    const response = await fetchWithTimeoutAndRetry(
+      `${KIMI_BASE_URL}/chat/completions`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: options.model || DEFAULT_MODEL,
+          messages,
+          temperature: options.temperature ?? 0.7,
+          max_tokens: options.maxTokens ?? 2048,
+        }),
+      },
+      { timeoutMs: options.timeoutMs, retries: options.retries }
+    )
+
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(`Kimi API error: ${response.status} - ${error}`)
+    }
+
+    const data: KimiResponse = await response.json()
+    return data.choices[0]?.message?.content || ''
+  } catch (error) {
+    console.error('Kimi vision generation error:', error)
+    throw error
+  }
+}
+
+/**
  * Get available Kimi models
  */
 export function getKimiModels(): Array<{ id: string; name: string; description: string }> {
