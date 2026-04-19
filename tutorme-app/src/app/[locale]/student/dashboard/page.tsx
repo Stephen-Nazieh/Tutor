@@ -85,10 +85,8 @@ export default function StudentDashboard() {
       const subjects = subjectsData?.subjects ?? []
       setData({
         contents: contentData?.contents ?? [],
-        dailyQuests: [],
         recommendations: recsData?.recommendations ?? [],
         classes: classesData?.classes ?? [],
-        studyGroups: [],
         courses: subjects.map(
           (s: {
             id: string

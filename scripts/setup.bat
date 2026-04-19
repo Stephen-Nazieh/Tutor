@@ -74,74 +74,55 @@ echo [✓] shadcn/ui setup complete
 REM Step 3: Install dependencies
 echo.
 echo [→] Step 3/8: Installing dependencies...
-call npm install @prisma/client prisma next-auth socket.io socket.io-client redis ioredis zod date-fns lucide-react class-variance-authority clsx tailwind-merge ollama openai yjs y-websocket @daily-co/daily-js @types/node @types/react @types/react-dom typescript @types/ws tsx @types/bcryptjs --save
-echo [✓] Dependencies installed
-
-REM Step 4: Create Prisma schema
+REM Step 3: Install dependencies (Prisma removed — project uses Drizzle ORM)
 echo.
-echo [→] Step 4/8: Setting up Prisma...
-if not exist "prisma" mkdir prisma
+echo [->] Step 3/8: Installing dependencies...
+call npm install next-auth socket.io socket.io-client redis ioredis zod date-fns lucide-react class-variance-authority clsx tailwind-merge ollama openai yjs y-websocket @daily-co/daily-js @types/node @types/react @types/react-dom typescript @types/ws tsx @types/bcryptjs --save
+echo [v] Dependencies installed
 
-echo // This is your Prisma schema file, > prisma\schema.prisma
-echo // learn more about it in the docs: https://pris.ly/d/prisma-schema >> prisma\schema.prisma
-echo. >> prisma\schema.prisma
-echo generator client { >> prisma\schema.prisma
-echo   provider = "prisma-client-js" >> prisma\schema.prisma
-echo } >> prisma\schema.prisma
-echo. >> prisma\schema.prisma
-echo datasource db { >> prisma\schema.prisma
-echo   provider = "postgresql" >> prisma\schema.prisma
-echo   url      = env("DATABASE_URL") >> prisma\schema.prisma
-echo } >> prisma\schema.prisma
-echo. >> prisma\schema.prisma
-echo // See full schema in documentation >> prisma\schema.prisma
-
-echo [✓] Prisma schema created
+REM Step 4: Set up Drizzle ORM
+echo.
+echo [->] Step 4/8: Setting up Drizzle ORM...
+echo Drizzle ORM is configured. Run migrations with: npm run db:migrate
+echo [v] Drizzle setup complete
 
 REM Step 5: Create Docker Compose
 echo.
-echo [→] Step 5/8: Creating Docker Compose configuration...
+echo [->] Step 5/8: Creating Docker Compose configuration...
 (
 echo version: '3.8'
 echo.
 echo services:
 echo   db:
 echo     image: postgres:16-alpine
-gecho     container_name: tutorme-db
-gecho     restart: unless-stopped
-gecho     environment:
-gecho       POSTGRES_USER: tutorme
-gecho       POSTGRES_PASSWORD: tutorme_password
-gecho       POSTGRES_DB: tutorme
-gecho     ports:
-gecho       - "5432:5432"
-gecho     volumes:
-gecho       - postgres_data:/var/lib/postgresql/data
-gecho   redis:
-gecho     image: redis:7-alpine
-gecho     container_name: tutorme-redis
-gecho     restart: unless-stopped
-gecho     ports:
-gecho       - "6379:6379"
-gecho   ollama:
-gecho     image: ollama/ollama:latest
-gecho     container_name: tutorme-ollama
-gecho     restart: unless-stopped
-gecho     ports:
-gecho       - "11434:11434"
-gecho     volumes:
-gecho       - ollama_data:/root/.ollama
-gecho volumes:
-gecho   postgres_data:
-gecho   redis_data:
-gecho   ollama_data:
+echo     container_name: tutorme-db
+echo     restart: unless-stopped
+echo     environment:
+echo       POSTGRES_USER: tutorme
+echo       POSTGRES_PASSWORD: tutorme_password
+echo       POSTGRES_DB: tutorme
+echo     ports:
+echo       - "5432:5432"
+echo     volumes:
+echo       - postgres_data:/var/lib/postgresql/data
+echo   redis:
+echo     image: redis:7-alpine
+echo     container_name: tutorme-redis
+echo     restart: unless-stopped
+echo     ports:
+echo       - "6379:6379"
+echo     volumes:
+echo       - redis_data:/data
+echo volumes:
+echo   postgres_data:
+echo   redis_data:
 ) > docker-compose.yml
 
-echo [✓] Docker Compose created
+echo [v] Docker Compose created
 
 REM Step 6: Create environment files
 echo.
-echo [→] Step 6/8: Creating environment configuration...
+echo [->] Step 6/8: Creating environment configuration...
 (
 echo # Database
 echo DATABASE_URL="postgresql://tutorme:tutorme_password@localhost:5432/tutorme"
@@ -165,11 +146,11 @@ echo NODE_ENV="development"
 
 copy .env.example .env.local
 
-echo [✓] Environment files created
+echo [v] Environment files created
 
 REM Step 7: Create directory structure
 echo.
-echo [→] Step 7/8: Creating project structure...
+echo [->] Step 7/8: Creating project structure...
 mkdir app\(auth)\login 2>nul
 mkdir app\(student)\dashboard 2>nul
 mkdir app\(student)\learn\[contentId] 2>nul
@@ -189,11 +170,11 @@ mkdir lib\video 2>nul
 mkdir types 2>nul
 mkdir scripts 2>nul
 
-echo [✓] Project structure created
+echo [v] Project structure created
 
 REM Step 8: Create helper scripts
 echo.
-echo [→] Step 8/8: Creating helper scripts...
+echo [->] Step 8/8: Creating helper scripts...
 
 (
 echo @echo off
@@ -206,8 +187,7 @@ echo     docker-compose up -d
 echo     echo Waiting for database...
 echo     timeout /t 5 /nobreak ^>nul
 echo     echo Running migrations...
-echo     npx prisma migrate dev --name init
-echo     npx prisma generate
+echo     npm run db:migrate
 echo )
 echo echo.
 echo echo ========================================
@@ -225,17 +205,18 @@ echo @echo off
 echo echo Setting up database...
 echo docker-compose up -d db redis
 echo timeout /t 5 /nobreak ^>nul
-echo npx prisma migrate dev --name init
-echo npx prisma generate
+echo npm run db:migrate
 echo echo Database ready!
 ) > scripts\setup-db.bat
 
-echo [✓] Helper scripts created
+echo [v] Helper scripts created
 
 REM Update package.json
 echo.
-echo [→] Updating package.json...
-node -e "const fs=require('fs'),pkg=JSON.parse(fs.readFileSync('package.json','utf8'));pkg.scripts={...pkg.scripts,'dev:all':'scripts\\dev.bat','db:setup':'scripts\\setup-db.bat','db:migrate':'prisma migrate dev','db:studio':'prisma studio','db:generate':'prisma generate','docker:up':'docker-compose up -d','docker:down':'docker-compose down'};fs.writeFileSync('package.json',JSON.stringify(pkg,null,2));"
+echo [->] Updating package.json...
+node -e "const fs=require('fs'),pkg=JSON.parse(fs.readFileSync('package.json','utf8'));pkg.scripts={...pkg.scripts,'dev:all':'scripts\dev.bat','db:setup':'scripts\setup-db.bat','db:migrate':'drizzle-kit migrate','db:studio':'drizzle-kit studio','docker:up':'docker-compose up -d','docker:down':'docker-compose down'};fs.writeFileSync('package.json',JSON.stringify(pkg,null,2));"
+
+echo [v] Package.json updated
 
 echo [✓] Package.json updated
 

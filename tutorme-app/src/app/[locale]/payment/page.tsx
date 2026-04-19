@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -26,7 +27,7 @@ const gatewayOptions: { value: GatewayOption; label: string; description: string
   { value: 'ALIPAY', label: 'Alipay', description: 'For China users' },
 ]
 
-export default function PaymentPage() {
+function PaymentPageInner() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -303,5 +304,13 @@ export default function PaymentPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={null}>
+      <PaymentPageInner />
+    </Suspense>
   )
 }

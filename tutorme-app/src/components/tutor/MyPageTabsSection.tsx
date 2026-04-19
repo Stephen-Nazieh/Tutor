@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -57,7 +58,7 @@ interface ClassItem {
   status: 'scheduled' | 'live' | 'completed'
 }
 
-export function MyPageTabsSection() {
+function MyPageTabsSectionInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialTab = searchParams.get('tab') || 'courses'
@@ -753,5 +754,13 @@ export function MyPageTabsSection() {
         </Card>
       </TabsContent>
     </Tabs>
+  )
+}
+
+export function MyPageTabsSection() {
+  return (
+    <Suspense fallback={null}>
+      <MyPageTabsSectionInner />
+    </Suspense>
   )
 }

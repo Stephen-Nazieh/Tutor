@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -23,7 +24,7 @@ interface CourseDetail {
   enrolled?: boolean
 }
 
-export default function CourseEnrollPage() {
+function CourseEnrollPageInner() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -283,5 +284,13 @@ export default function CourseEnrollPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function CourseEnrollPage() {
+  return (
+    <Suspense fallback={null}>
+      <CourseEnrollPageInner />
+    </Suspense>
   )
 }

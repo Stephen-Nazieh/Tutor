@@ -5,6 +5,7 @@
 
 'use client'
 
+import { Suspense } from 'react'
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
@@ -87,7 +88,7 @@ const SUBJECT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   default: BookOpen,
 }
 
-export default function CoursePage() {
+function CoursePageInner() {
   const { data: session } = useSession()
   const searchParams = useSearchParams()
   const isTutor = session?.user?.role === 'TUTOR'
@@ -550,6 +551,14 @@ export default function CoursePage() {
         />
       )}
     </div>
+  )
+}
+
+export default function CoursePage() {
+  return (
+    <Suspense fallback={null}>
+      <CoursePageInner />
+    </Suspense>
   )
 }
 

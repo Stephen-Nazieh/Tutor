@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useEffect, useState } from 'react'
 import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -38,7 +39,7 @@ interface Flashcard {
   difficulty: 'easy' | 'medium' | 'hard'
 }
 
-export default function ReviewPage() {
+function ReviewPageInner() {
   const router = useRouter()
   const params = useParams()
   const searchParams = useSearchParams()
@@ -430,4 +431,12 @@ export default function ReviewPage() {
   }
 
   return null
+}
+
+export default function ReviewPage() {
+  return (
+    <Suspense fallback={null}>
+      <ReviewPageInner />
+    </Suspense>
+  )
 }

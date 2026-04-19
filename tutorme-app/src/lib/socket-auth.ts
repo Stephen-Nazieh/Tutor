@@ -21,3 +21,5 @@ export async function getSocketToken(timeoutMs = 5000): Promise<string | null> {
     return null
   }
 }
+
+export { socketAuthMiddleware } from './socket/socket-auth'

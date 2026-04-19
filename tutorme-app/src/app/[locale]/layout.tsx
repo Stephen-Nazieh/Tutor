@@ -1,10 +1,8 @@
-import { NextIntlClientProvider } from 'next-intl'
-import { getMessages, getLocale, setRequestLocale } from 'next-intl/server'
+import { setRequestLocale } from 'next-intl/server'
 import { hasLocale } from 'next-intl'
 import { notFound } from 'next/navigation'
 import { routing } from '@/lib/i18n/config'
-import { getLocaleInfo, type Locale } from '@/lib/i18n/config'
-import { AuthProvider } from '@/components/providers/auth-provider'
+import { type Locale } from '@/lib/i18n/config'
 import { ThemeProvider } from '@/components/ui/theme-provider'
 import { Toaster } from 'sonner'
 import { PWAInstallPrompt } from '@/components/pwa/PWAInstallPrompt'
@@ -27,18 +25,11 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   setRequestLocale(locale)
 
-  const messages = await getMessages()
-  const localeInfo = getLocaleInfo(locale as Locale)
-
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
-      <ThemeProvider defaultTheme="aura" defaultMode="system">
-        <AuthProvider>
-          {children}
-          <PWAInstallPrompt />
-          <Toaster position="top-right" />
-        </AuthProvider>
-      </ThemeProvider>
-    </NextIntlClientProvider>
+    <ThemeProvider defaultTheme="aura" defaultMode="system">
+      {children}
+      <PWAInstallPrompt />
+      <Toaster position="top-right" />
+    </ThemeProvider>
   )
 }

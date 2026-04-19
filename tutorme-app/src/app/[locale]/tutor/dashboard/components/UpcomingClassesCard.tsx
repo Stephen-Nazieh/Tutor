@@ -316,12 +316,7 @@ export function UpcomingClassesCard({
   const [selectedClass, setSelectedClass] = useState<UpcomingClass | null>(null)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
-  // Add mock session numbers for display
-  const classesWithSessions = classes.map((cls, index) => ({
-    ...cls,
-    sessionNo: cls.sessionNo || (index % 4) + 1,
-    totalSessions: cls.totalSessions || 12,
-  }))
+  const classesWithSessions = classes
 
   return (
     <Card className="overflow-hidden border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md">

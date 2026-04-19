@@ -38,7 +38,7 @@ fi
 echo -e "${GREEN}✅ Docker is running${NC}"
 echo ""
 
-# Wait for a host port to accept TCP (so Node/Prisma/Drizzle can connect). Works on macOS and Linux.
+# Wait for a host port to accept TCP (so Node/Drizzle can connect). Works on macOS and Linux.
 wait_for_port() {
     local port=$1
     local retries=0
@@ -148,12 +148,11 @@ else
 fi
 echo ""
 
-# Run Drizzle SQL migrations (drizzle/*.sql), then sync schema and Prisma
+# Run Drizzle SQL migrations (drizzle/*.sql), then sync schema
 echo -e "${BLUE}▶ Running database migrations...${NC}"
 npm run drizzle:migrate || true
 echo -e "${BLUE}▶ Syncing database schemas...${NC}"
 npx drizzle-kit push --force || true
-npx prisma generate
 echo -e "${GREEN}✅ Migrations complete${NC}"
 echo ""
 
