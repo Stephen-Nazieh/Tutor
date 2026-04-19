@@ -68,6 +68,7 @@ import {
   type CountryData,
   type ExamCategory,
 } from '@/lib/data/tutor-categories'
+import { VariantManager } from './components/VariantManager'
 
 // Flatten all categories into a single list
 const ALL_CATEGORIES = [
@@ -363,7 +364,7 @@ export default function TutorCoursePage() {
       }
 
       const data = await res.json()
-      const sessionId = data?.session?.id
+      const sessionId = data?.session?.sessionId
       if (!sessionId) throw new Error('Live class created but session ID is missing')
 
       toast.success('Live class created. Redirecting…')
@@ -586,7 +587,7 @@ export default function TutorCoursePage() {
       <div className="w-full space-y-6 p-4 sm:p-6">
         {/* Back to Course Builder */}
         <div className="flex items-center gap-2">
-          <BackButton href={`/tutor/courses/${id}/builder`} />
+          <BackButton href={`/tutor/insights?tab=builder&courseId=${id}`} />
         </div>
 
         {/* Course Details */}
@@ -1077,403 +1078,27 @@ export default function TutorCoursePage() {
           </CardContent>
         </Card>
 
-        {/* Course Schedule */}
-        <Card id="course-schedule" className="border-2 border-gray-400 shadow-sm">
+        {/* Variant Manager */}
+        <Card className="border-2 border-gray-400 shadow-sm">
           <CardHeader>
-            <CardTitle>Course Schedule</CardTitle>
+            <CardTitle>Publish Variants</CardTitle>
+            <CardDescription>
+              Configure and publish course variants for each category and country combination.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Cost vs Revenue - visible when price and schedule are set */}
-            {!isFree &&
-              Number(price) > 0 &&
-              schedule.length > 0 &&
-              (() => {
-                const p = Number(price)
-                const cost = schedule.reduce(
-                  (sum, slot) => sum + (slot.durationMinutes / 60) * p,
-                  0
-                )
-                const revenue = cost * 0.7
-                return (
-                  <div className="bg-muted/30 grid grid-cols-2 gap-3 rounded-lg border p-3 text-sm">
-                    <div>
-                      <div className="text-muted-foreground text-xs">Cost for course</div>
-                      <div className="font-medium">USD {cost.toFixed(2)}</div>
-                    </div>
-                    <div>
-                      <div className="text-muted-foreground text-xs">
-                        Revenue (after 30% commission)
-                      </div>
-                      <div className="font-medium">USD {revenue.toFixed(2)}</div>
-                    </div>
-                  </div>
-                )
-              })()}
-
-            {/* Weekly repeat option */}
-            <div className="bg-muted/30 flex flex-wrap items-center gap-4 rounded-lg border p-3">
-              <label className="flex cursor-pointer items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={scheduleRepeatWeekly}
-                  onChange={e => setScheduleRepeatWeekly(e.target.checked)}
-                  className="rounded border-gray-300"
-                />
-                <span className="text-sm font-medium">Apply same schedule every week</span>
-              </label>
-              {scheduleRepeatWeekly && schedule.length > 0 && (
-                <>
-                  <div className="flex items-center gap-2">
-                    <Label className="text-xs">Number of weeks</Label>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={52}
-                      value={totalSessionsDesired !== '' ? effectiveWeeks : numberOfWeeks}
-                      onChange={e => {
-                        const v = Math.max(1, parseInt(e.target.value, 10) || 1)
-                        setNumberOfWeeks(v)
-                        if (totalSessionsDesired !== '') setTotalSessionsDesired('')
-                      }}
-                      disabled={totalSessionsDesired !== ''}
-                      className="h-8 w-20 text-sm"
-                    />
-                    {totalSessionsDesired !== '' && (
-                      <span className="text-muted-foreground text-xs">
-                        = {effectiveWeeks} weeks from {totalSessionsDesired} sessions
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Label className="text-xs">Or total sessions</Label>
-                    <Input
-                      type="number"
-                      min={1}
-                      placeholder="e.g. 20"
-                      value={totalSessionsDesired}
-                      onChange={e =>
-                        setTotalSessionsDesired(
-                          e.target.value === ''
-                            ? ''
-                            : Math.max(1, parseInt(e.target.value, 10) || 0)
-                        )
-                      }
-                      className="h-8 w-24 text-sm"
-                    />
-                    <span className="text-muted-foreground text-xs">
-                      sessions (weeks = sessions ÷ slots per week)
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Calendar grid: click cells to select 1-hour slots; key by week so header dates update when week/month changes */}
-            <div
-              key={`week-${scheduleWeekStart.getTime()}`}
-              className="overflow-hidden rounded-lg border"
-            >
-              <div className="bg-muted/30 flex flex-wrap items-center justify-between gap-2 border-b px-2 py-2">
-                <div className="flex items-center gap-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => setScheduleWeekOffset(o => o - 1)}
-                    aria-label="Previous week"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="min-w-[140px] text-center text-xs font-medium">
-                    {scheduleWeekLabel}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => setScheduleWeekOffset(o => o + 1)}
-                    aria-label="Next week"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-                <span className="text-muted-foreground text-xs">{scheduleMonthLabel}</span>
-                <div className="flex items-center gap-1">
-                  <span className="text-muted-foreground mr-1 text-[10px]">Month:</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => setScheduleWeekOffset(o => o - 4)}
-                    aria-label="Previous month"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => setScheduleWeekOffset(o => o + 4)}
-                    aria-label="Next month"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <p className="bg-muted/20 text-muted-foreground border-b px-2 py-1 text-xs">
-                Click a time slot to add or remove a 1-hour session.
-              </p>
-              <div className="bg-muted/30 grid grid-cols-8 border-b">
-                <div className="border-r p-2 text-center text-xs font-medium">Time</div>
-                {DAYS.map((day, i) => {
-                  const d = weekDates[i]
-                  return (
-                    <div
-                      key={`${day}-${d.getTime()}`}
-                      className="border-r p-2 text-center text-xs font-medium"
-                    >
-                      <div>{day.slice(0, 3)}</div>
-                      <div className="text-muted-foreground mt-0.5 text-[10px] font-normal">
-                        {d.getDate()}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-              <ScrollArea className="h-[320px]">
-                <div className="grid grid-cols-8">
-                  {TIME_SLOT_OPTIONS.map(timeStr => {
-                    const hour = parseInt(timeStr.slice(0, 2), 10)
-                    const endHour = hour + 1
-                    const startLabel = `${hour % 12 || 12}:00 ${hour >= 12 ? 'PM' : 'AM'}`
-                    const endLabel = `${endHour % 12 || 12}:00 ${endHour >= 12 ? 'PM' : 'AM'}`
-                    const displayTime = `${startLabel}-${endLabel}`
-                    return (
-                      <div key={timeStr} className="contents">
-                        <div className="text-muted-foreground border-b border-r border-dashed p-1 text-center text-[10px]">
-                          {displayTime}
-                        </div>
-                        {DAYS.map((day, dayIndex) => {
-                          const dateKey = formatDateKey(weekDates[dayIndex])
-                          const matchingSlotIndex = schedule.findIndex(s => {
-                            if (s.dayOfWeek !== day) return false
-                            if (!scheduleRepeatWeekly) {
-                              if (s.date ? s.date !== dateKey : scheduleWeekOffset !== 0)
-                                return false
-                            }
-                            const [sh, sm] = s.startTime.split(':').map(Number)
-                            const startM = sh * 60 + sm
-                            const endM = startM + s.durationMinutes
-                            const [th, tm] = timeStr.split(':').map(Number)
-                            const slotM = th * 60 + tm
-                            return slotM >= startM && slotM < endM
-                          })
-                          const inRange = matchingSlotIndex >= 0
-                          // Calculate chronological session number
-                          // Sort all sessions by date and start time, then find position
-                          let sessionNum = 0
-                          if (inRange) {
-                            const currentSlot = schedule[matchingSlotIndex]
-                            // Create a sortable key for each session: date_startTime
-                            const sortedSessions = [...schedule].sort((a, b) => {
-                              const aDate = a.date || ''
-                              const bDate = b.date || ''
-                              if (aDate !== bDate) return aDate.localeCompare(bDate)
-                              return a.startTime.localeCompare(b.startTime)
-                            })
-                            sessionNum =
-                              sortedSessions.findIndex(
-                                s =>
-                                  s.dayOfWeek === currentSlot.dayOfWeek &&
-                                  s.startTime === currentSlot.startTime &&
-                                  s.date === currentSlot.date
-                              ) + 1
-                          }
-                          const sessionLabel = inRange ? `Session ${sessionNum}` : ''
-                          const toggleSlot = () => {
-                            setSchedule(prev => {
-                              const idx = prev.findIndex(s => {
-                                if (s.dayOfWeek !== day) return false
-                                if (!scheduleRepeatWeekly) {
-                                  if (s.date ? s.date !== dateKey : scheduleWeekOffset !== 0)
-                                    return false
-                                }
-                                const [sh, sm] = s.startTime.split(':').map(Number)
-                                const startM = sh * 60 + sm
-                                const endM = startM + s.durationMinutes
-                                const [th, tm] = timeStr.split(':').map(Number)
-                                const slotM = th * 60 + tm
-                                return slotM >= startM && slotM < endM
-                              })
-                              if (idx >= 0) {
-                                // Remove the schedule block that covers this hour
-                                return [...prev.slice(0, idx), ...prev.slice(idx + 1)]
-                              }
-                              // Add a new 1-hour session starting at this time
-                              return [
-                                ...prev,
-                                {
-                                  dayOfWeek: day,
-                                  startTime: timeStr,
-                                  durationMinutes: 60,
-                                  ...(scheduleRepeatWeekly ? {} : { date: dateKey }),
-                                },
-                              ]
-                            })
-                          }
-                          return (
-                            <div
-                              key={`${day}-${timeStr}`}
-                              role="button"
-                              tabIndex={0}
-                              onClick={toggleSlot}
-                              onKeyDown={e => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
-                                  toggleSlot()
-                                }
-                              }}
-                              className={`min-h-[28px] w-full cursor-pointer border-b border-r border-dashed p-1 text-left transition-colors hover:bg-blue-50 ${inRange ? 'bg-blue-200 ring-1 ring-blue-400' : 'bg-white hover:bg-slate-50'}`}
-                              aria-pressed={inRange}
-                              aria-label={`${day} ${displayTime}${inRange ? ', selected' : ''}. Click to ${inRange ? 'remove' : 'add'} session.`}
-                            >
-                              {inRange && (
-                                <span className="inline-flex items-center gap-0.5 text-[8px] font-medium text-blue-800">
-                                  {sessionLabel}
-                                  <button
-                                    type="button"
-                                    className="rounded-full p-0.5 hover:bg-blue-100"
-                                    onClick={e => {
-                                      e.stopPropagation()
-                                      toggleSlot()
-                                    }}
-                                    aria-label="Remove this session"
-                                  >
-                                    <X className="h-2.5 w-2.5" />
-                                  </button>
-                                </span>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )
-                  })}
-                </div>
-              </ScrollArea>
-            </div>
-
-            {/* Schedule Summary - sessions, duration, cost/revenue, interactive by day */}
-            {scheduleSummary.length > 0 && (
-              <Card className="border-primary/20 overflow-hidden border-2 shadow-lg">
-                <CardHeader className="border-b bg-gradient-to-r from-slate-50 to-blue-50/50 pb-3">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <CalendarIcon className="text-primary h-5 w-5" />
-                    Schedule Summary
-                  </CardTitle>
-                  <CardDescription className="text-xs">Times in {timezoneLabel}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4 pt-4">
-                  {/* Sessions & duration */}
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
-                      <div className="text-xs font-medium uppercase tracking-wide text-blue-700">
-                        Sessions
-                      </div>
-                      <div className="mt-0.5 text-2xl font-bold text-blue-900">{totalSessions}</div>
-                      {scheduleRepeatWeekly &&
-                        schedule.length > 0 &&
-                        totalSessions > schedule.length && (
-                          <div className="mt-0.5 text-xs text-blue-600">
-                            Over {Math.ceil(totalSessions / schedule.length)} weeks
-                          </div>
-                        )}
-                    </div>
-                    <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3">
-                      <div className="text-xs font-medium uppercase tracking-wide text-emerald-700">
-                        Total duration
-                      </div>
-                      <div className="mt-0.5 text-2xl font-bold text-emerald-900">
-                        {totalDurationHours} h
-                      </div>
-                    </div>
-                    {priceNumber > 0 && (
-                      <>
-                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                          <div className="text-xs font-medium uppercase tracking-wide text-slate-600">
-                            Cost
-                          </div>
-                          <div className="mt-0.5 text-xl font-bold text-slate-900">
-                            USD {scheduleCost.toFixed(2)}
-                          </div>
-                        </div>
-                        <div className="rounded-xl border border-amber-100 bg-amber-50 p-3">
-                          <div className="text-xs font-medium uppercase tracking-wide text-amber-700">
-                            Revenue (70%)
-                          </div>
-                          <div className="mt-0.5 text-xl font-bold text-amber-900">
-                            USD {totalRevenue.toFixed(2)}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  {/* By day - interactive list */}
-                  <div className="space-y-2">
-                    <div className="text-sm font-semibold text-slate-700">By day</div>
-                    {dayOrder
-                      .filter(day => scheduleByDay[day]?.length)
-                      .map(day => (
-                        <div
-                          key={day}
-                          className="rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
-                        >
-                          <div className="mb-2 flex items-center justify-between text-sm font-semibold text-slate-800">
-                            <span>{day}</span>
-                            <Badge variant="secondary" className="text-xs">
-                              {scheduleByDay[day].length} session
-                              {scheduleByDay[day].length !== 1 ? 's' : ''}
-                            </Badge>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {scheduleByDay[day]
-                              .sort((a, b) => a.startTime.localeCompare(b.startTime))
-                              .map((slot, idx) => (
-                                <div
-                                  key={`${day}-${idx}-${slot.startTime}`}
-                                  className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-800"
-                                >
-                                  {slot.date && (
-                                    <span className="text-xs text-slate-600">
-                                      {new Date(slot.date + 'T00:00:00').toLocaleDateString(
-                                        'en-US',
-                                        {
-                                          month: 'short',
-                                          day: 'numeric',
-                                        }
-                                      )}
-                                    </span>
-                                  )}
-                                  <span>
-                                    {formatTimeRange(slot.startTime, slot.durationMinutes)}
-                                  </span>
-                                  <span className="text-xs text-slate-500">
-                                    • {slot.durationMinutes}m
-                                  </span>
-                                  <span className="text-xs text-slate-500">• 0 students</span>
-                                </div>
-                              ))}
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+          <CardContent>
+            <VariantManager
+              templateCourseId={id}
+              selectedCategories={selectedCategories}
+              selectedCountryCodes={selectedCountries.length > 0 ? selectedCountries : ['GL']}
+              defaultPrice={price === '' ? null : Number(price)}
+              defaultCurrency="USD"
+              defaultLanguage={languageOfInstruction || 'English'}
+              defaultSchedule={schedule}
+              onSaved={() => {
+                // Optionally refresh course data after variants are saved
+              }}
+            />
           </CardContent>
         </Card>
 
@@ -1481,65 +1106,7 @@ export default function TutorCoursePage() {
         <div className="flex justify-end gap-3">
           <Button size="sm" variant="outline" onClick={handleSaveAll} disabled={saving}>
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {saving ? 'Saving…' : 'Save'}
-          </Button>
-          <Button
-            size="sm"
-            onClick={async () => {
-              // Save first, then publish with variants
-              const saveSuccess = await handleSaveAll()
-              if (!saveSuccess) return
-
-              if (selectedCountries.length === 0) {
-                toast.error('Select at least one country/nationality before publishing')
-                return
-              }
-              if (selectedCategories.length === 0) {
-                toast.error('Select at least one category before publishing')
-                return
-              }
-
-              // Map country codes to names
-              const selectedCountryNames = selectedCountries
-                .map(code => {
-                  const c = REGIONS.flatMap(r => r.countries).find(ctry => ctry.code === code)
-                  return c?.name || code
-                })
-                .filter(Boolean)
-
-              try {
-                const csrf = await getCsrf()
-                const res = await fetch(`/api/tutor/courses/${id}/publish`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    ...(csrf && { 'X-CSRF-Token': csrf }),
-                  },
-                  credentials: 'include',
-                  body: JSON.stringify({
-                    countries: selectedCountryNames,
-                    categories: selectedCategories,
-                  }),
-                })
-                if (res.ok) {
-                  const data = await res.json()
-                  toast.success(
-                    `Published ${data.publishedCount} course variant${data.publishedCount === 1 ? '' : 's'} successfully!`
-                  )
-                  router.push('/tutor/dashboard')
-                } else {
-                  const data = await res.json().catch(() => null)
-                  toast.error(data?.error || 'Failed to publish course')
-                }
-              } catch (err) {
-                console.error('[Publish] Error:', err)
-                toast.error('Failed to publish course')
-              }
-            }}
-            disabled={saving || !id}
-            className="bg-[#F17623] hover:bg-[#e06613]"
-          >
-            Publish
+            {saving ? 'Saving…' : 'Save Template'}
           </Button>
         </div>
       </div>
