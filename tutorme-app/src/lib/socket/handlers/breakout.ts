@@ -449,24 +449,3 @@ function closeBreakoutRoom(io: SocketIOServer, roomId: string) {
   }, 5000)
 }
 
-type PollListCallback = (result: {
-  success: boolean
-  polls: Array<{
-    id: string
-    sessionId: string
-    tutorId: string
-    question: string
-    type: PollState['type']
-    options: PollState['options']
-    isAnonymous: boolean
-    allowMultiple: boolean
-    showResults: boolean
-    timeLimit?: number
-    status: PollState['status']
-    startedAt?: string
-    endedAt?: string
-    responses: Array<{
-      id: string
-      optionIds?: string[]
-      rating?: number
-      textAnswer?: string

@@ -21,7 +21,6 @@ import {
   Globe,
   PanelLeftClose,
   PanelLeftOpen,
-  BookOpen,
   GraduationCap,
   LogOut,
   User,
@@ -48,6 +47,8 @@ const navItems: NavItem[] = [
   { href: '/tutor/reports', label: 'Analytics', icon: BarChart3 },
   { href: '/tutor/training', label: 'Training', icon: GraduationCap },
   { href: '/tutor/support', label: 'Support', icon: HelpCircle },
+
+  // Whiteboard audit links
 ]
 
 const bottomNavItems = [{ href: '/tutor/settings', label: 'Account', icon: User }]

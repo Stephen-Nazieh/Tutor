@@ -1,16 +1,6 @@
 /* @vitest-environment node */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-
-const mocks = vi.hoisted(() => ({
-  registerLiveClassWhiteboardHandlers: vi.fn(),
-  cleanupLcwbPresence: vi.fn(),
-}))
-
-vi.mock('./socket-server', () => ({
-  registerLiveClassWhiteboardHandlers: mocks.registerLiveClassWhiteboardHandlers,
-  cleanupLcwbPresence: mocks.cleanupLcwbPresence,
-}))
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { socketRateLimitTesting } from './socket-server-enhanced'
 

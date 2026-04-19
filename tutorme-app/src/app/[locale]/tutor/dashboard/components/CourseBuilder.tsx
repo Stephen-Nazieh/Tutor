@@ -8,7 +8,6 @@ import {
   useRef,
   forwardRef,
   useImperativeHandle,
-  type ComponentProps,
 } from 'react'
 import {
   DndContext,
@@ -59,7 +58,6 @@ import { Switch } from '@/components/ui/switch'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
 import { DailyVideoFrame } from '@/components/class/daily-video-frame'
 import {
   DropdownMenu,
@@ -126,10 +124,8 @@ export type {
 } from './builder-types'
 
 import { DMIPanel } from './DMIPanel'
-import { QuestionBankModal } from './QuestionBankModal'
 import {
   MatchingPairsEditor,
-  QuestionBankQuickImport,
   ManualQuestionComposer,
   QuestionsPreview,
   TreeItem,
@@ -156,7 +152,6 @@ import { NodeBuilderModal } from './NodeBuilderModal'
 import { LessonBuilderModal } from './LessonBuilderModal'
 import {
   generateId as utilsGenerateId,
-  mapQuestionBankToBuilderQuestion,
   DEFAULT_CONTENT,
   DEFAULT_TASK,
   DEFAULT_HOMEWORK,
@@ -267,21 +262,6 @@ interface PreviewCardProps {
   onSaveAll?: () => void
 }
 
-type WhiteboardPages = NonNullable<ComponentProps<typeof EnhancedWhiteboard>['pages']>
-type WhiteboardPage = WhiteboardPages[number]
-
-const createDefaultWhiteboardPages = (): WhiteboardPages => [
-  {
-    id: 'page-1',
-    name: 'Page 1',
-    strokes: [],
-    texts: [],
-    shapes: [],
-    backgroundColor: '#ffffff',
-    backgroundStyle: 'solid',
-  },
-]
-
 // ============================================
 // MAIN COURSE BUILDER COMPONENT
 // ============================================
@@ -293,7 +273,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       courseName,
       panelMode = 'default',
       initialLessons,
-      lessonBankMode = false,
       hideCourseNameInTabs = false,
       onSave,
       onMakeVisibleToStudents,
@@ -360,12 +339,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [importTarget, setImportTarget] = useState<{ nodeId: string; lessonId: string } | null>(
       null
     )
-    const [lessonBankImportOpen, setLessonBankImportOpen] = useState(false)
-    const [importLessonSelectorOpen, setImportLessonSelectorOpen] = useState(false)
-    const [lessonBankCourseBuilderNodes, setLessonBankCourseBuilderNodes] = useState<
-      CourseBuilderNode[]
-    >([])
-    const [lessonBankLessonKey, setLessonBankLessonKey] = useState<string>('')
     const [courseAssets, setCourseAssets] = useState<
       {
         id: string
@@ -422,10 +395,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // State for editable PCI tabs
     const [testPciTabs, setTestPciTabs] = useState(() =>
       insightsProps
-        ? [
-            { id: 'classroom', label: 'Classroom' },
-            { id: 'student1', label: 'Whiteboard' },
-          ]
+        ? [{ id: 'classroom', label: 'Classroom' }]
         : [
             { id: 'classroom', label: 'Classroom' },
             { id: 'student1', label: 'Test Student 1' },
@@ -524,12 +494,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       student1: [],
       student2: [],
     })
-    const [insightsBoardPages, setInsightsBoardPages] = useState<WhiteboardPage[]>(
-      createDefaultWhiteboardPages
-    )
-    const [insightsBoardPageIndex, setInsightsBoardPageIndex] = useState(0)
-    const lastInsightsSessionIdRef = useRef<string | null>(null)
-    const insightsBoardSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const [testPciLoading, setTestPciLoading] = useState(false)
     const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
     const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
@@ -569,10 +533,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           { id: 'student2', label: 'Test Student 2' },
         ])
       } else if (mainTab === 'live') {
-        setTestPciTabs([
-          { id: 'classroom', label: 'Classroom' },
-          { id: 'student1', label: 'Whiteboard' },
-        ])
+        setTestPciTabs([{ id: 'classroom', label: 'Classroom' }])
       }
     }, [insightsProps, mainTab])
 
@@ -606,9 +567,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
     const [chatInput, setChatInput] = useState('')
 
-    // Question Bank modal state
-    const [questionBankOpen, setQuestionBankOpen] = useState(false)
-    const [questionBankTarget, setQuestionBankTarget] = useState<string | null>(null)
     const [importTypeModalData, setImportTypeModalData] = useState<{
       target: { nodeId: string; lessonId: string }
       items: { questionText: string; pciText: string }[]
@@ -752,34 +710,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     }, [])
 
     useEffect(() => {
-      if (!insightsProps) return
-      const nextSessionId = insightsProps.sessionId
-      if (lastInsightsSessionIdRef.current !== nextSessionId) {
-        lastInsightsSessionIdRef.current = nextSessionId
-        setInsightsBoardPages(createDefaultWhiteboardPages())
-        setInsightsBoardPageIndex(0)
-      }
-    }, [insightsProps, insightsProps?.sessionId])
-
-    useEffect(() => {
-      if (!insightsProps?.sessionId || typeof window === 'undefined') return
-      try {
-        const stored = window.localStorage.getItem(
-          `insights-whiteboards:${insightsProps.sessionId}`
-        )
-        if (!stored) return
-        const parsed = JSON.parse(stored) as {
-          pages?: WhiteboardPage[]
-          pageIndex?: number
-        }
-        if (parsed.pages) setInsightsBoardPages(parsed.pages)
-        if (typeof parsed.pageIndex === 'number') setInsightsBoardPageIndex(parsed.pageIndex)
-      } catch {
-        // Ignore malformed cache.
-      }
-    }, [insightsProps?.sessionId])
-
-    useEffect(() => {
       if (!insightsProps?.sessionId) return
       let cancelled = false
       const loadSession = async () => {
@@ -852,31 +782,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       const interval = setInterval(updateCountdown, 1000)
       return () => clearInterval(interval)
     }, [sessionScheduledAt, sessionPlannedDurationMinutes])
-
-    useEffect(() => {
-      if (!insightsProps?.sessionId || typeof window === 'undefined') return
-      if (insightsBoardSaveTimeoutRef.current) {
-        clearTimeout(insightsBoardSaveTimeoutRef.current)
-      }
-      insightsBoardSaveTimeoutRef.current = setTimeout(() => {
-        try {
-          window.localStorage.setItem(
-            `insights-whiteboards:${insightsProps.sessionId}`,
-            JSON.stringify({
-              pages: insightsBoardPages,
-              pageIndex: insightsBoardPageIndex,
-            })
-          )
-        } catch {
-          // Ignore write errors (storage quota, etc).
-        }
-      }, 250)
-      return () => {
-        if (insightsBoardSaveTimeoutRef.current) {
-          clearTimeout(insightsBoardSaveTimeoutRef.current)
-        }
-      }
-    }, [insightsProps?.sessionId, insightsBoardPages, insightsBoardPageIndex])
 
     // Save tutor assets to API when they change (debounced)
     const saveAssetsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -1071,6 +976,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         save: doSave,
         saveAll: doSave,
         syncToLive: () => setLiveNodes(builderNodes),
+        getLessons: () => nodes.map(n => n.lessons[0]),
       }
     }, [
       nodes,
@@ -1094,34 +1000,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       messages
         .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
         .join('\n')
-
-    const loadLessonBankCourseBuilderNodes = useCallback(() => {
-      try {
-        const raw = localStorage.getItem('lesson-bank-nodes-v1')
-        if (!raw) return []
-        const parsed = JSON.parse(raw)
-        if (!Array.isArray(parsed)) return []
-        return parsed as CourseBuilderNode[]
-      } catch {
-        return []
-      }
-    }, [])
-
-    const openLessonBankImport = useCallback(
-      (target: { nodeId: string; lessonId: string }) => {
-        const bankCourseBuilderNodes = loadLessonBankCourseBuilderNodes()
-        setLessonBankCourseBuilderNodes(bankCourseBuilderNodes)
-        const firstLesson = bankCourseBuilderNodes[0]?.lessons?.[0]
-        if (firstLesson) {
-          setLessonBankLessonKey(`${bankCourseBuilderNodes[0].id}:${firstLesson.id}`)
-        } else {
-          setLessonBankLessonKey('')
-        }
-        setImportTarget(target)
-        setLessonBankImportOpen(true)
-      },
-      [loadLessonBankCourseBuilderNodes]
-    )
 
     const cloneTask = (task: Task): Task => ({
       ...task,
@@ -3861,44 +3739,6 @@ FEEDBACK: [your explanation]`
                               )}
                           </div>
                         )}
-                        {mainTab !== 'live' && mainTab !== 'test-pci' && !lessonBankMode && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              // Open lesson bank import
-                              const bankCourseBuilderNodes = loadLessonBankCourseBuilderNodes()
-                              if (bankCourseBuilderNodes.length === 0) {
-                                toast.error(
-                                  'No lesson bank content found. Build lessons in the Lesson Bank first.'
-                                )
-                                return
-                              }
-                              setLessonBankCourseBuilderNodes(bankCourseBuilderNodes)
-                              const firstLesson = bankCourseBuilderNodes[0]?.lessons?.[0]
-                              if (firstLesson) {
-                                setLessonBankLessonKey(
-                                  `${bankCourseBuilderNodes[0].id}:${firstLesson.id}`
-                                )
-                              } else {
-                                setLessonBankLessonKey('')
-                              }
-
-                              // If no lessons exist, skip the lesson selector and open import modal directly
-                              // The import modal will handle auto-creating a lesson for task/assessment/homework imports
-                              if (nodes.length === 0) {
-                                setImportTarget(null) // No specific target, will auto-create
-                                setLessonBankImportOpen(true)
-                              } else {
-                                setImportLessonSelectorOpen(true)
-                              }
-                            }}
-                            className="h-7 gap-1 px-2 text-xs"
-                          >
-                            <FolderOpen className="h-3 w-3" />
-                            Import
-                          </Button>
-                        )}
                         {mainTab !== 'live' && mainTab !== 'test-pci' && (
                           <Button
                             size="sm"
@@ -4147,8 +3987,6 @@ FEEDBACK: [your explanation]`
                                                           </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
-                                                          {!lessonBankMode && (
-                                                            <>
                                                               <DropdownMenuItem
                                                                 onClick={e => {
                                                                   e.stopPropagation()
@@ -4177,8 +4015,6 @@ FEEDBACK: [your explanation]`
                                                               >
                                                                 Edit
                                                               </DropdownMenuItem>
-                                                            </>
-                                                          )}
                                                           <DropdownMenuItem
                                                             onClick={e => {
                                                               e.stopPropagation()
@@ -4628,8 +4464,6 @@ FEEDBACK: [your explanation]`
                                                         </Button>
                                                       </DropdownMenuTrigger>
                                                       <DropdownMenuContent align="end">
-                                                        {!lessonBankMode && (
-                                                          <>
                                                             <DropdownMenuItem
                                                               onClick={e => {
                                                                 e.stopPropagation()
@@ -4658,8 +4492,6 @@ FEEDBACK: [your explanation]`
                                                             >
                                                               Edit
                                                             </DropdownMenuItem>
-                                                          </>
-                                                        )}
                                                         <DropdownMenuItem
                                                           className="text-red-500"
                                                           onClick={e => {
@@ -4685,8 +4517,7 @@ FEEDBACK: [your explanation]`
                                         )}
 
                                         {/* Homework (per-lesson) - drop zone; header + description in one box; sortable items with drag handle */}
-                                        {!lessonBankMode &&
-                                          (() => {
+                                        {(() => {
                                             const hwItems = (primaryLesson.homework || []).filter(
                                               h => h.category === 'homework'
                                             )
@@ -4999,63 +4830,43 @@ FEEDBACK: [your explanation]`
                                     value={tab.id}
                                     className="mt-2 flex h-full w-full min-w-0 flex-1 flex-col self-stretch overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                   >
-                                    {mainTab === 'live' && tab.id === 'student1' ? (
-                                      <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-lg">
-                                        <EnhancedWhiteboard
-                                          pages={insightsBoardPages}
-                                          currentPageIndex={insightsBoardPageIndex}
-                                          onPagesChange={setInsightsBoardPages}
-                                          onPageIndexChange={setInsightsBoardPageIndex}
-                                          initialLessonContent={
-                                            sessionContext?.topic || sessionContext?.objectives
-                                              ? {
-                                                  title: sessionContext.topic || undefined,
-                                                  objectives:
-                                                    sessionContext.objectives || undefined,
-                                                }
-                                              : undefined
-                                          }
-                                        />
-                                      </div>
-                                    ) : (
-                                      <div className="bg-muted flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg p-4">
-                                        <p className="text-muted-foreground whitespace-pre-wrap text-sm">
-                                          {testPciContent[tab.id] || `${tab.label} view content`}
-                                        </p>
-                                        {/* Show AI scores if any */}
-                                        {testPciScores[tab.id]?.length > 0 && (
-                                          <div className="mt-3 border-t border-gray-400 pt-3">
-                                            <p className="mb-2 text-xs font-medium text-gray-600">
-                                              AI Feedback:
-                                            </p>
-                                            {testPciScores[tab.id].map((score, idx) => (
-                                              <div
-                                                key={idx}
-                                                className="mb-2 rounded border border-gray-400 bg-white p-2"
-                                              >
-                                                <div className="flex items-center gap-2">
-                                                  <Badge
-                                                    variant={
-                                                      score.score >= 80
-                                                        ? 'default'
-                                                        : score.score >= 50
-                                                          ? 'secondary'
-                                                          : 'destructive'
-                                                    }
-                                                    className="text-[10px]"
-                                                  >
-                                                    {score.score}%
-                                                  </Badge>
-                                                </div>
-                                                <p className="mt-1 text-xs text-gray-600">
-                                                  {score.feedback}
-                                                </p>
+                                    <div className="bg-muted flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg p-4">
+                                      <p className="text-muted-foreground whitespace-pre-wrap text-sm">
+                                        {testPciContent[tab.id] || `${tab.label} view content`}
+                                      </p>
+                                      {/* Show AI scores if any */}
+                                      {testPciScores[tab.id]?.length > 0 && (
+                                        <div className="mt-3 border-t border-gray-400 pt-3">
+                                          <p className="mb-2 text-xs font-medium text-gray-600">
+                                            AI Feedback:
+                                          </p>
+                                          {testPciScores[tab.id].map((score, idx) => (
+                                            <div
+                                              key={idx}
+                                              className="mb-2 rounded border border-gray-400 bg-white p-2"
+                                            >
+                                              <div className="flex items-center gap-2">
+                                                <Badge
+                                                  variant={
+                                                    score.score >= 80
+                                                      ? 'default'
+                                                      : score.score >= 50
+                                                        ? 'secondary'
+                                                        : 'destructive'
+                                                  }
+                                                  className="text-[10px]"
+                                                >
+                                                  {score.score}%
+                                                </Badge>
                                               </div>
-                                            ))}
-                                          </div>
-                                        )}
-                                      </div>
-                                    )}
+                                              <p className="mt-1 text-xs text-gray-600">
+                                                {score.feedback}
+                                              </p>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
                                   </TabsContent>
                                 ))}
                               </Tabs>
@@ -6291,103 +6102,6 @@ FEEDBACK: [your explanation]`
             }}
           />
 
-          {/* Question Bank Modal */}
-          <QuestionBankModal
-            isOpen={questionBankOpen}
-            onClose={() => {
-              setQuestionBankOpen(false)
-              setImportTarget(null)
-            }}
-            onImport={items => {
-              const joinedQuestions = items.map(i => i.questionText).join('\n\n')
-              const joinedPci = items.map(i => i.pciText).join('\n\n')
-
-              if (importTarget) {
-                setImportTypeModalData({ target: importTarget, items })
-                setQuestionBankOpen(false)
-                setImportTarget(null)
-              } else if (questionBankTarget) {
-                const [targetType, targetId] = questionBankTarget.split('-')
-
-                setCourseBuilderNodes(prev =>
-                  prev.map(mod => ({
-                    ...mod,
-                    lessons: mod.lessons.map(lesson => ({
-                      ...lesson,
-                      tasks: lesson.tasks.map(t => {
-                        if (targetType === 'task' && t.id === targetId) {
-                          return {
-                            ...t,
-                            description:
-                              (t.description || '') +
-                              (t.description ? '\n\n' : '') +
-                              joinedQuestions,
-                            instructions:
-                              (t.instructions || '') + (t.instructions ? '\n\n' : '') + joinedPci,
-                          }
-                        }
-                        return t
-                      }),
-                      homework: lesson.homework.map(h => {
-                        if (
-                          (targetType === 'assessment' || targetType === 'homework') &&
-                          h.id === targetId
-                        ) {
-                          return {
-                            ...h,
-                            description:
-                              (h.description || '') +
-                              (h.description ? '\n\n' : '') +
-                              joinedQuestions,
-                            instructions:
-                              (h.instructions || '') + (h.instructions ? '\n\n' : '') + joinedPci,
-                          }
-                        }
-                        return h
-                      }),
-                    })),
-                  }))
-                )
-
-                // ALSO update task/assessmentBuilder if it's currently loaded
-                if (targetType === 'task' && loadedTaskId === targetId) {
-                  setTaskBuilder(prev => ({
-                    ...prev,
-                    taskContent:
-                      prev.taskContent + (prev.taskContent ? '\n\n' : '') + joinedQuestions,
-                    taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + joinedPci,
-                  }))
-                } else if (targetType === 'extension') {
-                  setTaskBuilder(prev => ({
-                    ...prev,
-                    extensions: prev.extensions.map(ext =>
-                      ext.id === targetId
-                        ? {
-                            ...ext,
-                            content:
-                              (ext.content || '') + (ext.content ? '\n\n' : '') + joinedQuestions,
-                            pci: (ext.pci || '') + (ext.pci ? '\n\n' : '') + joinedPci,
-                          }
-                        : ext
-                    ),
-                  }))
-                } else if (
-                  (targetType === 'assessment' || targetType === 'homework') &&
-                  loadedAssessmentId === targetId
-                ) {
-                  setAssessmentBuilder(prev => ({
-                    ...prev,
-                    taskContent:
-                      prev.taskContent + (prev.taskContent ? '\n\n' : '') + joinedQuestions,
-                    taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + joinedPci,
-                  }))
-                }
-
-                toast.success('Questions imported from Assessment Bank')
-              }
-            }}
-          />
-
           {/* Import Type Selector Modal */}
           <Dialog
             open={!!importTypeModalData}
@@ -6522,304 +6236,6 @@ FEEDBACK: [your explanation]`
                   Homework
                 </Button>
               </div>
-            </DialogContent>
-          </Dialog>
-
-          {/* Import Lesson Selector Modal - Step 1: Choose which lesson to import into */}
-          <Dialog
-            open={importLessonSelectorOpen}
-            onOpenChange={open => {
-              if (!open) {
-                setImportLessonSelectorOpen(false)
-                setImportTarget(null)
-              }
-            }}
-          >
-            <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Import into which lesson?</DialogTitle>
-                <DialogDescription>
-                  Select a lesson to import content into, or create a new one.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                {nodes.length === 0 || nodes.every(m => m.lessons.length === 0) ? (
-                  <div className="py-4 text-center">
-                    <p className="text-muted-foreground mb-4 text-sm">
-                      No lessons available. A new lesson will be created automatically.
-                    </p>
-                    <Button
-                      onClick={() => {
-                        // Auto-create a lesson and proceed
-                        const newCourseBuilderNode = DEFAULT_NODE(nodes.length)
-                        setCourseBuilderNodes(prev => [...prev, newCourseBuilderNode])
-                        setImportTarget({
-                          nodeId: newCourseBuilderNode.id,
-                          lessonId: newCourseBuilderNode.lessons[0].id,
-                        })
-                        setImportLessonSelectorOpen(false)
-                        setLessonBankImportOpen(true)
-                      }}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Create Lesson & Continue
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="max-h-[300px] space-y-2 overflow-y-auto">
-                      <Label>Select Target Lesson</Label>
-                      {nodes.map(mod => (
-                        <div key={mod.id} className="space-y-1">
-                          <p className="text-muted-foreground px-2 text-xs font-medium">
-                            {mod.title}
-                          </p>
-                          {mod.lessons.map(lesson => (
-                            <Button
-                              key={lesson.id}
-                              variant="outline"
-                              className="w-full justify-start text-sm"
-                              onClick={() => {
-                                setImportTarget({ nodeId: mod.id, lessonId: lesson.id })
-                                setImportLessonSelectorOpen(false)
-                                setLessonBankImportOpen(true)
-                              }}
-                            >
-                              <GraduationCap className="mr-2 h-4 w-4 text-blue-500" />
-                              {lesson.title}
-                            </Button>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="border-t pt-4">
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => {
-                          // Create new lesson and proceed
-                          const newCourseBuilderNode = DEFAULT_NODE(nodes.length)
-                          setCourseBuilderNodes(prev => [...prev, newCourseBuilderNode])
-                          setImportTarget({
-                            nodeId: newCourseBuilderNode.id,
-                            lessonId: newCourseBuilderNode.lessons[0].id,
-                          })
-                          setImportLessonSelectorOpen(false)
-                          setLessonBankImportOpen(true)
-                        }}
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create New Lesson
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setImportLessonSelectorOpen(false)
-                    setImportTarget(null)
-                  }}
-                >
-                  Cancel
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          {/* Lesson Bank Import Modal - Step 2: Choose what to import from lesson bank */}
-          <Dialog
-            open={lessonBankImportOpen}
-            onOpenChange={open => {
-              if (!open) {
-                setLessonBankImportOpen(false)
-                setImportTarget(null)
-              }
-            }}
-          >
-            <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Import from Lesson Bank</DialogTitle>
-                <DialogDescription>Select a lesson to import into this course.</DialogDescription>
-              </DialogHeader>
-              {lessonBankCourseBuilderNodes.length === 0 ? (
-                <div className="text-muted-foreground py-6 text-center text-sm">
-                  No lesson bank content found. Build lessons in the Lesson Bank first.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Lesson</Label>
-                    <Select value={lessonBankLessonKey} onValueChange={setLessonBankLessonKey}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a lesson" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {lessonBankCourseBuilderNodes.flatMap(mod =>
-                          mod.lessons.map(lesson => (
-                            <SelectItem
-                              key={`${mod.id}:${lesson.id}`}
-                              value={`${mod.id}:${lesson.id}`}
-                            >
-                              {mod.title} • {lesson.title}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <Button
-                      variant="outline"
-                      disabled={!lessonBankLessonKey}
-                      onClick={() => {
-                        if (!lessonBankLessonKey) return
-                        const [nodeId, lessonId] = lessonBankLessonKey.split(':')
-                        const bankCourseBuilderNode = lessonBankCourseBuilderNodes.find(
-                          m => m.id === nodeId
-                        )
-                        const bankLesson = bankCourseBuilderNode?.lessons.find(
-                          l => l.id === lessonId
-                        )
-                        if (!bankLesson) return
-
-                        // If no importTarget (no existing lessons), create a new module with the lesson
-                        if (!importTarget) {
-                          const newCourseBuilderNode = DEFAULT_NODE(nodes.length)
-                          const clonedLesson = cloneLesson(bankLesson, 0)
-                          newCourseBuilderNode.lessons = [clonedLesson]
-                          setCourseBuilderNodes(prev => [...prev, newCourseBuilderNode])
-                        } else {
-                          // Import into existing module
-                          setCourseBuilderNodes(prev =>
-                            prev.map(mod => {
-                              if (mod.id !== importTarget.nodeId) return mod
-                              const nextLesson = cloneLesson(bankLesson, mod.lessons.length)
-                              return {
-                                ...mod,
-                                lessons: [...mod.lessons, nextLesson],
-                              }
-                            })
-                          )
-                        }
-                        toast.success('Lesson imported')
-                        setLessonBankImportOpen(false)
-                        setImportTarget(null)
-                      }}
-                    >
-                      Import Lesson
-                    </Button>
-                    <Button
-                      variant="outline"
-                      disabled={!lessonBankLessonKey}
-                      onClick={() => {
-                        if (!lessonBankLessonKey) return
-                        const [nodeId, lessonId] = lessonBankLessonKey.split(':')
-                        const bankCourseBuilderNode = lessonBankCourseBuilderNodes.find(
-                          m => m.id === nodeId
-                        )
-                        const bankLesson = bankCourseBuilderNode?.lessons.find(
-                          l => l.id === lessonId
-                        )
-                        if (!bankLesson) return
-
-                        // If no importTarget (no existing lessons), auto-create a lesson first
-                        if (!importTarget) {
-                          const newCourseBuilderNode = DEFAULT_NODE(nodes.length)
-                          newCourseBuilderNode.lessons[0].tasks = bankLesson.tasks.map(cloneTask)
-                          setCourseBuilderNodes(prev => [...prev, newCourseBuilderNode])
-                        } else {
-                          // Import into existing lesson
-                          setCourseBuilderNodes(prev =>
-                            prev.map(mod => {
-                              if (mod.id !== importTarget.nodeId) return mod
-                              return {
-                                ...mod,
-                                lessons: mod.lessons.map(lesson => {
-                                  if (lesson.id !== importTarget.lessonId) return lesson
-                                  return {
-                                    ...lesson,
-                                    tasks: [...lesson.tasks, ...bankLesson.tasks.map(cloneTask)],
-                                  }
-                                }),
-                              }
-                            })
-                          )
-                        }
-                        toast.success('Tasks imported')
-                        setLessonBankImportOpen(false)
-                        setImportTarget(null)
-                      }}
-                    >
-                      Import Tasks
-                    </Button>
-                    <Button
-                      variant="outline"
-                      disabled={!lessonBankLessonKey}
-                      onClick={() => {
-                        if (!lessonBankLessonKey) return
-                        const [nodeId, lessonId] = lessonBankLessonKey.split(':')
-                        const bankCourseBuilderNode = lessonBankCourseBuilderNodes.find(
-                          m => m.id === nodeId
-                        )
-                        const bankLesson = bankCourseBuilderNode?.lessons.find(
-                          l => l.id === lessonId
-                        )
-                        if (!bankLesson) return
-                        const assessments = (bankLesson.homework || []).filter(
-                          h => h.category !== 'homework'
-                        )
-
-                        // If no importTarget (no existing lessons), auto-create a lesson first
-                        if (!importTarget) {
-                          const newCourseBuilderNode = DEFAULT_NODE(nodes.length)
-                          newCourseBuilderNode.lessons[0].homework =
-                            assessments.map(cloneAssessment)
-                          setCourseBuilderNodes(prev => [...prev, newCourseBuilderNode])
-                        } else {
-                          // Import into existing lesson
-                          setCourseBuilderNodes(prev =>
-                            prev.map(mod => {
-                              if (mod.id !== importTarget.nodeId) return mod
-                              return {
-                                ...mod,
-                                lessons: mod.lessons.map(lesson => {
-                                  if (lesson.id !== importTarget.lessonId) return lesson
-                                  return {
-                                    ...lesson,
-                                    homework: [
-                                      ...lesson.homework,
-                                      ...assessments.map(cloneAssessment),
-                                    ],
-                                  }
-                                }),
-                              }
-                            })
-                          )
-                        }
-                        toast.success('Assessments imported')
-                        setLessonBankImportOpen(false)
-                        setImportTarget(null)
-                      }}
-                    >
-                      Import Assessments
-                    </Button>
-                  </div>
-                </div>
-              )}
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setLessonBankImportOpen(false)
-                    setImportTarget(null)
-                  }}
-                >
-                  Close
-                </Button>
-              </DialogFooter>
             </DialogContent>
           </Dialog>
 

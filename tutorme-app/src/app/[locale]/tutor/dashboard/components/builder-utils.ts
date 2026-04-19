@@ -147,50 +147,6 @@ export const CONTENT_TEMPLATES = [
   },
 ]
 
-export function toBuilderQuestionType(type: string): QuizQuestion['type'] {
-  if (type === 'multiple_choice') return 'mcq'
-  if (type === 'multi_select') return 'multiselect'
-  if (type === 'true_false') return 'truefalse'
-  if (type === 'fill_in_blank') return 'fillblank'
-  if (type === 'matching') return 'matching'
-  if (type === 'short_answer') return 'shortanswer'
-  return 'essay'
-}
-
-export function mapQuestionBankToBuilderQuestion(item: {
-  id: string
-  type: string
-  question: string
-  options?: string[]
-  correctAnswer?: string | string[] | null
-  points?: number
-}): QuizQuestion {
-  const builderType = toBuilderQuestionType(item.type)
-  const options = Array.isArray(item.options) ? item.options : undefined
-  const normalizedCorrect = (() => {
-    if (builderType === 'truefalse' && typeof item.correctAnswer === 'string') {
-      return item.correctAnswer.toLowerCase() === 'true' ? 'True' : 'False'
-    }
-    return item.correctAnswer ?? undefined
-  })()
-
-  return {
-    id: `q-${generateId()}`,
-    type: builderType,
-    question: item.question || '',
-    options:
-      builderType === 'mcq' || builderType === 'multiselect'
-        ? options && options.length > 0
-          ? options
-          : ['', '', '', '']
-        : builderType === 'truefalse'
-          ? ['True', 'False']
-          : undefined,
-    correctAnswer: normalizedCorrect as string | string[] | undefined,
-    points: Math.max(1, item.points ?? 1),
-  }
-}
-
 export const DEFAULT_CONTENT = (order: number): Content => ({
   id: `content-${generateId()}`,
   title: `Content ${order + 1}`,

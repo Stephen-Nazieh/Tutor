@@ -48,7 +48,6 @@ export const DashboardComponents = {
   ParentDashboard: lazy(() => import('../components/dashboards/ParentDashboard')),
   AdminDashboard: lazy(() => import('../components/dashboards/AdminDashboard')),
   AIChatComponent: lazy(() => import('../components/ai/AIChatComponent')),
-  WhiteboardComponent: lazy(() => import('../components/whiteboard/WhiteboardComponent')),
   LiveClassComponent: lazy(() => import('../components/live/LiveClassComponent')),
   PaymentComponent: lazy(() => import('../components/payment/PaymentComponent')),
 }

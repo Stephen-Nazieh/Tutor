@@ -3,51 +3,10 @@
  * Comprehensive type definitions for the quiz/assessment system
  */
 
-// ============================================
-// Question Bank Types
-// ============================================
-
 // QuestionType is deprecated - use string instead
 export type QuestionType = string
 
 export type QuestionDifficulty = 'easy' | 'medium' | 'hard'
-
-export interface QuestionBankItem {
-  id: string
-  tutorId: string
-  type: string
-  question: string
-  options?: string[]
-  correctAnswer?: string | string[]
-  explanation?: string
-  hint?: string
-  points: number
-  difficulty: QuestionDifficulty
-  tags: string[]
-  subject?: string
-  courseId?: string
-  lessonId?: string
-  createdAt: Date
-  updatedAt: Date
-  usageCount: number
-  isPublic: boolean
-}
-
-export interface CreateQuestionBankItemInput {
-  type: string
-  question: string
-  options?: string[]
-  correctAnswer?: string | string[]
-  explanation?: string
-  hint?: string
-  points: number
-  difficulty: QuestionDifficulty
-  tags: string[]
-  subject?: string
-  courseId?: string
-  lessonId?: string
-  isPublic?: boolean
-}
 
 // ============================================
 // Quiz Types
@@ -83,7 +42,6 @@ export interface Quiz {
 export interface QuizQuestion {
   id: string
   quizId?: string
-  bankItemId?: string // Reference to question bank item
   type: string
   question: string
   options?: string[]
@@ -315,16 +273,6 @@ export interface ManualGradingInput {
 // ============================================
 // Filter & Search Types
 // ============================================
-
-export interface QuestionBankFilters {
-  type?: string
-  difficulty?: QuestionDifficulty
-  subject?: string
-  tags?: string[]
-  courseId?: string
-  lessonId?: string
-  searchQuery?: string
-}
 
 export interface QuizFilters {
   status?: QuizStatus

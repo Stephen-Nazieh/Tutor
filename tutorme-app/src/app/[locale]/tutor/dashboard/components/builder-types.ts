@@ -307,7 +307,6 @@ export interface CourseBuilderProps {
   courseName?: string
   panelMode?: 'default' | 'live-class'
   initialLessons?: Lesson[]
-  lessonBankMode?: boolean
   hideCourseNameInTabs?: boolean
   onMakeVisibleToStudents?: (payload: VisibleDocumentPayload) => void
   onSave?: (
@@ -331,4 +330,5 @@ export interface CourseBuilderProps {
 export interface CourseBuilderRef {
   save: () => void
   syncToLive?: () => void
+  getLessons?: () => unknown[]
 }

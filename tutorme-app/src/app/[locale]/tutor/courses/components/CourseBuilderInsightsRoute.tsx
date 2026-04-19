@@ -149,6 +149,86 @@ function CourseBuilderInsightsRouteInner({
     }
   }
 
+  const handlePublishDraft = async () => {
+    if (!courseId || courseId === 'insights-draft') return
+
+    // 1. Trigger save to ensure latest data is persisted
+    const saveCb = (model.courseBuilderRef.current as any)?.saveAll
+    if (typeof saveCb === 'function') saveCb()
+
+    // 2. Get current lessons from the builder ref
+    const getLessonsCb = (model.courseBuilderRef.current as any)?.getLessons
+    const lessons = typeof getLessonsCb === 'function' ? getLessonsCb() : []
+
+    const courseTitle = courseName || detachedCourseName || 'Untitled Course'
+
+    // 3. Create course in DB
+    try {
+      let csrfToken: string | null = null
+      try {
+        const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+        const csrfData = await csrfRes.json().catch(() => ({}))
+        csrfToken = csrfData?.token ?? null
+      } catch {
+        // proceed without CSRF
+      }
+
+      const createRes = await fetch('/api/tutor/courses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: courseTitle,
+          categories: [],
+          schedule: [],
+          isLiveOnline: false,
+        }),
+      })
+
+      if (!createRes.ok) {
+        const err = await createRes.json().catch(() => ({}))
+        toast.error(err.error || 'Failed to create course')
+        return
+      }
+
+      const newCourseData = await createRes.json()
+      const newCourseId = newCourseData.courses?.[0]?.id
+      if (!newCourseId) {
+        toast.error('Course created but ID is missing')
+        return
+      }
+
+      // 4. Save lessons to the new course
+      const saveRes = await fetch(`/api/tutor/courses/${newCourseId}/course`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          lessons,
+          developmentMode: 'single',
+          previewDifficulty: 'all',
+        }),
+      })
+
+      if (!saveRes.ok) {
+        const err = await saveRes.json().catch(() => ({}))
+        toast.error(err.error || 'Failed to save course content')
+        return
+      }
+
+      toast.success('Course published successfully')
+      model.router.push(`/tutor/courses/${newCourseId}`)
+    } catch {
+      toast.error('Failed to publish course')
+    }
+  }
+
   return (
     <div
       className="text-foreground flex h-screen w-full flex-col items-stretch overflow-hidden bg-[#fafafc]"
@@ -368,8 +448,8 @@ function CourseBuilderInsightsRouteInner({
                       </DropdownMenuItem>
                     )}
                     {courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
-                      <DropdownMenuItem asChild>
-                        <Link href={`/tutor/courses/${courseId}`}>Publish</Link>
+                      <DropdownMenuItem onClick={handlePublishDraft}>
+                        Publish
                       </DropdownMenuItem>
                     )}
                     {onDeleteCourse &&
