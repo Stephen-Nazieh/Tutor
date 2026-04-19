@@ -2998,23 +2998,31 @@ FEEDBACK: [your explanation]`
                   </span>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="h-7 rounded-lg bg-white px-3 text-xs font-medium shadow-sm hover:bg-gray-50"
-                    onClick={() => handleLoadAsset(asset)}
-                  >
-                    Load
-                  </Button>
-                  <button
-                    className="text-xs font-bold text-orange-500 hover:text-orange-600"
-                    onClick={() => {
-                      setCourseAssets(prev => prev.filter(a => a.id !== asset.id))
-                    }}
-                    title="Delete asset"
-                  >
-                    ×
-                  </button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                        aria-label="Asset actions"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="z-[100]">
+                      <DropdownMenuItem onClick={() => handleLoadAsset(asset)}>
+                        Load
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-red-600 focus:text-red-600"
+                        onClick={() => {
+                          setCourseAssets(prev => prev.filter(a => a.id !== asset.id))
+                        }}
+                      >
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             ))
@@ -3484,7 +3492,7 @@ FEEDBACK: [your explanation]`
                                     <MoreVertical className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
+                                <DropdownMenuContent align="end" className="z-[100]">
                                   <DropdownMenuItem
                                     onClick={() => {
                                       handleLoadAsset(asset)
