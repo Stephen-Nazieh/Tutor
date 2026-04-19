@@ -3348,45 +3348,37 @@ FEEDBACK: [your explanation]`
 
         {/* Assets View Modal */}
         <Dialog open={assetsViewOpen} onOpenChange={setAssetsViewOpen}>
-          <DialogContent className="max-w-3xl rounded-2xl border-0 bg-gray-200/90 p-5 shadow-2xl backdrop-blur-sm">
+          <DialogContent className="max-w-4xl rounded-2xl border-0 bg-gray-200/90 p-5 shadow-2xl backdrop-blur-sm">
             <div className="flex h-[520px] flex-col gap-4">
-              {/* Modal Header */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">Assets</h3>
-                  <p className="text-xs text-gray-500">
-                    View, organize, and load uploaded assets available in this course.
-                  </p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full text-gray-500 hover:bg-gray-200 hover:text-gray-700"
-                  onClick={() => setAssetsViewOpen(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+              {/* Modal Header — only title/subtitle, no custom X (Dialog has built-in close) */}
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Assets</h3>
+                <p className="text-xs text-gray-500">
+                  View, organize, and load uploaded assets available in this course.
+                </p>
               </div>
 
-              {/* Toolbar */}
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1 rounded-full border-0 bg-teal-400 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500"
-                  onClick={() => {
-                    const name = prompt('Folder name:')
-                    if (name && name.trim()) {
-                      const trimmed = name.trim()
-                      setAssetFoldersList(prev =>
-                        prev.includes(trimmed) ? prev : [...prev, trimmed]
-                      )
-                      toast.success(`Folder "${trimmed}" created`)
-                    }
-                  }}
-                >
-                  <Plus className="h-4 w-4" /> Folder
-                </Button>
+              {/* Toolbar — aligned with the two panels below */}
+              <div className="flex gap-4">
+                <div className="w-[22rem] shrink-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1 rounded-full border-0 bg-teal-400 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500"
+                    onClick={() => {
+                      const name = prompt('Folder name:')
+                      if (name && name.trim()) {
+                        const trimmed = name.trim()
+                        setAssetFoldersList(prev =>
+                          prev.includes(trimmed) ? prev : [...prev, trimmed]
+                        )
+                        toast.success(`Folder "${trimmed}" created`)
+                      }
+                    }}
+                  >
+                    <Plus className="h-4 w-4" /> Folder
+                  </Button>
+                </div>
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                   <Input
@@ -3401,37 +3393,39 @@ FEEDBACK: [your explanation]`
               {/* Body: folders left, assets right — both as white rounded cards */}
               <div className="flex flex-1 gap-4 overflow-hidden">
                 {/* Folder list card */}
-                <div className="flex w-52 flex-col rounded-xl bg-white p-3 shadow-sm">
-                  <div className="space-y-1">
-                    {assetFolders.map(folder => (
-                      <button
-                        key={folder}
-                        className={cn(
-                          'flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors',
-                          assetViewFolder === folder
-                            ? 'bg-blue-50 font-medium text-blue-600'
-                            : 'text-gray-600 hover:bg-gray-50'
-                        )}
-                        onClick={() => setAssetViewFolder(folder)}
-                      >
-                        <span className="flex items-center gap-2">
-                          <ChevronDown className="h-3.5 w-3.5" />
-                          <span
-                            className={
-                              assetViewFolder === folder ? 'text-blue-600' : 'text-gray-700'
-                            }
-                          >
-                            {folder}
+                <div className="flex w-[22rem] shrink-0 flex-col rounded-xl bg-white p-3 shadow-sm">
+                  <ScrollArea className="flex-1">
+                    <div className="space-y-1">
+                      {assetFolders.map(folder => (
+                        <button
+                          key={folder}
+                          className={cn(
+                            'flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors',
+                            assetViewFolder === folder
+                              ? 'bg-blue-50 font-medium text-blue-600'
+                              : 'text-gray-600 hover:bg-gray-50'
+                          )}
+                          onClick={() => setAssetViewFolder(folder)}
+                        >
+                          <span className="flex items-center gap-2">
+                            <ChevronDown className="h-3.5 w-3.5" />
+                            <span
+                              className={
+                                assetViewFolder === folder ? 'text-blue-600' : 'text-gray-700'
+                              }
+                            >
+                              {folder}
+                            </span>
                           </span>
-                        </span>
-                        <span className="rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">
-                          {folder === 'All'
-                            ? courseAssets.length
-                            : courseAssets.filter(a => a.folder === folder).length}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
+                          <span className="rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">
+                            {folder === 'All'
+                              ? courseAssets.length
+                              : courseAssets.filter(a => a.folder === folder).length}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </ScrollArea>
                 </div>
 
                 {/* Asset list card */}
@@ -3478,25 +3472,37 @@ FEEDBACK: [your explanation]`
                                   </option>
                                 ))}
                               </select>
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                className="h-7 rounded-lg bg-white px-3 text-xs font-medium shadow-sm hover:bg-gray-50"
-                                onClick={() => {
-                                  handleLoadAsset(asset)
-                                  setAssetsViewOpen(false)
-                                }}
-                              >
-                                Load
-                              </Button>
-                              <button
-                                className="flex h-7 w-7 items-center justify-center rounded-lg text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                                onClick={() => {
-                                  setCourseAssets(prev => prev.filter(a => a.id !== asset.id))
-                                }}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
+
+                              {/* Kebab menu for Load / Delete */}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                                  >
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      handleLoadAsset(asset)
+                                      setAssetsViewOpen(false)
+                                    }}
+                                  >
+                                    Load
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-red-600 focus:text-red-600"
+                                    onClick={() => {
+                                      setCourseAssets(prev => prev.filter(a => a.id !== asset.id))
+                                    }}
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           </div>
                         ))
