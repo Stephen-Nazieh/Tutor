@@ -6,7 +6,6 @@
 import { Server as NetServer } from 'http'
 import { Server as SocketIOServer, Socket } from 'socket.io'
 import Redis from 'ioredis'
-import { promisify } from 'util'
 import * as Sentry from '@sentry/nextjs'
 import { eq, and, inArray } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
