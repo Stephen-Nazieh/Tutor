@@ -91,7 +91,7 @@ function generateSessionDates(
     if (hours === undefined || minutes === undefined) continue
 
     // Find the next occurrence of this day
-    let cursor = new Date(today)
+    const cursor = new Date(today)
     const daysUntil = (targetDay - cursor.getDay() + 7) % 7
     cursor.setDate(cursor.getDate() + daysUntil)
     cursor.setHours(hours, minutes, 0, 0)
