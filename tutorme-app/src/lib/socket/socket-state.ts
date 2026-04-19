@@ -34,6 +34,7 @@ import {
   WHITEBOARD_OP_SEEN_TRIM,
   WHITEBOARD_DEAD_LETTER_MAX,
   WHITEBOARD_OP_LOG_MAX,
+  MATH_WB_EMPTY_ROOM_CLEANUP_MS,
 } from './socket-constants'
 
 // Re-export types used by state helpers
@@ -467,6 +468,48 @@ export function getMathSyncObservability(sessionId?: string): MathSyncObservabil
 export const breakoutRooms = new Map<string, BreakoutRoom>()
 export const mainRoomBreakouts = new Map<string, Set<string>>()
 
+// ============ Feedback & Insights ============
+export const deployedTasks = new Map<
+  string,
+  {
+    id: string
+    taskId: string
+    title: string
+    content: string
+    type: 'task' | 'assessment'
+    deployedAt: string
+    tutorId: string
+    tutorName: string
+    students: Set<string>
+  }
+>()
+
+export const feedbackPolls = new Map<
+  string,
+  {
+    id: string
+    taskId: string
+    question: string
+    options: number[]
+    responses: Map<string, number>
+    isActive: boolean
+    sentAt: string
+    tutorId: string
+  }
+>()
+
+export const feedbackQuestions = new Map<
+  string,
+  {
+    id: string
+    taskId: string
+    question: string
+    answers: Map<string, { answer: string; answeredAt: string }>
+    sentAt: string
+    tutorId: string
+  }
+>()
+
 // ============ Polls ============
 export const activePolls = new Map<string, PollState>()
 export const sessionPolls = new Map<string, Set<string>>()
@@ -557,5 +600,123 @@ export function exportWhiteboard(whiteboardId: string): {
     backgroundColor: wb.backgroundColor,
     backgroundStyle: wb.backgroundStyle,
     exportedAt: new Date().toISOString(),
+  }
+}
+
+const STALE_STATE_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
+
+export function cleanupStaleSocketState() {
+  const now = Date.now()
+
+  // 1. whiteboardOpMetrics - clear entries older than 24h
+  for (const [key, metric] of whiteboardOpMetrics.entries()) {
+    if (now - metric.lastActivity > STALE_STATE_TTL_MS) {
+      whiteboardOpMetrics.delete(key)
+    }
+  }
+
+  // 2. lcwbAiRegionRateLimit - clear expired entries
+  for (const [key, state] of lcwbAiRegionRateLimit.entries()) {
+    if (now >= state.resetAt) {
+      lcwbAiRegionRateLimit.delete(key)
+    }
+  }
+
+  // 3. whiteboardOpSeenIds - clear per-room entries when whiteboard is cleaned up
+  for (const key of whiteboardOpSeenIds.keys()) {
+    if (!activeWhiteboards.has(key)) {
+      whiteboardOpSeenIds.delete(key)
+    }
+  }
+
+  // 4. whiteboardOpSeq - clear per-room entries when whiteboard is cleaned up
+  for (const key of whiteboardOpSeq.keys()) {
+    if (!activeWhiteboards.has(key)) {
+      whiteboardOpSeq.delete(key)
+    }
+  }
+
+  // 5. whiteboardBranches - clear when parent whiteboard deleted
+  for (const key of whiteboardBranches.keys()) {
+    if (!activeWhiteboards.has(key)) {
+      whiteboardBranches.delete(key)
+    }
+  }
+
+  // 6. liveClassModeration - clear when room cleaned up
+  for (const roomId of liveClassModeration.keys()) {
+    if (!activeRooms.has(roomId)) {
+      liveClassModeration.delete(roomId)
+    }
+  }
+
+  // 7. mathWhiteboardRooms - remove stale rooms
+  for (const [key, room] of mathWhiteboardRooms.entries()) {
+    if (
+      now - room.lastActivity > STALE_STATE_TTL_MS ||
+      (room.participants.size === 0 && now - room.lastActivity > MATH_WB_EMPTY_ROOM_CLEANUP_MS)
+    ) {
+      mathWhiteboardRooms.delete(key)
+    }
+  }
+
+  // 8. mathSyncMetrics - clear entries older than 24h
+  for (const [key, metric] of mathSyncMetrics.entries()) {
+    if (now - metric.lastActivity > STALE_STATE_TTL_MS) {
+      mathSyncMetrics.delete(key)
+    }
+  }
+
+  // 9. mainRoomBreakouts - verify closed rooms are removed
+  for (const [mainRoomId, roomIds] of mainRoomBreakouts.entries()) {
+    for (const roomId of Array.from(roomIds)) {
+      if (!breakoutRooms.has(roomId)) {
+        roomIds.delete(roomId)
+      }
+    }
+    if (roomIds.size === 0) {
+      mainRoomBreakouts.delete(mainRoomId)
+    }
+  }
+
+  // 10. activePolls - delete closed polls older than 24h
+  for (const [pollId, poll] of activePolls.entries()) {
+    if (poll.status === 'closed' && poll.endedAt && now - poll.endedAt > STALE_STATE_TTL_MS) {
+      activePolls.delete(pollId)
+    }
+  }
+
+  // 11. sessionPolls - delete when session has no active polls
+  for (const [sessionId, pollIds] of sessionPolls.entries()) {
+    for (const pollId of Array.from(pollIds)) {
+      if (!activePolls.has(pollId)) {
+        pollIds.delete(pollId)
+      }
+    }
+    if (pollIds.size === 0) {
+      sessionPolls.delete(sessionId)
+    }
+  }
+
+  // 12. deployedTasks - delete after 24h TTL
+  for (const [id, task] of deployedTasks.entries()) {
+    const deployedAt = new Date(task.deployedAt).getTime()
+    if (now - deployedAt > STALE_STATE_TTL_MS) {
+      deployedTasks.delete(id)
+    }
+  }
+
+  // 13. feedbackPolls - delete inactive or old polls
+  for (const [id, poll] of feedbackPolls.entries()) {
+    if (!poll.isActive || now - new Date(poll.sentAt).getTime() > STALE_STATE_TTL_MS) {
+      feedbackPolls.delete(id)
+    }
+  }
+
+  // 14. feedbackQuestions - delete when older than 24h
+  for (const [id, question] of feedbackQuestions.entries()) {
+    if (now - new Date(question.sentAt).getTime() > STALE_STATE_TTL_MS) {
+      feedbackQuestions.delete(id)
+    }
   }
 }

@@ -17,7 +17,6 @@ const config = [
       'node_modules/**',
       'next-env.d.ts',
       'public/**',
-      'prisma/migrations/**',
       '*.min.js',
       '*.min.mjs',
       'package.json.tmp',
@@ -77,7 +76,7 @@ const config = [
     },
   },
   {
-    files: ['scripts/**/*.{js,ts}', 'src/scripts/**/*.{js,ts}', 'prisma/**/*.{js,ts}'],
+    files: ['scripts/**/*.{js,ts}', 'src/scripts/**/*.{js,ts}'],
     rules: {
       '@next/next/no-assign-module-variable': 'off',
       '@typescript-eslint/no-unused-expressions': 'off',

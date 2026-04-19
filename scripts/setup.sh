@@ -110,8 +110,11 @@ print_status "shadcn/ui setup complete"
 print_info "Step 3/8: Installing dependencies..."
 
 # Core dependencies
+# Step 3: Install additional dependencies
+print_info "Step 3/8: Installing dependencies..."
+
+# Core dependencies (Prisma removed — project uses Drizzle ORM)
 npm install \
-    @prisma/client prisma \
     next-auth \
     socket.io socket.io-client \
     redis ioredis \
@@ -142,163 +145,13 @@ npm install -D \
 
 print_status "Dependencies installed"
 
-# Step 4: Set up Prisma
-print_info "Step 4/8: Setting up Prisma..."
+# Step 4: Set up Drizzle ORM
+print_info "Step 4/8: Setting up Drizzle ORM..."
 
-# Create prisma directory and schema
-mkdir -p prisma
+echo "Drizzle ORM is configured. Run migrations with: npm run db:migrate"
+echo "Schema files should be placed in src/lib/db/schema/"
 
-cat > prisma/schema.prisma << 'PRISMA'
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-enum Role {
-  STUDENT
-  TUTOR
-  ADMIN
-}
-
-enum SessionType {
-  CLINIC
-  GROUP
-  ONE_ON_ONE
-}
-
-enum MessageSource {
-  AI
-  TUTOR
-  STUDENT
-}
-
-model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  role          Role      @default(STUDENT)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  profile       Profile?
-  sessions      SessionParticipant[]
-  messages      Message[]
-  quizAttempts  QuizAttempt[]
-  liveSessions  LiveSession[] @relation("TutorSessions")
-}
-
-model Profile {
-  id            String    @id @default(uuid())
-  userId        String    @unique
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  name          String?
-  avatar        String?
-  
-  // Student-specific
-  gradeLevel    Int?
-  subjects      String[]
-  knowledgeGraph Json?
-  learningStyle  Json?
-  
-  // Tutor-specific
-  credentials   String?
-  hourlyRate    Decimal?  @db.Decimal(10, 2)
-  availability  Json?
-  bio           String?   @db.Text
-}
-
-model Content {
-  id            String    @id @default(uuid())
-  subject       String
-  topic         String
-  difficulty    String    // BEGINNER | INTERMEDIATE | ADVANCED
-  videoUrl      String
-  transcript    String?   @db.Text
-  duration      Int       // seconds
-  createdAt     DateTime  @default(now())
-  
-  quizzes       Quiz[]
-}
-
-model Quiz {
-  id            String    @id @default(uuid())
-  contentId     String
-  content       Content   @relation(fields: [contentId], references: [id], onDelete: Cascade)
-  questions     Json      // Array of question objects
-  createdAt     DateTime  @default(now())
-  
-  attempts      QuizAttempt[]
-}
-
-model QuizAttempt {
-  id            String    @id @default(uuid())
-  studentId     String
-  student       User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  quizId        String
-  quiz          Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  
-  answers       Json
-  score         Int
-  aiConfidence  Float?
-  tutorReviewed Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-}
-
-model LiveSession {
-  id            String    @id @default(uuid())
-  tutorId       String
-  tutor         User      @relation(fields: [tutorId], references: [id], onDelete: Cascade, name: "TutorSessions")
-  scheduledAt   DateTime
-  maxStudents   Int       @default(50)
-  type          SessionType @default(CLINIC)
-  
-  participants  SessionParticipant[]
-  recordingUrl  String?
-  aiSummary     String?   @db.Text
-  
-  createdAt     DateTime  @default(now())
-}
-
-model SessionParticipant {
-  id              String    @id @default(uuid())
-  sessionId       String
-  session         LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  studentId       String
-  
-  joinTime        DateTime
-  leaveTime       DateTime?
-  engagementScore Float?
-  aiInterventions Json?
-}
-
-model Message {
-  id          String   @id @default(uuid())
-  studentId   String
-  student     User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  content     String   @db.Text
-  source      MessageSource
-  context     Json?    
-  timestamp   DateTime @default(now())
-}
-
-model Note {
-  id          String   @id @default(uuid())
-  studentId   String
-  contentId   String
-  timestamp   Int      // Video timestamp in seconds
-  content     String   @db.Text
-  createdAt   DateTime @default(now())
-}
-PRISMA
-
-print_status "Prisma schema created"
+print_status "Drizzle setup complete"
 
 # Step 5: Create Docker Compose
 print_info "Step 5/8: Creating Docker Compose configuration..."
@@ -404,21 +257,20 @@ import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(...inputs))
 }
 UTILS
 
 # Create database client
 cat > lib/db/index.ts << 'DBCLIENT'
-import { PrismaClient } from '@prisma/client'
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { Pool } from 'pg'
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
-}
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+})
 
-export const db = globalForPrisma.prisma ?? new PrismaClient()
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
+export const db = drizzle(pool)
 DBCLIENT
 
 # Create types
@@ -591,11 +443,7 @@ if ! docker ps | grep -q tutorme-db; then
     
     # Run migrations
     echo "Running database migrations..."
-    npx prisma migrate dev --name init
-    
-    # Generate Prisma client
-    npx prisma generate
-    
+    npm run db:migrate
 fi
 
 echo ""
@@ -604,7 +452,6 @@ echo "  Starting Next.js development server"
 echo "========================================"
 echo ""
 echo "  App will be available at: http://localhost:3000"
-echo "  Database UI: npx prisma studio"
 echo ""
 echo "  Press Ctrl+C to stop"
 echo ""
@@ -641,12 +488,9 @@ docker-compose up -d
 sleep 5
 
 echo "Running migrations..."
-npx prisma migrate dev --name init
+npm run db:migrate
 
-echo "Generating Prisma client..."
-npx prisma generate
-
-echo "Done! Run 'npm run dev:all' to start."
+echo "Done! Run 'npm run dev' to start."
 RESETSCRIPT
 
 chmod +x scripts/reset.sh
@@ -662,10 +506,7 @@ docker-compose up -d db redis
 sleep 5
 
 echo "Running migrations..."
-npx prisma migrate dev --name init
-
-echo "Generating Prisma client..."
-npx prisma generate
+npm run db:migrate
 
 echo "Database ready!"
 DBSCRIPT
@@ -685,12 +526,10 @@ pkg.scripts = {
   ...pkg.scripts,
   "dev:all": "bash scripts/dev.sh",
   "db:setup": "bash scripts/setup-db.sh",
-  "db:migrate": "prisma migrate dev",
-  "db:studio": "prisma studio",
+  "db:migrate": "drizzle-kit migrate",
+  "db:studio": "drizzle-kit studio",
   "db:reset": "bash scripts/reset.sh",
-  "db:generate": "prisma generate",
-  "db:seed": "tsx prisma/seed.ts",
-  "ollama:pull": "docker exec tutorme-ollama ollama pull llama3.1",
+  "db:seed": "tsx scripts/seed.ts",
   "docker:up": "docker-compose up -d",
   "docker:down": "docker-compose down",
   "docker:logs": "docker-compose logs -f"
@@ -698,6 +537,8 @@ pkg.scripts = {
 
 fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
 NODE
+
+print_status "Package.json updated"
 
 print_status "Package.json updated"
 
@@ -945,8 +786,6 @@ lib/
 ├── db/              # Database client
 ├── realtime/        # Socket.io setup
 └── video/           # Video provider abstraction
-prisma/
-└── schema.prisma    # Database schema
 ```
 
 ### Environment Variables

@@ -6,6 +6,7 @@
 
 'use client'
 
+import { Suspense } from 'react'
 import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -53,7 +54,7 @@ interface PollResponse {
   respondedAt: string
 }
 
-export default function InsightsLayout({ children }: { children: React.ReactNode }) {
+function InsightsLayoutInner({ children }: { children: React.ReactNode }) {
   const [isInsightsOpen, setIsInsightsOpen] = useState(true)
   const searchParams = useSearchParams()
   const returnUrl = searchParams.get('return') || '/tutor/dashboard'
@@ -170,5 +171,13 @@ export default function InsightsLayout({ children }: { children: React.ReactNode
         <div className="flex min-h-0 w-full flex-1">{children}</div>
       </div>
     </div>
+  )
+}
+
+export default function InsightsLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={null}>
+      <InsightsLayoutInner>{children}</InsightsLayoutInner>
+    </Suspense>
   )
 }

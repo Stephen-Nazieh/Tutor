@@ -77,7 +77,7 @@ sleep 15
 
 # Run migrations
 echo "Running database migrations..."
-docker-compose -f docker-compose.prod.yml exec -T app npx prisma migrate deploy || {
+docker-compose -f docker-compose.prod.yml exec -T app npm run db:migrate:deploy || {
     echo "Warning: Migration failed or already applied"
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   useFilteredMessages,
@@ -207,48 +207,7 @@ export function CommunicationCenter() {
   const voiceRecorderRef = useRef<NodeJS.Timeout | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // ============================================
-  // REAL-TIME SIMULATION (WebSocket mock)
-  // ============================================
-
-  useEffect(() => {
-    // Simulate WebSocket connection
-    actions.setIsWebSocketConnected(true)
-
-    // Simulate typing indicators
-    const typingInterval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        const newIndicator: TypingIndicator = {
-          userId: 's' + Math.floor(Math.random() * 5 + 1),
-          userName: ['Alice', 'Bob', 'Carol', 'David', 'Emma'][Math.floor(Math.random() * 5)],
-          timestamp: Date.now(),
-        }
-        actions.addTypingIndicator(newIndicator)
-        actions.clearExpiredTypingIndicators()
-      }
-    }, 2000)
-
-    // Simulate presence updates
-    const presenceInterval = setInterval(() => {
-      const statuses: Record<string, PresenceStatus> = {
-        s1: { userId: 's1', status: Math.random() > 0.3 ? 'online' : 'away' },
-        s2: {
-          userId: 's2',
-          status: Math.random() > 0.5 ? 'online' : 'offline',
-          lastSeen: new Date().toISOString(),
-        },
-        s3: { userId: 's3', status: 'online' },
-        s4: { userId: 's4', status: Math.random() > 0.6 ? 'online' : 'offline' },
-        s5: { userId: 's5', status: 'away' },
-      }
-      actions.setPresenceStatus(statuses)
-    }, 5000)
-
-    return () => {
-      clearInterval(typingInterval)
-      clearInterval(presenceInterval)
-    }
-  }, [actions])
+  // Real-time WebSocket connection is managed by the store/actions
 
   // filteredMessages and stats are already computed by store selectors
 
@@ -398,36 +357,7 @@ export function CommunicationCenter() {
 
   const handleViewThread = (message: Message) => {
     actions.setSelectedMessage(message)
-    // Mock thread messages
-    actions.setThreadMessages([
-      message,
-      {
-        id: 'reply-1',
-        studentId: message.studentId,
-        studentName: message.studentName,
-        subject: '',
-        content: 'Follow-up question about the same topic...',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-        isRead: true,
-        isStarred: false,
-        priority: 'normal',
-        type: 'message',
-        parentId: message.id,
-      },
-      {
-        id: 'reply-2',
-        studentId: 'tutor',
-        studentName: 'You',
-        subject: '',
-        content: 'Thanks for the clarification!',
-        timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-        isRead: true,
-        isStarred: false,
-        priority: 'normal',
-        type: 'message',
-        parentId: message.id,
-      },
-    ])
+    actions.setThreadMessages([message])
     actions.setShowThread(true)
   }
 

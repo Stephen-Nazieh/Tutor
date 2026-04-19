@@ -28,22 +28,32 @@ export async function validateSocketJWT(
   }
 }
 
-export function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void) {
-  const token = socket.handshake.auth?.token
-  if (!token) {
-    return next(new Error('Authentication required'))
+export async function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void) {
+  try {
+    const token = socket.handshake.auth.token
+
+    if (!token) {
+      return next(new Error('Authentication token required'))
+    }
+
+    const user = await validateSocketJWT(token)
+    if (!user) {
+      return next(new Error('Invalid authentication token'))
+    }
+
+    // Attach user data to socket for use in event handlers
+    socket.data.user = user
+    socket.data.userId = user.userId
+    socket.data.role = user.role
+    socket.data.name = user.name
+    socket.data.authenticated = true
+
+    console.log(`Socket authenticated: ${socket.id} (role: ${user.role})`)
+    next()
+  } catch (error) {
+    console.error('Socket authentication error:', error)
+    next(new Error('Authentication failed'))
   }
-  validateSocketJWT(token)
-    .then(user => {
-      if (user) {
-        socket.data.userId = user.userId
-        socket.data.role = user.role
-        socket.data.name = user.name
-        socket.data.authenticated = true
-      }
-      next()
-    })
-    .catch(() => next())
 }
 
 export function getSocketCorsOrigin(): string | string[] {

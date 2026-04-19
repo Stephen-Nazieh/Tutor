@@ -5,6 +5,7 @@
 
 'use client'
 
+import { Suspense } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -68,7 +69,7 @@ type Props = UseCourseBuilderContentArgs & {
   onSaveModeChange?: (mode: 'live' | 'draft') => void
 }
 
-export function CourseBuilderInsightsRoute({
+function CourseBuilderInsightsRouteInner({
   courseId,
   insightsProps,
   dataMode = 'default',
@@ -532,5 +533,13 @@ export function CourseBuilderInsightsRoute({
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+export function CourseBuilderInsightsRoute(props: Props) {
+  return (
+    <Suspense fallback={null}>
+      <CourseBuilderInsightsRouteInner {...props} />
+    </Suspense>
   )
 }

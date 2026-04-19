@@ -87,50 +87,12 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
     }
   }, [])
 
-  // Generate mock class events for the 7-day calendar
-  const generateClassEvents = (date: Date): ClassEvent[] => {
-    const dayOfWeek = date.getDay()
-    const events: ClassEvent[] = []
-
-    // Add some scheduled classes based on day
-    if (dayOfWeek === 1 || dayOfWeek === 3) {
-      events.push({
-        id: '1',
-        title: 'Mathematics',
-        time: '3:00 PM - 4:00 PM',
-        duration: 60,
-        subject: 'Mathematics',
-      })
-    }
-    if (dayOfWeek === 2 || dayOfWeek === 4) {
-      events.push({
-        id: '2',
-        title: 'Physics',
-        time: '2:00 PM - 3:30 PM',
-        duration: 90,
-        subject: 'Physics',
-      })
-    }
-    if (dayOfWeek === 5) {
-      events.push({
-        id: '3',
-        title: 'Chemistry',
-        time: '10:00 AM - 11:00 AM',
-        duration: 60,
-        subject: 'Chemistry',
-      })
-    }
-
-    return events
-  }
-
   const handleDayClick = (date: Date) => {
-    const events = generateClassEvents(date)
-    setSelectedDay({ date, events })
+    setSelectedDay({ date, events: [] })
   }
 
-  const getDayClasses = (date: Date): ClassEvent[] => {
-    return generateClassEvents(date)
+  const getDayClasses = (_date: Date): ClassEvent[] => {
+    return []
   }
 
   const formatTime = (date: Date) => {

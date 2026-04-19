@@ -98,9 +98,7 @@ export interface EnrolledCourse {
 
 export interface DashboardData {
   contents: DashboardContent[]
-  dailyQuests: DailyQuestWithCompletion[]
   recommendations: Recommendation[]
   classes: DashboardClass[]
-  studyGroups: StudyGroup[]
   courses: EnrolledCourse[]
 }

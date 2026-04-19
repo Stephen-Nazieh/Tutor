@@ -5,7 +5,6 @@
 
 import { Server as NetServer } from 'http'
 import { Server as SocketIOServer, Socket } from 'socket.io'
-import { jwtVerify } from 'jose'
 import Redis from 'ioredis'
 import { promisify } from 'util'
 import * as Sentry from '@sentry/nextjs'
@@ -17,8 +16,9 @@ import {
   cleanupLcwbPresence,
   initFeedbackHandlers,
 } from './socket-server'
-import { activePolls, sessionPolls } from '@/lib/socket'
+import { activePolls, sessionPolls, cleanupStaleSocketState } from '@/lib/socket'
 import type { PollState } from '@/lib/socket'
+import { socketAuthMiddleware } from './socket/socket-auth'
 
 // Types from original socket-server.ts
 export type StudentStatus = 'on_track' | 'needs_help' | 'struggling' | 'idle'
@@ -224,44 +224,6 @@ function clearUserSocketIfCurrent(userId: string | undefined, socketId: string) 
   }
 }
 
-// Authentication functions (use jose to match NextAuth and avoid jsonwebtoken dependency)
-async function validateJWT(
-  token: string
-): Promise<{ userId: string; role: string; email: string; name: string } | null> {
-  try {
-    const secretRaw = process.env.NEXTAUTH_SECRET
-    if (!secretRaw) {
-      console.error('Socket auth: NEXTAUTH_SECRET is missing')
-      return null
-    }
-    const secret = new TextEncoder().encode(secretRaw)
-    const { payload } = await jwtVerify(token, secret)
-    const decoded = payload as { id?: string; role?: string; email?: string; name?: string }
-
-    // Validate required fields
-    if (!decoded.id || decoded.role == null || decoded.role === '') {
-      console.error('Socket auth: JWT missing required fields (id, role)')
-      return null
-    }
-
-    // Normalize role to lowercase; socket handlers expect 'tutor' | 'student'
-    const role = String(decoded.role).toLowerCase()
-    const allowedRoles = ['student', 'tutor', 'parent', 'admin']
-    const normalizedRole = allowedRoles.includes(role) ? role : 'student'
-
-    return {
-      userId: decoded.id,
-      role: normalizedRole,
-      email: decoded.email || '',
-      name: decoded.name || '',
-    }
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error)
-    console.error('Socket auth: JWT validation failed:', msg)
-    return null
-  }
-}
-
 // Rate limiting function
 function isRateLimited(connectionId: string): boolean {
   const now = Date.now()
@@ -407,35 +369,6 @@ async function getRoomFromRedis(roomId: string): Promise<ClassRoom | null> {
   }
 }
 
-// Socket authentication middleware
-async function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void) {
-  try {
-    const token = socket.handshake.auth.token
-
-    if (!token) {
-      return next(new Error('Authentication token required'))
-    }
-
-    const user = await validateJWT(token)
-    if (!user) {
-      return next(new Error('Invalid authentication token'))
-    }
-
-    // Attach user data to socket for use in event handlers
-    socket.data.user = user
-    socket.data.userId = user.userId
-    socket.data.role = user.role
-    socket.data.name = user.name
-    socket.data.authenticated = true
-
-    console.log(`Socket authenticated: ${socket.id} (role: ${user.role})`)
-    next()
-  } catch (error) {
-    console.error('Socket authentication error:', error)
-    next(new Error('Authentication failed'))
-  }
-}
-
 // Per-event rate limiting middleware
 function rateLimitMiddleware(socket: Socket, next: (err?: Error) => void) {
   const connectionId = socket.id
@@ -555,6 +488,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
   intervalHandles.push(setInterval(cleanupInactiveClassRooms, ROOM_CLEANUP_INTERVAL))
   intervalHandles.push(setInterval(cleanupInactiveDMRooms, DM_CLEANUP_INTERVAL))
   intervalHandles.push(setInterval(cleanupInactiveWhiteboards, WHITEBOARD_CLEANUP_INTERVAL))
+  intervalHandles.push(setInterval(cleanupStaleSocketState, 5 * 60 * 1000))
   intervalHandles.push(
     setInterval(
       () => {

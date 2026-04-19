@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
@@ -35,7 +36,7 @@ interface InsightsSessionOption {
   status: string
 }
 
-export default function TutorInsightsPage() {
+function TutorInsightsPageInner() {
   const { data: session } = useSession()
   const searchParams = useSearchParams()
   const [courses, setCourses] = useState<CourseSummary[]>([])
@@ -796,5 +797,13 @@ export default function TutorInsightsPage() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+export default function TutorInsightsPage() {
+  return (
+    <Suspense fallback={null}>
+      <TutorInsightsPageInner />
+    </Suspense>
   )
 }
