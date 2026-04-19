@@ -2974,7 +2974,11 @@ FEEDBACK: [your explanation]`
                     className="w-full justify-start gap-2"
                     variant="outline"
                     onClick={() => {
-                      const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
+                      if (!assetToLoad?.name) {
+                        toast.error('Asset data is missing')
+                        return
+                      }
+                      const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
                       if (taskBuilder.activeExtensionId) {
                         setTaskBuilder(prev => ({
                           ...prev,
@@ -3057,6 +3061,10 @@ FEEDBACK: [your explanation]`
                     className="w-full justify-start gap-2"
                     variant="outline"
                     onClick={() => {
+                      if (!assetToLoad?.name) {
+                        toast.error('Asset data is missing')
+                        return
+                      }
                       const { nodeId, lessonId } = ensureFirstLessonContext()
                       const nodeIndex = nodes.findIndex(m => m.id === nodeId)
                       const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
@@ -3064,7 +3072,7 @@ FEEDBACK: [your explanation]`
                         nodes[nodeIndex].lessons[lessonIndex].homework.length,
                         'assessment'
                       )
-                      const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
+                      const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
 
                       newAssess.description = textToInsert
 
@@ -3093,6 +3101,10 @@ FEEDBACK: [your explanation]`
                     className="w-full justify-start gap-2"
                     variant="outline"
                     onClick={() => {
+                      if (!assetToLoad?.name) {
+                        toast.error('Asset data is missing')
+                        return
+                      }
                       // Load entire document as a single task
                       const { nodeId, lessonId } = ensureFirstLessonContext()
                       const nodeIndex = nodes.findIndex(m => m.id === nodeId)
@@ -3100,7 +3112,7 @@ FEEDBACK: [your explanation]`
                       const newTask = DEFAULT_TASK(
                         nodes[nodeIndex].lessons[lessonIndex].tasks.length
                       )
-                      const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
+                      const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
 
                       newTask.description = textToInsert
 
@@ -3129,8 +3141,12 @@ FEEDBACK: [your explanation]`
                     className="w-full justify-start gap-2"
                     variant="outline"
                     onClick={() => {
+                      if (!assetToLoad?.name) {
+                        toast.error('Asset data is missing')
+                        return
+                      }
                       // Load first page as task, remaining pages as extensions
-                      const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
+                      const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
 
                       // Try to split content by pages (form feed or page markers)
                       // Heuristic: split by form feed, then by double newlines as fallback

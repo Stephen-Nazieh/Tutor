@@ -58,6 +58,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { extractTextFromFile } from '@/lib/extract-file-text'
 
 import type {
   ImportedLearningResource,
@@ -104,8 +105,8 @@ export function ResourceImportPanel<
     questions?: QuizQuestion[]
     submissionType?: string
   },
->({ data, setData }: Omit<ResourceImportPanelProps<T>, 'targetField'>) {
-  const [uploading, setUploading] = useState(false)
+>({ data, setData, targetField }: ResourceImportPanelProps<T>) {
+  const [extracting, setExtracting] = useState(false)
   const [resources, setResources] = useState<
     Array<{ id: string; name: string; url: string; mimeType: string | null }>
   >([])
@@ -153,8 +154,9 @@ export function ResourceImportPanel<
   const handleImport = async (fileList: FileList | null) => {
     const file = fileList?.[0]
     if (!file) return
-    setUploading(true)
+    setExtracting(true)
     try {
+      const extractedText = await extractTextFromFile(file)
       const localObjectUrl = URL.createObjectURL(file)
       let fileUrl = localObjectUrl
       try {
@@ -179,14 +181,20 @@ export function ResourceImportPanel<
         fileName: file.name,
         mimeType: file.type || 'application/octet-stream',
         fileUrl,
+        extractedText: extractedText || '',
         uploadedAt: new Date().toISOString(),
       }
-      setData({ ...data, sourceDocument } as T)
-      toast.success('Document uploaded successfully.')
+      const currentTarget = (data as Record<string, unknown>)[targetField]
+      if (!String(currentTarget || '').trim() && extractedText) {
+        setData({ ...data, sourceDocument, [targetField]: extractedText.slice(0, 4000) } as T)
+      } else {
+        setData({ ...data, sourceDocument } as T)
+      }
+      toast.success('Document imported. PDF and extracted text are available.')
     } catch {
-      toast.error('Failed to upload document')
+      toast.error('Failed to process file')
     } finally {
-      setUploading(false)
+      setExtracting(false)
     }
   }
 
@@ -204,9 +212,9 @@ export function ResourceImportPanel<
   return (
     <div className="space-y-2 rounded-lg border border-dashed p-3">
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" size="sm" disabled={uploading} asChild>
+        <Button variant="outline" size="sm" disabled={extracting} asChild>
           <label className="cursor-pointer" title="Supports .pdf, .docx, .pptx, images">
-            {uploading ? (
+            {extracting ? (
               <Loader2 className="mr-1 h-3 w-3 animate-spin" />
             ) : (
               <Upload className="mr-1 h-3 w-3" />
@@ -235,10 +243,10 @@ export function ResourceImportPanel<
         </Button>
       </div>
       {source && (
-        <div className="bg-muted/20 space-y-2 rounded border p-3">
+        <div className="bg-muted/20 space-y-3 rounded border p-3">
           <div className="flex items-center justify-between">
             <div className="text-muted-foreground text-xs">
-              Uploaded: <span className="text-foreground font-medium">{source.fileName}</span>
+              Imported: <span className="text-foreground font-medium">{source.fileName}</span>
             </div>
             <Button
               variant="ghost"
@@ -250,6 +258,8 @@ export function ResourceImportPanel<
               Remove
             </Button>
           </div>
+
+          {/* PDF / Image / File preview */}
           {isPdf && (
             <div className="overflow-hidden rounded border">
               <iframe src={source.fileUrl} title={source.fileName} className="h-64 w-full" />
@@ -278,6 +288,25 @@ export function ResourceImportPanel<
               </a>
             </div>
           )}
+
+          {/* Extracted text (editable) */}
+          <div className="space-y-1">
+            <p className="text-muted-foreground text-xs font-medium">Extracted text (editable)</p>
+            <Textarea
+              value={source.extractedText || ''}
+              onChange={(e: any) =>
+                setData({
+                  ...data,
+                  sourceDocument: {
+                    ...source,
+                    extractedText: e.target.value,
+                  },
+                } as T)
+              }
+              rows={6}
+              placeholder="Imported content text (editable)"
+            />
+          </div>
         </div>
       )}
     </div>

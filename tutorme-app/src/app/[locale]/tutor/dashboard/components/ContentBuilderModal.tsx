@@ -65,7 +65,7 @@ export function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: Bu
           </div>
           {data.type === 'text' && (
             <>
-              <ResourceImportPanel data={data} setData={setData} />
+              <ResourceImportPanel data={data} setData={setData} targetField="body" />
               <div className="space-y-2">
                 <Label>Content Body</Label>
                 <Textarea

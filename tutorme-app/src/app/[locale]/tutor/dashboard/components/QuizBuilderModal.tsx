@@ -214,7 +214,7 @@ export function QuizBuilderModal({
                   </div>
                 )}
 
-                <ResourceImportPanel data={data} setData={setData} />
+                <ResourceImportPanel data={data} setData={setData} targetField="description" />
 
                 {/* Questions Section */}
                 <div className="space-y-4">
