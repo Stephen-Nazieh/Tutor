@@ -387,6 +387,17 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [assetsViewOpen, setAssetsViewOpen] = useState(false)
     const [assetViewSearch, setAssetViewSearch] = useState('')
     const [assetViewFolder, setAssetViewFolder] = useState<string>('All')
+    const [assetFoldersList, setAssetFoldersList] = useState<string[]>(() => {
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('tutor-asset-folders')
+          return saved ? JSON.parse(saved) : []
+        } catch {
+          return []
+        }
+      }
+      return []
+    })
     const [loadAsStep, setLoadAsStep] = useState<'main' | 'task-options'>('main')
     const [loadTaskMode, setLoadTaskMode] = useState<'single' | 'multi'>('single')
     const [leftPanelHidden, setLeftPanelHidden] = useState(false)
@@ -2866,13 +2877,20 @@ FEEDBACK: [your explanation]`
 
     const recentAssets = useMemo(() => courseAssets.slice(-2).reverse(), [courseAssets])
 
+    // Persist folder list to localStorage
+    useEffect(() => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('tutor-asset-folders', JSON.stringify(assetFoldersList))
+      }
+    }, [assetFoldersList])
+
     const assetFolders = useMemo(() => {
-      const folders = new Set<string>()
+      const folders = new Set<string>(assetFoldersList)
       courseAssets.forEach(a => {
         if (a.folder) folders.add(a.folder)
       })
       return ['All', ...Array.from(folders).sort()]
-    }, [courseAssets])
+    }, [courseAssets, assetFoldersList])
 
     const filteredViewAssets = useMemo(() => {
       let list = courseAssets
@@ -3330,10 +3348,10 @@ FEEDBACK: [your explanation]`
 
         {/* Assets View Modal */}
         <Dialog open={assetsViewOpen} onOpenChange={setAssetsViewOpen}>
-          <DialogContent className="max-w-2xl rounded-2xl border bg-white p-0 shadow-2xl">
-            <div className="flex h-[500px] flex-col">
+          <DialogContent className="max-w-3xl rounded-2xl border-0 bg-gray-200/90 p-5 shadow-2xl backdrop-blur-sm">
+            <div className="flex h-[520px] flex-col gap-4">
               {/* Modal Header */}
-              <div className="flex items-center justify-between border-b px-5 py-4">
+              <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">Assets</h3>
                   <p className="text-xs text-gray-500">
@@ -3343,7 +3361,7 @@ FEEDBACK: [your explanation]`
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 rounded-full"
+                  className="h-8 w-8 rounded-full text-gray-500 hover:bg-gray-200 hover:text-gray-700"
                   onClick={() => setAssetsViewOpen(false)}
                 >
                   <X className="h-4 w-4" />
@@ -3351,36 +3369,39 @@ FEEDBACK: [your explanation]`
               </div>
 
               {/* Toolbar */}
-              <div className="flex items-center gap-3 border-b px-5 py-3">
+              <div className="flex items-center gap-3">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-1 rounded-lg border-0 bg-teal-400 text-white hover:bg-teal-500"
+                  className="gap-1 rounded-full border-0 bg-teal-400 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500"
                   onClick={() => {
                     const name = prompt('Folder name:')
                     if (name && name.trim()) {
-                      // No-op: folder created when assets are moved
-                      toast.success(`Folder "${name.trim()}" created`)
+                      const trimmed = name.trim()
+                      setAssetFoldersList(prev =>
+                        prev.includes(trimmed) ? prev : [...prev, trimmed]
+                      )
+                      toast.success(`Folder "${trimmed}" created`)
                     }
                   }}
                 >
-                  <Plus className="h-3.5 w-3.5" /> Folder
+                  <Plus className="h-4 w-4" /> Folder
                 </Button>
                 <div className="relative flex-1">
-                  <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                   <Input
                     placeholder="Search assets..."
-                    className="h-8 rounded-lg pl-8 text-sm"
+                    className="h-9 rounded-full border-gray-300 bg-white pl-9 text-sm shadow-sm"
                     value={assetViewSearch}
                     onChange={e => setAssetViewSearch(e.target.value)}
                   />
                 </div>
               </div>
 
-              {/* Body: folders left, assets right */}
-              <div className="flex flex-1 overflow-hidden">
-                {/* Folder list */}
-                <div className="w-44 border-r bg-gray-50 p-3">
+              {/* Body: folders left, assets right — both as white rounded cards */}
+              <div className="flex flex-1 gap-4 overflow-hidden">
+                {/* Folder list card */}
+                <div className="flex w-52 flex-col rounded-xl bg-white p-3 shadow-sm">
                   <div className="space-y-1">
                     {assetFolders.map(folder => (
                       <button
@@ -3388,20 +3409,22 @@ FEEDBACK: [your explanation]`
                         className={cn(
                           'flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors',
                           assetViewFolder === folder
-                            ? 'bg-white font-semibold text-blue-600 shadow-sm'
-                            : 'text-gray-600 hover:bg-white'
+                            ? 'bg-blue-50 font-medium text-blue-600'
+                            : 'text-gray-600 hover:bg-gray-50'
                         )}
                         onClick={() => setAssetViewFolder(folder)}
                       >
                         <span className="flex items-center gap-2">
-                          {folder === 'All' ? (
-                            <FolderOpen className="h-3.5 w-3.5" />
-                          ) : (
-                            <ChevronDown className="h-3.5 w-3.5" />
-                          )}
-                          {folder}
+                          <ChevronDown className="h-3.5 w-3.5" />
+                          <span
+                            className={
+                              assetViewFolder === folder ? 'text-blue-600' : 'text-gray-700'
+                            }
+                          >
+                            {folder}
+                          </span>
                         </span>
-                        <span className="text-xs text-gray-400">
+                        <span className="rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">
                           {folder === 'All'
                             ? courseAssets.length
                             : courseAssets.filter(a => a.folder === folder).length}
@@ -3411,58 +3434,76 @@ FEEDBACK: [your explanation]`
                   </div>
                 </div>
 
-                {/* Asset list */}
-                <ScrollArea className="flex-1">
-                  <div className="space-y-2 p-4">
-                    {filteredViewAssets.length === 0 ? (
-                      <p className="py-8 text-center text-sm text-gray-400">
-                        No assets in this folder.
-                      </p>
-                    ) : (
-                      filteredViewAssets.map(asset => (
-                        <div
-                          key={asset.id}
-                          className="flex items-center justify-between rounded-xl bg-slate-200/60 px-4 py-3"
-                        >
-                          <div className="mr-2 flex flex-1 items-center gap-3 overflow-hidden">
-                            <FileText className="h-5 w-5 shrink-0 text-slate-500" />
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-medium text-slate-700">
-                                {asset.name}
-                              </p>
-                              <p className="text-[10px] text-gray-500">
-                                Folder: {asset.folder || 'Uncategorized'}
-                              </p>
+                {/* Asset list card */}
+                <div className="flex flex-1 flex-col rounded-xl bg-white p-4 shadow-sm">
+                  <ScrollArea className="flex-1">
+                    <div className="space-y-2">
+                      {filteredViewAssets.length === 0 ? (
+                        <p className="py-8 text-center text-sm text-gray-400">
+                          No assets in this folder.
+                        </p>
+                      ) : (
+                        filteredViewAssets.map(asset => (
+                          <div
+                            key={asset.id}
+                            className="flex items-center justify-between rounded-xl bg-slate-100 px-4 py-3"
+                          >
+                            <div className="mr-3 flex flex-1 items-center gap-3 overflow-hidden">
+                              <FileText className="h-5 w-5 shrink-0 text-slate-400" />
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-gray-800">
+                                  {asset.name}
+                                </p>
+                                <p className="text-[11px] text-gray-500">
+                                  Folder: {asset.folder || 'Uncategorized'}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-2">
+                              {/* Folder assignment dropdown */}
+                              <select
+                                className="h-7 rounded-md border border-gray-200 bg-white px-2 text-[11px] text-gray-600 outline-none focus:border-blue-400"
+                                value={asset.folder || ''}
+                                onChange={e => {
+                                  const folder = e.target.value || undefined
+                                  setCourseAssets(prev =>
+                                    prev.map(a => (a.id === asset.id ? { ...a, folder } : a))
+                                  )
+                                }}
+                              >
+                                <option value="">Uncategorized</option>
+                                {assetFoldersList.map(f => (
+                                  <option key={f} value={f}>
+                                    {f}
+                                  </option>
+                                ))}
+                              </select>
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                className="h-7 rounded-lg bg-white px-3 text-xs font-medium shadow-sm hover:bg-gray-50"
+                                onClick={() => {
+                                  handleLoadAsset(asset)
+                                  setAssetsViewOpen(false)
+                                }}
+                              >
+                                Load
+                              </Button>
+                              <button
+                                className="flex h-7 w-7 items-center justify-center rounded-lg text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                                onClick={() => {
+                                  setCourseAssets(prev => prev.filter(a => a.id !== asset.id))
+                                }}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
                             </div>
                           </div>
-                          <div className="flex shrink-0 items-center gap-2">
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              className="h-7 rounded-lg bg-white px-3 text-xs font-medium shadow-sm hover:bg-gray-50"
-                              onClick={() => {
-                                handleLoadAsset(asset)
-                                setAssetsViewOpen(false)
-                              }}
-                            >
-                              Load
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600"
-                              onClick={() => {
-                                setCourseAssets(prev => prev.filter(a => a.id !== asset.id))
-                              }}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </ScrollArea>
+                        ))
+                      )}
+                    </div>
+                  </ScrollArea>
+                </div>
               </div>
             </div>
           </DialogContent>
