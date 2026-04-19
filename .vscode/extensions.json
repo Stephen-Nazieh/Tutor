@@ -1,5 +1,9 @@
 {
     "recommendations": [
+        "anthropic.claude-code",
+        "moonshot-ai.kimi-code",
+        "kingleo.kimi-vscode",
+        "marscode.marscode-extension",
         "openai.chatgpt"
     ]
 }
