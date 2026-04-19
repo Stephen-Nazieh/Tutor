@@ -326,7 +326,7 @@ function StudentFeedbackContent() {
                 className="gap-2"
               >
                 <ListTodo className="h-4 w-4" />
-                Tasks
+                Directory
                 {unseenTaskIds.length > 0 && (
                   <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
                     {unseenTaskIds.length}
