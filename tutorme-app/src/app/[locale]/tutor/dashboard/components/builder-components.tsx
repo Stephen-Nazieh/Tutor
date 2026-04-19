@@ -159,6 +159,7 @@ export function ResourceImportPanel<
       const extractedText = await extractTextFromFile(file)
       const localObjectUrl = URL.createObjectURL(file)
       let fileUrl = localObjectUrl
+      let isServerPdf = false
       try {
         const formData = new FormData()
         formData.append('file', file)
@@ -171,6 +172,7 @@ export function ResourceImportPanel<
           const uploadData = await uploadRes.json()
           if (typeof uploadData?.url === 'string' && uploadData.url.length > 0) {
             fileUrl = uploadData.url
+            isServerPdf = uploadData.isPdf === true
             URL.revokeObjectURL(localObjectUrl)
           }
         }
@@ -179,7 +181,9 @@ export function ResourceImportPanel<
       }
       const sourceDocument: ImportedLearningResource = {
         fileName: file.name,
-        mimeType: file.type || 'application/octet-stream',
+        mimeType: isServerPdf
+          ? 'application/pdf'
+          : (file.type || 'application/octet-stream'),
         fileUrl,
         extractedText: extractedText || '',
         uploadedAt: new Date().toISOString(),
