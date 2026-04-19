@@ -1,122 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, courseLesson, courseVariant, liveSession } from '@/lib/db/schema'
-import { eq, and, inArray, gte } from 'drizzle-orm'
+import { course, courseLesson, courseVariant } from '@/lib/db/schema'
+import { eq, and, inArray } from 'drizzle-orm'
 import crypto from 'crypto'
-
-// GET current variants for this template course
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions, req)
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const { id: templateCourseId } = await params
-  const userId = session.user.id
-
-  try {
-    const [template] = await drizzleDb
-      .select({ courseId: course.courseId })
-      .from(course)
-      .where(and(eq(course.courseId, templateCourseId), eq(course.creatorId, userId)))
-      .limit(1)
-
-    if (!template) {
-      return NextResponse.json({ error: 'Course not found' }, { status: 404 })
-    }
-
-    const rows = await drizzleDb
-      .select({
-        variantId: courseVariant.variantId,
-        category: courseVariant.category,
-        nationality: courseVariant.nationality,
-        publishedCourseId: courseVariant.publishedCourseId,
-        isPublished: course.isPublished,
-        price: course.price,
-        currency: course.currency,
-        languageOfInstruction: course.languageOfInstruction,
-        schedule: course.schedule,
-      })
-      .from(courseVariant)
-      .innerJoin(course, eq(course.courseId, courseVariant.publishedCourseId))
-      .where(eq(courseVariant.templateCourseId, templateCourseId))
-
-    return NextResponse.json({ variants: rows })
-  } catch (error: any) {
-    console.error('[GET /api/tutor/courses/[id]/publish] Error:', error)
-    return NextResponse.json({ error: error.message || 'Failed to load variants' }, { status: 500 })
-  }
-}
-
-interface ScheduleItem {
-  dayOfWeek: string
-  startTime: string
-  durationMinutes: number
-}
-
-interface VariantConfig {
-  category: string
-  nationality: string
-  isPublished: boolean
-  price: number | null
-  currency: string
-  languageOfInstruction: string
-  schedule: ScheduleItem[]
-}
-
-const DAY_MAP: Record<string, number> = {
-  Sunday: 0,
-  Monday: 1,
-  Tuesday: 2,
-  Wednesday: 3,
-  Thursday: 4,
-  Friday: 5,
-  Saturday: 6,
-}
-
-function generateSessionDates(
-  schedule: ScheduleItem[],
-  weeksAhead = 8
-): Array<{ scheduledAt: Date; title: string; durationMinutes: number }> {
-  const sessions: Array<{ scheduledAt: Date; title: string; durationMinutes: number }> = []
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  for (const slot of schedule) {
-    const targetDay = DAY_MAP[slot.dayOfWeek]
-    if (targetDay === undefined) continue
-
-    const [hours, minutes] = slot.startTime.split(':').map(Number)
-    if (hours === undefined || minutes === undefined) continue
-
-    // Find the next occurrence of this day
-    const cursor = new Date(today)
-    const daysUntil = (targetDay - cursor.getDay() + 7) % 7
-    cursor.setDate(cursor.getDate() + daysUntil)
-    cursor.setHours(hours, minutes, 0, 0)
-
-    // If the time already passed today, start from next week
-    if (cursor < new Date()) {
-      cursor.setDate(cursor.getDate() + 7)
-    }
-
-    // Generate sessions for the next N weeks
-    for (let w = 0; w < weeksAhead; w++) {
-      const sessionDate = new Date(cursor)
-      sessionDate.setDate(cursor.getDate() + w * 7)
-      sessions.push({
-        scheduledAt: sessionDate,
-        title: `Live Session — ${slot.dayOfWeek} ${slot.startTime}`,
-        durationMinutes: slot.durationMinutes || 60,
-      })
-    }
-  }
-
-  // Sort by date
-  sessions.sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime())
-  return sessions
-}
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions, req)
@@ -127,21 +14,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { id: templateCourseId } = await params
   const userId = session.user.id
   const body = await req.json().catch(() => ({}))
-  const variants: VariantConfig[] = Array.isArray(body.variants)
-    ? body.variants.filter(
-        (v: unknown): v is VariantConfig =>
-          typeof v === 'object' &&
-          v !== null &&
-          typeof (v as VariantConfig).category === 'string' &&
-          typeof (v as VariantConfig).nationality === 'string'
-      )
+
+  let countries: string[] = Array.isArray(body.countries)
+    ? body.countries.filter((c: unknown) => typeof c === 'string')
+    : []
+  const categories: string[] = Array.isArray(body.categories)
+    ? body.categories.filter((c: unknown) => typeof c === 'string')
     : []
 
-  if (variants.length === 0) {
-    return NextResponse.json(
-      { error: 'Provide at least one variant configuration' },
-      { status: 400 }
-    )
+  if (countries.length === 0) {
+    countries = ['Global']
+  }
+  if (categories.length === 0) {
+    return NextResponse.json({ error: 'Select at least one category' }, { status: 400 })
   }
 
   try {
@@ -182,86 +67,50 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       .orderBy(courseLesson.order)
 
     const now = new Date()
-    const result: Array<{
+    const publishedCourses: Array<{
       courseId: string
       name: string
       nationality: string
       category: string
-      isPublished: boolean
-      action: 'created' | 'updated'
     }> = []
 
     await drizzleDb.transaction(async tx => {
-      // Fetch existing variants with their course data
-      const existingRows = await tx
-        .select({
-          variantId: courseVariant.variantId,
-          category: courseVariant.category,
-          nationality: courseVariant.nationality,
-          publishedCourseId: courseVariant.publishedCourseId,
-        })
+      // Find existing variants for this template
+      const existingVariants = await tx
+        .select({ publishedCourseId: courseVariant.publishedCourseId })
         .from(courseVariant)
         .where(eq(courseVariant.templateCourseId, templateCourseId))
 
-      const existingMap = new Map(existingRows.map(r => [`${r.category}|${r.nationality}`, r]))
+      const existingPublishedIds = existingVariants.map(v => v.publishedCourseId)
 
-      const requestedKeys = new Set<string>()
+      // Delete existing published courses (variants) and their lessons
+      if (existingPublishedIds.length > 0) {
+        await tx.delete(courseLesson).where(inArray(courseLesson.courseId, existingPublishedIds))
+        await tx.delete(course).where(inArray(course.courseId, existingPublishedIds))
+        await tx.delete(courseVariant).where(eq(courseVariant.templateCourseId, templateCourseId))
+      }
 
-      for (const v of variants) {
-        const key = `${v.category}|${v.nationality}`
-        requestedKeys.add(key)
-        const existing = existingMap.get(key)
-        const courseName = `${v.category} - ${v.nationality}`
-
-        let publishedCourseId: string
-
-        if (existing) {
-          // Update existing course row
-          publishedCourseId = existing.publishedCourseId
-          await tx
-            .update(course)
-            .set({
-              name: courseName,
-              description: templateCourse.description,
-              categories: [v.category],
-              isPublished: v.isPublished,
-              updatedAt: now,
-              isLiveOnline: templateCourse.isLiveOnline ?? false,
-              languageOfInstruction: v.languageOfInstruction || null,
-              price: typeof v.price === 'number' ? v.price : null,
-              currency: v.currency || templateCourse.currency || 'USD',
-              isFree: templateCourse.isFree ?? false,
-              schedule: v.schedule || [],
-            })
-            .where(eq(course.courseId, publishedCourseId))
-
-          result.push({
-            courseId: publishedCourseId,
-            name: courseName,
-            nationality: v.nationality,
-            category: v.category,
-            isPublished: v.isPublished,
-            action: 'updated',
-          })
-        } else {
-          // Create new course + variant
-          publishedCourseId = crypto.randomUUID()
+      // Create a published course for each (category × country) combination
+      for (const category of categories) {
+        for (const country of countries) {
+          const publishedCourseId = crypto.randomUUID()
+          const courseName = `${category} - ${country}`
 
           await tx.insert(course).values({
             courseId: publishedCourseId,
             name: courseName,
             description: templateCourse.description,
-            categories: [v.category],
-            isPublished: v.isPublished,
+            categories: [category],
+            isPublished: true,
             createdAt: now,
             updatedAt: now,
             creatorId: userId,
             isLiveOnline: templateCourse.isLiveOnline ?? false,
-            languageOfInstruction: v.languageOfInstruction || null,
-            price: typeof v.price === 'number' ? v.price : null,
-            currency: v.currency || templateCourse.currency || 'USD',
+            languageOfInstruction: templateCourse.languageOfInstruction,
+            price: templateCourse.price,
+            currency: templateCourse.currency,
             isFree: templateCourse.isFree ?? false,
-            schedule: v.schedule || [],
+            schedule: templateCourse.schedule,
           })
 
           // Copy lessons
@@ -279,91 +128,42 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             })
           }
 
+          // Track the variant
           await tx.insert(courseVariant).values({
             variantId: crypto.randomUUID(),
             templateCourseId,
             publishedCourseId,
-            nationality: v.nationality,
-            category: v.category,
+            nationality: country,
+            category,
             createdAt: now,
             updatedAt: now,
           })
 
-          result.push({
+          publishedCourses.push({
             courseId: publishedCourseId,
             name: courseName,
-            nationality: v.nationality,
-            category: v.category,
-            isPublished: v.isPublished,
-            action: 'created',
+            nationality: country,
+            category,
           })
-        }
-
-        // Generate live sessions from schedule
-        const schedule = Array.isArray(v.schedule) ? v.schedule : []
-        if (schedule.length > 0) {
-          const sessionDates = generateSessionDates(schedule, 8)
-
-          // Fetch existing scheduled sessions for this course to avoid duplicates
-          const existingSessions = await tx
-            .select({ scheduledAt: liveSession.scheduledAt })
-            .from(liveSession)
-            .where(
-              and(eq(liveSession.courseId, publishedCourseId), eq(liveSession.status, 'scheduled'))
-            )
-
-          const existingDates = new Set(
-            existingSessions
-              .filter(s => s.scheduledAt)
-              .map(s => new Date(s.scheduledAt!).toISOString().slice(0, 16))
-          )
-
-          for (const session of sessionDates) {
-            const dateKey = session.scheduledAt.toISOString().slice(0, 16)
-            if (existingDates.has(dateKey)) continue
-
-            await tx.insert(liveSession).values({
-              sessionId: crypto.randomUUID(),
-              tutorId: userId,
-              courseId: publishedCourseId,
-              title: session.title,
-              category: v.category,
-              description: templateCourse.description,
-              scheduledAt: session.scheduledAt,
-              status: 'scheduled',
-              maxStudents: 50,
-            })
-          }
-        }
-      }
-
-      // Unpublish variants that exist in DB but were not sent in the request
-      for (const existing of existingRows) {
-        const key = `${existing.category}|${existing.nationality}`
-        if (!requestedKeys.has(key)) {
-          await tx
-            .update(course)
-            .set({ isPublished: false, updatedAt: now })
-            .where(eq(course.courseId, existing.publishedCourseId))
         }
       }
     })
 
     return NextResponse.json({
       success: true,
-      count: result.length,
-      variants: result,
+      publishedCount: publishedCourses.length,
+      courses: publishedCourses,
     })
   } catch (error: any) {
     console.error('[POST /api/tutor/courses/[id]/publish] Error:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to publish course variants' },
+      { error: error.message || 'Failed to publish course' },
       { status: 500 }
     )
   }
 }
 
-// Unpublish: set isPublished=false on all variants for this template
+// Unpublish: delete all published variants for this template
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions, req)
   if (!session?.user) {
@@ -374,6 +174,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const userId = session.user.id
 
   try {
+    // Verify ownership
     const [templateCourse] = await drizzleDb
       .select({ courseId: course.courseId })
       .from(course)
@@ -393,14 +194,17 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     if (existingPublishedIds.length > 0) {
       await drizzleDb
-        .update(course)
-        .set({ isPublished: false, updatedAt: new Date() })
-        .where(inArray(course.courseId, existingPublishedIds))
+        .delete(courseLesson)
+        .where(inArray(courseLesson.courseId, existingPublishedIds))
+      await drizzleDb.delete(course).where(inArray(course.courseId, existingPublishedIds))
+      await drizzleDb
+        .delete(courseVariant)
+        .where(eq(courseVariant.templateCourseId, templateCourseId))
     }
 
     return NextResponse.json({
       success: true,
-      message: 'All course variants unpublished',
+      message: 'Course unpublished and variants removed',
     })
   } catch (error: any) {
     console.error('[DELETE /api/tutor/courses/[id]/publish] Error:', error)
