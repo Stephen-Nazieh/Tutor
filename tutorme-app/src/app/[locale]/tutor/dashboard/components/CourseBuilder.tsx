@@ -366,10 +366,15 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     >([])
     const [lessonBankLessonKey, setLessonBankLessonKey] = useState<string>('')
     const [courseAssets, setCourseAssets] = useState<
-      { id: string; name: string; content?: string }[]
+      { id: string; name: string; content?: string; url?: string; mimeType?: string }[]
     >([])
     const [loadAsModalOpen, setLoadAsModalOpen] = useState(false)
-    const [assetToLoad, setAssetToLoad] = useState<{ name: string; content?: string } | null>(null)
+    const [assetToLoad, setAssetToLoad] = useState<{
+      name: string
+      content?: string
+      url?: string
+      mimeType?: string
+    } | null>(null)
     const [loadAsStep, setLoadAsStep] = useState<'main' | 'task-options'>('main')
     const [loadTaskMode, setLoadTaskMode] = useState<'single' | 'multi'>('single')
     const [leftPanelHidden, setLeftPanelHidden] = useState(false)
@@ -2845,9 +2850,9 @@ FEEDBACK: [your explanation]`
                 accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.rtf,.csv,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.mp4,.mov,.webm"
                 className="hidden"
                 onChange={async (e: any) => {
-                  const files = Array.from(e.target.files || [])
+                  const files = Array.from(e.target.files || []) as File[]
                   const newAssets = await Promise.all(
-                    files.map(async (f: any) => {
+                    files.map(async (f: File) => {
                       let textContent = ''
                       try {
                         const extracted = await extractTextFromFile(f)
@@ -2855,10 +2860,33 @@ FEEDBACK: [your explanation]`
                       } catch {
                         textContent = `[Imported ${f.name}]`
                       }
+
+                      // Upload to server to get a viewable URL
+                      let fileUrl = ''
+                      let fileMimeType = f.type || 'application/octet-stream'
+                      try {
+                        const uploadForm = new FormData()
+                        uploadForm.append('file', f)
+                        const uploadRes = await fetch('/api/uploads/documents', {
+                          method: 'POST',
+                          body: uploadForm,
+                          credentials: 'include',
+                        })
+                        if (uploadRes.ok) {
+                          const uploadData = await uploadRes.json()
+                          fileUrl = uploadData.url || uploadData.originalUrl || ''
+                          fileMimeType = uploadData.type || fileMimeType
+                        }
+                      } catch {
+                        // Fallback: no server URL
+                      }
+
                       return {
                         id: `asset-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
                         name: f.name,
                         content: textContent,
+                        url: fileUrl || undefined,
+                        mimeType: fileMimeType || undefined,
                       }
                     })
                   )
@@ -3075,6 +3103,14 @@ FEEDBACK: [your explanation]`
                       const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
 
                       newAssess.description = textToInsert
+                      if (assetToLoad.url && assetToLoad.mimeType) {
+                        newAssess.sourceDocument = {
+                          fileName: assetToLoad.name,
+                          fileUrl: assetToLoad.url,
+                          mimeType: assetToLoad.mimeType,
+                          uploadedAt: new Date().toISOString(),
+                        }
+                      }
 
                       const newCourseBuilderNodes = [...nodes]
                       newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.push(newAssess)
@@ -3115,6 +3151,14 @@ FEEDBACK: [your explanation]`
                       const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
 
                       newTask.description = textToInsert
+                      if (assetToLoad.url && assetToLoad.mimeType) {
+                        newTask.sourceDocument = {
+                          fileName: assetToLoad.name,
+                          fileUrl: assetToLoad.url,
+                          mimeType: assetToLoad.mimeType,
+                          uploadedAt: new Date().toISOString(),
+                        }
+                      }
 
                       const newCourseBuilderNodes = [...nodes]
                       newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(newTask)
@@ -3170,6 +3214,14 @@ FEEDBACK: [your explanation]`
                         nodes[nodeIndex].lessons[lessonIndex].tasks.length
                       )
                       newTask.description = pages[0] || textToInsert
+                      if (assetToLoad.url && assetToLoad.mimeType) {
+                        newTask.sourceDocument = {
+                          fileName: assetToLoad.name,
+                          fileUrl: assetToLoad.url,
+                          mimeType: assetToLoad.mimeType,
+                          uploadedAt: new Date().toISOString(),
+                        }
+                      }
 
                       // Create extensions for remaining pages
                       const extensions = pages.slice(1).map((pageContent, idx) => ({
@@ -5350,6 +5402,45 @@ FEEDBACK: [your explanation]`
                                         }
                                       }}
                                     />
+                                    {!taskBuilder.activeExtensionId &&
+                                      taskSourceDocument?.mimeType === 'application/pdf' && (
+                                        <div className="shrink-0 border-t">
+                                          <iframe
+                                            src={taskSourceDocument.fileUrl}
+                                            title={taskSourceDocument.fileName}
+                                            className="h-48 w-full"
+                                          />
+                                        </div>
+                                      )}
+                                    {!taskBuilder.activeExtensionId &&
+                                      taskSourceDocument &&
+                                      taskSourceDocument.mimeType !== 'application/pdf' &&
+                                      taskSourceDocument.mimeType.startsWith('image/') && (
+                                        <div className="shrink-0 border-t p-2">
+                                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                                          <img
+                                            src={taskSourceDocument.fileUrl}
+                                            alt={taskSourceDocument.fileName}
+                                            className="h-48 w-full object-contain"
+                                          />
+                                        </div>
+                                      )}
+                                    {!taskBuilder.activeExtensionId &&
+                                      taskSourceDocument &&
+                                      taskSourceDocument.mimeType !== 'application/pdf' &&
+                                      !taskSourceDocument.mimeType.startsWith('image/') && (
+                                        <div className="flex shrink-0 items-center gap-2 border-t bg-gray-50 p-2">
+                                          <FileText className="h-4 w-4 text-blue-600" />
+                                          <a
+                                            href={taskSourceDocument.fileUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="text-xs text-blue-600 underline"
+                                          >
+                                            Open {taskSourceDocument.fileName}
+                                          </a>
+                                        </div>
+                                      )}
                                   </div>
                                   {/* Uploaded Files List - only show for task (not extensions) */}
                                   {/* Upload button - only for task (not extensions) */}
@@ -5561,6 +5652,42 @@ FEEDBACK: [your explanation]`
                                         }))
                                       }}
                                     />
+                                    {assessmentSourceDocument?.mimeType === 'application/pdf' && (
+                                      <div className="shrink-0 border-t">
+                                        <iframe
+                                          src={assessmentSourceDocument.fileUrl}
+                                          title={assessmentSourceDocument.fileName}
+                                          className="h-48 w-full"
+                                        />
+                                      </div>
+                                    )}
+                                    {assessmentSourceDocument &&
+                                      assessmentSourceDocument.mimeType !== 'application/pdf' &&
+                                      assessmentSourceDocument.mimeType.startsWith('image/') && (
+                                        <div className="shrink-0 border-t p-2">
+                                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                                          <img
+                                            src={assessmentSourceDocument.fileUrl}
+                                            alt={assessmentSourceDocument.fileName}
+                                            className="h-48 w-full object-contain"
+                                          />
+                                        </div>
+                                      )}
+                                    {assessmentSourceDocument &&
+                                      assessmentSourceDocument.mimeType !== 'application/pdf' &&
+                                      !assessmentSourceDocument.mimeType.startsWith('image/') && (
+                                        <div className="flex shrink-0 items-center gap-2 border-t bg-gray-50 p-2">
+                                          <FileText className="h-4 w-4 text-blue-600" />
+                                          <a
+                                            href={assessmentSourceDocument.fileUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="text-xs text-blue-600 underline"
+                                          >
+                                            Open {assessmentSourceDocument.fileName}
+                                          </a>
+                                        </div>
+                                      )}
                                   </div>
                                   {/* Uploaded Files List - only show for assessment (not extensions) */}
                                   {/* Upload button - only for assessment (not extensions) */}
