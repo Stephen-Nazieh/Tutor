@@ -231,6 +231,7 @@ import {
   GripHorizontal,
   CornerDownLeft,
   Eye,
+  Search,
 } from 'lucide-react'
 import { ChevronLeft as ChevronLeftIcon } from 'lucide-react'
 
@@ -366,7 +367,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     >([])
     const [lessonBankLessonKey, setLessonBankLessonKey] = useState<string>('')
     const [courseAssets, setCourseAssets] = useState<
-      { id: string; name: string; content?: string; url?: string; mimeType?: string }[]
+      {
+        id: string
+        name: string
+        content?: string
+        url?: string
+        mimeType?: string
+        folder?: string
+      }[]
     >([])
     const [loadAsModalOpen, setLoadAsModalOpen] = useState(false)
     const [assetToLoad, setAssetToLoad] = useState<{
@@ -374,7 +382,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       content?: string
       url?: string
       mimeType?: string
+      folder?: string
     } | null>(null)
+    const [assetsViewOpen, setAssetsViewOpen] = useState(false)
+    const [assetViewSearch, setAssetViewSearch] = useState('')
+    const [assetViewFolder, setAssetViewFolder] = useState<string>('All')
     const [loadAsStep, setLoadAsStep] = useState<'main' | 'task-options'>('main')
     const [loadTaskMode, setLoadTaskMode] = useState<'single' | 'multi'>('single')
     const [leftPanelHidden, setLeftPanelHidden] = useState(false)
@@ -708,7 +720,15 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           if (res.ok) {
             const data = await res.json()
             if (data.assets && Array.isArray(data.assets)) {
-              setCourseAssets(data.assets)
+              setCourseAssets(
+                data.assets.map((a: any) => ({
+                  ...a,
+                  folder:
+                    (a.metadata?.folder as string) ||
+                    (a.metadata?.folderName as string) ||
+                    undefined,
+                }))
+              )
             }
           }
         } catch (error) {
@@ -855,6 +875,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           const csrfData = await csrfRes.json().catch(() => ({}))
           const csrfToken = csrfData?.token ?? null
 
+          const payloadAssets = assets.map(a => ({
+            ...a,
+            metadata: a.folder ? { folder: a.folder } : undefined,
+          }))
+
           const res = await fetch('/api/tutor/assets', {
             method: 'PUT',
             headers: {
@@ -862,7 +887,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
               ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
             },
             credentials: 'include',
-            body: JSON.stringify({ assets }),
+            body: JSON.stringify({ assets: payloadAssets }),
           })
 
           if (!res.ok) {
@@ -2827,22 +2852,56 @@ FEEDBACK: [your explanation]`
       setPptUploadDialog({ isOpen: false, file: null, target: null })
     }
 
-    const handleLoadAsset = (asset: { name: string; content?: string }) => {
+    const handleLoadAsset = (asset: {
+      name: string
+      content?: string
+      url?: string
+      mimeType?: string
+      folder?: string
+    }) => {
       // Always open the "Load as..." modal so the user can choose where to load
       setAssetToLoad(asset)
       setLoadAsModalOpen(true)
     }
 
+    const recentAssets = useMemo(() => courseAssets.slice(-2).reverse(), [courseAssets])
+
+    const assetFolders = useMemo(() => {
+      const folders = new Set<string>()
+      courseAssets.forEach(a => {
+        if (a.folder) folders.add(a.folder)
+      })
+      return ['All', ...Array.from(folders).sort()]
+    }, [courseAssets])
+
+    const filteredViewAssets = useMemo(() => {
+      let list = courseAssets
+      if (assetViewFolder !== 'All') {
+        list = list.filter(a => a.folder === assetViewFolder)
+      }
+      if (assetViewSearch.trim()) {
+        const q = assetViewSearch.toLowerCase()
+        list = list.filter(a => a.name.toLowerCase().includes(q))
+      }
+      return list
+    }, [courseAssets, assetViewFolder, assetViewSearch])
+
     const renderAssetsFolder = () => (
-      <div className="mt-4 rounded-md border">
-        <div
-          className="flex cursor-pointer items-center justify-between border-b bg-slate-100 p-2"
-          onClick={() => setAssetsOpen(!assetsOpen)}
-        >
-          <span className="flex items-center gap-1 text-xs font-semibold">
-            <FolderOpen className="h-3 w-3" /> Assets
-          </span>
-          <div className="flex items-center gap-3" onClick={(e: any) => e.stopPropagation()}>
+      <div className="mt-4 rounded-xl border bg-white shadow-sm">
+        {/* Header row matching image 1 */}
+        <div className="flex items-center justify-between px-3 py-2">
+          <span className="text-sm font-semibold text-slate-700">Assets</span>
+          <div className="flex items-center gap-3">
+            <button
+              className="text-sm font-medium text-blue-600 hover:text-blue-700"
+              onClick={() => {
+                setAssetViewSearch('')
+                setAssetViewFolder('All')
+                setAssetsViewOpen(true)
+              }}
+            >
+              View
+            </button>
             <label className="cursor-pointer">
               <input
                 type="file"
@@ -2861,9 +2920,9 @@ FEEDBACK: [your explanation]`
                         textContent = `[Imported ${f.name}]`
                       }
 
-                      // Upload to server to get a viewable URL
+                      // Upload to server — any file gets converted to PDF
                       let fileUrl = ''
-                      let fileMimeType = f.type || 'application/octet-stream'
+                      let fileMimeType = 'application/pdf'
                       try {
                         const uploadForm = new FormData()
                         uploadForm.append('file', f)
@@ -2874,8 +2933,8 @@ FEEDBACK: [your explanation]`
                         })
                         if (uploadRes.ok) {
                           const uploadData = await uploadRes.json()
-                          fileUrl = uploadData.url || uploadData.originalUrl || ''
-                          fileMimeType = uploadData.type || fileMimeType
+                          fileUrl = uploadData.url || ''
+                          fileMimeType = uploadData.type || 'application/pdf'
                         }
                       } catch {
                         // Fallback: no server URL
@@ -2895,78 +2954,61 @@ FEEDBACK: [your explanation]`
                   e.target.value = ''
                 }}
               />
-              <span
-                className="flex items-center gap-1 text-[10px] font-medium text-blue-600 hover:text-blue-700"
-                title="Supports .pdf, .docx, .pptx, images, video"
-              >
-                <Upload className="h-3 w-3" /> Upload Asset
+              <span className="text-sm font-medium text-blue-600 hover:text-blue-700">
+                Upload Asset
               </span>
             </label>
           </div>
         </div>
-        {assetsOpen && (
-          <div className="flex min-h-[50px] flex-col gap-2 rounded-b-md bg-white p-2">
-            {courseAssets.length === 0 ? (
-              <p className="text-muted-foreground w-full py-2 text-center text-xs">
-                No assets imported.
-              </p>
-            ) : (
-              courseAssets.map(asset => (
-                <div
-                  key={asset.id}
-                  draggable
-                  onDragStart={(e: any) => {
-                    e.dataTransfer.setData('text/plain', `[Asset: ${asset.name}]`)
-                    e.dataTransfer.effectAllowed = 'copy'
-                  }}
-                  className="flex cursor-grab items-center justify-between rounded border border-slate-400 bg-white px-2 py-2 text-xs shadow-sm transition-colors hover:bg-slate-50"
-                  title="Drag or load into editor"
-                >
-                  <div className="mr-2 flex flex-1 items-center gap-2 overflow-hidden">
-                    {getAssetIcon(asset.name)}
-                    <span
-                      className="flex-1 cursor-text truncate font-medium"
-                      onDoubleClick={() => {
-                        const newName = prompt('Rename asset:', asset.name)
-                        if (newName && newName.trim() !== '') {
-                          setCourseAssets(prev =>
-                            prev.map(a => (a.id === asset.id ? { ...a, name: newName.trim() } : a))
-                          )
-                        }
-                      }}
-                      title="Double click to rename"
-                    >
-                      {asset.name}
-                    </span>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-6 px-2 text-[10px]"
-                      onClick={() => handleLoadAsset(asset)}
-                      title="Load into builder text area"
-                    >
-                      Load
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 rounded-full text-red-500 hover:bg-red-50 hover:text-red-600"
-                      onClick={() => {
-                        setCourseAssets(prev => prev.filter(a => a.id !== asset.id))
-                      }}
-                      title="Delete asset"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        )}
 
+        {/* Only show 2 most recent files */}
+        <div className="flex flex-col gap-2 px-3 pb-3">
+          {recentAssets.length === 0 ? (
+            <p className="text-muted-foreground w-full py-2 text-center text-xs">
+              No assets imported.
+            </p>
+          ) : (
+            recentAssets.map(asset => (
+              <div
+                key={asset.id}
+                className="flex items-center justify-between rounded-xl bg-slate-200/70 px-3 py-2.5"
+              >
+                <div className="mr-2 flex flex-1 items-center gap-2 overflow-hidden">
+                  <FileText className="h-4 w-4 shrink-0 text-slate-500" />
+                  <span className="flex-1 truncate text-sm font-medium text-slate-700">
+                    {asset.name}
+                  </span>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="h-7 rounded-lg bg-white px-3 text-xs font-medium shadow-sm hover:bg-gray-50"
+                    onClick={() => handleLoadAsset(asset)}
+                  >
+                    Load
+                  </Button>
+                  <button
+                    className="text-xs font-bold text-orange-500 hover:text-orange-600"
+                    onClick={() => {
+                      setCourseAssets(prev => prev.filter(a => a.id !== asset.id))
+                    }}
+                    title="Delete asset"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+          {courseAssets.length > 2 && (
+            <p className="text-center text-[10px] text-gray-400">
+              +{courseAssets.length - 2} more — click View to see all
+            </p>
+          )}
+        </div>
+
+        {/* Load-as Modal */}
         <Dialog
           open={loadAsModalOpen}
           onOpenChange={open => {
@@ -2987,7 +3029,7 @@ FEEDBACK: [your explanation]`
               {loadAsStep === 'main' ? (
                 <>
                   <p className="text-sm text-gray-500">
-                    Select how you would like to load "{assetToLoad?.name}":
+                    Select how you would like to load &quot;{assetToLoad?.name}&quot;:
                   </p>
                   <Button
                     className="w-full justify-start gap-2"
@@ -3131,7 +3173,7 @@ FEEDBACK: [your explanation]`
               ) : (
                 <>
                   <p className="text-sm text-gray-500">
-                    Choose how to load "{assetToLoad?.name}" as Task(s):
+                    Choose how to load &quot;{assetToLoad?.name}&quot; as Task(s):
                   </p>
                   <Button
                     className="w-full justify-start gap-2"
@@ -3141,7 +3183,6 @@ FEEDBACK: [your explanation]`
                         toast.error('Asset data is missing')
                         return
                       }
-                      // Load entire document as a single task
                       const { nodeId, lessonId } = ensureFirstLessonContext()
                       const nodeIndex = nodes.findIndex(m => m.id === nodeId)
                       const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
@@ -3189,18 +3230,14 @@ FEEDBACK: [your explanation]`
                         toast.error('Asset data is missing')
                         return
                       }
-                      // Load first page as task, remaining pages as extensions
                       const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
 
-                      // Try to split content by pages (form feed or page markers)
-                      // Heuristic: split by form feed, then by double newlines as fallback
                       let pages: string[] = []
                       if (textToInsert.includes('\f')) {
                         pages = textToInsert.split('\f').filter(p => p.trim())
                       } else if (textToInsert.includes('--- Page')) {
                         pages = textToInsert.split(/--- Page \d+ ---/).filter(p => p.trim())
                       } else {
-                        // Fallback: split by double newlines for long content
                         const chunks = textToInsert.split(/\n\n+/).filter(p => p.trim().length > 50)
                         pages = chunks.length > 1 ? chunks : [textToInsert]
                       }
@@ -3209,7 +3246,6 @@ FEEDBACK: [your explanation]`
                       const nodeIndex = nodes.findIndex(m => m.id === nodeId)
                       const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
 
-                      // Create main task with first page
                       const newTask = DEFAULT_TASK(
                         nodes[nodeIndex].lessons[lessonIndex].tasks.length
                       )
@@ -3223,7 +3259,6 @@ FEEDBACK: [your explanation]`
                         }
                       }
 
-                      // Create extensions for remaining pages
                       const extensions = pages.slice(1).map((pageContent, idx) => ({
                         id: `ext-${Date.now()}-${idx}`,
                         name: `Extension ${idx + 1}`,
@@ -3240,7 +3275,6 @@ FEEDBACK: [your explanation]`
                       setMainBuilderTab('task')
                       setSelectedItem({ type: 'task', id: newTask.id })
 
-                      // Set up task builder with the new task and extensions
                       setTaskBuilder({
                         title: newTask.title,
                         taskContent: newTask.description,
@@ -3251,7 +3285,6 @@ FEEDBACK: [your explanation]`
                       })
                       setLoadedTaskId(newTask.id)
 
-                      // Initialize PCI messages for extensions
                       const extPciMessages: Record<
                         string,
                         { role: 'user' | 'assistant'; content: string }[]
@@ -3291,6 +3324,146 @@ FEEDBACK: [your explanation]`
                   </Button>
                 </>
               )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Assets View Modal */}
+        <Dialog open={assetsViewOpen} onOpenChange={setAssetsViewOpen}>
+          <DialogContent className="max-w-2xl rounded-2xl border bg-white p-0 shadow-2xl">
+            <div className="flex h-[500px] flex-col">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b px-5 py-4">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Assets</h3>
+                  <p className="text-xs text-gray-500">
+                    View, organize, and load uploaded assets available in this course.
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => setAssetsViewOpen(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Toolbar */}
+              <div className="flex items-center gap-3 border-b px-5 py-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 rounded-lg border-0 bg-teal-400 text-white hover:bg-teal-500"
+                  onClick={() => {
+                    const name = prompt('Folder name:')
+                    if (name && name.trim()) {
+                      // No-op: folder created when assets are moved
+                      toast.success(`Folder "${name.trim()}" created`)
+                    }
+                  }}
+                >
+                  <Plus className="h-3.5 w-3.5" /> Folder
+                </Button>
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                  <Input
+                    placeholder="Search assets..."
+                    className="h-8 rounded-lg pl-8 text-sm"
+                    value={assetViewSearch}
+                    onChange={e => setAssetViewSearch(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Body: folders left, assets right */}
+              <div className="flex flex-1 overflow-hidden">
+                {/* Folder list */}
+                <div className="w-44 border-r bg-gray-50 p-3">
+                  <div className="space-y-1">
+                    {assetFolders.map(folder => (
+                      <button
+                        key={folder}
+                        className={cn(
+                          'flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors',
+                          assetViewFolder === folder
+                            ? 'bg-white font-semibold text-blue-600 shadow-sm'
+                            : 'text-gray-600 hover:bg-white'
+                        )}
+                        onClick={() => setAssetViewFolder(folder)}
+                      >
+                        <span className="flex items-center gap-2">
+                          {folder === 'All' ? (
+                            <FolderOpen className="h-3.5 w-3.5" />
+                          ) : (
+                            <ChevronDown className="h-3.5 w-3.5" />
+                          )}
+                          {folder}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {folder === 'All'
+                            ? courseAssets.length
+                            : courseAssets.filter(a => a.folder === folder).length}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Asset list */}
+                <ScrollArea className="flex-1">
+                  <div className="space-y-2 p-4">
+                    {filteredViewAssets.length === 0 ? (
+                      <p className="py-8 text-center text-sm text-gray-400">
+                        No assets in this folder.
+                      </p>
+                    ) : (
+                      filteredViewAssets.map(asset => (
+                        <div
+                          key={asset.id}
+                          className="flex items-center justify-between rounded-xl bg-slate-200/60 px-4 py-3"
+                        >
+                          <div className="mr-2 flex flex-1 items-center gap-3 overflow-hidden">
+                            <FileText className="h-5 w-5 shrink-0 text-slate-500" />
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium text-slate-700">
+                                {asset.name}
+                              </p>
+                              <p className="text-[10px] text-gray-500">
+                                Folder: {asset.folder || 'Uncategorized'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className="h-7 rounded-lg bg-white px-3 text-xs font-medium shadow-sm hover:bg-gray-50"
+                              onClick={() => {
+                                handleLoadAsset(asset)
+                                setAssetsViewOpen(false)
+                              }}
+                            >
+                              Load
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600"
+                              onClick={() => {
+                                setCourseAssets(prev => prev.filter(a => a.id !== asset.id))
+                              }}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
@@ -4096,22 +4269,6 @@ FEEDBACK: [your explanation]`
                                                                   <span className="text-muted-foreground flex-1 truncate">
                                                                     {ext.name}
                                                                   </span>
-                                                                  {!lessonBankMode && (
-                                                                    <Button
-                                                                      variant="ghost"
-                                                                      size="sm"
-                                                                      className="h-5 gap-1 px-1 text-[10px] opacity-0 group-hover/extension:opacity-100"
-                                                                      onClick={(e: any) => {
-                                                                        e.stopPropagation()
-                                                                        setQuestionBankTarget(
-                                                                          `extension-${ext.id}`
-                                                                        )
-                                                                        setQuestionBankOpen(true)
-                                                                      }}
-                                                                    >
-                                                                      Import
-                                                                    </Button>
-                                                                  )}
                                                                   <Button
                                                                     variant="ghost"
                                                                     size="icon"

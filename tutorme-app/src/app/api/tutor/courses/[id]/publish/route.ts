@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, courseLesson, courseVariant } from '@/lib/db/schema'
-import { eq, and, inArray } from 'drizzle-orm'
+import { course, courseLesson, courseVariant, liveSession } from '@/lib/db/schema'
+import { eq, and, inArray, gte } from 'drizzle-orm'
 import crypto from 'crypto'
 
 // GET current variants for this template course
@@ -49,6 +49,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 }
 
+interface ScheduleItem {
+  dayOfWeek: string
+  startTime: string
+  durationMinutes: number
+}
+
 interface VariantConfig {
   category: string
   nationality: string
@@ -56,7 +62,60 @@ interface VariantConfig {
   price: number | null
   currency: string
   languageOfInstruction: string
-  schedule: unknown
+  schedule: ScheduleItem[]
+}
+
+const DAY_MAP: Record<string, number> = {
+  Sunday: 0,
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 4,
+  Friday: 5,
+  Saturday: 6,
+}
+
+function generateSessionDates(
+  schedule: ScheduleItem[],
+  weeksAhead = 8
+): Array<{ scheduledAt: Date; title: string; durationMinutes: number }> {
+  const sessions: Array<{ scheduledAt: Date; title: string; durationMinutes: number }> = []
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  for (const slot of schedule) {
+    const targetDay = DAY_MAP[slot.dayOfWeek]
+    if (targetDay === undefined) continue
+
+    const [hours, minutes] = slot.startTime.split(':').map(Number)
+    if (hours === undefined || minutes === undefined) continue
+
+    // Find the next occurrence of this day
+    let cursor = new Date(today)
+    const daysUntil = (targetDay - cursor.getDay() + 7) % 7
+    cursor.setDate(cursor.getDate() + daysUntil)
+    cursor.setHours(hours, minutes, 0, 0)
+
+    // If the time already passed today, start from next week
+    if (cursor < new Date()) {
+      cursor.setDate(cursor.getDate() + 7)
+    }
+
+    // Generate sessions for the next N weeks
+    for (let w = 0; w < weeksAhead; w++) {
+      const sessionDate = new Date(cursor)
+      sessionDate.setDate(cursor.getDate() + w * 7)
+      sessions.push({
+        scheduledAt: sessionDate,
+        title: `Live Session — ${slot.dayOfWeek} ${slot.startTime}`,
+        durationMinutes: slot.durationMinutes || 60,
+      })
+    }
+  }
+
+  // Sort by date
+  sessions.sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime())
+  return sessions
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -154,8 +213,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         const existing = existingMap.get(key)
         const courseName = `${v.category} - ${v.nationality}`
 
+        let publishedCourseId: string
+
         if (existing) {
           // Update existing course row
+          publishedCourseId = existing.publishedCourseId
           await tx
             .update(course)
             .set({
@@ -171,10 +233,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
               isFree: templateCourse.isFree ?? false,
               schedule: v.schedule || [],
             })
-            .where(eq(course.courseId, existing.publishedCourseId))
+            .where(eq(course.courseId, publishedCourseId))
 
           result.push({
-            courseId: existing.publishedCourseId,
+            courseId: publishedCourseId,
             name: courseName,
             nationality: v.nationality,
             category: v.category,
@@ -183,7 +245,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           })
         } else {
           // Create new course + variant
-          const publishedCourseId = crypto.randomUUID()
+          publishedCourseId = crypto.randomUUID()
 
           await tx.insert(course).values({
             courseId: publishedCourseId,
@@ -235,6 +297,43 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             isPublished: v.isPublished,
             action: 'created',
           })
+        }
+
+        // Generate live sessions from schedule
+        const schedule = Array.isArray(v.schedule) ? v.schedule : []
+        if (schedule.length > 0) {
+          const sessionDates = generateSessionDates(schedule, 8)
+
+          // Fetch existing scheduled sessions for this course to avoid duplicates
+          const existingSessions = await tx
+            .select({ scheduledAt: liveSession.scheduledAt })
+            .from(liveSession)
+            .where(
+              and(eq(liveSession.courseId, publishedCourseId), eq(liveSession.status, 'scheduled'))
+            )
+
+          const existingDates = new Set(
+            existingSessions
+              .filter(s => s.scheduledAt)
+              .map(s => new Date(s.scheduledAt!).toISOString().slice(0, 16))
+          )
+
+          for (const session of sessionDates) {
+            const dateKey = session.scheduledAt.toISOString().slice(0, 16)
+            if (existingDates.has(dateKey)) continue
+
+            await tx.insert(liveSession).values({
+              sessionId: crypto.randomUUID(),
+              tutorId: userId,
+              courseId: publishedCourseId,
+              title: session.title,
+              category: v.category,
+              description: templateCourse.description,
+              scheduledAt: session.scheduledAt,
+              status: 'scheduled',
+              maxStudents: 50,
+            })
+          }
         }
       }
 

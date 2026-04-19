@@ -20,6 +20,7 @@ interface Asset {
   mimeType?: string
   size?: number
   createdAt?: string
+  metadata?: Record<string, unknown>
 }
 
 // ---- GET — Load all tutor assets ----
@@ -42,6 +43,7 @@ export async function GET(req: NextRequest) {
         mimeType: tutorAsset.mimeType,
         size: tutorAsset.size,
         createdAt: tutorAsset.createdAt,
+        metadata: tutorAsset.metadata,
       })
       .from(tutorAsset)
       .where(eq(tutorAsset.tutorId, tutorId))
@@ -56,6 +58,7 @@ export async function GET(req: NextRequest) {
       mimeType: asset.mimeType || undefined,
       size: asset.size || undefined,
       createdAt: asset.createdAt?.toISOString(),
+      metadata: (asset.metadata as Record<string, unknown> | null) || undefined,
     }))
 
     return NextResponse.json({ assets: formattedAssets })
@@ -111,6 +114,7 @@ export async function PUT(req: NextRequest) {
             url: asset.url || null,
             mimeType: asset.mimeType || null,
             size: asset.size || null,
+            metadata: asset.metadata || null,
             updatedAt: new Date(),
           })
           .onConflictDoUpdate({
@@ -121,6 +125,7 @@ export async function PUT(req: NextRequest) {
               url: asset.url || null,
               mimeType: asset.mimeType || null,
               size: asset.size || null,
+              metadata: asset.metadata || null,
               updatedAt: new Date(),
             },
           })
