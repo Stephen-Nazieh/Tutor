@@ -4970,7 +4970,7 @@ FEEDBACK: [your explanation]`
 
                                             <TabsContent
                                               value="analytics"
-                                              className="mx-[-16px] flex-1 overflow-auto"
+                                              className="mx-[-16px] flex-1 overflow-auto data-[state=active]:flex data-[state=inactive]:hidden"
                                             >
                                               <AnalyticsPanel
                                                 students={insightsProps.students}
@@ -4985,7 +4985,7 @@ FEEDBACK: [your explanation]`
 
                                             <TabsContent
                                               value="poll"
-                                              className="flex flex-1 flex-col justify-end pt-2"
+                                              className="flex flex-1 flex-col justify-end pt-2 data-[state=active]:flex data-[state=inactive]:hidden"
                                             >
                                               <div className="flex h-[40%] flex-col rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
                                                 <div className="flex flex-1 flex-col space-y-2 p-3">
@@ -5063,7 +5063,7 @@ FEEDBACK: [your explanation]`
 
                                             <TabsContent
                                               value="question"
-                                              className="flex flex-1 flex-col justify-end pt-2"
+                                              className="flex flex-1 flex-col justify-end pt-2 data-[state=active]:flex data-[state=inactive]:hidden"
                                             >
                                               <div className="flex h-[40%] flex-col rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
                                                 <div className="flex flex-1 flex-col space-y-2 p-3">
