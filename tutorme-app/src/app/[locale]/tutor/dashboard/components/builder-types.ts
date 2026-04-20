@@ -299,6 +299,8 @@ export interface CourseBuilderInsightsProps {
   isRecording?: boolean
   recordingDuration?: number
   onToggleRecording?: () => void
+  onEndSession?: () => void
+  endingSession?: boolean
   socket?: any
 }
 

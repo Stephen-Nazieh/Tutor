@@ -68,7 +68,7 @@ import {
 import { cn } from '@/lib/utils'
 import { extractTextFromFile } from '@/lib/extract-file-text'
 import { toast } from 'sonner'
-import type { LiveTask, ChatMessage } from '@/lib/socket'
+import type { LiveTask } from '@/lib/socket'
 import type { LiveStudent, EngagementMetrics } from '@/types/live-session'
 import type {
   Video,
@@ -453,9 +453,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [taskPciInput, setTaskPciInput] = useState('')
     const [assessmentPciInputMap, setAssessmentPciInputMap] = useState<Record<string, string>>({})
     const [taskPciLoading, setTaskPciLoading] = useState(false)
-    const [assessmentPciLoadingMap, setAssessmentPciLoadingMap] = useState<Record<string, boolean>>({})
+    const [assessmentPciLoadingMap, setAssessmentPciLoadingMap] = useState<Record<string, boolean>>(
+      {}
+    )
     const [taskPciErrorHint, setTaskPciErrorHint] = useState('')
-    const [assessmentPciErrorHintMap, setAssessmentPciErrorHintMap] = useState<Record<string, string>>({})
+    const [assessmentPciErrorHintMap, setAssessmentPciErrorHintMap] = useState<
+      Record<string, string>
+    >({})
 
     // AI Assist Agent state - separate for task and assessment
     const [aiAssistOpen, setAiAssistOpen] = useState(false)
@@ -546,9 +550,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     }
 
     // Insights panel state
-    const [insightsTab, setInsightsTab] = useState<'analytics' | 'poll' | 'question' | 'chat'>(
-      'analytics'
-    )
+    const [insightsTab, setInsightsTab] = useState<'analytics' | 'poll' | 'question'>('analytics')
     const [pollPrompt, setPollPrompt] = useState('Did you find this task difficult')
     const [questionPrompt, setQuestionPrompt] = useState('Do you have a question about this task?')
 
@@ -562,10 +564,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       roomUrl: string | null
       token: string | null
     } | null>(null)
-
-    // Chat state
-    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
-    const [chatInput, setChatInput] = useState('')
 
     const [importTypeModalData, setImportTypeModalData] = useState<{
       target: { nodeId: string; lessonId: string }
@@ -747,18 +745,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         cancelled = true
       }
     }, [insightsProps?.sessionId])
-
-    useEffect(() => {
-      if (!insightsProps?.socket) return
-      const socket = insightsProps.socket
-      const handleChatMessage = (message: ChatMessage) => {
-        setChatMessages(prev => [...prev.slice(-19), message])
-      }
-      socket.on('chat_message', handleChatMessage)
-      return () => {
-        socket.off('chat_message', handleChatMessage)
-      }
-    }, [insightsProps?.socket])
 
     useEffect(() => {
       if (!sessionScheduledAt) {
@@ -1227,13 +1213,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
             ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.name
             : undefined
 
-        const sourceDocument = !isTask && assessmentSourceDocument
-          ? {
-              fileName: assessmentSourceDocument.fileName,
-              fileUrl: assessmentSourceDocument.fileUrl,
-              mimeType: assessmentSourceDocument.mimeType,
-            }
-          : undefined
+        const sourceDocument =
+          !isTask && assessmentSourceDocument
+            ? {
+                fileName: assessmentSourceDocument.fileName,
+                fileUrl: assessmentSourceDocument.fileUrl,
+                mimeType: assessmentSourceDocument.mimeType,
+              }
+            : undefined
 
         const response = await fetch('/api/ai/pci-master', {
           method: 'POST',
@@ -1448,7 +1435,8 @@ FEEDBACK: [your explanation]`
         const arrayBuffer = await response.arrayBuffer()
         const pdfjs = await import('pdfjs-dist')
         if (typeof window !== 'undefined') {
-          const opts = (pdfjs as { GlobalWorkerOptions?: { workerSrc?: string } }).GlobalWorkerOptions
+          const opts = (pdfjs as { GlobalWorkerOptions?: { workerSrc?: string } })
+            .GlobalWorkerOptions
           if (opts && !opts.workerSrc) {
             opts.workerSrc = '/pdf.worker.min.mjs'
           }
@@ -2896,7 +2884,7 @@ FEEDBACK: [your explanation]`
                           fileUrl = uploadData.url || ''
                           fileMimeType = uploadData.isPdf
                             ? 'application/pdf'
-                            : (uploadData.type || 'application/pdf')
+                            : uploadData.type || 'application/pdf'
                         }
                       } catch {
                         // Fallback: no server URL
@@ -3650,38 +3638,6 @@ FEEDBACK: [your explanation]`
           panelMode === 'live-class' && 'pt-3'
         )}
       >
-        {insightsProps && sessionContext && (
-          <div className="rounded-lg border border-blue-200 bg-blue-50/60 px-4 py-2 text-sm text-blue-900 shadow-sm">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-              <span>
-                <span className="font-semibold">Lesson:</span> {sessionContext.topic || '—'}
-              </span>
-              <span className="hidden text-blue-300 sm:inline">•</span>
-              <span>
-                <span className="font-semibold">Category:</span> {sessionContext.category || '—'}
-              </span>
-              <span className="hidden text-blue-300 sm:inline">•</span>
-              <span>
-                <span className="font-semibold">Language:</span>{' '}
-                {sessionContext.languageOfInstruction || '—'}
-              </span>
-              <span className="hidden text-blue-300 sm:inline">•</span>
-              <span>
-                <span className="font-semibold">Region:</span> {sessionContext.nationality || '—'}
-              </span>
-            </div>
-            {sessionContext.objectives && sessionContext.objectives.length > 0 && (
-              <div className="mt-1 text-xs text-blue-800">
-                <span className="font-semibold">Objectives:</span>{' '}
-                {sessionContext.objectives.map((obj, idx) => (
-                  <span key={idx}>
-                    {idx + 1}) {obj}{' '}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
         <div className="flex h-full w-full min-w-0 flex-1 gap-0">
           {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
           {!leftPanelHidden && (
@@ -3721,6 +3677,17 @@ FEEDBACK: [your explanation]`
                       <div className="flex items-center gap-1">
                         {mainTab === 'live' && (
                           <div className="flex items-center gap-2">
+                            {insightsProps?.onEndSession && (
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={insightsProps.onEndSession}
+                                disabled={insightsProps.endingSession}
+                                className="h-7 gap-1 px-2 text-xs"
+                              >
+                                {insightsProps.endingSession ? 'Ending…' : 'End Session'}
+                              </Button>
+                            )}
                             {insightsProps?.onToggleRecording && (
                               <Button
                                 size="sm"
@@ -3987,34 +3954,34 @@ FEEDBACK: [your explanation]`
                                                           </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
-                                                              <DropdownMenuItem
-                                                                onClick={e => {
-                                                                  e.stopPropagation()
-                                                                  moveToHomework(
-                                                                    node.id,
-                                                                    primaryLesson.id,
-                                                                    'task',
-                                                                    task
-                                                                  )
-                                                                }}
-                                                              >
-                                                                Move to homework
-                                                              </DropdownMenuItem>
-                                                              <DropdownMenuItem
-                                                                onClick={e => {
-                                                                  e.stopPropagation()
-                                                                  setEditingData(task)
-                                                                  setActiveModal({
-                                                                    type: 'task',
-                                                                    isOpen: true,
-                                                                    nodeId: node.id,
-                                                                    lessonId: primaryLesson.id,
-                                                                    itemId: task.id,
-                                                                  })
-                                                                }}
-                                                              >
-                                                                Edit
-                                                              </DropdownMenuItem>
+                                                          <DropdownMenuItem
+                                                            onClick={e => {
+                                                              e.stopPropagation()
+                                                              moveToHomework(
+                                                                node.id,
+                                                                primaryLesson.id,
+                                                                'task',
+                                                                task
+                                                              )
+                                                            }}
+                                                          >
+                                                            Move to homework
+                                                          </DropdownMenuItem>
+                                                          <DropdownMenuItem
+                                                            onClick={e => {
+                                                              e.stopPropagation()
+                                                              setEditingData(task)
+                                                              setActiveModal({
+                                                                type: 'task',
+                                                                isOpen: true,
+                                                                nodeId: node.id,
+                                                                lessonId: primaryLesson.id,
+                                                                itemId: task.id,
+                                                              })
+                                                            }}
+                                                          >
+                                                            Edit
+                                                          </DropdownMenuItem>
                                                           <DropdownMenuItem
                                                             onClick={e => {
                                                               e.stopPropagation()
@@ -4464,34 +4431,34 @@ FEEDBACK: [your explanation]`
                                                         </Button>
                                                       </DropdownMenuTrigger>
                                                       <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem
-                                                              onClick={e => {
-                                                                e.stopPropagation()
-                                                                moveToHomework(
-                                                                  node.id,
-                                                                  primaryLesson.id,
-                                                                  'assessment',
-                                                                  hw
-                                                                )
-                                                              }}
-                                                            >
-                                                              Move to homework
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                              onClick={e => {
-                                                                e.stopPropagation()
-                                                                setEditingData(hw)
-                                                                setActiveModal({
-                                                                  type: 'homework',
-                                                                  isOpen: true,
-                                                                  nodeId: node.id,
-                                                                  lessonId: primaryLesson.id,
-                                                                  itemId: hw.id,
-                                                                })
-                                                              }}
-                                                            >
-                                                              Edit
-                                                            </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                          onClick={e => {
+                                                            e.stopPropagation()
+                                                            moveToHomework(
+                                                              node.id,
+                                                              primaryLesson.id,
+                                                              'assessment',
+                                                              hw
+                                                            )
+                                                          }}
+                                                        >
+                                                          Move to homework
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                          onClick={e => {
+                                                            e.stopPropagation()
+                                                            setEditingData(hw)
+                                                            setActiveModal({
+                                                              type: 'homework',
+                                                              isOpen: true,
+                                                              nodeId: node.id,
+                                                              lessonId: primaryLesson.id,
+                                                              itemId: hw.id,
+                                                            })
+                                                          }}
+                                                        >
+                                                          Edit
+                                                        </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                           className="text-red-500"
                                                           onClick={e => {
@@ -4518,99 +4485,96 @@ FEEDBACK: [your explanation]`
 
                                         {/* Homework (per-lesson) - drop zone; header + description in one box; sortable items with drag handle */}
                                         {(() => {
-                                            const hwItems = (primaryLesson.homework || []).filter(
-                                              h => h.category === 'homework'
-                                            )
-                                            return (
-                                              <>
-                                                <TreeItem depth={0} isLast={false}>
-                                                  <DroppableHomeworkZone
-                                                    nodeId={node.id}
-                                                    lessonId={primaryLesson.id}
-                                                    className="flex items-center gap-1.5 rounded-lg border-b-2 border-emerald-600 bg-gradient-to-r from-emerald-400 to-emerald-500 px-3 py-0.5 shadow-sm transition-all"
-                                                  >
-                                                    <div className="flex items-center gap-1.5">
-                                                      <FolderOpen className="h-4 w-4 text-white" />
-                                                      <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
-                                                        Homework {hwItems.length}:
-                                                      </span>
-                                                    </div>
-                                                  </DroppableHomeworkZone>
-                                                </TreeItem>
-                                                <SortableContext
-                                                  items={hwItems.map(h => h.id)}
-                                                  strategy={verticalListSortingStrategy}
+                                          const hwItems = (primaryLesson.homework || []).filter(
+                                            h => h.category === 'homework'
+                                          )
+                                          return (
+                                            <>
+                                              <TreeItem depth={0} isLast={false}>
+                                                <DroppableHomeworkZone
+                                                  nodeId={node.id}
+                                                  lessonId={primaryLesson.id}
+                                                  className="flex items-center gap-1.5 rounded-lg border-b-2 border-emerald-600 bg-gradient-to-r from-emerald-400 to-emerald-500 px-3 py-0.5 shadow-sm transition-all"
                                                 >
-                                                  {hwItems.map((hw, hwIdx) => (
-                                                    <SortableTreeItem
-                                                      key={hw.id}
-                                                      id={hw.id}
-                                                      depth={2}
-                                                      isLast={hwIdx === hwItems.length - 1}
+                                                  <div className="flex items-center gap-1.5">
+                                                    <FolderOpen className="h-4 w-4 text-white" />
+                                                    <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
+                                                      Homework {hwItems.length}:
+                                                    </span>
+                                                  </div>
+                                                </DroppableHomeworkZone>
+                                              </TreeItem>
+                                              <SortableContext
+                                                items={hwItems.map(h => h.id)}
+                                                strategy={verticalListSortingStrategy}
+                                              >
+                                                {hwItems.map((hw, hwIdx) => (
+                                                  <SortableTreeItem
+                                                    key={hw.id}
+                                                    id={hw.id}
+                                                    depth={2}
+                                                    isLast={hwIdx === hwItems.length - 1}
+                                                  >
+                                                    <div
+                                                      className={cn(
+                                                        'group/item flex cursor-pointer items-center gap-1.5 rounded border border-emerald-400 bg-emerald-50 px-2 py-1 transition-colors hover:bg-emerald-100',
+                                                        selectedItem?.type === 'homework' &&
+                                                          selectedItem?.id === hw.id &&
+                                                          'ring-1 ring-emerald-400'
+                                                      )}
+                                                      onClick={() => {
+                                                        setSelectedItem({
+                                                          type: 'homework',
+                                                          id: hw.id,
+                                                        })
+                                                        loadAssessmentIntoBuilder(hw)
+                                                        setMainBuilderTab('assessment')
+                                                      }}
                                                     >
-                                                      <div
-                                                        className={cn(
-                                                          'group/item flex cursor-pointer items-center gap-1.5 rounded border border-emerald-400 bg-emerald-50 px-2 py-1 transition-colors hover:bg-emerald-100',
-                                                          selectedItem?.type === 'homework' &&
-                                                            selectedItem?.id === hw.id &&
-                                                            'ring-1 ring-emerald-400'
-                                                        )}
-                                                        onClick={() => {
-                                                          setSelectedItem({
-                                                            type: 'homework',
-                                                            id: hw.id,
-                                                          })
-                                                          loadAssessmentIntoBuilder(hw)
-                                                          setMainBuilderTab('assessment')
+                                                      <FileQuestion className="h-3 w-3 shrink-0 text-emerald-600" />
+                                                      <span className="flex-1 truncate text-[10px] text-emerald-700">
+                                                        {hw.title}
+                                                      </span>
+                                                      <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-5 w-5 shrink-0 opacity-0 group-hover/item:opacity-100"
+                                                        onClick={(e: any) => {
+                                                          e.stopPropagation()
+                                                          if (!confirm(`Delete "${hw.title}"?`))
+                                                            return
+                                                          setCourseBuilderNodes(prev =>
+                                                            prev.map(mod =>
+                                                              mod.id !== node.id
+                                                                ? mod
+                                                                : {
+                                                                    ...mod,
+                                                                    lessons: mod.lessons.map(les =>
+                                                                      les.id !== primaryLesson.id
+                                                                        ? les
+                                                                        : {
+                                                                            ...les,
+                                                                            homework: (
+                                                                              les.homework || []
+                                                                            ).filter(
+                                                                              x => x.id !== hw.id
+                                                                            ),
+                                                                          }
+                                                                    ),
+                                                                  }
+                                                            )
+                                                          )
                                                         }}
                                                       >
-                                                        <FileQuestion className="h-3 w-3 shrink-0 text-emerald-600" />
-                                                        <span className="flex-1 truncate text-[10px] text-emerald-700">
-                                                          {hw.title}
-                                                        </span>
-                                                        <Button
-                                                          variant="ghost"
-                                                          size="icon"
-                                                          className="h-5 w-5 shrink-0 opacity-0 group-hover/item:opacity-100"
-                                                          onClick={(e: any) => {
-                                                            e.stopPropagation()
-                                                            if (!confirm(`Delete "${hw.title}"?`))
-                                                              return
-                                                            setCourseBuilderNodes(prev =>
-                                                              prev.map(mod =>
-                                                                mod.id !== node.id
-                                                                  ? mod
-                                                                  : {
-                                                                      ...mod,
-                                                                      lessons: mod.lessons.map(
-                                                                        les =>
-                                                                          les.id !==
-                                                                          primaryLesson.id
-                                                                            ? les
-                                                                            : {
-                                                                                ...les,
-                                                                                homework: (
-                                                                                  les.homework || []
-                                                                                ).filter(
-                                                                                  x =>
-                                                                                    x.id !== hw.id
-                                                                                ),
-                                                                              }
-                                                                      ),
-                                                                    }
-                                                              )
-                                                            )
-                                                          }}
-                                                        >
-                                                          <Trash2 className="h-3 w-3 text-red-500" />
-                                                        </Button>
-                                                      </div>
-                                                    </SortableTreeItem>
-                                                  ))}
-                                                </SortableContext>
-                                              </>
-                                            )
-                                          })()}
+                                                        <Trash2 className="h-3 w-3 text-red-500" />
+                                                      </Button>
+                                                    </div>
+                                                  </SortableTreeItem>
+                                                ))}
+                                              </SortableContext>
+                                            </>
+                                          )
+                                        })()}
 
                                         {/* End of CourseBuilderNode Quizzes */}
                                         {(node.quizzes || []).map((quiz, quizIdx) => (
@@ -4912,54 +4876,6 @@ FEEDBACK: [your explanation]`
                           {insightsProps && showInsightsPanel && mainTab === 'live' && (
                             <div className="min-h-0 w-full xl:w-[360px]">
                               <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cyan-200/70 bg-gradient-to-br from-white via-slate-50 to-cyan-50 p-4 shadow-[0_10px_40px_-20px_rgba(14,116,144,0.65)] ring-1 ring-cyan-200/60">
-                                {insightsProps.onToggleRecording && (
-                                  <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-cyan-100 bg-white/50 p-2 shadow-sm">
-                                    <div className="flex items-center gap-2 pl-1">
-                                      <div
-                                        className={cn(
-                                          'h-2 w-2 rounded-full',
-                                          insightsProps.isRecording
-                                            ? 'animate-pulse bg-red-500'
-                                            : 'bg-gray-300'
-                                        )}
-                                      />
-                                      <span className="text-xs font-medium text-gray-600">
-                                        {insightsProps.isRecording ? (
-                                          <>
-                                            REC{' '}
-                                            {Math.floor(
-                                              (insightsProps.recordingDuration ?? 0) / 60
-                                            )}
-                                            m{' '}
-                                            {String(
-                                              (insightsProps.recordingDuration ?? 0) % 60
-                                            ).padStart(2, '0')}
-                                            s
-                                          </>
-                                        ) : (
-                                          'Not Recording'
-                                        )}
-                                      </span>
-                                    </div>
-                                    <Button
-                                      variant={
-                                        insightsProps.isRecording ? 'destructive' : 'outline'
-                                      }
-                                      size="sm"
-                                      className="h-8 gap-2 px-3 text-xs font-semibold shadow-sm"
-                                      onClick={insightsProps.onToggleRecording}
-                                    >
-                                      <Radio
-                                        className={cn(
-                                          'h-3.5 w-3.5',
-                                          insightsProps.isRecording && 'animate-pulse'
-                                        )}
-                                      />
-                                      {insightsProps.isRecording ? 'Stop' : 'Record'}
-                                    </Button>
-                                  </div>
-                                )}
-
                                 <Tabs
                                   value={insightsTab}
                                   onValueChange={value =>
@@ -4967,7 +4883,7 @@ FEEDBACK: [your explanation]`
                                   }
                                   className="flex h-full min-h-0 flex-col"
                                 >
-                                  <TabsList className="mb-4 grid w-full grid-cols-4 gap-1 rounded-xl border border-cyan-200/70 bg-white/80 p-1 shadow-sm">
+                                  <TabsList className="mb-4 grid w-full grid-cols-3 gap-1 rounded-xl border border-cyan-200/70 bg-white/80 p-1 shadow-sm">
                                     <TabsTrigger
                                       value="analytics"
                                       className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
@@ -4985,12 +4901,6 @@ FEEDBACK: [your explanation]`
                                       className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
                                     >
                                       Question
-                                    </TabsTrigger>
-                                    <TabsTrigger
-                                      value="chat"
-                                      className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
-                                    >
-                                      Chat
                                     </TabsTrigger>
                                   </TabsList>
 
@@ -5250,70 +5160,6 @@ FEEDBACK: [your explanation]`
                                             AI Integrated
                                           </Badge>
                                         </div>
-                                      </div>
-                                    </div>
-                                  </TabsContent>
-
-                                  <TabsContent
-                                    value="chat"
-                                    className="flex min-h-0 flex-1 flex-col pt-2"
-                                  >
-                                    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-cyan-100 bg-white/60 p-3 shadow-sm">
-                                      <div className="flex-1 space-y-2 overflow-y-auto pr-1">
-                                        {chatMessages.length === 0 && (
-                                          <p className="text-center text-xs text-gray-500">
-                                            No messages yet.
-                                          </p>
-                                        )}
-                                        {chatMessages.map(msg => (
-                                          <div
-                                            key={msg.id}
-                                            className={`flex flex-col text-sm ${msg.userId === (insightsProps?.socket?.id ? 'items-end self-end' : 'items-start self-start')}`}
-                                          >
-                                            <span className="text-[10px] text-gray-500">
-                                              {msg.name}
-                                            </span>
-                                            <div
-                                              className={`max-w-[90%] rounded-lg px-2.5 py-1.5 text-xs ${msg.userId === (typeof window !== 'undefined' ? '' : '') ? 'bg-cyan-100 text-cyan-900' : 'bg-white text-gray-800'}`}
-                                            >
-                                              {msg.text}
-                                            </div>
-                                          </div>
-                                        ))}
-                                      </div>
-                                      <div className="mt-2 flex items-end gap-2">
-                                        <Input
-                                          placeholder="Type a message..."
-                                          value={chatInput}
-                                          onChange={e => setChatInput(e.target.value)}
-                                          onKeyDown={e => {
-                                            if (e.key === 'Enter' && !e.shiftKey) {
-                                              e.preventDefault()
-                                              if (chatInput.trim() && insightsProps?.socket) {
-                                                insightsProps.socket.emit('chat_message', {
-                                                  text: chatInput.trim(),
-                                                })
-                                                setChatInput('')
-                                              }
-                                            }
-                                          }}
-                                          className="min-h-[36px] flex-1 text-xs"
-                                        />
-                                        <Button
-                                          size="icon"
-                                          className="h-8 w-8 shrink-0"
-                                          disabled={!chatInput.trim() || !insightsProps?.socket}
-                                          onClick={() => {
-                                            if (chatInput.trim() && insightsProps?.socket) {
-                                              insightsProps.socket.emit('chat_message', {
-                                                text: chatInput.trim(),
-                                              })
-                                              setChatInput('')
-                                            }
-                                          }}
-                                        >
-                                          <Send className="h-3.5 w-3.5" />
-                                        </Button>
                                       </div>
                                     </div>
                                   </TabsContent>
@@ -5718,7 +5564,7 @@ FEEDBACK: [your explanation]`
                                         </div>
                                         <AutoTextarea
                                           placeholder="Optional notes or instructions..."
-                                          className="h-24 shrink-0 w-full resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                          className="h-24 w-full shrink-0 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                                           disableAutoResize
                                           onDrop={(e: any) =>
                                             handleDragFiles(
@@ -5791,7 +5637,9 @@ FEEDBACK: [your explanation]`
                                         />
                                         {assessmentSourceDocument &&
                                           assessmentSourceDocument.mimeType !== 'application/pdf' &&
-                                          assessmentSourceDocument.mimeType.startsWith('image/') && (
+                                          assessmentSourceDocument.mimeType.startsWith(
+                                            'image/'
+                                          ) && (
                                             <div className="shrink-0 border-t p-2">
                                               {/* eslint-disable-next-line @next/next/no-img-element */}
                                               <img
@@ -5803,7 +5651,9 @@ FEEDBACK: [your explanation]`
                                           )}
                                         {assessmentSourceDocument &&
                                           assessmentSourceDocument.mimeType !== 'application/pdf' &&
-                                          !assessmentSourceDocument.mimeType.startsWith('image/') && (
+                                          !assessmentSourceDocument.mimeType.startsWith(
+                                            'image/'
+                                          ) && (
                                             <div className="flex shrink-0 items-center gap-2 border-t bg-gray-50 p-2">
                                               <FileText className="h-4 w-4 text-blue-600" />
                                               <a
@@ -5829,12 +5679,15 @@ FEEDBACK: [your explanation]`
                                 >
                                   <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
                                     <div className="flex-1 space-y-3 overflow-y-auto p-3">
-                                      {(assessmentPciMessagesMap[loadedAssessmentId || ''] || []).length === 0 && (
+                                      {(assessmentPciMessagesMap[loadedAssessmentId || ''] || [])
+                                        .length === 0 && (
                                         <p className="text-muted-foreground text-xs">
                                           Start a PCI chat to build instructions with the assistant.
                                         </p>
                                       )}
-                                      {(assessmentPciMessagesMap[loadedAssessmentId || ''] || []).map((msg, idx) => (
+                                      {(
+                                        assessmentPciMessagesMap[loadedAssessmentId || ''] || []
+                                      ).map((msg, idx) => (
                                         <div
                                           key={idx}
                                           className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -5850,7 +5703,8 @@ FEEDBACK: [your explanation]`
                                           </div>
                                         </div>
                                       ))}
-                                      {(assessmentPciLoadingMap[loadedAssessmentId || ''] || false) && (
+                                      {(assessmentPciLoadingMap[loadedAssessmentId || ''] ||
+                                        false) && (
                                         <div className="flex justify-start">
                                           <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
                                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -5862,16 +5716,21 @@ FEEDBACK: [your explanation]`
                                       )}
                                     </div>
                                     <div className="border-t p-2">
-                                      {(assessmentPciErrorHintMap[loadedAssessmentId || ''] || '') && (
+                                      {(assessmentPciErrorHintMap[loadedAssessmentId || ''] ||
+                                        '') && (
                                         <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
-                                          PCI assistant error: {assessmentPciErrorHintMap[loadedAssessmentId || ''] || ''}
+                                          PCI assistant error:{' '}
+                                          {assessmentPciErrorHintMap[loadedAssessmentId || ''] ||
+                                            ''}
                                         </div>
                                       )}
                                       <div className="relative flex items-end gap-2">
                                         <AutoTextarea
                                           placeholder="Ask the PCI assistant..."
                                           className="min-h-[44px] w-full pr-11"
-                                          value={assessmentPciInputMap[loadedAssessmentId || ''] || ''}
+                                          value={
+                                            assessmentPciInputMap[loadedAssessmentId || ''] || ''
+                                          }
                                           onChange={(e: any) =>
                                             setAssessmentPciInputMap(prev => ({
                                               ...prev,
@@ -5891,13 +5750,17 @@ FEEDBACK: [your explanation]`
                                           size="icon"
                                           className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
                                           disabled={
-                                            (assessmentPciLoadingMap[loadedAssessmentId || ''] || false) ||
-                                            !(assessmentPciInputMap[loadedAssessmentId || ''] || '').trim()
+                                            assessmentPciLoadingMap[loadedAssessmentId || ''] ||
+                                            false ||
+                                            !(
+                                              assessmentPciInputMap[loadedAssessmentId || ''] || ''
+                                            ).trim()
                                           }
                                           onClick={() => handlePciSend('assessment')}
                                           aria-label="Send"
                                         >
-                                          {(assessmentPciLoadingMap[loadedAssessmentId || ''] || false) ? (
+                                          {assessmentPciLoadingMap[loadedAssessmentId || ''] ||
+                                          false ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
                                           ) : (
                                             <Send className="h-4 w-4" />
@@ -5940,9 +5803,12 @@ FEEDBACK: [your explanation]`
                                   onClick={() => {
                                     // Generate DMI from Assessment content or PDF
                                     const content = assessmentBuilder.taskContent
-                                    const hasPdf = assessmentSourceDocument?.mimeType === 'application/pdf'
+                                    const hasPdf =
+                                      assessmentSourceDocument?.mimeType === 'application/pdf'
                                     if (!content.trim() && !hasPdf) {
-                                      toast.error('Please add content to the Assessment tab or load a PDF first')
+                                      toast.error(
+                                        'Please add content to the Assessment tab or load a PDF first'
+                                      )
                                       return
                                     }
                                     handleGenerateDMI('assessment')
