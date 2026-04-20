@@ -201,7 +201,6 @@ import {
   MoreVertical,
   X,
   Lightbulb,
-  LayoutTemplate,
   Sparkles,
   History,
   RotateCcw,
@@ -282,6 +281,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       isCollapsed = false,
       onMainTabChange,
       initialMainTab,
+      leftPanelHidden: leftPanelHiddenProp,
+      onLeftPanelHiddenChange,
     },
     ref
   ) {
@@ -373,7 +374,15 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     })
     const [loadAsStep, setLoadAsStep] = useState<'main' | 'task-options'>('main')
     const [loadTaskMode, setLoadTaskMode] = useState<'single' | 'multi'>('single')
-    const [leftPanelHidden, setLeftPanelHidden] = useState(false)
+    const [leftPanelHiddenInternal, setLeftPanelHiddenInternal] = useState(false)
+    const leftPanelHidden = leftPanelHiddenProp ?? leftPanelHiddenInternal
+    const setLeftPanelHidden = useCallback((value: boolean) => {
+      if (onLeftPanelHiddenChange) {
+        onLeftPanelHiddenChange(value)
+      } else {
+        setLeftPanelHiddenInternal(value)
+      }
+    }, [onLeftPanelHiddenChange])
     const [leftPanelWidth, setLeftPanelWidth] = useState(340)
     const [leftPanelResizing, setLeftPanelResizing] = useState(false)
     const leftPanelRef = useRef<HTMLDivElement>(null)
@@ -4992,20 +5001,6 @@ FEEDBACK: [your explanation]`
             {/* CENTER PANEL - New Three-Section Design */}
             <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-stretch">
               <div className="flex min-h-0 w-full flex-1 grow flex-col items-stretch gap-4">
-                {leftPanelHidden && (
-                  <div className="flex justify-start">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                      onClick={() => setLeftPanelHidden(false)}
-                    >
-                      <LayoutTemplate className="h-4 w-4" />
-                      Show Course Panel
-                    </Button>
-                  </div>
-                )}
-
                 {mainTab !== 'builder' && (
                   <div className="h-full w-full flex-1">
                     <Card className="border-border bg-card flex h-full w-full min-w-0 flex-1 overflow-hidden rounded-2xl border shadow-xl ring-1 ring-black/5">
