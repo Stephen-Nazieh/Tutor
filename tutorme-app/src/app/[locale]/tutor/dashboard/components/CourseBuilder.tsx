@@ -5304,16 +5304,16 @@ FEEDBACK: [your explanation]`
                                   }}
                                   className="flex h-full w-full flex-col"
                                 >
-                                  <TabsList className="bg-muted grid w-full grid-cols-2 gap-1 rounded-xl border p-1">
+                                  <TabsList className="grid w-full grid-cols-2 rounded-full bg-gray-100 p-1">
                                     <TabsTrigger
                                       value="content"
-                                      className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                      className="rounded-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
                                     >
                                       Slide
                                     </TabsTrigger>
                                     <TabsTrigger
                                       value="pci"
-                                      className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                      className="rounded-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
                                     >
                                       PCI
                                     </TabsTrigger>
