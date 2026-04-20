@@ -747,13 +747,14 @@ export interface TreeItemProps {
   children: React.ReactNode
   depth: number
   isLast?: boolean
+  className?: string
 }
 
-export function TreeItem({ children, depth, isLast }: TreeItemProps) {
+export function TreeItem({ children, depth, isLast, className }: TreeItemProps) {
   const indent = depth * 20
   return (
     <div
-      className="relative w-full min-w-0"
+      className={cn('relative w-full min-w-0', className)}
       style={{ marginLeft: indent, width: `calc(100% - ${indent}px)` }}
     >
       {children}
@@ -1002,6 +1003,7 @@ export function SortableTreeItem({
   children,
   depth,
   isLast,
+  className,
   dragHandle = true,
   inlineDragHandle = false,
   onDragStart,
@@ -1017,7 +1019,7 @@ export function SortableTreeItem({
   }
 
   return (
-    <div ref={setNodeRef} style={style} className="group relative">
+    <div ref={setNodeRef} style={style} className={cn('group relative', className)}>
       <TreeItem depth={depth} isLast={isLast}>
         <div className="flex items-center gap-2">
           {dragHandle && !inlineDragHandle && (

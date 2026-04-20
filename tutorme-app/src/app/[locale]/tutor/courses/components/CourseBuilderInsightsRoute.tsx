@@ -117,9 +117,7 @@ function CourseBuilderInsightsRouteInner({
     return () => clearInterval(timer)
   }, [activeMainTab])
 
-  const currentSession = insightsProps?.sessions?.find(
-    s => s.id === insightsProps?.sessionId
-  )
+  const currentSession = insightsProps?.sessions?.find(s => s.id === insightsProps?.sessionId)
   const scheduledDateStr = currentSession?.scheduledAt
   const sessionPlannedDurationMinutes = currentSession?.plannedDurationMinutes || 60
   let countdownText = '--:--'
