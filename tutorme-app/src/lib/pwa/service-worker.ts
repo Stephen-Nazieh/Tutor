@@ -9,7 +9,7 @@
 declare const self: ServiceWorkerGlobalScope
 
 const WEBPACK_ENTRY_POINT = 'tutorme-app'
-const CACHE_VERSION = 'v2.0.1'
+const CACHE_VERSION = 'v2.0.2'
 const CACHE_NAMES = {
   PRECACHE: `${WEBPACK_ENTRY_POINT}-precache-${CACHE_VERSION}`,
   RUNTIME: `${WEBPACK_ENTRY_POINT}-runtime-${CACHE_VERSION}`,

@@ -503,10 +503,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [testPciLoading, setTestPciLoading] = useState(false)
     const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
     const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
-    const [sessionScheduledAt, setSessionScheduledAt] = useState<string | null>(null)
-    const [sessionPlannedDurationMinutes, setSessionPlannedDurationMinutes] = useState<number>(60)
-    const [countdownText, setCountdownText] = useState<string | null>(null)
-    const [countdownOverdue, setCountdownOverdue] = useState(false)
+    const [sessionScheduledAt] = useState<string | null>(null)
     const [taskDmiItems, setTaskDmiItems] = useState<DMIQuestion[]>([])
     const [assessmentDmiItems, setAssessmentDmiItems] = useState<DMIQuestion[]>([])
 
@@ -722,15 +719,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           if (!res.ok) return
           const data = await res.json()
           if (cancelled) return
-          if (data?.session?.scheduledAt) {
-            setSessionScheduledAt(data.session.scheduledAt)
-          }
-          // Default planned duration is 60 minutes; prefer metrics.classDuration if session already active
-          const planned =
-            typeof data?.metrics?.classDuration === 'number' && data.metrics.classDuration > 0
-              ? data.metrics.classDuration
-              : 60
-          setSessionPlannedDurationMinutes(planned)
           setSessionContext({
             topic: data?.session?.topic ?? null,
             objectives: data?.session?.objectives ?? null,
@@ -750,28 +738,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       }
     }, [insightsProps?.sessionId])
 
-    useEffect(() => {
-      if (!sessionScheduledAt) {
-        setCountdownText(null)
-        return
-      }
-      const updateCountdown = () => {
-        const scheduled = new Date(sessionScheduledAt).getTime()
-        const endTime = scheduled + sessionPlannedDurationMinutes * 60 * 1000
-        const now = Date.now()
-        const diff = endTime - now
-        const isOverdue = diff < 0
-        setCountdownOverdue(isOverdue)
-        const absDiff = Math.abs(diff)
-        const minutes = Math.floor(absDiff / 60000)
-        const seconds = Math.floor((absDiff % 60000) / 1000)
-        const text = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${isOverdue ? 'over' : 'remaining'}`
-        setCountdownText(text)
-      }
-      updateCountdown()
-      const interval = setInterval(updateCountdown, 1000)
-      return () => clearInterval(interval)
-    }, [sessionScheduledAt, sessionPlannedDurationMinutes])
+    // Countdown timer removed — kept in CourseBuilderInsightsRoute header instead
 
     // Save tutor assets to API when they change (debounced)
     const saveAssetsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
