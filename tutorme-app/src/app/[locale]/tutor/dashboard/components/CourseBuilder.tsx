@@ -5247,16 +5247,16 @@ FEEDBACK: [your explanation]`
                             </div>
 
                             {/* Center: tabs with curved outer edges when active */}
-                            <TabsList className="flex flex-1 gap-0 bg-transparent p-0">
+                            <TabsList className="flex shrink-0 gap-0 bg-transparent p-0">
                               <TabsTrigger
                                 value="task"
-                                className="relative flex-1 overflow-visible py-2.5 text-sm font-medium transition-all data-[state=inactive]:bg-gray-200/60 data-[state=inactive]:text-gray-500 data-[state=active]:rounded-l-xl data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:before:absolute data-[state=active]:before:bottom-0 data-[state=active]:before:left-0 data-[state=active]:before:z-10 data-[state=active]:before:h-8 data-[state=active]:before:w-8 data-[state=active]:before:bg-gray-100 data-[state=active]:before:rounded-tr-full"
+                                className="relative w-52 justify-end overflow-visible py-2.5 pr-5 text-right text-sm font-medium transition-all data-[state=inactive]:bg-gray-200/60 data-[state=inactive]:text-gray-500 data-[state=active]:rounded-l-xl data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:before:absolute data-[state=active]:before:bottom-0 data-[state=active]:before:left-0 data-[state=active]:before:z-10 data-[state=active]:before:h-8 data-[state=active]:before:w-8 data-[state=active]:before:bg-gray-100 data-[state=active]:before:rounded-tr-full"
                               >
                                 Task Builder
                               </TabsTrigger>
                               <TabsTrigger
                                 value="assessment"
-                                className="relative flex-1 overflow-visible py-2.5 text-sm font-medium transition-all data-[state=inactive]:bg-gray-200/60 data-[state=inactive]:text-gray-500 data-[state=active]:rounded-r-xl data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:right-0 data-[state=active]:after:z-10 data-[state=active]:after:h-8 data-[state=active]:after:w-8 data-[state=active]:after:bg-gray-100 data-[state=active]:after:rounded-tl-full"
+                                className="relative w-52 justify-start overflow-visible py-2.5 pl-5 text-left text-sm font-medium transition-all data-[state=inactive]:bg-gray-200/60 data-[state=inactive]:text-gray-500 data-[state=active]:rounded-r-xl data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:right-0 data-[state=active]:after:z-10 data-[state=active]:after:h-8 data-[state=active]:after:w-8 data-[state=active]:after:bg-gray-100 data-[state=active]:after:rounded-tl-full"
                               >
                                 Assessment Builder
                               </TabsTrigger>
