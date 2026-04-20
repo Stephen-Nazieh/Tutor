@@ -302,7 +302,6 @@ function CourseBuilderInsightsRouteInner({
           <div className="flex shrink-0 items-center gap-3">
             {activeMainTab === 'live' && (
               <h1 className="text-foreground flex items-center gap-2 text-lg font-bold tracking-tight">
-                Live Session
                 {model.course?.name && (
                   <span className="text-muted-foreground ml-2 text-sm font-normal">
                     — {model.course.name}
