@@ -124,6 +124,9 @@ export type {
   CourseBuilderRef,
 } from './builder-types'
 
+import { AnalyticsPanel } from './AnalyticsPanel'
+import { MentionTextarea } from '@/components/class/mention-textarea'
+import type { MentionItem } from '@/components/class/mention-textarea'
 import { DMIPanel } from './DMIPanel'
 import {
   MatchingPairsEditor,
@@ -586,6 +589,91 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       activeInsightsTaskId && insightsProps
         ? (insightsProps.liveTasks.find(task => task.id === activeInsightsTaskId) ?? null)
         : null
+
+    const mentionItems: MentionItem[] = useMemo(() => {
+      const items: MentionItem[] = []
+      nodes.forEach((node, nIdx) => {
+        const lesson = node.lessons[0]
+        if (!lesson) return
+        items.push({
+          id: lesson.id,
+          type: 'lesson',
+          label: lesson.title || `Lesson ${nIdx + 1}`,
+          subtitle: `Lesson ${nIdx + 1}`,
+        })
+        lesson.tasks?.forEach((task, tIdx) => {
+          items.push({
+            id: task.id,
+            type: 'task',
+            label: task.title || `Task ${tIdx + 1}`,
+            subtitle: `Lesson ${nIdx + 1}, Task ${tIdx + 1}`,
+          })
+          task.extensions?.forEach((ext, eIdx) => {
+            items.push({
+              id: ext.id,
+              type: 'extension',
+              label: ext.name || `Extension ${eIdx + 1}`,
+              subtitle: `Lesson ${nIdx + 1}, Task ${tIdx + 1}, Extension ${eIdx + 1}`,
+            })
+          })
+          task.dmiItems?.forEach((dmi, dIdx) => {
+            items.push({
+              id: dmi.id,
+              type: 'dmi',
+              label: dmi.questionText || `DMI ${dIdx + 1}`,
+              subtitle: `Lesson ${nIdx + 1}, Task ${tIdx + 1}, DMI ${dIdx + 1}`,
+            })
+          })
+        })
+        const assessments = (lesson.homework || []).filter(h => h.category === 'assessment')
+        assessments.forEach((assessment, aIdx) => {
+          items.push({
+            id: assessment.id,
+            type: 'assessment',
+            label: assessment.title || `Assessment ${aIdx + 1}`,
+            subtitle: `Lesson ${nIdx + 1}, Assessment ${aIdx + 1}`,
+          })
+          assessment.dmiItems?.forEach((dmi, dIdx) => {
+            items.push({
+              id: dmi.id,
+              type: 'dmi',
+              label: dmi.questionText || `DMI ${dIdx + 1}`,
+              subtitle: `Lesson ${nIdx + 1}, Assessment ${aIdx + 1}, DMI ${dIdx + 1}`,
+            })
+          })
+        })
+      })
+      return items
+    }, [nodes])
+
+    const selectedContextLabel = useMemo(() => {
+      if (loadedTaskId) {
+        for (let nIdx = 0; nIdx < nodes.length; nIdx++) {
+          const lesson = nodes[nIdx].lessons[0]
+          if (!lesson) continue
+          const tIdx = lesson.tasks.findIndex(t => t.id === loadedTaskId)
+          if (tIdx !== -1) {
+            if (taskBuilder.activeExtensionId) {
+              const extIdx = taskBuilder.extensions.findIndex(
+                e => e.id === taskBuilder.activeExtensionId
+              )
+              return `Lesson ${nIdx + 1}, Task ${tIdx + 1}, Extension ${extIdx + 1}`
+            }
+            return `Lesson ${nIdx + 1}, Task ${tIdx + 1}`
+          }
+        }
+      }
+      if (loadedAssessmentId) {
+        for (let nIdx = 0; nIdx < nodes.length; nIdx++) {
+          const lesson = nodes[nIdx].lessons[0]
+          if (!lesson) continue
+          const assessments = (lesson.homework || []).filter(h => h.category === 'assessment')
+          const aIdx = assessments.findIndex(a => a.id === loadedAssessmentId)
+          if (aIdx !== -1) return `Lesson ${nIdx + 1}, Assessment ${aIdx + 1}`
+        }
+      }
+      return null
+    }, [nodes, loadedTaskId, loadedAssessmentId, taskBuilder.activeExtensionId, taskBuilder.extensions])
 
     // Load task data into taskBuilder
     const parsePciTranscript = (text: string) => {
@@ -4861,147 +4949,17 @@ FEEDBACK: [your explanation]`
 
                                             <TabsContent
                                               value="analytics"
-                                              className="mx-[-16px] flex-1 space-y-4"
+                                              className="mx-[-16px] flex-1 overflow-hidden"
                                             >
-                                              {insightsProps.liveTasks.length > 0 && (
-                                                <div className="space-y-4">
-                                                  <div className="flex flex-wrap items-center gap-3">
-                                                    <Badge variant="secondary" className="text-xs">
-                                                      Tasks deployed:{' '}
-                                                      {insightsProps.liveTasks.length}
-                                                    </Badge>
-                                                    <Badge variant="secondary" className="text-xs">
-                                                      Active task:{' '}
-                                                      {activeInsightsTask?.title ||
-                                                        'Select a task in the builder'}
-                                                    </Badge>
-                                                  </div>
-                                                  <div className="grid gap-3">
-                                                    <div className="rounded-lg border bg-white/90 p-3">
-                                                      <p className="text-muted-foreground text-xs font-semibold uppercase">
-                                                        Task Completion
-                                                      </p>
-                                                      <p className="mt-1 text-lg font-semibold text-gray-900">
-                                                        --
-                                                      </p>
-                                                      <p className="text-muted-foreground text-xs">
-                                                        Waiting for submissions
-                                                      </p>
-                                                    </div>
-                                                    <div className="rounded-lg border bg-white/90 p-3">
-                                                      <p className="text-muted-foreground text-xs font-semibold uppercase">
-                                                        Assessment Scores
-                                                      </p>
-                                                      <p className="mt-1 text-lg font-semibold text-gray-900">
-                                                        --
-                                                      </p>
-                                                      <p className="text-muted-foreground text-xs">
-                                                        No scores yet
-                                                      </p>
-                                                    </div>
-                                                    <div className="rounded-lg border bg-white/90 p-3">
-                                                      <p className="text-muted-foreground text-xs font-semibold uppercase">
-                                                        Questions Asked
-                                                      </p>
-                                                      <p className="mt-1 text-lg font-semibold text-gray-900">
-                                                        {insightsProps.liveTasks.reduce(
-                                                          (sum, task) =>
-                                                            sum +
-                                                            task.questions.reduce(
-                                                              (questionSum, question) =>
-                                                                questionSum +
-                                                                question.responses.length,
-                                                              0
-                                                            ),
-                                                          0
-                                                        )}
-                                                      </p>
-                                                      <p className="text-muted-foreground text-xs">
-                                                        Live student responses
-                                                      </p>
-                                                    </div>
-                                                  </div>
-                                                  {insightsProps.liveTasks.map(task => {
-                                                    const pollResponses = task.polls.reduce(
-                                                      (sum, poll) => sum + poll.responses.length,
-                                                      0
-                                                    )
-                                                    const questionResponses = task.questions.reduce(
-                                                      (sum, q) => sum + q.responses.length,
-                                                      0
-                                                    )
-                                                    return (
-                                                      <div
-                                                        key={task.id}
-                                                        className="rounded-lg border bg-white/90 p-4"
-                                                      >
-                                                        <div className="flex flex-wrap items-center justify-between gap-2">
-                                                          <div>
-                                                            <p className="text-sm font-semibold text-gray-900">
-                                                              {task.title}
-                                                            </p>
-                                                            <p className="text-muted-foreground text-xs">
-                                                              Polls: {task.polls.length} •
-                                                              Questions: {task.questions.length}
-                                                            </p>
-                                                          </div>
-                                                          <div className="text-muted-foreground flex items-center gap-2 text-xs">
-                                                            <span>
-                                                              Poll responses: {pollResponses}
-                                                            </span>
-                                                            <span>
-                                                              Question answers: {questionResponses}
-                                                            </span>
-                                                          </div>
-                                                        </div>
-                                                        {task.polls.map(poll => {
-                                                          const counts = poll.options.map(
-                                                            option => ({
-                                                              option,
-                                                              count: poll.responses.filter(
-                                                                r => r.value === option
-                                                              ).length,
-                                                            })
-                                                          )
-                                                          return (
-                                                            <div
-                                                              key={poll.id}
-                                                              className="mt-3 rounded-md border bg-slate-50/80 p-3"
-                                                            >
-                                                              <p className="text-xs font-medium text-gray-700">
-                                                                {poll.question}
-                                                              </p>
-                                                              <div className="mt-2 flex flex-wrap gap-2">
-                                                                {counts.map(entry => (
-                                                                  <span
-                                                                    key={`${poll.id}-${entry.option}`}
-                                                                    className="rounded-full bg-white px-2 py-1 text-[11px] text-gray-600"
-                                                                  >
-                                                                    {entry.option}: {entry.count}
-                                                                  </span>
-                                                                ))}
-                                                              </div>
-                                                            </div>
-                                                          )
-                                                        })}
-                                                        {task.questions.map(question => (
-                                                          <div
-                                                            key={question.id}
-                                                            className="mt-3 rounded-md border bg-slate-50/80 p-3"
-                                                          >
-                                                            <p className="text-xs font-medium text-gray-700">
-                                                              {question.prompt}
-                                                            </p>
-                                                            <p className="text-muted-foreground mt-1 text-xs">
-                                                              Answers: {question.responses.length}
-                                                            </p>
-                                                          </div>
-                                                        ))}
-                                                      </div>
-                                                    )
-                                                  })}
-                                                </div>
-                                              )}
+                                              <AnalyticsPanel
+                                                students={insightsProps.students}
+                                                metrics={insightsProps.metrics}
+                                                liveTasks={insightsProps.liveTasks}
+                                                classDuration={insightsProps.classDuration}
+                                                isRecording={insightsProps.isRecording}
+                                                recordingDuration={insightsProps.recordingDuration}
+                                                sessionId={insightsProps.sessionId}
+                                              />
                                             </TabsContent>
 
                                             <TabsContent
@@ -5010,11 +4968,17 @@ FEEDBACK: [your explanation]`
                                             >
                                               <div className="mt-auto flex h-[40%] flex-col rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
                                                 <div className="flex flex-1 flex-col space-y-2 p-3">
-                                                  <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
-                                                    Poll question
-                                                  </Label>
+                                                  <div className="flex items-center justify-between">
+                                                    <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
+                                                      Poll question
+                                                    </Label>
+                                                    <span className="text-xs font-medium text-cyan-600">
+                                                      {selectedContextLabel ?? 'No item selected'}
+                                                    </span>
+                                                  </div>
                                                   <div className="relative flex-1">
-                                                    <AutoTextarea
+                                                    <MentionTextarea
+                                                      mentionItems={mentionItems}
                                                       className="h-full min-h-[100px] w-full border-0 bg-transparent py-4 pl-3 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                                       placeholder="What should students answer?"
                                                       disableAutoResize
@@ -5082,11 +5046,17 @@ FEEDBACK: [your explanation]`
                                             >
                                               <div className="mt-auto flex h-[40%] flex-col rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
                                                 <div className="flex flex-1 flex-col space-y-2 p-3">
-                                                  <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
-                                                    Question prompt
-                                                  </Label>
+                                                  <div className="flex items-center justify-between">
+                                                    <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
+                                                      Question prompt
+                                                    </Label>
+                                                    <span className="text-xs font-medium text-cyan-600">
+                                                      {selectedContextLabel ?? 'No item selected'}
+                                                    </span>
+                                                  </div>
                                                   <div className="relative flex-1">
-                                                    <AutoTextarea
+                                                    <MentionTextarea
+                                                      mentionItems={mentionItems}
                                                       className="h-full min-h-[120px] w-full border-0 bg-transparent py-4 pl-3 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                                       placeholder="Ask your AI coach or share a reflection..."
                                                       disableAutoResize
@@ -5186,7 +5156,8 @@ FEEDBACK: [your explanation]`
                               {testPciActiveTab !== 'insights' && (
                                 <div className="border-border bg-background mt-4 rounded-2xl border shadow-xl backdrop-blur-md">
                                   <div className="relative p-1">
-                                    <AutoTextarea
+                                    <MentionTextarea
+                                      mentionItems={mentionItems}
                                       className="min-h-[100px] w-full border-0 bg-transparent py-4 pl-4 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                       placeholder={
                                         testPciActiveTab === 'classroom'
