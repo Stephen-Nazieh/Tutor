@@ -407,6 +407,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     )
 
     const [editingTabId, setEditingTabId] = useState<string | null>(null)
+    const [renamingItemId, setRenamingItemId] = useState<string | null>(null)
 
     // Builder state for Task and Assessment
     // Task content is always preserved. Extensions have their own content.
@@ -4060,9 +4061,43 @@ FEEDBACK: [your explanation]`
                                                       >
                                                         <DragHandle className="shrink-0" />
                                                         <ListTodo className="h-3 w-3 shrink-0 text-blue-600" />
-                                                        <span className="flex-1 truncate text-xs font-semibold text-blue-700">
-                                                          {idx + 1}. {task.title}
-                                                        </span>
+                                                        {renamingItemId === task.id ? (
+                                                          <Input
+                                                            autoFocus
+                                                            defaultValue={task.title}
+                                                            className="h-6 flex-1 text-xs font-semibold text-blue-700"
+                                                            onClick={e => e.stopPropagation()}
+                                                            onBlur={e => {
+                                                              const newTitle = e.target.value.trim()
+                                                              if (newTitle && newTitle !== task.title) {
+                                                                setCourseBuilderNodes(prev =>
+                                                                  prev.map(n => ({
+                                                                    ...n,
+                                                                    lessons: n.lessons.map(l => ({
+                                                                      ...l,
+                                                                      tasks: l.tasks.map(t =>
+                                                                        t.id === task.id ? { ...t, title: newTitle } : t
+                                                                      ),
+                                                                    })),
+                                                                  }))
+                                                                )
+                                                                if (loadedTaskId === task.id) {
+                                                                  setTaskBuilder(prev => ({ ...prev, title: newTitle }))
+                                                                }
+                                                              }
+                                                              setRenamingItemId(null)
+                                                            }}
+                                                            onKeyDown={e => {
+                                                              if (e.key === 'Enter') {
+                                                                (e.target as HTMLInputElement).blur()
+                                                              }
+                                                            }}
+                                                          />
+                                                        ) : (
+                                                          <span className="flex-1 truncate text-xs font-semibold text-blue-700">
+                                                            {idx + 1}. {task.title}
+                                                          </span>
+                                                        )}
                                                         <DropdownMenu>
                                                           <DropdownMenuTrigger asChild>
                                                             <Button
@@ -4075,6 +4110,14 @@ FEEDBACK: [your explanation]`
                                                             </Button>
                                                           </DropdownMenuTrigger>
                                                           <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem
+                                                              onClick={e => {
+                                                                e.stopPropagation()
+                                                                setRenamingItemId(task.id)
+                                                              }}
+                                                            >
+                                                              Rename
+                                                            </DropdownMenuItem>
                                                             <DropdownMenuItem
                                                               onClick={e => {
                                                                 e.stopPropagation()
@@ -4548,9 +4591,43 @@ FEEDBACK: [your explanation]`
                                                     >
                                                       <DragHandle className="shrink-0" />
                                                       <FileQuestion className="h-3 w-3 shrink-0 text-indigo-600" />
-                                                      <span className="flex-1 truncate text-xs font-semibold text-indigo-700">
-                                                        {idx + 1}. {hw.title}
-                                                      </span>
+                                                      {renamingItemId === hw.id ? (
+                                                        <Input
+                                                          autoFocus
+                                                          defaultValue={hw.title}
+                                                          className="h-6 flex-1 text-xs font-semibold text-indigo-700"
+                                                          onClick={e => e.stopPropagation()}
+                                                          onBlur={e => {
+                                                            const newTitle = e.target.value.trim()
+                                                            if (newTitle && newTitle !== hw.title) {
+                                                              setCourseBuilderNodes(prev =>
+                                                                prev.map(n => ({
+                                                                  ...n,
+                                                                  lessons: n.lessons.map(l => ({
+                                                                    ...l,
+                                                                    homework: l.homework.map(h =>
+                                                                      h.id === hw.id ? { ...h, title: newTitle } : h
+                                                                    ),
+                                                                  })),
+                                                                }))
+                                                              )
+                                                              if (loadedAssessmentId === hw.id) {
+                                                                setAssessmentBuilder(prev => ({ ...prev, title: newTitle }))
+                                                              }
+                                                            }
+                                                            setRenamingItemId(null)
+                                                          }}
+                                                          onKeyDown={e => {
+                                                            if (e.key === 'Enter') {
+                                                              (e.target as HTMLInputElement).blur()
+                                                            }
+                                                          }}
+                                                        />
+                                                      ) : (
+                                                        <span className="flex-1 truncate text-xs font-semibold text-indigo-700">
+                                                          {idx + 1}. {hw.title}
+                                                        </span>
+                                                      )}
 
                                                       <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
@@ -4564,6 +4641,14 @@ FEEDBACK: [your explanation]`
                                                           </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
+                                                          <DropdownMenuItem
+                                                            onClick={e => {
+                                                              e.stopPropagation()
+                                                              setRenamingItemId(hw.id)
+                                                            }}
+                                                          >
+                                                            Rename
+                                                          </DropdownMenuItem>
                                                           <DropdownMenuItem
                                                             onClick={e => {
                                                               e.stopPropagation()
@@ -4689,9 +4774,43 @@ FEEDBACK: [your explanation]`
                                                       >
                                                         <DragHandle className="shrink-0" />
                                                         <FileQuestion className="h-3 w-3 shrink-0 text-emerald-600" />
-                                                        <span className="flex-1 truncate text-xs font-semibold text-emerald-700">
-                                                          {hwIdx + 1}. {hw.title}
-                                                        </span>
+                                                        {renamingItemId === hw.id ? (
+                                                          <Input
+                                                            autoFocus
+                                                            defaultValue={hw.title}
+                                                            className="h-6 flex-1 text-xs font-semibold text-emerald-700"
+                                                            onClick={e => e.stopPropagation()}
+                                                            onBlur={e => {
+                                                              const newTitle = e.target.value.trim()
+                                                              if (newTitle && newTitle !== hw.title) {
+                                                                setCourseBuilderNodes(prev =>
+                                                                  prev.map(n => ({
+                                                                    ...n,
+                                                                    lessons: n.lessons.map(l => ({
+                                                                      ...l,
+                                                                      homework: l.homework.map(h =>
+                                                                        h.id === hw.id ? { ...h, title: newTitle } : h
+                                                                      ),
+                                                                    })),
+                                                                  }))
+                                                                )
+                                                                if (loadedAssessmentId === hw.id) {
+                                                                  setAssessmentBuilder(prev => ({ ...prev, title: newTitle }))
+                                                                }
+                                                              }
+                                                              setRenamingItemId(null)
+                                                            }}
+                                                            onKeyDown={e => {
+                                                              if (e.key === 'Enter') {
+                                                                (e.target as HTMLInputElement).blur()
+                                                              }
+                                                            }}
+                                                          />
+                                                        ) : (
+                                                          <span className="flex-1 truncate text-xs font-semibold text-emerald-700">
+                                                            {hwIdx + 1}. {hw.title}
+                                                          </span>
+                                                        )}
                                                         <DropdownMenu>
                                                           <DropdownMenuTrigger asChild>
                                                             <Button
@@ -4704,6 +4823,14 @@ FEEDBACK: [your explanation]`
                                                             </Button>
                                                           </DropdownMenuTrigger>
                                                           <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem
+                                                              onClick={e => {
+                                                                e.stopPropagation()
+                                                                setRenamingItemId(hw.id)
+                                                              }}
+                                                            >
+                                                              Rename
+                                                            </DropdownMenuItem>
                                                             <DropdownMenuItem
                                                               onClick={e => {
                                                                 e.stopPropagation()
