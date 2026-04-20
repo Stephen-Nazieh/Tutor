@@ -4792,7 +4792,7 @@ FEEDBACK: [your explanation]`
                                 onValueChange={setTestPciActiveTab}
                                 className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-hidden"
                               >
-                                <TabsList className="bg-muted flex min-h-[3.2rem] w-full shrink-0 flex-nowrap items-stretch gap-1 rounded-xl border p-1">
+                                <TabsList className="bg-muted flex min-h-[3.2rem] w-full shrink-0 flex-nowrap items-stretch gap-1 rounded-xl p-1">
                                   {testPciTabs.map(tab => (
                                     <div key={tab.id} className="relative min-w-0 flex-1 basis-0">
                                       {editingTabId === tab.id ? (
@@ -4894,7 +4894,7 @@ FEEDBACK: [your explanation]`
                                             }
                                             className="flex h-full min-h-0 flex-col"
                                           >
-                                            <TabsList className="mb-4 grid w-full grid-cols-4 gap-1 rounded-xl border border-cyan-200/70 bg-white/80 p-1 shadow-sm">
+                                            <TabsList className="mb-4 grid w-full grid-cols-4 gap-1 rounded-xl bg-white/80 p-1 shadow-sm">
                                               <TabsTrigger
                                                 value="analytics"
                                                 className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
