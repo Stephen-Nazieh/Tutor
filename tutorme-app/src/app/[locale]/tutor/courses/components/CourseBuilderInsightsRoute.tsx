@@ -373,16 +373,6 @@ function CourseBuilderInsightsRouteInner({
                 </PopoverContent>
               </Popover>
             )}
-            {insightsProps.sessionId && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleEndSession}
-                disabled={endingSession}
-              >
-                {endingSession ? 'Ending…' : 'End Session'}
-              </Button>
-            )}
             {activeMainTab === 'builder' && insightsProps.sessionId && onSyncToLiveSession && (
               <Button
                 size="sm"
@@ -513,7 +503,11 @@ function CourseBuilderInsightsRouteInner({
             courseName={model.course?.name}
             initialLessons={model.loadedLessons ?? undefined}
             onSave={onSaveCourse}
-            insightsProps={insightsProps}
+            insightsProps={{
+              ...insightsProps,
+              onEndSession: insightsProps.sessionId ? handleEndSession : undefined,
+              endingSession,
+            }}
             onMainTabChange={setActiveMainTab}
             initialMainTab={tabFromUrl ?? 'builder'}
           />

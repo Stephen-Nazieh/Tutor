@@ -69,7 +69,7 @@ import {
 import { cn } from '@/lib/utils'
 import { extractTextFromFile } from '@/lib/extract-file-text'
 import { toast } from 'sonner'
-import type { LiveTask, ChatMessage } from '@/lib/socket'
+import type { LiveTask } from '@/lib/socket'
 import type { LiveStudent, EngagementMetrics } from '@/types/live-session'
 import type {
   Video,
@@ -554,9 +554,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     }
 
     // Insights panel state
-    const [insightsTab, setInsightsTab] = useState<'analytics' | 'poll' | 'question' | 'chat'>(
-      'analytics'
-    )
+    const [insightsTab, setInsightsTab] = useState<'analytics' | 'poll' | 'question'>('analytics')
     const [pollPrompt, setPollPrompt] = useState('Did you find this task difficult')
     const [questionPrompt, setQuestionPrompt] = useState('Do you have a question about this task?')
 
@@ -570,10 +568,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       roomUrl: string | null
       token: string | null
     } | null>(null)
-
-    // Chat state
-    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
-    const [chatInput, setChatInput] = useState('')
 
     const [importTypeModalData, setImportTypeModalData] = useState<{
       target: { nodeId: string; lessonId: string }
@@ -755,18 +749,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         cancelled = true
       }
     }, [insightsProps?.sessionId])
-
-    useEffect(() => {
-      if (!insightsProps?.socket) return
-      const socket = insightsProps.socket
-      const handleChatMessage = (message: ChatMessage) => {
-        setChatMessages(prev => [...prev.slice(-19), message])
-      }
-      socket.on('chat_message', handleChatMessage)
-      return () => {
-        socket.off('chat_message', handleChatMessage)
-      }
-    }, [insightsProps?.socket])
 
     useEffect(() => {
       if (!sessionScheduledAt) {
@@ -3660,38 +3642,6 @@ FEEDBACK: [your explanation]`
           panelMode === 'live-class' && 'pt-3'
         )}
       >
-        {insightsProps && sessionContext && (
-          <div className="rounded-lg border border-blue-200 bg-blue-50/60 px-4 py-2 text-sm text-blue-900 shadow-sm">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-              <span>
-                <span className="font-semibold">Lesson:</span> {sessionContext.topic || '—'}
-              </span>
-              <span className="hidden text-blue-300 sm:inline">•</span>
-              <span>
-                <span className="font-semibold">Category:</span> {sessionContext.category || '—'}
-              </span>
-              <span className="hidden text-blue-300 sm:inline">•</span>
-              <span>
-                <span className="font-semibold">Language:</span>{' '}
-                {sessionContext.languageOfInstruction || '—'}
-              </span>
-              <span className="hidden text-blue-300 sm:inline">•</span>
-              <span>
-                <span className="font-semibold">Region:</span> {sessionContext.nationality || '—'}
-              </span>
-            </div>
-            {sessionContext.objectives && sessionContext.objectives.length > 0 && (
-              <div className="mt-1 text-xs text-blue-800">
-                <span className="font-semibold">Objectives:</span>{' '}
-                {sessionContext.objectives.map((obj, idx) => (
-                  <span key={idx}>
-                    {idx + 1}) {obj}{' '}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
         <div className="flex h-full w-full min-w-0 flex-1 gap-0">
           {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
           {!leftPanelHidden && (
@@ -3731,6 +3681,17 @@ FEEDBACK: [your explanation]`
                       <div className="flex items-center gap-1">
                         {mainTab === 'live' && (
                           <div className="flex items-center gap-2">
+                            {insightsProps?.onEndSession && (
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={insightsProps.onEndSession}
+                                disabled={insightsProps.endingSession}
+                                className="h-7 gap-1 px-2 text-xs"
+                              >
+                                {insightsProps.endingSession ? 'Ending…' : 'End Session'}
+                              </Button>
+                            )}
                             {insightsProps?.onToggleRecording && (
                               <Button
                                 size="sm"
@@ -5196,80 +5157,6 @@ FEEDBACK: [your explanation]`
                                               </div>
                                             </TabsContent>
 
-                                            <TabsContent
-                                              value="chat"
-                                              className="flex min-h-0 flex-1 flex-col pt-2"
-                                            >
-                                              <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-cyan-100 bg-white/60 p-3 shadow-sm">
-                                                <div className="flex-1 space-y-2 overflow-y-auto pr-1">
-                                                  {chatMessages.length === 0 && (
-                                                    <p className="text-center text-xs text-gray-500">
-                                                      No messages yet.
-                                                    </p>
-                                                  )}
-                                                  {chatMessages.map(msg => (
-                                                    <div
-                                                      key={msg.id}
-                                                      className={`flex flex-col text-sm ${msg.userId === (insightsProps?.socket?.id ? 'items-end self-end' : 'items-start self-start')}`}
-                                                    >
-                                                      <span className="text-[10px] text-gray-500">
-                                                        {msg.name}
-                                                      </span>
-                                                      <div
-                                                        className={`max-w-[90%] rounded-lg px-2.5 py-1.5 text-xs ${msg.userId === (typeof window !== 'undefined' ? '' : '') ? 'bg-cyan-100 text-cyan-900' : 'bg-white text-gray-800'}`}
-                                                      >
-                                                        {msg.text}
-                                                      </div>
-                                                    </div>
-                                                  ))}
-                                                </div>
-                                                <div className="mt-2 flex items-end gap-2">
-                                                  <Input
-                                                    placeholder="Type a message..."
-                                                    value={chatInput}
-                                                    onChange={e => setChatInput(e.target.value)}
-                                                    onKeyDown={e => {
-                                                      if (e.key === 'Enter' && !e.shiftKey) {
-                                                        e.preventDefault()
-                                                        if (
-                                                          chatInput.trim() &&
-                                                          insightsProps?.socket
-                                                        ) {
-                                                          insightsProps.socket.emit(
-                                                            'chat_message',
-                                                            {
-                                                              text: chatInput.trim(),
-                                                            }
-                                                          )
-                                                          setChatInput('')
-                                                        }
-                                                      }
-                                                    }}
-                                                    className="min-h-[36px] flex-1 text-xs"
-                                                  />
-                                                  <Button
-                                                    size="icon"
-                                                    className="h-8 w-8 shrink-0"
-                                                    disabled={
-                                                      !chatInput.trim() || !insightsProps?.socket
-                                                    }
-                                                    onClick={() => {
-                                                      if (
-                                                        chatInput.trim() &&
-                                                        insightsProps?.socket
-                                                      ) {
-                                                        insightsProps.socket.emit('chat_message', {
-                                                          text: chatInput.trim(),
-                                                        })
-                                                        setChatInput('')
-                                                      }
-                                                    }}
-                                                  >
-                                                    <Send className="h-3.5 w-3.5" />
-                                                  </Button>
-                                                </div>
-                                              </div>
-                                            </TabsContent>
                                           </Tabs>
                                         </div>
                                       ) : null
