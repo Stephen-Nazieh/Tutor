@@ -5240,14 +5240,6 @@ FEEDBACK: [your explanation]`
                         >
                           {/* Main Builder Tabs — pill strip with curved active tab */}
                           <div className="mb-3 flex w-full items-stretch overflow-hidden rounded-2xl bg-gray-100 p-1 shadow-sm">
-                            {/* Left: current task name */}
-                            <div className="flex shrink-0 items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-500">
-                              <ListTodo className="h-4 w-4 shrink-0 text-blue-500" />
-                              <span className="truncate">
-                                {taskBuilder.title || 'Task 1'}
-                              </span>
-                            </div>
-
                             {/* Center: tabs with curved outer edges when active */}
                             <TabsList className="flex flex-1 gap-0 bg-transparent p-0">
                               <TabsTrigger
@@ -5263,14 +5255,6 @@ FEEDBACK: [your explanation]`
                                 Assessment Builder
                               </TabsTrigger>
                             </TabsList>
-
-                            {/* Right: current assessment name */}
-                            <div className="flex shrink-0 items-center justify-end gap-2 px-4 py-2.5 text-sm font-medium text-gray-500">
-                              <span className="truncate">
-                                {assessmentBuilder.title || 'Assessment 1'}
-                              </span>
-                              <FileQuestion className="h-4 w-4 shrink-0 text-indigo-500" />
-                            </div>
                           </div>
 
                           {/* Content area */}
