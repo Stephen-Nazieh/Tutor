@@ -109,7 +109,6 @@ export default function StudentTutorDirectoryPage() {
   const [nationalityFilter, setNationalityFilter] = useState('all')
   const [sortBy, setSortBy] = useState<'popular' | 'newest' | 'courses' | 'rate'>('popular')
   const [activeTutor, setActiveTutor] = useState<TutorDirectoryItem | null>(null)
-  const [dataSource, setDataSource] = useState<'db' | 'mock'>('db')
   const [following, setFollowing] = useState<Set<string>>(new Set())
 
   // Theme state with localStorage persistence
@@ -203,7 +202,6 @@ export default function StudentTutorDirectoryPage() {
         const data = await res.json()
         if (!active) return
 
-        // No longer enriching with random mock data to ensure real data is shown
         const enrichedTutors = Array.isArray(data?.tutors) ? data.tutors : []
 
         setTutors(enrichedTutors)
@@ -211,11 +209,9 @@ export default function StudentTutorDirectoryPage() {
         setNationalities(
           Array.isArray(data?.availableNationalities) ? data.availableNationalities : []
         )
-        setDataSource(data?.source === 'mock' ? 'mock' : 'db')
       } catch {
         if (!active) return
         setTutors([])
-        setDataSource('db')
       } finally {
         if (active) setLoading(false)
       }
@@ -324,10 +320,7 @@ export default function StudentTutorDirectoryPage() {
       <Card className="border-border bg-card">
         <CardHeader>
           <CardTitle className="text-foreground">Search & Filter</CardTitle>
-          <CardDescription>
-            Refine by keywords, subject, country, and ranking.
-            {dataSource === 'mock' ? ' Showing demo tutors right now.' : ''}
-          </CardDescription>
+          <CardDescription>Refine by keywords, subject, country, and ranking.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-4">
           <div className="relative">

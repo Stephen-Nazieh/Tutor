@@ -241,8 +241,7 @@ export async function* streamKimi(
  */
 export async function generateWithKimiVision(
   promptItems: Array<
-    | { type: 'text'; text: string }
-    | { type: 'image_url'; image_url: { url: string } }
+    { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }
   >,
   options: {
     model?: string
@@ -261,7 +260,9 @@ export async function generateWithKimiVision(
 
   const messages: Array<{
     role: 'system' | 'user' | 'assistant'
-    content: string | Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }>
+    content:
+      | string
+      | Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }>
   }> = []
 
   if (options.systemPrompt) {

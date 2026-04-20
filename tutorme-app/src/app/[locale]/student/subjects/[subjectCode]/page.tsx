@@ -91,15 +91,6 @@ const subjectColors: Record<string, { bg: string; text: string; border: string }
   cs: { bg: 'bg-gray-700', text: 'text-gray-700', border: 'border-gray-200' },
 }
 
-// Mock concept mastery data for math
-const mathConceptMastery = [
-  { concept: 'Linear Equations', score: 85, totalQuestions: 20, correctAnswers: 17 },
-  { concept: 'Systems of Equations', score: 60, totalQuestions: 15, correctAnswers: 9 },
-  { concept: 'Fractional Equations', score: 35, totalQuestions: 10, correctAnswers: 3 },
-  { concept: 'Quadratic Equations', score: 70, totalQuestions: 12, correctAnswers: 8 },
-  { concept: 'Polynomials', score: 55, totalQuestions: 8, correctAnswers: 4 },
-]
-
 export default function SubjectDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -118,8 +109,7 @@ export default function SubjectDetailPage() {
       const res = await fetch(`/api/student/subjects/${subjectCode}`)
 
       if (!res.ok) {
-        // Use mock data if API doesn't exist
-        setSubject(getMockSubjectData(subjectCode))
+        setSubject(null)
         setLoading(false)
         return
       }
@@ -133,101 +123,11 @@ export default function SubjectDetailPage() {
       }
       setSubject(sub)
     } catch (error) {
-      // Use mock data on error
-      setSubject(getMockSubjectData(subjectCode))
+      console.error('Failed to fetch subject detail:', error)
+      setSubject(null)
     } finally {
       setLoading(false)
     }
-  }
-
-  const getMockSubjectData = (code: string): SubjectDetail => {
-    const subjectConfigs: Record<string, Partial<SubjectDetail>> = {
-      english: {
-        name: 'English',
-        description: 'Language arts, writing, and literature analysis',
-        skills: {
-          grammar: 75,
-          vocabulary: 80,
-          speaking: 70,
-          listening: 85,
-          writing: 72,
-          reading: 88,
-        },
-      },
-      math: {
-        name: 'Mathematics',
-        description: 'Algebra, geometry, calculus, and problem solving',
-        skills: {
-          algebra: 65,
-          geometry: 70,
-          calculus: 45,
-          statistics: 60,
-          probability: 55,
-        },
-        conceptMastery: mathConceptMastery,
-      },
-      physics: {
-        name: 'Physics',
-        description: 'Mechanics, thermodynamics, electricity, and quantum physics',
-        skills: {
-          mechanics: 55,
-          thermodynamics: 40,
-          electricity: 50,
-          waves: 45,
-          quantum: 30,
-        },
-      },
-      ielts: {
-        name: 'IELTS',
-        description: 'International English Language Testing System preparation',
-        skills: {
-          listening: 75,
-          reading: 80,
-          writing: 70,
-          speaking: 72,
-          'task-1': 68,
-          'task-2': 70,
-        },
-      },
-      toefl: {
-        name: 'TOEFL',
-        description: 'Test of English as a Foreign Language preparation',
-        skills: {
-          listening: 78,
-          reading: 82,
-          writing: 74,
-          speaking: 70,
-          'integrated-tasks': 72,
-          'independent-tasks': 75,
-        },
-      },
-    }
-
-    const config = subjectConfigs[code.toLowerCase()] || {
-      name: code.charAt(0).toUpperCase() + code.slice(1),
-      description: 'Subject description',
-      skills: { general: 50 },
-    }
-
-    return {
-      id: '1',
-      code,
-      category: 'academic',
-      progress: 65,
-      confidence: 72,
-      xp: 1250,
-      level: 5,
-      streakDays: 3,
-      totalLessons: 20,
-      completedLessons: 13,
-      recentLessons: [
-        { id: '1', title: 'Lesson 1: Introduction', completed: true, score: 85 },
-        { id: '2', title: 'Lesson 2: Fundamentals', completed: true, score: 78 },
-        { id: '3', title: 'Lesson 3: Advanced Topics', completed: false },
-        { id: '4', title: 'Lesson 4: Practice', completed: false },
-      ],
-      ...config,
-    } as SubjectDetail
   }
 
   const getSubjectIcon = () => {

@@ -325,8 +325,6 @@ export interface CourseBuilderProps {
   isCollapsed?: boolean
   onMainTabChange?: (tab: 'live' | 'builder' | 'test-pci') => void
   initialMainTab?: 'live' | 'builder' | 'test-pci'
-  showInsightsPanel?: boolean
-  onToggleInsightsPanel?: () => void
 }
 
 export interface CourseBuilderRef {

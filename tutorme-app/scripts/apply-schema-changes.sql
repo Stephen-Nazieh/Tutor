@@ -89,50 +89,186 @@ BEGIN
   END IF;
 END $$;
 
--- LiveSession extensions for variant and lesson context
-ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "variantId" text;
-ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "lessonId" text;
-ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "topic" text;
-ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "objectives" text[];
-ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "languageOfInstruction" text;
-ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "nationality" text;
-ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "maxStudents" integer DEFAULT 50 NOT NULL;
-
--- Foreign keys (defensive: discover referenced PK column names)
+-- ============================================
+-- curriculumId -> courseId renames (skipped migration 0019 / 0032)
+-- ============================================
 DO $$
 DECLARE
-  cv_pk_col text;
-  cl_pk_col text;
+  tbl text;
 BEGIN
-  -- Discover CourseVariant PK
-  SELECT column_name INTO cv_pk_col
-  FROM information_schema.columns
-  WHERE table_name = 'CourseVariant' AND column_name IN ('variantId', 'id')
-  LIMIT 1;
+  FOREACH tbl IN ARRAY ARRAY['BuilderTask', 'CalendarEvent', 'LiveSession', 'ResourceShare', 'StudentPerformance']
+  LOOP
+    IF EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = tbl AND column_name = 'curriculumId'
+    ) AND NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = tbl AND column_name = 'courseId'
+    ) THEN
+      EXECUTE format('ALTER TABLE %I RENAME COLUMN "curriculumId" TO "courseId"', tbl);
+    END IF;
+  END LOOP;
+END $$;
 
-  -- Discover CourseLesson PK
-  SELECT column_name INTO cl_pk_col
-  FROM information_schema.columns
-  WHERE table_name = 'CourseLesson' AND column_name IN ('lessonId', 'id')
-  LIMIT 1;
+-- ============================================
+-- LiveSession schema integrity fixes
+-- Handle drift from skipped migrations (0019 rename + 0036 enum)
+-- ============================================
 
-  IF cv_pk_col IS NOT NULL AND NOT EXISTS (
-    SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'LiveSession_variantId_fkey'
+-- Rename subject -> category if old exists and new doesn't
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'LiveSession' AND column_name = 'subject'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'LiveSession' AND column_name = 'category'
   ) THEN
-    EXECUTE format(
-      'ALTER TABLE "LiveSession" ADD CONSTRAINT "LiveSession_variantId_fkey" FOREIGN KEY ("variantId") REFERENCES "CourseVariant"(%I) ON DELETE SET NULL',
-      cv_pk_col
-    );
-  END IF;
-
-  IF cl_pk_col IS NOT NULL AND NOT EXISTS (
-    SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'LiveSession_lessonId_fkey'
-  ) THEN
-    EXECUTE format(
-      'ALTER TABLE "LiveSession" ADD CONSTRAINT "LiveSession_lessonId_fkey" FOREIGN KEY ("lessonId") REFERENCES "CourseLesson"(%I) ON DELETE SET NULL',
-      cl_pk_col
-    );
+    ALTER TABLE "LiveSession" RENAME COLUMN "subject" TO "category";
   END IF;
 END $$;
 
-CREATE INDEX IF NOT EXISTS "LiveSession_variantId_idx" ON "LiveSession"("variantId");
+-- Ensure required columns exist (defensive for partially migrated DBs)
+ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "courseId" text;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'LiveSession' AND column_name = 'category'
+  ) THEN
+    ALTER TABLE "LiveSession" ADD COLUMN "category" text NOT NULL DEFAULT 'general';
+  END IF;
+END $$;
+
+-- Ensure category is NOT NULL (matches Drizzle schema)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'LiveSession' AND column_name = 'category' AND is_nullable = 'YES'
+  ) THEN
+    UPDATE "LiveSession" SET "category" = COALESCE("category", 'general') WHERE "category" IS NULL;
+    ALTER TABLE "LiveSession" ALTER COLUMN "category" SET NOT NULL;
+  END IF;
+END $$;
+
+-- Ensure LiveSessionStatus enum exists and status uses it
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'LiveSessionStatus') THEN
+    CREATE TYPE "LiveSessionStatus" AS ENUM ('scheduled', 'active', 'ended', 'preparing', 'live', 'paused');
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'LiveSession' AND column_name = 'status' AND data_type = 'character varying'
+  ) THEN
+    UPDATE "LiveSession" SET "status" = 'scheduled'
+    WHERE "status" IS NULL OR "status" NOT IN ('scheduled', 'active', 'ended', 'preparing', 'live', 'paused');
+    ALTER TABLE "LiveSession" ALTER COLUMN "status" TYPE "LiveSessionStatus" USING ("status"::"LiveSessionStatus");
+  END IF;
+END $$;
+
+-- Drop deprecated columns if they still exist
+ALTER TABLE "LiveSession" DROP COLUMN IF EXISTS "type";
+ALTER TABLE "LiveSession" DROP COLUMN IF EXISTS "gradeLevel";
+
+-- Ensure maxStudents exists (matches Drizzle schema)
+ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "maxStudents" integer DEFAULT 50 NOT NULL;
+
+-- ============================================
+-- Additional enum fixes for drifted DBs (0036)
+-- ============================================
+
+-- BuilderTaskType enum + column conversion
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'BuilderTaskType') THEN
+    CREATE TYPE "BuilderTaskType" AS ENUM ('task', 'assessment', 'homework');
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'BuilderTask' AND column_name = 'type' AND data_type = 'character varying'
+  ) THEN
+    UPDATE "BuilderTask" SET "type" = 'task'
+    WHERE "type" IS NULL OR "type" NOT IN ('task', 'assessment', 'homework');
+    ALTER TABLE "BuilderTask" ALTER COLUMN "type" TYPE "BuilderTaskType" USING ("type"::"BuilderTaskType");
+  END IF;
+END $$;
+
+-- BuilderTaskStatus enum + column conversion
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'BuilderTaskStatus') THEN
+    CREATE TYPE "BuilderTaskStatus" AS ENUM ('draft', 'published', 'archived');
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'BuilderTask' AND column_name = 'status' AND data_type = 'character varying'
+  ) THEN
+    UPDATE "BuilderTask" SET "status" = 'draft'
+    WHERE "status" IS NULL OR "status" NOT IN ('draft', 'published', 'archived');
+    ALTER TABLE "BuilderTask" ALTER COLUMN "status" TYPE "BuilderTaskStatus" USING ("status"::"BuilderTaskStatus");
+  END IF;
+END $$;
+
+-- TaskDeploymentStatus enum + column conversion
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'TaskDeploymentStatus') THEN
+    CREATE TYPE "TaskDeploymentStatus" AS ENUM ('active', 'closed');
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'TaskDeployment' AND column_name = 'status' AND data_type = 'character varying'
+  ) THEN
+    UPDATE "TaskDeployment" SET "status" = 'active'
+    WHERE "status" IS NULL OR "status" NOT IN ('active', 'closed');
+    ALTER TABLE "TaskDeployment" ALTER COLUMN "status" TYPE "TaskDeploymentStatus" USING ("status"::"TaskDeploymentStatus");
+  END IF;
+END $$;
+
+-- PayoutStatus enum + column conversion
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'PayoutStatus') THEN
+    CREATE TYPE "PayoutStatus" AS ENUM ('PENDING', 'PROCESSING', 'COMPLETED', 'REJECTED');
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'Payout' AND column_name = 'status' AND data_type = 'character varying'
+  ) THEN
+    UPDATE "Payout" SET "status" = 'PENDING'
+    WHERE "status" IS NULL OR "status" NOT IN ('PENDING', 'PROCESSING', 'COMPLETED', 'REJECTED');
+    ALTER TABLE "Payout" ALTER COLUMN "status" TYPE "PayoutStatus" USING ("status"::"PayoutStatus");
+  END IF;
+END $$;
+
+-- BookingRequestStatus enum (defensive: table may not exist in very old snapshots)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'BookingRequestStatus') THEN
+    CREATE TYPE "BookingRequestStatus" AS ENUM ('PENDING', 'ACCEPTED', 'DECLINED', 'CANCELLED', 'COMPLETED');
+  END IF;
+END $$;

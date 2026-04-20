@@ -448,4 +448,3 @@ function closeBreakoutRoom(io: SocketIOServer, roomId: string) {
     breakoutRooms.delete(roomId)
   }, 5000)
 }
-

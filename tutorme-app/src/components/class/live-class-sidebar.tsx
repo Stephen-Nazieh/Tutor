@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   GraduationCap,
   Calendar,
-  Palette,
   BookOpen,
   FileQuestion,
   Database,
@@ -40,7 +39,6 @@ const overviewItems = [
 const teachingItems = [
   { id: 'classes', label: 'My Classes', href: '/tutor/classes', icon: GraduationCap },
   { id: 'calendar', label: 'Calendar', href: '/tutor/calendar', icon: Calendar },
-  { id: 'whiteboards', label: 'Whiteboards', href: '/tutor/whiteboards', icon: Palette },
   { id: 'courses', label: 'My Page & Courses', href: '/tutor/my-page', icon: BookOpen },
   { id: 'quizzes', label: 'Quizzes', href: '/tutor/quizzes', icon: FileQuestion },
   { id: 'resources', label: 'Resources', href: '/tutor/resources', icon: FolderOpen },

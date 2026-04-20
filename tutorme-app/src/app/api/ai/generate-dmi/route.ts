@@ -29,7 +29,9 @@ A[number]: [suggested answer or key points]
 Generate 5-10 questions that cover the main concepts, ranging from comprehension to application level.
 Be concise and clear. Do not include any other text outside the Q/A pairs.`
 
-function parseDmiResponse(text: string): Array<{ questionNumber: number; questionText: string; answer: string }> {
+function parseDmiResponse(
+  text: string
+): Array<{ questionNumber: number; questionText: string; answer: string }> {
   const questions: Array<{ questionNumber: number; questionText: string; answer: string }> = []
   const lines = text.split('\n')
   let currentQ: { questionNumber: number; questionText: string; answer: string } | null = null
@@ -94,8 +96,7 @@ export async function POST(request: NextRequest) {
 
     if (pdfPages && pdfPages.length > 0) {
       const promptItems: Array<
-        | { type: 'text'; text: string }
-        | { type: 'image_url'; image_url: { url: string } }
+        { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }
       > = [
         {
           type: 'text',

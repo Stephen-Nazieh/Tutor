@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course, courseLesson, courseVariant, liveSession } from '@/lib/db/schema'
-import { eq, and, inArray, gte } from 'drizzle-orm'
+import { eq, and, inArray, gte, sql } from 'drizzle-orm'
 import crypto from 'crypto'
 
 // GET current variants for this template course
@@ -73,6 +73,90 @@ const DAY_MAP: Record<string, number> = {
   Thursday: 4,
   Friday: 5,
   Saturday: 6,
+}
+
+/**
+ * Robust LiveSession insert that adapts to schema drift.
+ * Detects actual columns and uses raw SQL via the underlying pg driver.
+ */
+async function insertLiveSessionRaw(
+  tx: any,
+  data: {
+    sessionId: string
+    tutorId: string
+    courseId: string
+    title: string
+    category: string
+    description: string | null
+    scheduledAt: Date
+    status: string
+    maxStudents: number
+  }
+): Promise<void> {
+  // Discover actual columns
+  const colResult = await tx.execute(sql`
+    SELECT column_name, data_type, udt_name
+    FROM information_schema.columns
+    WHERE table_name = 'LiveSession'
+  `)
+  const columns = new Map((colResult.rows as any[]).map((r: any) => [r.column_name, r]))
+
+  const hasCategory = columns.has('category')
+  const hasSubject = columns.has('subject')
+  const categoryCol = hasCategory ? 'category' : hasSubject ? 'subject' : null
+
+  if (!categoryCol) {
+    throw new Error('LiveSession is missing both "category" and "subject" columns')
+  }
+
+  const hasCourseId = columns.has('courseId')
+  if (!hasCourseId) {
+    throw new Error('LiveSession is missing "courseId" column')
+  }
+
+  const hasStatus = columns.has('status')
+  if (!hasStatus) {
+    throw new Error('LiveSession is missing "status" column')
+  }
+
+  const hasMaxStudents = columns.has('maxStudents')
+  const hasDescription = columns.has('description')
+
+  // Build column list and values
+  const colNames = ['"id"', '"tutorId"', '"courseId"', '"title"', `"${categoryCol}"`]
+  const values: (string | number | Date | null)[] = [
+    data.sessionId,
+    data.tutorId,
+    data.courseId,
+    data.title,
+    data.category,
+  ]
+
+  if (hasDescription) {
+    colNames.push('"description"')
+    values.push(data.description)
+  }
+
+  colNames.push('"scheduledAt"', '"status"')
+  values.push(data.scheduledAt, data.status)
+
+  if (hasMaxStudents) {
+    colNames.push('"maxStudents"')
+    values.push(data.maxStudents)
+  }
+
+  const colList = colNames.join(', ')
+  const placeholders = values.map((_, i) => `$${i + 1}`).join(', ')
+  const rawSql = `INSERT INTO "LiveSession" (${colList}) VALUES (${placeholders})`
+
+  // Use underlying pg client for parameter binding
+  const client = tx.session?.client
+  if (client) {
+    await client.query(rawSql, values)
+  } else {
+    // Fallback: execute without params (should not happen)
+    await tx.execute(sql.raw(rawSql))
+  }
 }
 
 function generateSessionDates(
@@ -322,17 +406,42 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             const dateKey = session.scheduledAt.toISOString().slice(0, 16)
             if (existingDates.has(dateKey)) continue
 
-            await tx.insert(liveSession).values({
-              sessionId: crypto.randomUUID(),
-              tutorId: userId,
-              courseId: publishedCourseId,
-              title: session.title,
-              category: v.category,
-              description: templateCourse.description,
-              scheduledAt: session.scheduledAt,
-              status: 'scheduled',
-              maxStudents: 50,
-            })
+            try {
+              await insertLiveSessionRaw(tx, {
+                sessionId: crypto.randomUUID(),
+                tutorId: userId,
+                courseId: publishedCourseId,
+                title: session.title,
+                category: v.category,
+                description: templateCourse.description ?? null,
+                scheduledAt: session.scheduledAt,
+                status: 'scheduled',
+                maxStudents: 50,
+              })
+            } catch (insertError: any) {
+              const pgError = insertError?.cause || insertError
+              const msg = insertError?.message || String(insertError)
+              const pgMsg = pgError?.message || msg
+              console.error('[publish] LiveSession insert failed:', {
+                message: msg,
+                pgMessage: pgMsg,
+                pgCode: pgError?.code,
+                pgDetail: pgError?.detail,
+                pgColumn: pgError?.column,
+                pgTable: pgError?.table,
+                schemaColumns: Array.from(
+                  (
+                    await tx.execute(
+                      sql`SELECT column_name FROM information_schema.columns WHERE table_name = 'LiveSession'`
+                    )
+                  ).rows as any[]
+                ).map((r: any) => r.column_name),
+              })
+              throw new Error(
+                `LiveSession insert failed: ${pgMsg} (code: ${pgError?.code || 'unknown'}). ` +
+                  `Run: npm run db:apply-schema`
+              )
+            }
           }
         }
       }
@@ -355,9 +464,29 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       variants: result,
     })
   } catch (error: any) {
-    console.error('[POST /api/tutor/courses/[id]/publish] Error:', error)
+    const pgError = error?.cause || error
+    console.error('[POST /api/tutor/courses/[id]/publish] Error:', {
+      message: error?.message,
+      pgMessage: pgError?.message,
+      pgCode: pgError?.code,
+      pgDetail: pgError?.detail,
+      pgHint: pgError?.hint,
+      pgColumn: pgError?.column,
+      pgTable: pgError?.table,
+      stack: error?.stack,
+    })
+    const hint =
+      pgError?.code === '42703'
+        ? 'Missing column detected. Run: npm run db:apply-schema'
+        : pgError?.code === '42704'
+          ? 'Missing type/enum detected. Run: npm run db:apply-schema'
+          : undefined
     return NextResponse.json(
-      { error: error.message || 'Failed to publish course variants' },
+      {
+        error: error.message || 'Failed to publish course variants',
+        detail: pgError?.detail || pgError?.message,
+        hint,
+      },
       { status: 500 }
     )
   }

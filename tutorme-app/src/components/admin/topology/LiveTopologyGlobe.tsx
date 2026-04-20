@@ -32,7 +32,6 @@ interface Props {
 interface UserWithPosition extends OnlineUser {
   position: THREE.Vector3
   coordinates: GeoCoordinates
-  isMock: boolean
 }
 
 interface SessionWithPositions extends LiveSession {
@@ -216,17 +215,6 @@ function UserMarker({
         </mesh>
       )}
 
-      {/* Mock data indicator - small dot */}
-      {user.isMock && (
-        <mesh
-          position={[scale * 1.5, scale * 1.5, 0]}
-          scale={[scale * 0.3, scale * 0.3, scale * 0.3]}
-        >
-          <sphereGeometry args={[1, 8, 8]} />
-          <meshBasicMaterial color="#fbbf24" />
-        </mesh>
-      )}
-
       {/* HTML Label for active users */}
       {user.isActive && (
         <Html distanceFactor={10}>
@@ -240,11 +228,6 @@ function UserMarker({
             }}
           >
             {user.name}
-            {user.isMock && (
-              <span className="ml-1 text-[10px] opacity-70" title="Estimated location">
-                *
-              </span>
-            )}
           </div>
         </Html>
       )}
@@ -507,12 +490,11 @@ function Scene({
     }
 
     const positions: UserWithPosition[] = []
-    let mockCount = 0
     let realCount = 0
 
     for (const result of effectiveGeoData) {
       const user = users.find(u => u.id === result.userId)
-      if (!user) continue
+      if (!user || !result.coordinates) continue
 
       const pos = latLonToVector3(
         result.coordinates.lat,
@@ -523,16 +505,14 @@ function Scene({
         ...user,
         position: new THREE.Vector3(pos.x, pos.y, pos.z),
         coordinates: result.coordinates,
-        isMock: result.isMock,
       })
 
-      if (result.isMock) mockCount++
-      else realCount++
+      realCount++
     }
 
     setUserPositions(positions)
     lastUserPositionsRef.current = positions
-    onStatsUpdate?.({ mockCount, realCount })
+    onStatsUpdate?.({ mockCount: 0, realCount })
 
     // Update clusters
     const newClusters = clusterUsers(positions)
@@ -808,11 +788,6 @@ function UserTooltip({
                 ? `${user.coordinates.city}, ${user.coordinates.country}`
                 : user.coordinates.country}
             </span>
-            {user.isMock && (
-              <span className="text-amber-400/70" title="Estimated location">
-                (est.)
-              </span>
-            )}
           </div>
 
           <div className="flex items-center gap-1.5">

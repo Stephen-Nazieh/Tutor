@@ -27,8 +27,4 @@ export {
 } from '@/lib/socket'
 
 // Re-export handler registration functions for backward compatibility
-export {
-  initBreakoutHandlers,
-  initPollHandlers,
-  initFeedbackHandlers,
-} from './socket/handlers'
+export { initBreakoutHandlers, initPollHandlers, initFeedbackHandlers } from './socket/handlers'
