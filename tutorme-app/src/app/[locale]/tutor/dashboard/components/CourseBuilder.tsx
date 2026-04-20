@@ -4971,16 +4971,17 @@ FEEDBACK: [your explanation]`
                                               )}
                                             </TabsContent>
 
-                                            <TabsContent value="poll" className="space-y-4 pt-2">
-                                              <div className="rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
-                                                <div className="space-y-2 p-3">
+                                            <TabsContent value="poll" className="flex flex-1 flex-col space-y-4 pt-2">
+                                              <div className="flex flex-1 flex-col rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
+                                                <div className="flex flex-1 flex-col space-y-2 p-3">
                                                   <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
                                                     Poll question
                                                   </Label>
-                                                  <div className="relative">
+                                                  <div className="relative flex-1">
                                                     <AutoTextarea
-                                                      className="min-h-[100px] w-full border-0 bg-transparent py-4 pl-3 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                                      className="h-full min-h-[100px] w-full border-0 bg-transparent py-4 pl-3 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                                       placeholder="What should students answer?"
+                                                      disableAutoResize
                                                       value={pollPrompt}
                                                       onChange={event =>
                                                         setPollPrompt(event.target.value)
@@ -5041,17 +5042,18 @@ FEEDBACK: [your explanation]`
 
                                             <TabsContent
                                               value="question"
-                                              className="space-y-4 pt-2"
+                                              className="flex flex-1 flex-col space-y-4 pt-2"
                                             >
-                                              <div className="rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
-                                                <div className="space-y-2 p-3">
+                                              <div className="flex flex-1 flex-col rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
+                                                <div className="flex flex-1 flex-col space-y-2 p-3">
                                                   <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
                                                     Question prompt
                                                   </Label>
-                                                  <div className="relative">
+                                                  <div className="relative flex-1">
                                                     <AutoTextarea
-                                                      className="min-h-[120px] w-full border-0 bg-transparent py-4 pl-3 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                                      className="h-full min-h-[120px] w-full border-0 bg-transparent py-4 pl-3 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                                       placeholder="Ask your AI coach or share a reflection..."
+                                                      disableAutoResize
                                                       value={questionPrompt}
                                                       onChange={event =>
                                                         setQuestionPrompt(event.target.value)
