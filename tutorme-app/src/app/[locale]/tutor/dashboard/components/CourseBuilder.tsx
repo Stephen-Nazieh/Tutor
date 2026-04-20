@@ -190,7 +190,7 @@ import {
   Upload,
   CheckCircle,
   Clock,
-  Timer,
+
   GraduationCap,
   ListTodo,
   FolderOpen,
@@ -4771,17 +4771,7 @@ FEEDBACK: [your explanation]`
                       <CardContent className="flex h-full min-h-0 w-full flex-col overflow-hidden p-0 pt-4">
                         <CardTitle className="mb-3 flex items-center justify-between gap-2 px-4 text-base font-semibold">
                           <div>
-                            {insightsProps && countdownText && (
-                              <div
-                                className={cn(
-                                  'flex items-center gap-1.5 text-xs font-medium',
-                                  countdownOverdue ? 'text-orange-600' : 'text-emerald-600'
-                                )}
-                              >
-                                <Timer className="h-4 w-4" />
-                                <span>⏱ {countdownText}</span>
-                              </div>
-                            )}
+                            {/* Timer removed — kept in CourseBuilderInsightsRoute header instead */}
                           </div>
                         </CardTitle>
                         <div className="flex min-h-0 w-full flex-1 flex-col items-stretch gap-0 overflow-hidden">
@@ -4866,12 +4856,7 @@ FEEDBACK: [your explanation]`
                                               >
                                                 Question
                                               </TabsTrigger>
-                                              <TabsTrigger
-                                                value="chat"
-                                                className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
-                                              >
-                                                Chat
-                                              </TabsTrigger>
+
                                             </TabsList>
 
                                             <TabsContent
