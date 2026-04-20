@@ -3828,6 +3828,20 @@ FEEDBACK: [your explanation]`
                                               className="flex w-full items-center justify-between rounded-lg bg-blue-500 px-3 py-2 shadow-sm transition-all"
                                             >
                                               <div className="flex items-center gap-2">
+                                                <button
+                                                  type="button"
+                                                  className="flex items-center justify-center"
+                                                  onClick={e => {
+                                                    e.stopPropagation()
+                                                    toggleSection(node.id, 'task')
+                                                  }}
+                                                >
+                                                  {isSectionCollapsed(node.id, 'task') ? (
+                                                    <ChevronRight className="h-3 w-3 text-white/80" />
+                                                  ) : (
+                                                    <ChevronDown className="h-3 w-3 text-white/80" />
+                                                  )}
+                                                </button>
                                                 <span className="text-sm font-semibold text-white drop-shadow-sm">
                                                   Tasks
                                                 </span>
@@ -4312,6 +4326,20 @@ FEEDBACK: [your explanation]`
                                               className="flex w-full items-center justify-between rounded-lg bg-indigo-500 px-3 py-2 shadow-sm transition-all"
                                             >
                                               <div className="flex items-center gap-2">
+                                                <button
+                                                  type="button"
+                                                  className="flex items-center justify-center"
+                                                  onClick={e => {
+                                                    e.stopPropagation()
+                                                    toggleSection(node.id, 'assessment')
+                                                  }}
+                                                >
+                                                  {isSectionCollapsed(node.id, 'assessment') ? (
+                                                    <ChevronRight className="h-3 w-3 text-white/80" />
+                                                  ) : (
+                                                    <ChevronDown className="h-3 w-3 text-white/80" />
+                                                  )}
+                                                </button>
                                                 <span className="text-sm font-semibold text-white drop-shadow-sm">
                                                   Assessments
                                                 </span>
@@ -4978,9 +5006,9 @@ FEEDBACK: [your explanation]`
 
                                             <TabsContent
                                               value="poll"
-                                              className="flex flex-1 flex-col justify-end pt-2"
+                                              className="flex flex-1 flex-col pt-2"
                                             >
-                                              <div className="flex h-[40%] flex-col rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
+                                              <div className="mt-auto flex h-[40%] flex-col rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
                                                 <div className="flex flex-1 flex-col space-y-2 p-3">
                                                   <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
                                                     Poll question
@@ -5050,9 +5078,9 @@ FEEDBACK: [your explanation]`
 
                                             <TabsContent
                                               value="question"
-                                              className="flex flex-1 flex-col justify-end pt-2"
+                                              className="flex flex-1 flex-col pt-2"
                                             >
-                                              <div className="flex h-[40%] flex-col rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
+                                              <div className="mt-auto flex h-[40%] flex-col rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
                                                 <div className="flex flex-1 flex-col space-y-2 p-3">
                                                   <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
                                                     Question prompt

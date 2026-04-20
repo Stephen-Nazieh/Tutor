@@ -1,6 +1,7 @@
+<!-- From: /workspaces/Tutor/AGENTS.md -->
 # Solocorn — AI Coding Agent Guide
 
-> **Last updated:** 2026-04-19  
+> **Last updated:** 2026-04-20
 > **Covers:** `tutorme-app/` (main Next.js app), `landing-page/` (Vite landing page), `services/adk/` (Google ADK microservice)
 
 ---
@@ -19,10 +20,11 @@ Solocorn (also marketed as CogniClass) is an AI-human hybrid tutoring platform. 
 - Real-time polling, chat, and presence via Socket.io.
 - Payment processing through Airwallex, Hitpay, WeChat Pay, and Alipay.
 
-**Target tutor-to-student ratio:** 1 : 50  
-**Supported locales:** `en` (default), `zh-CN`, `es`, `fr`, `de`, `ja`, `ko`, `pt`, `ru`, `ar`  
-**Main app default port:** `3003`  
+**Target tutor-to-student ratio:** 1 : 50
+**Supported locales:** `en` (default), `zh-CN`, `es`, `fr`, `de`, `ja`, `ko`, `pt`, `ru`, `ar`
+**Main app default port:** `3003`
 **Landing page default port:** `3000`
+**ADK service default port:** `8080` (configured via `PORT` env var)
 
 ---
 
@@ -44,29 +46,40 @@ Solocorn (also marketed as CogniClass) is an AI-human hybrid tutoring platform. 
 │   │   │   │   ├── onboarding/
 │   │   │   │   ├── payment/
 │   │   │   │   └── ...
-│   │   │   └── api/          # REST API routes (hundreds of endpoints)
+│   │   │   └── api/          # REST API routes (~45 top-level domains, hundreds of endpoints)
 │   │   ├── components/       # React components (feature-organized)
 │   │   ├── lib/              # Business logic, utilities, AI, db, security, etc.
 │   │   ├── hooks/            # Custom React hooks
 │   │   ├── stores/           # Zustand client stores
-│   │   ├── __tests__/        # Unit, integration, accessibility tests
-│   │   └── i18n/             # next-intl configuration
+│   │   └── __tests__/        # Unit, integration, accessibility tests + mocks
 │   ├── e2e/                  # Playwright E2E specs
 │   ├── drizzle/              # Drizzle migration files
-│   ├── messages/             # next-intl JSON translations (en.json, zh-CN.json, ...)
-│   ├── scripts/              # Build & deployment scripts (build-sw.js, migrate.js, load/)
+│   ├── messages/             # next-intl JSON translations (en.json, zh-CN.json)
+│   ├── scripts/              # Build, deployment & utility scripts
 │   ├── server.ts             # Custom Next.js HTTP server with Socket.io
 │   └── package.json          # Node scripts & dependencies
 │
-├── landing-page/             # Vite + React + TypeScript marketing site
+├── landing-page/             # Vite + React 19 + TypeScript marketing site
 │   ├── src/
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   │   └── components/
 │   ├── package.json
 │   ├── vite.config.ts
 │   └── tsconfig.json
 │
 └── services/adk/             # Google ADK microservice (Express + TypeScript)
     ├── src/
+    │   ├── server/           # Express server, routes, auth middleware
+    │   ├── agents/           # ADK agent definitions
+    │   ├── adapters/         # External service adapters
+    │   ├── memory/           # Memory / context storage
+    │   ├── observability/    # Logging & monitoring
+    │   ├── prompts/          # Prompt templates
+    │   ├── tools/            # Agent tools
+    │   └── validation/       # Zod schemas
     ├── package.json
+    ├── tsconfig.json
     └── Dockerfile
 ```
 
@@ -77,9 +90,9 @@ Solocorn (also marketed as CogniClass) is an AI-human hybrid tutoring platform. 
 | Layer | Technology | Version / Notes |
 |-------|------------|-----------------|
 | **Framework** | Next.js (App Router) | `^16.1.6` |
-| **Language** | TypeScript | `^5.9.3`, strict mode |
-| **UI** | React | `^18` |
-| **Styling** | Tailwind CSS | `^3.4.1` |
+| **Language** | TypeScript | `^5.9.3`, strict mode (`strict: true`) |
+| **UI** | React | `^18` (main app); `^19` (landing page) |
+| **Styling** | Tailwind CSS | `^3.4.1` (main app); `^4.1.14` (landing page) |
 | **Components** | shadcn/ui + Radix UI | Headless primitives |
 | **Animation** | framer-motion | `^12.34.0` |
 | **State** | Zustand | `^5.0.11` |
@@ -88,10 +101,10 @@ Solocorn (also marketed as CogniClass) is an AI-human hybrid tutoring platform. 
 | **DB Driver** | pg (node-postgres) | Connection pooling |
 | **Database** | PostgreSQL | 16 (recommended) |
 | **Cache / PubSub** | Redis | `^7` via `ioredis` |
-| **Real-time** | Socket.io | `^4.8.3` (server + client) |
+| **Real-time** | Socket.io | `^4.8.3` (server + client), Redis adapter |
 | **Auth** | NextAuth.js | `^4.24.13`, JWT sessions, CredentialsProvider |
 | **i18n** | next-intl | `^4.8.3`, 10 locales, RTL support for `ar` |
-| **Validation** | Zod | `^4.3.6` |
+| **Validation** | Zod | `^4.3.6` (main app); `^3.23.8` (ADK service) |
 | **Video** | Daily.co | `@daily-co/daily-js ^0.87.0` |
 | **Whiteboard** | tldraw + Yjs + Fabric.js | Collaborative canvas |
 | **AI Providers** | Kimi K2.5 (Moonshot) | Primary via `@/lib/ai/kimi.ts` |
@@ -118,10 +131,14 @@ All primary commands run from **`tutorme-app/`** unless noted.
 npm run dev
 
 # Start only the Next.js dev server (no Socket.io)
-npm run dev:next
+# Note: there is no explicit dev:next script in package.json; Playwright uses it via webServer config
+# but the actual dev script is: NODE_ENV=production tsx server.ts
 
 # Landing page (from landing-page/ directory)
 cd ../landing-page && npm run dev     # http://localhost:3000
+
+# ADK service (from services/adk/ directory)
+cd ../services/adk && npm run dev     # default port 8080
 ```
 
 > **Note:** `npm run dev` in `tutorme-app` sets `NODE_ENV=production` and launches `server.ts` via `tsx`. This is the intended local development path because it includes Socket.io and matches production behavior.
@@ -129,9 +146,9 @@ cd ../landing-page && npm run dev     # http://localhost:3000
 ### Production Build
 
 ```bash
-npm run build        # Builds service worker + Next.js standalone output
-npm run build:sw     # Compiles src/lib/pwa/service-worker.ts → public/sw.js
-npm run start        # Production Next.js start (used inside Docker)
+npm run build        # Builds service worker + Next.js standalone output (uses --webpack flag)
+npm run build:sw     # Compiles src/lib/pwa/service-worker.ts → public/sw.js via esbuild
+npm run start        # Production Next.js start (used inside Docker standalone image)
 ```
 
 ### Database
@@ -139,9 +156,12 @@ npm run start        # Production Next.js start (used inside Docker)
 ```bash
 npm run db:migrate           # Run pending Drizzle migrations (drizzle-kit migrate)
 npm run db:migrate:deploy    # Deploy migrations via script (scripts/migrate.js)
+npm run db:apply-schema      # Apply schema changes via script (scripts/apply-schema-changes.js)
+npm run db:check-schema      # Check for schema drift (scripts/check-schema-drift.js)
 npm run drizzle:generate     # Generate new migration SQL
 npm run drizzle:studio       # Open Drizzle Studio (https://local.drizzle.studio)
 npm run drizzle:push         # Push schema changes (force)
+npm run drizzle:pull         # Pull schema from database
 npm run db:seed              # Seed sample data
 npm run db:seed:admin        # Seed admin user only
 ```
@@ -150,6 +170,7 @@ npm run db:seed:admin        # Seed admin user only
 
 ```bash
 npm run test                 # Vitest unit tests (jsdom)
+npm run test:unit            # Alias for vitest run
 npm run test:watch           # Vitest watch mode
 npm run test:integration     # Integration tests (node env; needs Postgres)
 npm run test:e2e             # Playwright E2E tests
@@ -157,7 +178,7 @@ npm run test:e2e:ui          # Playwright with interactive UI
 npm run test:e2e:a11y        # Accessibility tests (Playwright)
 ```
 
-> **E2E requirements:** The app must be running (default `http://localhost:3003`). Some specs expect seeded test users (e.g., `student@example.com` / `Password1`).  
+> **E2E requirements:** The app must be running (default `http://localhost:3003`). Some specs expect seeded test users (e.g., `student@example.com` / `Password1`).
 > **Integration requirements:** Requires `DATABASE_URL` pointing to a test database (e.g., `tutorme_test`).
 
 ### Code Quality
@@ -175,9 +196,11 @@ npm run security:check       # npm audit --audit-level=high
 
 ```bash
 cd services/adk
-npm run dev       # tsx src/server/index.ts (port configured internally)
+npm run dev       # tsx src/server/index.ts (ADK_START_LISTENER=true)
 npm run build     # tsc build
 npm run start     # node dist/server/index.js
+npm run lint      # eslint .
+npm run test      # node --import tsx --test
 ```
 
 ---
@@ -215,10 +238,16 @@ HITPAY_API_KEY=...
 HITPAY_SALT=...
 PAYMENT_DEFAULT_GATEWAY=HITPAY
 
+# Chinese payment gateways (optional)
+WECHAT_MCH_ID=...
+WECHAT_PAY_PRIVATE_KEY="..."
+WECHAT_PAY_API_V3_KEY=...
+ALIPAY_APP_ID=...
+ALIPAY_PRIVATE_KEY="..."
+
 # Sentry (optional)
 SENTRY_DSN=...
-SENTRY_ORG=...
-SENTRY_PROJECT=...
+NEXT_PUBLIC_SENTRY_DSN=...
 
 # App
 NEXT_PUBLIC_APP_URL="http://localhost:3003"
@@ -230,6 +259,8 @@ There is **no `middleware.ts` at the Next.js app root** in this project. Route g
 - API route middleware utilities (`src/lib/api/middleware.ts`)
 - Edge-oriented helpers (`src/lib/middleware-edge/`)
 
+Startup environment validation lives in `src/lib/env.ts` and is called from `server.ts`. It **requires** `DATABASE_URL` and `NEXTAUTH_SECRET` (min 32 chars) and warns if `REDIS_URL`, `KIMI_API_KEY`, or Sentry DSNs are missing in production.
+
 ---
 
 ## Code Organization
@@ -237,7 +268,7 @@ There is **no `middleware.ts` at the Next.js app root** in this project. Route g
 ### App Router (`src/app/`)
 
 - `src/app/[locale]/` — All user-facing pages grouped by role (`student/`, `tutor/`, `parent/`, `admin/`) plus shared pages (`login/`, `register/`, `onboarding/`, `payment/`, `legal/`).
-- `src/app/api/` — REST API endpoints mirroring the UI structure. Each folder contains `route.ts` (or segment-specific route files).
+- `src/app/api/` — REST API endpoints mirroring the UI structure. Each folder contains `route.ts` (or segment-specific route files). There are ~45 top-level API domains.
 - `src/app/layout.tsx` — Root layout with metadata, PWA manifest, and top-level providers (`Providers`, `PerformanceProviders`).
 - `src/app/[locale]/layout.tsx` — Locale layout wrapping `NextIntlClientProvider`, `ThemeProvider`, `AuthProvider`, `Toaster`, and `PWAInstallPrompt`.
 
@@ -255,11 +286,11 @@ Organized by feature domain:
 ### Library (`src/lib/`)
 
 Domain-organized business logic:
-- `lib/ai/` — AI provider integrations (`kimi.ts`), prompts, teaching prompts, types
-- `lib/agents/` — Orchestrator (`orchestrator-llm.ts`), tutor agents, grading, live-monitor, content-generator
+- `lib/ai/` — AI provider integrations (`kimi.ts`), prompts, teaching prompts, types, memory services
+- `lib/agents/` — Orchestrator (`orchestrator-llm.ts`), tutor agents, grading, live-monitor, content-generator, task-generator, tutor-chat-service
 - `lib/db/` — Drizzle client (`drizzle.ts`), schema (`schema/`), and migrations
 - `lib/payments/` — Payment gateway integrations (Airwallex, Hitpay, Chinese gateways)
-- `lib/security/` — RBAC, rate limiting, CSRF, admin IP restrictions, suspicious-activity logging
+- `lib/security/` — RBAC, rate limiting, CSRF, admin IP restrictions, suspicious-activity logging, client encryption, sanitization, comprehensive audit, PIPL compliance
 - `lib/socket/` & `lib/socket-server-enhanced.ts` — Socket.io server and realtime state
 - `lib/video/` — Daily.co provider
 - `lib/whiteboard/` — Whiteboard utilities
@@ -268,14 +299,15 @@ Domain-organized business logic:
 - `lib/validation/` — Zod schemas
 - `lib/reports/`, `lib/analytics/` — Reporting & analytics
 - `lib/monitoring/`, `lib/performance/` — Observability helpers
+- `lib/api/middleware.ts` — Standardized API route middleware (auth, RBAC, rate limit, CSRF, error handling)
 
 ### Hooks (`src/hooks/`)
 
-Custom React hooks including `use-socket.ts`, `use-whiteboard-socket.ts`, `use-daily-call.ts`, `use-realm-session.ts`, and parent-specific hooks.
+Custom React hooks including `use-socket.ts`, `use-daily-call.ts`, `use-realm-session.ts`, `useChat.ts`, and parent-specific hooks (`useParent.ts`, `useParentFinancialCalculations.ts`, etc.).
 
 ### Stores (`src/stores/`)
 
-Zustand stores for client state: `classroom-store.ts`, `communication-store.ts`.
+Zustand stores for client state. Currently contains `communication-store.ts`.
 
 ---
 
@@ -352,6 +384,7 @@ export async function fetchUser(id: string): Promise<User | null> {
 - `no-var`: `error`
 - `react-hooks/exhaustive-deps`: `warn`
 - `jsx-a11y/alt-text`: `off` (project uses explicit a11y patterns)
+- Security rules: `no-implied-eval`, `no-new-func`, `no-script-url`, `no-proto`, `no-iterator`, `no-extend-native`, `no-with`, `no-caller`, `no-unsafe-finally` are all `error`
 
 ### Prettier
 
@@ -539,7 +572,7 @@ There is **no built-in `db:reset` script** in the current `package.json`. To ful
 
 ## Troubleshooting
 
-### Server won’t start / port binding issues
+### Server won't start / port binding issues
 - Verify `DATABASE_URL` and `REDIS_URL` are set.
 - Check that port `3003` is free.
 - Review `server.ts` logs: it binds the port immediately and initializes Next.js + Socket.io in the background.
@@ -550,7 +583,7 @@ There is **no built-in `db:reset` script** in the current `package.json`. To ful
 - Use `MOCK_AI=true` to test without external providers.
 
 ### Socket.io not working
-- Ensure you started with `npm run dev` (uses `server.ts`), not `npm run dev:next`.
+- Ensure you started with `npm run dev` (uses `server.ts`), not a bare Next.js dev server.
 - Look for the log line: `✅ Socket.io server initialized`.
 
 ### TypeScript errors
@@ -564,6 +597,7 @@ Native bindings may be missing. The CI installs:
 - `@swc/core-linux-x64-gnu`
 - `@next/swc-linux-x64-gnu`
 - `@rollup/rollup-linux-x64-gnu` (for Vitest)
+- `esbuild`
 
 Install these locally if building on Linux without prebuilt binaries.
 
