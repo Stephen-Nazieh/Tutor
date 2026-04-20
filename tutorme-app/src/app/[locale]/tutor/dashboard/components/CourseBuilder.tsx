@@ -3692,22 +3692,7 @@ FEEDBACK: [your explanation]`
                                 {insightsProps.endingSession ? 'Ending…' : 'End Session'}
                               </Button>
                             )}
-                            {insightsProps?.onToggleRecording && (
-                              <Button
-                                size="sm"
-                                variant={insightsProps.isRecording ? 'destructive' : 'default'}
-                                onClick={insightsProps.onToggleRecording}
-                                className="h-7 gap-1 px-2 text-xs"
-                              >
-                                {insightsProps.isRecording ? '⏹ Stop' : '⏺ Record'}
-                              </Button>
-                            )}
-                            {insightsProps?.isRecording &&
-                              insightsProps?.recordingDuration != null && (
-                                <span className="font-mono text-xs text-red-500">
-                                  {formatDuration(insightsProps.recordingDuration)}
-                                </span>
-                              )}
+                            {/* Recording controls removed — handled elsewhere */}
                           </div>
                         )}
                         {mainTab !== 'live' && mainTab !== 'test-pci' && (
@@ -4753,7 +4738,7 @@ FEEDBACK: [your explanation]`
                                 onValueChange={setTestPciActiveTab}
                                 className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-hidden"
                               >
-                                <TabsList className="bg-muted flex min-h-[3.2rem] w-full shrink-0 flex-nowrap items-stretch gap-1 rounded-xl p-1">
+                                <TabsList className="flex min-h-[3.2rem] w-full shrink-0 flex-nowrap items-stretch gap-1 rounded-xl p-1">
                                   {testPciTabs.map(tab => (
                                     <div key={tab.id} className="relative min-w-0 flex-1 basis-0">
                                       {editingTabId === tab.id ? (
@@ -4796,55 +4781,7 @@ FEEDBACK: [your explanation]`
                                     {tab.id === 'insights' ? (
                                       insightsProps ? (
                                         <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cyan-200/70 bg-gradient-to-br from-white via-slate-50 to-cyan-50 p-4 shadow-[0_10px_40px_-20px_rgba(14,116,144,0.65)] ring-1 ring-cyan-200/60">
-                                          {insightsProps.onToggleRecording && (
-                                            <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-cyan-100 bg-white/50 p-2 shadow-sm">
-                                              <div className="flex items-center gap-2 pl-1">
-                                                <div
-                                                  className={cn(
-                                                    'h-2 w-2 rounded-full',
-                                                    insightsProps.isRecording
-                                                      ? 'animate-pulse bg-red-500'
-                                                      : 'bg-gray-300'
-                                                  )}
-                                                />
-                                                <span className="text-xs font-medium text-gray-600">
-                                                  {insightsProps.isRecording ? (
-                                                    <>
-                                                      REC{' '}
-                                                      {Math.floor(
-                                                        (insightsProps.recordingDuration ?? 0) / 60
-                                                      )}
-                                                      m{' '}
-                                                      {String(
-                                                        (insightsProps.recordingDuration ?? 0) % 60
-                                                      ).padStart(2, '0')}
-                                                      s
-                                                    </>
-                                                  ) : (
-                                                    'Not Recording'
-                                                  )}
-                                                </span>
-                                              </div>
-                                              <Button
-                                                variant={
-                                                  insightsProps.isRecording
-                                                    ? 'destructive'
-                                                    : 'outline'
-                                                }
-                                                size="sm"
-                                                className="h-8 gap-2 px-3 text-xs font-semibold shadow-sm"
-                                                onClick={insightsProps.onToggleRecording}
-                                              >
-                                                <Radio
-                                                  className={cn(
-                                                    'h-3.5 w-3.5',
-                                                    insightsProps.isRecording && 'animate-pulse'
-                                                  )}
-                                                />
-                                                {insightsProps.isRecording ? 'Stop' : 'Record'}
-                                              </Button>
-                                            </div>
-                                          )}
+                                          {/* Recording status removed from Insights tab */}
 
                                           <Tabs
                                             value={insightsTab}
@@ -4855,7 +4792,7 @@ FEEDBACK: [your explanation]`
                                             }
                                             className="flex h-full min-h-0 flex-col"
                                           >
-                                            <TabsList className="mb-4 grid w-full grid-cols-4 gap-1 rounded-xl bg-white/80 p-1 shadow-sm">
+                                            <TabsList className="mb-4 grid w-full grid-cols-4 gap-1 rounded-xl p-1 shadow-sm">
                                               <TabsTrigger
                                                 value="analytics"
                                                 className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
