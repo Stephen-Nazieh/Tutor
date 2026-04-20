@@ -672,6 +672,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           if (aIdx !== -1) return `Lesson ${nIdx + 1}, Assessment ${aIdx + 1}`
         }
       }
+      // Check for quizzes (nodeQuiz)
+      for (let nIdx = 0; nIdx < nodes.length; nIdx++) {
+        const qIdx = nodes[nIdx].quizzes?.findIndex((q: any) => q.id === selectedItem?.id)
+        if (qIdx !== -1 && qIdx !== undefined) return `Lesson ${nIdx + 1}, Quiz ${qIdx + 1}`
+      }
       return null
     }, [nodes, loadedTaskId, loadedAssessmentId, taskBuilder.activeExtensionId, taskBuilder.extensions])
 
