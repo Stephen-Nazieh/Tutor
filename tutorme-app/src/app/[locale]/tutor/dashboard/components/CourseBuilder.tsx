@@ -4807,19 +4807,19 @@ FEEDBACK: [your explanation]`
                                             <TabsList className="mb-4 grid w-full grid-cols-3 gap-1 rounded-xl p-1 shadow-sm">
                                               <TabsTrigger
                                                 value="analytics"
-                                                className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
+                                                className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
                                               >
                                                 Analytics
                                               </TabsTrigger>
                                               <TabsTrigger
                                                 value="poll"
-                                                className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
+                                                className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
                                               >
                                                 Poll
                                               </TabsTrigger>
                                               <TabsTrigger
                                                 value="question"
-                                                className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
+                                                className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
                                               >
                                                 Question
                                               </TabsTrigger>
