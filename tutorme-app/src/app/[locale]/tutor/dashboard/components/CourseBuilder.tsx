@@ -59,6 +59,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DailyVideoFrame } from '@/components/class/daily-video-frame'
+import { PDFViewer } from '@/components/pdf/PDFViewer'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -669,7 +670,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // Load assessment data into assessmentBuilder
     const loadAssessmentIntoBuilder = useCallback((assessment: Assessment) => {
       // Prioritize description over sourceDocument - description holds edited content
-      // Do NOT fall back to extractedText; the raw PDF is rendered via iframe.
+      // Do NOT fall back to extractedText; the raw PDF is rendered via PDFViewer component.
       const content = assessment.description || ''
       setAssessmentBuilder({
         title: assessment.title || '',
@@ -5742,10 +5743,8 @@ FEEDBACK: [your explanation]`
                                     {assessmentSourceDocument?.mimeType === 'application/pdf' ? (
                                       <>
                                         <div className="min-h-0 flex-1 border-b">
-                                          <iframe
-                                            src={assessmentSourceDocument.fileUrl}
-                                            title={assessmentSourceDocument.fileName}
-                                            className="h-full w-full"
+                                          <PDFViewer
+                                            fileUrl={assessmentSourceDocument.fileUrl}
                                           />
                                         </div>
                                         <AutoTextarea
