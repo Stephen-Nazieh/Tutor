@@ -127,7 +127,6 @@ export type {
 import { AnalyticsPanel } from './AnalyticsPanel'
 import { MentionTextarea } from '@/components/class/mention-textarea'
 import type { MentionItem } from '@/components/class/mention-textarea'
-import { DMIPanel } from './DMIPanel'
 import {
   MatchingPairsEditor,
   ManualQuestionComposer,
@@ -136,7 +135,6 @@ import {
   DroppableHomeworkZone,
   DroppableTaskZone,
   DroppableAssessmentZone,
-  ResizablePanel,
   DifficultyBadge,
   SortableTreeItem,
   DragHandle,
@@ -5913,17 +5911,6 @@ FEEDBACK: [your explanation]`
                                     )}
                                   </Button>
                                 </div>
-                              </div>
-                              {/* Right panels container */}
-                              <div className="flex flex-col gap-4">
-                                {/* DMI Panel */}
-                                <ResizablePanel defaultWidth={200} minWidth={150} maxWidth={300}>
-                                  <DMIPanel
-                                    items={assessmentDmiItems}
-                                    onItemsChange={setAssessmentDmiItems}
-                                    onDeploy={handleDeployAssessmentDmi}
-                                  />
-                                </ResizablePanel>
                               </div>
                             </div>
                           </TabsContent>
