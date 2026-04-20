@@ -5278,29 +5278,6 @@ FEEDBACK: [your explanation]`
                               value="task"
                               className="flex h-full flex-col space-y-4 overflow-hidden data-[state=inactive]:hidden"
                             >
-                            <div className="flex items-center gap-3">
-                              <div className="flex-1">
-                                <div className="grid grid-cols-1 gap-3">
-                                  <Input
-                                    placeholder={
-                                      loadedTaskId
-                                        ? 'Task Title'
-                                        : 'Select a task from the left sidebar to edit'
-                                    }
-                                    className="font-semibold"
-                                    value={
-                                      taskBuilder.activeExtensionId
-                                        ? taskHeaderTitle
-                                        : taskBuilder.title
-                                    }
-                                    onChange={(e: any) =>
-                                      setTaskBuilder(prev => ({ ...prev, title: e.target.value }))
-                                    }
-                                    disabled={!loadedTaskId || !!taskBuilder.activeExtensionId}
-                                  />
-                                </div>
-                              </div>
-                            </div>
                             <div className="flex flex-1 gap-4 overflow-hidden">
                               {/* Main content with tabs */}
                               <div className="flex flex-1 flex-col overflow-hidden">
@@ -5583,22 +5560,6 @@ FEEDBACK: [your explanation]`
                             value="assessment"
                             className="flex h-full flex-col space-y-4 overflow-hidden data-[state=inactive]:hidden"
                           >
-                            <div className="flex items-center gap-3">
-                              <div className="flex-1">
-                                <Input
-                                  placeholder={loadedAssessmentId ? 'Assessment Title' : ''}
-                                  className="font-semibold"
-                                  value={assessmentBuilder.title}
-                                  onChange={(e: any) =>
-                                    setAssessmentBuilder(prev => ({
-                                      ...prev,
-                                      title: e.target.value,
-                                    }))
-                                  }
-                                  disabled={!loadedAssessmentId}
-                                />
-                              </div>
-                            </div>
                             <div className="flex flex-1 gap-4 overflow-hidden">
                               {/* Main content with tabs */}
                               <div className="flex flex-1 flex-col overflow-hidden">
