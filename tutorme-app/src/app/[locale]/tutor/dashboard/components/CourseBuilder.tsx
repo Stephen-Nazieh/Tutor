@@ -5238,29 +5238,31 @@ FEEDBACK: [your explanation]`
                           onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
                           className="flex h-full w-full flex-col"
                         >
-                          {/* Main Builder Tabs */}
-                          <TabsList className="mb-2 flex w-full border-b border-gray-200">
+                          {/* Main Builder Tabs — floating segmented control */}
+                          <TabsList className="relative z-10 mx-auto mb-0 flex w-fit gap-1 rounded-full border border-gray-200/80 bg-white p-1 shadow-sm">
                             <TabsTrigger
                               value="task"
-                              className="flex flex-1 items-center justify-center gap-2 border-b-2 border-transparent bg-transparent py-2.5 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
+                              className="flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
                             >
                               <ListTodo className="h-4 w-4" />
                               Task Builder
                             </TabsTrigger>
                             <TabsTrigger
                               value="assessment"
-                              className="flex flex-1 items-center justify-center gap-2 border-b-2 border-transparent bg-transparent py-2.5 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
+                              className="flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
                             >
                               <FileQuestion className="h-4 w-4" />
                               Assessment Builder
                             </TabsTrigger>
                           </TabsList>
 
-                          {/* Task Builder Tab */}
-                          <TabsContent
-                            value="task"
-                            className="flex h-full flex-col space-y-4 overflow-hidden data-[state=inactive]:hidden"
-                          >
+                          {/* Content card that sits behind the floating tabs */}
+                          <div className="relative -mt-1 flex-1 rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm">
+                            {/* Task Builder Tab */}
+                            <TabsContent
+                              value="task"
+                              className="flex h-full flex-col space-y-4 overflow-hidden data-[state=inactive]:hidden"
+                            >
                             <div className="flex items-center gap-3">
                               <div className="flex-1">
                                 <div className="grid grid-cols-1 gap-3">
@@ -5908,6 +5910,7 @@ FEEDBACK: [your explanation]`
                               </div>
                             </div>
                           </TabsContent>
+                          </div>
                         </Tabs>
                       </CardContent>
                     </Card>
