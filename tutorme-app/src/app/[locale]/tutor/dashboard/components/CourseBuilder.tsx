@@ -5304,16 +5304,16 @@ FEEDBACK: [your explanation]`
                                   }}
                                   className="flex h-full w-full flex-col"
                                 >
-                                  <TabsList className="grid w-full grid-cols-2 rounded-full bg-gray-100 p-1">
+                                  <TabsList className="grid h-10 w-full grid-cols-2 rounded-full bg-white p-1 shadow-sm border border-gray-200">
                                     <TabsTrigger
                                       value="content"
-                                      className="rounded-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                      className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:bg-gray-100"
                                     >
                                       Slide
                                     </TabsTrigger>
                                     <TabsTrigger
                                       value="pci"
-                                      className="rounded-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                      className="w-full rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:bg-gray-100"
                                     >
                                       PCI
                                     </TabsTrigger>
@@ -5602,16 +5602,16 @@ FEEDBACK: [your explanation]`
                                   }}
                                   className="flex h-full w-full flex-col"
                                 >
-                                  <TabsList className="mb-4 flex w-full gap-2">
+                                  <TabsList className="mb-4 grid h-10 w-full grid-cols-2 rounded-full bg-white p-1 shadow-sm border border-gray-200">
                                     <TabsTrigger
                                       value="content"
-                                      className="flex-1 rounded-full border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 data-[state=active]:border-blue-500 data-[state=active]:bg-yellow-200 data-[state=active]:text-blue-700"
+                                      className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:bg-gray-100"
                                     >
                                       Assessment
                                     </TabsTrigger>
                                     <TabsTrigger
                                       value="pci"
-                                      className="flex-1 rounded-full border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 data-[state=active]:border-blue-500 data-[state=active]:bg-yellow-200 data-[state=active]:text-blue-700"
+                                      className="w-full rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:bg-gray-100"
                                     >
                                       PCI
                                     </TabsTrigger>
