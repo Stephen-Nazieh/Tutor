@@ -10,6 +10,7 @@ import next from 'next'
 import { config as dotenvConfig } from 'dotenv'
 import { initEnhancedSocketServer } from './src/lib/socket-server-enhanced'
 import { validateEnv } from './src/lib/env'
+import { applyStartupSchemaFixes } from './src/lib/db/startup-schema-fix'
 
 // Load environment variables from .env.local before validation
 // .env.local takes precedence over .env
@@ -114,6 +115,13 @@ server
         console.error('⚠️ [Server] Environment Validation Warning:', envErr?.message)
         // We log it but do not crash the initialization sequence!
         initError = envErr
+      }
+
+      // Step 1b: Apply idempotent schema drift fixes (dev / local only)
+      try {
+        await applyStartupSchemaFixes()
+      } catch (schemaErr: any) {
+        console.error('⚠️ [Server] Schema fix warning:', schemaErr?.message)
       }
 
       // Step 2 & 3: Prepare Next.js and Socket.io

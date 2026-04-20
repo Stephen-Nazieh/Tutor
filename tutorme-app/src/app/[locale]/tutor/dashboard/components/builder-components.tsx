@@ -1123,8 +1123,6 @@ export function ManualQuestionComposer({
   onImport: (questions: QuizQuestion[]) => void
 }) {
   const [questionText, setQuestionText] = useState('')
-  const [saving, setSaving] = useState(false)
-
   const handleAdd = async () => {
     const trimmed = questionText.trim()
     if (!trimmed) return
@@ -1138,42 +1136,7 @@ export function ManualQuestionComposer({
     }
     onImport([question])
     setQuestionText('')
-    setSaving(true)
-
-    try {
-      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
-      const csrfData = await csrfRes.json().catch(() => ({}))
-      const csrfToken = csrfData?.token ?? null
-
-      const qbRes = await fetch('/api/tutor/question-bank', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          type: 'short_answer',
-          question: trimmed,
-          correctAnswer: '',
-          explanation: '',
-          points: 1,
-          difficulty: 'medium',
-          tags: ['course-builder', 'manual-entry'],
-          isPublic: false,
-        }),
-      })
-
-      if (!qbRes.ok) {
-        toast.error('Question added locally, but failed to save in question bank')
-      } else {
-        toast.success('Question added and saved in question bank')
-      }
-    } catch {
-      toast.error('Question added locally, but failed to save in question bank')
-    } finally {
-      setSaving(false)
-    }
+    toast.success('Question added')
   }
 
   return (
@@ -1190,10 +1153,10 @@ export function ManualQuestionComposer({
           type="button"
           size="sm"
           variant="outline"
-          disabled={!questionText.trim() || saving}
+          disabled={!questionText.trim()}
           onClick={handleAdd}
         >
-          {saving ? 'Saving...' : 'Add Question'}
+          Add Question
         </Button>
       </div>
     </div>

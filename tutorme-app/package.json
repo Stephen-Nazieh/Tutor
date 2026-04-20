@@ -25,6 +25,8 @@
     "type-check": "tsc --noEmit",
     "db:migrate": "drizzle-kit migrate",
     "db:migrate:deploy": "node scripts/migrate.js",
+    "db:apply-schema": "node scripts/apply-schema-changes.js",
+    "db:check-schema": "node scripts/check-schema-drift.js",
     "drizzle:generate": "drizzle-kit generate",
     "drizzle:pull": "drizzle-kit pull",
     "drizzle:studio": "drizzle-kit studio",
