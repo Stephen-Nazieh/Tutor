@@ -4630,6 +4630,20 @@ FEEDBACK: [your explanation]`
                                                     className="flex w-full items-center justify-between rounded-lg bg-emerald-500 px-3 py-2 shadow-sm transition-all"
                                                   >
                                                     <div className="flex items-center gap-2">
+                                                      <button
+                                                        type="button"
+                                                        className="flex items-center justify-center"
+                                                        onClick={e => {
+                                                          e.stopPropagation()
+                                                          toggleSection(node.id, 'homework')
+                                                        }}
+                                                      >
+                                                        {isSectionCollapsed(node.id, 'homework') ? (
+                                                          <ChevronRight className="h-3 w-3 text-white/80" />
+                                                        ) : (
+                                                          <ChevronDown className="h-3 w-3 text-white/80" />
+                                                        )}
+                                                      </button>
                                                       <span className="text-sm font-semibold text-white drop-shadow-sm">
                                                         Homework{' '}
                                                         {hwItems.length > 0
@@ -4639,11 +4653,12 @@ FEEDBACK: [your explanation]`
                                                     </div>
                                                   </DroppableHomeworkZone>
                                                 </TreeItem>
-                                                <SortableContext
-                                                  items={hwItems.map(h => h.id)}
-                                                  strategy={verticalListSortingStrategy}
-                                                >
-                                                  {hwItems.map((hw, hwIdx) => (
+                                                {!isSectionCollapsed(node.id, 'homework') && (
+                                                  <SortableContext
+                                                    items={hwItems.map(h => h.id)}
+                                                    strategy={verticalListSortingStrategy}
+                                                  >
+                                                    {hwItems.map((hw, hwIdx) => (
                                                     <SortableTreeItem
                                                       key={hw.id}
                                                       id={hw.id}
@@ -4744,6 +4759,7 @@ FEEDBACK: [your explanation]`
                                                     </SortableTreeItem>
                                                   ))}
                                                 </SortableContext>
+                                              )}
                                               </>
                                             )
                                           })()}
