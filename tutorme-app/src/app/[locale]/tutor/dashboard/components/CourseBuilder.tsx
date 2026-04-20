@@ -3799,12 +3799,12 @@ FEEDBACK: [your explanation]`
                                     depth={1}
                                     isLast={nodeIdx === nodes.length - 1}
                                     inlineDragHandle
+                                    className="mb-4 ml-0 overflow-hidden rounded-lg border border-l-0 border-slate-200 bg-white pl-0 shadow-sm"
                                   >
                                     <div className="group">
                                       <div
                                         className={cn(
-                                          'flex w-full cursor-pointer flex-wrap items-center gap-1.5 rounded px-2 py-1.5 transition-colors',
-                                          'border border-blue-400 bg-blue-50 hover:bg-blue-100'
+                                          'flex w-full cursor-pointer flex-wrap items-center gap-1.5 border-t-4 border-t-cyan-600 bg-blue-50/50 px-3 py-2 transition-colors hover:bg-blue-50'
                                         )}
                                         onClick={() => toggleCourseBuilderNode(node.id)}
                                       >
@@ -3848,41 +3848,30 @@ FEEDBACK: [your explanation]`
                                       </div>
 
                                       {expandedCourseBuilderNodes.has(node.id) && (
-                                        <div className="mt-1 space-y-1">
+                                        <div className="mt-1 flex flex-col gap-0 px-2 pb-2">
                                           {/* Tasks - droppable so homework can be moved here */}
-                                          <TreeItem depth={0} isLast={false}>
+                                          <TreeItem
+                                            depth={0}
+                                            isLast={false}
+                                            className="ml-0 border-l-0 pl-0"
+                                          >
                                             <DroppableTaskZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex w-full items-center gap-1.5 rounded-lg border-b-2 border-blue-600 bg-gradient-to-r from-blue-400 to-blue-500 px-3 py-0.5 shadow-sm transition-all"
+                                              className="flex w-full items-center justify-between rounded-lg bg-blue-500 px-3 py-2 shadow-sm transition-all"
                                             >
-                                              <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-5 w-5 hover:bg-white/20"
-                                                onClick={() => toggleSection(node.id, 'task')}
-                                                aria-label={
-                                                  isSectionCollapsed(node.id, 'task')
-                                                    ? 'Expand tasks'
-                                                    : 'Collapse tasks'
-                                                }
-                                              >
-                                                {isSectionCollapsed(node.id, 'task') ? (
-                                                  <ChevronRight className="h-4 w-4 text-white" />
-                                                ) : (
-                                                  <ChevronDown className="h-4 w-4 text-white" />
-                                                )}
-                                              </Button>
-                                              <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
-                                                Tasks
-                                              </span>
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-sm font-semibold text-white drop-shadow-sm">
+                                                  Tasks
+                                                </span>
+                                              </div>
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="ml-auto h-5 w-5 gap-0 rounded-full border border-white/50 bg-transparent p-0 text-white hover:bg-white/20"
+                                                className="h-6 w-6 rounded-md bg-white/20 p-0 text-white hover:bg-white/30"
                                                 onClick={() => addTask(node.id, primaryLesson.id)}
                                               >
-                                                <Plus className="h-3 w-3" />
+                                                <Plus className="h-4 w-4" />
                                               </Button>
                                             </DroppableTaskZone>
                                           </TreeItem>
@@ -3904,11 +3893,11 @@ FEEDBACK: [your explanation]`
                                                     >
                                                       <div
                                                         className={cn(
-                                                          'group/item flex cursor-pointer items-center gap-1.5 rounded border px-2 py-1 transition-colors',
+                                                          'group/item mb-1 ml-0 mr-0 flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors',
                                                           selectedItem?.type === 'task' &&
                                                             selectedItem?.id === task.id
-                                                            ? 'border-orange-400 bg-orange-200 ring-1 ring-orange-400'
-                                                            : 'border-orange-400 bg-orange-50 hover:bg-orange-100'
+                                                            ? 'border-blue-200 bg-blue-50 ring-1 ring-blue-300'
+                                                            : 'border-transparent bg-blue-50 hover:bg-blue-100'
                                                         )}
                                                         onClick={e => {
                                                           if (
@@ -3990,11 +3979,10 @@ FEEDBACK: [your explanation]`
                                                           setMainBuilderTab('task')
                                                         }}
                                                       >
-                                                        <ListTodo className="h-3 w-3 shrink-0 text-orange-500" />
-                                                        <span className="shrink-0 text-[10px] font-semibold text-orange-700">
-                                                          {idx + 1}. {task.title}:
+                                                        <ListTodo className="h-3 w-3 shrink-0 text-blue-600" />
+                                                        <span className="flex-1 truncate text-xs font-semibold text-blue-700">
+                                                          {idx + 1}. {task.title}
                                                         </span>
-                                                        <div className="flex-1" />
                                                         <DropdownMenu>
                                                           <DropdownMenuTrigger asChild>
                                                             <Button
@@ -4204,38 +4192,37 @@ FEEDBACK: [your explanation]`
                                                     </SortableTreeItem>
                                                     {loadedTaskId === task.id &&
                                                       taskBuilder.extensions.length > 0 && (
-                                                        <div className="ml-12 mt-1 space-y-1 border-l border-orange-400 pl-2">
+                                                        <div className="mb-2 ml-0 mt-1 space-y-1">
                                                           <div
-                                                            className="flex cursor-pointer items-center gap-2 rounded border bg-white px-2 py-1 text-[10px]"
+                                                            className="flex cursor-pointer items-center justify-between rounded-lg border-0 bg-gray-100/50 px-3 py-2 text-xs font-medium text-gray-500 shadow-inner transition-colors hover:bg-gray-100"
                                                             onClick={() =>
                                                               toggleExtensions(task.id)
                                                             }
                                                           >
-                                                            {isExtensionsCollapsed(task.id) ? (
-                                                              <ChevronRight className="h-3 w-3 text-orange-600" />
-                                                            ) : (
-                                                              <ChevronDown className="h-3 w-3 text-orange-600" />
-                                                            )}
-                                                            <FolderOpen className="h-3 w-3 text-orange-600" />
-                                                            <span className="font-semibold text-orange-700">
-                                                              Extensions
-                                                            </span>
-                                                            <span className="text-muted-foreground">
-                                                              ({taskBuilder.extensions.length})
-                                                            </span>
+                                                            <div className="flex items-center gap-2">
+                                                              {isExtensionsCollapsed(task.id) ? (
+                                                                <ChevronRight className="h-3 w-3" />
+                                                              ) : (
+                                                                <ChevronDown className="h-3 w-3" />
+                                                              )}
+                                                              <span>
+                                                                Extensions (
+                                                                {taskBuilder.extensions.length})
+                                                              </span>
+                                                            </div>
                                                           </div>
                                                           {!isExtensionsCollapsed(task.id) && (
-                                                            <div className="ml-3 space-y-1">
+                                                            <div className="ml-0 space-y-1">
                                                               {taskBuilder.extensions.map(
                                                                 (ext, extIdx) => (
                                                                   <div
                                                                     key={ext.id}
                                                                     className={cn(
-                                                                      'group/extension flex cursor-pointer items-center gap-2 rounded border px-2 py-1 text-[10px]',
+                                                                      'group/extension ml-0 flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs shadow-sm transition-colors',
                                                                       taskBuilder.activeExtensionId ===
                                                                         ext.id
-                                                                        ? 'border-orange-300 bg-orange-100'
-                                                                        : 'border-orange-100 bg-white hover:bg-orange-50'
+                                                                        ? 'border-orange-200 bg-orange-50 ring-1 ring-orange-300'
+                                                                        : 'border-orange-200/50 bg-orange-50/30 hover:bg-orange-50'
                                                                     )}
                                                                     onClick={() => {
                                                                       setSelectedItem({
@@ -4250,7 +4237,7 @@ FEEDBACK: [your explanation]`
                                                                     }}
                                                                   >
                                                                     <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
-                                                                    <span className="font-semibold text-orange-700">
+                                                                    <span className="font-semibold text-orange-600">
                                                                       {idx + 1}.{extIdx + 1}
                                                                     </span>
                                                                     <span className="text-muted-foreground flex-1 truncate">
@@ -4345,41 +4332,30 @@ FEEDBACK: [your explanation]`
                                           )}
 
                                           {/* Assessments - droppable so homework can be moved here */}
-                                          <TreeItem depth={0} isLast={false}>
+                                          <TreeItem
+                                            depth={0}
+                                            isLast={false}
+                                            className="ml-0 mt-1 border-l-0 pl-0"
+                                          >
                                             <DroppableAssessmentZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex w-full items-center gap-1.5 rounded-lg border-b-2 border-indigo-600 bg-gradient-to-r from-indigo-400 to-indigo-500 px-3 py-0.5 shadow-sm transition-all"
+                                              className="flex w-full items-center justify-between rounded-lg bg-indigo-500 px-3 py-2 shadow-sm transition-all"
                                             >
-                                              <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-5 w-5 hover:bg-white/20"
-                                                onClick={() => toggleSection(node.id, 'assessment')}
-                                                aria-label={
-                                                  isSectionCollapsed(node.id, 'assessment')
-                                                    ? 'Expand assessments'
-                                                    : 'Collapse assessments'
-                                                }
-                                              >
-                                                {isSectionCollapsed(node.id, 'assessment') ? (
-                                                  <ChevronRight className="h-4 w-4 text-white" />
-                                                ) : (
-                                                  <ChevronDown className="h-4 w-4 text-white" />
-                                                )}
-                                              </Button>
-                                              <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
-                                                Assessments
-                                              </span>
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-sm font-semibold text-white drop-shadow-sm">
+                                                  Assessments
+                                                </span>
+                                              </div>
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="ml-auto h-5 w-5 gap-0 rounded-full border border-white/50 bg-transparent p-0 text-white hover:bg-white/20"
+                                                className="h-6 w-6 rounded-md bg-white/20 p-0 text-white hover:bg-white/30"
                                                 onClick={() =>
                                                   addAssessment(node.id, primaryLesson.id)
                                                 }
                                               >
-                                                <Plus className="h-3 w-3" />
+                                                <Plus className="h-4 w-4" />
                                               </Button>
                                             </DroppableAssessmentZone>
                                           </TreeItem>
@@ -4398,11 +4374,11 @@ FEEDBACK: [your explanation]`
                                                   >
                                                     <div
                                                       className={cn(
-                                                        'group/item flex cursor-pointer items-center gap-1.5 rounded border px-2 py-1 transition-colors',
+                                                        'group/item mb-1 ml-0 mr-0 flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors',
                                                         selectedItem?.type === 'homework' &&
                                                           selectedItem?.id === hw.id
-                                                          ? 'border-purple-400 bg-purple-200 ring-1 ring-purple-400'
-                                                          : 'border-purple-400 bg-purple-50 hover:bg-purple-100'
+                                                          ? 'border-indigo-200 bg-indigo-50 ring-1 ring-indigo-300'
+                                                          : 'border-transparent bg-indigo-50 hover:bg-indigo-100'
                                                       )}
                                                       onClick={e => {
                                                         if (
@@ -4475,11 +4451,10 @@ FEEDBACK: [your explanation]`
                                                         setMainBuilderTab('assessment')
                                                       }}
                                                     >
-                                                      <FileQuestion className="h-3 w-3 shrink-0 text-purple-500" />
-                                                      <span className="shrink-0 text-[10px] font-semibold text-purple-700">
-                                                        {idx + 1}. {hw.title}:
+                                                      <FileQuestion className="h-3 w-3 shrink-0 text-indigo-600" />
+                                                      <span className="flex-1 truncate text-xs font-semibold text-indigo-700">
+                                                        {idx + 1}. {hw.title}
                                                       </span>
-                                                      <div className="flex-1" />
 
                                                       <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
@@ -4552,16 +4527,22 @@ FEEDBACK: [your explanation]`
                                             )
                                             return (
                                               <>
-                                                <TreeItem depth={0} isLast={false}>
+                                                <TreeItem
+                                                  depth={0}
+                                                  isLast={false}
+                                                  className="ml-0 mt-1 border-l-0 pl-0"
+                                                >
                                                   <DroppableHomeworkZone
                                                     nodeId={node.id}
                                                     lessonId={primaryLesson.id}
-                                                    className="flex items-center gap-1.5 rounded-lg border-b-2 border-emerald-600 bg-gradient-to-r from-emerald-400 to-emerald-500 px-3 py-0.5 shadow-sm transition-all"
+                                                    className="flex w-full items-center justify-between rounded-lg bg-emerald-500 px-3 py-2 shadow-sm transition-all"
                                                   >
-                                                    <div className="flex items-center gap-1.5">
-                                                      <FolderOpen className="h-4 w-4 text-white" />
-                                                      <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
-                                                        Homework {hwItems.length}:
+                                                    <div className="flex items-center gap-2">
+                                                      <span className="text-sm font-semibold text-white drop-shadow-sm">
+                                                        Homework{' '}
+                                                        {hwItems.length > 0
+                                                          ? `(${hwItems.length})`
+                                                          : ''}
                                                       </span>
                                                     </div>
                                                   </DroppableHomeworkZone>
@@ -4579,10 +4560,11 @@ FEEDBACK: [your explanation]`
                                                     >
                                                       <div
                                                         className={cn(
-                                                          'group/item flex cursor-pointer items-center gap-1.5 rounded border border-emerald-400 bg-emerald-50 px-2 py-1 transition-colors hover:bg-emerald-100',
+                                                          'group/item mb-1 ml-0 mr-0 flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors',
                                                           selectedItem?.type === 'homework' &&
-                                                            selectedItem?.id === hw.id &&
-                                                            'ring-1 ring-emerald-400'
+                                                            selectedItem?.id === hw.id
+                                                            ? 'border-emerald-200 bg-emerald-50 ring-1 ring-emerald-300'
+                                                            : 'border-transparent bg-emerald-50 hover:bg-emerald-100'
                                                         )}
                                                         onClick={() => {
                                                           setSelectedItem({
@@ -4594,45 +4576,76 @@ FEEDBACK: [your explanation]`
                                                         }}
                                                       >
                                                         <FileQuestion className="h-3 w-3 shrink-0 text-emerald-600" />
-                                                        <span className="flex-1 truncate text-[10px] text-emerald-700">
-                                                          {hw.title}
+                                                        <span className="flex-1 truncate text-xs font-semibold text-emerald-700">
+                                                          {hwIdx + 1}. {hw.title}
                                                         </span>
-                                                        <Button
-                                                          variant="ghost"
-                                                          size="icon"
-                                                          className="h-5 w-5 shrink-0 opacity-0 group-hover/item:opacity-100"
-                                                          onClick={(e: any) => {
-                                                            e.stopPropagation()
-                                                            if (!confirm(`Delete "${hw.title}"?`))
-                                                              return
-                                                            setCourseBuilderNodes(prev =>
-                                                              prev.map(mod =>
-                                                                mod.id !== node.id
-                                                                  ? mod
-                                                                  : {
-                                                                      ...mod,
-                                                                      lessons: mod.lessons.map(
-                                                                        les =>
-                                                                          les.id !==
-                                                                          primaryLesson.id
-                                                                            ? les
-                                                                            : {
-                                                                                ...les,
-                                                                                homework: (
-                                                                                  les.homework || []
-                                                                                ).filter(
-                                                                                  x =>
-                                                                                    x.id !== hw.id
-                                                                                ),
-                                                                              }
-                                                                      ),
-                                                                    }
-                                                              )
-                                                            )
-                                                          }}
-                                                        >
-                                                          <Trash2 className="h-3 w-3 text-red-500" />
-                                                        </Button>
+                                                        <DropdownMenu>
+                                                          <DropdownMenuTrigger asChild>
+                                                            <Button
+                                                              variant="ghost"
+                                                              size="icon"
+                                                              className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                                              onClick={e => e.stopPropagation()}
+                                                            >
+                                                              <MoreVertical className="h-3 w-3 text-slate-500" />
+                                                            </Button>
+                                                          </DropdownMenuTrigger>
+                                                          <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem
+                                                              onClick={e => {
+                                                                e.stopPropagation()
+                                                                setEditingData(hw)
+                                                                setActiveModal({
+                                                                  type: 'homework',
+                                                                  isOpen: true,
+                                                                  nodeId: node.id,
+                                                                  lessonId: primaryLesson.id,
+                                                                  itemId: hw.id,
+                                                                })
+                                                              }}
+                                                            >
+                                                              Edit
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                              className="text-red-500"
+                                                              onClick={e => {
+                                                                e.stopPropagation()
+                                                                if (
+                                                                  !confirm(`Delete "${hw.title}"?`)
+                                                                )
+                                                                  return
+                                                                setCourseBuilderNodes(prev =>
+                                                                  prev.map(mod =>
+                                                                    mod.id !== node.id
+                                                                      ? mod
+                                                                      : {
+                                                                          ...mod,
+                                                                          lessons: mod.lessons.map(
+                                                                            les =>
+                                                                              les.id !==
+                                                                              primaryLesson.id
+                                                                                ? les
+                                                                                : {
+                                                                                    ...les,
+                                                                                    homework: (
+                                                                                      les.homework ||
+                                                                                      []
+                                                                                    ).filter(
+                                                                                      x =>
+                                                                                        x.id !==
+                                                                                        hw.id
+                                                                                    ),
+                                                                                  }
+                                                                          ),
+                                                                        }
+                                                                  )
+                                                                )
+                                                              }}
+                                                            >
+                                                              Delete
+                                                            </DropdownMenuItem>
+                                                          </DropdownMenuContent>
+                                                        </DropdownMenu>
                                                       </div>
                                                     </SortableTreeItem>
                                                   ))}
@@ -4647,27 +4660,28 @@ FEEDBACK: [your explanation]`
                                               key={quiz.id}
                                               depth={2}
                                               isLast={quizIdx === (node.quizzes?.length || 0) - 1}
+                                              className="ml-0 mt-1 border-l-0 pl-0"
                                             >
                                               <div
-                                                className="group flex cursor-pointer items-center gap-1.5 rounded border border-red-300 bg-red-100 px-2 py-1 hover:bg-red-200"
+                                                className="group flex cursor-pointer items-center gap-1.5 rounded-lg border bg-red-500 px-3 py-2 shadow-sm transition-colors hover:bg-red-600"
                                                 onClick={() =>
                                                   setSelectedItem({ type: 'nodeQuiz', id: quiz.id })
                                                 }
                                               >
-                                                <FileQuestion className="h-3 w-3 text-red-600" />
-                                                <span className="flex-1 truncate text-xs font-medium">
+                                                <FileQuestion className="h-4 w-4 text-white" />
+                                                <span className="flex-1 truncate text-sm font-semibold text-white">
                                                   {quiz.title}
                                                 </span>
                                                 <Badge
                                                   variant="default"
-                                                  className="h-4 bg-red-600 px-1 text-[8px]"
+                                                  className="h-5 bg-white/20 px-2 text-[10px] text-white hover:bg-white/30"
                                                 >
                                                   Summative
                                                 </Badge>
                                                 <Button
                                                   variant="ghost"
                                                   size="sm"
-                                                  className="h-5 gap-1 px-1 text-[10px] opacity-0 group-hover:opacity-100"
+                                                  className="h-6 px-2 text-[10px] text-white opacity-0 hover:bg-white/20 group-hover:opacity-100"
                                                   onClick={(e: any) => {
                                                     e.stopPropagation()
                                                     setEditingData(quiz)
@@ -4684,13 +4698,13 @@ FEEDBACK: [your explanation]`
                                                 <Button
                                                   variant="ghost"
                                                   size="icon"
-                                                  className="h-5 w-5 opacity-0 group-hover:opacity-100"
+                                                  className="h-6 w-6 text-white opacity-0 hover:bg-white/20 group-hover:opacity-100"
                                                   onClick={(e: any) => {
                                                     e.stopPropagation()
                                                     deleteCourseBuilderNodeQuiz(node.id, quiz.id)
                                                   }}
                                                 >
-                                                  <Trash2 className="h-3 w-3 text-red-500" />
+                                                  <Trash2 className="h-4 w-4" />
                                                 </Button>
                                               </div>
                                             </TreeItem>
