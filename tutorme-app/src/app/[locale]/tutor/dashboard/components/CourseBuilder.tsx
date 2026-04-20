@@ -4804,7 +4804,7 @@ FEEDBACK: [your explanation]`
                                             }
                                             className="flex h-full min-h-0 flex-col"
                                           >
-                                            <TabsList className="mb-4 grid w-full grid-cols-4 gap-1 rounded-xl p-1 shadow-sm">
+                                            <TabsList className="mb-4 grid w-full grid-cols-3 gap-1 rounded-xl p-1 shadow-sm">
                                               <TabsTrigger
                                                 value="analytics"
                                                 className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
