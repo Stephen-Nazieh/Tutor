@@ -191,7 +191,6 @@ import {
   Upload,
   CheckCircle,
   Clock,
-
   GraduationCap,
   ListTodo,
   FolderOpen,
@@ -4830,7 +4829,6 @@ FEEDBACK: [your explanation]`
                                               >
                                                 Question
                                               </TabsTrigger>
-
                                             </TabsList>
 
                                             <TabsContent
@@ -4978,8 +4976,11 @@ FEEDBACK: [your explanation]`
                                               )}
                                             </TabsContent>
 
-                                            <TabsContent value="poll" className="flex flex-1 flex-col space-y-4 pt-2">
-                                              <div className="flex flex-1 flex-col rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
+                                            <TabsContent
+                                              value="poll"
+                                              className="flex flex-1 flex-col justify-end pt-2"
+                                            >
+                                              <div className="flex h-[40%] flex-col rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
                                                 <div className="flex flex-1 flex-col space-y-2 p-3">
                                                   <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
                                                     Poll question
@@ -5049,9 +5050,9 @@ FEEDBACK: [your explanation]`
 
                                             <TabsContent
                                               value="question"
-                                              className="flex flex-1 flex-col space-y-4 pt-2"
+                                              className="flex flex-1 flex-col justify-end pt-2"
                                             >
-                                              <div className="flex flex-1 flex-col rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
+                                              <div className="flex h-[40%] flex-col rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
                                                 <div className="flex flex-1 flex-col space-y-2 p-3">
                                                   <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
                                                     Question prompt
@@ -5156,41 +5157,42 @@ FEEDBACK: [your explanation]`
                               </Tabs>
                               {testPciActiveTab !== 'insights' && (
                                 <div className="border-border bg-background mt-4 rounded-2xl border shadow-xl backdrop-blur-md">
-                                <div className="relative p-1">
-                                  <AutoTextarea
-                                    className="min-h-[100px] w-full border-0 bg-transparent py-4 pl-4 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                                    placeholder={
-                                      testPciActiveTab === 'classroom'
-                                        ? 'Enter answer (goes to both students)...'
-                                        : 'Ask your AI coach or share a reflection...'
-                                    }
-                                    value={testPciInput}
-                                    onChange={(e: any) => setTestPciInput(e.target.value)}
-                                    onKeyDown={(e: any) => {
-                                      if (e.key === 'Enter' && !e.shiftKey) {
-                                        if (testPciInput.trim() && !testPciLoading) {
-                                          e.preventDefault()
-                                          handleTestPciSubmit()
-                                        }
+                                  <div className="relative p-1">
+                                    <AutoTextarea
+                                      className="min-h-[100px] w-full border-0 bg-transparent py-4 pl-4 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                      placeholder={
+                                        testPciActiveTab === 'classroom'
+                                          ? 'Enter answer (goes to both students)...'
+                                          : 'Ask your AI coach or share a reflection...'
                                       }
-                                    }}
-                                  />
-                                  <Button
-                                    size="icon"
-                                    className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-slate-600 shadow-lg hover:bg-slate-700 disabled:opacity-30"
-                                    disabled={!testPciInput.trim() || testPciLoading}
-                                    onClick={handleTestPciSubmit}
-                                  >
-                                    <Send className="h-4 w-4" />
-                                  </Button>
+                                      value={testPciInput}
+                                      onChange={(e: any) => setTestPciInput(e.target.value)}
+                                      onKeyDown={(e: any) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                          if (testPciInput.trim() && !testPciLoading) {
+                                            e.preventDefault()
+                                            handleTestPciSubmit()
+                                          }
+                                        }
+                                      }}
+                                    />
+                                    <Button
+                                      size="icon"
+                                      className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-slate-600 shadow-lg hover:bg-slate-700 disabled:opacity-30"
+                                      disabled={!testPciInput.trim() || testPciLoading}
+                                      onClick={handleTestPciSubmit}
+                                    >
+                                      <Send className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                  <div className="border-border/50 bg-muted/20 border-t px-4 py-2.5">
+                                    <p className="text-muted-foreground text-[10px]">
+                                      Tip: Start line with &quot;1.&quot;, &quot;-&quot;, or
+                                      &quot;a.&quot; for auto-numbering. Use Tab/Shift+Tab to
+                                      indent.
+                                    </p>
+                                  </div>
                                 </div>
-                                <div className="border-border/50 bg-muted/20 border-t px-4 py-2.5">
-                                  <p className="text-muted-foreground text-[10px]">
-                                    Tip: Start line with &quot;1.&quot;, &quot;-&quot;, or
-                                    &quot;a.&quot; for auto-numbering. Use Tab/Shift+Tab to indent.
-                                  </p>
-                                </div>
-                              </div>
                               )}
                             </div>
                           </div>
@@ -5266,16 +5268,16 @@ FEEDBACK: [your explanation]`
                                   }}
                                   className="flex h-full w-full flex-col"
                                 >
-                                  <TabsList className="grid h-10 w-full grid-cols-2 rounded-full bg-white p-1 shadow-sm border border-gray-200">
+                                  <TabsList className="grid h-10 w-full grid-cols-2 rounded-full border border-gray-200 bg-white p-1 shadow-sm">
                                     <TabsTrigger
                                       value="content"
-                                      className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:bg-gray-100"
+                                      className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
                                     >
                                       Slide
                                     </TabsTrigger>
                                     <TabsTrigger
                                       value="pci"
-                                      className="w-full rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:bg-gray-100"
+                                      className="w-full rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
                                     >
                                       PCI
                                     </TabsTrigger>
@@ -5564,16 +5566,16 @@ FEEDBACK: [your explanation]`
                                   }}
                                   className="flex h-full w-full flex-col"
                                 >
-                                  <TabsList className="mb-4 grid h-10 w-full grid-cols-2 rounded-full bg-white p-1 shadow-sm border border-gray-200">
+                                  <TabsList className="mb-4 grid h-10 w-full grid-cols-2 rounded-full border border-gray-200 bg-white p-1 shadow-sm">
                                     <TabsTrigger
                                       value="content"
-                                      className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:bg-gray-100"
+                                      className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
                                     >
                                       Assessment
                                     </TabsTrigger>
                                     <TabsTrigger
                                       value="pci"
-                                      className="w-full rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:bg-gray-100"
+                                      className="w-full rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
                                     >
                                       PCI
                                     </TabsTrigger>

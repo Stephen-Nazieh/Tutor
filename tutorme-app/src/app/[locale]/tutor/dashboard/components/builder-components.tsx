@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, createContext, useContext } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -992,14 +992,14 @@ export function DifficultyBadge({
 }
 
 // Context to expose sortable drag-handle props inside child renderers
-const SortableItemContext = React.createContext<{
-  attributes?: Record<string, unknown>
-  listeners?: Record<string, unknown>
+const SortableItemContext = createContext<{
+  attributes?: Record<string, any>
+  listeners?: Record<string, any>
   onDragStart?: () => void
 }>({})
 
 export function DragHandle({ className }: { className?: string }) {
-  const ctx = React.useContext(SortableItemContext)
+  const ctx = useContext(SortableItemContext)
   return (
     <div
       {...ctx.attributes}
