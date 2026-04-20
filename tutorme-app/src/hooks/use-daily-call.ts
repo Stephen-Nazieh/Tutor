@@ -104,30 +104,12 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
   }, [updateParticipants])
 
   const join = useCallback(async (url: string, token?: string) => {
-    // Check if this is a mock URL (for development without Daily API key)
-    if (url.includes('mock.daily.co')) {
-      console.log('Using mock video mode')
-      setState(prev => ({
-        ...prev,
-        isJoined: true,
-        isAudioEnabled: false,
-        isVideoEnabled: false,
-        error: null,
-      }))
-      return
-    }
-
     const call = callRef.current
     if (!call) {
-      console.warn('Daily call object not initialized - using mock mode')
-      setState(prev => ({
-        ...prev,
-        isJoined: true,
-        isAudioEnabled: false,
-        isVideoEnabled: false,
-        error: null,
-      }))
-      return
+      const error = new Error('Daily call object not initialized')
+      console.error(error)
+      setState(prev => ({ ...prev, error: error.message }))
+      throw error
     }
 
     try {
@@ -147,15 +129,9 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
       }))
     } catch (error) {
       console.error('Daily join error:', error)
-      // Fall back to mock mode on error
-      console.warn('Falling back to mock video mode')
-      setState(prev => ({
-        ...prev,
-        isJoined: true,
-        isAudioEnabled: false,
-        isVideoEnabled: false,
-        error: null,
-      }))
+      const message = error instanceof Error ? error.message : 'Failed to join video call'
+      setState(prev => ({ ...prev, error: message }))
+      throw error
     }
   }, [])
 

@@ -56,7 +56,7 @@ describe('/api/admin/geolocation guards', () => {
     expect(await res.json()).toEqual({ error: 'Invalid IP format' })
   })
 
-  it('GET treats only RFC1918 172.16-31 as private', async () => {
+  it('GET returns 400 for private IPs without calling external API', async () => {
     mocks.getServerSession.mockResolvedValue({
       user: { id: 'admin-1', role: 'ADMIN' },
     })
@@ -75,7 +75,8 @@ describe('/api/admin/geolocation guards', () => {
 
     const privateReq = makeNextRequest('http://localhost/api/admin/geolocation?ip=172.20.0.1')
     const privateRes = await GET(privateReq)
-    expect(privateRes.status).toBe(200)
+    expect(privateRes.status).toBe(400)
+    expect(await privateRes.json()).toEqual({ error: 'Private IP address cannot be geolocated' })
     expect(fetchSpy).not.toHaveBeenCalled()
 
     const publicReq = makeNextRequest('http://localhost/api/admin/geolocation?ip=172.15.0.1')

@@ -76,11 +76,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(geoCache.get(ip))
   }
 
-  // Handle private IPs with mock data
+  // Handle private IPs - cannot geolocate
   if (isPrivateOrLoopbackIPv4(parsedIp)) {
-    const mockCoords = getRandomMockCoordinates()
-    setGeoCache(ip, mockCoords)
-    return NextResponse.json(mockCoords)
+    return NextResponse.json(
+      { error: 'Private IP address cannot be geolocated' },
+      { status: 400 }
+    )
   }
 
   try {
@@ -99,10 +100,10 @@ export async function GET(request: NextRequest) {
     const data = await response.json()
 
     if (data.status !== 'success') {
-      // Return mock coordinates for failed lookups
-      const mockCoords = getRandomMockCoordinates()
-      setGeoCache(ip, mockCoords)
-      return NextResponse.json(mockCoords)
+      return NextResponse.json(
+        { error: 'Geolocation lookup failed', status: data.status },
+        { status: 404 }
+      )
     }
 
     const coords: GeoCoordinates = {
@@ -117,10 +118,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(coords)
   } catch (error) {
     console.warn(`Geolocation fetch failed for ${ip}:`, error)
-    // Return mock coordinates on error
-    const mockCoords = getRandomMockCoordinates()
-    setGeoCache(ip, mockCoords)
-    return NextResponse.json(mockCoords)
+    return NextResponse.json(
+      { error: 'Geolocation service unavailable' },
+      { status: 503 }
+    )
   }
 }
 
@@ -165,9 +166,6 @@ export async function POST(request: NextRequest) {
 
       // Handle private IPs
       if (parsed && isPrivateOrLoopbackIPv4(parsed)) {
-        const mockCoords = getRandomMockCoordinates()
-        setGeoCache(ip, mockCoords)
-        results.set(ip, mockCoords)
         continue
       }
 
@@ -196,17 +194,9 @@ export async function POST(request: NextRequest) {
           }
           setGeoCache(ip, coords)
           results.set(ip, coords)
-        } else {
-          // Use mock for failed lookups
-          const mockCoords = getRandomMockCoordinates()
-          setGeoCache(ip, mockCoords)
-          results.set(ip, mockCoords)
         }
       } catch (error) {
-        // Use mock on error
-        const mockCoords = getRandomMockCoordinates()
-        setGeoCache(ip, mockCoords)
-        results.set(ip, mockCoords)
+        console.warn(`Geolocation fetch failed for ${ip}:`, error)
       }
 
       // Small delay to respect rate limits
@@ -220,27 +210,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Generate random mock coordinates for testing/development
- */
-function getRandomMockCoordinates(): GeoCoordinates {
-  const regions = [
-    { latRange: [25, 49], lonRange: [-125, -70], country: 'United States' },
-    { latRange: [36, 71], lonRange: [-10, 40], country: 'Germany' },
-    { latRange: [35, 60], lonRange: [-10, 10], country: 'United Kingdom' },
-    { latRange: [10, 55], lonRange: [70, 140], country: 'China' },
-    { latRange: [20, 46], lonRange: [122, 146], country: 'Japan' },
-    { latRange: [-35, 10], lonRange: [-80, -35], country: 'Brazil' },
-    { latRange: [-35, 35], lonRange: [-20, 50], country: 'South Africa' },
-    { latRange: [-40, -10], lonRange: [110, 180], country: 'Australia' },
-  ]
 
-  const region = regions[Math.floor(Math.random() * regions.length)]
-
-  return {
-    lat: region.latRange[0] + Math.random() * (region.latRange[1] - region.latRange[0]),
-    lon: region.lonRange[0] + Math.random() * (region.lonRange[1] - region.lonRange[0]),
-    city: 'Unknown',
-    country: region.country,
-  }
-}

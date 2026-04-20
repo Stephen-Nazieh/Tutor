@@ -39,11 +39,9 @@ export async function getIpGeolocation(ip: string): Promise<GeoCoordinates | nul
     return geoCache.get(ip)!
   }
 
-  // Handle private IPs with mock coordinates
+  // Handle private IPs - cannot geolocate
   if (ip === '127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.')) {
-    const mockCoords = getRandomMockCoordinates()
-    geoCache.set(ip, mockCoords)
-    return mockCoords
+    return null
   }
 
   try {
@@ -52,19 +50,15 @@ export async function getIpGeolocation(ip: string): Promise<GeoCoordinates | nul
     })
 
     if (!response.ok) {
-      // If API fails, use mock coordinates
-      const mockCoords = getRandomMockCoordinates()
-      geoCache.set(ip, mockCoords)
-      return mockCoords
+      console.warn(`Geolocation API failed for IP ${ip}: ${response.status}`)
+      return null
     }
 
     const data = await response.json()
 
     if (data.error) {
       console.warn(`Geolocation failed for IP ${ip}:`, data.error)
-      const mockCoords = getRandomMockCoordinates()
-      geoCache.set(ip, mockCoords)
-      return mockCoords
+      return null
     }
 
     const coords: GeoCoordinates = {
@@ -80,10 +74,7 @@ export async function getIpGeolocation(ip: string): Promise<GeoCoordinates | nul
     return coords
   } catch (error) {
     console.error(`Error fetching geolocation for IP ${ip}:`, error)
-    // Return mock coordinates on any error
-    const mockCoords = getRandomMockCoordinates()
-    geoCache.set(ip, mockCoords)
-    return mockCoords
+    return null
   }
 }
 
@@ -107,9 +98,7 @@ export async function batchGetIpGeolocation(
       user.ip.startsWith('192.168.') ||
       user.ip.startsWith('10.')
     ) {
-      const mockCoords = getRandomMockCoordinates()
-      geoCache.set(user.ip, mockCoords)
-      results.set(user.id, mockCoords)
+      // Private IPs cannot be geolocated - skip
     } else {
       uncachedUsers.push(user)
     }
@@ -158,36 +147,6 @@ export async function batchGetIpGeolocation(
   }
 
   return results
-}
-
-/**
- * Generate random mock coordinates for testing/development
- * Distributed across major continents
- */
-export function getRandomMockCoordinates(): GeoCoordinates {
-  const regions = [
-    // North America
-    { latRange: [25, 49], lonRange: [-125, -70], country: 'United States' },
-    // Europe
-    { latRange: [36, 71], lonRange: [-10, 40], country: 'Germany' },
-    // Asia
-    { latRange: [10, 55], lonRange: [70, 140], country: 'China' },
-    // South America
-    { latRange: [-35, 10], lonRange: [-80, -35], country: 'Brazil' },
-    // Africa
-    { latRange: [-35, 35], lonRange: [-20, 50], country: 'South Africa' },
-    // Oceania
-    { latRange: [-40, -10], lonRange: [110, 180], country: 'Australia' },
-  ]
-
-  const region = regions[Math.floor(Math.random() * regions.length)]
-
-  return {
-    lat: region.latRange[0] + Math.random() * (region.latRange[1] - region.latRange[0]),
-    lon: region.lonRange[0] + Math.random() * (region.lonRange[1] - region.lonRange[0]),
-    city: 'Unknown',
-    country: region.country,
-  }
 }
 
 /**

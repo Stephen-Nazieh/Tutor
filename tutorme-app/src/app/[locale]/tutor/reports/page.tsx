@@ -199,7 +199,7 @@ export default function TutorReports() {
       try {
         // Build report from real student data (performance metrics not yet available)
         const relevantStudents = students.length > 0 ? students : []
-        const mockData: ClassReportData = {
+        const reportData: ClassReportData = {
           classInfo: {
             id: selectedClassId,
             totalStudents: relevantStudents.length,
@@ -229,7 +229,7 @@ export default function TutorReports() {
             strugglingCount: 0,
           },
         }
-        setClassData(mockData)
+        setClassData(reportData)
       } catch (error) {
         console.error('Error fetching report data:', error)
       } finally {

@@ -10,8 +10,7 @@ import type { GeoCoordinates, OnlineUser } from '@/lib/geo/ipGeolocation'
 interface GeolocationResult {
   userId: string
   ip: string
-  coordinates: GeoCoordinates
-  isMock: boolean
+  coordinates: GeoCoordinates | null
 }
 
 interface UseGeolocationOptions {
@@ -43,43 +42,12 @@ async function fetchBatchGeolocation(users: OnlineUser[]): Promise<GeolocationRe
 
   return users.map(user => {
     const coords = results[user.ip]
-    // Check if this is a mock coordinate (private IP or API failure)
-    const isMock =
-      !coords ||
-      coords.city === 'Unknown' ||
-      user.ip.startsWith('127.') ||
-      user.ip.startsWith('192.168.') ||
-      user.ip.startsWith('10.')
-
     return {
       userId: user.id,
       ip: user.ip,
-      coordinates: coords || generateMockCoordinates(),
-      isMock,
+      coordinates: coords || null,
     }
   })
-}
-
-function generateMockCoordinates(): GeoCoordinates {
-  const regions = [
-    { latRange: [25, 49], lonRange: [-125, -70], country: 'United States' },
-    { latRange: [36, 71], lonRange: [-10, 40], country: 'Germany' },
-    { latRange: [35, 60], lonRange: [-10, 10], country: 'United Kingdom' },
-    { latRange: [10, 55], lonRange: [70, 140], country: 'China' },
-    { latRange: [20, 46], lonRange: [122, 146], country: 'Japan' },
-    { latRange: [-35, 10], lonRange: [-80, -35], country: 'Brazil' },
-    { latRange: [-35, 35], lonRange: [-20, 50], country: 'South Africa' },
-    { latRange: [-40, -10], lonRange: [110, 180], country: 'Australia' },
-  ]
-
-  const region = regions[Math.floor(Math.random() * regions.length)]
-
-  return {
-    lat: region.latRange[0] + Math.random() * (region.latRange[1] - region.latRange[0]),
-    lon: region.lonRange[0] + Math.random() * (region.lonRange[1] - region.lonRange[0]),
-    city: 'Unknown',
-    country: region.country,
-  }
 }
 
 /**

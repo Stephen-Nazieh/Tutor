@@ -12,15 +12,13 @@ const DAILY_API_URL = 'https://api.daily.co/v1'
 export class DailyCoProvider implements VideoProvider {
   private apiKey: string
   private apiUrl: string
-  private mockMode: boolean
 
   constructor(apiKey?: string) {
     this.apiKey = apiKey || DAILY_API_KEY
     this.apiUrl = DAILY_API_URL
-    this.mockMode = !this.apiKey
 
-    if (this.mockMode) {
-      console.warn('Daily.co API key not configured. Using mock mode for testing.')
+    if (!this.apiKey) {
+      throw new Error('Daily.co API key not configured. Set DAILY_API_KEY environment variable.')
     }
   }
 
@@ -55,16 +53,6 @@ export class DailyCoProvider implements VideoProvider {
     const expiry = options?.durationMinutes
       ? new Date(Date.now() + options.durationMinutes * 60 * 1000)
       : new Date(Date.now() + 4 * 60 * 60 * 1000) // Default 4 hours
-
-    // Mock mode for testing without Daily.co API key
-    if (this.mockMode) {
-      console.log('Creating mock room:', roomName)
-      return {
-        id: roomName,
-        url: `https://mock.daily.co/${roomName}`,
-        expiry,
-      }
-    }
 
     const room = await this.fetchDaily('/rooms', {
       method: 'POST',
@@ -103,15 +91,6 @@ export class DailyCoProvider implements VideoProvider {
       ? new Date(Date.now() + options.durationMinutes * 60 * 1000)
       : new Date(Date.now() + 60 * 60 * 1000) // Default 1 hour for breakout
 
-    if (this.mockMode) {
-      console.log('Creating mock breakout room:', roomName)
-      return {
-        id: roomName,
-        url: `https://mock.daily.co/${roomName}`,
-        expiry,
-      }
-    }
-
     const room = await this.fetchDaily('/rooms', {
       method: 'POST',
       body: JSON.stringify({
@@ -144,10 +123,6 @@ export class DailyCoProvider implements VideoProvider {
       durationMinutes?: number
     }
   ): Promise<string> {
-    if (this.mockMode) {
-      return `mock-token-${userId}-${Date.now()}`
-    }
-
     const expiry = options?.durationMinutes
       ? Math.floor(Date.now() / 1000) + options.durationMinutes * 60
       : Math.floor(Date.now() / 1000) + 4 * 60 * 60 // 4 hours
@@ -168,21 +143,12 @@ export class DailyCoProvider implements VideoProvider {
   }
 
   async deleteRoom(roomId: string): Promise<void> {
-    if (this.mockMode) {
-      console.log('Deleting mock room:', roomId)
-      return
-    }
-
     await this.fetchDaily(`/rooms/${roomId}`, {
       method: 'DELETE',
     })
   }
 
   async isRoomActive(roomId: string): Promise<boolean> {
-    if (this.mockMode) {
-      return true
-    }
-
     try {
       const room = await this.fetchDaily(`/rooms/${roomId}`)
       return room && !room.deleted

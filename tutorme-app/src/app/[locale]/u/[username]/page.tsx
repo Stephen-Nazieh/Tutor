@@ -76,7 +76,6 @@ interface PublicTutorResponse {
     liveSessionsCompleted?: number
     enrollmentStatus?: 'ongoing' | 'ended'
   }>
-  source?: 'db' | 'mock'
 }
 
 function getInitials(name: string): string {
@@ -649,7 +648,7 @@ export default function PublicTutorPage() {
     )
   }
 
-  const { tutor, courses, source } = data
+  const { tutor, courses } = data
   const isTutorOwner = session?.user?.role === 'TUTOR' && session?.user?.id === tutor.id
 
   const handleEnterClassroom = async (course: PublicTutorResponse['courses'][number]) => {
