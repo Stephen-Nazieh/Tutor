@@ -447,15 +447,15 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       Record<string, { role: 'user' | 'assistant'; content: string }[]>
     >({})
     const [taskExtensionPciInputs, setTaskExtensionPciInputs] = useState<Record<string, string>>({})
-    const [assessmentPciMessages, setAssessmentPciMessages] = useState<
-      { role: 'user' | 'assistant'; content: string }[]
-    >([])
+    const [assessmentPciMessagesMap, setAssessmentPciMessagesMap] = useState<
+      Record<string, { role: 'user' | 'assistant'; content: string }[]>
+    >({})
     const [taskPciInput, setTaskPciInput] = useState('')
-    const [assessmentPciInput, setAssessmentPciInput] = useState('')
+    const [assessmentPciInputMap, setAssessmentPciInputMap] = useState<Record<string, string>>({})
     const [taskPciLoading, setTaskPciLoading] = useState(false)
-    const [assessmentPciLoading, setAssessmentPciLoading] = useState(false)
+    const [assessmentPciLoadingMap, setAssessmentPciLoadingMap] = useState<Record<string, boolean>>({})
     const [taskPciErrorHint, setTaskPciErrorHint] = useState('')
-    const [assessmentPciErrorHint, setAssessmentPciErrorHint] = useState('')
+    const [assessmentPciErrorHintMap, setAssessmentPciErrorHintMap] = useState<Record<string, string>>({})
 
     // AI Assist Agent state - separate for task and assessment
     const [aiAssistOpen, setAiAssistOpen] = useState(false)
@@ -509,6 +509,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [assessmentDmiVersions, setAssessmentDmiVersions] = useState<DMIVersion[]>([])
     const [showDmiVersionList, setShowDmiVersionList] = useState(false)
     const [previewDmiVersion, setPreviewDmiVersion] = useState<DMIVersion | null>(null)
+    const [dmiGenerating, setDmiGenerating] = useState(false)
 
     // Active tab tracking for Enter button
     const [taskBuilderActiveTab, setTaskBuilderActiveTab] = useState<'content' | 'pci'>('content')
@@ -1129,13 +1130,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
     const handlePciSend = async (type: 'task' | 'assessment') => {
       const isTask = type === 'task'
-      const activeTaskInput = taskBuilder.activeExtensionId
-        ? taskExtensionPciInputs[taskBuilder.activeExtensionId] || ''
-        : taskPciInput
-      const input = isTask ? activeTaskInput : assessmentPciInput
-      const loading = isTask ? taskPciLoading : assessmentPciLoading
-      if (!input.trim() || loading) return
-
       let taskId = loadedTaskId
       let assessmentId = loadedAssessmentId
       if (isTask && !taskId) {
@@ -1146,6 +1140,15 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         const created = autoCreateAssessment()
         assessmentId = created?.id ?? loadedAssessmentId
       }
+
+      const activeTaskInput = taskBuilder.activeExtensionId
+        ? taskExtensionPciInputs[taskBuilder.activeExtensionId] || ''
+        : taskPciInput
+      const assessmentInput = assessmentPciInputMap[assessmentId || ''] || ''
+      const input = isTask ? activeTaskInput : assessmentInput
+      const assessmentLoading = assessmentPciLoadingMap[assessmentId || ''] || false
+      const loading = isTask ? taskPciLoading : assessmentLoading
+      if (!input.trim() || loading) return
 
       const userMessage = input.trim()
       if (isTask) {
@@ -1158,13 +1161,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           setTaskPciInput('')
         }
       } else {
-        setAssessmentPciInput('')
+        setAssessmentPciInputMap(prev => ({ ...prev, [assessmentId || '']: '' }))
       }
 
       const currentTaskMessages = taskBuilder.activeExtensionId
         ? taskExtensionPciMessages[taskBuilder.activeExtensionId] || []
         : taskPciMessages
-      const nextMessages = (isTask ? currentTaskMessages : assessmentPciMessages).concat({
+      const currentAssessmentMessages = assessmentPciMessagesMap[assessmentId || ''] || []
+      const nextMessages = (isTask ? currentTaskMessages : currentAssessmentMessages).concat({
         role: 'user',
         content: userMessage,
       })
@@ -1198,9 +1202,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         updateTaskPciFromMessages(nextMessages)
         setTaskPciLoading(true)
       } else {
-        setAssessmentPciMessages(nextMessages)
+        setAssessmentPciMessagesMap(prev => ({ ...prev, [assessmentId || '']: nextMessages }))
         setAssessmentBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(nextMessages) }))
-        setAssessmentPciLoading(true)
+        setAssessmentPciLoadingMap(prev => ({ ...prev, [assessmentId || '']: true }))
       }
 
       try {
@@ -1280,9 +1284,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           setTaskPciErrorHint('')
         } else {
           const updated = nextMessages.concat(assistantMessage)
-          setAssessmentPciMessages(updated)
+          setAssessmentPciMessagesMap(prev => ({ ...prev, [assessmentId || '']: updated }))
           setAssessmentBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(updated) }))
-          setAssessmentPciErrorHint('')
+          setAssessmentPciErrorHintMap(prev => ({ ...prev, [assessmentId || '']: '' }))
         }
       } catch (error) {
         const message =
@@ -1295,7 +1299,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
             ? error.message
             : 'Unable to reach the PCI assistant. Please try again.'
         if (isTask) setTaskPciErrorHint(hint)
-        else setAssessmentPciErrorHint(hint)
+        else setAssessmentPciErrorHintMap(prev => ({ ...prev, [assessmentId || '']: hint }))
         const errorMessage = {
           role: 'assistant' as const,
           content: 'Sorry, there was an error processing your request. Please try again.',
@@ -1312,11 +1316,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           }
         } else {
           const updated = nextMessages.concat(errorMessage)
-          setAssessmentPciMessages(updated)
+          setAssessmentPciMessagesMap(prev => ({ ...prev, [assessmentId || '']: updated }))
         }
       } finally {
         if (isTask) setTaskPciLoading(false)
-        else setAssessmentPciLoading(false)
+        else setAssessmentPciLoadingMap(prev => ({ ...prev, [assessmentId || '']: false }))
       }
     }
 
@@ -1436,73 +1440,123 @@ FEEDBACK: [your explanation]`
       }
     }
 
-    // Generate DMI using Assessment content with versioning
+    // Helper: render PDF pages to base64 PNG images
+    const renderPdfToImages = async (pdfUrl: string, maxPages = 3): Promise<string[]> => {
+      try {
+        const response = await fetch(pdfUrl)
+        if (!response.ok) throw new Error('Failed to fetch PDF')
+        const arrayBuffer = await response.arrayBuffer()
+        const pdfjs = await import('pdfjs-dist')
+        if (typeof window !== 'undefined') {
+          const opts = (pdfjs as { GlobalWorkerOptions?: { workerSrc?: string } }).GlobalWorkerOptions
+          if (opts && !opts.workerSrc) {
+            opts.workerSrc = '/pdf.worker.min.mjs'
+          }
+        }
+        const doc = await pdfjs.getDocument({ data: arrayBuffer }).promise
+        const images: string[] = []
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if (!ctx) throw new Error('Canvas context not available')
+
+        for (let i = 1; i <= Math.min(maxPages, doc.numPages); i++) {
+          const page = await doc.getPage(i)
+          const viewport = page.getViewport({ scale: 1.5 })
+          canvas.width = viewport.width
+          canvas.height = viewport.height
+          await page.render({ canvasContext: ctx, viewport }).promise
+          images.push(canvas.toDataURL('image/png'))
+        }
+        return images
+      } catch (error) {
+        console.error('PDF to image conversion error:', error)
+        throw error
+      }
+    }
+
+    // Generate DMI using AI from content or PDF images with versioning
     const handleGenerateDMI = async (type: 'task' | 'assessment') => {
       const isTask = type === 'task'
       const builder = isTask ? taskBuilder : assessmentBuilder
       const content = builder.taskContent
+      const sourceDoc = isTask ? taskSourceDocument : assessmentSourceDocument
 
-      if (!content.trim()) {
-        toast.error('Please add Assessment content first')
+      const hasContent = content.trim().length > 0
+      const hasPdf = sourceDoc?.mimeType === 'application/pdf' && sourceDoc.fileUrl
+
+      if (!hasContent && !hasPdf) {
+        toast.error('Please add Assessment content or load a PDF first')
         return
       }
 
-      const lines = content.split('\n').filter(line => line.trim())
-      const questionLines: { number: number; text: string }[] = []
-
-      lines.forEach(line => {
-        const match = line.match(/^(?:Q(?:uestion)?\s*)?(\d+)[:.)\s]+(.+)$/i)
-        if (match) {
-          questionLines.push({
-            number: parseInt(match[1]),
-            text: match[2].trim(),
-          })
+      setDmiGenerating(true)
+      try {
+        let pdfPages: string[] | undefined
+        if (!hasContent && hasPdf) {
+          toast.info('Analyzing PDF with AI...')
+          pdfPages = await renderPdfToImages(sourceDoc.fileUrl, 3)
         }
-      })
 
-      if (questionLines.length === 0) {
-        const chunks = content.split(/\n\n+/).filter(c => c.trim().length > 10)
-        chunks.forEach((chunk, idx) => {
-          const firstLine = chunk.split('\n')[0].trim()
-          if (firstLine.length > 5) {
-            questionLines.push({
-              number: idx + 1,
-              text: firstLine,
-            })
-          }
+        const response = await fetch('/api/ai/generate-dmi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type,
+            title: builder.title,
+            content: hasContent ? content : undefined,
+            pdfPages,
+          }),
         })
+
+        if (!response.ok) {
+          const errorBody = await response.json().catch(() => ({ error: 'Unknown error' }))
+          throw new Error(errorBody.error || `Failed to generate DMI (${response.status})`)
+        }
+
+        const data = await response.json()
+        const questions = data.questions || []
+
+        if (questions.length === 0) {
+          toast.warning('No questions could be generated. Try adding more content.')
+          return
+        }
+
+        const items: DMIQuestion[] = questions.map((q: any) => ({
+          id: `dmi-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+          questionNumber: q.questionNumber || 1,
+          questionText: q.questionText || 'Question',
+          answer: q.answer || '',
+        }))
+
+        // Calculate version number
+        const existingVersions = isTask ? taskDmiVersions : assessmentDmiVersions
+        const nextVersionNumber = existingVersions.length + 1
+
+        // Create new version
+        const newVersion: DMIVersion = {
+          id: `dmi-version-${Date.now()}`,
+          versionNumber: nextVersionNumber,
+          items: items,
+          createdAt: Date.now(),
+          taskId: isTask ? loadedTaskId || undefined : undefined,
+          assessmentId: !isTask ? loadedAssessmentId || undefined : undefined,
+        }
+
+        if (isTask) {
+          setTaskDmiItems(items)
+          setTaskDmiVersions(prev => [...prev, newVersion])
+        } else {
+          setAssessmentDmiItems(items)
+          setAssessmentDmiVersions(prev => [...prev, newVersion])
+        }
+
+        toast.success(`DMI form v${nextVersionNumber} created with ${items.length} questions`)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to generate DMI'
+        toast.error(message)
+      } finally {
+        setDmiGenerating(false)
       }
-
-      const items: DMIQuestion[] = questionLines.map(q => ({
-        id: `dmi-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-        questionNumber: q.number,
-        questionText: q.text,
-        answer: '',
-      }))
-
-      // Calculate version number
-      const existingVersions = isTask ? taskDmiVersions : assessmentDmiVersions
-      const nextVersionNumber = existingVersions.length + 1
-
-      // Create new version
-      const newVersion: DMIVersion = {
-        id: `dmi-version-${Date.now()}`,
-        versionNumber: nextVersionNumber,
-        items: items,
-        createdAt: Date.now(),
-        taskId: isTask ? loadedTaskId || undefined : undefined,
-        assessmentId: !isTask ? loadedAssessmentId || undefined : undefined,
-      }
-
-      if (isTask) {
-        setTaskDmiItems(items)
-        setTaskDmiVersions(prev => [...prev, newVersion])
-      } else {
-        setAssessmentDmiItems(items)
-        setAssessmentDmiVersions(prev => [...prev, newVersion])
-      }
-
-      toast.success(`DMI form v${nextVersionNumber} created from Assessment content`)
     }
 
     // Load a specific DMI version
@@ -2900,7 +2954,7 @@ FEEDBACK: [your explanation]`
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="z-[100]">
-                      <DropdownMenuItem onClick={() => handleLoadAsset(asset)}>
+                      <DropdownMenuItem onSelect={() => handleLoadAsset(asset)}>
                         Load
                       </DropdownMenuItem>
                       <DropdownMenuItem
@@ -2960,7 +3014,7 @@ FEEDBACK: [your explanation]`
                     className="w-full justify-start gap-2"
                     variant="outline"
                     onClick={() => {
-                      if (!assetToLoad?.name) {
+                      if (!assetToLoad) {
                         toast.error('Asset data is missing')
                         return
                       }
@@ -3047,7 +3101,7 @@ FEEDBACK: [your explanation]`
                     className="w-full justify-start gap-2"
                     variant="outline"
                     onClick={() => {
-                      if (!assetToLoad?.name) {
+                      if (!assetToLoad) {
                         toast.error('Asset data is missing')
                         return
                       }
@@ -3096,7 +3150,7 @@ FEEDBACK: [your explanation]`
                     className="w-full justify-start gap-2"
                     variant="outline"
                     onClick={() => {
-                      if (!assetToLoad?.name) {
+                      if (!assetToLoad) {
                         toast.error('Asset data is missing')
                         return
                       }
@@ -3143,7 +3197,7 @@ FEEDBACK: [your explanation]`
                     className="w-full justify-start gap-2"
                     variant="outline"
                     onClick={() => {
-                      if (!assetToLoad?.name) {
+                      if (!assetToLoad) {
                         toast.error('Asset data is missing')
                         return
                       }
@@ -3385,7 +3439,7 @@ FEEDBACK: [your explanation]`
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="z-[600]">
                                   <DropdownMenuItem
-                                    onClick={() => {
+                                    onSelect={() => {
                                       handleLoadAsset(asset)
                                       setAssetsViewOpen(false)
                                     }}
@@ -5775,12 +5829,12 @@ FEEDBACK: [your explanation]`
                                 >
                                   <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
                                     <div className="flex-1 space-y-3 overflow-y-auto p-3">
-                                      {assessmentPciMessages.length === 0 && (
+                                      {(assessmentPciMessagesMap[loadedAssessmentId || ''] || []).length === 0 && (
                                         <p className="text-muted-foreground text-xs">
                                           Start a PCI chat to build instructions with the assistant.
                                         </p>
                                       )}
-                                      {assessmentPciMessages.map((msg, idx) => (
+                                      {(assessmentPciMessagesMap[loadedAssessmentId || ''] || []).map((msg, idx) => (
                                         <div
                                           key={idx}
                                           className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -5796,7 +5850,7 @@ FEEDBACK: [your explanation]`
                                           </div>
                                         </div>
                                       ))}
-                                      {assessmentPciLoading && (
+                                      {(assessmentPciLoadingMap[loadedAssessmentId || ''] || false) && (
                                         <div className="flex justify-start">
                                           <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
                                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -5808,18 +5862,21 @@ FEEDBACK: [your explanation]`
                                       )}
                                     </div>
                                     <div className="border-t p-2">
-                                      {assessmentPciErrorHint && (
+                                      {(assessmentPciErrorHintMap[loadedAssessmentId || ''] || '') && (
                                         <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
-                                          PCI assistant error: {assessmentPciErrorHint}
+                                          PCI assistant error: {assessmentPciErrorHintMap[loadedAssessmentId || ''] || ''}
                                         </div>
                                       )}
                                       <div className="relative flex items-end gap-2">
                                         <AutoTextarea
                                           placeholder="Ask the PCI assistant..."
                                           className="min-h-[44px] w-full pr-11"
-                                          value={assessmentPciInput}
+                                          value={assessmentPciInputMap[loadedAssessmentId || ''] || ''}
                                           onChange={(e: any) =>
-                                            setAssessmentPciInput(e.target.value)
+                                            setAssessmentPciInputMap(prev => ({
+                                              ...prev,
+                                              [loadedAssessmentId || '']: e.target.value,
+                                            }))
                                           }
                                           onKeyDown={(e: any) => {
                                             if (e.key === 'Enter' && !e.shiftKey) {
@@ -5834,12 +5891,13 @@ FEEDBACK: [your explanation]`
                                           size="icon"
                                           className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
                                           disabled={
-                                            assessmentPciLoading || !assessmentPciInput.trim()
+                                            (assessmentPciLoadingMap[loadedAssessmentId || ''] || false) ||
+                                            !(assessmentPciInputMap[loadedAssessmentId || ''] || '').trim()
                                           }
                                           onClick={() => handlePciSend('assessment')}
                                           aria-label="Send"
                                         >
-                                          {assessmentPciLoading ? (
+                                          {(assessmentPciLoadingMap[loadedAssessmentId || ''] || false) ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
                                           ) : (
                                             <Send className="h-4 w-4" />
@@ -5878,16 +5936,21 @@ FEEDBACK: [your explanation]`
                                 <Button
                                   variant="outline"
                                   size="sm"
+                                  disabled={dmiGenerating}
                                   onClick={() => {
-                                    // Generate DMI from Assessment content
+                                    // Generate DMI from Assessment content or PDF
                                     const content = assessmentBuilder.taskContent
-                                    if (!content.trim()) {
-                                      toast.error('Please add content to the Assessment tab first')
+                                    const hasPdf = assessmentSourceDocument?.mimeType === 'application/pdf'
+                                    if (!content.trim() && !hasPdf) {
+                                      toast.error('Please add content to the Assessment tab or load a PDF first')
                                       return
                                     }
                                     handleGenerateDMI('assessment')
                                   }}
                                 >
+                                  {dmiGenerating ? (
+                                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                  ) : null}
                                   Generate DMI
                                 </Button>
                                 <Button
