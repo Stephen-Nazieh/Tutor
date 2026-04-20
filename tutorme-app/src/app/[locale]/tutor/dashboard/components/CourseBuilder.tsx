@@ -136,6 +136,7 @@ import {
   ResizablePanel,
   DifficultyBadge,
   SortableTreeItem,
+  DragHandle,
   StudentPreviewModal,
   PreviewCard,
 } from './builder-components'
@@ -3763,7 +3764,7 @@ FEEDBACK: [your explanation]`
                                   <SortableTreeItem
                                     key={node.id}
                                     id={node.id}
-                                    depth={1}
+                                    depth={0}
                                     isLast={nodeIdx === nodes.length - 1}
                                     inlineDragHandle
                                     className="mb-4 ml-0 overflow-hidden rounded-lg border border-l-0 border-slate-200 bg-white pl-0 shadow-sm"
@@ -3852,7 +3853,8 @@ FEEDBACK: [your explanation]`
                                                   <div key={task.id} className="contents">
                                                     <SortableTreeItem
                                                       id={task.id}
-                                                      depth={2}
+                                                      depth={0}
+                                                      dragHandle={false}
                                                       isLast={
                                                         idx ===
                                                         (primaryLesson.tasks?.length || 0) - 1
@@ -3946,6 +3948,7 @@ FEEDBACK: [your explanation]`
                                                           setMainBuilderTab('task')
                                                         }}
                                                       >
+                                                        <DragHandle className="shrink-0" />
                                                         <ListTodo className="h-3 w-3 shrink-0 text-blue-600" />
                                                         <span className="flex-1 truncate text-xs font-semibold text-blue-700">
                                                           {idx + 1}. {task.title}
@@ -4336,7 +4339,8 @@ FEEDBACK: [your explanation]`
                                                   <SortableTreeItem
                                                     key={hw.id}
                                                     id={hw.id}
-                                                    depth={2}
+                                                    depth={0}
+                                                    dragHandle={false}
                                                     isLast={idx === assessments.length - 1}
                                                   >
                                                     <div
@@ -4418,6 +4422,7 @@ FEEDBACK: [your explanation]`
                                                         setMainBuilderTab('assessment')
                                                       }}
                                                     >
+                                                      <DragHandle className="shrink-0" />
                                                       <FileQuestion className="h-3 w-3 shrink-0 text-indigo-600" />
                                                       <span className="flex-1 truncate text-xs font-semibold text-indigo-700">
                                                         {idx + 1}. {hw.title}
@@ -4522,7 +4527,8 @@ FEEDBACK: [your explanation]`
                                                     <SortableTreeItem
                                                       key={hw.id}
                                                       id={hw.id}
-                                                      depth={2}
+                                                      depth={0}
+                                                      dragHandle={false}
                                                       isLast={hwIdx === hwItems.length - 1}
                                                     >
                                                       <div
@@ -4542,6 +4548,7 @@ FEEDBACK: [your explanation]`
                                                           setMainBuilderTab('assessment')
                                                         }}
                                                       >
+                                                        <DragHandle className="shrink-0" />
                                                         <FileQuestion className="h-3 w-3 shrink-0 text-emerald-600" />
                                                         <span className="flex-1 truncate text-xs font-semibold text-emerald-700">
                                                           {hwIdx + 1}. {hw.title}
@@ -4625,7 +4632,7 @@ FEEDBACK: [your explanation]`
                                           {(node.quizzes || []).map((quiz, quizIdx) => (
                                             <TreeItem
                                               key={quiz.id}
-                                              depth={2}
+                                              depth={0}
                                               isLast={quizIdx === (node.quizzes?.length || 0) - 1}
                                               className="ml-0 mt-1 border-l-0 pl-0"
                                             >

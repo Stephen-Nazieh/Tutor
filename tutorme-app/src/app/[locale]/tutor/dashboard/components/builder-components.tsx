@@ -991,6 +991,30 @@ export function DifficultyBadge({
   )
 }
 
+// Context to expose sortable drag-handle props inside child renderers
+const SortableItemContext = React.createContext<{
+  attributes?: Record<string, unknown>
+  listeners?: Record<string, unknown>
+  onDragStart?: () => void
+}>({})
+
+export function DragHandle({ className }: { className?: string }) {
+  const ctx = React.useContext(SortableItemContext)
+  return (
+    <div
+      {...ctx.attributes}
+      {...ctx.listeners}
+      onMouseDown={ctx.onDragStart}
+      className={cn(
+        'cursor-grab p-1 text-gray-400 hover:text-gray-600 active:cursor-grabbing',
+        className
+      )}
+    >
+      <GripVertical className="h-4 w-4" />
+    </div>
+  )
+}
+
 export interface SortableTreeItemProps extends TreeItemProps {
   id: string
   dragHandle?: boolean
@@ -1019,33 +1043,35 @@ export function SortableTreeItem({
   }
 
   return (
-    <div ref={setNodeRef} style={style} className={cn('group relative', className)}>
-      <TreeItem depth={depth} isLast={isLast}>
-        <div className="flex items-center gap-2">
-          {dragHandle && !inlineDragHandle && (
-            <div
-              {...attributes}
-              {...listeners}
-              onMouseDown={onDragStart}
-              className="cursor-grab p-1 text-gray-400 hover:text-gray-600 active:cursor-grabbing"
-            >
-              <GripVertical className="h-4 w-4" />
-            </div>
-          )}
-          <div className="flex-1">{children}</div>
-          {inlineDragHandle && (
-            <div
-              {...attributes}
-              {...listeners}
-              onMouseDown={onDragStart}
-              className="cursor-grab p-1 text-gray-400 hover:text-gray-600 active:cursor-grabbing"
-            >
-              <GripVertical className="h-4 w-4" />
-            </div>
-          )}
-        </div>
-      </TreeItem>
-    </div>
+    <SortableItemContext.Provider value={{ attributes, listeners, onDragStart }}>
+      <div ref={setNodeRef} style={style} className={cn('group relative', className)}>
+        <TreeItem depth={depth} isLast={isLast}>
+          <div className="flex items-center gap-2">
+            {dragHandle && !inlineDragHandle && (
+              <div
+                {...attributes}
+                {...listeners}
+                onMouseDown={onDragStart}
+                className="cursor-grab p-1 text-gray-400 hover:text-gray-600 active:cursor-grabbing"
+              >
+                <GripVertical className="h-4 w-4" />
+              </div>
+            )}
+            <div className="flex-1">{children}</div>
+            {inlineDragHandle && (
+              <div
+                {...attributes}
+                {...listeners}
+                onMouseDown={onDragStart}
+                className="cursor-grab p-1 text-gray-400 hover:text-gray-600 active:cursor-grabbing"
+              >
+                <GripVertical className="h-4 w-4" />
+              </div>
+            )}
+          </div>
+        </TreeItem>
+      </div>
+    </SortableItemContext.Provider>
   )
 }
 
