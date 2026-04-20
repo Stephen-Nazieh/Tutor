@@ -667,9 +667,15 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         for (let nIdx = 0; nIdx < nodes.length; nIdx++) {
           const lesson = nodes[nIdx].lessons[0]
           if (!lesson) continue
-          const assessments = (lesson.homework || []).filter(h => h.category === 'assessment')
-          const aIdx = assessments.findIndex(a => a.id === loadedAssessmentId)
-          if (aIdx !== -1) return `Lesson ${nIdx + 1}, Assessment ${aIdx + 1}`
+          const hwItem = (lesson.homework || []).find(h => h.id === loadedAssessmentId)
+          if (hwItem) {
+            const isHomework = hwItem.category === 'homework'
+            const list = (lesson.homework || []).filter(h =>
+              isHomework ? h.category === 'homework' : h.category !== 'homework'
+            )
+            const idx = list.findIndex(h => h.id === loadedAssessmentId)
+            return `Lesson ${nIdx + 1}, ${isHomework ? 'Homework' : 'Assessment'} ${idx + 1}`
+          }
         }
       }
       // Check for quizzes (nodeQuiz)
