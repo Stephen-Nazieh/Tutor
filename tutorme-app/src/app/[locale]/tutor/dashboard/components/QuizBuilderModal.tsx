@@ -27,11 +27,7 @@ import { FileQuestion, Plus, X, Shield, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Quiz, CourseBuilderNodeQuiz, QuizQuestion, BuilderModalProps } from './builder-types'
 import { ResourceImportPanel, MatchingPairsEditor, QuestionsPreview } from './builder-components'
-import {
-  DEFAULT_QUIZ,
-  DEFAULT_NODE_QUIZ,
-  generateId,
-} from './builder-utils'
+import { DEFAULT_QUIZ, DEFAULT_NODE_QUIZ, generateId } from './builder-utils'
 
 function formatMatchingExplanation(pairs: { left: string; right: string }[]) {
   return pairs.map(p => `${p.left} -> ${p.right}`).join('\n')

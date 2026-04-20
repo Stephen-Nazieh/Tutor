@@ -74,10 +74,7 @@ import type {
   CourseBuilderNode,
   VisibleDocumentPayload,
 } from './builder-types'
-import {
-  generateId,
-  generateQuestionPaperPDF,
-} from './builder-utils'
+import { generateId, generateQuestionPaperPDF } from './builder-utils'
 import {
   Select,
   SelectContent,
@@ -180,9 +177,7 @@ export function ResourceImportPanel<
       }
       const sourceDocument: ImportedLearningResource = {
         fileName: file.name,
-        mimeType: isServerPdf
-          ? 'application/pdf'
-          : (file.type || 'application/octet-stream'),
+        mimeType: isServerPdf ? 'application/pdf' : file.type || 'application/octet-stream',
         fileUrl,
         extractedText: extractedText || '',
         uploadedAt: new Date().toISOString(),

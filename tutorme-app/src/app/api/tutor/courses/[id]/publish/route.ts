@@ -430,12 +430,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
                 pgColumn: pgError?.column,
                 pgTable: pgError?.table,
                 schemaColumns: Array.from(
-                  (await tx.execute(sql`SELECT column_name FROM information_schema.columns WHERE table_name = 'LiveSession'`)).rows as any[]
+                  (
+                    await tx.execute(
+                      sql`SELECT column_name FROM information_schema.columns WHERE table_name = 'LiveSession'`
+                    )
+                  ).rows as any[]
                 ).map((r: any) => r.column_name),
               })
               throw new Error(
                 `LiveSession insert failed: ${pgMsg} (code: ${pgError?.code || 'unknown'}). ` +
-                `Run: npm run db:apply-schema`
+                  `Run: npm run db:apply-schema`
               )
             }
           }
@@ -471,11 +475,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       pgTable: pgError?.table,
       stack: error?.stack,
     })
-    const hint = pgError?.code === '42703'
-      ? 'Missing column detected. Run: npm run db:apply-schema'
-      : pgError?.code === '42704'
-        ? 'Missing type/enum detected. Run: npm run db:apply-schema'
-        : undefined
+    const hint =
+      pgError?.code === '42703'
+        ? 'Missing column detected. Run: npm run db:apply-schema'
+        : pgError?.code === '42704'
+          ? 'Missing type/enum detected. Run: npm run db:apply-schema'
+          : undefined
     return NextResponse.json(
       {
         error: error.message || 'Failed to publish course variants',

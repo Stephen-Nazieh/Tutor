@@ -16,13 +16,16 @@ export class DailyCoProvider implements VideoProvider {
   constructor(apiKey?: string) {
     this.apiKey = apiKey || DAILY_API_KEY
     this.apiUrl = DAILY_API_URL
+  }
 
+  private ensureKey(): void {
     if (!this.apiKey) {
       throw new Error('Daily.co API key not configured. Set DAILY_API_KEY environment variable.')
     }
   }
 
   private async fetchDaily(endpoint: string, options: RequestInit = {}): Promise<any> {
+    this.ensureKey()
     const url = `${this.apiUrl}${endpoint}`
     const response = await fetch(url, {
       ...options,

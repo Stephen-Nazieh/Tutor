@@ -78,10 +78,7 @@ export async function GET(request: NextRequest) {
 
   // Handle private IPs - cannot geolocate
   if (isPrivateOrLoopbackIPv4(parsedIp)) {
-    return NextResponse.json(
-      { error: 'Private IP address cannot be geolocated' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'Private IP address cannot be geolocated' }, { status: 400 })
   }
 
   try {
@@ -118,10 +115,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(coords)
   } catch (error) {
     console.warn(`Geolocation fetch failed for ${ip}:`, error)
-    return NextResponse.json(
-      { error: 'Geolocation service unavailable' },
-      { status: 503 }
-    )
+    return NextResponse.json({ error: 'Geolocation service unavailable' }, { status: 503 })
   }
 }
 
@@ -209,5 +203,3 @@ export async function POST(request: NextRequest) {
     return handleApiError(error, 'Internal server error', 'api/admin/geolocation/route.ts')
   }
 }
-
-

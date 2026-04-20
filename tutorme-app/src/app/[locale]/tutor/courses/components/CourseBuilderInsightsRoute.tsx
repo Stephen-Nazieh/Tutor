@@ -448,9 +448,7 @@ function CourseBuilderInsightsRouteInner({
                       </DropdownMenuItem>
                     )}
                     {courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
-                      <DropdownMenuItem onClick={handlePublishDraft}>
-                        Publish
-                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handlePublishDraft}>Publish</DropdownMenuItem>
                     )}
                     {onDeleteCourse &&
                       !insightsProps.sessionId &&

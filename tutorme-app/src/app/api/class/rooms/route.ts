@@ -98,12 +98,15 @@ export const POST = withCsrf(
           const rootError = (error as { cause?: Error }).cause ?? error
           const msg = rootError instanceof Error ? rootError.message : String(rootError)
           console.error('[Class Rooms] DB insert failed:', rootError)
-          const isSchemaError = msg.includes('column') || msg.includes('enum') || msg.includes('does not exist')
+          const isSchemaError =
+            msg.includes('column') || msg.includes('enum') || msg.includes('does not exist')
           return NextResponse.json(
             {
               error: 'Failed to create session. Please try again.',
               details: msg,
-              hint: isSchemaError ? 'If this is a schema mismatch, run: psql -f scripts/apply-schema-changes.sql' : undefined,
+              hint: isSchemaError
+                ? 'If this is a schema mismatch, run: psql -f scripts/apply-schema-changes.sql'
+                : undefined,
             },
             { status: 500 }
           )

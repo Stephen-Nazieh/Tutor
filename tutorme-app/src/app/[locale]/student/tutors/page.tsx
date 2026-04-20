@@ -320,9 +320,7 @@ export default function StudentTutorDirectoryPage() {
       <Card className="border-border bg-card">
         <CardHeader>
           <CardTitle className="text-foreground">Search & Filter</CardTitle>
-          <CardDescription>
-            Refine by keywords, subject, country, and ranking.
-          </CardDescription>
+          <CardDescription>Refine by keywords, subject, country, and ranking.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-4">
           <div className="relative">

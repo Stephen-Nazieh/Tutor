@@ -10,9 +10,7 @@ import * as Sentry from '@sentry/nextjs'
 import { eq, and, inArray } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { liveSession, poll, pollOption, pollResponse, courseEnrollment } from '@/lib/db/schema'
-import {
-  initFeedbackHandlers,
-} from './socket-server'
+import { initFeedbackHandlers } from './socket-server'
 import { activePolls, sessionPolls, cleanupStaleSocketState } from '@/lib/socket'
 import type { PollState } from '@/lib/socket'
 import { socketAuthMiddleware } from './socket/socket-auth'
