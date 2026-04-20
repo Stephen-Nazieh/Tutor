@@ -3649,31 +3649,31 @@ FEEDBACK: [your explanation]`
         >
           <TabsList
             className={cn(
-              'bg-muted/30 mb-4 grid w-full gap-1 rounded-xl p-1',
+              'mb-4 grid w-full gap-2 rounded-xl p-1',
               insightsProps ? 'grid-cols-3' : 'grid-cols-2'
             )}
           >
             {insightsProps && (
               <TabsTrigger
                 value="live"
-                className="data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg bg-transparent data-[state=active]:shadow-sm"
+                className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
               >
-                <Radio className="h-4 w-4 text-blue-500" />
+                <Radio className="h-4 w-4" />
                 Live
               </TabsTrigger>
             )}
             <TabsTrigger
               value="test-pci"
-              className="data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg bg-transparent data-[state=active]:shadow-sm"
+              className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
             >
-              <BrainCircuit className="h-4 w-4 text-blue-500" />
+              <BrainCircuit className="h-4 w-4" />
               Test
             </TabsTrigger>
             <TabsTrigger
               value="builder"
-              className="data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg bg-transparent data-[state=active]:shadow-sm"
+              className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
             >
-              <Wand2 className="h-4 w-4 text-orange-500" />
+              <Wand2 className="h-4 w-4" />
               Build
             </TabsTrigger>
           </TabsList>
@@ -4779,7 +4779,7 @@ FEEDBACK: [your explanation]`
                                 onValueChange={setTestPciActiveTab}
                                 className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-hidden"
                               >
-                                <TabsList className="bg-muted flex min-h-[3.2rem] w-full shrink-0 flex-nowrap items-stretch gap-1 rounded-xl border p-1">
+                                <TabsList className="mb-2 flex w-full shrink-0 flex-nowrap items-stretch border-b border-gray-200">
                                   {testPciTabs.map(tab => (
                                     <div key={tab.id} className="relative min-w-0 flex-1 basis-0">
                                       {editingTabId === tab.id ? (
@@ -4798,13 +4798,13 @@ FEEDBACK: [your explanation]`
                                           onKeyDown={(e: any) => {
                                             if (e.key === 'Enter') setEditingTabId(null)
                                           }}
-                                          className="h-[3.2rem] min-w-0 text-center text-xs font-medium"
+                                          className="h-[3.2rem] min-w-0 border-0 text-center text-xs font-medium focus-visible:ring-0"
                                           autoFocus
                                         />
                                       ) : (
                                         <TabsTrigger
                                           value={tab.id}
-                                          className="h-[3.2rem] w-full min-w-0 truncate rounded-lg border border-gray-400 bg-white px-2 text-xs font-medium data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 sm:text-sm"
+                                          className="flex h-[3.2rem] w-full min-w-0 items-center justify-center truncate border-b-2 border-transparent bg-transparent px-2 text-xs font-medium text-gray-500 transition-colors hover:text-gray-700 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 sm:text-sm"
                                           onDoubleClick={() => setEditingTabId(tab.id)}
                                         >
                                           {tab.label}
@@ -4822,55 +4822,7 @@ FEEDBACK: [your explanation]`
                                     {tab.id === 'insights' ? (
                                       insightsProps ? (
                                         <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cyan-200/70 bg-gradient-to-br from-white via-slate-50 to-cyan-50 p-4 shadow-[0_10px_40px_-20px_rgba(14,116,144,0.65)] ring-1 ring-cyan-200/60">
-                                          {insightsProps.onToggleRecording && (
-                                            <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-cyan-100 bg-white/50 p-2 shadow-sm">
-                                              <div className="flex items-center gap-2 pl-1">
-                                                <div
-                                                  className={cn(
-                                                    'h-2 w-2 rounded-full',
-                                                    insightsProps.isRecording
-                                                      ? 'animate-pulse bg-red-500'
-                                                      : 'bg-gray-300'
-                                                  )}
-                                                />
-                                                <span className="text-xs font-medium text-gray-600">
-                                                  {insightsProps.isRecording ? (
-                                                    <>
-                                                      REC{' '}
-                                                      {Math.floor(
-                                                        (insightsProps.recordingDuration ?? 0) / 60
-                                                      )}
-                                                      m{' '}
-                                                      {String(
-                                                        (insightsProps.recordingDuration ?? 0) % 60
-                                                      ).padStart(2, '0')}
-                                                      s
-                                                    </>
-                                                  ) : (
-                                                    'Not Recording'
-                                                  )}
-                                                </span>
-                                              </div>
-                                              <Button
-                                                variant={
-                                                  insightsProps.isRecording
-                                                    ? 'destructive'
-                                                    : 'outline'
-                                                }
-                                                size="sm"
-                                                className="h-8 gap-2 px-3 text-xs font-semibold shadow-sm"
-                                                onClick={insightsProps.onToggleRecording}
-                                              >
-                                                <Radio
-                                                  className={cn(
-                                                    'h-3.5 w-3.5',
-                                                    insightsProps.isRecording && 'animate-pulse'
-                                                  )}
-                                                />
-                                                {insightsProps.isRecording ? 'Stop' : 'Record'}
-                                              </Button>
-                                            </div>
-                                          )}
+                                          {/* Recording status removed from Insights tab */}
 
                                           <Tabs
                                             value={insightsTab}
@@ -4881,7 +4833,7 @@ FEEDBACK: [your explanation]`
                                             }
                                             className="flex h-full min-h-0 flex-col"
                                           >
-                                            <TabsList className="mb-4 grid w-full grid-cols-4 gap-1 rounded-xl border border-cyan-200/70 bg-white/80 p-1 shadow-sm">
+                                            <TabsList className="mb-4 grid w-full grid-cols-4 gap-1 rounded-xl p-1 shadow-sm">
                                               <TabsTrigger
                                                 value="analytics"
                                                 className="rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
@@ -5283,19 +5235,19 @@ FEEDBACK: [your explanation]`
                           className="flex h-full w-full flex-col"
                         >
                           {/* Main Builder Tabs */}
-                          <TabsList className="border-border bg-muted/30 mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border p-1">
+                          <TabsList className="mb-2 flex w-full border-b border-gray-200">
                             <TabsTrigger
                               value="task"
-                              className="data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:shadow-sm"
+                              className="flex flex-1 items-center justify-center gap-2 border-b-2 border-transparent bg-transparent py-2.5 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
                             >
-                              <ListTodo className="h-4 w-4 text-orange-500" />
+                              <ListTodo className="h-4 w-4" />
                               Task Builder
                             </TabsTrigger>
                             <TabsTrigger
                               value="assessment"
-                              className="data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:shadow-sm"
+                              className="flex flex-1 items-center justify-center gap-2 border-b-2 border-transparent bg-transparent py-2.5 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600"
                             >
-                              <FileQuestion className="h-4 w-4 text-purple-500" />
+                              <FileQuestion className="h-4 w-4" />
                               Assessment Builder
                             </TabsTrigger>
                           </TabsList>
@@ -5636,16 +5588,16 @@ FEEDBACK: [your explanation]`
                                   }}
                                   className="flex h-full w-full flex-col"
                                 >
-                                  <TabsList className="bg-muted grid w-full grid-cols-2 gap-1 rounded-xl border p-1">
+                                  <TabsList className="mb-4 flex w-full gap-2">
                                     <TabsTrigger
                                       value="content"
-                                      className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                      className="flex-1 rounded-full border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 data-[state=active]:border-blue-500 data-[state=active]:bg-yellow-200 data-[state=active]:text-blue-700"
                                     >
                                       Assessment
                                     </TabsTrigger>
                                     <TabsTrigger
                                       value="pci"
-                                      className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                      className="flex-1 rounded-full border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 data-[state=active]:border-blue-500 data-[state=active]:bg-yellow-200 data-[state=active]:text-blue-700"
                                     >
                                       PCI
                                     </TabsTrigger>
