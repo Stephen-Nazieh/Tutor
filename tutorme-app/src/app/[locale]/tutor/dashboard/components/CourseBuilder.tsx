@@ -5238,23 +5238,40 @@ FEEDBACK: [your explanation]`
                           onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
                           className="flex h-full w-full flex-col"
                         >
-                          {/* Main Builder Tabs — floating segmented control */}
-                          <TabsList className="relative z-10 mx-auto mb-0 flex w-fit gap-1 rounded-full border border-gray-200/80 bg-white p-1 shadow-sm">
-                            <TabsTrigger
-                              value="task"
-                              className="flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
-                            >
-                              <ListTodo className="h-4 w-4" />
-                              Task Builder
-                            </TabsTrigger>
-                            <TabsTrigger
-                              value="assessment"
-                              className="flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
-                            >
-                              <FileQuestion className="h-4 w-4" />
-                              Assessment Builder
-                            </TabsTrigger>
-                          </TabsList>
+                          {/* Main Builder Tabs — full-width strip with item labels */}
+                          <div className="relative mb-3 flex w-full items-center rounded-xl border border-gray-200 bg-gray-50/80 p-1.5 shadow-sm">
+                            {/* Left: current task name */}
+                            <div className="flex flex-1 items-center gap-2 px-3 py-2 text-sm font-medium text-gray-500">
+                              <ListTodo className="h-4 w-4 shrink-0 text-blue-500" />
+                              <span className="truncate">
+                                {taskBuilder.title || 'Task 1'}
+                              </span>
+                            </div>
+
+                            {/* Center: clickable tabs */}
+                            <TabsList className="relative z-10 mx-auto flex w-fit gap-1 rounded-lg bg-transparent p-0">
+                              <TabsTrigger
+                                value="task"
+                                className="flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:font-semibold data-[state=active]:text-blue-600 data-[state=active]:shadow-sm data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-500"
+                              >
+                                Task Builder
+                              </TabsTrigger>
+                              <TabsTrigger
+                                value="assessment"
+                                className="flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:font-semibold data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-500"
+                              >
+                                Assessment Builder
+                              </TabsTrigger>
+                            </TabsList>
+
+                            {/* Right: current assessment name */}
+                            <div className="flex flex-1 items-center justify-end gap-2 px-3 py-2 text-sm font-medium text-gray-500">
+                              <span className="truncate">
+                                {assessmentBuilder.title || 'Assessment 1'}
+                              </span>
+                              <FileQuestion className="h-4 w-4 shrink-0 text-indigo-500" />
+                            </div>
+                          </div>
 
                           {/* Content card that sits behind the floating tabs */}
                           <div className="relative -mt-1 flex-1 rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm">
