@@ -395,6 +395,7 @@ export function InteractiveCalendar({
     { id: '3', provider: 'apple', connected: false, syncEnabled: false },
   ])
   const [categoryOptions, setCategoryOptions] = useState<string[]>([])
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false)
 
   useEffect(() => {
     if (mode === 'student' && initialEvents) {
@@ -413,6 +414,8 @@ export function InteractiveCalendar({
         setCategoryOptions(categories.filter((c: unknown) => typeof c === 'string'))
       } catch {
         // ignore
+      } finally {
+        setCategoriesLoaded(true)
       }
     }
     loadCategories()
@@ -843,13 +846,16 @@ export function InteractiveCalendar({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  {(categoryOptions.length ? categoryOptions : SUBJECTS.map(s => s.name)).map(
-                    name => (
-                      <SelectItem key={name} value={name}>
-                        {name}
-                      </SelectItem>
-                    )
+                  {!categoriesLoaded && (
+                    <SelectItem value="__loading__" disabled>
+                      Loading…
+                    </SelectItem>
                   )}
+                  {categoryOptions.map(name => (
+                    <SelectItem key={name} value={name}>
+                      {name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
@@ -898,24 +904,28 @@ export function InteractiveCalendar({
 
           {/* Legend */}
           <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
-            {(categoryOptions.length ? categoryOptions : SUBJECTS.map(s => s.name)).map(name => (
-              <button
-                key={name}
-                onClick={() => setSubjectFilter(subjectFilter === name ? 'all' : name)}
-                className={cn(
-                  'flex items-center gap-1 rounded-full px-2 py-1 transition-colors',
-                  subjectFilter === name ? 'bg-gray-200' : 'hover:bg-gray-100'
-                )}
-              >
-                <div
+            {categoriesLoaded ? (
+              categoryOptions.map(name => (
+                <button
+                  key={name}
+                  onClick={() => setSubjectFilter(subjectFilter === name ? 'all' : name)}
                   className={cn(
-                    'h-3 w-3 rounded-full',
-                    SUBJECTS.find(s => s.name === name)?.color || 'bg-gray-300'
+                    'flex items-center gap-1 rounded-full px-2 py-1 transition-colors',
+                    subjectFilter === name ? 'bg-gray-200' : 'hover:bg-gray-100'
                   )}
-                />
-                <span>{name}</span>
-              </button>
-            ))}
+                >
+                  <div
+                    className={cn(
+                      'h-3 w-3 rounded-full',
+                      SUBJECTS.find(s => s.name === name)?.color || 'bg-gray-300'
+                    )}
+                  />
+                  <span>{name}</span>
+                </button>
+              ))
+            ) : (
+              <span className="text-muted-foreground text-xs">Loading categories…</span>
+            )}
             {subjectFilter !== 'all' && (
               <Button variant="ghost" size="sm" onClick={() => setSubjectFilter('all')}>
                 Clear Filter

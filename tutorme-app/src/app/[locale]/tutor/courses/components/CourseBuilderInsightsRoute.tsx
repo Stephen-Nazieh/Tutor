@@ -5,7 +5,7 @@
 
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { ArrowLeft, Loader2, BookOpen, MoreVertical, Palette, RefreshCw, Plus } from 'lucide-react'
+import { ArrowLeft, Loader2, BookOpen, MoreVertical, RefreshCw, Plus, Timer } from 'lucide-react'
 import Link from 'next/link'
 import {
   Select,
@@ -32,11 +32,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
-import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { DASHBOARD_THEMES } from '@/components/dashboard-theme'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
 import { toast } from 'sonner'
 import type { CourseBuilderInsightsProps } from './course-builder-types'
@@ -105,7 +102,6 @@ function CourseBuilderInsightsRouteInner({
   })
 
   const [endingSession, setEndingSession] = useState(false)
-  const [themeId, setThemeId] = useState('current')
   const searchParams = useSearchParams()
   const tabFromUrl = searchParams.get('tab') as 'live' | 'builder' | 'test-pci' | null
   const [activeMainTab, setActiveMainTab] = useState<'live' | 'builder' | 'test-pci'>(
@@ -113,6 +109,38 @@ function CourseBuilderInsightsRouteInner({
   )
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
   const [renameValue, setRenameValue] = useState('')
+
+  const [now, setNow] = useState(new Date())
+  useEffect(() => {
+    if (activeMainTab !== 'live') return
+    const timer = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [activeMainTab])
+
+  const currentSession = insightsProps?.sessions?.find(
+    s => s.id === insightsProps?.sessionId
+  )
+  const scheduledDateStr = currentSession?.scheduledAt
+  const sessionPlannedDurationMinutes = currentSession?.plannedDurationMinutes || 60
+  let countdownText = '--:--'
+  let isOverdue = false
+  if (scheduledDateStr && activeMainTab === 'live') {
+    const scheduled = new Date(scheduledDateStr).getTime()
+    const endTime = scheduled + sessionPlannedDurationMinutes * 60 * 1000
+    const diff = endTime - now.getTime()
+    if (diff < 0) {
+      isOverdue = true
+      const absDiff = Math.abs(diff)
+      const minutes = Math.floor(absDiff / 60000)
+      const seconds = Math.floor((absDiff % 60000) / 1000)
+      countdownText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} over`
+    } else {
+      const minutes = Math.floor(diff / 60000)
+      const seconds = Math.floor((diff % 60000) / 1000)
+      countdownText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} remaining`
+    }
+  }
+
   const handleEndSession = async () => {
     if (!insightsProps.sessionId || endingSession) return
     if (!window.confirm('End this session? This will finalize the recording and analytics.')) {
@@ -275,11 +303,24 @@ function CourseBuilderInsightsRouteInner({
           )}
           <div className="flex shrink-0 items-center gap-3">
             {activeMainTab === 'live' && (
-              <h1 className="text-foreground text-lg font-bold tracking-tight">
+              <h1 className="text-foreground flex items-center gap-2 text-lg font-bold tracking-tight">
                 Live Session
                 {model.course?.name && (
                   <span className="text-muted-foreground ml-2 text-sm font-normal">
                     — {model.course.name}
+                  </span>
+                )}
+                {scheduledDateStr && (
+                  <span
+                    className={cn(
+                      'ml-2 flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium shadow-sm transition-colors',
+                      isOverdue
+                        ? 'border-red-200 bg-red-50 text-red-700'
+                        : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                    )}
+                  >
+                    <Timer className="h-3.5 w-3.5" />
+                    <span>{countdownText}</span>
                   </span>
                 )}
               </h1>
@@ -346,32 +387,6 @@ function CourseBuilderInsightsRouteInner({
               >
                 <Plus className="h-4 w-4" />
               </Button>
-            )}
-            {activeMainTab === 'builder' && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button size="sm" variant="outline">
-                    <Palette className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-48 p-1">
-                  <div className="flex flex-col gap-0.5">
-                    {DASHBOARD_THEMES.map(theme => (
-                      <button
-                        key={theme.id}
-                        type="button"
-                        onClick={() => setThemeId(theme.id)}
-                        className={cn(
-                          'text-foreground hover:bg-accent flex items-center rounded-sm px-2 py-1.5 text-left text-sm transition-colors',
-                          themeId === theme.id && 'bg-accent font-medium'
-                        )}
-                      >
-                        {theme.name}
-                      </button>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
             )}
             {activeMainTab === 'builder' && insightsProps.sessionId && onSyncToLiveSession && (
               <Button

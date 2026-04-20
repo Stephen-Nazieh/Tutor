@@ -25,15 +25,12 @@ export function PDFViewer({ fileUrl, className = '' }: PDFViewerProps) {
 
   const isScrollMode = numPages > 0 && numPages <= MAX_SCROLL_PAGES
 
-  const onDocumentLoadSuccess = useCallback(
-    ({ numPages: total }: { numPages: number }) => {
-      setNumPages(total)
-      setPageNumber(1)
-      setLoading(false)
-      setError(null)
-    },
-    []
-  )
+  const onDocumentLoadSuccess = useCallback(({ numPages: total }: { numPages: number }) => {
+    setNumPages(total)
+    setPageNumber(1)
+    setLoading(false)
+    setError(null)
+  }, [])
 
   const onDocumentLoadError = useCallback((err: Error) => {
     console.error('PDF load error:', err)

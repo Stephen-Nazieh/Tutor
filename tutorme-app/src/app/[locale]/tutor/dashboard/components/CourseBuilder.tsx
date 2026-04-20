@@ -3642,288 +3642,793 @@ FEEDBACK: [your explanation]`
           panelMode === 'live-class' && 'pt-3'
         )}
       >
-        <div className="flex h-full w-full min-w-0 flex-1 gap-0">
-          {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
-          {!leftPanelHidden && (
-            <>
-              <div
-                ref={leftPanelRef}
-                style={{ width: leftPanelWidth }}
-                className="flex min-h-0 shrink-0 flex-col"
+        <Tabs
+          value={mainTab}
+          onValueChange={v => setMainTab(v as 'live' | 'builder' | 'test-pci')}
+          className="flex h-full w-full flex-1 flex-col"
+        >
+          <TabsList
+            className={cn(
+              'bg-muted/30 mb-4 grid w-full gap-1 rounded-xl p-1',
+              insightsProps ? 'grid-cols-3' : 'grid-cols-2'
+            )}
+          >
+            {insightsProps && (
+              <TabsTrigger
+                value="live"
+                className="data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg bg-transparent data-[state=active]:shadow-sm"
               >
-                <Card className="border-border bg-card flex h-full min-h-0 flex-1 flex-col rounded-2xl border shadow-xl ring-1 ring-black/5">
-                  <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden pt-3">
-                    {/* Header with Hide, Import, and +Lesson buttons */}
-                    <div className="mb-3 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => setLeftPanelHidden(true)}
-                          title="Hide panel"
-                          aria-label="Hide panel"
-                        >
-                          <ChevronLeftIcon className="h-4 w-4" />
-                        </Button>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            'h-5 text-[10px] font-normal',
-                            mainTab === 'live' && 'border-blue-300 text-blue-600',
-                            mainTab === 'test-pci' && 'border-amber-300 text-amber-600',
-                            mainTab === 'builder' && 'border-emerald-300 text-emerald-600'
-                          )}
-                        >
-                          {mainTab === 'live' ? 'Live' : mainTab === 'test-pci' ? 'Test' : 'Build'}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {mainTab === 'live' && (
-                          <div className="flex items-center gap-2">
-                            {insightsProps?.onEndSession && (
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={insightsProps.onEndSession}
-                                disabled={insightsProps.endingSession}
-                                className="h-7 gap-1 px-2 text-xs"
-                              >
-                                {insightsProps.endingSession ? 'Ending…' : 'End Session'}
-                              </Button>
-                            )}
-                            {insightsProps?.onToggleRecording && (
-                              <Button
-                                size="sm"
-                                variant={insightsProps.isRecording ? 'destructive' : 'default'}
-                                onClick={insightsProps.onToggleRecording}
-                                className="h-7 gap-1 px-2 text-xs"
-                              >
-                                {insightsProps.isRecording ? '⏹ Stop' : '⏺ Record'}
-                              </Button>
-                            )}
-                            {insightsProps?.isRecording &&
-                              insightsProps?.recordingDuration != null && (
-                                <span className="font-mono text-xs text-red-500">
-                                  {formatDuration(insightsProps.recordingDuration)}
-                                </span>
-                              )}
-                          </div>
-                        )}
-                        {mainTab !== 'live' && mainTab !== 'test-pci' && (
+                <Radio className="h-4 w-4 text-blue-500" />
+                Live
+              </TabsTrigger>
+            )}
+            <TabsTrigger
+              value="test-pci"
+              className="data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg bg-transparent data-[state=active]:shadow-sm"
+            >
+              <BrainCircuit className="h-4 w-4 text-blue-500" />
+              Test
+            </TabsTrigger>
+            <TabsTrigger
+              value="builder"
+              className="data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg bg-transparent data-[state=active]:shadow-sm"
+            >
+              <Wand2 className="h-4 w-4 text-orange-500" />
+              Build
+            </TabsTrigger>
+          </TabsList>
+
+          <div className="flex h-full w-full min-w-0 flex-1 gap-4">
+            {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
+            {!leftPanelHidden && (
+              <>
+                <div
+                  ref={leftPanelRef}
+                  style={{ width: leftPanelWidth }}
+                  className="flex min-h-0 shrink-0 flex-col"
+                >
+                  <Card className="border-border bg-card flex h-full min-h-0 flex-1 flex-col rounded-2xl border shadow-xl ring-1 ring-black/5">
+                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden pt-3">
+                      {/* Header with Hide, Import, and +Lesson buttons */}
+                      <div className="mb-3 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
                           <Button
-                            size="sm"
-                            onClick={addCourseBuilderNode}
-                            className="h-7 gap-1 px-2 text-xs"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => setLeftPanelHidden(true)}
+                            title="Hide panel"
+                            aria-label="Hide panel"
                           >
-                            <Plus className="h-3 w-3" />
-                            Lesson
+                            <ChevronLeftIcon className="h-4 w-4" />
                           </Button>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="mb-3">
-                      <Input
-                        placeholder="Search course..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        className="h-8 text-xs"
-                      />
-                    </div>
-
-                    <ScrollArea className="min-h-0 flex-1">
-                      <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragStart={handleDragStart}
-                        onDragEnd={handleDragEnd}
-                      >
-                        <div className="space-y-1">
-                          {/* Lessons (formerly nodes) - with drag sorting */}
-                          <SortableContext
-                            items={filteredCourseBuilderNodes.map(node => node.id)}
-                            strategy={verticalListSortingStrategy}
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              'h-5 text-[10px] font-normal',
+                              mainTab === 'live' && 'border-blue-300 text-blue-600',
+                              mainTab === 'test-pci' && 'border-amber-300 text-amber-600',
+                              mainTab === 'builder' && 'border-emerald-300 text-emerald-600'
+                            )}
                           >
-                            {filteredCourseBuilderNodes.map((node, nodeIdx) => {
-                              const primaryLesson = node.lessons[0] ?? DEFAULT_LESSON(0)
-                              const taskCount = primaryLesson.tasks?.length || 0
-                              const assessments = (primaryLesson.homework || []).filter(
-                                h => h.category !== 'homework'
-                              )
-                              const totalItems = taskCount + assessments.length
-                              return (
-                                <SortableTreeItem
-                                  key={node.id}
-                                  id={node.id}
-                                  depth={1}
-                                  isLast={nodeIdx === nodes.length - 1}
-                                  inlineDragHandle
+                            {mainTab === 'live'
+                              ? 'Live'
+                              : mainTab === 'test-pci'
+                                ? 'Test'
+                                : 'Build'}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {mainTab === 'live' && (
+                            <div className="flex items-center gap-2">
+                              {insightsProps?.onEndSession && (
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={insightsProps.onEndSession}
+                                  disabled={insightsProps.endingSession}
+                                  className="h-7 gap-1 px-2 text-xs"
                                 >
-                                  <div className="group">
-                                    <div
-                                      className={cn(
-                                        'flex w-full cursor-pointer flex-wrap items-center gap-1.5 rounded px-2 py-1.5 transition-colors',
-                                        'border border-blue-400 bg-blue-50 hover:bg-blue-100'
-                                      )}
-                                      onClick={() => toggleCourseBuilderNode(node.id)}
-                                    >
-                                      {expandedCourseBuilderNodes.has(node.id) ? (
-                                        <ChevronDown className="h-3 w-3 text-blue-600" />
-                                      ) : (
-                                        <ChevronRight className="h-3 w-3 text-blue-600" />
-                                      )}
-                                      <Layers className="h-3 w-3 text-blue-600" />
-                                      <span
-                                        className="group/tooltip relative max-w-[180px] truncate text-sm font-medium"
-                                        title={node.title}
+                                  {insightsProps.endingSession ? 'Ending…' : 'End Session'}
+                                </Button>
+                              )}
+                              {insightsProps?.onToggleRecording && (
+                                <Button
+                                  size="sm"
+                                  variant={insightsProps.isRecording ? 'destructive' : 'default'}
+                                  onClick={insightsProps.onToggleRecording}
+                                  className="h-7 gap-1 px-2 text-xs"
+                                >
+                                  {insightsProps.isRecording ? '⏹ Stop' : '⏺ Record'}
+                                </Button>
+                              )}
+                              {insightsProps?.isRecording &&
+                                insightsProps?.recordingDuration != null && (
+                                  <span className="font-mono text-xs text-red-500">
+                                    {formatDuration(insightsProps.recordingDuration)}
+                                  </span>
+                                )}
+                            </div>
+                          )}
+                          {mainTab !== 'live' && mainTab !== 'test-pci' && (
+                            <Button
+                              size="sm"
+                              onClick={addCourseBuilderNode}
+                              className="h-7 gap-1 px-2 text-xs"
+                            >
+                              <Plus className="h-3 w-3" />
+                              Lesson
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mb-3">
+                        <Input
+                          placeholder="Search course..."
+                          value={searchQuery}
+                          onChange={e => setSearchQuery(e.target.value)}
+                          className="h-8 text-xs"
+                        />
+                      </div>
+
+                      <ScrollArea className="min-h-0 flex-1">
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragStart={handleDragStart}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <div className="space-y-1">
+                            {/* Lessons (formerly nodes) - with drag sorting */}
+                            <SortableContext
+                              items={filteredCourseBuilderNodes.map(node => node.id)}
+                              strategy={verticalListSortingStrategy}
+                            >
+                              {filteredCourseBuilderNodes.map((node, nodeIdx) => {
+                                const primaryLesson = node.lessons[0] ?? DEFAULT_LESSON(0)
+                                const taskCount = primaryLesson.tasks?.length || 0
+                                const assessments = (primaryLesson.homework || []).filter(
+                                  h => h.category !== 'homework'
+                                )
+                                const totalItems = taskCount + assessments.length
+                                return (
+                                  <SortableTreeItem
+                                    key={node.id}
+                                    id={node.id}
+                                    depth={1}
+                                    isLast={nodeIdx === nodes.length - 1}
+                                    inlineDragHandle
+                                  >
+                                    <div className="group">
+                                      <div
+                                        className={cn(
+                                          'flex w-full cursor-pointer flex-wrap items-center gap-1.5 rounded px-2 py-1.5 transition-colors',
+                                          'border border-blue-400 bg-blue-50 hover:bg-blue-100'
+                                        )}
+                                        onClick={() => toggleCourseBuilderNode(node.id)}
                                       >
-                                        {node.title}
-                                        {/* Custom Tooltip */}
-                                        <span className="absolute -top-8 left-0 z-50 hidden whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white group-hover/tooltip:block">
+                                        {expandedCourseBuilderNodes.has(node.id) ? (
+                                          <ChevronDown className="h-3 w-3 text-blue-600" />
+                                        ) : (
+                                          <ChevronRight className="h-3 w-3 text-blue-600" />
+                                        )}
+                                        <Layers className="h-3 w-3 text-blue-600" />
+                                        <span
+                                          className="group/tooltip relative max-w-[180px] truncate text-sm font-medium"
+                                          title={node.title}
+                                        >
                                           {node.title}
-                                          <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
+                                          {/* Custom Tooltip */}
+                                          <span className="absolute -top-8 left-0 z-50 hidden whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white group-hover/tooltip:block">
+                                            {node.title}
+                                            <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
+                                          </span>
                                         </span>
-                                      </span>
-                                      <span className="text-blue-400">:</span>
-                                      <div className="flex-1" />
-                                      <Badge
-                                        variant="secondary"
-                                        className="h-4 shrink-0 text-[10px]"
-                                      >
-                                        {totalItems}
-                                      </Badge>
+                                        <span className="text-blue-400">:</span>
+                                        <div className="flex-1" />
+                                        <Badge
+                                          variant="secondary"
+                                          className="h-4 shrink-0 text-[10px]"
+                                        >
+                                          {totalItems}
+                                        </Badge>
 
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                                        onClick={(e: any) => {
-                                          e.stopPropagation()
-                                          deleteCourseBuilderNode(node.id)
-                                        }}
-                                      >
-                                        <Trash2 className="h-3 w-3 text-red-500" />
-                                      </Button>
-                                    </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                                          onClick={(e: any) => {
+                                            e.stopPropagation()
+                                            deleteCourseBuilderNode(node.id)
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3 text-red-500" />
+                                        </Button>
+                                      </div>
 
-                                    {expandedCourseBuilderNodes.has(node.id) && (
-                                      <div className="mt-1 space-y-1">
-                                        {/* Tasks - droppable so homework can be moved here */}
-                                        <TreeItem depth={0} isLast={false}>
-                                          <DroppableTaskZone
-                                            nodeId={node.id}
-                                            lessonId={primaryLesson.id}
-                                            className="flex w-full items-center gap-1.5 rounded-lg border-b-2 border-blue-600 bg-gradient-to-r from-blue-400 to-blue-500 px-3 py-0.5 shadow-sm transition-all"
-                                          >
-                                            <Button
-                                              variant="ghost"
-                                              size="icon"
-                                              className="h-5 w-5 hover:bg-white/20"
-                                              onClick={() => toggleSection(node.id, 'task')}
-                                              aria-label={
-                                                isSectionCollapsed(node.id, 'task')
-                                                  ? 'Expand tasks'
-                                                  : 'Collapse tasks'
-                                              }
+                                      {expandedCourseBuilderNodes.has(node.id) && (
+                                        <div className="mt-1 space-y-1">
+                                          {/* Tasks - droppable so homework can be moved here */}
+                                          <TreeItem depth={0} isLast={false}>
+                                            <DroppableTaskZone
+                                              nodeId={node.id}
+                                              lessonId={primaryLesson.id}
+                                              className="flex w-full items-center gap-1.5 rounded-lg border-b-2 border-blue-600 bg-gradient-to-r from-blue-400 to-blue-500 px-3 py-0.5 shadow-sm transition-all"
                                             >
-                                              {isSectionCollapsed(node.id, 'task') ? (
-                                                <ChevronRight className="h-4 w-4 text-white" />
-                                              ) : (
-                                                <ChevronDown className="h-4 w-4 text-white" />
-                                              )}
-                                            </Button>
-                                            <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
-                                              Tasks
-                                            </span>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="ml-auto h-5 w-5 gap-0 rounded-full border border-white/50 bg-transparent p-0 text-white hover:bg-white/20"
-                                              onClick={() => addTask(node.id, primaryLesson.id)}
+                                              <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-5 w-5 hover:bg-white/20"
+                                                onClick={() => toggleSection(node.id, 'task')}
+                                                aria-label={
+                                                  isSectionCollapsed(node.id, 'task')
+                                                    ? 'Expand tasks'
+                                                    : 'Collapse tasks'
+                                                }
+                                              >
+                                                {isSectionCollapsed(node.id, 'task') ? (
+                                                  <ChevronRight className="h-4 w-4 text-white" />
+                                                ) : (
+                                                  <ChevronDown className="h-4 w-4 text-white" />
+                                                )}
+                                              </Button>
+                                              <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
+                                                Tasks
+                                              </span>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="ml-auto h-5 w-5 gap-0 rounded-full border border-white/50 bg-transparent p-0 text-white hover:bg-white/20"
+                                                onClick={() => addTask(node.id, primaryLesson.id)}
+                                              >
+                                                <Plus className="h-3 w-3" />
+                                              </Button>
+                                            </DroppableTaskZone>
+                                          </TreeItem>
+                                          {!isSectionCollapsed(node.id, 'task') && (
+                                            <>
+                                              <SortableContext
+                                                items={primaryLesson.tasks?.map(t => t.id) || []}
+                                                strategy={verticalListSortingStrategy}
+                                              >
+                                                {(primaryLesson.tasks || []).map((task, idx) => (
+                                                  <div key={task.id} className="contents">
+                                                    <SortableTreeItem
+                                                      id={task.id}
+                                                      depth={2}
+                                                      isLast={
+                                                        idx ===
+                                                        (primaryLesson.tasks?.length || 0) - 1
+                                                      }
+                                                    >
+                                                      <div
+                                                        className={cn(
+                                                          'group/item flex cursor-pointer items-center gap-1.5 rounded border px-2 py-1 transition-colors',
+                                                          selectedItem?.type === 'task' &&
+                                                            selectedItem?.id === task.id
+                                                            ? 'border-orange-400 bg-orange-200 ring-1 ring-orange-400'
+                                                            : 'border-orange-400 bg-orange-50 hover:bg-orange-100'
+                                                        )}
+                                                        onClick={e => {
+                                                          if (
+                                                            (e.target as HTMLElement).closest(
+                                                              'input'
+                                                            )
+                                                          )
+                                                            return
+                                                          // Auto-save current assessment if switching from one
+                                                          if (loadedAssessmentId) {
+                                                            setCourseBuilderNodes(prev =>
+                                                              prev.map(node => ({
+                                                                ...node,
+                                                                lessons: node.lessons.map(
+                                                                  lesson => ({
+                                                                    ...lesson,
+                                                                    homework: lesson.homework.map(
+                                                                      hw =>
+                                                                        hw.id === loadedAssessmentId
+                                                                          ? {
+                                                                              ...hw,
+                                                                              title:
+                                                                                assessmentBuilder.title,
+                                                                              description:
+                                                                                assessmentBuilder.taskContent,
+                                                                              instructions:
+                                                                                assessmentBuilder.taskPci,
+                                                                              dmiItems:
+                                                                                assessmentDmiItems,
+                                                                              sourceDocument:
+                                                                                hw.sourceDocument,
+                                                                            }
+                                                                          : hw
+                                                                    ),
+                                                                  })
+                                                                ),
+                                                              }))
+                                                            )
+                                                          }
+                                                          // Auto-save current task if switching from another task
+                                                          if (
+                                                            loadedTaskId &&
+                                                            loadedTaskId !== task.id
+                                                          ) {
+                                                            setCourseBuilderNodes(prev =>
+                                                              prev.map(node => ({
+                                                                ...node,
+                                                                lessons: node.lessons.map(
+                                                                  lesson => ({
+                                                                    ...lesson,
+                                                                    tasks: lesson.tasks.map(t =>
+                                                                      t.id === loadedTaskId
+                                                                        ? {
+                                                                            ...t,
+                                                                            title:
+                                                                              taskBuilder.title,
+                                                                            description:
+                                                                              taskBuilder.taskContent,
+                                                                            instructions:
+                                                                              taskBuilder.taskPci,
+                                                                            extensions:
+                                                                              taskBuilder.extensions,
+                                                                            dmiItems: taskDmiItems,
+                                                                            sourceDocument:
+                                                                              t.sourceDocument,
+                                                                          }
+                                                                        : t
+                                                                    ),
+                                                                  })
+                                                                ),
+                                                              }))
+                                                            )
+                                                          }
+                                                          setSelectedItem({
+                                                            type: 'task',
+                                                            id: task.id,
+                                                          })
+                                                          loadTaskIntoBuilder(task)
+                                                          setMainBuilderTab('task')
+                                                        }}
+                                                      >
+                                                        <ListTodo className="h-3 w-3 shrink-0 text-orange-500" />
+                                                        <span className="shrink-0 text-[10px] font-semibold text-orange-700">
+                                                          {idx + 1}. {task.title}:
+                                                        </span>
+                                                        <div className="flex-1" />
+                                                        <DropdownMenu>
+                                                          <DropdownMenuTrigger asChild>
+                                                            <Button
+                                                              variant="ghost"
+                                                              size="icon"
+                                                              className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                                              onClick={e => e.stopPropagation()}
+                                                            >
+                                                              <MoreVertical className="h-3 w-3 text-slate-500" />
+                                                            </Button>
+                                                          </DropdownMenuTrigger>
+                                                          <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem
+                                                              onClick={e => {
+                                                                e.stopPropagation()
+                                                                moveToHomework(
+                                                                  node.id,
+                                                                  primaryLesson.id,
+                                                                  'task',
+                                                                  task
+                                                                )
+                                                              }}
+                                                            >
+                                                              Move to homework
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                              onClick={e => {
+                                                                e.stopPropagation()
+                                                                setEditingData(task)
+                                                                setActiveModal({
+                                                                  type: 'task',
+                                                                  isOpen: true,
+                                                                  nodeId: node.id,
+                                                                  lessonId: primaryLesson.id,
+                                                                  itemId: task.id,
+                                                                })
+                                                              }}
+                                                            >
+                                                              Edit
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                              onClick={e => {
+                                                                e.stopPropagation()
+                                                                // Auto-save current task if switching from another task
+                                                                if (
+                                                                  loadedTaskId &&
+                                                                  loadedTaskId !== task.id
+                                                                ) {
+                                                                  setCourseBuilderNodes(prev =>
+                                                                    prev.map(node => ({
+                                                                      ...node,
+                                                                      lessons: node.lessons.map(
+                                                                        lesson => ({
+                                                                          ...lesson,
+                                                                          tasks: lesson.tasks.map(
+                                                                            t =>
+                                                                              t.id === loadedTaskId
+                                                                                ? {
+                                                                                    ...t,
+                                                                                    title:
+                                                                                      taskBuilder.title,
+                                                                                    description:
+                                                                                      taskBuilder.taskContent,
+                                                                                    instructions:
+                                                                                      taskBuilder.taskPci,
+                                                                                    extensions:
+                                                                                      taskBuilder.extensions,
+                                                                                    dmiItems:
+                                                                                      taskDmiItems,
+                                                                                    sourceDocument:
+                                                                                      t.sourceDocument,
+                                                                                  }
+                                                                                : t
+                                                                          ),
+                                                                        })
+                                                                      ),
+                                                                    }))
+                                                                  )
+                                                                }
+                                                                // Auto-save current assessment if any is loaded
+                                                                if (loadedAssessmentId) {
+                                                                  setCourseBuilderNodes(prev =>
+                                                                    prev.map(mod => ({
+                                                                      ...mod,
+                                                                      lessons: mod.lessons.map(
+                                                                        lesson => ({
+                                                                          ...lesson,
+                                                                          homework:
+                                                                            lesson.homework.map(
+                                                                              h =>
+                                                                                h.id ===
+                                                                                loadedAssessmentId
+                                                                                  ? {
+                                                                                      ...h,
+                                                                                      title:
+                                                                                        assessmentBuilder.title,
+                                                                                      description:
+                                                                                        assessmentBuilder.taskContent,
+                                                                                      instructions:
+                                                                                        assessmentBuilder.taskPci,
+                                                                                      dmiItems:
+                                                                                        assessmentDmiItems,
+                                                                                      sourceDocument:
+                                                                                        h.sourceDocument,
+                                                                                    }
+                                                                                  : h
+                                                                            ),
+                                                                        })
+                                                                      ),
+                                                                    }))
+                                                                  )
+                                                                }
+                                                                // Load the target task if not already loaded
+                                                                if (loadedTaskId !== task.id) {
+                                                                  setSelectedItem({
+                                                                    type: 'task',
+                                                                    id: task.id,
+                                                                  })
+                                                                  loadTaskIntoBuilder(task)
+                                                                }
+                                                                setMainBuilderTab('task')
+                                                                // Create the extension
+                                                                const currentExtensions =
+                                                                  loadedTaskId === task.id
+                                                                    ? taskBuilder.extensions
+                                                                    : task.extensions || []
+                                                                const extNumber =
+                                                                  currentExtensions.length + 1
+                                                                const newExtension = {
+                                                                  id: `ext-${Date.now()}`,
+                                                                  name: `Extension ${extNumber}`,
+                                                                  description: '',
+                                                                  content: '',
+                                                                  pci: '',
+                                                                }
+                                                                setTaskExtensionPciMessages(
+                                                                  prev => ({
+                                                                    ...prev,
+                                                                    [newExtension.id]: [],
+                                                                  })
+                                                                )
+                                                                setTaskExtensionPciInputs(prev => ({
+                                                                  ...prev,
+                                                                  [newExtension.id]: '',
+                                                                }))
+                                                                setTaskBuilder(prev => ({
+                                                                  ...prev,
+                                                                  extensions: [
+                                                                    ...prev.extensions,
+                                                                    newExtension,
+                                                                  ],
+                                                                  activeExtensionId:
+                                                                    newExtension.id,
+                                                                }))
+                                                                setCourseBuilderNodes(prev =>
+                                                                  prev.map(mod => ({
+                                                                    ...mod,
+                                                                    lessons: mod.lessons.map(
+                                                                      lesson => ({
+                                                                        ...lesson,
+                                                                        tasks: lesson.tasks.map(
+                                                                          t =>
+                                                                            t.id === task.id
+                                                                              ? {
+                                                                                  ...t,
+                                                                                  extensions: [
+                                                                                    ...(t.extensions ||
+                                                                                      []),
+                                                                                    newExtension,
+                                                                                  ],
+                                                                                }
+                                                                              : t
+                                                                        ),
+                                                                      })
+                                                                    ),
+                                                                  }))
+                                                                )
+                                                                toast.success(
+                                                                  `Extension ${newExtension.name} added`
+                                                                )
+                                                              }}
+                                                            >
+                                                              Add Extension
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                              className="text-red-500"
+                                                              onClick={e => {
+                                                                e.stopPropagation()
+                                                                if (
+                                                                  !confirm(
+                                                                    `Delete "${task.title}"?`
+                                                                  )
+                                                                )
+                                                                  return
+                                                                deleteTask(
+                                                                  node.id,
+                                                                  primaryLesson.id,
+                                                                  task.id
+                                                                )
+                                                              }}
+                                                            >
+                                                              Delete
+                                                            </DropdownMenuItem>
+                                                          </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                      </div>
+                                                    </SortableTreeItem>
+                                                    {loadedTaskId === task.id &&
+                                                      taskBuilder.extensions.length > 0 && (
+                                                        <div className="ml-12 mt-1 space-y-1 border-l border-orange-400 pl-2">
+                                                          <div
+                                                            className="flex cursor-pointer items-center gap-2 rounded border bg-white px-2 py-1 text-[10px]"
+                                                            onClick={() =>
+                                                              toggleExtensions(task.id)
+                                                            }
+                                                          >
+                                                            {isExtensionsCollapsed(task.id) ? (
+                                                              <ChevronRight className="h-3 w-3 text-orange-600" />
+                                                            ) : (
+                                                              <ChevronDown className="h-3 w-3 text-orange-600" />
+                                                            )}
+                                                            <FolderOpen className="h-3 w-3 text-orange-600" />
+                                                            <span className="font-semibold text-orange-700">
+                                                              Extensions
+                                                            </span>
+                                                            <span className="text-muted-foreground">
+                                                              ({taskBuilder.extensions.length})
+                                                            </span>
+                                                          </div>
+                                                          {!isExtensionsCollapsed(task.id) && (
+                                                            <div className="ml-3 space-y-1">
+                                                              {taskBuilder.extensions.map(
+                                                                (ext, extIdx) => (
+                                                                  <div
+                                                                    key={ext.id}
+                                                                    className={cn(
+                                                                      'group/extension flex cursor-pointer items-center gap-2 rounded border px-2 py-1 text-[10px]',
+                                                                      taskBuilder.activeExtensionId ===
+                                                                        ext.id
+                                                                        ? 'border-orange-300 bg-orange-100'
+                                                                        : 'border-orange-100 bg-white hover:bg-orange-50'
+                                                                    )}
+                                                                    onClick={() => {
+                                                                      setSelectedItem({
+                                                                        type: 'task',
+                                                                        id: task.id,
+                                                                      })
+                                                                      loadTaskIntoBuilder(
+                                                                        task,
+                                                                        ext.id
+                                                                      )
+                                                                      setMainBuilderTab('task')
+                                                                    }}
+                                                                  >
+                                                                    <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
+                                                                    <span className="font-semibold text-orange-700">
+                                                                      {idx + 1}.{extIdx + 1}
+                                                                    </span>
+                                                                    <span className="text-muted-foreground flex-1 truncate">
+                                                                      {ext.name}
+                                                                    </span>
+                                                                    <Button
+                                                                      variant="ghost"
+                                                                      size="icon"
+                                                                      className="h-5 w-5 opacity-0 group-hover/extension:opacity-100"
+                                                                      onClick={(e: any) => {
+                                                                        e.stopPropagation()
+                                                                        if (
+                                                                          !confirm(
+                                                                            `Delete "${ext.name}"?`
+                                                                          )
+                                                                        )
+                                                                          return
+                                                                        setTaskExtensionPciMessages(
+                                                                          prev => {
+                                                                            const next = { ...prev }
+                                                                            delete next[ext.id]
+                                                                            return next
+                                                                          }
+                                                                        )
+                                                                        setTaskExtensionPciInputs(
+                                                                          prev => {
+                                                                            const next = { ...prev }
+                                                                            delete next[ext.id]
+                                                                            return next
+                                                                          }
+                                                                        )
+                                                                        setTaskBuilder(prev => ({
+                                                                          ...prev,
+                                                                          extensions:
+                                                                            prev.extensions.filter(
+                                                                              e => e.id !== ext.id
+                                                                            ),
+                                                                          activeExtensionId:
+                                                                            prev.activeExtensionId ===
+                                                                            ext.id
+                                                                              ? null
+                                                                              : prev.activeExtensionId,
+                                                                        }))
+                                                                        if (loadedTaskId) {
+                                                                          setCourseBuilderNodes(
+                                                                            prev =>
+                                                                              prev.map(mod => ({
+                                                                                ...mod,
+                                                                                lessons:
+                                                                                  mod.lessons.map(
+                                                                                    lesson => ({
+                                                                                      ...lesson,
+                                                                                      tasks:
+                                                                                        lesson.tasks.map(
+                                                                                          t =>
+                                                                                            t.id ===
+                                                                                            loadedTaskId
+                                                                                              ? {
+                                                                                                  ...t,
+                                                                                                  extensions:
+                                                                                                    (
+                                                                                                      t.extensions ||
+                                                                                                      []
+                                                                                                    ).filter(
+                                                                                                      e =>
+                                                                                                        e.id !==
+                                                                                                        ext.id
+                                                                                                    ),
+                                                                                                }
+                                                                                              : t
+                                                                                        ),
+                                                                                    })
+                                                                                  ),
+                                                                              }))
+                                                                          )
+                                                                        }
+                                                                      }}
+                                                                    >
+                                                                      <Trash2 className="h-3 w-3 text-red-500" />
+                                                                    </Button>
+                                                                  </div>
+                                                                )
+                                                              )}
+                                                            </div>
+                                                          )}
+                                                        </div>
+                                                      )}
+                                                  </div>
+                                                ))}
+                                              </SortableContext>
+                                            </>
+                                          )}
+
+                                          {/* Assessments - droppable so homework can be moved here */}
+                                          <TreeItem depth={0} isLast={false}>
+                                            <DroppableAssessmentZone
+                                              nodeId={node.id}
+                                              lessonId={primaryLesson.id}
+                                              className="flex w-full items-center gap-1.5 rounded-lg border-b-2 border-indigo-600 bg-gradient-to-r from-indigo-400 to-indigo-500 px-3 py-0.5 shadow-sm transition-all"
                                             >
-                                              <Plus className="h-3 w-3" />
-                                            </Button>
-                                          </DroppableTaskZone>
-                                        </TreeItem>
-                                        {!isSectionCollapsed(node.id, 'task') && (
-                                          <>
-                                            <SortableContext
-                                              items={primaryLesson.tasks?.map(t => t.id) || []}
-                                              strategy={verticalListSortingStrategy}
-                                            >
-                                              {(primaryLesson.tasks || []).map((task, idx) => (
-                                                <div key={task.id} className="contents">
+                                              <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-5 w-5 hover:bg-white/20"
+                                                onClick={() => toggleSection(node.id, 'assessment')}
+                                                aria-label={
+                                                  isSectionCollapsed(node.id, 'assessment')
+                                                    ? 'Expand assessments'
+                                                    : 'Collapse assessments'
+                                                }
+                                              >
+                                                {isSectionCollapsed(node.id, 'assessment') ? (
+                                                  <ChevronRight className="h-4 w-4 text-white" />
+                                                ) : (
+                                                  <ChevronDown className="h-4 w-4 text-white" />
+                                                )}
+                                              </Button>
+                                              <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
+                                                Assessments
+                                              </span>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="ml-auto h-5 w-5 gap-0 rounded-full border border-white/50 bg-transparent p-0 text-white hover:bg-white/20"
+                                                onClick={() =>
+                                                  addAssessment(node.id, primaryLesson.id)
+                                                }
+                                              >
+                                                <Plus className="h-3 w-3" />
+                                              </Button>
+                                            </DroppableAssessmentZone>
+                                          </TreeItem>
+                                          {!isSectionCollapsed(node.id, 'assessment') && (
+                                            <>
+                                              <SortableContext
+                                                items={assessments.map(h => h.id)}
+                                                strategy={verticalListSortingStrategy}
+                                              >
+                                                {assessments.map((hw, idx) => (
                                                   <SortableTreeItem
-                                                    id={task.id}
+                                                    key={hw.id}
+                                                    id={hw.id}
                                                     depth={2}
-                                                    isLast={
-                                                      idx === (primaryLesson.tasks?.length || 0) - 1
-                                                    }
+                                                    isLast={idx === assessments.length - 1}
                                                   >
                                                     <div
                                                       className={cn(
                                                         'group/item flex cursor-pointer items-center gap-1.5 rounded border px-2 py-1 transition-colors',
-                                                        selectedItem?.type === 'task' &&
-                                                          selectedItem?.id === task.id
-                                                          ? 'border-orange-400 bg-orange-200 ring-1 ring-orange-400'
-                                                          : 'border-orange-400 bg-orange-50 hover:bg-orange-100'
+                                                        selectedItem?.type === 'homework' &&
+                                                          selectedItem?.id === hw.id
+                                                          ? 'border-purple-400 bg-purple-200 ring-1 ring-purple-400'
+                                                          : 'border-purple-400 bg-purple-50 hover:bg-purple-100'
                                                       )}
                                                       onClick={e => {
                                                         if (
                                                           (e.target as HTMLElement).closest('input')
                                                         )
                                                           return
-                                                        // Auto-save current assessment if switching from one
-                                                        if (loadedAssessmentId) {
+                                                        // Auto-save current task if switching from one
+                                                        if (loadedTaskId) {
                                                           setCourseBuilderNodes(prev =>
-                                                            prev.map(node => ({
-                                                              ...node,
-                                                              lessons: node.lessons.map(lesson => ({
-                                                                ...lesson,
-                                                                homework: lesson.homework.map(hw =>
-                                                                  hw.id === loadedAssessmentId
-                                                                    ? {
-                                                                        ...hw,
-                                                                        title:
-                                                                          assessmentBuilder.title,
-                                                                        description:
-                                                                          assessmentBuilder.taskContent,
-                                                                        instructions:
-                                                                          assessmentBuilder.taskPci,
-                                                                        dmiItems:
-                                                                          assessmentDmiItems,
-                                                                        sourceDocument:
-                                                                          hw.sourceDocument,
-                                                                      }
-                                                                    : hw
-                                                                ),
-                                                              })),
-                                                            }))
-                                                          )
-                                                        }
-                                                        // Auto-save current task if switching from another task
-                                                        if (
-                                                          loadedTaskId &&
-                                                          loadedTaskId !== task.id
-                                                        ) {
-                                                          setCourseBuilderNodes(prev =>
-                                                            prev.map(node => ({
-                                                              ...node,
-                                                              lessons: node.lessons.map(lesson => ({
+                                                            prev.map(mod => ({
+                                                              ...mod,
+                                                              lessons: mod.lessons.map(lesson => ({
                                                                 ...lesson,
                                                                 tasks: lesson.tasks.map(t =>
                                                                   t.id === loadedTaskId
                                                                     ? {
                                                                         ...t,
                                                                         title: taskBuilder.title,
+                                                                        shortDescription:
+                                                                          taskBuilder.details,
                                                                         description:
                                                                           taskBuilder.taskContent,
                                                                         instructions:
                                                                           taskBuilder.taskPci,
                                                                         extensions:
                                                                           taskBuilder.extensions,
-                                                                        dmiItems: taskDmiItems,
                                                                         sourceDocument:
                                                                           t.sourceDocument,
                                                                       }
@@ -3933,19 +4438,49 @@ FEEDBACK: [your explanation]`
                                                             }))
                                                           )
                                                         }
+                                                        // Auto-save current assessment if switching from another assessment
+                                                        if (
+                                                          loadedAssessmentId &&
+                                                          loadedAssessmentId !== hw.id
+                                                        ) {
+                                                          setCourseBuilderNodes(prev =>
+                                                            prev.map(mod => ({
+                                                              ...mod,
+                                                              lessons: mod.lessons.map(lesson => ({
+                                                                ...lesson,
+                                                                homework: lesson.homework.map(h =>
+                                                                  h.id === loadedAssessmentId
+                                                                    ? {
+                                                                        ...h,
+                                                                        title:
+                                                                          assessmentBuilder.title,
+                                                                        description:
+                                                                          assessmentBuilder.taskContent,
+                                                                        instructions:
+                                                                          assessmentBuilder.taskPci,
+                                                                        sourceDocument:
+                                                                          h.sourceDocument,
+                                                                      }
+                                                                    : h
+                                                                ),
+                                                              })),
+                                                            }))
+                                                          )
+                                                        }
                                                         setSelectedItem({
-                                                          type: 'task',
-                                                          id: task.id,
+                                                          type: 'homework',
+                                                          id: hw.id,
                                                         })
-                                                        loadTaskIntoBuilder(task)
-                                                        setMainBuilderTab('task')
+                                                        loadAssessmentIntoBuilder(hw)
+                                                        setMainBuilderTab('assessment')
                                                       }}
                                                     >
-                                                      <ListTodo className="h-3 w-3 shrink-0 text-orange-500" />
-                                                      <span className="shrink-0 text-[10px] font-semibold text-orange-700">
-                                                        {idx + 1}. {task.title}:
+                                                      <FileQuestion className="h-3 w-3 shrink-0 text-purple-500" />
+                                                      <span className="shrink-0 text-[10px] font-semibold text-purple-700">
+                                                        {idx + 1}. {hw.title}:
                                                       </span>
                                                       <div className="flex-1" />
+
                                                       <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
                                                           <Button
@@ -3964,8 +4499,8 @@ FEEDBACK: [your explanation]`
                                                               moveToHomework(
                                                                 node.id,
                                                                 primaryLesson.id,
-                                                                'task',
-                                                                task
+                                                                'assessment',
+                                                                hw
                                                               )
                                                             }}
                                                           >
@@ -3974,169 +4509,28 @@ FEEDBACK: [your explanation]`
                                                           <DropdownMenuItem
                                                             onClick={e => {
                                                               e.stopPropagation()
-                                                              setEditingData(task)
+                                                              setEditingData(hw)
                                                               setActiveModal({
-                                                                type: 'task',
+                                                                type: 'homework',
                                                                 isOpen: true,
                                                                 nodeId: node.id,
                                                                 lessonId: primaryLesson.id,
-                                                                itemId: task.id,
+                                                                itemId: hw.id,
                                                               })
                                                             }}
                                                           >
                                                             Edit
                                                           </DropdownMenuItem>
                                                           <DropdownMenuItem
-                                                            onClick={e => {
-                                                              e.stopPropagation()
-                                                              // Auto-save current task if switching from another task
-                                                              if (
-                                                                loadedTaskId &&
-                                                                loadedTaskId !== task.id
-                                                              ) {
-                                                                setCourseBuilderNodes(prev =>
-                                                                  prev.map(node => ({
-                                                                    ...node,
-                                                                    lessons: node.lessons.map(
-                                                                      lesson => ({
-                                                                        ...lesson,
-                                                                        tasks: lesson.tasks.map(
-                                                                          t =>
-                                                                            t.id === loadedTaskId
-                                                                              ? {
-                                                                                  ...t,
-                                                                                  title:
-                                                                                    taskBuilder.title,
-                                                                                  description:
-                                                                                    taskBuilder.taskContent,
-                                                                                  instructions:
-                                                                                    taskBuilder.taskPci,
-                                                                                  extensions:
-                                                                                    taskBuilder.extensions,
-                                                                                  dmiItems:
-                                                                                    taskDmiItems,
-                                                                                  sourceDocument:
-                                                                                    t.sourceDocument,
-                                                                                }
-                                                                              : t
-                                                                        ),
-                                                                      })
-                                                                    ),
-                                                                  }))
-                                                                )
-                                                              }
-                                                              // Auto-save current assessment if any is loaded
-                                                              if (loadedAssessmentId) {
-                                                                setCourseBuilderNodes(prev =>
-                                                                  prev.map(mod => ({
-                                                                    ...mod,
-                                                                    lessons: mod.lessons.map(
-                                                                      lesson => ({
-                                                                        ...lesson,
-                                                                        homework:
-                                                                          lesson.homework.map(h =>
-                                                                            h.id ===
-                                                                            loadedAssessmentId
-                                                                              ? {
-                                                                                  ...h,
-                                                                                  title:
-                                                                                    assessmentBuilder.title,
-                                                                                  description:
-                                                                                    assessmentBuilder.taskContent,
-                                                                                  instructions:
-                                                                                    assessmentBuilder.taskPci,
-                                                                                  dmiItems:
-                                                                                    assessmentDmiItems,
-                                                                                  sourceDocument:
-                                                                                    h.sourceDocument,
-                                                                                }
-                                                                              : h
-                                                                          ),
-                                                                      })
-                                                                    ),
-                                                                  }))
-                                                                )
-                                                              }
-                                                              // Load the target task if not already loaded
-                                                              if (loadedTaskId !== task.id) {
-                                                                setSelectedItem({
-                                                                  type: 'task',
-                                                                  id: task.id,
-                                                                })
-                                                                loadTaskIntoBuilder(task)
-                                                              }
-                                                              setMainBuilderTab('task')
-                                                              // Create the extension
-                                                              const currentExtensions =
-                                                                loadedTaskId === task.id
-                                                                  ? taskBuilder.extensions
-                                                                  : task.extensions || []
-                                                              const extNumber =
-                                                                currentExtensions.length + 1
-                                                              const newExtension = {
-                                                                id: `ext-${Date.now()}`,
-                                                                name: `Extension ${extNumber}`,
-                                                                description: '',
-                                                                content: '',
-                                                                pci: '',
-                                                              }
-                                                              setTaskExtensionPciMessages(prev => ({
-                                                                ...prev,
-                                                                [newExtension.id]: [],
-                                                              }))
-                                                              setTaskExtensionPciInputs(prev => ({
-                                                                ...prev,
-                                                                [newExtension.id]: '',
-                                                              }))
-                                                              setTaskBuilder(prev => ({
-                                                                ...prev,
-                                                                extensions: [
-                                                                  ...prev.extensions,
-                                                                  newExtension,
-                                                                ],
-                                                                activeExtensionId: newExtension.id,
-                                                              }))
-                                                              setCourseBuilderNodes(prev =>
-                                                                prev.map(mod => ({
-                                                                  ...mod,
-                                                                  lessons: mod.lessons.map(
-                                                                    lesson => ({
-                                                                      ...lesson,
-                                                                      tasks: lesson.tasks.map(t =>
-                                                                        t.id === task.id
-                                                                          ? {
-                                                                              ...t,
-                                                                              extensions: [
-                                                                                ...(t.extensions ||
-                                                                                  []),
-                                                                                newExtension,
-                                                                              ],
-                                                                            }
-                                                                          : t
-                                                                      ),
-                                                                    })
-                                                                  ),
-                                                                }))
-                                                              )
-                                                              toast.success(
-                                                                `Extension ${newExtension.name} added`
-                                                              )
-                                                            }}
-                                                          >
-                                                            Add Extension
-                                                          </DropdownMenuItem>
-                                                          <DropdownMenuItem
                                                             className="text-red-500"
                                                             onClick={e => {
                                                               e.stopPropagation()
-                                                              if (
-                                                                !confirm(`Delete "${task.title}"?`)
-                                                              )
+                                                              if (!confirm(`Delete "${hw.title}"?`))
                                                                 return
-                                                              deleteTask(
+                                                              deleteAssessment(
                                                                 node.id,
                                                                 primaryLesson.id,
-                                                                task.id
+                                                                hw.id
                                                               )
                                                             }}
                                                           >
@@ -4146,584 +4540,216 @@ FEEDBACK: [your explanation]`
                                                       </DropdownMenu>
                                                     </div>
                                                   </SortableTreeItem>
-                                                  {loadedTaskId === task.id &&
-                                                    taskBuilder.extensions.length > 0 && (
-                                                      <div className="ml-12 mt-1 space-y-1 border-l border-orange-400 pl-2">
-                                                        <div
-                                                          className="flex cursor-pointer items-center gap-2 rounded border bg-white px-2 py-1 text-[10px]"
-                                                          onClick={() => toggleExtensions(task.id)}
-                                                        >
-                                                          {isExtensionsCollapsed(task.id) ? (
-                                                            <ChevronRight className="h-3 w-3 text-orange-600" />
-                                                          ) : (
-                                                            <ChevronDown className="h-3 w-3 text-orange-600" />
-                                                          )}
-                                                          <FolderOpen className="h-3 w-3 text-orange-600" />
-                                                          <span className="font-semibold text-orange-700">
-                                                            Extensions
-                                                          </span>
-                                                          <span className="text-muted-foreground">
-                                                            ({taskBuilder.extensions.length})
-                                                          </span>
-                                                        </div>
-                                                        {!isExtensionsCollapsed(task.id) && (
-                                                          <div className="ml-3 space-y-1">
-                                                            {taskBuilder.extensions.map(
-                                                              (ext, extIdx) => (
-                                                                <div
-                                                                  key={ext.id}
-                                                                  className={cn(
-                                                                    'group/extension flex cursor-pointer items-center gap-2 rounded border px-2 py-1 text-[10px]',
-                                                                    taskBuilder.activeExtensionId ===
-                                                                      ext.id
-                                                                      ? 'border-orange-300 bg-orange-100'
-                                                                      : 'border-orange-100 bg-white hover:bg-orange-50'
-                                                                  )}
-                                                                  onClick={() => {
-                                                                    setSelectedItem({
-                                                                      type: 'task',
-                                                                      id: task.id,
-                                                                    })
-                                                                    loadTaskIntoBuilder(
-                                                                      task,
-                                                                      ext.id
-                                                                    )
-                                                                    setMainBuilderTab('task')
-                                                                  }}
-                                                                >
-                                                                  <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
-                                                                  <span className="font-semibold text-orange-700">
-                                                                    {idx + 1}.{extIdx + 1}
-                                                                  </span>
-                                                                  <span className="text-muted-foreground flex-1 truncate">
-                                                                    {ext.name}
-                                                                  </span>
-                                                                  <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="h-5 w-5 opacity-0 group-hover/extension:opacity-100"
-                                                                    onClick={(e: any) => {
-                                                                      e.stopPropagation()
-                                                                      if (
-                                                                        !confirm(
-                                                                          `Delete "${ext.name}"?`
-                                                                        )
-                                                                      )
-                                                                        return
-                                                                      setTaskExtensionPciMessages(
-                                                                        prev => {
-                                                                          const next = { ...prev }
-                                                                          delete next[ext.id]
-                                                                          return next
-                                                                        }
-                                                                      )
-                                                                      setTaskExtensionPciInputs(
-                                                                        prev => {
-                                                                          const next = { ...prev }
-                                                                          delete next[ext.id]
-                                                                          return next
-                                                                        }
-                                                                      )
-                                                                      setTaskBuilder(prev => ({
-                                                                        ...prev,
-                                                                        extensions:
-                                                                          prev.extensions.filter(
-                                                                            e => e.id !== ext.id
-                                                                          ),
-                                                                        activeExtensionId:
-                                                                          prev.activeExtensionId ===
-                                                                          ext.id
-                                                                            ? null
-                                                                            : prev.activeExtensionId,
-                                                                      }))
-                                                                      if (loadedTaskId) {
-                                                                        setCourseBuilderNodes(
-                                                                          prev =>
-                                                                            prev.map(mod => ({
-                                                                              ...mod,
-                                                                              lessons:
-                                                                                mod.lessons.map(
-                                                                                  lesson => ({
-                                                                                    ...lesson,
-                                                                                    tasks:
-                                                                                      lesson.tasks.map(
-                                                                                        t =>
-                                                                                          t.id ===
-                                                                                          loadedTaskId
-                                                                                            ? {
-                                                                                                ...t,
-                                                                                                extensions:
-                                                                                                  (
-                                                                                                    t.extensions ||
-                                                                                                    []
-                                                                                                  ).filter(
-                                                                                                    e =>
-                                                                                                      e.id !==
-                                                                                                      ext.id
-                                                                                                  ),
-                                                                                              }
-                                                                                            : t
-                                                                                      ),
-                                                                                  })
-                                                                                ),
-                                                                            }))
-                                                                        )
-                                                                      }
-                                                                    }}
-                                                                  >
-                                                                    <Trash2 className="h-3 w-3 text-red-500" />
-                                                                  </Button>
-                                                                </div>
-                                                              )
-                                                            )}
-                                                          </div>
-                                                        )}
-                                                      </div>
-                                                    )}
-                                                </div>
-                                              ))}
-                                            </SortableContext>
-                                          </>
-                                        )}
-
-                                        {/* Assessments - droppable so homework can be moved here */}
-                                        <TreeItem depth={0} isLast={false}>
-                                          <DroppableAssessmentZone
-                                            nodeId={node.id}
-                                            lessonId={primaryLesson.id}
-                                            className="flex w-full items-center gap-1.5 rounded-lg border-b-2 border-indigo-600 bg-gradient-to-r from-indigo-400 to-indigo-500 px-3 py-0.5 shadow-sm transition-all"
-                                          >
-                                            <Button
-                                              variant="ghost"
-                                              size="icon"
-                                              className="h-5 w-5 hover:bg-white/20"
-                                              onClick={() => toggleSection(node.id, 'assessment')}
-                                              aria-label={
-                                                isSectionCollapsed(node.id, 'assessment')
-                                                  ? 'Expand assessments'
-                                                  : 'Collapse assessments'
-                                              }
-                                            >
-                                              {isSectionCollapsed(node.id, 'assessment') ? (
-                                                <ChevronRight className="h-4 w-4 text-white" />
-                                              ) : (
-                                                <ChevronDown className="h-4 w-4 text-white" />
-                                              )}
-                                            </Button>
-                                            <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
-                                              Assessments
-                                            </span>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="ml-auto h-5 w-5 gap-0 rounded-full border border-white/50 bg-transparent p-0 text-white hover:bg-white/20"
-                                              onClick={() =>
-                                                addAssessment(node.id, primaryLesson.id)
-                                              }
-                                            >
-                                              <Plus className="h-3 w-3" />
-                                            </Button>
-                                          </DroppableAssessmentZone>
-                                        </TreeItem>
-                                        {!isSectionCollapsed(node.id, 'assessment') && (
-                                          <>
-                                            <SortableContext
-                                              items={assessments.map(h => h.id)}
-                                              strategy={verticalListSortingStrategy}
-                                            >
-                                              {assessments.map((hw, idx) => (
-                                                <SortableTreeItem
-                                                  key={hw.id}
-                                                  id={hw.id}
-                                                  depth={2}
-                                                  isLast={idx === assessments.length - 1}
-                                                >
-                                                  <div
-                                                    className={cn(
-                                                      'group/item flex cursor-pointer items-center gap-1.5 rounded border px-2 py-1 transition-colors',
-                                                      selectedItem?.type === 'homework' &&
-                                                        selectedItem?.id === hw.id
-                                                        ? 'border-purple-400 bg-purple-200 ring-1 ring-purple-400'
-                                                        : 'border-purple-400 bg-purple-50 hover:bg-purple-100'
-                                                    )}
-                                                    onClick={e => {
-                                                      if (
-                                                        (e.target as HTMLElement).closest('input')
-                                                      )
-                                                        return
-                                                      // Auto-save current task if switching from one
-                                                      if (loadedTaskId) {
-                                                        setCourseBuilderNodes(prev =>
-                                                          prev.map(mod => ({
-                                                            ...mod,
-                                                            lessons: mod.lessons.map(lesson => ({
-                                                              ...lesson,
-                                                              tasks: lesson.tasks.map(t =>
-                                                                t.id === loadedTaskId
-                                                                  ? {
-                                                                      ...t,
-                                                                      title: taskBuilder.title,
-                                                                      shortDescription:
-                                                                        taskBuilder.details,
-                                                                      description:
-                                                                        taskBuilder.taskContent,
-                                                                      instructions:
-                                                                        taskBuilder.taskPci,
-                                                                      extensions:
-                                                                        taskBuilder.extensions,
-                                                                      sourceDocument:
-                                                                        t.sourceDocument,
-                                                                    }
-                                                                  : t
-                                                              ),
-                                                            })),
-                                                          }))
-                                                        )
-                                                      }
-                                                      // Auto-save current assessment if switching from another assessment
-                                                      if (
-                                                        loadedAssessmentId &&
-                                                        loadedAssessmentId !== hw.id
-                                                      ) {
-                                                        setCourseBuilderNodes(prev =>
-                                                          prev.map(mod => ({
-                                                            ...mod,
-                                                            lessons: mod.lessons.map(lesson => ({
-                                                              ...lesson,
-                                                              homework: lesson.homework.map(h =>
-                                                                h.id === loadedAssessmentId
-                                                                  ? {
-                                                                      ...h,
-                                                                      title:
-                                                                        assessmentBuilder.title,
-                                                                      description:
-                                                                        assessmentBuilder.taskContent,
-                                                                      instructions:
-                                                                        assessmentBuilder.taskPci,
-                                                                      sourceDocument:
-                                                                        h.sourceDocument,
-                                                                    }
-                                                                  : h
-                                                              ),
-                                                            })),
-                                                          }))
-                                                        )
-                                                      }
-                                                      setSelectedItem({
-                                                        type: 'homework',
-                                                        id: hw.id,
-                                                      })
-                                                      loadAssessmentIntoBuilder(hw)
-                                                      setMainBuilderTab('assessment')
-                                                    }}
-                                                  >
-                                                    <FileQuestion className="h-3 w-3 shrink-0 text-purple-500" />
-                                                    <span className="shrink-0 text-[10px] font-semibold text-purple-700">
-                                                      {idx + 1}. {hw.title}:
-                                                    </span>
-                                                    <div className="flex-1" />
-
-                                                    <DropdownMenu>
-                                                      <DropdownMenuTrigger asChild>
-                                                        <Button
-                                                          variant="ghost"
-                                                          size="icon"
-                                                          className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                                          onClick={e => e.stopPropagation()}
-                                                        >
-                                                          <MoreVertical className="h-3 w-3 text-slate-500" />
-                                                        </Button>
-                                                      </DropdownMenuTrigger>
-                                                      <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem
-                                                          onClick={e => {
-                                                            e.stopPropagation()
-                                                            moveToHomework(
-                                                              node.id,
-                                                              primaryLesson.id,
-                                                              'assessment',
-                                                              hw
-                                                            )
-                                                          }}
-                                                        >
-                                                          Move to homework
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem
-                                                          onClick={e => {
-                                                            e.stopPropagation()
-                                                            setEditingData(hw)
-                                                            setActiveModal({
-                                                              type: 'homework',
-                                                              isOpen: true,
-                                                              nodeId: node.id,
-                                                              lessonId: primaryLesson.id,
-                                                              itemId: hw.id,
-                                                            })
-                                                          }}
-                                                        >
-                                                          Edit
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem
-                                                          className="text-red-500"
-                                                          onClick={e => {
-                                                            e.stopPropagation()
-                                                            if (!confirm(`Delete "${hw.title}"?`))
-                                                              return
-                                                            deleteAssessment(
-                                                              node.id,
-                                                              primaryLesson.id,
-                                                              hw.id
-                                                            )
-                                                          }}
-                                                        >
-                                                          Delete
-                                                        </DropdownMenuItem>
-                                                      </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                  </div>
-                                                </SortableTreeItem>
-                                              ))}
-                                            </SortableContext>
-                                          </>
-                                        )}
-
-                                        {/* Homework (per-lesson) - drop zone; header + description in one box; sortable items with drag handle */}
-                                        {(() => {
-                                          const hwItems = (primaryLesson.homework || []).filter(
-                                            h => h.category === 'homework'
-                                          )
-                                          return (
-                                            <>
-                                              <TreeItem depth={0} isLast={false}>
-                                                <DroppableHomeworkZone
-                                                  nodeId={node.id}
-                                                  lessonId={primaryLesson.id}
-                                                  className="flex items-center gap-1.5 rounded-lg border-b-2 border-emerald-600 bg-gradient-to-r from-emerald-400 to-emerald-500 px-3 py-0.5 shadow-sm transition-all"
-                                                >
-                                                  <div className="flex items-center gap-1.5">
-                                                    <FolderOpen className="h-4 w-4 text-white" />
-                                                    <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
-                                                      Homework {hwItems.length}:
-                                                    </span>
-                                                  </div>
-                                                </DroppableHomeworkZone>
-                                              </TreeItem>
-                                              <SortableContext
-                                                items={hwItems.map(h => h.id)}
-                                                strategy={verticalListSortingStrategy}
-                                              >
-                                                {hwItems.map((hw, hwIdx) => (
-                                                  <SortableTreeItem
-                                                    key={hw.id}
-                                                    id={hw.id}
-                                                    depth={2}
-                                                    isLast={hwIdx === hwItems.length - 1}
-                                                  >
-                                                    <div
-                                                      className={cn(
-                                                        'group/item flex cursor-pointer items-center gap-1.5 rounded border border-emerald-400 bg-emerald-50 px-2 py-1 transition-colors hover:bg-emerald-100',
-                                                        selectedItem?.type === 'homework' &&
-                                                          selectedItem?.id === hw.id &&
-                                                          'ring-1 ring-emerald-400'
-                                                      )}
-                                                      onClick={() => {
-                                                        setSelectedItem({
-                                                          type: 'homework',
-                                                          id: hw.id,
-                                                        })
-                                                        loadAssessmentIntoBuilder(hw)
-                                                        setMainBuilderTab('assessment')
-                                                      }}
-                                                    >
-                                                      <FileQuestion className="h-3 w-3 shrink-0 text-emerald-600" />
-                                                      <span className="flex-1 truncate text-[10px] text-emerald-700">
-                                                        {hw.title}
-                                                      </span>
-                                                      <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-5 w-5 shrink-0 opacity-0 group-hover/item:opacity-100"
-                                                        onClick={(e: any) => {
-                                                          e.stopPropagation()
-                                                          if (!confirm(`Delete "${hw.title}"?`))
-                                                            return
-                                                          setCourseBuilderNodes(prev =>
-                                                            prev.map(mod =>
-                                                              mod.id !== node.id
-                                                                ? mod
-                                                                : {
-                                                                    ...mod,
-                                                                    lessons: mod.lessons.map(les =>
-                                                                      les.id !== primaryLesson.id
-                                                                        ? les
-                                                                        : {
-                                                                            ...les,
-                                                                            homework: (
-                                                                              les.homework || []
-                                                                            ).filter(
-                                                                              x => x.id !== hw.id
-                                                                            ),
-                                                                          }
-                                                                    ),
-                                                                  }
-                                                            )
-                                                          )
-                                                        }}
-                                                      >
-                                                        <Trash2 className="h-3 w-3 text-red-500" />
-                                                      </Button>
-                                                    </div>
-                                                  </SortableTreeItem>
                                                 ))}
                                               </SortableContext>
                                             </>
-                                          )
-                                        })()}
+                                          )}
 
-                                        {/* End of CourseBuilderNode Quizzes */}
-                                        {(node.quizzes || []).map((quiz, quizIdx) => (
-                                          <TreeItem
-                                            key={quiz.id}
-                                            depth={2}
-                                            isLast={quizIdx === (node.quizzes?.length || 0) - 1}
-                                          >
-                                            <div
-                                              className="group flex cursor-pointer items-center gap-1.5 rounded border border-red-300 bg-red-100 px-2 py-1 hover:bg-red-200"
-                                              onClick={() =>
-                                                setSelectedItem({ type: 'nodeQuiz', id: quiz.id })
-                                              }
+                                          {/* Homework (per-lesson) - drop zone; header + description in one box; sortable items with drag handle */}
+                                          {(() => {
+                                            const hwItems = (primaryLesson.homework || []).filter(
+                                              h => h.category === 'homework'
+                                            )
+                                            return (
+                                              <>
+                                                <TreeItem depth={0} isLast={false}>
+                                                  <DroppableHomeworkZone
+                                                    nodeId={node.id}
+                                                    lessonId={primaryLesson.id}
+                                                    className="flex items-center gap-1.5 rounded-lg border-b-2 border-emerald-600 bg-gradient-to-r from-emerald-400 to-emerald-500 px-3 py-0.5 shadow-sm transition-all"
+                                                  >
+                                                    <div className="flex items-center gap-1.5">
+                                                      <FolderOpen className="h-4 w-4 text-white" />
+                                                      <span className="text-xs font-bold tracking-wide text-white drop-shadow-sm">
+                                                        Homework {hwItems.length}:
+                                                      </span>
+                                                    </div>
+                                                  </DroppableHomeworkZone>
+                                                </TreeItem>
+                                                <SortableContext
+                                                  items={hwItems.map(h => h.id)}
+                                                  strategy={verticalListSortingStrategy}
+                                                >
+                                                  {hwItems.map((hw, hwIdx) => (
+                                                    <SortableTreeItem
+                                                      key={hw.id}
+                                                      id={hw.id}
+                                                      depth={2}
+                                                      isLast={hwIdx === hwItems.length - 1}
+                                                    >
+                                                      <div
+                                                        className={cn(
+                                                          'group/item flex cursor-pointer items-center gap-1.5 rounded border border-emerald-400 bg-emerald-50 px-2 py-1 transition-colors hover:bg-emerald-100',
+                                                          selectedItem?.type === 'homework' &&
+                                                            selectedItem?.id === hw.id &&
+                                                            'ring-1 ring-emerald-400'
+                                                        )}
+                                                        onClick={() => {
+                                                          setSelectedItem({
+                                                            type: 'homework',
+                                                            id: hw.id,
+                                                          })
+                                                          loadAssessmentIntoBuilder(hw)
+                                                          setMainBuilderTab('assessment')
+                                                        }}
+                                                      >
+                                                        <FileQuestion className="h-3 w-3 shrink-0 text-emerald-600" />
+                                                        <span className="flex-1 truncate text-[10px] text-emerald-700">
+                                                          {hw.title}
+                                                        </span>
+                                                        <Button
+                                                          variant="ghost"
+                                                          size="icon"
+                                                          className="h-5 w-5 shrink-0 opacity-0 group-hover/item:opacity-100"
+                                                          onClick={(e: any) => {
+                                                            e.stopPropagation()
+                                                            if (!confirm(`Delete "${hw.title}"?`))
+                                                              return
+                                                            setCourseBuilderNodes(prev =>
+                                                              prev.map(mod =>
+                                                                mod.id !== node.id
+                                                                  ? mod
+                                                                  : {
+                                                                      ...mod,
+                                                                      lessons: mod.lessons.map(
+                                                                        les =>
+                                                                          les.id !==
+                                                                          primaryLesson.id
+                                                                            ? les
+                                                                            : {
+                                                                                ...les,
+                                                                                homework: (
+                                                                                  les.homework || []
+                                                                                ).filter(
+                                                                                  x =>
+                                                                                    x.id !== hw.id
+                                                                                ),
+                                                                              }
+                                                                      ),
+                                                                    }
+                                                              )
+                                                            )
+                                                          }}
+                                                        >
+                                                          <Trash2 className="h-3 w-3 text-red-500" />
+                                                        </Button>
+                                                      </div>
+                                                    </SortableTreeItem>
+                                                  ))}
+                                                </SortableContext>
+                                              </>
+                                            )
+                                          })()}
+
+                                          {/* End of CourseBuilderNode Quizzes */}
+                                          {(node.quizzes || []).map((quiz, quizIdx) => (
+                                            <TreeItem
+                                              key={quiz.id}
+                                              depth={2}
+                                              isLast={quizIdx === (node.quizzes?.length || 0) - 1}
                                             >
-                                              <FileQuestion className="h-3 w-3 text-red-600" />
-                                              <span className="flex-1 truncate text-xs font-medium">
-                                                {quiz.title}
-                                              </span>
-                                              <Badge
-                                                variant="default"
-                                                className="h-4 bg-red-600 px-1 text-[8px]"
+                                              <div
+                                                className="group flex cursor-pointer items-center gap-1.5 rounded border border-red-300 bg-red-100 px-2 py-1 hover:bg-red-200"
+                                                onClick={() =>
+                                                  setSelectedItem({ type: 'nodeQuiz', id: quiz.id })
+                                                }
                                               >
-                                                Summative
-                                              </Badge>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-5 gap-1 px-1 text-[10px] opacity-0 group-hover:opacity-100"
-                                                onClick={(e: any) => {
-                                                  e.stopPropagation()
-                                                  setEditingData(quiz)
-                                                  setActiveModal({
-                                                    type: 'nodeQuiz',
-                                                    isOpen: true,
-                                                    nodeId: node.id,
-                                                    itemId: quiz.id,
-                                                  })
-                                                }}
-                                              >
-                                                Edit
-                                              </Button>
-                                              <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-5 w-5 opacity-0 group-hover:opacity-100"
-                                                onClick={(e: any) => {
-                                                  e.stopPropagation()
-                                                  deleteCourseBuilderNodeQuiz(node.id, quiz.id)
-                                                }}
-                                              >
-                                                <Trash2 className="h-3 w-3 text-red-500" />
-                                              </Button>
-                                            </div>
-                                          </TreeItem>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                </SortableTreeItem>
-                              )
-                            })}
-                          </SortableContext>
+                                                <FileQuestion className="h-3 w-3 text-red-600" />
+                                                <span className="flex-1 truncate text-xs font-medium">
+                                                  {quiz.title}
+                                                </span>
+                                                <Badge
+                                                  variant="default"
+                                                  className="h-4 bg-red-600 px-1 text-[8px]"
+                                                >
+                                                  Summative
+                                                </Badge>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-5 gap-1 px-1 text-[10px] opacity-0 group-hover:opacity-100"
+                                                  onClick={(e: any) => {
+                                                    e.stopPropagation()
+                                                    setEditingData(quiz)
+                                                    setActiveModal({
+                                                      type: 'nodeQuiz',
+                                                      isOpen: true,
+                                                      nodeId: node.id,
+                                                      itemId: quiz.id,
+                                                    })
+                                                  }}
+                                                >
+                                                  Edit
+                                                </Button>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="icon"
+                                                  className="h-5 w-5 opacity-0 group-hover:opacity-100"
+                                                  onClick={(e: any) => {
+                                                    e.stopPropagation()
+                                                    deleteCourseBuilderNodeQuiz(node.id, quiz.id)
+                                                  }}
+                                                >
+                                                  <Trash2 className="h-3 w-3 text-red-500" />
+                                                </Button>
+                                              </div>
+                                            </TreeItem>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </SortableTreeItem>
+                                )
+                              })}
+                            </SortableContext>
 
-                          {nodes.length === 0 && (
-                            <div className="text-muted-foreground py-8 text-center">
-                              <Layers className="mx-auto mb-2 h-8 w-8 opacity-30" />
-                              <p className="text-sm">No lessons yet. Click "Lesson" to add one.</p>
-                            </div>
-                          )}
-                        </div>
-                      </DndContext>
-                    </ScrollArea>
-                    {/* Assets Folder added to the bottom of the left panel */}
-                    <div className="mt-4 border-t pt-4">{renderAssetsFolder()}</div>
-                  </CardContent>
-                </Card>
-              </div>
-              <div
-                className="hover:bg-primary/20 active:bg-primary/30 group flex w-2 shrink-0 cursor-col-resize items-center justify-center transition-colors"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  leftResizeStartX.current = e.clientX
-                  leftResizeStartW.current = leftPanelWidth
-                  setLeftPanelResizing(true)
-                }}
-                title="Drag to resize"
-              >
-                <GripHorizontal className="text-muted-foreground group-hover:text-primary h-3 w-3 rotate-90" />
-              </div>
-            </>
-          )}
-
-          {/* CENTER PANEL - New Three-Section Design */}
-          <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-stretch">
-            <div className="flex min-h-0 w-full flex-1 grow flex-col items-stretch gap-4">
-              {leftPanelHidden && (
-                <div className="flex justify-start">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => setLeftPanelHidden(false)}
-                  >
-                    <LayoutTemplate className="h-4 w-4" />
-                    Show Course Panel
-                  </Button>
+                            {nodes.length === 0 && (
+                              <div className="text-muted-foreground py-8 text-center">
+                                <Layers className="mx-auto mb-2 h-8 w-8 opacity-30" />
+                                <p className="text-sm">
+                                  No lessons yet. Click "Lesson" to add one.
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </DndContext>
+                      </ScrollArea>
+                      {/* Assets Folder added to the bottom of the left panel */}
+                      <div className="mt-4 border-t pt-4">{renderAssetsFolder()}</div>
+                    </CardContent>
+                  </Card>
                 </div>
-              )}
-
-              {/* Main Tabs: Live, Test, and Builder */}
-              <Tabs
-                value={mainTab}
-                onValueChange={v => setMainTab(v as 'live' | 'builder' | 'test-pci')}
-                className="flex h-full w-full flex-1 flex-col"
-              >
-                <TabsList
-                  className={cn(
-                    'bg-muted/30 mb-4 grid w-full gap-1 rounded-xl p-1',
-                    insightsProps ? 'grid-cols-3' : 'grid-cols-2'
-                  )}
+                <div
+                  className="hover:bg-primary/20 active:bg-primary/30 group flex w-2 shrink-0 cursor-col-resize items-center justify-center transition-colors"
+                  onMouseDown={e => {
+                    e.preventDefault()
+                    leftResizeStartX.current = e.clientX
+                    leftResizeStartW.current = leftPanelWidth
+                    setLeftPanelResizing(true)
+                  }}
+                  title="Drag to resize"
                 >
-                  {insightsProps && (
-                    <TabsTrigger
-                      value="live"
-                      className="data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg bg-transparent data-[state=active]:shadow-sm"
+                  <GripHorizontal className="text-muted-foreground group-hover:text-primary h-3 w-3 rotate-90" />
+                </div>
+              </>
+            )}
+
+            {/* CENTER PANEL - New Three-Section Design */}
+            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-stretch">
+              <div className="flex min-h-0 w-full flex-1 grow flex-col items-stretch gap-4">
+                {leftPanelHidden && (
+                  <div className="flex justify-start">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => setLeftPanelHidden(false)}
                     >
-                      <Radio className="h-4 w-4 text-blue-500" />
-                      Live
-                    </TabsTrigger>
-                  )}
-                  <TabsTrigger
-                    value="test-pci"
-                    className="data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg bg-transparent data-[state=active]:shadow-sm"
-                  >
-                    <BrainCircuit className="h-4 w-4 text-blue-500" />
-                    Test
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="builder"
-                    className="data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg bg-transparent data-[state=active]:shadow-sm"
-                  >
-                    <Wand2 className="h-4 w-4 text-orange-500" />
-                    Build
-                  </TabsTrigger>
-                </TabsList>
+                      <LayoutTemplate className="h-4 w-4" />
+                      Show Course Panel
+                    </Button>
+                  </div>
+                )}
 
                 {mainTab !== 'builder' && (
                   <div className="h-full w-full flex-1">
@@ -5156,7 +5182,6 @@ FEEDBACK: [your explanation]`
                                                 </div>
                                               </div>
                                             </TabsContent>
-
                                           </Tabs>
                                         </div>
                                       ) : null
@@ -5247,1192 +5272,1199 @@ FEEDBACK: [your explanation]`
                   </div>
                 )}
 
-                <TabsContent
-                  value="builder"
-                  className="h-full w-full flex-1 data-[state=inactive]:hidden"
-                >
-                  {/* COMBINED BUILDER: Task & Assessment Tabs */}
-                  <Card className="border-border bg-card/95 flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border shadow-xl backdrop-blur-md">
-                    <CardContent className="flex h-full flex-col overflow-hidden pt-4">
-                      <Tabs
-                        value={mainBuilderTab}
-                        onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
-                        className="flex h-full w-full flex-col"
-                      >
-                        {/* Main Builder Tabs */}
-                        <TabsList className="border-border bg-muted/30 mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border p-1">
-                          <TabsTrigger
-                            value="task"
-                            className="data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:shadow-sm"
-                          >
-                            <ListTodo className="h-4 w-4 text-orange-500" />
-                            Task Builder
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value="assessment"
-                            className="data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:shadow-sm"
-                          >
-                            <FileQuestion className="h-4 w-4 text-purple-500" />
-                            Assessment Builder
-                          </TabsTrigger>
-                        </TabsList>
-
-                        {/* Task Builder Tab */}
-                        <TabsContent
-                          value="task"
-                          className="flex h-full flex-col space-y-4 overflow-hidden data-[state=inactive]:hidden"
+                {mainTab === 'builder' && (
+                  <div className="h-full w-full flex-1">
+                    {/* COMBINED BUILDER: Task & Assessment Tabs */}
+                    <Card className="border-border bg-card/95 flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border shadow-xl backdrop-blur-md">
+                      <CardContent className="flex h-full flex-col overflow-hidden pt-4">
+                        <Tabs
+                          value={mainBuilderTab}
+                          onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
+                          className="flex h-full w-full flex-col"
                         >
-                          <div className="flex items-center gap-3">
-                            <div className="flex-1">
-                              <div className="grid grid-cols-1 gap-3">
-                                <Input
-                                  placeholder={
-                                    loadedTaskId
-                                      ? 'Task Title'
-                                      : 'Select a task from the left sidebar to edit'
-                                  }
-                                  className="font-semibold"
-                                  value={
-                                    taskBuilder.activeExtensionId
-                                      ? taskHeaderTitle
-                                      : taskBuilder.title
-                                  }
-                                  onChange={(e: any) =>
-                                    setTaskBuilder(prev => ({ ...prev, title: e.target.value }))
-                                  }
-                                  disabled={!loadedTaskId || !!taskBuilder.activeExtensionId}
-                                />
+                          {/* Main Builder Tabs */}
+                          <TabsList className="border-border bg-muted/30 mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border p-1">
+                            <TabsTrigger
+                              value="task"
+                              className="data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:shadow-sm"
+                            >
+                              <ListTodo className="h-4 w-4 text-orange-500" />
+                              Task Builder
+                            </TabsTrigger>
+                            <TabsTrigger
+                              value="assessment"
+                              className="data-[state=active]:border-border data-[state=active]:bg-background data-[state=active]:text-foreground gap-2 rounded-lg border border-transparent bg-transparent data-[state=active]:shadow-sm"
+                            >
+                              <FileQuestion className="h-4 w-4 text-purple-500" />
+                              Assessment Builder
+                            </TabsTrigger>
+                          </TabsList>
+
+                          {/* Task Builder Tab */}
+                          <TabsContent
+                            value="task"
+                            className="flex h-full flex-col space-y-4 overflow-hidden data-[state=inactive]:hidden"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex-1">
+                                <div className="grid grid-cols-1 gap-3">
+                                  <Input
+                                    placeholder={
+                                      loadedTaskId
+                                        ? 'Task Title'
+                                        : 'Select a task from the left sidebar to edit'
+                                    }
+                                    className="font-semibold"
+                                    value={
+                                      taskBuilder.activeExtensionId
+                                        ? taskHeaderTitle
+                                        : taskBuilder.title
+                                    }
+                                    onChange={(e: any) =>
+                                      setTaskBuilder(prev => ({ ...prev, title: e.target.value }))
+                                    }
+                                    disabled={!loadedTaskId || !!taskBuilder.activeExtensionId}
+                                  />
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <div className="flex flex-1 gap-4 overflow-hidden">
-                            {/* Main content with tabs */}
-                            <div className="flex flex-1 flex-col overflow-hidden">
-                              <Tabs
-                                value={taskBuilderActiveTab}
-                                onValueChange={v => {
-                                  setTaskBuilderActiveTab(v as 'content' | 'pci')
-                                }}
-                                className="flex h-full w-full flex-col"
-                              >
-                                <TabsList className="bg-muted grid w-full grid-cols-2 gap-1 rounded-xl border p-1">
-                                  <TabsTrigger
-                                    value="content"
-                                    className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
-                                  >
-                                    Slide
-                                  </TabsTrigger>
-                                  <TabsTrigger
-                                    value="pci"
-                                    className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
-                                  >
-                                    PCI
-                                  </TabsTrigger>
-                                </TabsList>
-                                <TabsContent
-                                  value="content"
-                                  className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                            <div className="flex flex-1 gap-4 overflow-hidden">
+                              {/* Main content with tabs */}
+                              <div className="flex flex-1 flex-col overflow-hidden">
+                                <Tabs
+                                  value={taskBuilderActiveTab}
+                                  onValueChange={v => {
+                                    setTaskBuilderActiveTab(v as 'content' | 'pci')
+                                  }}
+                                  className="flex h-full w-full flex-col"
                                 >
-                                  <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
-                                    <AutoTextarea
-                                      placeholder={
-                                        taskBuilder.activeExtensionId
-                                          ? 'Extension content...'
-                                          : 'Enter task content or drop files here...'
-                                      }
-                                      className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                                      disableAutoResize
-                                      onDrop={(e: any) =>
-                                        handleDragFiles(
-                                          e,
-                                          text => {
+                                  <TabsList className="bg-muted grid w-full grid-cols-2 gap-1 rounded-xl border p-1">
+                                    <TabsTrigger
+                                      value="content"
+                                      className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                    >
+                                      Slide
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                      value="pci"
+                                      className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                    >
+                                      PCI
+                                    </TabsTrigger>
+                                  </TabsList>
+                                  <TabsContent
+                                    value="content"
+                                    className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                                  >
+                                    <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
+                                      <AutoTextarea
+                                        placeholder={
+                                          taskBuilder.activeExtensionId
+                                            ? 'Extension content...'
+                                            : 'Enter task content or drop files here...'
+                                        }
+                                        className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                        disableAutoResize
+                                        onDrop={(e: any) =>
+                                          handleDragFiles(
+                                            e,
+                                            text => {
+                                              setTaskBuilder(prev => {
+                                                if (prev.activeExtensionId) {
+                                                  const ext = prev.extensions.find(
+                                                    x => x.id === prev.activeExtensionId
+                                                  )
+                                                  const combined = ext
+                                                    ? ext.content +
+                                                      (ext.content ? '\n\n' : '') +
+                                                      text
+                                                    : text
+                                                  return {
+                                                    ...prev,
+                                                    extensions: prev.extensions.map(x =>
+                                                      x.id === prev.activeExtensionId
+                                                        ? { ...x, content: combined }
+                                                        : x
+                                                    ),
+                                                  }
+                                                } else {
+                                                  const combined =
+                                                    prev.taskContent +
+                                                    (prev.taskContent ? '\n\n' : '') +
+                                                    text
+                                                  return {
+                                                    ...prev,
+                                                    taskContent: combined,
+                                                  }
+                                                }
+                                              })
+                                            },
+                                            'task'
+                                          )
+                                        }
+                                        // Show task content if no extension active, otherwise show active extension's content
+                                        value={
+                                          taskBuilder.activeExtensionId
+                                            ? taskBuilder.extensions.find(
+                                                e => e.id === taskBuilder.activeExtensionId
+                                              )?.content || ''
+                                            : taskBuilder.taskContent
+                                        }
+                                        onChange={(e: any) => {
+                                          const newContent = e.target.value
+                                          // Auto-create task if none loaded
+                                          if (!loadedTaskId && !taskBuilder.activeExtensionId) {
+                                            autoCreateTask()
+                                          }
+                                          if (taskBuilder.activeExtensionId) {
+                                            // Update extension content
                                             setTaskBuilder(prev => {
-                                              if (prev.activeExtensionId) {
-                                                const ext = prev.extensions.find(
-                                                  x => x.id === prev.activeExtensionId
-                                                )
-                                                const combined = ext
-                                                  ? ext.content + (ext.content ? '\n\n' : '') + text
-                                                  : text
-                                                return {
-                                                  ...prev,
-                                                  extensions: prev.extensions.map(x =>
-                                                    x.id === prev.activeExtensionId
-                                                      ? { ...x, content: combined }
-                                                      : x
-                                                  ),
-                                                }
-                                              } else {
-                                                const combined =
-                                                  prev.taskContent +
-                                                  (prev.taskContent ? '\n\n' : '') +
-                                                  text
-                                                return {
-                                                  ...prev,
-                                                  taskContent: combined,
-                                                }
+                                              return {
+                                                ...prev,
+                                                extensions: prev.extensions.map(ext =>
+                                                  ext.id === prev.activeExtensionId
+                                                    ? { ...ext, content: newContent }
+                                                    : ext
+                                                ),
                                               }
                                             })
-                                          },
-                                          'task'
-                                        )
-                                      }
-                                      // Show task content if no extension active, otherwise show active extension's content
-                                      value={
-                                        taskBuilder.activeExtensionId
-                                          ? taskBuilder.extensions.find(
-                                              e => e.id === taskBuilder.activeExtensionId
-                                            )?.content || ''
-                                          : taskBuilder.taskContent
-                                      }
-                                      onChange={(e: any) => {
-                                        const newContent = e.target.value
-                                        // Auto-create task if none loaded
-                                        if (!loadedTaskId && !taskBuilder.activeExtensionId) {
-                                          autoCreateTask()
-                                        }
-                                        if (taskBuilder.activeExtensionId) {
-                                          // Update extension content
-                                          setTaskBuilder(prev => {
-                                            return {
+                                          } else {
+                                            // Update task content
+                                            setTaskBuilder(prev => ({
                                               ...prev,
-                                              extensions: prev.extensions.map(ext =>
-                                                ext.id === prev.activeExtensionId
-                                                  ? { ...ext, content: newContent }
-                                                  : ext
-                                              ),
-                                            }
-                                          })
-                                        } else {
-                                          // Update task content
-                                          setTaskBuilder(prev => ({
-                                            ...prev,
-                                            taskContent: newContent,
-                                          }))
-                                        }
-                                      }}
-                                    />
-                                    {!taskBuilder.activeExtensionId &&
-                                      taskSourceDocument?.mimeType === 'application/pdf' && (
-                                        <div className="shrink-0 border-t">
-                                          <iframe
-                                            src={taskSourceDocument.fileUrl}
-                                            title={taskSourceDocument.fileName}
-                                            className="h-48 w-full"
-                                          />
-                                        </div>
-                                      )}
-                                    {!taskBuilder.activeExtensionId &&
-                                      taskSourceDocument &&
-                                      taskSourceDocument.mimeType !== 'application/pdf' &&
-                                      taskSourceDocument.mimeType.startsWith('image/') && (
-                                        <div className="shrink-0 border-t p-2">
-                                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                                          <img
-                                            src={taskSourceDocument.fileUrl}
-                                            alt={taskSourceDocument.fileName}
-                                            className="h-48 w-full object-contain"
-                                          />
-                                        </div>
-                                      )}
-                                    {!taskBuilder.activeExtensionId &&
-                                      taskSourceDocument &&
-                                      taskSourceDocument.mimeType !== 'application/pdf' &&
-                                      !taskSourceDocument.mimeType.startsWith('image/') && (
-                                        <div className="flex shrink-0 items-center gap-2 border-t bg-gray-50 p-2">
-                                          <FileText className="h-4 w-4 text-blue-600" />
-                                          <a
-                                            href={taskSourceDocument.fileUrl}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="text-xs text-blue-600 underline"
-                                          >
-                                            Open {taskSourceDocument.fileName}
-                                          </a>
-                                        </div>
-                                      )}
-                                  </div>
-                                  {/* Uploaded Files List - only show for task (not extensions) */}
-                                  {/* Upload button - only for task (not extensions) */}
-                                  {/* Assets Folder added to Slide Tab removed from here */}
-                                </TabsContent>
-                                <TabsContent
-                                  value="pci"
-                                  className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
-                                >
-                                  <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
-                                    <div className="flex-1 space-y-3 overflow-y-auto p-3">
-                                      {activeTaskPciMessages.length === 0 && (
-                                        <p className="text-muted-foreground text-xs">
-                                          Start a PCI chat to build instructions with the assistant.
-                                        </p>
-                                      )}
-                                      {activeTaskPciMessages.map((msg, idx) => (
-                                        <div
-                                          key={idx}
-                                          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                        >
-                                          <div
-                                            className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-                                              msg.role === 'user'
-                                                ? 'bg-blue-50 text-gray-900'
-                                                : 'bg-gray-100 text-gray-800'
-                                            }`}
-                                          >
-                                            <div className="whitespace-pre-wrap">{msg.content}</div>
+                                              taskContent: newContent,
+                                            }))
+                                          }
+                                        }}
+                                      />
+                                      {!taskBuilder.activeExtensionId &&
+                                        taskSourceDocument?.mimeType === 'application/pdf' && (
+                                          <div className="shrink-0 border-t">
+                                            <iframe
+                                              src={taskSourceDocument.fileUrl}
+                                              title={taskSourceDocument.fileName}
+                                              className="h-48 w-full"
+                                            />
                                           </div>
-                                        </div>
-                                      ))}
-                                      {taskPciLoading && (
-                                        <div className="flex justify-start">
-                                          <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            <span className="text-xs text-gray-600">
-                                              Thinking...
-                                            </span>
+                                        )}
+                                      {!taskBuilder.activeExtensionId &&
+                                        taskSourceDocument &&
+                                        taskSourceDocument.mimeType !== 'application/pdf' &&
+                                        taskSourceDocument.mimeType.startsWith('image/') && (
+                                          <div className="shrink-0 border-t p-2">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img
+                                              src={taskSourceDocument.fileUrl}
+                                              alt={taskSourceDocument.fileName}
+                                              className="h-48 w-full object-contain"
+                                            />
                                           </div>
-                                        </div>
-                                      )}
+                                        )}
+                                      {!taskBuilder.activeExtensionId &&
+                                        taskSourceDocument &&
+                                        taskSourceDocument.mimeType !== 'application/pdf' &&
+                                        !taskSourceDocument.mimeType.startsWith('image/') && (
+                                          <div className="flex shrink-0 items-center gap-2 border-t bg-gray-50 p-2">
+                                            <FileText className="h-4 w-4 text-blue-600" />
+                                            <a
+                                              href={taskSourceDocument.fileUrl}
+                                              target="_blank"
+                                              rel="noreferrer"
+                                              className="text-xs text-blue-600 underline"
+                                            >
+                                              Open {taskSourceDocument.fileName}
+                                            </a>
+                                          </div>
+                                        )}
                                     </div>
-                                    <div className="border-t p-2">
-                                      {taskPciErrorHint && (
-                                        <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
-                                          PCI assistant error: {taskPciErrorHint}
-                                        </div>
-                                      )}
-                                      <div className="relative flex items-end gap-2">
-                                        <AutoTextarea
-                                          placeholder="Ask the PCI assistant..."
-                                          className="min-h-[44px] w-full pr-11"
-                                          value={activeTaskPciInput}
-                                          onChange={(e: any) => {
-                                            const value = e.target.value
-                                            if (taskBuilder.activeExtensionId) {
-                                              setTaskExtensionPciInputs(prev => ({
-                                                ...prev,
-                                                [taskBuilder.activeExtensionId as string]: value,
-                                              }))
-                                            } else {
-                                              setTaskPciInput(value)
-                                            }
-                                          }}
-                                          onKeyDown={(e: any) => {
-                                            if (e.key === 'Enter' && !e.shiftKey) {
-                                              e.preventDefault()
-                                              handlePciSend('task')
-                                            }
-                                          }}
-                                        />
-                                        <Button
-                                          type="button"
-                                          variant="outline"
-                                          size="icon"
-                                          className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
-                                          disabled={taskPciLoading || !activeTaskPciInput.trim()}
-                                          onClick={() => handlePciSend('task')}
-                                          aria-label="Send"
-                                        >
-                                          {taskPciLoading ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                          ) : (
-                                            <Send className="h-4 w-4" />
-                                          )}
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </TabsContent>
-                              </Tabs>
-                              {/* Buttons row with Test and Save */}
-                              <div className="mt-3 flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    // Prefill Test PCI with content from Task Builder
-                                    const content = taskBuilder.activeExtensionId
-                                      ? taskBuilder.extensions.find(
-                                          e => e.id === taskBuilder.activeExtensionId
-                                        )?.content || taskBuilder.taskContent
-                                      : taskBuilder.taskContent
-
-                                    setTestPciScores({})
-                                    setTestPciInput('')
-
-                                    setTestPciContent({
-                                      classroom: content,
-                                      student1: content,
-                                      student2: content,
-                                    })
-                                    setTestPciSource('task')
-                                    // Switch to Test PCI tab
-                                    setMainTab('test-pci')
-                                    toast.success('Test PCI prefilled with task content')
-                                  }}
-                                >
-                                  Test
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </TabsContent>
-
-                        {/* Assessment Builder Tab */}
-                        <TabsContent
-                          value="assessment"
-                          className="flex h-full flex-col space-y-4 overflow-hidden data-[state=inactive]:hidden"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="flex-1">
-                              <Input
-                                placeholder={loadedAssessmentId ? 'Assessment Title' : ''}
-                                className="font-semibold"
-                                value={assessmentBuilder.title}
-                                onChange={(e: any) =>
-                                  setAssessmentBuilder(prev => ({
-                                    ...prev,
-                                    title: e.target.value,
-                                  }))
-                                }
-                                disabled={!loadedAssessmentId}
-                              />
-                            </div>
-                          </div>
-                          <div className="flex flex-1 gap-4 overflow-hidden">
-                            {/* Main content with tabs */}
-                            <div className="flex flex-1 flex-col overflow-hidden">
-                              <Tabs
-                                value={assessmentBuilderActiveTab}
-                                onValueChange={v => {
-                                  setAssessmentBuilderActiveTab(v as 'content' | 'pci')
-                                }}
-                                className="flex h-full w-full flex-col"
-                              >
-                                <TabsList className="bg-muted grid w-full grid-cols-2 gap-1 rounded-xl border p-1">
-                                  <TabsTrigger
-                                    value="content"
-                                    className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
-                                  >
-                                    Assessment
-                                  </TabsTrigger>
-                                  <TabsTrigger
+                                    {/* Uploaded Files List - only show for task (not extensions) */}
+                                    {/* Upload button - only for task (not extensions) */}
+                                    {/* Assets Folder added to Slide Tab removed from here */}
+                                  </TabsContent>
+                                  <TabsContent
                                     value="pci"
-                                    className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                    className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                   >
-                                    PCI
-                                  </TabsTrigger>
-                                </TabsList>
-                                <TabsContent
-                                  value="content"
-                                  className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
-                                >
-                                  <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
-                                    {assessmentSourceDocument?.mimeType === 'application/pdf' ? (
-                                      <>
-                                        <div className="min-h-0 flex-1 border-b">
-                                          <PDFViewer
-                                            fileUrl={assessmentSourceDocument.fileUrl}
-                                          />
-                                        </div>
-                                        <AutoTextarea
-                                          placeholder="Optional notes or instructions..."
-                                          className="h-24 w-full shrink-0 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                                          disableAutoResize
-                                          onDrop={(e: any) =>
-                                            handleDragFiles(
-                                              e,
-                                              text => {
-                                                setAssessmentBuilder(prev => {
-                                                  const combined =
-                                                    prev.taskContent +
-                                                    (prev.taskContent ? '\n\n' : '') +
-                                                    text
-                                                  return {
-                                                    ...prev,
-                                                    taskContent: combined,
-                                                  }
-                                                })
-                                              },
-                                              'assessment'
-                                            )
-                                          }
-                                          value={assessmentBuilder.taskContent}
-                                          onChange={(e: any) => {
-                                            const newContent = e.target.value
-                                            // Auto-create assessment if none loaded
-                                            if (!loadedAssessmentId) {
-                                              autoCreateAssessment()
-                                            }
-                                            setAssessmentBuilder(prev => ({
-                                              ...prev,
-                                              taskContent: newContent,
-                                            }))
-                                          }}
-                                        />
-                                      </>
-                                    ) : (
-                                      <>
-                                        <AutoTextarea
-                                          placeholder="Enter assessment content or drop files here..."
-                                          className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                                          disableAutoResize
-                                          onDrop={(e: any) =>
-                                            handleDragFiles(
-                                              e,
-                                              text => {
-                                                setAssessmentBuilder(prev => {
-                                                  const combined =
-                                                    prev.taskContent +
-                                                    (prev.taskContent ? '\n\n' : '') +
-                                                    text
-                                                  return {
-                                                    ...prev,
-                                                    taskContent: combined,
-                                                  }
-                                                })
-                                              },
-                                              'assessment'
-                                            )
-                                          }
-                                          value={assessmentBuilder.taskContent}
-                                          onChange={(e: any) => {
-                                            const newContent = e.target.value
-                                            // Auto-create assessment if none loaded
-                                            if (!loadedAssessmentId) {
-                                              autoCreateAssessment()
-                                            }
-                                            setAssessmentBuilder(prev => ({
-                                              ...prev,
-                                              taskContent: newContent,
-                                            }))
-                                          }}
-                                        />
-                                        {assessmentSourceDocument &&
-                                          assessmentSourceDocument.mimeType !== 'application/pdf' &&
-                                          assessmentSourceDocument.mimeType.startsWith(
-                                            'image/'
-                                          ) && (
-                                            <div className="shrink-0 border-t p-2">
-                                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                                              <img
-                                                src={assessmentSourceDocument.fileUrl}
-                                                alt={assessmentSourceDocument.fileName}
-                                                className="h-48 w-full object-contain"
-                                              />
-                                            </div>
-                                          )}
-                                        {assessmentSourceDocument &&
-                                          assessmentSourceDocument.mimeType !== 'application/pdf' &&
-                                          !assessmentSourceDocument.mimeType.startsWith(
-                                            'image/'
-                                          ) && (
-                                            <div className="flex shrink-0 items-center gap-2 border-t bg-gray-50 p-2">
-                                              <FileText className="h-4 w-4 text-blue-600" />
-                                              <a
-                                                href={assessmentSourceDocument.fileUrl}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="text-xs text-blue-600 underline"
-                                              >
-                                                Open {assessmentSourceDocument.fileName}
-                                              </a>
-                                            </div>
-                                          )}
-                                      </>
-                                    )}
-                                  </div>
-                                  {/* Uploaded Files List - only show for assessment (not extensions) */}
-                                  {/* Upload button - only for assessment (not extensions) */}
-                                  {/* Assets Folder added to Slide Tab removed from here */}
-                                </TabsContent>
-                                <TabsContent
-                                  value="pci"
-                                  className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
-                                >
-                                  <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
-                                    <div className="flex-1 space-y-3 overflow-y-auto p-3">
-                                      {(assessmentPciMessagesMap[loadedAssessmentId || ''] || [])
-                                        .length === 0 && (
-                                        <p className="text-muted-foreground text-xs">
-                                          Start a PCI chat to build instructions with the assistant.
-                                        </p>
-                                      )}
-                                      {(
-                                        assessmentPciMessagesMap[loadedAssessmentId || ''] || []
-                                      ).map((msg, idx) => (
-                                        <div
-                                          key={idx}
-                                          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                        >
+                                    <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
+                                      <div className="flex-1 space-y-3 overflow-y-auto p-3">
+                                        {activeTaskPciMessages.length === 0 && (
+                                          <p className="text-muted-foreground text-xs">
+                                            Start a PCI chat to build instructions with the
+                                            assistant.
+                                          </p>
+                                        )}
+                                        {activeTaskPciMessages.map((msg, idx) => (
                                           <div
-                                            className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-                                              msg.role === 'user'
-                                                ? 'bg-blue-50 text-gray-900'
-                                                : 'bg-gray-100 text-gray-800'
-                                            }`}
+                                            key={idx}
+                                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                           >
-                                            <div className="whitespace-pre-wrap">{msg.content}</div>
+                                            <div
+                                              className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                                                msg.role === 'user'
+                                                  ? 'bg-blue-50 text-gray-900'
+                                                  : 'bg-gray-100 text-gray-800'
+                                              }`}
+                                            >
+                                              <div className="whitespace-pre-wrap">
+                                                {msg.content}
+                                              </div>
+                                            </div>
                                           </div>
-                                        </div>
-                                      ))}
-                                      {(assessmentPciLoadingMap[loadedAssessmentId || ''] ||
-                                        false) && (
-                                        <div className="flex justify-start">
-                                          <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            <span className="text-xs text-gray-600">
-                                              Thinking...
-                                            </span>
+                                        ))}
+                                        {taskPciLoading && (
+                                          <div className="flex justify-start">
+                                            <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
+                                              <Loader2 className="h-4 w-4 animate-spin" />
+                                              <span className="text-xs text-gray-600">
+                                                Thinking...
+                                              </span>
+                                            </div>
                                           </div>
+                                        )}
+                                      </div>
+                                      <div className="border-t p-2">
+                                        {taskPciErrorHint && (
+                                          <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
+                                            PCI assistant error: {taskPciErrorHint}
+                                          </div>
+                                        )}
+                                        <div className="relative flex items-end gap-2">
+                                          <AutoTextarea
+                                            placeholder="Ask the PCI assistant..."
+                                            className="min-h-[44px] w-full pr-11"
+                                            value={activeTaskPciInput}
+                                            onChange={(e: any) => {
+                                              const value = e.target.value
+                                              if (taskBuilder.activeExtensionId) {
+                                                setTaskExtensionPciInputs(prev => ({
+                                                  ...prev,
+                                                  [taskBuilder.activeExtensionId as string]: value,
+                                                }))
+                                              } else {
+                                                setTaskPciInput(value)
+                                              }
+                                            }}
+                                            onKeyDown={(e: any) => {
+                                              if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault()
+                                                handlePciSend('task')
+                                              }
+                                            }}
+                                          />
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
+                                            disabled={taskPciLoading || !activeTaskPciInput.trim()}
+                                            onClick={() => handlePciSend('task')}
+                                            aria-label="Send"
+                                          >
+                                            {taskPciLoading ? (
+                                              <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                              <Send className="h-4 w-4" />
+                                            )}
+                                          </Button>
                                         </div>
-                                      )}
-                                    </div>
-                                    <div className="border-t p-2">
-                                      {(assessmentPciErrorHintMap[loadedAssessmentId || ''] ||
-                                        '') && (
-                                        <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
-                                          PCI assistant error:{' '}
-                                          {assessmentPciErrorHintMap[loadedAssessmentId || ''] ||
-                                            ''}
-                                        </div>
-                                      )}
-                                      <div className="relative flex items-end gap-2">
-                                        <AutoTextarea
-                                          placeholder="Ask the PCI assistant..."
-                                          className="min-h-[44px] w-full pr-11"
-                                          value={
-                                            assessmentPciInputMap[loadedAssessmentId || ''] || ''
-                                          }
-                                          onChange={(e: any) =>
-                                            setAssessmentPciInputMap(prev => ({
-                                              ...prev,
-                                              [loadedAssessmentId || '']: e.target.value,
-                                            }))
-                                          }
-                                          onKeyDown={(e: any) => {
-                                            if (e.key === 'Enter' && !e.shiftKey) {
-                                              e.preventDefault()
-                                              handlePciSend('assessment')
-                                            }
-                                          }}
-                                        />
-                                        <Button
-                                          type="button"
-                                          variant="outline"
-                                          size="icon"
-                                          className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
-                                          disabled={
-                                            assessmentPciLoadingMap[loadedAssessmentId || ''] ||
-                                            false ||
-                                            !(
-                                              assessmentPciInputMap[loadedAssessmentId || ''] || ''
-                                            ).trim()
-                                          }
-                                          onClick={() => handlePciSend('assessment')}
-                                          aria-label="Send"
-                                        >
-                                          {assessmentPciLoadingMap[loadedAssessmentId || ''] ||
-                                          false ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                          ) : (
-                                            <Send className="h-4 w-4" />
-                                          )}
-                                        </Button>
                                       </div>
                                     </div>
-                                  </div>
-                                </TabsContent>
-                              </Tabs>
-                              {/* Buttons row with Test, Generate DMI, and Version History */}
-                              <div className="mt-3 flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    // Prefill Test PCI with content from Assessment Builder
-                                    const content = assessmentBuilder.taskContent
+                                  </TabsContent>
+                                </Tabs>
+                                {/* Buttons row with Test and Save */}
+                                <div className="mt-3 flex gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      // Prefill Test PCI with content from Task Builder
+                                      const content = taskBuilder.activeExtensionId
+                                        ? taskBuilder.extensions.find(
+                                            e => e.id === taskBuilder.activeExtensionId
+                                          )?.content || taskBuilder.taskContent
+                                        : taskBuilder.taskContent
 
-                                    setTestPciScores({})
-                                    setTestPciInput('')
+                                      setTestPciScores({})
+                                      setTestPciInput('')
 
-                                    setTestPciContent({
-                                      classroom: content,
-                                      student1: content,
-                                      student2: content,
-                                    })
-                                    setTestPciSource('assessment')
-                                    // Switch to Test PCI tab
-                                    setMainTab('test-pci')
-                                    toast.success('Test PCI prefilled with assessment content')
-                                  }}
-                                >
-                                  Test
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  disabled={dmiGenerating}
-                                  onClick={() => {
-                                    // Generate DMI from Assessment content or PDF
-                                    const content = assessmentBuilder.taskContent
-                                    const hasPdf =
-                                      assessmentSourceDocument?.mimeType === 'application/pdf'
-                                    if (!content.trim() && !hasPdf) {
-                                      toast.error(
-                                        'Please add content to the Assessment tab or load a PDF first'
-                                      )
-                                      return
-                                    }
-                                    handleGenerateDMI('assessment')
-                                  }}
-                                >
-                                  {dmiGenerating ? (
-                                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                                  ) : null}
-                                  Generate DMI
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="px-2"
-                                  onClick={() => setShowDmiVersionList(true)}
-                                  title="View DMI Versions"
-                                >
-                                  <History className="h-4 w-4" />
-                                  {assessmentDmiVersions.length > 0 && (
-                                    <span className="ml-1 text-xs">
-                                      ({assessmentDmiVersions.length})
-                                    </span>
-                                  )}
-                                </Button>
+                                      setTestPciContent({
+                                        classroom: content,
+                                        student1: content,
+                                        student2: content,
+                                      })
+                                      setTestPciSource('task')
+                                      // Switch to Test PCI tab
+                                      setMainTab('test-pci')
+                                      toast.success('Test PCI prefilled with task content')
+                                    }}
+                                  >
+                                    Test
+                                  </Button>
+                                </div>
                               </div>
                             </div>
-                            {/* Right panels container */}
-                            <div className="flex flex-col gap-4">
-                              {/* DMI Panel */}
-                              <ResizablePanel defaultWidth={200} minWidth={150} maxWidth={300}>
-                                <DMIPanel
-                                  items={assessmentDmiItems}
-                                  onItemsChange={setAssessmentDmiItems}
-                                  onDeploy={handleDeployAssessmentDmi}
+                          </TabsContent>
+
+                          {/* Assessment Builder Tab */}
+                          <TabsContent
+                            value="assessment"
+                            className="flex h-full flex-col space-y-4 overflow-hidden data-[state=inactive]:hidden"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex-1">
+                                <Input
+                                  placeholder={loadedAssessmentId ? 'Assessment Title' : ''}
+                                  className="font-semibold"
+                                  value={assessmentBuilder.title}
+                                  onChange={(e: any) =>
+                                    setAssessmentBuilder(prev => ({
+                                      ...prev,
+                                      title: e.target.value,
+                                    }))
+                                  }
+                                  disabled={!loadedAssessmentId}
                                 />
-                              </ResizablePanel>
+                              </div>
                             </div>
-                          </div>
-                        </TabsContent>
-                      </Tabs>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
+                            <div className="flex flex-1 gap-4 overflow-hidden">
+                              {/* Main content with tabs */}
+                              <div className="flex flex-1 flex-col overflow-hidden">
+                                <Tabs
+                                  value={assessmentBuilderActiveTab}
+                                  onValueChange={v => {
+                                    setAssessmentBuilderActiveTab(v as 'content' | 'pci')
+                                  }}
+                                  className="flex h-full w-full flex-col"
+                                >
+                                  <TabsList className="bg-muted grid w-full grid-cols-2 gap-1 rounded-xl border p-1">
+                                    <TabsTrigger
+                                      value="content"
+                                      className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                    >
+                                      Assessment
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                      value="pci"
+                                      className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                    >
+                                      PCI
+                                    </TabsTrigger>
+                                  </TabsList>
+                                  <TabsContent
+                                    value="content"
+                                    className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                                  >
+                                    <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
+                                      {assessmentSourceDocument?.mimeType === 'application/pdf' ? (
+                                        <>
+                                          <div className="min-h-0 flex-1 border-b">
+                                            <PDFViewer fileUrl={assessmentSourceDocument.fileUrl} />
+                                          </div>
+                                          <AutoTextarea
+                                            placeholder="Optional notes or instructions..."
+                                            className="h-24 w-full shrink-0 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                            disableAutoResize
+                                            onDrop={(e: any) =>
+                                              handleDragFiles(
+                                                e,
+                                                text => {
+                                                  setAssessmentBuilder(prev => {
+                                                    const combined =
+                                                      prev.taskContent +
+                                                      (prev.taskContent ? '\n\n' : '') +
+                                                      text
+                                                    return {
+                                                      ...prev,
+                                                      taskContent: combined,
+                                                    }
+                                                  })
+                                                },
+                                                'assessment'
+                                              )
+                                            }
+                                            value={assessmentBuilder.taskContent}
+                                            onChange={(e: any) => {
+                                              const newContent = e.target.value
+                                              // Auto-create assessment if none loaded
+                                              if (!loadedAssessmentId) {
+                                                autoCreateAssessment()
+                                              }
+                                              setAssessmentBuilder(prev => ({
+                                                ...prev,
+                                                taskContent: newContent,
+                                              }))
+                                            }}
+                                          />
+                                        </>
+                                      ) : (
+                                        <>
+                                          <AutoTextarea
+                                            placeholder="Enter assessment content or drop files here..."
+                                            className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                            disableAutoResize
+                                            onDrop={(e: any) =>
+                                              handleDragFiles(
+                                                e,
+                                                text => {
+                                                  setAssessmentBuilder(prev => {
+                                                    const combined =
+                                                      prev.taskContent +
+                                                      (prev.taskContent ? '\n\n' : '') +
+                                                      text
+                                                    return {
+                                                      ...prev,
+                                                      taskContent: combined,
+                                                    }
+                                                  })
+                                                },
+                                                'assessment'
+                                              )
+                                            }
+                                            value={assessmentBuilder.taskContent}
+                                            onChange={(e: any) => {
+                                              const newContent = e.target.value
+                                              // Auto-create assessment if none loaded
+                                              if (!loadedAssessmentId) {
+                                                autoCreateAssessment()
+                                              }
+                                              setAssessmentBuilder(prev => ({
+                                                ...prev,
+                                                taskContent: newContent,
+                                              }))
+                                            }}
+                                          />
+                                          {assessmentSourceDocument &&
+                                            assessmentSourceDocument.mimeType !==
+                                              'application/pdf' &&
+                                            assessmentSourceDocument.mimeType.startsWith(
+                                              'image/'
+                                            ) && (
+                                              <div className="shrink-0 border-t p-2">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img
+                                                  src={assessmentSourceDocument.fileUrl}
+                                                  alt={assessmentSourceDocument.fileName}
+                                                  className="h-48 w-full object-contain"
+                                                />
+                                              </div>
+                                            )}
+                                          {assessmentSourceDocument &&
+                                            assessmentSourceDocument.mimeType !==
+                                              'application/pdf' &&
+                                            !assessmentSourceDocument.mimeType.startsWith(
+                                              'image/'
+                                            ) && (
+                                              <div className="flex shrink-0 items-center gap-2 border-t bg-gray-50 p-2">
+                                                <FileText className="h-4 w-4 text-blue-600" />
+                                                <a
+                                                  href={assessmentSourceDocument.fileUrl}
+                                                  target="_blank"
+                                                  rel="noreferrer"
+                                                  className="text-xs text-blue-600 underline"
+                                                >
+                                                  Open {assessmentSourceDocument.fileName}
+                                                </a>
+                                              </div>
+                                            )}
+                                        </>
+                                      )}
+                                    </div>
+                                    {/* Uploaded Files List - only show for assessment (not extensions) */}
+                                    {/* Upload button - only for assessment (not extensions) */}
+                                    {/* Assets Folder added to Slide Tab removed from here */}
+                                  </TabsContent>
+                                  <TabsContent
+                                    value="pci"
+                                    className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                                  >
+                                    <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
+                                      <div className="flex-1 space-y-3 overflow-y-auto p-3">
+                                        {(assessmentPciMessagesMap[loadedAssessmentId || ''] || [])
+                                          .length === 0 && (
+                                          <p className="text-muted-foreground text-xs">
+                                            Start a PCI chat to build instructions with the
+                                            assistant.
+                                          </p>
+                                        )}
+                                        {(
+                                          assessmentPciMessagesMap[loadedAssessmentId || ''] || []
+                                        ).map((msg, idx) => (
+                                          <div
+                                            key={idx}
+                                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                          >
+                                            <div
+                                              className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                                                msg.role === 'user'
+                                                  ? 'bg-blue-50 text-gray-900'
+                                                  : 'bg-gray-100 text-gray-800'
+                                              }`}
+                                            >
+                                              <div className="whitespace-pre-wrap">
+                                                {msg.content}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ))}
+                                        {(assessmentPciLoadingMap[loadedAssessmentId || ''] ||
+                                          false) && (
+                                          <div className="flex justify-start">
+                                            <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
+                                              <Loader2 className="h-4 w-4 animate-spin" />
+                                              <span className="text-xs text-gray-600">
+                                                Thinking...
+                                              </span>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="border-t p-2">
+                                        {(assessmentPciErrorHintMap[loadedAssessmentId || ''] ||
+                                          '') && (
+                                          <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
+                                            PCI assistant error:{' '}
+                                            {assessmentPciErrorHintMap[loadedAssessmentId || ''] ||
+                                              ''}
+                                          </div>
+                                        )}
+                                        <div className="relative flex items-end gap-2">
+                                          <AutoTextarea
+                                            placeholder="Ask the PCI assistant..."
+                                            className="min-h-[44px] w-full pr-11"
+                                            value={
+                                              assessmentPciInputMap[loadedAssessmentId || ''] || ''
+                                            }
+                                            onChange={(e: any) =>
+                                              setAssessmentPciInputMap(prev => ({
+                                                ...prev,
+                                                [loadedAssessmentId || '']: e.target.value,
+                                              }))
+                                            }
+                                            onKeyDown={(e: any) => {
+                                              if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault()
+                                                handlePciSend('assessment')
+                                              }
+                                            }}
+                                          />
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
+                                            disabled={
+                                              assessmentPciLoadingMap[loadedAssessmentId || ''] ||
+                                              false ||
+                                              !(
+                                                assessmentPciInputMap[loadedAssessmentId || ''] ||
+                                                ''
+                                              ).trim()
+                                            }
+                                            onClick={() => handlePciSend('assessment')}
+                                            aria-label="Send"
+                                          >
+                                            {assessmentPciLoadingMap[loadedAssessmentId || ''] ||
+                                            false ? (
+                                              <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                              <Send className="h-4 w-4" />
+                                            )}
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </TabsContent>
+                                </Tabs>
+                                {/* Buttons row with Test, Generate DMI, and Version History */}
+                                <div className="mt-3 flex gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      // Prefill Test PCI with content from Assessment Builder
+                                      const content = assessmentBuilder.taskContent
+
+                                      setTestPciScores({})
+                                      setTestPciInput('')
+
+                                      setTestPciContent({
+                                        classroom: content,
+                                        student1: content,
+                                        student2: content,
+                                      })
+                                      setTestPciSource('assessment')
+                                      // Switch to Test PCI tab
+                                      setMainTab('test-pci')
+                                      toast.success('Test PCI prefilled with assessment content')
+                                    }}
+                                  >
+                                    Test
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={dmiGenerating}
+                                    onClick={() => {
+                                      // Generate DMI from Assessment content or PDF
+                                      const content = assessmentBuilder.taskContent
+                                      const hasPdf =
+                                        assessmentSourceDocument?.mimeType === 'application/pdf'
+                                      if (!content.trim() && !hasPdf) {
+                                        toast.error(
+                                          'Please add content to the Assessment tab or load a PDF first'
+                                        )
+                                        return
+                                      }
+                                      handleGenerateDMI('assessment')
+                                    }}
+                                  >
+                                    {dmiGenerating ? (
+                                      <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                    ) : null}
+                                    Generate DMI
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="px-2"
+                                    onClick={() => setShowDmiVersionList(true)}
+                                    title="View DMI Versions"
+                                  >
+                                    <History className="h-4 w-4" />
+                                    {assessmentDmiVersions.length > 0 && (
+                                      <span className="ml-1 text-xs">
+                                        ({assessmentDmiVersions.length})
+                                      </span>
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                              {/* Right panels container */}
+                              <div className="flex flex-col gap-4">
+                                {/* DMI Panel */}
+                                <ResizablePanel defaultWidth={200} minWidth={150} maxWidth={300}>
+                                  <DMIPanel
+                                    items={assessmentDmiItems}
+                                    onItemsChange={setAssessmentDmiItems}
+                                    onDeploy={handleDeployAssessmentDmi}
+                                  />
+                                </ResizablePanel>
+                              </div>
+                            </div>
+                          </TabsContent>
+                        </Tabs>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+        </Tabs>
 
-          {/* Modals */}
-          <NodeBuilderModal
-            isOpen={activeModal.type === 'node' && activeModal.isOpen}
-            onClose={() => setActiveModal({ type: 'node', isOpen: false })}
-            onSave={handleSaveCourseBuilderNode}
-            initialData={editingData}
-          />
+        {/* Modals */}
+        <NodeBuilderModal
+          isOpen={activeModal.type === 'node' && activeModal.isOpen}
+          onClose={() => setActiveModal({ type: 'node', isOpen: false })}
+          onSave={handleSaveCourseBuilderNode}
+          initialData={editingData}
+        />
 
-          <HomeworkBuilderModal
-            isOpen={activeModal.type === 'homework' && activeModal.isOpen}
-            onClose={() => setActiveModal({ type: 'homework', isOpen: false })}
-            onSave={handleSaveAssessment}
-            initialData={editingData}
-            nodes={nodes}
-          />
+        <HomeworkBuilderModal
+          isOpen={activeModal.type === 'homework' && activeModal.isOpen}
+          onClose={() => setActiveModal({ type: 'homework', isOpen: false })}
+          onSave={handleSaveAssessment}
+          initialData={editingData}
+          nodes={nodes}
+        />
 
-          <QuizBuilderModal
-            isOpen={activeModal.type === 'nodeQuiz' && activeModal.isOpen}
-            onClose={() => setActiveModal({ type: 'nodeQuiz', isOpen: false })}
-            onSave={handleSaveCourseBuilderNodeQuiz}
-            initialData={editingData}
-            isCourseBuilderNodeQuiz={true}
-          />
+        <QuizBuilderModal
+          isOpen={activeModal.type === 'nodeQuiz' && activeModal.isOpen}
+          onClose={() => setActiveModal({ type: 'nodeQuiz', isOpen: false })}
+          onSave={handleSaveCourseBuilderNodeQuiz}
+          initialData={editingData}
+          isCourseBuilderNodeQuiz={true}
+        />
 
-          <ContentBuilderModal
-            isOpen={activeModal.type === 'content' && activeModal.isOpen}
-            onClose={() => setActiveModal({ type: 'content', isOpen: false })}
-            onSave={handleSaveContent}
-            initialData={editingData}
-          />
+        <ContentBuilderModal
+          isOpen={activeModal.type === 'content' && activeModal.isOpen}
+          onClose={() => setActiveModal({ type: 'content', isOpen: false })}
+          onSave={handleSaveContent}
+          initialData={editingData}
+        />
 
-          {/* Lesson Selection Dialog for Preview Pane Save */}
-          <LessonSelectorDialog
-            isOpen={lessonSelectDialog.isOpen}
-            onClose={() => setLessonSelectDialog({ isOpen: false, type: null, title: '' })}
-            onConfirm={(nodeId, lessonId) => {
-              const title = lessonSelectDialog.title
-              if (lessonSelectDialog.type === 'task') {
-                const newTask = DEFAULT_TASK(0)
-                newTask.title = title
-                handleSaveTask(newTask, nodeId, lessonId)
-              } else if (lessonSelectDialog.type === 'assessment') {
-                const newAssessment = DEFAULT_HOMEWORK(0, 'assessment')
-                newAssessment.title = title
-                handleSaveAssessment(newAssessment, nodeId, lessonId)
-              }
-              setLessonSelectDialog({ isOpen: false, type: null, title: '' })
-            }}
-            nodes={nodes}
-            itemType={lessonSelectDialog.type || 'item'}
-          />
-
-          {/* AI Assist Agent Modal */}
-          <AIAssistAgent
-            isOpen={aiAssistOpen}
-            onClose={() => setAiAssistOpen(false)}
-            context={aiAssistContext}
-            content={
-              aiAssistContext === 'task'
-                ? taskBuilder.activeExtensionId
-                  ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)
-                      ?.content || ''
-                  : taskBuilder.taskContent
-                : assessmentBuilder.taskContent
+        {/* Lesson Selection Dialog for Preview Pane Save */}
+        <LessonSelectorDialog
+          isOpen={lessonSelectDialog.isOpen}
+          onClose={() => setLessonSelectDialog({ isOpen: false, type: null, title: '' })}
+          onConfirm={(nodeId, lessonId) => {
+            const title = lessonSelectDialog.title
+            if (lessonSelectDialog.type === 'task') {
+              const newTask = DEFAULT_TASK(0)
+              newTask.title = title
+              handleSaveTask(newTask, nodeId, lessonId)
+            } else if (lessonSelectDialog.type === 'assessment') {
+              const newAssessment = DEFAULT_HOMEWORK(0, 'assessment')
+              newAssessment.title = title
+              handleSaveAssessment(newAssessment, nodeId, lessonId)
             }
-            pci={
-              aiAssistContext === 'task'
-                ? taskBuilder.activeExtensionId
-                  ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci ||
-                    ''
-                  : taskBuilder.taskPci
-                : assessmentBuilder.taskPci
+            setLessonSelectDialog({ isOpen: false, type: null, title: '' })
+          }}
+          nodes={nodes}
+          itemType={lessonSelectDialog.type || 'item'}
+        />
+
+        {/* AI Assist Agent Modal */}
+        <AIAssistAgent
+          isOpen={aiAssistOpen}
+          onClose={() => setAiAssistOpen(false)}
+          context={aiAssistContext}
+          content={
+            aiAssistContext === 'task'
+              ? taskBuilder.activeExtensionId
+                ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)
+                    ?.content || ''
+                : taskBuilder.taskContent
+              : assessmentBuilder.taskContent
+          }
+          pci={
+            aiAssistContext === 'task'
+              ? taskBuilder.activeExtensionId
+                ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci ||
+                  ''
+                : taskBuilder.taskPci
+              : assessmentBuilder.taskPci
+          }
+          title={aiAssistContext === 'task' ? taskBuilder.title : assessmentBuilder.title}
+          messages={aiAssistContext === 'task' ? taskAiMessages : assessmentAiMessages}
+          setMessages={aiAssistContext === 'task' ? setTaskAiMessages : setAssessmentAiMessages}
+          onApplyContent={content => {
+            if (aiAssistContext === 'task') {
+              if (taskBuilder.activeExtensionId) {
+                // Apply to active extension
+                setTaskBuilder(prev => ({
+                  ...prev,
+                  extensions: prev.extensions.map(ext =>
+                    ext.id === prev.activeExtensionId ? { ...ext, content } : ext
+                  ),
+                }))
+              } else {
+                // Apply to task
+                setTaskBuilder(prev => ({ ...prev, taskContent: content }))
+              }
+            } else {
+              setAssessmentBuilder(prev => ({ ...prev, taskContent: content }))
             }
-            title={aiAssistContext === 'task' ? taskBuilder.title : assessmentBuilder.title}
-            messages={aiAssistContext === 'task' ? taskAiMessages : assessmentAiMessages}
-            setMessages={aiAssistContext === 'task' ? setTaskAiMessages : setAssessmentAiMessages}
-            onApplyContent={content => {
-              if (aiAssistContext === 'task') {
-                if (taskBuilder.activeExtensionId) {
-                  // Apply to active extension
-                  setTaskBuilder(prev => ({
-                    ...prev,
-                    extensions: prev.extensions.map(ext =>
-                      ext.id === prev.activeExtensionId ? { ...ext, content } : ext
-                    ),
-                  }))
-                } else {
-                  // Apply to task
-                  setTaskBuilder(prev => ({ ...prev, taskContent: content }))
-                }
+          }}
+          onApplyPci={pci => {
+            if (aiAssistContext === 'task') {
+              if (taskBuilder.activeExtensionId) {
+                setTaskBuilder(prev => ({
+                  ...prev,
+                  extensions: prev.extensions.map(ext =>
+                    ext.id === prev.activeExtensionId ? { ...ext, pci } : ext
+                  ),
+                }))
               } else {
-                setAssessmentBuilder(prev => ({ ...prev, taskContent: content }))
+                setTaskBuilder(prev => ({ ...prev, taskPci: pci }))
               }
-            }}
-            onApplyPci={pci => {
-              if (aiAssistContext === 'task') {
-                if (taskBuilder.activeExtensionId) {
-                  setTaskBuilder(prev => ({
-                    ...prev,
-                    extensions: prev.extensions.map(ext =>
-                      ext.id === prev.activeExtensionId ? { ...ext, pci } : ext
-                    ),
-                  }))
-                } else {
-                  setTaskBuilder(prev => ({ ...prev, taskPci: pci }))
-                }
-              } else {
-                setAssessmentBuilder(prev => ({ ...prev, taskPci: pci }))
-              }
-            }}
-          />
+            } else {
+              setAssessmentBuilder(prev => ({ ...prev, taskPci: pci }))
+            }
+          }}
+        />
 
-          {/* Import Type Selector Modal */}
-          <Dialog
-            open={!!importTypeModalData}
-            onOpenChange={open => !open && setImportTypeModalData(null)}
-          >
-            <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Import as...</DialogTitle>
-              </DialogHeader>
-              <div className="flex flex-col gap-3 py-4">
-                <Button
-                  variant="outline"
-                  className="justify-start gap-2"
-                  onClick={() => {
-                    if (!importTypeModalData) return
-                    const { target, items } = importTypeModalData
-                    const joinedQuestions = items.map(i => i.questionText).join('\n\n')
-                    const joinedPci = items.map(i => i.pciText).join('\n\n')
+        {/* Import Type Selector Modal */}
+        <Dialog
+          open={!!importTypeModalData}
+          onOpenChange={open => !open && setImportTypeModalData(null)}
+        >
+          <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Import as...</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-3 py-4">
+              <Button
+                variant="outline"
+                className="justify-start gap-2"
+                onClick={() => {
+                  if (!importTypeModalData) return
+                  const { target, items } = importTypeModalData
+                  const joinedQuestions = items.map(i => i.questionText).join('\n\n')
+                  const joinedPci = items.map(i => i.pciText).join('\n\n')
 
-                    setCourseBuilderNodes(prev =>
-                      prev.map(mod => {
-                        if (mod.id !== target.nodeId) return mod
-                        return {
-                          ...mod,
-                          lessons: mod.lessons.map(lesson => {
-                            if (lesson.id !== target.lessonId) return lesson
-                            const newTask = DEFAULT_LESSON(0).tasks[0]
-                            return {
-                              ...lesson,
-                              tasks: [
-                                ...lesson.tasks,
-                                {
-                                  ...newTask,
-                                  id: `task-${Date.now()}`,
-                                  title: 'Imported Task',
-                                  description: joinedQuestions,
-                                  instructions: joinedPci,
-                                },
-                              ],
-                            }
-                          }),
-                        }
-                      })
-                    )
-                    toast.success('Items imported as Task')
-                    setImportTypeModalData(null)
-                  }}
-                >
-                  <ListTodo className="h-4 w-4 text-orange-500" />
-                  Task
-                </Button>
-                <Button
-                  variant="outline"
-                  className="justify-start gap-2"
-                  onClick={() => {
-                    if (!importTypeModalData) return
-                    const { target, items } = importTypeModalData
-                    const joinedQuestions = items.map(i => i.questionText).join('\n\n')
-                    const joinedPci = items.map(i => i.pciText).join('\n\n')
+                  setCourseBuilderNodes(prev =>
+                    prev.map(mod => {
+                      if (mod.id !== target.nodeId) return mod
+                      return {
+                        ...mod,
+                        lessons: mod.lessons.map(lesson => {
+                          if (lesson.id !== target.lessonId) return lesson
+                          const newTask = DEFAULT_LESSON(0).tasks[0]
+                          return {
+                            ...lesson,
+                            tasks: [
+                              ...lesson.tasks,
+                              {
+                                ...newTask,
+                                id: `task-${Date.now()}`,
+                                title: 'Imported Task',
+                                description: joinedQuestions,
+                                instructions: joinedPci,
+                              },
+                            ],
+                          }
+                        }),
+                      }
+                    })
+                  )
+                  toast.success('Items imported as Task')
+                  setImportTypeModalData(null)
+                }}
+              >
+                <ListTodo className="h-4 w-4 text-orange-500" />
+                Task
+              </Button>
+              <Button
+                variant="outline"
+                className="justify-start gap-2"
+                onClick={() => {
+                  if (!importTypeModalData) return
+                  const { target, items } = importTypeModalData
+                  const joinedQuestions = items.map(i => i.questionText).join('\n\n')
+                  const joinedPci = items.map(i => i.pciText).join('\n\n')
 
-                    setCourseBuilderNodes(prev =>
-                      prev.map(mod => {
-                        if (mod.id !== target.nodeId) return mod
-                        return {
-                          ...mod,
-                          lessons: mod.lessons.map(lesson => {
-                            if (lesson.id !== target.lessonId) return lesson
-                            const newAssessment = DEFAULT_HOMEWORK(0, 'assessment')
-                            return {
-                              ...lesson,
-                              homework: [
-                                ...lesson.homework,
-                                {
-                                  ...newAssessment,
-                                  id: `hw-${Date.now()}`,
-                                  title: 'Imported Assessment',
-                                  description: joinedQuestions,
-                                  instructions: joinedPci,
-                                },
-                              ],
-                            }
-                          }),
-                        }
-                      })
-                    )
-                    toast.success('Items imported as Assessment')
-                    setImportTypeModalData(null)
-                  }}
-                >
-                  <FileQuestion className="h-4 w-4 text-purple-500" />
-                  Assessment
-                </Button>
-                <Button
-                  variant="outline"
-                  className="justify-start gap-2"
-                  onClick={() => {
-                    if (!importTypeModalData) return
-                    const { target, items } = importTypeModalData
-                    const joinedQuestions = items.map(i => i.questionText).join('\n\n')
-                    const joinedPci = items.map(i => i.pciText).join('\n\n')
+                  setCourseBuilderNodes(prev =>
+                    prev.map(mod => {
+                      if (mod.id !== target.nodeId) return mod
+                      return {
+                        ...mod,
+                        lessons: mod.lessons.map(lesson => {
+                          if (lesson.id !== target.lessonId) return lesson
+                          const newAssessment = DEFAULT_HOMEWORK(0, 'assessment')
+                          return {
+                            ...lesson,
+                            homework: [
+                              ...lesson.homework,
+                              {
+                                ...newAssessment,
+                                id: `hw-${Date.now()}`,
+                                title: 'Imported Assessment',
+                                description: joinedQuestions,
+                                instructions: joinedPci,
+                              },
+                            ],
+                          }
+                        }),
+                      }
+                    })
+                  )
+                  toast.success('Items imported as Assessment')
+                  setImportTypeModalData(null)
+                }}
+              >
+                <FileQuestion className="h-4 w-4 text-purple-500" />
+                Assessment
+              </Button>
+              <Button
+                variant="outline"
+                className="justify-start gap-2"
+                onClick={() => {
+                  if (!importTypeModalData) return
+                  const { target, items } = importTypeModalData
+                  const joinedQuestions = items.map(i => i.questionText).join('\n\n')
+                  const joinedPci = items.map(i => i.pciText).join('\n\n')
 
-                    setCourseBuilderNodes(prev =>
-                      prev.map(mod => {
-                        if (mod.id !== target.nodeId) return mod
-                        return {
-                          ...mod,
-                          lessons: mod.lessons.map(lesson => {
-                            if (lesson.id !== target.lessonId) return lesson
-                            const newHomework = DEFAULT_HOMEWORK(0, 'homework')
-                            return {
-                              ...lesson,
-                              homework: [
-                                ...lesson.homework,
-                                {
-                                  ...newHomework,
-                                  id: `hw-${Date.now()}`,
-                                  title: 'Imported Homework',
-                                  description: joinedQuestions,
-                                  instructions: joinedPci,
-                                },
-                              ],
-                            }
-                          }),
-                        }
-                      })
-                    )
-                    toast.success('Items imported as Homework')
-                    setImportTypeModalData(null)
-                  }}
-                >
-                  <Home className="h-4 w-4 text-emerald-500" />
-                  Homework
-                </Button>
+                  setCourseBuilderNodes(prev =>
+                    prev.map(mod => {
+                      if (mod.id !== target.nodeId) return mod
+                      return {
+                        ...mod,
+                        lessons: mod.lessons.map(lesson => {
+                          if (lesson.id !== target.lessonId) return lesson
+                          const newHomework = DEFAULT_HOMEWORK(0, 'homework')
+                          return {
+                            ...lesson,
+                            homework: [
+                              ...lesson.homework,
+                              {
+                                ...newHomework,
+                                id: `hw-${Date.now()}`,
+                                title: 'Imported Homework',
+                                description: joinedQuestions,
+                                instructions: joinedPci,
+                              },
+                            ],
+                          }
+                        }),
+                      }
+                    })
+                  )
+                  toast.success('Items imported as Homework')
+                  setImportTypeModalData(null)
+                }}
+              >
+                <Home className="h-4 w-4 text-emerald-500" />
+                Homework
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Course Properties Modal */}
+        <Dialog
+          open={coursePropsModal.isOpen}
+          onOpenChange={open => setCoursePropsModal(prev => ({ ...prev, isOpen: open }))}
+        >
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Course Properties</DialogTitle>
+              <DialogDescription>
+                Set the name and description for your new course before saving.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="name"
+                  value={coursePropsModal.name}
+                  onChange={e => setCoursePropsModal(prev => ({ ...prev, name: e.target.value }))}
+                  className="col-span-3"
+                  placeholder="e.g. Introduction to Physics"
+                />
               </div>
-            </DialogContent>
-          </Dialog>
-
-          {/* Course Properties Modal */}
-          <Dialog
-            open={coursePropsModal.isOpen}
-            onOpenChange={open => setCoursePropsModal(prev => ({ ...prev, isOpen: open }))}
-          >
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Course Properties</DialogTitle>
-                <DialogDescription>
-                  Set the name and description for your new course before saving.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name" className="text-right">
-                    Name
-                  </Label>
-                  <Input
-                    id="name"
-                    value={coursePropsModal.name}
-                    onChange={e => setCoursePropsModal(prev => ({ ...prev, name: e.target.value }))}
-                    className="col-span-3"
-                    placeholder="e.g. Introduction to Physics"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="description" className="text-right">
-                    Description
-                  </Label>
-                  <AutoTextarea
-                    id="description"
-                    value={coursePropsModal.description}
-                    onChange={e =>
-                      setCoursePropsModal(prev => ({ ...prev, description: e.target.value }))
-                    }
-                    className="col-span-3"
-                    placeholder="Briefly describe what this course is about..."
-                  />
-                </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="description" className="text-right">
+                  Description
+                </Label>
+                <AutoTextarea
+                  id="description"
+                  value={coursePropsModal.description}
+                  onChange={e =>
+                    setCoursePropsModal(prev => ({ ...prev, description: e.target.value }))
+                  }
+                  className="col-span-3"
+                  placeholder="Briefly describe what this course is about..."
+                />
               </div>
-              <DialogFooter>
-                <Button
-                  type="submit"
-                  disabled={!coursePropsModal.name.trim()}
-                  onClick={() => {
-                    setCoursePropsModal(prev => ({ ...prev, isOpen: false }))
-                    if (onSave) {
-                      onSave(
-                        nodes.map(n => n.lessons[0] || ({} as any)),
-                        {
-                          developmentMode: devMode,
-                          previewDifficulty,
-                          courseName: coursePropsModal.name,
-                          courseDescription: coursePropsModal.description,
-                        }
-                      )
-                    }
-                  }}
-                >
-                  Save Course
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            </div>
+            <DialogFooter>
+              <Button
+                type="submit"
+                disabled={!coursePropsModal.name.trim()}
+                onClick={() => {
+                  setCoursePropsModal(prev => ({ ...prev, isOpen: false }))
+                  if (onSave) {
+                    onSave(
+                      nodes.map(n => n.lessons[0] || ({} as any)),
+                      {
+                        developmentMode: devMode,
+                        previewDifficulty,
+                        courseName: coursePropsModal.name,
+                        courseDescription: coursePropsModal.description,
+                      }
+                    )
+                  }
+                }}
+              >
+                Save Course
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-          {/* DMI Version History Modal */}
-          <Dialog open={showDmiVersionList} onOpenChange={open => setShowDmiVersionList(open)}>
-            <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>DMI Version History</DialogTitle>
-                <DialogDescription>
-                  View and restore previous DMI versions for{' '}
-                  {mainBuilderTab === 'task' ? 'Task' : 'Assessment'}.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="max-h-[400px] overflow-y-auto py-4">
-                {(mainBuilderTab === 'task' ? taskDmiVersions : assessmentDmiVersions).length ===
-                0 ? (
-                  <div className="text-muted-foreground py-6 text-center text-sm">
-                    No DMI versions yet. Generate a DMI to create your first version.
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {(mainBuilderTab === 'task' ? taskDmiVersions : assessmentDmiVersions)
-                      .slice()
-                      .reverse()
-                      .map(version => (
-                        <div
-                          key={version.id}
-                          className="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-3"
-                        >
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">Version {version.versionNumber}</span>
-                              <span className="text-muted-foreground text-xs">
-                                {new Date(version.createdAt).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <div className="text-muted-foreground text-xs">
-                              {version.items.length} question{version.items.length !== 1 ? 's' : ''}
-                            </div>
+        {/* DMI Version History Modal */}
+        <Dialog open={showDmiVersionList} onOpenChange={open => setShowDmiVersionList(open)}>
+          <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>DMI Version History</DialogTitle>
+              <DialogDescription>
+                View and restore previous DMI versions for{' '}
+                {mainBuilderTab === 'task' ? 'Task' : 'Assessment'}.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-[400px] overflow-y-auto py-4">
+              {(mainBuilderTab === 'task' ? taskDmiVersions : assessmentDmiVersions).length ===
+              0 ? (
+                <div className="text-muted-foreground py-6 text-center text-sm">
+                  No DMI versions yet. Generate a DMI to create your first version.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {(mainBuilderTab === 'task' ? taskDmiVersions : assessmentDmiVersions)
+                    .slice()
+                    .reverse()
+                    .map(version => (
+                      <div
+                        key={version.id}
+                        className="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-3"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">Version {version.versionNumber}</span>
+                            <span className="text-muted-foreground text-xs">
+                              {new Date(version.createdAt).toLocaleDateString()}
+                            </span>
                           </div>
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setPreviewDmiVersion(version)}
-                            >
-                              <Eye className="mr-1 h-3.5 w-3.5" />
-                              View
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleLoadDmiVersion(version, mainBuilderTab)}
-                            >
-                              Load
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-muted-foreground hover:text-destructive h-8 w-8"
-                              onClick={() => handleDeleteDmiVersion(version.id, mainBuilderTab)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                          <div className="text-muted-foreground text-xs">
+                            {version.items.length} question{version.items.length !== 1 ? 's' : ''}
                           </div>
                         </div>
-                      ))}
-                  </div>
-                )}
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowDmiVersionList(false)}>
-                  Close
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          {/* DMI Version Preview Modal */}
-          <Dialog
-            open={!!previewDmiVersion}
-            onOpenChange={open => {
-              if (!open) setPreviewDmiVersion(null)
-            }}
-          >
-            <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>DMI Preview — Version {previewDmiVersion?.versionNumber}</DialogTitle>
-                <DialogDescription>
-                  {previewDmiVersion?.items.length} question
-                  {previewDmiVersion?.items.length !== 1 ? 's' : ''} ·{' '}
-                  {previewDmiVersion
-                    ? new Date(previewDmiVersion.createdAt).toLocaleDateString()
-                    : ''}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="max-h-[500px] overflow-y-auto py-4">
-                {!previewDmiVersion || previewDmiVersion.items.length === 0 ? (
-                  <div className="text-muted-foreground py-6 text-center text-sm">
-                    No questions in this version.
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {previewDmiVersion.items.map((item, idx) => (
-                      <div key={item.id} className="rounded-lg border bg-slate-50 p-4">
-                        <div className="mb-2 text-sm font-semibold text-slate-700">
-                          Question {item.questionNumber}
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setPreviewDmiVersion(version)}
+                          >
+                            <Eye className="mr-1 h-3.5 w-3.5" />
+                            View
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleLoadDmiVersion(version, mainBuilderTab)}
+                          >
+                            Load
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-muted-foreground hover:text-destructive h-8 w-8"
+                            onClick={() => handleDeleteDmiVersion(version.id, mainBuilderTab)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <div className="text-sm text-slate-800">{item.questionText}</div>
                       </div>
                     ))}
-                  </div>
-                )}
-              </div>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    if (previewDmiVersion) {
-                      handleLoadDmiVersion(previewDmiVersion, mainBuilderTab)
-                    }
-                    setPreviewDmiVersion(null)
-                  }}
-                >
-                  Load This Version
-                </Button>
-                <Button variant="outline" onClick={() => setPreviewDmiVersion(null)}>
-                  Close
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowDmiVersionList(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-          {/* PPT Upload Options Dialog */}
-          <Dialog
-            open={pptUploadDialog.isOpen}
-            onOpenChange={open => {
-              if (!open) setPptUploadDialog({ isOpen: false, file: null, target: null })
-            }}
-          >
-            <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-orange-500" />
-                  PowerPoint Upload Options
-                </DialogTitle>
-                <DialogDescription>
-                  How would you like to use &quot;{pptUploadDialog.file?.name}&quot;?
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <Button
-                  variant="outline"
-                  className="h-auto w-full justify-start gap-3 px-4 py-4"
-                  onClick={() => handlePptOption('extract')}
-                >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100">
-                    <span className="text-lg">📄</span>
-                  </div>
-                  <div className="text-left">
-                    <p className="font-medium">Extract Text Content</p>
-                    <p className="text-muted-foreground text-sm">
-                      Parse the slides and extract all text content for editing
-                    </p>
-                  </div>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-auto w-full justify-start gap-3 px-4 py-4"
-                  onClick={() => handlePptOption('embed')}
-                >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-100">
-                    <span className="text-lg">🖼️</span>
-                  </div>
-                  <div className="text-left">
-                    <p className="font-medium">Display as Presentation</p>
-                    <p className="text-muted-foreground text-sm">
-                      Keep the file as a presentation to display slides during class
-                    </p>
-                  </div>
-                </Button>
-              </div>
-              <DialogFooter>
-                <Button
-                  variant="ghost"
-                  onClick={() => setPptUploadDialog({ isOpen: false, file: null, target: null })}
-                >
-                  Cancel
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+        {/* DMI Version Preview Modal */}
+        <Dialog
+          open={!!previewDmiVersion}
+          onOpenChange={open => {
+            if (!open) setPreviewDmiVersion(null)
+          }}
+        >
+          <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>DMI Preview — Version {previewDmiVersion?.versionNumber}</DialogTitle>
+              <DialogDescription>
+                {previewDmiVersion?.items.length} question
+                {previewDmiVersion?.items.length !== 1 ? 's' : ''} ·{' '}
+                {previewDmiVersion
+                  ? new Date(previewDmiVersion.createdAt).toLocaleDateString()
+                  : ''}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-[500px] overflow-y-auto py-4">
+              {!previewDmiVersion || previewDmiVersion.items.length === 0 ? (
+                <div className="text-muted-foreground py-6 text-center text-sm">
+                  No questions in this version.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {previewDmiVersion.items.map((item, idx) => (
+                    <div key={item.id} className="rounded-lg border bg-slate-50 p-4">
+                      <div className="mb-2 text-sm font-semibold text-slate-700">
+                        Question {item.questionNumber}
+                      </div>
+                      <div className="text-sm text-slate-800">{item.questionText}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (previewDmiVersion) {
+                    handleLoadDmiVersion(previewDmiVersion, mainBuilderTab)
+                  }
+                  setPreviewDmiVersion(null)
+                }}
+              >
+                Load This Version
+              </Button>
+              <Button variant="outline" onClick={() => setPreviewDmiVersion(null)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
+        {/* PPT Upload Options Dialog */}
+        <Dialog
+          open={pptUploadDialog.isOpen}
+          onOpenChange={open => {
+            if (!open) setPptUploadDialog({ isOpen: false, file: null, target: null })
+          }}
+        >
+          <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-orange-500" />
+                PowerPoint Upload Options
+              </DialogTitle>
+              <DialogDescription>
+                How would you like to use &quot;{pptUploadDialog.file?.name}&quot;?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <Button
+                variant="outline"
+                className="h-auto w-full justify-start gap-3 px-4 py-4"
+                onClick={() => handlePptOption('extract')}
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100">
+                  <span className="text-lg">📄</span>
+                </div>
+                <div className="text-left">
+                  <p className="font-medium">Extract Text Content</p>
+                  <p className="text-muted-foreground text-sm">
+                    Parse the slides and extract all text content for editing
+                  </p>
+                </div>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-auto w-full justify-start gap-3 px-4 py-4"
+                onClick={() => handlePptOption('embed')}
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-100">
+                  <span className="text-lg">🖼️</span>
+                </div>
+                <div className="text-left">
+                  <p className="font-medium">Display as Presentation</p>
+                  <p className="text-muted-foreground text-sm">
+                    Keep the file as a presentation to display slides during class
+                  </p>
+                </div>
+              </Button>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="ghost"
+                onClick={() => setPptUploadDialog({ isOpen: false, file: null, target: null })}
+              >
+                Cancel
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         {/* Daily.co Video Frame for Tutor */}
         {insightsProps && sessionContext?.roomUrl && (
           <div className="fixed bottom-4 right-4 z-50 w-72 overflow-hidden rounded-xl border border-slate-600 bg-black shadow-2xl sm:w-80">
