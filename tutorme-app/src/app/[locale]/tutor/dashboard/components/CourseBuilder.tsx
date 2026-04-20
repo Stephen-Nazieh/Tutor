@@ -5238,34 +5238,34 @@ FEEDBACK: [your explanation]`
                           onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
                           className="flex h-full w-full flex-col"
                         >
-                          {/* Main Builder Tabs — folder-style tabs on a strip */}
-                          <div className="relative mb-0 flex w-full items-end rounded-t-xl border border-gray-200 bg-gray-50/80 px-2 pt-2 shadow-sm">
-                            {/* Left: current task name (on the strip) */}
-                            <div className="flex flex-1 items-center gap-2 px-3 pb-2 text-sm font-medium text-gray-500">
+                          {/* Main Builder Tabs — pill strip with curved active tab */}
+                          <div className="mb-3 flex w-full items-stretch overflow-hidden rounded-2xl bg-gray-100 p-1 shadow-sm">
+                            {/* Left: current task name */}
+                            <div className="flex shrink-0 items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-500">
                               <ListTodo className="h-4 w-4 shrink-0 text-blue-500" />
                               <span className="truncate">
                                 {taskBuilder.title || 'Task 1'}
                               </span>
                             </div>
 
-                            {/* Center: folder-style tabs */}
-                            <TabsList className="relative z-10 mx-auto flex w-fit gap-0 bg-transparent p-0">
+                            {/* Center: tabs with curved outer edges when active */}
+                            <TabsList className="flex flex-1 gap-0 bg-transparent p-0">
                               <TabsTrigger
                                 value="task"
-                                className="flex items-center gap-2 rounded-t-xl border-t border-x border-gray-200 px-5 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:font-semibold data-[state=active]:text-blue-600 data-[state=active]:shadow-sm data-[state=inactive]:border-transparent data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-500"
+                                className="relative flex-1 overflow-visible py-2.5 text-sm font-medium transition-all data-[state=inactive]:bg-gray-200/60 data-[state=inactive]:text-gray-500 data-[state=active]:rounded-l-xl data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:before:absolute data-[state=active]:before:bottom-0 data-[state=active]:before:left-0 data-[state=active]:before:z-10 data-[state=active]:before:h-8 data-[state=active]:before:w-8 data-[state=active]:before:bg-gray-100 data-[state=active]:before:rounded-tr-full"
                               >
                                 Task Builder
                               </TabsTrigger>
                               <TabsTrigger
                                 value="assessment"
-                                className="flex items-center gap-2 rounded-t-xl border-t border-x border-gray-200 px-5 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:font-semibold data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm data-[state=inactive]:border-transparent data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-500"
+                                className="relative flex-1 overflow-visible py-2.5 text-sm font-medium transition-all data-[state=inactive]:bg-gray-200/60 data-[state=inactive]:text-gray-500 data-[state=active]:rounded-r-xl data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:right-0 data-[state=active]:after:z-10 data-[state=active]:after:h-8 data-[state=active]:after:w-8 data-[state=active]:after:bg-gray-100 data-[state=active]:after:rounded-tl-full"
                               >
                                 Assessment Builder
                               </TabsTrigger>
                             </TabsList>
 
-                            {/* Right: current assessment name (on the strip) */}
-                            <div className="flex flex-1 items-center justify-end gap-2 px-3 pb-2 text-sm font-medium text-gray-500">
+                            {/* Right: current assessment name */}
+                            <div className="flex shrink-0 items-center justify-end gap-2 px-4 py-2.5 text-sm font-medium text-gray-500">
                               <span className="truncate">
                                 {assessmentBuilder.title || 'Assessment 1'}
                               </span>
@@ -5273,8 +5273,8 @@ FEEDBACK: [your explanation]`
                             </div>
                           </div>
 
-                          {/* Content area — flush with the tab strip above */}
-                          <div className="relative flex-1 rounded-b-xl rounded-t-none border-x border-b border-gray-200 bg-white p-4 shadow-sm">
+                          {/* Content area */}
+                          <div className="relative flex-1 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                             {/* Task Builder Tab */}
                             <TabsContent
                               value="task"
