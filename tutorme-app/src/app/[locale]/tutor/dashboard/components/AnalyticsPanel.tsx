@@ -122,7 +122,7 @@ export function AnalyticsPanel({
     )
 
   return (
-    <div className="flex h-full flex-col space-y-4 overflow-y-auto px-1">
+    <div className="flex flex-col space-y-4 px-1 pb-4">
       {/* Header */}
       <div className="flex flex-wrap items-center gap-2">
         {sessionId && (
