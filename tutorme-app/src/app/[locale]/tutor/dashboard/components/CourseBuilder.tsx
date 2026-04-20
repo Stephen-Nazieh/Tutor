@@ -5145,8 +5145,8 @@ FEEDBACK: [your explanation]`
                                   </TabsContent>
                                 ))}
                               </Tabs>
-                              {/* Enhanced text input styled as Kimi AI */}
-                              <div className="border-border bg-background mt-4 rounded-2xl border shadow-xl backdrop-blur-md">
+                              {testPciActiveTab !== 'insights' && (
+                                <div className="border-border bg-background mt-4 rounded-2xl border shadow-xl backdrop-blur-md">
                                 <div className="relative p-1">
                                   <AutoTextarea
                                     className="min-h-[100px] w-full border-0 bg-transparent py-4 pl-4 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -5182,6 +5182,7 @@ FEEDBACK: [your explanation]`
                                   </p>
                                 </div>
                               </div>
+                              )}
                             </div>
                           </div>
                         </div>
