@@ -26,7 +26,6 @@ import {
   type ScheduleItem,
 } from '@/components/course/PreferenceEnrollmentDialog'
 import {
-  BookOpen,
   Clock,
   ChevronRight,
   Play,
@@ -228,9 +227,7 @@ function CoursePageInner() {
   )
 
   const completed = myCourses.filter(c => c.progress?.isCompleted)
-  const favorites = courses.filter(
-    c => favoriteIds.includes(c.id) && !myCourses.some(mc => mc.id === c.id)
-  )
+  const favorites = courses.filter(c => favoriteIds.includes(c.id))
 
   const [detailCourse, setDetailCourse] = useState<Course | null>(null)
   const [enteringClass, setEnteringClass] = useState<string | null>(null)
@@ -695,10 +692,6 @@ function CourseCard({
 
       <CardContent className="flex-1 space-y-4">
         <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-          <div className="flex items-center gap-1">
-            <BookOpen className="h-4 w-4" />
-            <span>{course._count.modules} modules</span>
-          </div>
           <div className="flex items-center gap-1">
             <Target className="h-4 w-4" />
             <span>{course._count.lessons} lessons</span>
