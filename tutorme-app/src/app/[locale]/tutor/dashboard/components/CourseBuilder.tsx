@@ -5603,9 +5603,9 @@ FEEDBACK: [your explanation]`
                           className="flex h-full w-full flex-col"
                         >
                           {/* Main Builder Tabs — nested pill design */}
-                          <div className="mb-px flex w-full items-center rounded-full bg-gray-100 p-1 shadow-sm">
+                          <div className="mb-px flex w-full items-center rounded-full bg-gray-100 p-px shadow-sm">
                             {/* Left: current task name */}
-                            <div className="flex min-w-0 flex-1 items-center gap-2 px-3 py-1 text-sm font-medium text-gray-500">
+                            <div className="flex min-w-0 flex-1 items-center gap-2 px-px py-px text-sm font-medium text-gray-500">
                               <ListTodo className="h-4 w-4 shrink-0 text-blue-500" />
                               <span className="truncate">{taskBuilder.title || ''}</span>
                             </div>
@@ -5614,20 +5614,20 @@ FEEDBACK: [your explanation]`
                             <TabsList className="flex shrink-0 gap-0 rounded-full bg-white p-0.5 shadow-sm">
                               <TabsTrigger
                                 value="task"
-                                className="w-52 rounded-full py-2 text-sm font-medium transition-all data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-500 data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white"
+                                className="w-52 rounded-full py-px text-sm font-medium transition-all data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-500 data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white"
                               >
                                 Task Builder
                               </TabsTrigger>
                               <TabsTrigger
                                 value="assessment"
-                                className="w-52 rounded-full py-2 text-sm font-medium transition-all data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-500 data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white"
+                                className="w-52 rounded-full py-px text-sm font-medium transition-all data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-500 data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white"
                               >
                                 Assessment Builder
                               </TabsTrigger>
                             </TabsList>
 
                             {/* Right: current assessment name */}
-                            <div className="flex min-w-0 flex-1 items-center justify-end gap-2 px-3 py-1 text-sm font-medium text-gray-500">
+                            <div className="flex min-w-0 flex-1 items-center justify-end gap-2 px-px py-px text-sm font-medium text-gray-500">
                               <span className="truncate">{assessmentBuilder.title || ''}</span>
                               <FileQuestion className="h-4 w-4 shrink-0 text-indigo-500" />
                             </div>
@@ -5638,9 +5638,9 @@ FEEDBACK: [your explanation]`
                             {/* Task Builder Tab */}
                             <TabsContent
                               value="task"
-                              className="flex h-full flex-col space-y-1 overflow-hidden data-[state=inactive]:hidden"
+                              className="flex h-full flex-col space-y-px overflow-hidden data-[state=inactive]:hidden"
                             >
-                              <div className="flex flex-1 gap-4 overflow-hidden">
+                              <div className="flex flex-1 gap-px overflow-hidden">
                                 {/* Main content with tabs */}
                                 <div className="flex flex-1 flex-col overflow-hidden">
                                   <Tabs
@@ -5666,7 +5666,7 @@ FEEDBACK: [your explanation]`
                                     </TabsList>
                                     <TabsContent
                                       value="content"
-                                      className="mt-0.5 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                                      className="mt-px flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
                                         <AutoTextarea
@@ -5763,7 +5763,7 @@ FEEDBACK: [your explanation]`
                                           taskSourceDocument &&
                                           taskSourceDocument.mimeType !== 'application/pdf' &&
                                           taskSourceDocument.mimeType.startsWith('image/') && (
-                                            <div className="shrink-0 border-t p-2">
+                                            <div className="shrink-0 border-t p-px">
                                               {/* eslint-disable-next-line @next/next/no-img-element */}
                                               <img
                                                 src={taskSourceDocument.fileUrl}
@@ -5776,7 +5776,7 @@ FEEDBACK: [your explanation]`
                                           taskSourceDocument &&
                                           taskSourceDocument.mimeType !== 'application/pdf' &&
                                           !taskSourceDocument.mimeType.startsWith('image/') && (
-                                            <div className="flex shrink-0 items-center gap-2 border-t bg-gray-50 p-2">
+                                            <div className="flex shrink-0 items-center gap-px border-t bg-gray-50 p-px">
                                               <FileText className="h-4 w-4 text-blue-600" />
                                               <a
                                                 href={taskSourceDocument.fileUrl}
@@ -5798,7 +5798,7 @@ FEEDBACK: [your explanation]`
                                       className="mt-0.5 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
-                                        <div className="flex-1 space-y-1 overflow-y-auto p-1">
+                                        <div className="flex-1 space-y-px overflow-y-auto p-px">
                                           {activeTaskPciMessages.length === 0 && (
                                             <p className="text-muted-foreground text-xs">
                                               Start a PCI chat to build instructions with the
@@ -5811,7 +5811,7 @@ FEEDBACK: [your explanation]`
                                               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                             >
                                               <div
-                                                className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                                                className={`max-w-[80%] rounded-lg px-px py-px text-sm ${
                                                   msg.role === 'user'
                                                     ? 'bg-blue-50 text-gray-900'
                                                     : 'bg-gray-100 text-gray-800'
@@ -5825,7 +5825,7 @@ FEEDBACK: [your explanation]`
                                           ))}
                                           {taskPciLoading && (
                                             <div className="flex justify-start">
-                                              <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
+                                              <div className="flex items-center gap-px rounded-lg bg-gray-100 px-px py-px text-sm">
                                                 <Loader2 className="h-4 w-4 animate-spin" />
                                                 <span className="text-xs text-gray-600">
                                                   Thinking...
@@ -5836,11 +5836,11 @@ FEEDBACK: [your explanation]`
                                         </div>
                                         <div className="border-t p-px">
                                           {taskPciErrorHint && (
-                                            <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
+                                            <div className="mb-px rounded-md border border-rose-200 bg-rose-50 px-px py-px text-xs text-rose-700">
                                               PCI assistant error: {taskPciErrorHint}
                                             </div>
                                           )}
-                                          <div className="relative flex items-end gap-2">
+                                          <div className="relative flex items-end gap-px">
                                             <AutoTextarea
                                               placeholder="Ask the PCI assistant..."
                                               className="min-h-[44px] w-full pr-11"
@@ -5887,7 +5887,7 @@ FEEDBACK: [your explanation]`
                                     </TabsContent>
                                   </Tabs>
                                   {/* Buttons row with Test and Save */}
-                                  <div className="mt-3 flex gap-2">
+                                  <div className="mt-px flex gap-px">
                                     <Button
                                       variant="outline"
                                       size="sm"
@@ -5923,9 +5923,9 @@ FEEDBACK: [your explanation]`
                             {/* Assessment Builder Tab */}
                             <TabsContent
                               value="assessment"
-                              className="flex h-full flex-col space-y-4 overflow-hidden data-[state=inactive]:hidden"
+                              className="flex h-full flex-col space-y-px overflow-hidden data-[state=inactive]:hidden"
                             >
-                              <div className="flex flex-1 gap-4 overflow-hidden">
+                              <div className="flex flex-1 gap-px overflow-hidden">
                                 {/* Main content with tabs */}
                                 <div className="flex flex-1 flex-col overflow-hidden">
                                   <Tabs
@@ -5935,7 +5935,7 @@ FEEDBACK: [your explanation]`
                                     }}
                                     className="flex h-full w-full flex-col"
                                   >
-                                    <TabsList className="mb-1 grid h-8 w-full grid-cols-2 rounded-full border border-gray-200 bg-white p-px shadow-sm">
+                                    <TabsList className="mb-px grid h-8 w-full grid-cols-2 rounded-full border border-gray-200 bg-white p-px shadow-sm">
                                       <TabsTrigger
                                         value="content"
                                         className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
@@ -5951,7 +5951,7 @@ FEEDBACK: [your explanation]`
                                     </TabsList>
                                     <TabsContent
                                       value="content"
-                                      className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                                      className="mt-px flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
                                         {assessmentSourceDocument?.mimeType ===
@@ -6041,7 +6041,7 @@ FEEDBACK: [your explanation]`
                                               assessmentSourceDocument.mimeType.startsWith(
                                                 'image/'
                                               ) && (
-                                                <div className="shrink-0 border-t p-2">
+                                                <div className="shrink-0 border-t p-px">
                                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                                   <img
                                                     src={assessmentSourceDocument.fileUrl}
@@ -6056,7 +6056,7 @@ FEEDBACK: [your explanation]`
                                               !assessmentSourceDocument.mimeType.startsWith(
                                                 'image/'
                                               ) && (
-                                                <div className="flex shrink-0 items-center gap-2 border-t bg-gray-50 p-2">
+                                                <div className="flex shrink-0 items-center gap-px border-t bg-gray-50 p-px">
                                                   <FileText className="h-4 w-4 text-blue-600" />
                                                   <a
                                                     href={assessmentSourceDocument.fileUrl}
@@ -6080,7 +6080,7 @@ FEEDBACK: [your explanation]`
                                       className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
-                                        <div className="flex-1 space-y-3 overflow-y-auto p-3">
+                                        <div className="flex-1 space-y-px overflow-y-auto p-px">
                                           {(
                                             assessmentPciMessagesMap[loadedAssessmentId || ''] || []
                                           ).length === 0 && (
@@ -6097,7 +6097,7 @@ FEEDBACK: [your explanation]`
                                               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                             >
                                               <div
-                                                className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                                                className={`max-w-[80%] rounded-lg px-px py-px text-sm ${
                                                   msg.role === 'user'
                                                     ? 'bg-blue-50 text-gray-900'
                                                     : 'bg-gray-100 text-gray-800'
@@ -6112,7 +6112,7 @@ FEEDBACK: [your explanation]`
                                           {(assessmentPciLoadingMap[loadedAssessmentId || ''] ||
                                             false) && (
                                             <div className="flex justify-start">
-                                              <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
+                                              <div className="flex items-center gap-px rounded-lg bg-gray-100 px-px py-px text-sm">
                                                 <Loader2 className="h-4 w-4 animate-spin" />
                                                 <span className="text-xs text-gray-600">
                                                   Thinking...
@@ -6121,17 +6121,17 @@ FEEDBACK: [your explanation]`
                                             </div>
                                           )}
                                         </div>
-                                        <div className="border-t p-2">
+                                        <div className="border-t p-px">
                                           {(assessmentPciErrorHintMap[loadedAssessmentId || ''] ||
                                             '') && (
-                                            <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
+                                            <div className="mb-px rounded-md border border-rose-200 bg-rose-50 px-px py-px text-xs text-rose-700">
                                               PCI assistant error:{' '}
                                               {assessmentPciErrorHintMap[
                                                 loadedAssessmentId || ''
                                               ] || ''}
                                             </div>
                                           )}
-                                          <div className="relative flex items-end gap-2">
+                                          <div className="relative flex items-end gap-px">
                                             <AutoTextarea
                                               placeholder="Ask the PCI assistant..."
                                               className="min-h-[44px] w-full pr-11"
@@ -6181,7 +6181,7 @@ FEEDBACK: [your explanation]`
                                     </TabsContent>
                                   </Tabs>
                                   {/* Buttons row with Test, Generate DMI, and Version History */}
-                                  <div className="mt-3 flex gap-2">
+                                  <div className="mt-px flex gap-px">
                                     <Button
                                       variant="outline"
                                       size="sm"
