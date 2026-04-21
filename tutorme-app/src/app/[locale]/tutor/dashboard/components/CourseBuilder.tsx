@@ -3841,9 +3841,7 @@ FEEDBACK: [your explanation]`
                     if (mainTab === 'live') {
                       e.preventDefault()
                       e.stopPropagation()
-                      if (!isSessionActive) {
-                        setComingSoonDialog(true)
-                      }
+                      setComingSoonDialog(true)
                     }
                   }}
                 >
@@ -3886,16 +3884,8 @@ FEEDBACK: [your explanation]`
                   if (mainTab === 'builder') {
                     e.preventDefault()
                     e.stopPropagation()
-                    if (isSessionActive) {
-                      setAlertDialog({
-                        open: true,
-                        title: 'Action Unavailable',
-                        message:
-                          'Cannot toggle Live/Draft mode while a class is actively in session. Please end the session first.',
-                      })
-                      return
-                    }
 
+                    // Always allow toggling for now since Live feature is "Coming Soon"
                     if (onSaveModeChange) {
                       onSaveModeChange(saveMode === 'live' ? 'draft' : 'live')
                     } else {
