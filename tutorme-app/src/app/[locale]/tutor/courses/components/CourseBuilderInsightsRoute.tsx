@@ -282,11 +282,11 @@ function CourseBuilderInsightsRouteInner({
             Directory
           </button>
           {onSaveModeChange && activeMainTab === 'builder' && (
-            <div className="flex items-center rounded-lg border p-0.5">
+            <div className="flex items-center rounded-md bg-muted/40 p-px">
               <button
                 type="button"
                 className={cn(
-                  'rounded-md px-3 py-1 text-xs font-medium transition-colors',
+                  'rounded-sm px-2 py-0.5 text-xs font-medium transition-colors',
                   saveMode === 'live'
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground'
@@ -298,7 +298,7 @@ function CourseBuilderInsightsRouteInner({
               <button
                 type="button"
                 className={cn(
-                  'rounded-md px-3 py-1 text-xs font-medium transition-colors',
+                  'rounded-sm px-2 py-0.5 text-xs font-medium transition-colors',
                   saveMode === 'draft'
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground'
