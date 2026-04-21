@@ -3887,29 +3887,25 @@ FEEDBACK: [your explanation]`
                                     <div className="group">
                                       <div
                                         className={cn(
-                                          'flex w-full cursor-pointer flex-wrap items-center gap-1.5 border-t-4 border-t-cyan-600 bg-blue-50/50 px-2 py-1 transition-colors hover:bg-blue-50'
+                                          'flex w-full cursor-pointer flex-nowrap items-center gap-1.5 border-t-4 border-t-cyan-600 bg-blue-50/50 px-2 py-1 transition-colors hover:bg-blue-50'
                                         )}
                                         onClick={() => toggleCourseBuilderNode(node.id)}
                                       >
-                                        {expandedCourseBuilderNodes.has(node.id) ? (
-                                          <ChevronDown className="h-3 w-3 text-blue-600" />
-                                        ) : (
-                                          <ChevronRight className="h-3 w-3 text-blue-600" />
-                                        )}
-                                        <Layers className="h-3 w-3 text-blue-600" />
+                                        <div className="flex shrink-0 items-center">
+                                          {expandedCourseBuilderNodes.has(node.id) ? (
+                                            <ChevronDown className="h-3 w-3 text-blue-600" />
+                                          ) : (
+                                            <ChevronRight className="h-3 w-3 text-blue-600" />
+                                          )}
+                                        </div>
+                                        <Layers className="h-3 w-3 shrink-0 text-blue-600" />
                                         <span
-                                          className="group/tooltip relative max-w-[180px] truncate text-sm font-medium"
+                                          className="min-w-0 flex-1 truncate text-sm font-medium"
                                           title={node.title}
                                         >
                                           {node.title}
-                                          {/* Custom Tooltip */}
-                                          <span className="absolute -top-8 left-0 z-50 hidden whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white group-hover/tooltip:block">
-                                            {node.title}
-                                            <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
-                                          </span>
                                         </span>
-                                        <span className="text-blue-400">:</span>
-                                        <div className="flex-1" />
+                                        <span className="shrink-0 text-blue-400">:</span>
                                         <Badge
                                           variant="secondary"
                                           className="h-4 shrink-0 text-[10px]"
@@ -3917,17 +3913,61 @@ FEEDBACK: [your explanation]`
                                           {totalItems}
                                         </Badge>
 
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                                          onClick={(e: any) => {
-                                            e.stopPropagation()
-                                            deleteCourseBuilderNode(node.id)
-                                          }}
+                                        <div
+                                          className="shrink-0"
+                                          onClick={e => e.stopPropagation()}
                                         >
-                                          <Trash2 className="h-3 w-3 text-red-500" />
-                                        </Button>
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                                              >
+                                                <MoreVertical className="h-4 w-4 text-slate-500" />
+                                              </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="z-[100]">
+                                              <DropdownMenuItem
+                                                onSelect={() => {
+                                                  const newName = window.prompt(
+                                                    'Rename Lesson',
+                                                    node.title
+                                                  )
+                                                  if (newName && newName.trim()) {
+                                                    setCourseBuilderNodes(prev =>
+                                                      prev.map(n => {
+                                                        if (n.id === node.id) {
+                                                          const lessons = [...n.lessons]
+                                                          if (lessons.length > 0) {
+                                                            lessons[0] = {
+                                                              ...lessons[0],
+                                                              title: newName.trim(),
+                                                            }
+                                                          }
+                                                          return {
+                                                            ...n,
+                                                            title: newName.trim(),
+                                                            lessons,
+                                                          }
+                                                        }
+                                                        return n
+                                                      })
+                                                    )
+                                                  }
+                                                }}
+                                              >
+                                                Rename
+                                              </DropdownMenuItem>
+                                              <DropdownMenuItem
+                                                className="text-red-600 focus:bg-red-50 focus:text-red-600"
+                                                onSelect={() => deleteCourseBuilderNode(node.id)}
+                                              >
+                                                Delete
+                                              </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
+                                        </div>
                                       </div>
 
                                       {expandedCourseBuilderNodes.has(node.id) && (

@@ -24,6 +24,7 @@ import {
   GraduationCap,
   LogOut,
   User,
+  FileText,
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -43,6 +44,7 @@ const navItems: NavItem[] = [
   { href: '/tutor/insights', label: 'Insights', icon: Lightbulb },
 
   { href: '/tutor/groups', label: 'Groups', icon: Users },
+  { href: '/tutor/documents', label: 'PDF Viewer', icon: FileText },
   { href: '/tutor/messages', label: 'Messages', icon: MessageSquare },
   { href: '/tutor/reports', label: 'Analytics', icon: BarChart3 },
   { href: '/tutor/training', label: 'Training', icon: GraduationCap },
