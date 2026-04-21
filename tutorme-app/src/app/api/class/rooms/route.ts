@@ -4,7 +4,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { eq, and, gte, desc, SQL } from 'drizzle-orm'
+import { eq, and, gte, desc, asc, SQL, inArray } from 'drizzle-orm'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
 import { CreateRoomSchema, validateRequest } from '@/lib/validation/schemas'
 import { dailyProvider } from '@/lib/video/daily-provider'
@@ -139,10 +139,12 @@ export const GET = withAuth(async (req, session) => {
   const subject = searchParams.get('subject')
   const tutorId = searchParams.get('tutorId')
   const courseId = searchParams.get('courseId')
+  const includeScheduled =
+    searchParams.get('includeScheduled') === '1' || searchParams.get('includeScheduled') === 'true'
 
   // Build filter
   const filtersOfRequest: SQL[] = [
-    eq(liveSession.status, 'active'),
+    includeScheduled ? inArray(liveSession.status, ['active', 'scheduled']) : eq(liveSession.status, 'active'),
     gte(liveSession.scheduledAt, new Date(Date.now() - 4 * 60 * 60 * 1000)),
   ]
 
@@ -163,7 +165,7 @@ export const GET = withAuth(async (req, session) => {
     .innerJoin(user, eq(user.userId, liveSession.tutorId))
     .innerJoin(profile, eq(profile.userId, user.userId))
     .where(filtersOfRequest.length > 0 ? and(...filtersOfRequest) : undefined)
-    .orderBy(desc(liveSession.scheduledAt))
+    .orderBy(includeScheduled ? asc(liveSession.scheduledAt) : desc(liveSession.scheduledAt))
 
   // Filter out expired rooms and format
   const activeSessions = (
@@ -171,11 +173,14 @@ export const GET = withAuth(async (req, session) => {
       sessions.map(async row => {
         const s = row.session
         if (!s.roomId) return null
-        const isActive = await dailyProvider.isRoomActive(s.roomId)
-        if (!isActive) return null
+        if (s.status === 'active') {
+          const isActive = await dailyProvider.isRoomActive(s.roomId)
+          if (!isActive) return null
+        }
 
         return {
           ...s,
+          id: s.sessionId,
           tutor: {
             profile: {
               name: row.tutorName,

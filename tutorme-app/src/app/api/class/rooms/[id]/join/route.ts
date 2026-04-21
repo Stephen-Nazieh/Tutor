@@ -30,7 +30,18 @@ export const POST = withCsrf(
       }
 
       if (classSessionRow.status !== 'active') {
-        throw new ValidationError('Class session is not active')
+        if (classSessionRow.status === 'scheduled') {
+          const scheduledAtMs = new Date(classSessionRow.scheduledAt).getTime()
+          const enterOpensAtMs = scheduledAtMs - 20 * 60 * 1000
+          const nowMs = Date.now()
+          if (nowMs < enterOpensAtMs) {
+            throw new ValidationError(
+              `This session starts at ${new Date(scheduledAtMs).toLocaleString()}. You can enter 20 minutes before. Please come back at ${new Date(enterOpensAtMs).toLocaleString()}.`
+            )
+          }
+        } else {
+          throw new ValidationError('Class session is not active')
+        }
       }
 
       const participants = await drizzleDb

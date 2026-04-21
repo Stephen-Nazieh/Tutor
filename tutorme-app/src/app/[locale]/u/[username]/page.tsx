@@ -524,6 +524,18 @@ export default function PublicTutorPage() {
   const [detailsCourse, setDetailsCourse] = useState<PublicTutorResponse['courses'][number] | null>(
     null
   )
+  const [classroomPickerCourse, setClassroomPickerCourse] = useState<
+    PublicTutorResponse['courses'][number] | null
+  >(null)
+  const [classroomPickerSessions, setClassroomPickerSessions] = useState<
+    Array<{
+      id?: string
+      sessionId?: string
+      courseId?: string | null
+      status?: string
+      scheduledAt?: string | Date | null
+    }>
+  >([])
 
   useEffect(() => {
     loadTutorData()
@@ -767,34 +779,52 @@ export default function PublicTutorPage() {
         return
       }
 
-      // 2) Join latest active session for this course
-      const roomsRes = await fetch('/api/class/rooms', { credentials: 'include' })
+      const roomsRes = await fetch(
+        `/api/class/rooms?courseId=${encodeURIComponent(course.id)}&includeScheduled=1`,
+        { credentials: 'include' }
+      )
       const roomsData = await roomsRes.json().catch(() => ({}))
       const sessions = (roomsData?.sessions ?? []) as Array<{
         id?: string
-        courseId?: string
-        scheduledAt?: string
+        sessionId?: string
+        courseId?: string | null
+        status?: string
+        scheduledAt?: string | Date | null
       }>
 
-      const matching = sessions
-        .filter(s => s.courseId === course.id && typeof s.id === 'string')
-        .sort(
-          (a, b) => new Date(b.scheduledAt ?? 0).getTime() - new Date(a.scheduledAt ?? 0).getTime()
-        )
+      const matching = sessions.filter(s => s.courseId === course.id && (s.id || s.sessionId))
 
       if (matching.length === 0) {
-        toast.info('Enrolled! A live session will appear when it starts.')
-        router.push(`/${locale}/student/courses?tab=mine`)
+        toast.info('No upcoming sessions are scheduled yet.')
         return
       }
 
-      router.push(`/student/feedback?sessionId=${encodeURIComponent(matching[0].id as string)}`)
+      setClassroomPickerCourse(course)
+      setClassroomPickerSessions(matching)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Unable to join classroom')
     } finally {
       setStudentJoiningCourseId(null)
     }
   }
+
+  const sortedClassroomPickerSessions = useMemo(() => {
+    const now = Date.now()
+    const sessions = [...classroomPickerSessions]
+    sessions.sort((a, b) => {
+      const aStart = new Date(a.scheduledAt ?? 0).getTime()
+      const bStart = new Date(b.scheduledAt ?? 0).getTime()
+      const aOngoing = a.status === 'active' && aStart <= now
+      const bOngoing = b.status === 'active' && bStart <= now
+      if (aOngoing !== bOngoing) return aOngoing ? -1 : 1
+      const aUpcoming = aStart >= now
+      const bUpcoming = bStart >= now
+      if (aUpcoming !== bUpcoming) return aUpcoming ? -1 : 1
+      if (aUpcoming && bUpcoming) return aStart - bStart
+      return bStart - aStart
+    })
+    return sessions
+  }, [classroomPickerSessions])
 
   const handleEnrollClick = (course: PublicTutorResponse['courses'][number]) => {
     if (!session?.user) {
@@ -1385,6 +1415,72 @@ export default function PublicTutorPage() {
           </div>
           <div className="flex justify-end">
             <Button onClick={() => setScheduleCourse(null)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!classroomPickerCourse}
+        onOpenChange={open => {
+          if (!open) {
+            setClassroomPickerCourse(null)
+            setClassroomPickerSessions([])
+          }
+        }}
+      >
+        <DialogContent className="h-[80vh] w-[80vw] max-w-none overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Choose a session</DialogTitle>
+            <DialogDescription>{classroomPickerCourse?.name}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            {sortedClassroomPickerSessions.map(s => {
+              const id = (s.id || s.sessionId) as string
+              const scheduledAtMs = new Date(s.scheduledAt ?? 0).getTime()
+              const enterOpensAtMs = scheduledAtMs - 20 * 60 * 1000
+              const nowMs = Date.now()
+              const canEnter = nowMs >= enterOpensAtMs
+              return (
+                <div
+                  key={id}
+                  className="flex flex-col gap-2 rounded-lg border border-slate-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="text-sm font-semibold text-slate-900">
+                        {new Date(scheduledAtMs).toLocaleString()}
+                      </div>
+                      <Badge variant={s.status === 'active' ? 'default' : 'secondary'}>
+                        {s.status === 'active' ? 'Live' : 'Scheduled'}
+                      </Badge>
+                    </div>
+                    {!canEnter && (
+                      <div className="mt-1 text-xs text-slate-500">
+                        You can enter 20 minutes before start. Please come back at{' '}
+                        {new Date(enterOpensAtMs).toLocaleTimeString()}.
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      if (!canEnter) {
+                        toast.info(
+                          `Please wait until ${new Date(enterOpensAtMs).toLocaleTimeString()} to enter.`
+                        )
+                        return
+                      }
+                      setClassroomPickerCourse(null)
+                      setClassroomPickerSessions([])
+                      router.push(`/student/feedback?sessionId=${encodeURIComponent(id)}`)
+                    }}
+                    disabled={!canEnter}
+                  >
+                    Enter
+                  </Button>
+                </div>
+              )
+            })}
           </div>
         </DialogContent>
       </Dialog>
