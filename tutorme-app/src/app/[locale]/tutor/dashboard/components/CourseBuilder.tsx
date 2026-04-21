@@ -3813,29 +3813,19 @@ FEEDBACK: [your explanation]`
               <TabsTrigger
                 value="live"
                 className={cn(
-                  'gap-0 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm',
+                  'group gap-0 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm',
                   !isSessionActive && 'cursor-default'
                 )}
-                onPointerDown={e => {
-                  const target = e.target as HTMLElement
-                  if (!isSessionActive || !target.closest('.live-pipe-zone')) {
-                    e.preventDefault()
-                  }
-                }}
               >
                 <div
-                  className="live-pipe-zone flex cursor-pointer items-center gap-2 rounded-full border-l border-r border-blue-200/50 px-2 transition-colors hover:bg-blue-100/50"
-                  onPointerDown={e => {
-                    if (!isSessionActive) {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      setComingSoonDialog(true)
-                    }
-                  }}
+                  className="flex cursor-pointer items-center gap-2 rounded-full border-l border-r border-blue-200/50 px-2 transition-colors group-hover:bg-blue-100/50"
                   onClick={e => {
+                    e.stopPropagation()
                     if (!isSessionActive) {
                       e.preventDefault()
-                      e.stopPropagation()
+                      setComingSoonDialog(true)
+                    } else {
+                      setMainTab('live')
                     }
                   }}
                 >
@@ -3860,21 +3850,15 @@ FEEDBACK: [your explanation]`
             </TabsTrigger>
             <TabsTrigger
               value="builder"
-              className="gap-0 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
-              onPointerDown={e => {
-                const target = e.target as HTMLElement
-                if (!target.closest('.build-pipe-zone')) {
-                  e.preventDefault()
-                }
-              }}
+              className="group gap-0 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
             >
               <div
-                className="build-pipe-zone flex cursor-pointer items-center gap-2 rounded-full border-l border-r border-blue-200/50 px-2 transition-colors hover:bg-blue-100/50"
+                className="flex cursor-pointer items-center gap-2 rounded-full border-l border-r border-blue-200/50 px-2 transition-colors group-hover:bg-blue-100/50"
                 onClick={e => {
                   e.stopPropagation()
-                  e.preventDefault()
                   if (mainTab === 'builder') {
                     if (isSessionActive) {
+                      e.preventDefault()
                       toast.error('Cannot toggle Live/Draft while class is in session')
                       return
                     }
@@ -3884,6 +3868,8 @@ FEEDBACK: [your explanation]`
                     } else {
                       setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
                     }
+                  } else {
+                    setMainTab('builder')
                   }
                 }}
               >
