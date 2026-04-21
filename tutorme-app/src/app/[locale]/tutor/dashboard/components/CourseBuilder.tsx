@@ -285,6 +285,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       onLeftPanelHiddenChange,
       hideDirectorySearch = false,
       directoryMenusAlwaysVisible = false,
+      saveMode,
+      onSaveModeChange,
     },
     ref
   ) {
@@ -3803,7 +3805,14 @@ FEEDBACK: [your explanation]`
                 value="live"
                 className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
               >
-                <Radio className="h-4 w-4" />
+                <Radio
+                  className={cn(
+                    'h-4 w-4 transition-all duration-300',
+                    (saveMode !== undefined ? saveMode === 'live' : coursePropsModal.isLive)
+                      ? 'animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
+                      : ''
+                  )}
+                />
                 Live
               </TabsTrigger>
             )}
@@ -3819,14 +3828,18 @@ FEEDBACK: [your explanation]`
               className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
               onClick={e => {
                 if (mainTab === 'builder') {
-                  setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
+                  if (onSaveModeChange) {
+                    onSaveModeChange(saveMode === 'live' ? 'draft' : 'live')
+                  } else {
+                    setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
+                  }
                 }
               }}
             >
               <Radio
                 className={cn(
                   'h-4 w-4 transition-all duration-300',
-                  coursePropsModal.isLive
+                  (saveMode !== undefined ? saveMode === 'live' : coursePropsModal.isLive)
                     ? 'animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
                     : 'text-gray-400'
                 )}
@@ -5616,16 +5629,16 @@ FEEDBACK: [your explanation]`
                             </div>
 
                             {/* Center: nested pill tabs */}
-                            <TabsList className="flex shrink-0 gap-0 rounded-full bg-white p-0.5 shadow-sm">
+                            <TabsList className="grid h-8 w-96 shrink-0 grid-cols-2 rounded-full border border-gray-200 bg-white p-px shadow-sm">
                               <TabsTrigger
                                 value="task"
-                                className="w-52 rounded-full py-px text-sm font-medium transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=inactive]:text-gray-500"
+                                className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
                               >
                                 Task Builder
                               </TabsTrigger>
                               <TabsTrigger
                                 value="assessment"
-                                className="w-52 rounded-full py-px text-sm font-medium transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=inactive]:text-gray-500"
+                                className="w-full rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
                               >
                                 Assessment Builder
                               </TabsTrigger>
@@ -6533,7 +6546,7 @@ FEEDBACK: [your explanation]`
                   value={coursePropsModal.name}
                   onChange={e => setCoursePropsModal(prev => ({ ...prev, name: e.target.value }))}
                   className="col-span-3"
-                  placeholder="e.g. Introduction to Physics"
+                  placeholder="e.g. SAT Math Prep"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">

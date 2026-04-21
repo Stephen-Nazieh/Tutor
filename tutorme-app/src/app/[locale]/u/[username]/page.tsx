@@ -790,7 +790,7 @@ export default function PublicTutorPage() {
         toast.error('Classroom created but no session ID returned')
         return
       }
-      router.push(`/tutor/insights?sessionId=${sessionId}&courseId=${course.id}`)
+      router.push(`/${locale}/tutor/insights?sessionId=${sessionId}&courseId=${course.id}`)
     } catch {
       toast.error('Unable to launch classroom')
     } finally {
@@ -1257,86 +1257,95 @@ export default function PublicTutorPage() {
                       </div>
                       <div
                         className={cn(
-                          'flex flex-wrap items-center gap-2 border-t border-slate-100 bg-slate-50/80 px-4 py-3',
+                          'flex flex-col gap-3 border-t border-slate-100 bg-slate-50/80 px-4 py-3',
                           isList &&
-                            'w-full min-w-[200px] max-w-full flex-col border-l border-t-0 sm:w-52',
-                          isCompact && 'px-3 py-2'
+                            'w-full min-w-[200px] max-w-full justify-between border-l border-t-0 sm:w-52',
+                          isCompact && 'gap-2 px-3 py-2'
                         )}
                       >
-                        <StarRating rating={course.rating ?? null} count={course.reviewCount} />
-                        {course.isFree ? (
-                          <span className="text-sm font-bold text-emerald-600">Free</span>
-                        ) : course.price != null && course.price > 0 ? (
-                          <span className="text-sm font-bold text-slate-900">
-                            ${course.price}{' '}
-                            <span className="text-[10px] font-normal text-slate-500">
-                              / 1h session
+                        <div className="flex w-full flex-wrap items-center justify-between gap-2">
+                          <StarRating rating={course.rating ?? null} count={course.reviewCount} />
+                          {course.isFree ? (
+                            <span className="text-sm font-bold text-emerald-600">Free</span>
+                          ) : course.price != null && course.price > 0 ? (
+                            <span className="text-sm font-bold text-slate-900">
+                              ${course.price}{' '}
+                              <span className="text-[10px] font-normal text-slate-500">
+                                / 1h session
+                              </span>
                             </span>
-                          </span>
-                        ) : (
-                          <span className="text-sm font-bold text-emerald-600">Free</span>
-                        )}
-                        <div className={cn('flex w-full flex-wrap gap-2', isList && 'justify-end')}>
-                          {isTutorOwner ? (
-                            <Button
-                              size="sm"
-                              variant="default"
-                              className={cn(isCompact && 'h-7 text-xs')}
-                              onClick={() => handleEnterClassroom(course)}
-                              disabled={launchingCourseId === course.id}
-                            >
-                              <FileText className="mr-1 h-3 w-3" />
-                              {launchingCourseId === course.id ? 'Launching…' : 'Classroom'}
-                            </Button>
                           ) : (
-                            <>
-                              {session?.user?.role === 'STUDENT' &&
-                                course.enrollmentStatus !== 'ended' && (
-                                  <>
-                                    {enrolledCourseIds.has(course.id) ? (
-                                      <Button
-                                        size="sm"
-                                        variant="secondary"
-                                        className={cn(isCompact && 'h-7 text-xs')}
-                                        disabled
-                                      >
-                                        <CheckCircle className="mr-1 h-3 w-3" />
-                                        Enrolled
-                                      </Button>
-                                    ) : (
-                                      <Button
-                                        size="sm"
-                                        variant="default"
-                                        className={cn(isCompact && 'h-7 text-xs')}
-                                        onClick={() => handleEnrollClick(course)}
-                                        disabled={enrollingCourseId === course.id}
-                                      >
-                                        {enrollingCourseId === course.id ? (
-                                          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                                        ) : (
-                                          <UserPlus className="mr-1 h-3 w-3" />
-                                        )}
-                                        {enrollingCourseId === course.id ? 'Enrolling…' : 'Enroll'}
-                                      </Button>
-                                    )}
-                                  </>
-                                )}
+                            <span className="text-sm font-bold text-emerald-600">Free</span>
+                          )}
+                        </div>
+
+                        <div className={cn('mt-auto flex w-full flex-col gap-2')}>
+                          <div className={cn('flex w-full gap-2', isList && 'justify-end')}>
+                            {isTutorOwner ? (
                               <Button
                                 size="sm"
                                 variant="default"
-                                className={cn(isCompact && 'h-7 text-xs')}
-                                onClick={() => void handleStudentEnterClassroom(course)}
-                                disabled={studentJoiningCourseId === course.id}
+                                className={cn('flex-1', isCompact && 'h-7 text-xs')}
+                                onClick={() => handleEnterClassroom(course)}
+                                disabled={launchingCourseId === course.id}
                               >
                                 <FileText className="mr-1 h-3 w-3" />
-                                {studentJoiningCourseId === course.id ? 'Enrolling…' : 'Classroom'}
+                                {launchingCourseId === course.id ? 'Launching…' : 'Classroom'}
                               </Button>
-                            </>
-                          )}
+                            ) : (
+                              <>
+                                {session?.user?.role === 'STUDENT' &&
+                                  course.enrollmentStatus !== 'ended' && (
+                                    <>
+                                      {enrolledCourseIds.has(course.id) ? (
+                                        <Button
+                                          size="sm"
+                                          variant="secondary"
+                                          className={cn('flex-1', isCompact && 'h-7 text-xs')}
+                                          disabled
+                                        >
+                                          <CheckCircle className="mr-1 h-3 w-3" />
+                                          Enrolled
+                                        </Button>
+                                      ) : (
+                                        <Button
+                                          size="sm"
+                                          variant="default"
+                                          className={cn('flex-1', isCompact && 'h-7 text-xs')}
+                                          onClick={() => handleEnrollClick(course)}
+                                          disabled={enrollingCourseId === course.id}
+                                        >
+                                          {enrollingCourseId === course.id ? (
+                                            <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                          ) : (
+                                            <UserPlus className="mr-1 h-3 w-3" />
+                                          )}
+                                          {enrollingCourseId === course.id
+                                            ? 'Enrolling…'
+                                            : 'Enroll'}
+                                        </Button>
+                                      )}
+                                    </>
+                                  )}
+                                <Button
+                                  size="sm"
+                                  variant="default"
+                                  className={cn('flex-1', isCompact && 'h-7 text-xs')}
+                                  onClick={() => void handleStudentEnterClassroom(course)}
+                                  disabled={studentJoiningCourseId === course.id}
+                                >
+                                  <FileText className="mr-1 h-3 w-3" />
+                                  {studentJoiningCourseId === course.id
+                                    ? 'Enrolling…'
+                                    : 'Classroom'}
+                                </Button>
+                              </>
+                            )}
+                          </div>
                           <Button
                             size="sm"
                             variant="outline"
-                            className={cn(isCompact && 'h-7 text-xs')}
+                            className={cn('w-full', isCompact && 'h-7 text-xs')}
                             onClick={() => setDetailsCourse(course)}
                           >
                             <FileText className="mr-1 h-3 w-3" />
@@ -1363,26 +1372,32 @@ export default function PublicTutorPage() {
       />
 
       <Dialog open={!!detailsCourse} onOpenChange={open => !open && setDetailsCourse(null)}>
-        <DialogContent className="h-[80vh] w-[80vw] max-w-none overflow-auto">
-          <DialogHeader>
-            <DialogTitle>{detailsCourse?.name}</DialogTitle>
-            <DialogDescription>{detailsCourse?.description}</DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <div className="text-xs font-medium text-slate-500">Category</div>
-                <div className="text-sm text-slate-900">
+        <DialogContent className="flex h-[80vh] w-[80vw] max-w-4xl flex-col overflow-hidden p-0">
+          <div className="border-b bg-slate-50 p-6">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">{detailsCourse?.name}</DialogTitle>
+              <DialogDescription className="mt-2 text-base">
+                {detailsCourse?.description || 'No description provided.'}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="flex-1 overflow-auto bg-white p-6">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="space-y-1 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <div className="text-sm font-medium text-slate-500">Category</div>
+                <div className="text-base font-semibold text-slate-900">
                   {detailsCourse?.categories?.[0] || 'general'}
                 </div>
               </div>
-              <div className="space-y-2">
-                <div className="text-xs font-medium text-slate-500">Sessions</div>
-                <div className="text-sm text-slate-900">{detailsCourse?.lessonCount} lessons</div>
+              <div className="space-y-1 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <div className="text-sm font-medium text-slate-500">Sessions</div>
+                <div className="text-base font-semibold text-slate-900">
+                  {detailsCourse?.lessonCount} lessons
+                </div>
               </div>
-              <div className="space-y-2">
-                <div className="text-xs font-medium text-slate-500">Price</div>
-                <div className="text-sm text-slate-900">
+              <div className="space-y-1 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <div className="text-sm font-medium text-slate-500">Price</div>
+                <div className="text-base font-semibold text-slate-900">
                   {detailsCourse?.isFree
                     ? 'Free'
                     : detailsCourse?.price != null
@@ -1390,15 +1405,21 @@ export default function PublicTutorPage() {
                       : 'Free'}
                 </div>
               </div>
-              <div className="space-y-2">
-                <div className="text-xs font-medium text-slate-500">Schedule</div>
-                <div className="text-sm text-slate-900">
+              <div className="space-y-1 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <div className="text-sm font-medium text-slate-500">Schedule</div>
+                <div className="text-base font-semibold text-slate-900">
                   {detailsCourse?.scheduleSummary?.trim() || 'Schedule to be announced'}
                 </div>
               </div>
             </div>
+            <div className="mt-8">
+              <h3 className="mb-4 text-lg font-semibold text-slate-900">About this course</h3>
+              <p className="whitespace-pre-wrap leading-relaxed text-slate-700">
+                {detailsCourse?.description || 'More details will be available soon.'}
+              </p>
+            </div>
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-end border-t bg-slate-50 p-4">
             <Button onClick={() => setDetailsCourse(null)}>Close</Button>
           </div>
         </DialogContent>
@@ -1489,7 +1510,7 @@ export default function PublicTutorPage() {
                       }
                       setClassroomPickerCourse(null)
                       setClassroomPickerSessions([])
-                      router.push(`/student/feedback?sessionId=${encodeURIComponent(id)}`)
+                      router.push(`/${locale}/student/feedback?sessionId=${encodeURIComponent(id)}`)
                     }}
                     disabled={!canEnter}
                   >

@@ -276,7 +276,6 @@ function CourseBuilderInsightsRouteInner({
             </Link>
           </Button>
           <button
-            type="button"
             onClick={() => setLeftPanelHidden(v => !v)}
             className={cn(
               'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
@@ -289,39 +288,6 @@ function CourseBuilderInsightsRouteInner({
             <LayoutTemplate className="h-3.5 w-3.5" />
             Directory
           </button>
-          {onSaveModeChange && activeMainTab === 'builder' && (
-            <div className="bg-muted/40 flex items-center rounded-md p-px">
-              <button
-                type="button"
-                className={cn(
-                  'rounded-sm px-2 py-0.5 text-xs font-medium transition-colors',
-                  saveMode === 'live'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-                onClick={() => onSaveModeChange('live')}
-              >
-                Live
-              </button>
-              <button
-                type="button"
-                className={cn(
-                  'rounded-sm px-2 py-0.5 text-xs font-medium transition-colors',
-                  saveMode === 'draft'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-                onClick={() => onSaveModeChange('draft')}
-              >
-                Draft
-              </button>
-            </div>
-          )}
-          {activeMainTab === 'test-pci' && saveMode && (
-            <span className="bg-primary text-primary-foreground rounded-md px-3 py-1 text-xs font-medium">
-              {saveMode === 'live' ? 'Live' : 'Draft'}
-            </span>
-          )}
           <div className="flex shrink-0 items-center gap-3">
             {activeMainTab === 'live' && (
               <h1 className="text-foreground flex items-center gap-2 text-lg font-bold tracking-tight">
@@ -549,6 +515,8 @@ function CourseBuilderInsightsRouteInner({
             initialMainTab={tabFromUrl ?? 'builder'}
             leftPanelHidden={leftPanelHidden}
             onLeftPanelHiddenChange={setLeftPanelHidden}
+            saveMode={saveMode}
+            onSaveModeChange={onSaveModeChange}
           />
         )}
       </div>

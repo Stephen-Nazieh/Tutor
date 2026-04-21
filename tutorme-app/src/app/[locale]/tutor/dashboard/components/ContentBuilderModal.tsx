@@ -42,7 +42,7 @@ export function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: Bu
             <Input
               value={data.title}
               onChange={(e: any) => setData({ ...data, title: e.target.value })}
-              placeholder="e.g., Introduction to the Topic"
+              placeholder="e.g., Lesson 1"
             />
           </div>
           <div className="space-y-2">

@@ -39,6 +39,8 @@ function buildPrompt(input: { tutorInstruction: string; references: string; subj
   return `
 You are generating a complete course blueprint for tutors.
 
+CRITICAL INSTRUCTION: DO NOT name the first module or lesson "Introduction". Always use sequential naming like "Lesson 1", "Lesson 2", etc., or "Module 1", "Module 2", etc., followed by the topic if necessary (e.g. "Lesson 1: Basics"). The very first lesson/module MUST NOT be named simply "Introduction".
+
 Tutor instruction:
 ${input.tutorInstruction}
 

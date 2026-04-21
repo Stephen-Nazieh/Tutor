@@ -330,6 +330,8 @@ export interface CourseBuilderProps {
   initialMainTab?: 'live' | 'builder' | 'test-pci'
   leftPanelHidden?: boolean
   onLeftPanelHiddenChange?: (hidden: boolean) => void
+  saveMode?: 'live' | 'draft'
+  onSaveModeChange?: (mode: 'live' | 'draft') => void
 }
 
 export interface CourseBuilderRef {
