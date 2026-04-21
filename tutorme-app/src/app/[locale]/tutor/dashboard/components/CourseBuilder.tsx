@@ -3623,7 +3623,7 @@ FEEDBACK: [your explanation]`
       if (!leftPanelResizing) return
       const onMove = (e: MouseEvent) => {
         const delta = e.clientX - leftResizeStartX.current
-        const newW = Math.max(260, Math.min(560, leftResizeStartW.current + delta))
+        const newW = Math.max(300, Math.min(560, leftResizeStartW.current + delta))
         setLeftPanelWidth(newW)
       }
       const onUp = () => setLeftPanelResizing(false)
@@ -4031,7 +4031,7 @@ FEEDBACK: [your explanation]`
                                                     >
                                                       <div
                                                         className={cn(
-                                                          'group/item mb-1 ml-0 mr-0 flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors',
+                                                          'group/item mb-1 ml-0 mr-0 flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors min-w-0',
                                                           selectedItem?.type === 'task' &&
                                                             selectedItem?.id === task.id
                                                             ? 'border-blue-200 bg-blue-50 ring-1 ring-blue-300'
@@ -4165,7 +4165,10 @@ FEEDBACK: [your explanation]`
                                                             }}
                                                           />
                                                         ) : (
-                                                          <span className="flex-1 truncate text-xs font-semibold text-blue-700">
+                                                          <span
+                                                            className="flex-1 min-w-0 truncate text-xs font-semibold text-blue-700"
+                                                            title={`${idx + 1}. ${task.title}`}
+                                                          >
                                                             {idx + 1}. {task.title}
                                                           </span>
                                                         )}
@@ -4583,7 +4586,7 @@ FEEDBACK: [your explanation]`
                                                   >
                                                     <div
                                                       className={cn(
-                                                        'group/item mb-1 ml-0 mr-0 flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors',
+                                                        'group/item mb-1 ml-0 mr-0 flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors min-w-0',
                                                         selectedItem?.type === 'homework' &&
                                                           selectedItem?.id === hw.id
                                                           ? 'border-indigo-200 bg-indigo-50 ring-1 ring-indigo-300'
@@ -4700,7 +4703,10 @@ FEEDBACK: [your explanation]`
                                                           }}
                                                         />
                                                       ) : (
-                                                        <span className="flex-1 truncate text-xs font-semibold text-indigo-700">
+                                                        <span
+                                                          className="flex-1 min-w-0 truncate text-xs font-semibold text-indigo-700"
+                                                          title={`${idx + 1}. ${hw.title}`}
+                                                        >
                                                           {idx + 1}. {hw.title}
                                                         </span>
                                                       )}
@@ -4833,7 +4839,7 @@ FEEDBACK: [your explanation]`
                                                       >
                                                         <div
                                                           className={cn(
-                                                            'group/item mb-1 ml-0 mr-0 flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors',
+                                                            'group/item mb-1 ml-0 mr-0 flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors min-w-0',
                                                             selectedItem?.type === 'homework' &&
                                                               selectedItem?.id === hw.id
                                                               ? 'border-emerald-200 bg-emerald-50 ring-1 ring-emerald-300'
@@ -4900,7 +4906,10 @@ FEEDBACK: [your explanation]`
                                                               }}
                                                             />
                                                           ) : (
-                                                            <span className="flex-1 truncate text-xs font-semibold text-emerald-700">
+                                                            <span
+                                                              className="flex-1 min-w-0 truncate text-xs font-semibold text-emerald-700"
+                                                              title={`${hwIdx + 1}. ${hw.title}`}
+                                                            >
                                                               {hwIdx + 1}. {hw.title}
                                                             </span>
                                                           )}

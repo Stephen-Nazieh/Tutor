@@ -793,40 +793,14 @@ export default function PublicTutorPage() {
     }
   }
 
-  const handleEnroll = async (courseId: string) => {
-    if (enrollingCourseId) return
-    setEnrollingCourseId(courseId)
-    try {
-      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
-      const csrfData = await csrfRes.json().catch(() => ({}))
-      const csrfToken = csrfData?.token ?? null
-
-      const enrollRes = await fetch(`/api/course/${encodeURIComponent(courseId)}/enroll`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-        },
-        credentials: 'include',
-      })
-
-      const data = await enrollRes.json().catch(() => ({}))
-      if (enrollRes.ok) {
-        toast.success(data?.message || 'Enrolled successfully')
-        setEnrolledCourseIds(prev => new Set(prev).add(courseId))
-        router.push(`/${locale}/student/courses?tab=mine`)
-      } else {
-        if (data?.requiresPayment) {
-          router.push(`/${locale}/courses/${courseId}`)
-        } else {
-          toast.error(data?.error || 'Failed to enroll')
-        }
-      }
-    } catch {
-      toast.error('Failed to enroll')
-    } finally {
-      setEnrollingCourseId(null)
+  const handleEnrollClick = (course: PublicTutorResponse['courses'][number]) => {
+    if (!session?.user) {
+      toast.info('Please log in to enroll')
+      router.push(`/${locale}/login`)
+      return
     }
+    const subject = course.categories?.[0] || 'general'
+    router.push(`/${locale}/student/subjects/${encodeURIComponent(subject)}/courses/${encodeURIComponent(course.id)}`)
   }
 
   return (
@@ -1242,14 +1216,16 @@ export default function PublicTutorPage() {
                         <StarRating rating={course.rating ?? null} count={course.reviewCount} />
                         {course.isFree ? (
                           <span className="text-sm font-bold text-emerald-600">Free</span>
-                        ) : course.price ? (
+                        ) : course.price != null && course.price > 0 ? (
                           <span className="text-sm font-bold text-slate-900">
                             ${course.price}{' '}
                             <span className="text-[10px] font-normal text-slate-500">
                               / 1h session
                             </span>
                           </span>
-                        ) : null}
+                        ) : (
+                          <span className="text-sm font-bold text-emerald-600">Free</span>
+                        )}
                         <div className={cn('flex w-full flex-wrap gap-2', isList && 'justify-end')}>
                           {isTutorOwner ? (
                             <Button
@@ -1282,7 +1258,7 @@ export default function PublicTutorPage() {
                                         size="sm"
                                         variant="default"
                                         className={cn(isCompact && 'h-7 text-xs')}
-                                        onClick={() => void handleEnroll(course.id)}
+                                        onClick={() => handleEnrollClick(course)}
                                         disabled={enrollingCourseId === course.id}
                                       >
                                         {enrollingCourseId === course.id ? (
@@ -1313,7 +1289,7 @@ export default function PublicTutorPage() {
                             variant="outline"
                             className={cn(isCompact && 'h-7 text-xs')}
                           >
-                            <Link href={`/${locale}/courses/${course.id}`}>
+                            <Link href={`/${locale}/student/subjects/${encodeURIComponent(course.categories?.[0] || 'general')}/courses/${course.id}/details`}>
                               <FileText className="mr-1 h-3 w-3" />
                               Details
                             </Link>

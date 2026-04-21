@@ -43,7 +43,7 @@ const navItems: NavItem[] = [
   { href: '/tutor/my-page', label: 'My Page', icon: Globe },
   { href: '/tutor/insights', label: 'Insights', icon: Lightbulb },
 
-  { href: '/tutor/groups', label: 'Groups', icon: Users },
+  { href: '/tutor/group-builder', label: 'Groups', icon: Users },
   { href: '/tutor/documents', label: 'PDF Viewer', icon: FileText },
   { href: '/tutor/messages', label: 'Messages', icon: MessageSquare },
   { href: '/tutor/reports', label: 'Analytics', icon: BarChart3 },

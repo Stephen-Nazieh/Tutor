@@ -152,8 +152,8 @@ export const POST = withCsrf(
         await drizzleDb.insert(courseLesson).values({
           lessonId: crypto.randomUUID(),
           courseId: newCourse.courseId,
-          title: 'Introduction',
-          description: 'Introduction to this course.',
+          title: 'Lesson 1',
+          description: 'Lesson 1 for this course.',
           duration: 60,
           order: 0,
           updatedAt: now,
