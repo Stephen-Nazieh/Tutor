@@ -512,6 +512,7 @@ export default function PublicTutorPage() {
   const [catalogLayout, setCatalogLayout] = useState<'grid' | 'list' | 'compact'>('compact')
   const [courseSearchQuery, setCourseSearchQuery] = useState('')
   const [courseCountryFilter, setCourseCountryFilter] = useState('global')
+  const [courseCountryOptions, setCourseCountryOptions] = useState<string[]>([])
   const [courseSortOrder, setCourseSortOrder] = useState<'newest' | 'price_asc' | 'price_desc'>(
     'newest'
   )
@@ -540,6 +541,22 @@ export default function PublicTutorPage() {
   useEffect(() => {
     loadTutorData()
   }, [username])
+
+  useEffect(() => {
+    const loadCountries = async () => {
+      try {
+        const res = await fetch('/api/public/countries', { cache: 'no-store' })
+        const json = await res.json().catch(() => ({}))
+        const countries = Array.isArray(json?.countries)
+          ? (json.countries as string[]).filter(c => typeof c === 'string' && !!c.trim())
+          : []
+        setCourseCountryOptions(countries)
+      } catch {
+        setCourseCountryOptions([])
+      }
+    }
+    loadCountries()
+  }, [])
 
   useEffect(() => {
     if (!data?.tutor?.id) return
@@ -1052,11 +1069,9 @@ export default function PublicTutorPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="global">Global</SelectItem>
-                    {Array.from(
-                      new Set((data?.courses || []).map(c => c.country).filter(Boolean))
-                    ).map(country => (
-                      <SelectItem key={country as string} value={country as string}>
-                        {country as string}
+                    {courseCountryOptions.map(country => (
+                      <SelectItem key={country} value={country}>
+                        {country}
                       </SelectItem>
                     ))}
                   </SelectContent>

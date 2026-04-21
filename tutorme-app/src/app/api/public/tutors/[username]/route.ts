@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, user, profile, courseLesson } from '@/lib/db/schema'
+import { course, user, profile, courseLesson, courseVariant } from '@/lib/db/schema'
 import { eq, and, inArray } from 'drizzle-orm'
 
 export async function GET(
@@ -78,7 +78,7 @@ export async function GET(
     }
 
     // Get published courses for this tutor
-    const publishedCourses = await drizzleDb
+    const publishedCoursesRows = await drizzleDb
       .select({
         courseId: course.courseId,
         name: course.name,
@@ -89,11 +89,15 @@ export async function GET(
         schedule: course.schedule,
         updatedAt: course.updatedAt,
         categories: course.categories,
-        country: profile.countryOfResidence,
+        country: courseVariant.nationality,
       })
       .from(course)
-      .leftJoin(profile, eq(course.creatorId, profile.userId))
+      .leftJoin(courseVariant, eq(courseVariant.publishedCourseId, course.courseId))
       .where(and(eq(course.creatorId, tutorId), eq(course.isPublished, true)))
+
+    const publishedCourses = Array.from(
+      new Map(publishedCoursesRows.map(row => [row.courseId, row])).values()
+    )
 
     // Derive specialties from published course categories
     const derivedSpecialties = Array.from(
