@@ -310,6 +310,8 @@ export interface CourseBuilderProps {
   panelMode?: 'default' | 'live-class'
   initialLessons?: Lesson[]
   hideCourseNameInTabs?: boolean
+  hideDirectorySearch?: boolean
+  directoryMenusAlwaysVisible?: boolean
   onMakeVisibleToStudents?: (payload: VisibleDocumentPayload) => void
   onSave?: (
     lessons: Lesson[],

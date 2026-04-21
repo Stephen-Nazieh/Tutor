@@ -537,6 +537,8 @@ function CourseBuilderInsightsRouteInner({
             courseId={courseId ?? ''}
             courseName={model.course?.name}
             initialLessons={model.loadedLessons ?? undefined}
+            hideDirectorySearch
+            directoryMenusAlwaysVisible
             onSave={onSaveCourse}
             insightsProps={{
               ...insightsProps,

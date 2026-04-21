@@ -283,6 +283,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       initialMainTab,
       leftPanelHidden: leftPanelHiddenProp,
       onLeftPanelHiddenChange,
+      hideDirectorySearch = false,
+      directoryMenusAlwaysVisible = false,
     },
     ref
   ) {
@@ -3925,14 +3927,16 @@ FEEDBACK: [your explanation]`
                         </div>
                       </div>
 
-                      <div className="mb-1">
-                        <Input
-                          placeholder="Search course..."
-                          value={searchQuery}
-                          onChange={e => setSearchQuery(e.target.value)}
-                          className="h-8 text-xs"
-                        />
-                      </div>
+                      {!hideDirectorySearch && (
+                        <div className="mb-1">
+                          <Input
+                            placeholder="Search course..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                      )}
 
                       <ScrollArea className="min-h-0 flex-1">
                         <DndContext
@@ -4001,7 +4005,12 @@ FEEDBACK: [your explanation]`
                                               <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                                                className={cn(
+                                                  'h-6 w-6',
+                                                  directoryMenusAlwaysVisible
+                                                    ? 'opacity-80 hover:opacity-100'
+                                                    : 'opacity-0 group-hover:opacity-100'
+                                                )}
                                               >
                                                 <MoreVertical className="h-4 w-4 text-slate-500" />
                                               </Button>
@@ -4261,7 +4270,12 @@ FEEDBACK: [your explanation]`
                                                             <Button
                                                               variant="ghost"
                                                               size="icon"
-                                                              className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                                              className={cn(
+                                                                'h-5 w-5',
+                                                                directoryMenusAlwaysVisible
+                                                                  ? 'opacity-80 hover:opacity-100'
+                                                                  : 'opacity-0 group-hover/item:opacity-100'
+                                                              )}
                                                               onClick={e => e.stopPropagation()}
                                                             >
                                                               <MoreVertical className="h-3 w-3 text-slate-500" />
@@ -4535,7 +4549,12 @@ FEEDBACK: [your explanation]`
                                                                     <Button
                                                                       variant="ghost"
                                                                       size="icon"
-                                                                      className="h-5 w-5 opacity-0 group-hover/extension:opacity-100"
+                                                                      className={cn(
+                                                                        'h-5 w-5',
+                                                                        directoryMenusAlwaysVisible
+                                                                          ? 'opacity-80 hover:opacity-100'
+                                                                          : 'opacity-0 group-hover/extension:opacity-100'
+                                                                      )}
                                                                       onClick={(e: any) => {
                                                                         e.stopPropagation()
                                                                         if (
@@ -4808,7 +4827,12 @@ FEEDBACK: [your explanation]`
                                                           <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                                            className={cn(
+                                                              'h-5 w-5',
+                                                              directoryMenusAlwaysVisible
+                                                                ? 'opacity-80 hover:opacity-100'
+                                                                : 'opacity-0 group-hover/item:opacity-100'
+                                                            )}
                                                             onClick={e => e.stopPropagation()}
                                                           >
                                                             <MoreVertical className="h-3 w-3 text-slate-500" />
@@ -5018,7 +5042,12 @@ FEEDBACK: [your explanation]`
                                                               <Button
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                                                className={cn(
+                                                                  'h-5 w-5',
+                                                                  directoryMenusAlwaysVisible
+                                                                    ? 'opacity-80 hover:opacity-100'
+                                                                    : 'opacity-0 group-hover/item:opacity-100'
+                                                                )}
                                                                 onClick={e => e.stopPropagation()}
                                                               >
                                                                 <MoreVertical className="h-3 w-3 text-slate-500" />
