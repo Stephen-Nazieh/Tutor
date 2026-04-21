@@ -3832,12 +3832,12 @@ FEEDBACK: [your explanation]`
               >
                 <div
                   className={cn(
-                    'flex items-center gap-2 rounded-full border-l border-r px-2 py-0.5 transition-colors',
+                    'relative z-10 flex items-center gap-2 rounded-full border-l border-r px-2 py-0.5 transition-colors',
                     mainTab === 'live'
                       ? 'pointer-events-auto cursor-pointer border-blue-200/50 group-hover:bg-blue-100/50'
                       : 'pointer-events-none border-transparent'
                   )}
-                  onClick={e => {
+                  onPointerDown={e => {
                     if (mainTab === 'live') {
                       e.preventDefault()
                       e.stopPropagation()
@@ -3875,12 +3875,12 @@ FEEDBACK: [your explanation]`
             >
               <div
                 className={cn(
-                  'flex items-center gap-2 rounded-full border-l border-r px-2 py-0.5 transition-colors',
+                  'relative z-10 flex items-center gap-2 rounded-full border-l border-r px-2 py-0.5 transition-colors',
                   mainTab === 'builder'
                     ? 'pointer-events-auto cursor-pointer border-blue-200/50 group-hover:bg-blue-100/50'
                     : 'pointer-events-none border-transparent'
                 )}
-                onClick={e => {
+                onPointerDown={e => {
                   if (mainTab === 'builder') {
                     e.preventDefault()
                     e.stopPropagation()
