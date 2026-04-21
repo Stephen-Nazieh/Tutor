@@ -34,6 +34,8 @@ COPY --from=builder /app/src ./src
 COPY --from=builder /app/drizzle ./drizzle
 COPY --from=builder /app/scripts ./scripts
 
+RUN mkdir -p /app/public/uploads && chown -R nextjs:nodejs /app/public/uploads
+
 USER nextjs
 EXPOSE 3003
 ENV PORT=3003

@@ -191,6 +191,8 @@ import {
   Layers,
   Upload,
   CheckCircle,
+  Circle,
+  Square,
   Clock,
   GraduationCap,
   ListTodo,
@@ -521,6 +523,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [testPciLoading, setTestPciLoading] = useState(false)
     const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
     const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
+    const [endSessionDialog, setEndSessionDialog] = useState(false)
     const [sessionScheduledAt] = useState<string | null>(null)
     const [taskDmiItems, setTaskDmiItems] = useState<DMIQuestion[]>([])
     const [assessmentDmiItems, setAssessmentDmiItems] = useState<DMIQuestion[]>([])
@@ -3905,11 +3908,11 @@ FEEDBACK: [your explanation]`
                                 <Button
                                   size="sm"
                                   variant="destructive"
-                                  onClick={insightsProps.onEndSession}
+                                  onClick={() => setEndSessionDialog(true)}
                                   disabled={insightsProps.endingSession}
                                   className="h-7 gap-1 px-2 text-xs"
                                 >
-                                  {insightsProps.endingSession ? 'Ending…' : 'End Session'}
+                                  {insightsProps.endingSession ? 'Ending…' : 'End'}
                                 </Button>
                               )}
                               {insightsProps?.onToggleRecording && (
@@ -3917,9 +3920,10 @@ FEEDBACK: [your explanation]`
                                   size="sm"
                                   variant={insightsProps.isRecording ? 'destructive' : 'default'}
                                   onClick={insightsProps.onToggleRecording}
-                                  className="h-7 gap-1 px-2 text-xs"
+                                  className="h-7 w-7 p-0"
+                                  title={insightsProps.isRecording ? 'Stop Recording' : 'Record'}
                                 >
-                                  {insightsProps.isRecording ? '⏹ Stop' : '⏺ Record'}
+                                  {insightsProps.isRecording ? <Square className="h-3.5 w-3.5 fill-current" /> : <Circle className="h-3.5 w-3.5 fill-current text-red-500" />}
                                 </Button>
                               )}
                               {insightsProps?.isRecording &&
@@ -6804,6 +6808,32 @@ FEEDBACK: [your explanation]`
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        {/* End Session Confirmation Dialog */}
+        <Dialog open={endSessionDialog} onOpenChange={setEndSessionDialog}>
+          <DialogContent className="rounded-2xl sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>End Live Session?</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to end this live session? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEndSessionDialog(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setEndSessionDialog(false)
+                  insightsProps?.onEndSession?.()
+                }}
+              >
+                End Session
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Daily.co Video Frame for Tutor */}
         {insightsProps && sessionContext?.roomUrl && (
           <div className="fixed bottom-4 right-4 z-50 w-72 overflow-hidden rounded-xl border border-slate-600 bg-black shadow-2xl sm:w-80">
