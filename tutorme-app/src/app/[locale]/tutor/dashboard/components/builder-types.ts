@@ -319,6 +319,7 @@ export interface CourseBuilderProps {
       courseName?: string
       courseDescription?: string
       isAutoSave?: boolean
+      isLive?: boolean
     }
   ) => void
   insightsProps?: CourseBuilderInsightsProps

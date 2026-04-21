@@ -1021,6 +1021,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       isOpen: false,
       name: courseName || '',
       description: '',
+      isLive: false,
     })
 
     // Expose save method via ref
@@ -1040,6 +1041,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
               previewDifficulty,
               courseName: coursePropsModal.name || courseName,
               courseDescription: coursePropsModal.description,
+              isLive: coursePropsModal.isLive,
             }
           )
         }
@@ -2599,6 +2601,64 @@ FEEDBACK: [your explanation]`
       toast.success('Exam duplicated')
     }
 
+    const duplicateLesson = (nodeId: string, lesson: Lesson) => {
+      const copy: Lesson = {
+        ...lesson,
+        id: `lesson-${generateId()}`,
+        title: `${lesson.title} (copy)`,
+        tasks: lesson.tasks?.map(t => ({ 
+          ...t, 
+          id: `task-${generateId()}`,
+          questions: t.questions?.map(q => ({ ...q, id: `q-${generateId()}` }))
+        })),
+        homework: lesson.homework?.map(h => ({ 
+          ...h, 
+          id: `homework-${generateId()}`,
+          questions: h.questions?.map(q => ({ ...q, id: `q-${generateId()}` }))
+        })),
+      }
+      const nodeIndex = nodes.findIndex(m => m.id === nodeId)
+      if (nodeIndex === -1) return
+      const newCourseBuilderNodes = [...nodes]
+      newCourseBuilderNodes[nodeIndex].lessons = [
+        ...(newCourseBuilderNodes[nodeIndex].lessons || []),
+        copy,
+      ]
+      setCourseBuilderNodes(newCourseBuilderNodes)
+      setSelectedItem({ type: 'lesson', id: copy.id })
+      toast.success('Lesson duplicated')
+    }
+
+    const duplicateCourseBuilderNode = (node: CourseBuilderNode) => {
+      const copy: CourseBuilderNode = {
+        ...node,
+        id: `node-${generateId()}`,
+        title: `${node.title} (copy)`,
+        lessons: node.lessons?.map(l => ({ 
+          ...l, 
+          id: `lesson-${generateId()}`,
+          tasks: l.tasks?.map(t => ({ 
+            ...t, 
+            id: `task-${generateId()}`,
+            questions: t.questions?.map(q => ({ ...q, id: `q-${generateId()}` }))
+          })),
+          homework: l.homework?.map(h => ({ 
+            ...h, 
+            id: `homework-${generateId()}`,
+            questions: h.questions?.map(q => ({ ...q, id: `q-${generateId()}` }))
+          })),
+        })),
+        quizzes: node.quizzes?.map(q => ({ 
+          ...q, 
+          id: `quiz-${generateId()}`,
+          questions: q.questions?.map(qu => ({ ...qu, id: `q-${generateId()}` }))
+        })),
+      }
+      setCourseBuilderNodes([...nodes, copy])
+      setSelectedItem({ type: 'node', id: copy.id })
+      toast.success('Module duplicated')
+    }
+
     const getAllLessons = () => {
       return nodes.flatMap(m => m.lessons)
     }
@@ -3756,7 +3816,12 @@ FEEDBACK: [your explanation]`
               value="builder"
               className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
             >
-              <Wand2 className="h-4 w-4" />
+              <Radio 
+                className={cn(
+                  "h-4 w-4 transition-all duration-300", 
+                  coursePropsModal.isLive ? "text-green-400 animate-pulse drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : "text-gray-400"
+                )} 
+              />
               Build
             </TabsTrigger>
           </TabsList>
@@ -3802,6 +3867,20 @@ FEEDBACK: [your explanation]`
                           </Badge>
                         </div>
                         <div className="flex items-center gap-1">
+                          {mainTab === 'builder' && (
+                            <div className="flex items-center gap-2 mr-2 rounded-md bg-muted/50 px-2 py-1">
+                              <span className={cn("text-xs font-medium transition-colors", !coursePropsModal.isLive ? "text-gray-500" : "text-gray-400")}>Draft</span>
+                              <Switch
+                                checked={coursePropsModal.isLive}
+                                onCheckedChange={(checked) => setCoursePropsModal(prev => ({ ...prev, isLive: checked }))}
+                                className={cn(
+                                  "data-[state=checked]:bg-green-500 transition-all duration-300",
+                                  coursePropsModal.isLive ? "drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : ""
+                                )}
+                              />
+                              <span className={cn("text-xs font-medium transition-colors", coursePropsModal.isLive ? "text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : "text-gray-400")}>Live</span>
+                            </div>
+                          )}
                           {mainTab === 'live' && (
                             <div className="flex items-center gap-2">
                               {insightsProps?.onEndSession && (
@@ -3958,6 +4037,11 @@ FEEDBACK: [your explanation]`
                                                 }}
                                               >
                                                 Rename
+                                              </DropdownMenuItem>
+                                              <DropdownMenuItem
+                                                onSelect={() => duplicateCourseBuilderNode(node)}
+                                              >
+                                                Duplicate
                                               </DropdownMenuItem>
                                               <DropdownMenuItem
                                                 className="text-red-600 focus:bg-red-50 focus:text-red-600"
@@ -4365,6 +4449,14 @@ FEEDBACK: [your explanation]`
                                                               Add Extension
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem
+                                                              onClick={e => {
+                                                                e.stopPropagation()
+                                                                duplicateTask(node.id, primaryLesson.id, task)
+                                                              }}
+                                                            >
+                                                              Duplicate
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
                                                               className="text-red-500"
                                                               onClick={e => {
                                                                 e.stopPropagation()
@@ -4760,6 +4852,14 @@ FEEDBACK: [your explanation]`
                                                             Edit
                                                           </DropdownMenuItem>
                                                           <DropdownMenuItem
+                                                            onClick={e => {
+                                                              e.stopPropagation()
+                                                              duplicateAssessment(node.id, primaryLesson.id, hw)
+                                                            }}
+                                                          >
+                                                            Duplicate
+                                                          </DropdownMenuItem>
+                                                          <DropdownMenuItem
                                                             className="text-red-500"
                                                             onClick={e => {
                                                               e.stopPropagation()
@@ -4949,6 +5049,14 @@ FEEDBACK: [your explanation]`
                                                                 Edit
                                                               </DropdownMenuItem>
                                                               <DropdownMenuItem
+                                                                onClick={e => {
+                                                                  e.stopPropagation()
+                                                                  duplicateAssessment(node.id, primaryLesson.id, hw)
+                                                                }}
+                                                              >
+                                                                Duplicate
+                                                              </DropdownMenuItem>
+                                                              <DropdownMenuItem
                                                                 className="text-red-500"
                                                                 onClick={e => {
                                                                   e.stopPropagation()
@@ -5040,6 +5148,17 @@ FEEDBACK: [your explanation]`
                                                   }}
                                                 >
                                                   Edit
+                                                </Button>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-6 px-2 text-[10px] text-white opacity-0 hover:bg-white/20 group-hover:opacity-100"
+                                                  onClick={(e: any) => {
+                                                    e.stopPropagation()
+                                                    duplicateCourseBuilderNodeQuiz(node.id, quiz)
+                                                  }}
+                                                >
+                                                  Duplicate
                                                 </Button>
                                                 <Button
                                                   variant="ghost"
@@ -6397,6 +6516,21 @@ FEEDBACK: [your explanation]`
                   placeholder="Briefly describe what this course is about..."
                 />
               </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="isLive" className="text-right">
+                  Status
+                </Label>
+                <div className="col-span-3 flex items-center space-x-2">
+                  <Switch
+                    id="isLive"
+                    checked={coursePropsModal.isLive}
+                    onCheckedChange={checked =>
+                      setCoursePropsModal(prev => ({ ...prev, isLive: checked }))
+                    }
+                  />
+                  <Label htmlFor="isLive">{coursePropsModal.isLive ? 'Live' : 'Draft'}</Label>
+                </div>
+              </div>
             </div>
             <DialogFooter>
               <Button
@@ -6412,6 +6546,7 @@ FEEDBACK: [your explanation]`
                         previewDifficulty,
                         courseName: coursePropsModal.name,
                         courseDescription: coursePropsModal.description,
+                        isLive: coursePropsModal.isLive,
                       }
                     )
                   }
