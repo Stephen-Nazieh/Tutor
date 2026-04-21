@@ -325,6 +325,8 @@ export interface CourseBuilderProps {
   isCollapsed?: boolean
   onMainTabChange?: (tab: 'live' | 'builder' | 'test-pci') => void
   initialMainTab?: 'live' | 'builder' | 'test-pci'
+  leftPanelHidden?: boolean
+  onLeftPanelHiddenChange?: (hidden: boolean) => void
 }
 
 export interface CourseBuilderRef {

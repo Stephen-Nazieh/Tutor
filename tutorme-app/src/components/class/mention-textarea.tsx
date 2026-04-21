@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { X, AtSign } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
@@ -31,10 +32,16 @@ export function MentionTextarea({
   const [query, setQuery] = useState('')
   const [highlightedIndex, setHighlightedIndex] = useState(0)
   const [cursorPos, setCursorPos] = useState(0)
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number } | null>(null)
+  const [mounted, setMounted] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const textValue = String(value || '')
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const parsedMentions = useMemo(() => {
     const mentions: { type: string; id: string; label: string; index: number }[] = []
@@ -63,11 +70,22 @@ export function MentionTextarea({
       .slice(0, 50)
   }, [mentionItems, query])
 
+  const updateDropdownPosition = useCallback(() => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    const rect = textarea.getBoundingClientRect()
+    setDropdownPos({
+      top: rect.bottom + window.scrollY + 4,
+      left: rect.left + window.scrollX,
+      width: rect.width,
+    })
+  }, [])
+
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       onChange?.(e)
       const val = e.target.value
-      const pos = e.target.selectionStart
+      const pos = e.target.selectionStart ?? 0
       setCursorPos(pos)
 
       // Check if we're in a mention context
@@ -80,13 +98,14 @@ export function MentionTextarea({
           setQuery(between)
           setOpen(true)
           setHighlightedIndex(0)
+          updateDropdownPosition()
           return
         }
       }
       setOpen(false)
       setQuery('')
     },
-    [onChange]
+    [onChange, updateDropdownPosition]
   )
 
   const handleKeyDown = useCallback(
@@ -182,13 +201,29 @@ export function MentionTextarea({
   useEffect(() => {
     if (!open) return
     const handleClick = (e: MouseEvent) => {
-      if (!containerRef.current?.contains(e.target as Node)) {
+      const target = e.target as Node
+      if (!containerRef.current?.contains(target) && !dropdownRef.current?.contains(target)) {
         setOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [open])
+
+  // Update dropdown position on scroll/resize
+  useEffect(() => {
+    if (!open) return
+    const handleScroll = () => updateDropdownPosition()
+    const handleResize = () => updateDropdownPosition()
+    window.addEventListener('scroll', handleScroll, true)
+    window.addEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true)
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [open, updateDropdownPosition])
+
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const typeColors: Record<string, string> = {
     lesson: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -197,6 +232,49 @@ export function MentionTextarea({
     extension: 'bg-orange-100 text-orange-700 border-orange-200',
     dmi: 'bg-violet-100 text-violet-700 border-violet-200',
   }
+
+  const dropdown = (
+    <div
+      ref={dropdownRef}
+      className="rounded-lg border bg-white p-1 shadow-lg"
+      style={{
+        position: 'fixed',
+        top: dropdownPos?.top ?? 0,
+        left: dropdownPos?.left ?? 0,
+        width: dropdownPos?.width ?? 'auto',
+        maxHeight: 220,
+        overflowY: 'auto',
+        zIndex: 9999,
+      }}
+    >
+      {filteredItems.map((item, idx) => (
+        <button
+          key={`${item.type}-${item.id}`}
+          type="button"
+          onClick={() => insertMention(item)}
+          className={cn(
+            'flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-xs transition-colors',
+            idx === highlightedIndex ? 'bg-slate-100' : 'hover:bg-slate-50'
+          )}
+        >
+          <span
+            className={cn(
+              'shrink-0 rounded px-1 py-0.5 text-[9px] font-semibold uppercase',
+              typeColors[item.type] || 'bg-gray-100 text-gray-600'
+            )}
+          >
+            {item.type}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate font-medium text-gray-900">{item.label}</p>
+            {item.subtitle && (
+              <p className="truncate text-[10px] text-gray-500">{item.subtitle}</p>
+            )}
+          </div>
+        </button>
+      ))}
+    </div>
+  )
 
   return (
     <div ref={containerRef} className="relative flex flex-col gap-2">
@@ -236,37 +314,8 @@ export function MentionTextarea({
         {...props}
       />
 
-      {/* Mention dropdown */}
-      {open && filteredItems.length > 0 && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-[220px] overflow-y-auto rounded-lg border bg-white p-1 shadow-lg">
-          {filteredItems.map((item, idx) => (
-            <button
-              key={`${item.type}-${item.id}`}
-              type="button"
-              onClick={() => insertMention(item)}
-              className={cn(
-                'flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-xs transition-colors',
-                idx === highlightedIndex ? 'bg-slate-100' : 'hover:bg-slate-50'
-              )}
-            >
-              <span
-                className={cn(
-                  'shrink-0 rounded px-1 py-0.5 text-[9px] font-semibold uppercase',
-                  typeColors[item.type] || 'bg-gray-100 text-gray-600'
-                )}
-              >
-                {item.type}
-              </span>
-              <div className="min-w-0">
-                <p className="truncate font-medium text-gray-900">{item.label}</p>
-                {item.subtitle && (
-                  <p className="truncate text-[10px] text-gray-500">{item.subtitle}</p>
-                )}
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Mention dropdown - portal to body to avoid clipping */}
+      {mounted && open && filteredItems.length > 0 && createPortal(dropdown, document.body)}
     </div>
   )
 }

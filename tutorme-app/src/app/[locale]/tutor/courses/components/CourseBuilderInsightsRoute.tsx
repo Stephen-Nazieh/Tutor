@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { ArrowLeft, Loader2, BookOpen, MoreVertical, RefreshCw, Plus, Timer } from 'lucide-react'
+import { ArrowLeft, Loader2, BookOpen, MoreVertical, RefreshCw, Plus, Timer, LayoutTemplate } from 'lucide-react'
 import Link from 'next/link'
 import {
   Select,
@@ -109,6 +109,7 @@ function CourseBuilderInsightsRouteInner({
   )
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
   const [renameValue, setRenameValue] = useState('')
+  const [leftPanelHidden, setLeftPanelHidden] = useState(false)
 
   const [now, setNow] = useState(new Date())
   useEffect(() => {
@@ -265,12 +266,26 @@ function CourseBuilderInsightsRouteInner({
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
+          <button
+            type="button"
+            onClick={() => setLeftPanelHidden(v => !v)}
+            className={cn(
+              'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
+              leftPanelHidden
+                ? 'bg-muted text-muted-foreground hover:bg-muted/80'
+                : 'bg-primary text-primary-foreground'
+            )}
+            title={leftPanelHidden ? 'Show directory' : 'Hide directory'}
+          >
+            <LayoutTemplate className="h-3.5 w-3.5" />
+            Directory
+          </button>
           {onSaveModeChange && activeMainTab === 'builder' && (
-            <div className="flex items-center rounded-lg border p-0.5">
+            <div className="flex items-center rounded-md bg-muted/40 p-px">
               <button
                 type="button"
                 className={cn(
-                  'rounded-md px-3 py-1 text-xs font-medium transition-colors',
+                  'rounded-sm px-2 py-0.5 text-xs font-medium transition-colors',
                   saveMode === 'live'
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground'
@@ -282,7 +297,7 @@ function CourseBuilderInsightsRouteInner({
               <button
                 type="button"
                 className={cn(
-                  'rounded-md px-3 py-1 text-xs font-medium transition-colors',
+                  'rounded-sm px-2 py-0.5 text-xs font-medium transition-colors',
                   saveMode === 'draft'
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground'
@@ -301,10 +316,9 @@ function CourseBuilderInsightsRouteInner({
           <div className="flex shrink-0 items-center gap-3">
             {activeMainTab === 'live' && (
               <h1 className="text-foreground flex items-center gap-2 text-lg font-bold tracking-tight">
-                Live Session
                 {model.course?.name && (
                   <span className="text-muted-foreground ml-2 text-sm font-normal">
-                    — {model.course.name}
+                    {model.course.name}
                   </span>
                 )}
                 {scheduledDateStr && (
@@ -522,6 +536,8 @@ function CourseBuilderInsightsRouteInner({
             }}
             onMainTabChange={setActiveMainTab}
             initialMainTab={tabFromUrl ?? 'builder'}
+            leftPanelHidden={leftPanelHidden}
+            onLeftPanelHiddenChange={setLeftPanelHidden}
           />
         )}
       </div>

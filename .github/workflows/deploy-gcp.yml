@@ -103,11 +103,6 @@ jobs:
           docker push "$IMAGE"
           echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
 
-      - name: Apply schema changes
-        run: node scripts/apply-schema-changes.js
-        env:
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
-
       - name: Deploy to Cloud Run (100% traffic)
         id: deploy-prod
         uses: google-github-actions/deploy-cloudrun@v2
