@@ -4028,7 +4028,7 @@ FEEDBACK: [your explanation]`
                                     depth={0}
                                     isLast={nodeIdx === nodes.length - 1}
                                     inlineDragHandle
-                                    className="mb-px ml-0 overflow-hidden rounded-none border border-l-0 border-slate-200 bg-white pl-0 shadow-sm"
+                                    className="mb-px ml-0 overflow-hidden rounded-2xl border border-l-0 border-slate-200 bg-white pl-0 shadow-sm"
                                   >
                                     <div className="group">
                                       <div
@@ -4137,7 +4137,7 @@ FEEDBACK: [your explanation]`
                                             <DroppableTaskZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex w-full items-center justify-between rounded-full bg-gradient-to-r from-sky-400 to-blue-600 px-3 py-2 shadow-sm transition-all"
+                                              className="flex w-full min-h-[40px] items-center justify-between rounded-full bg-gradient-to-r from-sky-400 to-blue-600 px-3 py-2 shadow-sm transition-all"
                                             >
                                               <div className="flex items-center gap-2">
                                                 <button
@@ -4334,14 +4334,14 @@ FEEDBACK: [your explanation]`
                                                               variant="ghost"
                                                               size="icon"
                                                               className={cn(
-                                                                'h-5 w-5',
+                                                                'h-7 w-7',
                                                                 directoryMenusAlwaysVisible
                                                                   ? 'opacity-80 hover:opacity-100'
                                                                   : 'opacity-0 group-hover/item:opacity-100'
                                                               )}
                                                               onClick={e => e.stopPropagation()}
                                                             >
-                                                              <MoreVertical className="h-3 w-3 text-slate-500" />
+                                                              <MoreVertical className="h-5 w-5 text-slate-700" />
                                                             </Button>
                                                           </DropdownMenuTrigger>
                                                           <DropdownMenuContent align="end">
@@ -4715,7 +4715,7 @@ FEEDBACK: [your explanation]`
                                             <DroppableAssessmentZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex w-full items-center justify-between rounded-full bg-gradient-to-r from-indigo-400 to-purple-600 px-3 py-2 shadow-sm transition-all"
+                                              className="flex w-full min-h-[40px] items-center justify-between rounded-full bg-gradient-to-r from-indigo-400 to-purple-600 px-3 py-2 shadow-sm transition-all"
                                             >
                                               <div className="flex items-center gap-2">
                                                 <button
@@ -4895,14 +4895,14 @@ FEEDBACK: [your explanation]`
                                                             variant="ghost"
                                                             size="icon"
                                                             className={cn(
-                                                              'h-5 w-5',
-                                                              directoryMenusAlwaysVisible
-                                                                ? 'opacity-80 hover:opacity-100'
-                                                                : 'opacity-0 group-hover/item:opacity-100'
-                                                            )}
-                                                            onClick={e => e.stopPropagation()}
-                                                          >
-                                                            <MoreVertical className="h-3 w-3 text-slate-500" />
+                                                            'h-7 w-7',
+                                                            directoryMenusAlwaysVisible
+                                                              ? 'opacity-80 hover:opacity-100'
+                                                              : 'opacity-0 group-hover/item:opacity-100'
+                                                          )}
+                                                          onClick={e => e.stopPropagation()}
+                                                        >
+                                                          <MoreVertical className="h-5 w-5 text-slate-700" />
                                                           </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
@@ -4993,7 +4993,7 @@ FEEDBACK: [your explanation]`
                                                   <DroppableHomeworkZone
                                                     nodeId={node.id}
                                                     lessonId={primaryLesson.id}
-                                                    className="flex w-full items-center justify-between rounded-full bg-gradient-to-r from-emerald-400 to-teal-600 px-3 py-2 shadow-sm transition-all"
+                                                    className="flex w-full min-h-[40px] items-center justify-between rounded-full bg-gradient-to-r from-emerald-400 to-teal-600 px-3 py-2 shadow-sm transition-all"
                                                   >
                                                     <div className="flex items-center gap-2">
                                                       <button
@@ -5114,14 +5114,14 @@ FEEDBACK: [your explanation]`
                                                                 variant="ghost"
                                                                 size="icon"
                                                                 className={cn(
-                                                                  'h-5 w-5',
-                                                                  directoryMenusAlwaysVisible
-                                                                    ? 'opacity-80 hover:opacity-100'
-                                                                    : 'opacity-0 group-hover/item:opacity-100'
-                                                                )}
-                                                                onClick={e => e.stopPropagation()}
-                                                              >
-                                                                <MoreVertical className="h-3 w-3 text-slate-500" />
+                                                                'h-7 w-7',
+                                                                directoryMenusAlwaysVisible
+                                                                  ? 'opacity-80 hover:opacity-100'
+                                                                  : 'opacity-0 group-hover/item:opacity-100'
+                                                              )}
+                                                              onClick={e => e.stopPropagation()}
+                                                            >
+                                                              <MoreVertical className="h-5 w-5 text-slate-700" />
                                                               </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
