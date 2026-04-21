@@ -1803,7 +1803,7 @@ FEEDBACK: [your explanation]`
 
     // Add handlers
     const addCourseBuilderNode = () => {
-      // Create a new module (lesson) directly without opening modal
+      // Create a new lesson directly without opening modal
       const newOrder = nodes.length
       const newCourseBuilderNode = DEFAULT_NODE(newOrder)
       // Ensure the title follows "Lesson N" format
@@ -2016,7 +2016,7 @@ FEEDBACK: [your explanation]`
       setActiveDragId(event.active.id as string)
     }
 
-    // Helper function to renumber module titles after reordering
+    // Helper function to renumber lesson titles after reordering
     const renumberCourseBuilderNodes = (mods: CourseBuilderNode[]): CourseBuilderNode[] => {
       return mods.map((mod, idx) => ({
         ...mod,
@@ -2212,7 +2212,7 @@ FEEDBACK: [your explanation]`
         }
       }
 
-      // Check if dragging a module
+      // Check if dragging a lesson
       const activeCourseBuilderNodeIndex = nodes.findIndex(m => m.id === activeId)
       const overCourseBuilderNodeIndex = nodes.findIndex(m => m.id === overId)
 
@@ -2660,7 +2660,7 @@ FEEDBACK: [your explanation]`
       }
       setCourseBuilderNodes([...nodes, copy])
       setSelectedItem({ type: 'node', id: copy.id })
-      toast.success('Module duplicated')
+      toast.success('Lesson duplicated')
     }
 
     const getAllLessons = () => {

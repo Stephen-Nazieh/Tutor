@@ -76,7 +76,7 @@ export const AI_SUGGESTIONS = [
     id: 2,
     type: 'quiz',
     title: 'Add checkpoint quiz',
-    description: 'Insert a 5-question quiz after this module',
+    description: 'Insert a 5-question quiz after this lesson',
     icon: FileQuestion,
   },
   {
@@ -247,7 +247,7 @@ export const DEFAULT_NODE_QUIZ = (order: number): CourseBuilderNodeQuiz => ({
 })
 
 export const DEFAULT_NODE = (order: number): CourseBuilderNode => ({
-  id: `module-${generateId()}`,
+  id: `node-${generateId()}`,
   title: `Lesson ${order + 1}`,
   description: '',
   order,
@@ -505,14 +505,14 @@ export function mapGeneratedCourseBuilderNodesToBuilder(
   if (!Array.isArray(rawCourseBuilderNodes)) return []
 
   return rawCourseBuilderNodes.map((rawCourseBuilderNode, nodeIdx) => {
-    const moduleObj = (rawCourseBuilderNode ?? {}) as Record<string, any>
-    const rawLessons = Array.isArray(moduleObj.lessons) ? moduleObj.lessons : []
-    const rawExam = moduleObj.exam && typeof moduleObj.exam === 'object' ? moduleObj.exam : null
+    const nodeObj = (rawCourseBuilderNode ?? {}) as Record<string, any>
+    const rawLessons = Array.isArray(nodeObj.lessons) ? nodeObj.lessons : []
+    const rawExam = nodeObj.exam && typeof nodeObj.exam === 'object' ? nodeObj.exam : null
 
     return {
       ...DEFAULT_NODE(nodeIdx),
-      title: String(moduleObj.title || `Lesson ${nodeIdx + 1}`),
-      description: String(moduleObj.description || ''),
+      title: String(nodeObj.title || `Lesson ${nodeIdx + 1}`),
+      description: String(nodeObj.description || ''),
       lessons: rawLessons.map((rawLesson: Record<string, any>, lessonIdx: number) => {
         const tasks = Array.isArray(rawLesson.tasks) ? rawLesson.tasks : []
         const assessments = Array.isArray(rawLesson.assessments) ? rawLesson.assessments : []
