@@ -246,7 +246,6 @@ function CourseBuilderInsightsRouteInner({
         return
       }
 
-      toast.success('Course published successfully')
       model.router.push(`/tutor/courses/${newCourseId}`)
     } catch {
       toast.error('Failed to publish course')

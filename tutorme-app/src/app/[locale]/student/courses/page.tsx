@@ -688,6 +688,8 @@ function CourseCard({
             {new Date(course.enrollment.startDate).toLocaleDateString()}
           </div>
         )}
+
+        <p className="text-xs font-medium text-amber-600">No live sessions on record yet</p>
       </CardContent>
 
       <CardFooter className="gap-2">

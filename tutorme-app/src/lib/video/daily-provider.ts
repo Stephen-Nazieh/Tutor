@@ -51,6 +51,15 @@ export class DailyCoProvider implements VideoProvider {
       durationMinutes?: number
     }
   ): Promise<VideoRoom> {
+    if (!this.apiKey) {
+      console.warn('[VideoProvider] No API key, mocking createRoom')
+      return {
+        id: `mock-room-${sessionId}`,
+        url: `https://mock.daily.co/${sessionId}`,
+        expiry: new Date(Date.now() + 4 * 60 * 60 * 1000),
+      }
+    }
+
     const roomName = `tutorme-${sessionId}-${Date.now()}`
 
     const expiry = options?.durationMinutes
@@ -88,6 +97,15 @@ export class DailyCoProvider implements VideoProvider {
       durationMinutes?: number
     }
   ): Promise<VideoRoom> {
+    if (!this.apiKey) {
+      console.warn('[VideoProvider] No API key, mocking createBreakoutRoom')
+      return {
+        id: `mock-breakout-${parentSessionId}`,
+        url: `https://mock.daily.co/breakout-${parentSessionId}`,
+        expiry: new Date(Date.now() + 60 * 60 * 1000),
+      }
+    }
+
     const roomName = `tutorme-breakout-${parentSessionId}-${Date.now()}`
 
     const expiry = options?.durationMinutes
@@ -126,6 +144,11 @@ export class DailyCoProvider implements VideoProvider {
       durationMinutes?: number
     }
   ): Promise<string> {
+    if (!this.apiKey) {
+      console.warn('[VideoProvider] No API key, mocking createMeetingToken')
+      return `mock-token-for-${userId}-in-${roomName}`
+    }
+
     const expiry = options?.durationMinutes
       ? Math.floor(Date.now() / 1000) + options.durationMinutes * 60
       : Math.floor(Date.now() / 1000) + 4 * 60 * 60 // 4 hours
@@ -146,12 +169,22 @@ export class DailyCoProvider implements VideoProvider {
   }
 
   async deleteRoom(roomId: string): Promise<void> {
+    if (!this.apiKey) {
+      console.warn('[VideoProvider] No API key, mocking deleteRoom')
+      return
+    }
+
     await this.fetchDaily(`/rooms/${roomId}`, {
       method: 'DELETE',
     })
   }
 
   async isRoomActive(roomId: string): Promise<boolean> {
+    if (!this.apiKey) {
+      console.warn('[VideoProvider] No API key, mocking isRoomActive')
+      return true
+    }
+
     try {
       const room = await this.fetchDaily(`/rooms/${roomId}`)
       return room && !room.deleted

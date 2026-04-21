@@ -503,6 +503,29 @@ function TutorDashboardContent() {
     })
   }
 
+  const getNextSessionText = () => {
+    if (!classes || classes.length === 0) return null
+    const now = new Date().getTime()
+    
+    // Find the first class that is in the future
+    const upcoming = classes
+      .map(c => ({ ...c, time: new Date(c.scheduledAt).getTime() }))
+      .filter(c => c.time > now)
+      .sort((a, b) => a.time - b.time)[0]
+
+    if (!upcoming) return null
+
+    const diff = upcoming.time - now
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+
+    if (hours > 48) {
+      return new Date(upcoming.time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    }
+    if (hours > 0) return `in ${hours}h ${minutes}m`
+    return `in ${minutes}m`
+  }
+
   return (
     <div className="bg-background text-foreground min-h-screen" style={themeStyle}>
       <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
@@ -536,7 +559,7 @@ function TutorDashboardContent() {
           <ModernHeroSection
             stats={stats}
             loading={loading}
-            onCreateCourse={() => router.push('/tutor/courses/new')}
+            nextSession={getNextSessionText() || undefined}
           />
         </div>
 
@@ -685,11 +708,6 @@ function TutorDashboardContent() {
                         <div className="min-w-0 space-y-1">
                           <div className="flex items-center gap-2">
                             <p className="truncate font-semibold text-slate-900">{course.name}</p>
-                            {course.isPublished ? (
-                              <Badge variant="secondary">Published</Badge>
-                            ) : (
-                              <Badge variant="outline">Draft</Badge>
-                            )}
                           </div>
                           <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
                             <span>{(course.categories || [])[0] || 'Untitled'}</span>

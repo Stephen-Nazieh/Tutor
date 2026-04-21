@@ -5,8 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, user, profile } from '@/lib/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { course, user, profile, courseLesson } from '@/lib/db/schema'
+import { eq, and, inArray } from 'drizzle-orm'
 
 export async function GET(
   request: NextRequest,
@@ -86,7 +86,7 @@ export async function GET(
         price: course.price,
         currency: course.currency,
         isFree: course.isFree,
-
+        schedule: course.schedule,
         updatedAt: course.updatedAt,
         categories: course.categories,
       })
@@ -96,6 +96,25 @@ export async function GET(
     // Derive specialties from published course categories
     const derivedSpecialties = Array.from(
       new Set(publishedCourses.flatMap(c => c.categories || []))
+    )
+
+    // Fetch lesson counts
+    const courseIds = publishedCourses.map(c => c.courseId)
+    const lessons =
+      courseIds.length > 0
+        ? await drizzleDb
+            .select({ courseId: courseLesson.courseId })
+            .from(courseLesson)
+            .where(inArray(courseLesson.courseId, courseIds))
+        : []
+
+    const lessonCounts = lessons.reduce(
+      (acc, l) => {
+        if (!l.courseId) return acc
+        acc[l.courseId] = (acc[l.courseId] || 0) + 1
+        return acc
+      },
+      {} as Record<string, number>
     )
 
     // Build tutor response
@@ -121,21 +140,27 @@ export async function GET(
     }
 
     // Transform courses to expected format
-    const coursesResponse = publishedCourses.map(c => ({
-      id: c.courseId,
-      name: c.name,
-      description: c.description,
-      categories: c.categories || [],
+    const coursesResponse = publishedCourses.map(c => {
+      const scheduleArray = Array.isArray(c.schedule) ? c.schedule : []
+      const scheduleSummary =
+        scheduleArray.length > 0 ? `${scheduleArray.length} time slot(s)` : null
 
-      enrollmentCount: 0, // Placeholder
-      lessonCount: 1, // Simplified
-      price: c.isFree ? 0 : c.price,
-      currency: c.currency || 'USD',
-      scheduleSummary: null,
-      liveSessionsTotal: 0,
-      liveSessionsCompleted: 0,
-      enrollmentStatus: 'ongoing' as const,
-    }))
+      return {
+        id: c.courseId,
+        name: c.name,
+        description: c.description,
+        categories: c.categories || [],
+
+        enrollmentCount: 0, // Placeholder
+        lessonCount: lessonCounts[c.courseId] || 0,
+        price: c.isFree ? 0 : c.price,
+        currency: c.currency || 'USD',
+        scheduleSummary,
+        liveSessionsTotal: 0,
+        liveSessionsCompleted: 0,
+        enrollmentStatus: 'ongoing' as const,
+      }
+    })
 
     return NextResponse.json({
       tutor: tutorResponse,

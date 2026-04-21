@@ -49,7 +49,6 @@ interface ModernHeroSectionProps {
     currency: string
   }
   loading?: boolean
-  onCreateCourse?: () => void
 }
 
 interface ClassEvent {
@@ -60,7 +59,7 @@ interface ClassEvent {
   subject: string
 }
 
-export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHeroSectionProps) {
+export function ModernHeroSection({ stats, loading, nextSession }: ModernHeroSectionProps & { nextSession?: string }) {
   const { data: session } = useSession()
   const [greeting, setGreeting] = useState('Good morning')
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -254,13 +253,6 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
         {/* Action Bar */}
         <div className="flex flex-wrap items-center gap-4">
           <Button
-            className="bg-primary text-primary-foreground hover:bg-primary/90 border-0 font-medium shadow-lg"
-            onClick={onCreateCourse}
-          >
-            <Award className="mr-2 h-4 w-4" />
-            Create Course
-          </Button>
-          <Button
             variant="outline"
             className="border-border bg-card/60 text-foreground hover:bg-muted/60"
             onClick={() => toast.info('Coming soon...')}
@@ -277,10 +269,12 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
             Go Live
           </Button>
           <div className="flex-1" />
-          <div className="flex items-center gap-2 text-base font-medium text-green-600">
-            <Clock className="h-5 w-5" />
-            <span>Next session in 2h 15m</span>
-          </div>
+          {nextSession && (
+            <div className="flex items-center gap-2 text-base font-medium text-green-600">
+              <Clock className="h-5 w-5" />
+              <span>Next session: {nextSession}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

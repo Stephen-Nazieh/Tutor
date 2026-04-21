@@ -180,7 +180,9 @@ export function AnalyticsPanel({
       {metrics && (
         <div className="rounded-xl border bg-white/80 p-3 shadow-sm">
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase text-gray-500">Participation Rate</span>
+            <span className="text-xs font-semibold uppercase text-gray-500">
+              Participation Rate
+            </span>
             <span className="text-sm font-bold text-gray-900">
               {Math.round(metrics.participationRate * 100)}%
             </span>
@@ -269,7 +271,9 @@ export function AnalyticsPanel({
       {/* Task Activity */}
       {liveTasks && liveTasks.length > 0 && (
         <div className="rounded-xl border bg-white/80 p-3 shadow-sm">
-          <p className="mb-2 text-xs font-semibold uppercase text-gray-500">Deployed Task Activity</p>
+          <p className="mb-2 text-xs font-semibold uppercase text-gray-500">
+            Deployed Task Activity
+          </p>
           <div className="space-y-2">
             {liveTasks.map(task => {
               const pollCount = task.polls.length
@@ -316,7 +320,7 @@ export function AnalyticsPanel({
           <p className="mb-2 text-xs font-semibold uppercase text-gray-500">
             Students ({students.length})
           </p>
-          <div className="max-h-[200px] overflow-y-auto space-y-1">
+          <div className="max-h-[200px] space-y-1 overflow-y-auto">
             {students.map(s => (
               <div
                 key={s.id}
@@ -383,7 +387,7 @@ function StatCard({
         <span className="text-[10px] font-medium uppercase text-gray-500">{label}</span>
       </div>
       <p className="mt-1 text-xl font-bold text-gray-900">{value}</p>
-      {sub && <p className="text-[10px] text-gray-400 capitalize">{sub}</p>}
+      {sub && <p className="text-[10px] capitalize text-gray-400">{sub}</p>}
     </div>
   )
 }

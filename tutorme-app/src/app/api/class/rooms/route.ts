@@ -51,7 +51,8 @@ export const POST = withCsrf(
             maxParticipants,
             durationMinutes: data.durationMinutes,
           })
-        } catch {
+        } catch (error) {
+          console.error('[Class Rooms] Daily.co createRoom error:', error)
           return NextResponse.json(
             { error: 'Video service unavailable. Please try again later.' },
             { status: 503 }
@@ -65,7 +66,8 @@ export const POST = withCsrf(
             isOwner: true,
             durationMinutes: data.durationMinutes,
           })
-        } catch {
+        } catch (error) {
+          console.error('[Class Rooms] Daily.co createMeetingToken error:', error)
           return NextResponse.json(
             { error: 'Video service unavailable. Please try again later.' },
             { status: 503 }

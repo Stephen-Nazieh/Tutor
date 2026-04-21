@@ -6,6 +6,14 @@ import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
@@ -36,6 +44,8 @@ import {
   DollarSign,
   Loader2,
   Video,
+  Search,
+  ExternalLink,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -497,6 +507,8 @@ export default function PublicTutorPage() {
     loading: true,
   })
   const [catalogLayout, setCatalogLayout] = useState<'grid' | 'list' | 'compact'>('compact')
+  const [courseSearchQuery, setCourseSearchQuery] = useState('')
+  const [courseSortOrder, setCourseSortOrder] = useState<'newest' | 'price_asc' | 'price_desc'>('newest')
   const [bookDialogOpen, setBookDialogOpen] = useState(false)
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set())
   const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null)
@@ -711,50 +723,10 @@ export default function PublicTutorPage() {
 
     setStudentJoiningCourseId(course.id)
     try {
-      // 1) Ensure enrollment
-      const checkRes = await fetch(
-        `/api/student/enrollments/check?courseId=${encodeURIComponent(course.id)}`,
-        { credentials: 'include' }
-      )
-
-      if (checkRes.status === 401) {
-        toast.info('Please log in to enroll')
+      if (!enrolledCourseIds.has(course.id)) {
+        toast.info('Please enroll in the course first.')
+        router.push(`/${locale}/course/${course.id}`)
         return
-      }
-
-      if (!checkRes.ok) throw new Error('Failed to check enrollment status')
-
-      const checkData = (await checkRes.json().catch(() => ({}))) as {
-        isEnrolled?: boolean
-      }
-
-      if (!checkData?.isEnrolled) {
-        toast.info('Enrolling to unlock classroom access…')
-
-        const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
-        const csrfData = await csrfRes.json().catch(() => ({}))
-        const csrfToken = csrfData?.token ?? null
-
-        const enrollRes = await fetch(`/api/course/${encodeURIComponent(course.id)}/enroll`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            startDate: new Date().toISOString(),
-          }),
-        })
-
-        const enrollData = await enrollRes.json().catch(() => ({}))
-        if (!enrollRes.ok) {
-          toast.error(enrollData?.error || 'Failed to enroll')
-          return
-        }
-
-        toast.success(enrollData?.message || 'Enrolled successfully')
-        setEnrolledCourseIds(prev => new Set(prev).add(course.id))
       }
 
       // 2) Join latest active session for this course
@@ -794,7 +766,7 @@ export default function PublicTutorPage() {
       const csrfData = await csrfRes.json().catch(() => ({}))
       const csrfToken = csrfData?.token ?? null
 
-      const res = await fetch(`/api/course/${encodeURIComponent(courseId)}/enroll`, {
+      const enrollRes = await fetch(`/api/course/${encodeURIComponent(courseId)}/enroll`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -803,8 +775,8 @@ export default function PublicTutorPage() {
         credentials: 'include',
       })
 
-      const data = await res.json().catch(() => ({}))
-      if (res.ok) {
+      const data = await enrollRes.json().catch(() => ({}))
+      if (enrollRes.ok) {
         toast.success(data?.message || 'Enrolled successfully')
         setEnrolledCourseIds(prev => new Set(prev).add(courseId))
       } else {
@@ -816,6 +788,28 @@ export default function PublicTutorPage() {
       setEnrollingCourseId(null)
     }
   }
+
+  const filteredCourses = useMemo(() => {
+    let result = courses
+
+    if (courseSearchQuery) {
+      const q = courseSearchQuery.toLowerCase()
+      result = result.filter(
+        c =>
+          c.name?.toLowerCase().includes(q) ||
+          c.description?.toLowerCase().includes(q) ||
+          c.categories?.some((cat: string) => cat.toLowerCase().includes(q))
+      )
+    }
+
+    if (courseSortOrder === 'price_asc') {
+      result = [...result].sort((a, b) => (a.price || 0) - (b.price || 0))
+    } else if (courseSortOrder === 'price_desc') {
+      result = [...result].sort((a, b) => (b.price || 0) - (a.price || 0))
+    }
+
+    return result
+  }, [courses, courseSearchQuery, courseSortOrder])
 
   return (
     <div className="w-full space-y-6 p-4 sm:p-6">
@@ -1004,52 +998,77 @@ export default function PublicTutorPage() {
 
       <Card>
         <CardHeader className="space-y-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <CardTitle>Course Catalog</CardTitle>
               <CardDescription>Published courses by @{tutor.username}</CardDescription>
             </div>
-            <div
-              className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1 shadow-sm"
-              role="group"
-              aria-label="Course layout"
-            >
-              <Button
-                type="button"
-                variant={catalogLayout === 'grid' ? 'default' : 'ghost'}
-                size="sm"
-                className="h-9 gap-1 px-3"
-                onClick={() => setCatalogLayout('grid')}
+
+            <div className="flex flex-1 flex-col items-stretch gap-3 sm:flex-row sm:items-center lg:justify-end">
+              <div className="relative flex w-full max-w-sm items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="text-muted-foreground absolute left-2.5 top-2.5 h-4 w-4" />
+                  <Input
+                    type="search"
+                    placeholder="Search course..."
+                    className="h-9 w-full pl-9"
+                    value={courseSearchQuery}
+                    onChange={e => setCourseSearchQuery(e.target.value)}
+                  />
+                </div>
+                <Select value={courseSortOrder} onValueChange={(val: any) => setCourseSortOrder(val)}>
+                  <SelectTrigger className="h-9 w-[140px]">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                    <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div
+                className="inline-flex shrink-0 rounded-lg border border-slate-200 bg-slate-50 p-1 shadow-sm"
+                role="group"
+                aria-label="Course layout"
               >
-                <LayoutGrid className="h-4 w-4" />
-                <span className="hidden sm:inline">Grid</span>
-              </Button>
-              <Button
-                type="button"
-                variant={catalogLayout === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                className="h-9 gap-1 px-3"
-                onClick={() => setCatalogLayout('list')}
-              >
-                <List className="h-4 w-4" />
-                <span className="hidden sm:inline">List</span>
-              </Button>
-              <Button
-                type="button"
-                variant={catalogLayout === 'compact' ? 'default' : 'ghost'}
-                size="sm"
-                className="h-9 gap-1 px-3"
-                onClick={() => setCatalogLayout('compact')}
-              >
-                <PanelsTopLeft className="h-4 w-4" />
-                <span className="hidden sm:inline">Compact</span>
-              </Button>
+                <Button
+                  type="button"
+                  variant={catalogLayout === 'grid' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="h-9 gap-1 px-3"
+                  onClick={() => setCatalogLayout('grid')}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                  <span className="hidden sm:inline">Grid</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant={catalogLayout === 'list' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="h-9 gap-1 px-3"
+                  onClick={() => setCatalogLayout('list')}
+                >
+                  <List className="h-4 w-4" />
+                  <span className="hidden sm:inline">List</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant={catalogLayout === 'compact' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="h-9 gap-1 px-3"
+                  onClick={() => setCatalogLayout('compact')}
+                >
+                  <PanelsTopLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Compact</span>
+                </Button>
+              </div>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {courses.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No published courses yet.</p>
+          {filteredCourses.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No published courses found.</p>
           ) : (
             <div
               className={cn(
@@ -1060,7 +1079,7 @@ export default function PublicTutorPage() {
                 catalogLayout === 'list' && 'flex flex-col gap-4'
               )}
             >
-              {courses.map(
+              {filteredCourses.map(
                 (
                   course: PublicTutorResponse['courses'][number] & {
                     rating?: number | null
@@ -1138,7 +1157,18 @@ export default function PublicTutorPage() {
                               <CalendarDays className="h-3.5 w-3.5" />
                               Schedule
                             </dt>
-                            <dd className="min-w-0 text-slate-800">{scheduleText}</dd>
+                            <dd className="min-w-0 text-slate-800">
+                              {course.scheduleSummary ? (
+                                <Link
+                                  href={`/${locale}/course/${course.id}#schedule`}
+                                  className="inline-flex items-center gap-1 font-medium text-blue-600 transition-colors hover:text-blue-800 hover:underline"
+                                >
+                                  {course.scheduleSummary} <ExternalLink className="h-3 w-3" />
+                                </Link>
+                              ) : (
+                                'Schedule to be announced'
+                              )}
+                            </dd>
                           </div>
                           <div className="flex flex-wrap items-center gap-2">
                             <Badge
@@ -1153,7 +1183,6 @@ export default function PublicTutorPage() {
                                 ? 'Enrollment ended'
                                 : 'Enrollment ongoing'}
                             </Badge>
-                            <span className="text-slate-500">{liveLine}</span>
                           </div>
                         </dl>
                       </div>
@@ -1167,7 +1196,7 @@ export default function PublicTutorPage() {
                       >
                         <StarRating rating={course.rating ?? null} count={course.reviewCount} />
                         {course.price ? (
-                          <span className="text-sm font-bold text-slate-900">${course.price}</span>
+                          <span className="text-sm font-bold text-slate-900">${course.price} <span className="text-[10px] font-normal text-slate-500">/ 1h session</span></span>
                         ) : null}
                         <div className={cn('flex w-full flex-wrap gap-2', isList && 'justify-end')}>
                           {isTutorOwner ? (
@@ -1234,7 +1263,7 @@ export default function PublicTutorPage() {
                           >
                             <Link href={`/${locale}/course/${course.id}`}>
                               <FileText className="mr-1 h-3 w-3" />
-                              Outline
+                              Details
                             </Link>
                           </Button>
                         </div>

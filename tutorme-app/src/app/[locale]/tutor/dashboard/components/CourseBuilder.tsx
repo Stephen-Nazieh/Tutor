@@ -678,7 +678,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         if (qIdx !== -1 && qIdx !== undefined) return `Lesson ${nIdx + 1}, Quiz ${qIdx + 1}`
       }
       return null
-    }, [nodes, loadedTaskId, loadedAssessmentId, taskBuilder.activeExtensionId, taskBuilder.extensions])
+    }, [
+      nodes,
+      loadedTaskId,
+      loadedAssessmentId,
+      taskBuilder.activeExtensionId,
+      taskBuilder.extensions,
+    ])
 
     // Load task data into taskBuilder
     const parsePciTranscript = (text: string) => {

@@ -208,7 +208,7 @@ export function MentionTextarea({
               key={`${m.id}-${i}`}
               className={cn(
                 'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium',
-                typeColors[m.type] || 'bg-gray-100 text-gray-700 border-gray-200'
+                typeColors[m.type] || 'border-gray-200 bg-gray-100 text-gray-700'
               )}
             >
               <AtSign className="h-2.5 w-2.5" />
