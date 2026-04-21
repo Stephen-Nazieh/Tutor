@@ -119,8 +119,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
         {/* We keep the inner content rendered always but hide it via overflow to prevent layout nudges */}
         <div className="flex h-full w-64 flex-col">
           <div className="flex min-w-[256px] items-center justify-between p-4">
-            <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600"></Link>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="icon"
@@ -133,6 +132,9 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
+              <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600"></Link>
+            </div>
+            <div className="flex items-center gap-1">
               <Link href="/tutor/notifications" onClick={e => e.stopPropagation()}>
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-5 w-5" />

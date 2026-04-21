@@ -99,23 +99,25 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           {/* Inner content wrapper with fixed width to prevent layout shifts when collapsing */}
           <div className="flex h-full w-64 flex-col">
             <div className="flex min-w-[256px] items-center justify-between p-4">
-              <Link
-                href="/student/dashboard"
-                className="text-lg font-bold text-blue-600"
-                aria-label="Student dashboard"
-              ></Link>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={e => {
-                  e.stopPropagation()
-                  setDesktopNavOpen(false)
-                }}
-                title="Hide Navigation"
-                className="text-gray-400"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={e => {
+                    e.stopPropagation()
+                    setDesktopNavOpen(false)
+                  }}
+                  title="Hide Navigation"
+                  className="text-gray-400"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <Link
+                  href="/student/dashboard"
+                  className="text-lg font-bold text-blue-600"
+                  aria-label="Student dashboard"
+                ></Link>
+              </div>
             </div>
 
             <nav className="flex-1 space-y-2 overflow-y-auto p-4">

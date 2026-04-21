@@ -524,6 +524,15 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
     const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
     const [comingSoonDialog, setComingSoonDialog] = useState(false)
+    const [alertDialog, setAlertDialog] = useState<{
+      open: boolean
+      title: string
+      message: string
+    }>({
+      open: false,
+      title: '',
+      message: '',
+    })
     const [sessionScheduledAt] = useState<string | null>(null)
     const [taskDmiItems, setTaskDmiItems] = useState<DMIQuestion[]>([])
     const [assessmentDmiItems, setAssessmentDmiItems] = useState<DMIQuestion[]>([])
@@ -3815,16 +3824,20 @@ FEEDBACK: [your explanation]`
                 className={cn(
                   'group gap-0 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm'
                 )}
-                onClick={e => {
+                onPointerDown={e => {
                   if (mainTab !== 'live') {
-                    setMainTab('live')
+                    // Let native click handle tab change
                   } else {
-                    // If already selected, clicking the outer tab triggers the Coming Soon modal
                     e.preventDefault()
                     e.stopPropagation()
                     if (!isSessionActive) {
                       setComingSoonDialog(true)
                     }
+                  }
+                }}
+                onClick={e => {
+                  if (mainTab !== 'live') {
+                    setMainTab('live')
                   }
                 }}
               >
@@ -3835,7 +3848,7 @@ FEEDBACK: [your explanation]`
                       ? 'cursor-pointer border-blue-200/50 group-hover:bg-blue-100/50'
                       : 'border-transparent'
                   )}
-                  onClick={e => {
+                  onPointerDown={e => {
                     if (mainTab === 'live') {
                       e.stopPropagation()
                       if (!isSessionActive) {
@@ -3867,15 +3880,19 @@ FEEDBACK: [your explanation]`
             <TabsTrigger
               value="builder"
               className="group gap-0 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
-              onClick={e => {
+              onPointerDown={e => {
                 if (mainTab !== 'builder') {
-                  setMainTab('builder')
+                  // Let native click handle tab change
                 } else {
-                  // If already selected, clicking the outer tab triggers the toggle logic
                   e.preventDefault()
                   e.stopPropagation()
                   if (isSessionActive) {
-                    toast.error('Cannot toggle Live/Draft while class is in session')
+                    setAlertDialog({
+                      open: true,
+                      title: 'Action Unavailable',
+                      message:
+                        'Cannot toggle Live/Draft mode while a class is actively in session. Please end the session first.',
+                    })
                     return
                   }
                   if (onSaveModeChange) {
@@ -3883,6 +3900,11 @@ FEEDBACK: [your explanation]`
                   } else {
                     setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
                   }
+                }
+              }}
+              onClick={e => {
+                if (mainTab !== 'builder') {
+                  setMainTab('builder')
                 }
               }}
             >
@@ -3893,12 +3915,17 @@ FEEDBACK: [your explanation]`
                     ? 'cursor-pointer border-blue-200/50 group-hover:bg-blue-100/50'
                     : 'border-transparent'
                 )}
-                onClick={e => {
+                onPointerDown={e => {
                   if (mainTab === 'builder') {
                     e.stopPropagation()
                     if (isSessionActive) {
                       e.preventDefault()
-                      toast.error('Cannot toggle Live/Draft while class is in session')
+                      setAlertDialog({
+                        open: true,
+                        title: 'Action Unavailable',
+                        message:
+                          'Cannot toggle Live/Draft mode while a class is actively in session. Please end the session first.',
+                      })
                       return
                     }
 
@@ -6904,6 +6931,35 @@ FEEDBACK: [your explanation]`
             <DialogFooter>
               <Button variant="outline" onClick={() => setComingSoonDialog(false)}>
                 Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Global Info/Alert Dialog */}
+        <Dialog
+          open={alertDialog.open}
+          onOpenChange={open => setAlertDialog(prev => ({ ...prev, open }))}
+        >
+          <DialogContent className="rounded-2xl border-orange-200 sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-orange-600">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-100 text-orange-600">
+                  !
+                </span>
+                {alertDialog.title}
+              </DialogTitle>
+              <DialogDescription className="text-base text-slate-600">
+                {alertDialog.message}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                className="border-orange-200 text-orange-700 hover:bg-orange-50 hover:text-orange-800"
+                onClick={() => setAlertDialog(prev => ({ ...prev, open: false }))}
+              >
+                Understood
               </Button>
             </DialogFooter>
           </DialogContent>
