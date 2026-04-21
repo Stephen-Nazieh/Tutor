@@ -114,11 +114,17 @@ function CourseBuilderInsightsRouteInner({
   const searchParams = useSearchParams()
   const tabFromUrl = searchParams.get('tab') as 'live' | 'builder' | 'test-pci' | null
   const [activeMainTab, setActiveMainTab] = useState<'live' | 'builder' | 'test-pci'>(
-    tabFromUrl ?? 'builder'
+    tabFromUrl ?? (insightsProps.sessionId ? 'live' : 'builder')
   )
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
   const [renameValue, setRenameValue] = useState('')
   const [leftPanelHidden, setLeftPanelHidden] = useState(false)
+
+  useEffect(() => {
+    if (insightsProps.sessionId && !tabFromUrl) {
+      setActiveMainTab('live')
+    }
+  }, [insightsProps.sessionId, tabFromUrl])
 
   const [now, setNow] = useState(new Date())
   useEffect(() => {

@@ -60,7 +60,9 @@ function TutorInsightsPageInner() {
   const [newCourseName, setNewCourseName] = useState('')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [saveMode, setSaveMode] = useState<'live' | 'draft'>('live')
+  const [saveMode, setSaveMode] = useState<'live' | 'draft'>(
+    searchParams.get('sessionId') ? 'live' : 'draft'
+  )
   const [draftCourses, setDraftCourses] = useState<CourseSummary[]>([])
 
   // Load draft courses from lesson bank localStorage

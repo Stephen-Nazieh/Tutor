@@ -3828,6 +3828,16 @@ FEEDBACK: [your explanation]`
               className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
               onClick={e => {
                 if (mainTab === 'builder') {
+                  const activeSession = insightsProps?.sessionId
+                    ? insightsProps.sessions?.find(s => s.id === insightsProps.sessionId)
+                    : null
+                  const isSessionActive = activeSession?.status === 'active'
+
+                  if (isSessionActive) {
+                    toast.error('Cannot toggle Live/Draft while class is in session')
+                    return
+                  }
+
                   if (onSaveModeChange) {
                     onSaveModeChange(saveMode === 'live' ? 'draft' : 'live')
                   } else {
