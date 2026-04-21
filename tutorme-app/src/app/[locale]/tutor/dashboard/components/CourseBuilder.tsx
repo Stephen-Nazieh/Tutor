@@ -4593,7 +4593,7 @@ FEEDBACK: [your explanation]`
                                                                   <div
                                                                     key={ext.id}
                                                                     className={cn(
-                                                                      'group/extension mb-1 ml-0 flex cursor-pointer items-center gap-2 rounded-none border px-3 py-2 text-xs shadow-sm transition-colors',
+                                                                      'group/extension mb-1 ml-0 flex cursor-pointer items-center gap-2 rounded-none border px-3 py-2 text-sm shadow-sm transition-colors',
                                                                       taskBuilder.activeExtensionId ===
                                                                         ext.id
                                                                         ? 'border-orange-200 bg-orange-50 ring-1 ring-orange-300'
@@ -4622,7 +4622,7 @@ FEEDBACK: [your explanation]`
                                                                       variant="ghost"
                                                                       size="icon"
                                                                       className={cn(
-                                                                        'h-5 w-5',
+                                                                        'h-7 w-7',
                                                                         directoryMenusAlwaysVisible
                                                                           ? 'opacity-80 hover:opacity-100'
                                                                           : 'opacity-0 group-hover/extension:opacity-100'
@@ -4696,7 +4696,7 @@ FEEDBACK: [your explanation]`
                                                                         }
                                                                       }}
                                                                     >
-                                                                      <Trash2 className="h-3 w-3 text-red-500" />
+                                                                      <Trash2 className="h-5 w-5 text-red-500" />
                                                                     </Button>
                                                                   </div>
                                                                 )
