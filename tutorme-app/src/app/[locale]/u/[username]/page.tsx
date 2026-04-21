@@ -518,7 +518,10 @@ export default function PublicTutorPage() {
   const [bookDialogOpen, setBookDialogOpen] = useState(false)
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set())
   const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null)
-  const [detailCourse, setDetailCourse] = useState<PublicTutorResponse['courses'][number] | null>(
+  const [scheduleCourse, setScheduleCourse] = useState<
+    PublicTutorResponse['courses'][number] | null
+  >(null)
+  const [detailsCourse, setDetailsCourse] = useState<PublicTutorResponse['courses'][number] | null>(
     null
   )
 
@@ -1178,7 +1181,7 @@ export default function PublicTutorPage() {
                                   type="button"
                                   onClick={e => {
                                     e.preventDefault()
-                                    setDetailCourse(course)
+                                    setScheduleCourse(course)
                                   }}
                                   className="inline-flex items-center gap-1 font-medium text-blue-600 transition-colors hover:text-blue-800 hover:underline"
                                 >
@@ -1284,15 +1287,13 @@ export default function PublicTutorPage() {
                             </>
                           )}
                           <Button
-                            asChild
                             size="sm"
                             variant="outline"
                             className={cn(isCompact && 'h-7 text-xs')}
+                            onClick={() => setDetailsCourse(course)}
                           >
-                            <Link href={`/${locale}/student/subjects/${encodeURIComponent(course.categories?.[0] || 'general')}/courses/${course.id}/details`}>
-                              <FileText className="mr-1 h-3 w-3" />
-                              Details
-                            </Link>
+                            <FileText className="mr-1 h-3 w-3" />
+                            Details
                           </Button>
                         </div>
                       </div>
@@ -1314,18 +1315,59 @@ export default function PublicTutorPage() {
         locale={locale}
       />
 
-      {/* Detail Modal */}
-      <Dialog open={!!detailCourse} onOpenChange={open => !open && setDetailCourse(null)}>
+      <Dialog open={!!detailsCourse} onOpenChange={open => !open && setDetailsCourse(null)}>
+        <DialogContent className="h-[80vh] w-[80vw] max-w-none overflow-auto">
+          <DialogHeader>
+            <DialogTitle>{detailsCourse?.name}</DialogTitle>
+            <DialogDescription>{detailsCourse?.description}</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <div className="text-xs font-medium text-slate-500">Category</div>
+                <div className="text-sm text-slate-900">
+                  {detailsCourse?.categories?.[0] || 'general'}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-xs font-medium text-slate-500">Sessions</div>
+                <div className="text-sm text-slate-900">{detailsCourse?.lessonCount} lessons</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-xs font-medium text-slate-500">Price</div>
+                <div className="text-sm text-slate-900">
+                  {detailsCourse?.isFree
+                    ? 'Free'
+                    : detailsCourse?.price != null
+                      ? `$${detailsCourse.price} / 1h session`
+                      : 'Free'}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-xs font-medium text-slate-500">Schedule</div>
+                <div className="text-sm text-slate-900">
+                  {detailsCourse?.scheduleSummary?.trim() || 'Schedule to be announced'}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={() => setDetailsCourse(null)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!scheduleCourse} onOpenChange={open => !open && setScheduleCourse(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{detailCourse?.name}</DialogTitle>
-            <DialogDescription>{detailCourse?.description}</DialogDescription>
+            <DialogTitle>{scheduleCourse?.name}</DialogTitle>
+            <DialogDescription>{scheduleCourse?.description}</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <h4 className="mb-2 text-sm font-semibold">Weekly Schedule</h4>
-            {detailCourse?.schedule && detailCourse.schedule.length > 0 ? (
+            {scheduleCourse?.schedule && scheduleCourse.schedule.length > 0 ? (
               <div className="space-y-2">
-                {detailCourse.schedule.map((slot: any, idx: number) => (
+                {scheduleCourse.schedule.map((slot: any, idx: number) => (
                   <div
                     key={idx}
                     className="flex items-center justify-between rounded-lg border bg-gray-50 p-2 text-sm"
@@ -1342,7 +1384,7 @@ export default function PublicTutorPage() {
             )}
           </div>
           <div className="flex justify-end">
-            <Button onClick={() => setDetailCourse(null)}>Close</Button>
+            <Button onClick={() => setScheduleCourse(null)}>Close</Button>
           </div>
         </DialogContent>
       </Dialog>
