@@ -5722,7 +5722,6 @@ FEEDBACK: [your explanation]`
                           <div className="mb-px flex w-full items-center rounded-full bg-gray-100 p-px shadow-sm">
                             {/* Left: current task name */}
                             <div className="flex min-w-0 flex-1 items-center gap-2 px-px py-px text-sm font-medium text-gray-500">
-                              <ListTodo className="h-4 w-4 shrink-0 text-blue-500" />
                               <span className="truncate">{taskBuilder.title || ''}</span>
                             </div>
 
@@ -5730,22 +5729,23 @@ FEEDBACK: [your explanation]`
                             <TabsList className="grid h-8 w-96 shrink-0 grid-cols-2 rounded-full border border-gray-200 bg-white p-px shadow-sm">
                               <TabsTrigger
                                 value="task"
-                                className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                className="flex w-full items-center justify-center gap-2 rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
                               >
+                                <ListTodo className="h-4 w-4 shrink-0" />
                                 Task Builder
                               </TabsTrigger>
                               <TabsTrigger
                                 value="assessment"
-                                className="w-full rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                className="flex w-full items-center justify-center gap-2 rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
                               >
                                 Assessment Builder
+                                <FileQuestion className="h-4 w-4 shrink-0" />
                               </TabsTrigger>
                             </TabsList>
 
                             {/* Right: current assessment name */}
                             <div className="flex min-w-0 flex-1 items-center justify-end gap-2 px-px py-px text-sm font-medium text-gray-500">
                               <span className="truncate">{assessmentBuilder.title || ''}</span>
-                              <FileQuestion className="h-4 w-4 shrink-0 text-indigo-500" />
                             </div>
                           </div>
 
