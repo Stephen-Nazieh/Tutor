@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 import { UserNav } from '@/components/user-nav'
 import {
   LayoutDashboard,
-  Users,
   BarChart3,
   MessageSquare,
   Settings,
@@ -44,8 +43,6 @@ const navItems: NavItem[] = [
   { href: '/tutor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/tutor/my-page', label: 'My Page', icon: Globe },
   { href: '/tutor/insights', label: 'Course Builder', icon: Lightbulb },
-
-  { href: '/tutor/group-builder', label: 'Groups', icon: Users },
   { href: '/tutor/documents', label: 'PDF Viewer', icon: FileText },
   { href: '/tutor/messages', label: 'Messages', icon: MessageSquare },
   { href: '/tutor/reports', label: 'Analytics', icon: BarChart3 },
@@ -106,16 +103,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
 
   const isAccountPage = pathname === '/tutor/settings' || pathname?.startsWith('/tutor/settings/')
 
-  const isGroupBuilder = pathname?.includes('/tutor/group-builder')
-
-  if (
-    isCourseBuilder ||
-    isCoursePublishPage ||
-    isMyPage ||
-    isInsightsPage ||
-    isAccountPage ||
-    isGroupBuilder
-  ) {
+  if (isCourseBuilder || isCoursePublishPage || isMyPage || isInsightsPage || isAccountPage) {
     return <>{children}</>
   }
 

@@ -3824,7 +3824,7 @@ FEEDBACK: [your explanation]`
                 }}
               >
                 <div
-                  className="live-pipe-zone flex cursor-pointer items-center gap-1.5 rounded-full border border-blue-200/50 bg-transparent px-3 py-1 transition-colors hover:bg-blue-100/50"
+                  className="live-pipe-zone flex cursor-pointer items-center gap-2 rounded-full border-l border-r border-blue-200/50 px-2 transition-colors hover:bg-blue-100/50"
                   onPointerDown={e => {
                     if (!isSessionActive) {
                       e.preventDefault()
@@ -3869,7 +3869,7 @@ FEEDBACK: [your explanation]`
               }}
             >
               <div
-                className="build-pipe-zone flex cursor-pointer items-center gap-1.5 rounded-full border border-blue-200/50 bg-transparent px-3 py-1 transition-colors hover:bg-blue-100/50"
+                className="build-pipe-zone flex cursor-pointer items-center gap-2 rounded-full border-l border-r border-blue-200/50 px-2 transition-colors hover:bg-blue-100/50"
                 onClick={e => {
                   e.stopPropagation()
                   e.preventDefault()

@@ -157,4 +157,36 @@ export function inferResourceType(mimeType: string): string {
   return 'other'
 }
 
+// ─── Upload Local File ────────────────────────────────────────────────────────
+
+/**
+ * Uploads a local file directly to GCS.
+ */
+export async function uploadLocalFile(
+  localPath: string,
+  key: string,
+  mimeType: string,
+  isPublic: boolean = false
+): Promise<{ url: string; key: string }> {
+  const storage = await getStorage()
+  const bucket = storage.bucket(BUCKET)
+
+  await bucket.upload(localPath, {
+    destination: key,
+    metadata: {
+      contentType: mimeType,
+      cacheControl: 'public, max-age=31536000',
+    },
+  })
+
+  if (isPublic) {
+    await bucket.file(key).makePublic()
+  }
+
+  return {
+    url: buildPublicUrl(key),
+    key,
+  }
+}
+
 export { MAX_UPLOAD_BYTES }

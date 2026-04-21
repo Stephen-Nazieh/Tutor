@@ -3,10 +3,11 @@ import { withAuth, withCsrf } from '@/lib/api/middleware'
 import type { Session } from 'next-auth'
 import path from 'path'
 import os from 'os'
-import { mkdir, writeFile, access } from 'fs/promises'
+import { mkdir, writeFile, access, unlink } from 'fs/promises'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import { Buffer } from 'buffer'
+import { isGcsConfigured, uploadLocalFile } from '@/lib/storage/gcs'
 
 const execAsync = promisify(exec)
 
@@ -96,26 +97,58 @@ export const POST = withCsrf(
       const bytes = Buffer.from(await fileObj.arrayBuffer())
       await writeFile(absolutePath, bytes)
 
+      let finalPath = absolutePath
+      let finalName = storedName
+      let finalMime = fileType
+      let convertedToPdf = false
+
       // If the file is not already a PDF, attempt to convert it to PDF.
-      let pdfUrl: string | undefined
-      let pdfName: string | undefined
       if (fileType !== 'application/pdf') {
         const pdfAbsolutePath = await convertToPdf(absolutePath, absoluteDir)
         if (pdfAbsolutePath) {
-          const pdfStoredName = path.basename(pdfAbsolutePath)
-          pdfUrl = `/api/serve-upload/documents/${userId}/${pdfStoredName}`
-          pdfName = pdfStoredName
+          finalPath = pdfAbsolutePath
+          finalName = path.basename(pdfAbsolutePath)
+          finalMime = 'application/pdf'
+          convertedToPdf = true
         }
       }
 
+      if (isGcsConfigured()) {
+        try {
+          const gcsKey = `documents/${userId}/${finalName}`
+          const uploadResult = await uploadLocalFile(finalPath, gcsKey, finalMime, true)
+
+          // Cleanup temp files
+          try {
+            await unlink(absolutePath)
+            if (convertedToPdf) await unlink(finalPath)
+          } catch (e) {
+            // Ignore cleanup errors
+          }
+
+          return NextResponse.json({
+            url: uploadResult.url,
+            name: finalName,
+            originalUrl: uploadResult.url,
+            originalName: storedName,
+            size: fileObj.size,
+            type: finalMime,
+            isPdf: finalMime === 'application/pdf',
+          })
+        } catch (uploadError: any) {
+          throw new Error(`GCS Upload Failed: ${uploadError.message}`)
+        }
+      }
+
+      // Fallback to serving locally if GCS is not configured
       return NextResponse.json({
-        url: pdfUrl || `/api/serve-upload/documents/${userId}/${storedName}`,
-        name: pdfName || storedName,
+        url: `/api/serve-upload/documents/${userId}/${finalName}`,
+        name: finalName,
         originalUrl: `/api/serve-upload/documents/${userId}/${storedName}`,
         originalName: storedName,
         size: fileObj.size,
-        type: fileType,
-        isPdf: fileType === 'application/pdf' || !!pdfUrl,
+        type: finalMime,
+        isPdf: finalMime === 'application/pdf',
       })
     } catch (err: any) {
       console.error('UPLOAD ERROR:', err)
