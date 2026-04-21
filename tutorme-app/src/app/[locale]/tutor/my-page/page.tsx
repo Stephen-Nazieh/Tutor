@@ -1342,27 +1342,6 @@ export default function TutorMyPage() {
                       </div>
                     </div>
                   </div>
-
-                  <div className="space-y-2 border-t border-[#E2E8F0] pt-4">
-                    <Label className="text-[#1F2933]">Categories</Label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {publishedCourseCategories.length > 0 ? (
-                        publishedCourseCategories.map((cat, i) => (
-                          <span
-                            key={`settings-${cat}-${i}`}
-                            className="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-[#0F172A] shadow-sm ring-1 ring-[#E2E8F0]"
-                          >
-                            {cat}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-sm text-[#64748B]">
-                          Categories are automatically populated when you publish a course with
-                          nationalities and categories.
-                        </span>
-                      )}
-                    </div>
-                  </div>
                 </div>
               </div>
             </CardContent>

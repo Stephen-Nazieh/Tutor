@@ -3822,9 +3822,8 @@ FEEDBACK: [your explanation]`
                   }
                 }}
               >
-                <button
-                  type="button"
-                  className="focus:outline-none flex items-center justify-center -ml-1 p-1 rounded-sm hover:bg-blue-100/50"
+                <div
+                  className="flex items-center gap-2 border-l border-r border-blue-200/50 px-2 cursor-pointer hover:bg-blue-100/50 rounded-sm transition-colors"
                   onPointerDown={(e) => {
                     if (!isSessionActive) {
                       e.preventDefault()
@@ -3845,8 +3844,8 @@ FEEDBACK: [your explanation]`
                       isLiveMode ? "animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : ""
                     )}
                   />
-                </button>
-                Go Live
+                  Go Live
+                </div>
               </TabsTrigger>
             )}
             <TabsTrigger
@@ -3859,30 +3858,36 @@ FEEDBACK: [your explanation]`
             <TabsTrigger
               value="builder"
               className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
-              onClick={e => {
-                if (mainTab === 'builder') {
-                  if (isSessionActive) {
-                    toast.error('Cannot toggle Live/Draft while class is in session')
-                    return
-                  }
-
-                  if (onSaveModeChange) {
-                    onSaveModeChange(saveMode === 'live' ? 'draft' : 'live')
-                  } else {
-                    setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
-                  }
-                }
-              }}
             >
-              <Radio
-                className={cn(
-                  'h-4 w-4 transition-all duration-300',
-                  isLiveMode
-                    ? 'animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
-                    : 'text-gray-400'
-                )}
-              />
-              Build
+              <div
+                className="flex items-center gap-2 border-l border-r border-blue-200/50 px-2 cursor-pointer hover:bg-blue-100/50 rounded-sm transition-colors"
+                onClick={e => {
+                  e.stopPropagation()
+                  e.preventDefault()
+                  if (mainTab === 'builder') {
+                    if (isSessionActive) {
+                      toast.error('Cannot toggle Live/Draft while class is in session')
+                      return
+                    }
+
+                    if (onSaveModeChange) {
+                      onSaveModeChange(saveMode === 'live' ? 'draft' : 'live')
+                    } else {
+                      setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
+                    }
+                  }
+                }}
+              >
+                <Radio
+                  className={cn(
+                    'h-4 w-4 transition-all duration-300',
+                    isLiveMode
+                      ? 'animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
+                      : 'text-gray-400'
+                  )}
+                />
+                Build
+              </div>
             </TabsTrigger>
           </TabsList>
 
