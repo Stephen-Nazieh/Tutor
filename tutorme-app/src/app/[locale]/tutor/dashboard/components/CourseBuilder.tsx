@@ -523,7 +523,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [testPciLoading, setTestPciLoading] = useState(false)
     const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
     const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
-    const [endSessionDialog, setEndSessionDialog] = useState(false)
+    const [comingSoonDialog, setComingSoonDialog] = useState(false)
     const [sessionScheduledAt] = useState<string | null>(null)
     const [taskDmiItems, setTaskDmiItems] = useState<DMIQuestion[]>([])
     const [assessmentDmiItems, setAssessmentDmiItems] = useState<DMIQuestion[]>([])
@@ -3807,16 +3807,13 @@ FEEDBACK: [your explanation]`
               <TabsTrigger
                 value="live"
                 className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setComingSoonDialog(true);
+                }}
               >
-                <Radio
-                  className={cn(
-                    'h-4 w-4 transition-all duration-300',
-                    (saveMode !== undefined ? saveMode === 'live' : coursePropsModal.isLive)
-                      ? 'animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
-                      : ''
-                  )}
-                />
-                Live
+                <VideoIcon className="h-4 w-4" />
+                Go Live
               </TabsTrigger>
             )}
             <TabsTrigger
@@ -3908,7 +3905,7 @@ FEEDBACK: [your explanation]`
                                 <Button
                                   size="sm"
                                   variant="destructive"
-                                  onClick={() => setEndSessionDialog(true)}
+                                  onClick={insightsProps.onEndSession}
                                   disabled={insightsProps.endingSession}
                                   className="h-7 gap-1 px-2 text-xs"
                                 >
@@ -6808,27 +6805,18 @@ FEEDBACK: [your explanation]`
             </DialogFooter>
           </DialogContent>
         </Dialog>
-        {/* End Session Confirmation Dialog */}
-        <Dialog open={endSessionDialog} onOpenChange={setEndSessionDialog}>
+        {/* Coming Soon Dialog */}
+        <Dialog open={comingSoonDialog} onOpenChange={setComingSoonDialog}>
           <DialogContent className="rounded-2xl sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>End Live Session?</DialogTitle>
+              <DialogTitle>Coming Soon!</DialogTitle>
               <DialogDescription>
-                Are you sure you want to end this live session? This action cannot be undone.
+                The Go Live feature is currently under development. Stay tuned!
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setEndSessionDialog(false)}>
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setEndSessionDialog(false)
-                  insightsProps?.onEndSession?.()
-                }}
-              >
-                End Session
+              <Button variant="outline" onClick={() => setComingSoonDialog(false)}>
+                Close
               </Button>
             </DialogFooter>
           </DialogContent>

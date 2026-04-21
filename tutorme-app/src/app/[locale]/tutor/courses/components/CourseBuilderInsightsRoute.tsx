@@ -194,7 +194,7 @@ function CourseBuilderInsightsRouteInner({
 
     // 1. Trigger save to ensure latest data is persisted
     const saveCb = (model.courseBuilderRef.current as any)?.saveAll
-    if (typeof saveCb === 'function') saveCb()
+    if (typeof saveCb === 'function') await saveCb()
 
     // 2. Get current lessons from the builder ref
     const getLessonsCb = (model.courseBuilderRef.current as any)?.getLessons
@@ -433,7 +433,7 @@ function CourseBuilderInsightsRouteInner({
                       </DropdownMenuItem>
                     )}
                     {courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
-                      <DropdownMenuItem onClick={handlePublishDraft}>Publish</DropdownMenuItem>
+                      <DropdownMenuItem onClick={handlePublishDraft}>Schedule</DropdownMenuItem>
                     )}
                     {onDeleteCourse &&
                       !insightsProps.sessionId &&
