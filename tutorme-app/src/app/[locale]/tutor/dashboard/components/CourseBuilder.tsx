@@ -3785,6 +3785,12 @@ FEEDBACK: [your explanation]`
         .filter(Boolean) as typeof nodes
     }, [nodes, searchQuery])
 
+    const activeSession = insightsProps?.sessionId
+      ? insightsProps.sessions?.find(s => s.id === insightsProps.sessionId)
+      : null
+    const isSessionActive = activeSession?.status === 'active'
+    const isLiveMode = saveMode !== undefined ? saveMode === 'live' : coursePropsModal.isLive
+
     return (
       <div
         className={cn(
@@ -3806,13 +3812,40 @@ FEEDBACK: [your explanation]`
             {insightsProps && (
               <TabsTrigger
                 value="live"
-                className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setComingSoonDialog(true);
+                className={cn(
+                  "gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm",
+                  !isSessionActive && "cursor-default"
+                )}
+                onPointerDown={(e) => {
+                  if (!isSessionActive) {
+                    e.preventDefault()
+                  }
                 }}
               >
-                <VideoIcon className="h-4 w-4" />
+                <button
+                  type="button"
+                  className="focus:outline-none flex items-center justify-center -ml-1 p-1 rounded-sm hover:bg-blue-100/50"
+                  onPointerDown={(e) => {
+                    if (!isSessionActive) {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setComingSoonDialog(true)
+                    }
+                  }}
+                  onClick={(e) => {
+                    if (!isSessionActive) {
+                      e.preventDefault()
+                      e.stopPropagation()
+                    }
+                  }}
+                >
+                  <VideoIcon
+                    className={cn(
+                      "h-4 w-4 transition-all duration-300",
+                      isLiveMode ? "animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : ""
+                    )}
+                  />
+                </button>
                 Go Live
               </TabsTrigger>
             )}
@@ -3828,11 +3861,6 @@ FEEDBACK: [your explanation]`
               className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
               onClick={e => {
                 if (mainTab === 'builder') {
-                  const activeSession = insightsProps?.sessionId
-                    ? insightsProps.sessions?.find(s => s.id === insightsProps.sessionId)
-                    : null
-                  const isSessionActive = activeSession?.status === 'active'
-
                   if (isSessionActive) {
                     toast.error('Cannot toggle Live/Draft while class is in session')
                     return
@@ -3849,7 +3877,7 @@ FEEDBACK: [your explanation]`
               <Radio
                 className={cn(
                   'h-4 w-4 transition-all duration-300',
-                  (saveMode !== undefined ? saveMode === 'live' : coursePropsModal.isLive)
+                  isLiveMode
                     ? 'animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
                     : 'text-gray-400'
                 )}
