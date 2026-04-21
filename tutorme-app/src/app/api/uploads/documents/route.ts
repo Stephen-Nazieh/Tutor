@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
 import type { Session } from 'next-auth'
 import path from 'path'
+import os from 'os'
 import { mkdir, writeFile, access } from 'fs/promises'
 import { exec } from 'child_process'
 import { promisify } from 'util'
@@ -86,7 +87,7 @@ export const POST = withCsrf(
       const timestamp = Date.now()
       const userId = session.user.id
       const relativeDir = path.posix.join('uploads', 'documents', userId)
-      const absoluteDir = path.join(process.cwd(), 'public', 'uploads', 'documents', userId)
+      const absoluteDir = path.join(os.tmpdir(), 'tutorme_uploads', 'documents', userId)
 
       await mkdir(absoluteDir, { recursive: true })
 
@@ -102,15 +103,15 @@ export const POST = withCsrf(
         const pdfAbsolutePath = await convertToPdf(absolutePath, absoluteDir)
         if (pdfAbsolutePath) {
           const pdfStoredName = path.basename(pdfAbsolutePath)
-          pdfUrl = `/${relativeDir}/${pdfStoredName}`
+          pdfUrl = `/api/serve-upload/documents/${userId}/${pdfStoredName}`
           pdfName = pdfStoredName
         }
       }
 
       return NextResponse.json({
-        url: pdfUrl || `/${relativeDir}/${storedName}`,
+        url: pdfUrl || `/api/serve-upload/documents/${userId}/${storedName}`,
         name: pdfName || storedName,
-        originalUrl: `/${relativeDir}/${storedName}`,
+        originalUrl: `/api/serve-upload/documents/${userId}/${storedName}`,
         originalName: storedName,
         size: fileObj.size,
         type: fileType,

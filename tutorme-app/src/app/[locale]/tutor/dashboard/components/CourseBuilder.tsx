@@ -3813,7 +3813,7 @@ FEEDBACK: [your explanation]`
               <TabsTrigger
                 value="live"
                 className={cn(
-                  'gap-1.5 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm',
+                  'gap-0 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm',
                   !isSessionActive && 'cursor-default'
                 )}
                 onPointerDown={e => {
@@ -3823,9 +3823,8 @@ FEEDBACK: [your explanation]`
                   }
                 }}
               >
-                <span className="pointer-events-none font-light text-blue-300/70">|</span>
                 <div
-                  className="live-pipe-zone flex cursor-pointer items-center gap-1.5 rounded-sm px-1 transition-colors hover:bg-blue-100/50"
+                  className="live-pipe-zone flex cursor-pointer items-center gap-1.5 rounded-full border border-blue-200/50 bg-transparent px-3 py-1 transition-colors hover:bg-blue-100/50"
                   onPointerDown={e => {
                     if (!isSessionActive) {
                       e.preventDefault()
@@ -3850,7 +3849,6 @@ FEEDBACK: [your explanation]`
                   />
                   Go Live
                 </div>
-                <span className="pointer-events-none font-light text-blue-300/70">|</span>
               </TabsTrigger>
             )}
             <TabsTrigger
@@ -3862,7 +3860,7 @@ FEEDBACK: [your explanation]`
             </TabsTrigger>
             <TabsTrigger
               value="builder"
-              className="gap-1.5 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
+              className="gap-0 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
               onPointerDown={e => {
                 const target = e.target as HTMLElement
                 if (!target.closest('.build-pipe-zone')) {
@@ -3870,9 +3868,8 @@ FEEDBACK: [your explanation]`
                 }
               }}
             >
-              <span className="pointer-events-none font-light text-blue-300/70">|</span>
               <div
-                className="build-pipe-zone flex cursor-pointer items-center gap-1.5 rounded-sm px-1 transition-colors hover:bg-blue-100/50"
+                className="build-pipe-zone flex cursor-pointer items-center gap-1.5 rounded-full border border-blue-200/50 bg-transparent px-3 py-1 transition-colors hover:bg-blue-100/50"
                 onClick={e => {
                   e.stopPropagation()
                   e.preventDefault()
@@ -3900,7 +3897,6 @@ FEEDBACK: [your explanation]`
                 />
                 Build
               </div>
-              <span className="pointer-events-none font-light text-blue-300/70">|</span>
             </TabsTrigger>
           </TabsList>
 
