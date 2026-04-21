@@ -508,7 +508,9 @@ export default function PublicTutorPage() {
   })
   const [catalogLayout, setCatalogLayout] = useState<'grid' | 'list' | 'compact'>('compact')
   const [courseSearchQuery, setCourseSearchQuery] = useState('')
-  const [courseSortOrder, setCourseSortOrder] = useState<'newest' | 'price_asc' | 'price_desc'>('newest')
+  const [courseSortOrder, setCourseSortOrder] = useState<'newest' | 'price_asc' | 'price_desc'>(
+    'newest'
+  )
   const [bookDialogOpen, setBookDialogOpen] = useState(false)
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set())
   const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null)
@@ -633,6 +635,28 @@ export default function PublicTutorPage() {
     }
   }
 
+  const filteredCourses = useMemo(() => {
+    let result = data?.courses ?? []
+
+    if (courseSearchQuery) {
+      const q = courseSearchQuery.toLowerCase()
+      result = result.filter(
+        c =>
+          c.name?.toLowerCase().includes(q) ||
+          c.description?.toLowerCase().includes(q) ||
+          c.categories?.some((cat: string) => cat.toLowerCase().includes(q))
+      )
+    }
+
+    if (courseSortOrder === 'price_asc') {
+      result = [...result].sort((a, b) => (a.price || 0) - (b.price || 0))
+    } else if (courseSortOrder === 'price_desc') {
+      result = [...result].sort((a, b) => (b.price || 0) - (a.price || 0))
+    }
+
+    return result
+  }, [data?.courses, courseSearchQuery, courseSortOrder])
+
   if (loading) {
     return (
       <div className="w-full p-4 sm:p-6">
@@ -660,8 +684,8 @@ export default function PublicTutorPage() {
     )
   }
 
-  const { tutor, courses } = data
-  const isTutorOwner = session?.user?.role === 'TUTOR' && session?.user?.id === tutor.id
+  const tutor = data?.tutor
+  const isTutorOwner = session?.user?.role === 'TUTOR' && session?.user?.id === tutor?.id
 
   const handleEnterClassroom = async (course: PublicTutorResponse['courses'][number]) => {
     if (!isTutorOwner) return
@@ -789,28 +813,6 @@ export default function PublicTutorPage() {
     }
   }
 
-  const filteredCourses = useMemo(() => {
-    let result = courses
-
-    if (courseSearchQuery) {
-      const q = courseSearchQuery.toLowerCase()
-      result = result.filter(
-        c =>
-          c.name?.toLowerCase().includes(q) ||
-          c.description?.toLowerCase().includes(q) ||
-          c.categories?.some((cat: string) => cat.toLowerCase().includes(q))
-      )
-    }
-
-    if (courseSortOrder === 'price_asc') {
-      result = [...result].sort((a, b) => (a.price || 0) - (b.price || 0))
-    } else if (courseSortOrder === 'price_desc') {
-      result = [...result].sort((a, b) => (b.price || 0) - (a.price || 0))
-    }
-
-    return result
-  }, [courses, courseSearchQuery, courseSortOrder])
-
   return (
     <div className="w-full space-y-6 p-4 sm:p-6">
       <section className="relative overflow-hidden rounded-[32px] border border-[#E2E8F0] bg-white/95 p-8 shadow-lg">
@@ -851,7 +853,9 @@ export default function PublicTutorPage() {
                   Active Courses
                 </div>
                 <div className="mt-1 text-sm font-medium text-[#0F172A]">
-                  {typeof tutor.activeCourses === 'number' ? tutor.activeCourses : courses.length}
+                  {typeof tutor.activeCourses === 'number'
+                    ? tutor.activeCourses
+                    : (data?.courses?.length ?? 0)}
                 </div>
               </div>
 
@@ -1016,7 +1020,10 @@ export default function PublicTutorPage() {
                     onChange={e => setCourseSearchQuery(e.target.value)}
                   />
                 </div>
-                <Select value={courseSortOrder} onValueChange={(val: any) => setCourseSortOrder(val)}>
+                <Select
+                  value={courseSortOrder}
+                  onValueChange={(val: any) => setCourseSortOrder(val)}
+                >
                   <SelectTrigger className="h-9 w-[140px]">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
@@ -1196,7 +1203,12 @@ export default function PublicTutorPage() {
                       >
                         <StarRating rating={course.rating ?? null} count={course.reviewCount} />
                         {course.price ? (
-                          <span className="text-sm font-bold text-slate-900">${course.price} <span className="text-[10px] font-normal text-slate-500">/ 1h session</span></span>
+                          <span className="text-sm font-bold text-slate-900">
+                            ${course.price}{' '}
+                            <span className="text-[10px] font-normal text-slate-500">
+                              / 1h session
+                            </span>
+                          </span>
                         ) : null}
                         <div className={cn('flex w-full flex-wrap gap-2', isList && 'justify-end')}>
                           {isTutorOwner ? (

@@ -17,7 +17,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { ArrowLeft, Loader2, BookOpen, MoreVertical, RefreshCw, Plus, Timer, LayoutTemplate } from 'lucide-react'
+import {
+  ArrowLeft,
+  Loader2,
+  BookOpen,
+  MoreVertical,
+  RefreshCw,
+  Plus,
+  Timer,
+  LayoutTemplate,
+} from 'lucide-react'
 import Link from 'next/link'
 import {
   Select,
@@ -281,7 +290,7 @@ function CourseBuilderInsightsRouteInner({
             Directory
           </button>
           {onSaveModeChange && activeMainTab === 'builder' && (
-            <div className="flex items-center rounded-md bg-muted/40 p-px">
+            <div className="bg-muted/40 flex items-center rounded-md p-px">
               <button
                 type="button"
                 className={cn(

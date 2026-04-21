@@ -506,7 +506,7 @@ function TutorDashboardContent() {
   const getNextSessionText = () => {
     if (!classes || classes.length === 0) return null
     const now = new Date().getTime()
-    
+
     // Find the first class that is in the future
     const upcoming = classes
       .map(c => ({ ...c, time: new Date(c.scheduledAt).getTime() }))
@@ -520,7 +520,12 @@ function TutorDashboardContent() {
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
 
     if (hours > 48) {
-      return new Date(upcoming.time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+      return new Date(upcoming.time).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
     }
     if (hours > 0) return `in ${hours}h ${minutes}m`
     return `in ${minutes}m`

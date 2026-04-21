@@ -32,7 +32,11 @@ export function MentionTextarea({
   const [query, setQuery] = useState('')
   const [highlightedIndex, setHighlightedIndex] = useState(0)
   const [cursorPos, setCursorPos] = useState(0)
-  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number } | null>(null)
+  const [dropdownPos, setDropdownPos] = useState<{
+    top: number
+    left: number
+    width: number
+  } | null>(null)
   const [mounted, setMounted] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -267,9 +271,7 @@ export function MentionTextarea({
           </span>
           <div className="min-w-0">
             <p className="truncate font-medium text-gray-900">{item.label}</p>
-            {item.subtitle && (
-              <p className="truncate text-[10px] text-gray-500">{item.subtitle}</p>
-            )}
+            {item.subtitle && <p className="truncate text-[10px] text-gray-500">{item.subtitle}</p>}
           </div>
         </button>
       ))}

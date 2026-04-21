@@ -59,7 +59,11 @@ interface ClassEvent {
   subject: string
 }
 
-export function ModernHeroSection({ stats, loading, nextSession }: ModernHeroSectionProps & { nextSession?: string }) {
+export function ModernHeroSection({
+  stats,
+  loading,
+  nextSession,
+}: ModernHeroSectionProps & { nextSession?: string }) {
   const { data: session } = useSession()
   const [greeting, setGreeting] = useState('Good morning')
   const [currentTime, setCurrentTime] = useState(new Date())

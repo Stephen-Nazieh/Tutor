@@ -376,13 +376,16 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [loadTaskMode, setLoadTaskMode] = useState<'single' | 'multi'>('single')
     const [leftPanelHiddenInternal, setLeftPanelHiddenInternal] = useState(false)
     const leftPanelHidden = leftPanelHiddenProp ?? leftPanelHiddenInternal
-    const setLeftPanelHidden = useCallback((value: boolean) => {
-      if (onLeftPanelHiddenChange) {
-        onLeftPanelHiddenChange(value)
-      } else {
-        setLeftPanelHiddenInternal(value)
-      }
-    }, [onLeftPanelHiddenChange])
+    const setLeftPanelHidden = useCallback(
+      (value: boolean) => {
+        if (onLeftPanelHiddenChange) {
+          onLeftPanelHiddenChange(value)
+        } else {
+          setLeftPanelHiddenInternal(value)
+        }
+      },
+      [onLeftPanelHiddenChange]
+    )
     const [leftPanelWidth, setLeftPanelWidth] = useState(340)
     const [leftPanelResizing, setLeftPanelResizing] = useState(false)
     const leftPanelRef = useRef<HTMLDivElement>(null)
@@ -4084,27 +4087,40 @@ FEEDBACK: [your explanation]`
                                                             onClick={e => e.stopPropagation()}
                                                             onBlur={e => {
                                                               const newTitle = e.target.value.trim()
-                                                              if (newTitle && newTitle !== task.title) {
+                                                              if (
+                                                                newTitle &&
+                                                                newTitle !== task.title
+                                                              ) {
                                                                 setCourseBuilderNodes(prev =>
                                                                   prev.map(n => ({
                                                                     ...n,
                                                                     lessons: n.lessons.map(l => ({
                                                                       ...l,
                                                                       tasks: l.tasks.map(t =>
-                                                                        t.id === task.id ? { ...t, title: newTitle } : t
+                                                                        t.id === task.id
+                                                                          ? {
+                                                                              ...t,
+                                                                              title: newTitle,
+                                                                            }
+                                                                          : t
                                                                       ),
                                                                     })),
                                                                   }))
                                                                 )
                                                                 if (loadedTaskId === task.id) {
-                                                                  setTaskBuilder(prev => ({ ...prev, title: newTitle }))
+                                                                  setTaskBuilder(prev => ({
+                                                                    ...prev,
+                                                                    title: newTitle,
+                                                                  }))
                                                                 }
                                                               }
                                                               setRenamingItemId(null)
                                                             }}
                                                             onKeyDown={e => {
                                                               if (e.key === 'Enter') {
-                                                                (e.target as HTMLInputElement).blur()
+                                                                ;(
+                                                                  e.target as HTMLInputElement
+                                                                ).blur()
                                                               }
                                                             }}
                                                           />
@@ -4621,20 +4637,25 @@ FEEDBACK: [your explanation]`
                                                                   lessons: n.lessons.map(l => ({
                                                                     ...l,
                                                                     homework: l.homework.map(h =>
-                                                                      h.id === hw.id ? { ...h, title: newTitle } : h
+                                                                      h.id === hw.id
+                                                                        ? { ...h, title: newTitle }
+                                                                        : h
                                                                     ),
                                                                   })),
                                                                 }))
                                                               )
                                                               if (loadedAssessmentId === hw.id) {
-                                                                setAssessmentBuilder(prev => ({ ...prev, title: newTitle }))
+                                                                setAssessmentBuilder(prev => ({
+                                                                  ...prev,
+                                                                  title: newTitle,
+                                                                }))
                                                               }
                                                             }
                                                             setRenamingItemId(null)
                                                           }}
                                                           onKeyDown={e => {
                                                             if (e.key === 'Enter') {
-                                                              (e.target as HTMLInputElement).blur()
+                                                              ;(e.target as HTMLInputElement).blur()
                                                             }
                                                           }}
                                                         />
@@ -4763,149 +4784,169 @@ FEEDBACK: [your explanation]`
                                                     strategy={verticalListSortingStrategy}
                                                   >
                                                     {hwItems.map((hw, hwIdx) => (
-                                                    <SortableTreeItem
-                                                      key={hw.id}
-                                                      id={hw.id}
-                                                      depth={0}
-                                                      dragHandle={false}
-                                                      isLast={hwIdx === hwItems.length - 1}
-                                                    >
-                                                      <div
-                                                        className={cn(
-                                                          'group/item mb-1 ml-0 mr-0 flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors',
-                                                          selectedItem?.type === 'homework' &&
-                                                            selectedItem?.id === hw.id
-                                                            ? 'border-emerald-200 bg-emerald-50 ring-1 ring-emerald-300'
-                                                            : 'border-transparent bg-emerald-50 hover:bg-emerald-100'
-                                                        )}
-                                                        onClick={() => {
-                                                          setSelectedItem({
-                                                            type: 'homework',
-                                                            id: hw.id,
-                                                          })
-                                                          loadAssessmentIntoBuilder(hw)
-                                                          setMainBuilderTab('assessment')
-                                                        }}
+                                                      <SortableTreeItem
+                                                        key={hw.id}
+                                                        id={hw.id}
+                                                        depth={0}
+                                                        dragHandle={false}
+                                                        isLast={hwIdx === hwItems.length - 1}
                                                       >
-                                                        <DragHandle className="shrink-0" />
-                                                        <FileQuestion className="h-3 w-3 shrink-0 text-emerald-600" />
-                                                        {renamingItemId === hw.id ? (
-                                                          <Input
-                                                            autoFocus
-                                                            defaultValue={hw.title}
-                                                            className="h-6 flex-1 text-xs font-semibold text-emerald-700"
-                                                            onClick={e => e.stopPropagation()}
-                                                            onBlur={e => {
-                                                              const newTitle = e.target.value.trim()
-                                                              if (newTitle && newTitle !== hw.title) {
-                                                                setCourseBuilderNodes(prev =>
-                                                                  prev.map(n => ({
-                                                                    ...n,
-                                                                    lessons: n.lessons.map(l => ({
-                                                                      ...l,
-                                                                      homework: l.homework.map(h =>
-                                                                        h.id === hw.id ? { ...h, title: newTitle } : h
-                                                                      ),
-                                                                    })),
-                                                                  }))
-                                                                )
-                                                                if (loadedAssessmentId === hw.id) {
-                                                                  setAssessmentBuilder(prev => ({ ...prev, title: newTitle }))
-                                                                }
-                                                              }
-                                                              setRenamingItemId(null)
-                                                            }}
-                                                            onKeyDown={e => {
-                                                              if (e.key === 'Enter') {
-                                                                (e.target as HTMLInputElement).blur()
-                                                              }
-                                                            }}
-                                                          />
-                                                        ) : (
-                                                          <span className="flex-1 truncate text-xs font-semibold text-emerald-700">
-                                                            {hwIdx + 1}. {hw.title}
-                                                          </span>
-                                                        )}
-                                                        <DropdownMenu>
-                                                          <DropdownMenuTrigger asChild>
-                                                            <Button
-                                                              variant="ghost"
-                                                              size="icon"
-                                                              className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                                        <div
+                                                          className={cn(
+                                                            'group/item mb-1 ml-0 mr-0 flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors',
+                                                            selectedItem?.type === 'homework' &&
+                                                              selectedItem?.id === hw.id
+                                                              ? 'border-emerald-200 bg-emerald-50 ring-1 ring-emerald-300'
+                                                              : 'border-transparent bg-emerald-50 hover:bg-emerald-100'
+                                                          )}
+                                                          onClick={() => {
+                                                            setSelectedItem({
+                                                              type: 'homework',
+                                                              id: hw.id,
+                                                            })
+                                                            loadAssessmentIntoBuilder(hw)
+                                                            setMainBuilderTab('assessment')
+                                                          }}
+                                                        >
+                                                          <DragHandle className="shrink-0" />
+                                                          <FileQuestion className="h-3 w-3 shrink-0 text-emerald-600" />
+                                                          {renamingItemId === hw.id ? (
+                                                            <Input
+                                                              autoFocus
+                                                              defaultValue={hw.title}
+                                                              className="h-6 flex-1 text-xs font-semibold text-emerald-700"
                                                               onClick={e => e.stopPropagation()}
-                                                            >
-                                                              <MoreVertical className="h-3 w-3 text-slate-500" />
-                                                            </Button>
-                                                          </DropdownMenuTrigger>
-                                                          <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem
-                                                              onClick={e => {
-                                                                e.stopPropagation()
-                                                                setRenamingItemId(hw.id)
-                                                              }}
-                                                            >
-                                                              Rename
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                              onClick={e => {
-                                                                e.stopPropagation()
-                                                                setEditingData(hw)
-                                                                setActiveModal({
-                                                                  type: 'homework',
-                                                                  isOpen: true,
-                                                                  nodeId: node.id,
-                                                                  lessonId: primaryLesson.id,
-                                                                  itemId: hw.id,
-                                                                })
-                                                              }}
-                                                            >
-                                                              Edit
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                              className="text-red-500"
-                                                              onClick={e => {
-                                                                e.stopPropagation()
+                                                              onBlur={e => {
+                                                                const newTitle =
+                                                                  e.target.value.trim()
                                                                 if (
-                                                                  !confirm(`Delete "${hw.title}"?`)
-                                                                )
-                                                                  return
-                                                                setCourseBuilderNodes(prev =>
-                                                                  prev.map(mod =>
-                                                                    mod.id !== node.id
-                                                                      ? mod
-                                                                      : {
-                                                                          ...mod,
-                                                                          lessons: mod.lessons.map(
-                                                                            les =>
-                                                                              les.id !==
-                                                                              primaryLesson.id
-                                                                                ? les
-                                                                                : {
-                                                                                    ...les,
-                                                                                    homework: (
-                                                                                      les.homework ||
-                                                                                      []
-                                                                                    ).filter(
-                                                                                      x =>
-                                                                                        x.id !==
-                                                                                        hw.id
-                                                                                    ),
-                                                                                  }
-                                                                          ),
-                                                                        }
+                                                                  newTitle &&
+                                                                  newTitle !== hw.title
+                                                                ) {
+                                                                  setCourseBuilderNodes(prev =>
+                                                                    prev.map(n => ({
+                                                                      ...n,
+                                                                      lessons: n.lessons.map(l => ({
+                                                                        ...l,
+                                                                        homework: l.homework.map(
+                                                                          h =>
+                                                                            h.id === hw.id
+                                                                              ? {
+                                                                                  ...h,
+                                                                                  title: newTitle,
+                                                                                }
+                                                                              : h
+                                                                        ),
+                                                                      })),
+                                                                    }))
                                                                   )
-                                                                )
+                                                                  if (
+                                                                    loadedAssessmentId === hw.id
+                                                                  ) {
+                                                                    setAssessmentBuilder(prev => ({
+                                                                      ...prev,
+                                                                      title: newTitle,
+                                                                    }))
+                                                                  }
+                                                                }
+                                                                setRenamingItemId(null)
                                                               }}
-                                                            >
-                                                              Delete
-                                                            </DropdownMenuItem>
-                                                          </DropdownMenuContent>
-                                                        </DropdownMenu>
-                                                      </div>
-                                                    </SortableTreeItem>
-                                                  ))}
-                                                </SortableContext>
-                                              )}
+                                                              onKeyDown={e => {
+                                                                if (e.key === 'Enter') {
+                                                                  ;(
+                                                                    e.target as HTMLInputElement
+                                                                  ).blur()
+                                                                }
+                                                              }}
+                                                            />
+                                                          ) : (
+                                                            <span className="flex-1 truncate text-xs font-semibold text-emerald-700">
+                                                              {hwIdx + 1}. {hw.title}
+                                                            </span>
+                                                          )}
+                                                          <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                              <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                                                onClick={e => e.stopPropagation()}
+                                                              >
+                                                                <MoreVertical className="h-3 w-3 text-slate-500" />
+                                                              </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                              <DropdownMenuItem
+                                                                onClick={e => {
+                                                                  e.stopPropagation()
+                                                                  setRenamingItemId(hw.id)
+                                                                }}
+                                                              >
+                                                                Rename
+                                                              </DropdownMenuItem>
+                                                              <DropdownMenuItem
+                                                                onClick={e => {
+                                                                  e.stopPropagation()
+                                                                  setEditingData(hw)
+                                                                  setActiveModal({
+                                                                    type: 'homework',
+                                                                    isOpen: true,
+                                                                    nodeId: node.id,
+                                                                    lessonId: primaryLesson.id,
+                                                                    itemId: hw.id,
+                                                                  })
+                                                                }}
+                                                              >
+                                                                Edit
+                                                              </DropdownMenuItem>
+                                                              <DropdownMenuItem
+                                                                className="text-red-500"
+                                                                onClick={e => {
+                                                                  e.stopPropagation()
+                                                                  if (
+                                                                    !confirm(
+                                                                      `Delete "${hw.title}"?`
+                                                                    )
+                                                                  )
+                                                                    return
+                                                                  setCourseBuilderNodes(prev =>
+                                                                    prev.map(mod =>
+                                                                      mod.id !== node.id
+                                                                        ? mod
+                                                                        : {
+                                                                            ...mod,
+                                                                            lessons:
+                                                                              mod.lessons.map(
+                                                                                les =>
+                                                                                  les.id !==
+                                                                                  primaryLesson.id
+                                                                                    ? les
+                                                                                    : {
+                                                                                        ...les,
+                                                                                        homework: (
+                                                                                          les.homework ||
+                                                                                          []
+                                                                                        ).filter(
+                                                                                          x =>
+                                                                                            x.id !==
+                                                                                            hw.id
+                                                                                        ),
+                                                                                      }
+                                                                              ),
+                                                                          }
+                                                                    )
+                                                                  )
+                                                                }}
+                                                              >
+                                                                Delete
+                                                              </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                          </DropdownMenu>
+                                                        </div>
+                                                      </SortableTreeItem>
+                                                    ))}
+                                                  </SortableContext>
+                                                )}
                                               </>
                                             )
                                           })()}
@@ -5369,22 +5410,20 @@ FEEDBACK: [your explanation]`
                             {/* Left: current task name */}
                             <div className="flex min-w-0 flex-1 items-center gap-2 px-2 py-1 text-sm font-medium text-gray-500">
                               <ListTodo className="h-4 w-4 shrink-0 text-blue-500" />
-                              <span className="truncate">
-                                {taskBuilder.title || ''}
-                              </span>
+                              <span className="truncate">{taskBuilder.title || ''}</span>
                             </div>
 
                             {/* Center: tabs with curved outer edges when active */}
                             <TabsList className="flex shrink-0 gap-0 bg-transparent p-0">
                               <TabsTrigger
                                 value="task"
-                                className="relative w-52 justify-end overflow-visible py-1 pr-5 text-right text-sm font-medium transition-all data-[state=inactive]:bg-gray-200/60 data-[state=inactive]:text-gray-500 data-[state=active]:rounded-l-xl data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:before:absolute data-[state=active]:before:bottom-0 data-[state=active]:before:left-0 data-[state=active]:before:z-10 data-[state=active]:before:h-8 data-[state=active]:before:w-8 data-[state=active]:before:bg-gray-100 data-[state=active]:before:rounded-tr-full"
+                                className="relative w-52 justify-end overflow-visible py-1 pr-5 text-right text-sm font-medium transition-all data-[state=active]:rounded-l-xl data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-200/60 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=inactive]:text-gray-500 data-[state=active]:before:absolute data-[state=active]:before:bottom-0 data-[state=active]:before:left-0 data-[state=active]:before:z-10 data-[state=active]:before:h-8 data-[state=active]:before:w-8 data-[state=active]:before:rounded-tr-full data-[state=active]:before:bg-gray-100"
                               >
                                 Task Builder
                               </TabsTrigger>
                               <TabsTrigger
                                 value="assessment"
-                                className="relative w-52 justify-start overflow-visible py-1 pl-5 text-left text-sm font-medium transition-all data-[state=inactive]:bg-gray-200/60 data-[state=inactive]:text-gray-500 data-[state=active]:rounded-r-xl data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:right-0 data-[state=active]:after:z-10 data-[state=active]:after:h-8 data-[state=active]:after:w-8 data-[state=active]:after:bg-gray-100 data-[state=active]:after:rounded-tl-full"
+                                className="relative w-52 justify-start overflow-visible py-1 pl-5 text-left text-sm font-medium transition-all data-[state=active]:rounded-r-xl data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-200/60 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=inactive]:text-gray-500 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:right-0 data-[state=active]:after:z-10 data-[state=active]:after:h-8 data-[state=active]:after:w-8 data-[state=active]:after:rounded-tl-full data-[state=active]:after:bg-gray-100"
                               >
                                 Assessment Builder
                               </TabsTrigger>
@@ -5392,9 +5431,7 @@ FEEDBACK: [your explanation]`
 
                             {/* Right: current assessment name */}
                             <div className="flex min-w-0 flex-1 items-center justify-end gap-2 px-2 py-1 text-sm font-medium text-gray-500">
-                              <span className="truncate">
-                                {assessmentBuilder.title || ''}
-                              </span>
+                              <span className="truncate">{assessmentBuilder.title || ''}</span>
                               <FileQuestion className="h-4 w-4 shrink-0 text-indigo-500" />
                             </div>
                           </div>
@@ -5406,603 +5443,612 @@ FEEDBACK: [your explanation]`
                               value="task"
                               className="flex h-full flex-col space-y-1 overflow-hidden data-[state=inactive]:hidden"
                             >
-                            <div className="flex flex-1 gap-4 overflow-hidden">
-                              {/* Main content with tabs */}
-                              <div className="flex flex-1 flex-col overflow-hidden">
-                                <Tabs
-                                  value={taskBuilderActiveTab}
-                                  onValueChange={v => {
-                                    setTaskBuilderActiveTab(v as 'content' | 'pci')
-                                  }}
-                                  className="flex h-full w-full flex-col"
-                                >
-                                  <TabsList className="grid h-8 w-full grid-cols-2 rounded-full border border-gray-200 bg-white p-px shadow-sm">
-                                    <TabsTrigger
-                                      value="content"
-                                      className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
-                                    >
-                                      Slide
-                                    </TabsTrigger>
-                                    <TabsTrigger
-                                      value="pci"
-                                      className="w-full rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
-                                    >
-                                      PCI
-                                    </TabsTrigger>
-                                  </TabsList>
-                                  <TabsContent
-                                    value="content"
-                                    className="mt-0.5 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                              <div className="flex flex-1 gap-4 overflow-hidden">
+                                {/* Main content with tabs */}
+                                <div className="flex flex-1 flex-col overflow-hidden">
+                                  <Tabs
+                                    value={taskBuilderActiveTab}
+                                    onValueChange={v => {
+                                      setTaskBuilderActiveTab(v as 'content' | 'pci')
+                                    }}
+                                    className="flex h-full w-full flex-col"
                                   >
-                                    <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
-                                      <AutoTextarea
-                                        placeholder={
-                                          taskBuilder.activeExtensionId
-                                            ? 'Extension content...'
-                                            : 'Enter task content or drop files here...'
-                                        }
-                                        className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                                        disableAutoResize
-                                        onDrop={(e: any) =>
-                                          handleDragFiles(
-                                            e,
-                                            text => {
-                                              setTaskBuilder(prev => {
-                                                if (prev.activeExtensionId) {
-                                                  const ext = prev.extensions.find(
-                                                    x => x.id === prev.activeExtensionId
-                                                  )
-                                                  const combined = ext
-                                                    ? ext.content +
-                                                      (ext.content ? '\n\n' : '') +
+                                    <TabsList className="grid h-8 w-full grid-cols-2 rounded-full border border-gray-200 bg-white p-px shadow-sm">
+                                      <TabsTrigger
+                                        value="content"
+                                        className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                      >
+                                        Slide
+                                      </TabsTrigger>
+                                      <TabsTrigger
+                                        value="pci"
+                                        className="w-full rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                      >
+                                        PCI
+                                      </TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent
+                                      value="content"
+                                      className="mt-0.5 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                                    >
+                                      <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
+                                        <AutoTextarea
+                                          placeholder={
+                                            taskBuilder.activeExtensionId
+                                              ? 'Extension content...'
+                                              : 'Enter task content or drop files here...'
+                                          }
+                                          className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                          disableAutoResize
+                                          onDrop={(e: any) =>
+                                            handleDragFiles(
+                                              e,
+                                              text => {
+                                                setTaskBuilder(prev => {
+                                                  if (prev.activeExtensionId) {
+                                                    const ext = prev.extensions.find(
+                                                      x => x.id === prev.activeExtensionId
+                                                    )
+                                                    const combined = ext
+                                                      ? ext.content +
+                                                        (ext.content ? '\n\n' : '') +
+                                                        text
+                                                      : text
+                                                    return {
+                                                      ...prev,
+                                                      extensions: prev.extensions.map(x =>
+                                                        x.id === prev.activeExtensionId
+                                                          ? { ...x, content: combined }
+                                                          : x
+                                                      ),
+                                                    }
+                                                  } else {
+                                                    const combined =
+                                                      prev.taskContent +
+                                                      (prev.taskContent ? '\n\n' : '') +
                                                       text
-                                                    : text
-                                                  return {
-                                                    ...prev,
-                                                    extensions: prev.extensions.map(x =>
-                                                      x.id === prev.activeExtensionId
-                                                        ? { ...x, content: combined }
-                                                        : x
-                                                    ),
+                                                    return {
+                                                      ...prev,
+                                                      taskContent: combined,
+                                                    }
                                                   }
-                                                } else {
-                                                  const combined =
-                                                    prev.taskContent +
-                                                    (prev.taskContent ? '\n\n' : '') +
-                                                    text
-                                                  return {
-                                                    ...prev,
-                                                    taskContent: combined,
-                                                  }
+                                                })
+                                              },
+                                              'task'
+                                            )
+                                          }
+                                          // Show task content if no extension active, otherwise show active extension's content
+                                          value={
+                                            taskBuilder.activeExtensionId
+                                              ? taskBuilder.extensions.find(
+                                                  e => e.id === taskBuilder.activeExtensionId
+                                                )?.content || ''
+                                              : taskBuilder.taskContent
+                                          }
+                                          onChange={(e: any) => {
+                                            const newContent = e.target.value
+                                            // Auto-create task if none loaded
+                                            if (!loadedTaskId && !taskBuilder.activeExtensionId) {
+                                              autoCreateTask()
+                                            }
+                                            if (taskBuilder.activeExtensionId) {
+                                              // Update extension content
+                                              setTaskBuilder(prev => {
+                                                return {
+                                                  ...prev,
+                                                  extensions: prev.extensions.map(ext =>
+                                                    ext.id === prev.activeExtensionId
+                                                      ? { ...ext, content: newContent }
+                                                      : ext
+                                                  ),
                                                 }
                                               })
-                                            },
-                                            'task'
-                                          )
-                                        }
-                                        // Show task content if no extension active, otherwise show active extension's content
-                                        value={
-                                          taskBuilder.activeExtensionId
-                                            ? taskBuilder.extensions.find(
-                                                e => e.id === taskBuilder.activeExtensionId
-                                              )?.content || ''
-                                            : taskBuilder.taskContent
-                                        }
-                                        onChange={(e: any) => {
-                                          const newContent = e.target.value
-                                          // Auto-create task if none loaded
-                                          if (!loadedTaskId && !taskBuilder.activeExtensionId) {
-                                            autoCreateTask()
-                                          }
-                                          if (taskBuilder.activeExtensionId) {
-                                            // Update extension content
-                                            setTaskBuilder(prev => {
-                                              return {
+                                            } else {
+                                              // Update task content
+                                              setTaskBuilder(prev => ({
                                                 ...prev,
-                                                extensions: prev.extensions.map(ext =>
-                                                  ext.id === prev.activeExtensionId
-                                                    ? { ...ext, content: newContent }
-                                                    : ext
-                                                ),
-                                              }
-                                            })
-                                          } else {
-                                            // Update task content
-                                            setTaskBuilder(prev => ({
-                                              ...prev,
-                                              taskContent: newContent,
-                                            }))
-                                          }
-                                        }}
-                                      />
-                                      {!taskBuilder.activeExtensionId &&
-                                        taskSourceDocument?.mimeType === 'application/pdf' && (
-                                          <div className="shrink-0 border-t">
-                                            <iframe
-                                              src={taskSourceDocument.fileUrl}
-                                              title={taskSourceDocument.fileName}
-                                              className="h-48 w-full"
-                                            />
-                                          </div>
-                                        )}
-                                      {!taskBuilder.activeExtensionId &&
-                                        taskSourceDocument &&
-                                        taskSourceDocument.mimeType !== 'application/pdf' &&
-                                        taskSourceDocument.mimeType.startsWith('image/') && (
-                                          <div className="shrink-0 border-t p-2">
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img
-                                              src={taskSourceDocument.fileUrl}
-                                              alt={taskSourceDocument.fileName}
-                                              className="h-48 w-full object-contain"
-                                            />
-                                          </div>
-                                        )}
-                                      {!taskBuilder.activeExtensionId &&
-                                        taskSourceDocument &&
-                                        taskSourceDocument.mimeType !== 'application/pdf' &&
-                                        !taskSourceDocument.mimeType.startsWith('image/') && (
-                                          <div className="flex shrink-0 items-center gap-2 border-t bg-gray-50 p-2">
-                                            <FileText className="h-4 w-4 text-blue-600" />
-                                            <a
-                                              href={taskSourceDocument.fileUrl}
-                                              target="_blank"
-                                              rel="noreferrer"
-                                              className="text-xs text-blue-600 underline"
-                                            >
-                                              Open {taskSourceDocument.fileName}
-                                            </a>
-                                          </div>
-                                        )}
-                                    </div>
-                                    {/* Uploaded Files List - only show for task (not extensions) */}
-                                    {/* Upload button - only for task (not extensions) */}
-                                    {/* Assets Folder added to Slide Tab removed from here */}
-                                  </TabsContent>
-                                  <TabsContent
-                                    value="pci"
-                                    className="mt-0.5 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
-                                  >
-                                    <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
-                                      <div className="flex-1 space-y-1 overflow-y-auto p-1">
-                                        {activeTaskPciMessages.length === 0 && (
-                                          <p className="text-muted-foreground text-xs">
-                                            Start a PCI chat to build instructions with the
-                                            assistant.
-                                          </p>
-                                        )}
-                                        {activeTaskPciMessages.map((msg, idx) => (
-                                          <div
-                                            key={idx}
-                                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                          >
+                                                taskContent: newContent,
+                                              }))
+                                            }
+                                          }}
+                                        />
+                                        {!taskBuilder.activeExtensionId &&
+                                          taskSourceDocument?.mimeType === 'application/pdf' && (
+                                            <div className="shrink-0 border-t">
+                                              <iframe
+                                                src={taskSourceDocument.fileUrl}
+                                                title={taskSourceDocument.fileName}
+                                                className="h-48 w-full"
+                                              />
+                                            </div>
+                                          )}
+                                        {!taskBuilder.activeExtensionId &&
+                                          taskSourceDocument &&
+                                          taskSourceDocument.mimeType !== 'application/pdf' &&
+                                          taskSourceDocument.mimeType.startsWith('image/') && (
+                                            <div className="shrink-0 border-t p-2">
+                                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                                              <img
+                                                src={taskSourceDocument.fileUrl}
+                                                alt={taskSourceDocument.fileName}
+                                                className="h-48 w-full object-contain"
+                                              />
+                                            </div>
+                                          )}
+                                        {!taskBuilder.activeExtensionId &&
+                                          taskSourceDocument &&
+                                          taskSourceDocument.mimeType !== 'application/pdf' &&
+                                          !taskSourceDocument.mimeType.startsWith('image/') && (
+                                            <div className="flex shrink-0 items-center gap-2 border-t bg-gray-50 p-2">
+                                              <FileText className="h-4 w-4 text-blue-600" />
+                                              <a
+                                                href={taskSourceDocument.fileUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-xs text-blue-600 underline"
+                                              >
+                                                Open {taskSourceDocument.fileName}
+                                              </a>
+                                            </div>
+                                          )}
+                                      </div>
+                                      {/* Uploaded Files List - only show for task (not extensions) */}
+                                      {/* Upload button - only for task (not extensions) */}
+                                      {/* Assets Folder added to Slide Tab removed from here */}
+                                    </TabsContent>
+                                    <TabsContent
+                                      value="pci"
+                                      className="mt-0.5 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                                    >
+                                      <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
+                                        <div className="flex-1 space-y-1 overflow-y-auto p-1">
+                                          {activeTaskPciMessages.length === 0 && (
+                                            <p className="text-muted-foreground text-xs">
+                                              Start a PCI chat to build instructions with the
+                                              assistant.
+                                            </p>
+                                          )}
+                                          {activeTaskPciMessages.map((msg, idx) => (
                                             <div
-                                              className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-                                                msg.role === 'user'
-                                                  ? 'bg-blue-50 text-gray-900'
-                                                  : 'bg-gray-100 text-gray-800'
-                                              }`}
+                                              key={idx}
+                                              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                             >
-                                              <div className="whitespace-pre-wrap">
-                                                {msg.content}
+                                              <div
+                                                className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                                                  msg.role === 'user'
+                                                    ? 'bg-blue-50 text-gray-900'
+                                                    : 'bg-gray-100 text-gray-800'
+                                                }`}
+                                              >
+                                                <div className="whitespace-pre-wrap">
+                                                  {msg.content}
+                                                </div>
                                               </div>
                                             </div>
-                                          </div>
-                                        ))}
-                                        {taskPciLoading && (
-                                          <div className="flex justify-start">
-                                            <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
-                                              <Loader2 className="h-4 w-4 animate-spin" />
-                                              <span className="text-xs text-gray-600">
-                                                Thinking...
-                                              </span>
+                                          ))}
+                                          {taskPciLoading && (
+                                            <div className="flex justify-start">
+                                              <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                <span className="text-xs text-gray-600">
+                                                  Thinking...
+                                                </span>
+                                              </div>
                                             </div>
-                                          </div>
-                                        )}
-                                      </div>
-                                      <div className="border-t p-px">
-                                        {taskPciErrorHint && (
-                                          <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
-                                            PCI assistant error: {taskPciErrorHint}
-                                          </div>
-                                        )}
-                                        <div className="relative flex items-end gap-2">
-                                          <AutoTextarea
-                                            placeholder="Ask the PCI assistant..."
-                                            className="min-h-[44px] w-full pr-11"
-                                            value={activeTaskPciInput}
-                                            onChange={(e: any) => {
-                                              const value = e.target.value
-                                              if (taskBuilder.activeExtensionId) {
-                                                setTaskExtensionPciInputs(prev => ({
-                                                  ...prev,
-                                                  [taskBuilder.activeExtensionId as string]: value,
-                                                }))
-                                              } else {
-                                                setTaskPciInput(value)
+                                          )}
+                                        </div>
+                                        <div className="border-t p-px">
+                                          {taskPciErrorHint && (
+                                            <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
+                                              PCI assistant error: {taskPciErrorHint}
+                                            </div>
+                                          )}
+                                          <div className="relative flex items-end gap-2">
+                                            <AutoTextarea
+                                              placeholder="Ask the PCI assistant..."
+                                              className="min-h-[44px] w-full pr-11"
+                                              value={activeTaskPciInput}
+                                              onChange={(e: any) => {
+                                                const value = e.target.value
+                                                if (taskBuilder.activeExtensionId) {
+                                                  setTaskExtensionPciInputs(prev => ({
+                                                    ...prev,
+                                                    [taskBuilder.activeExtensionId as string]:
+                                                      value,
+                                                  }))
+                                                } else {
+                                                  setTaskPciInput(value)
+                                                }
+                                              }}
+                                              onKeyDown={(e: any) => {
+                                                if (e.key === 'Enter' && !e.shiftKey) {
+                                                  e.preventDefault()
+                                                  handlePciSend('task')
+                                                }
+                                              }}
+                                            />
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              size="icon"
+                                              className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
+                                              disabled={
+                                                taskPciLoading || !activeTaskPciInput.trim()
                                               }
-                                            }}
-                                            onKeyDown={(e: any) => {
-                                              if (e.key === 'Enter' && !e.shiftKey) {
-                                                e.preventDefault()
-                                                handlePciSend('task')
-                                              }
-                                            }}
-                                          />
-                                          <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="icon"
-                                            className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
-                                            disabled={taskPciLoading || !activeTaskPciInput.trim()}
-                                            onClick={() => handlePciSend('task')}
-                                            aria-label="Send"
-                                          >
-                                            {taskPciLoading ? (
-                                              <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                              <Send className="h-4 w-4" />
-                                            )}
-                                          </Button>
+                                              onClick={() => handlePciSend('task')}
+                                              aria-label="Send"
+                                            >
+                                              {taskPciLoading ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                              ) : (
+                                                <Send className="h-4 w-4" />
+                                              )}
+                                            </Button>
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  </TabsContent>
-                                </Tabs>
-                                {/* Buttons row with Test and Save */}
-                                <div className="mt-3 flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      // Prefill Test PCI with content from Task Builder
-                                      const content = taskBuilder.activeExtensionId
-                                        ? taskBuilder.extensions.find(
-                                            e => e.id === taskBuilder.activeExtensionId
-                                          )?.content || taskBuilder.taskContent
-                                        : taskBuilder.taskContent
+                                    </TabsContent>
+                                  </Tabs>
+                                  {/* Buttons row with Test and Save */}
+                                  <div className="mt-3 flex gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        // Prefill Test PCI with content from Task Builder
+                                        const content = taskBuilder.activeExtensionId
+                                          ? taskBuilder.extensions.find(
+                                              e => e.id === taskBuilder.activeExtensionId
+                                            )?.content || taskBuilder.taskContent
+                                          : taskBuilder.taskContent
 
-                                      setTestPciScores({})
-                                      setTestPciInput('')
+                                        setTestPciScores({})
+                                        setTestPciInput('')
 
-                                      setTestPciContent({
-                                        classroom: content,
-                                        student1: content,
-                                        student2: content,
-                                      })
-                                      setTestPciSource('task')
-                                      // Switch to Test PCI tab
-                                      setMainTab('test-pci')
-                                      toast.success('Test PCI prefilled with task content')
-                                    }}
-                                  >
-                                    Test
-                                  </Button>
+                                        setTestPciContent({
+                                          classroom: content,
+                                          student1: content,
+                                          student2: content,
+                                        })
+                                        setTestPciSource('task')
+                                        // Switch to Test PCI tab
+                                        setMainTab('test-pci')
+                                        toast.success('Test PCI prefilled with task content')
+                                      }}
+                                    >
+                                      Test
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </TabsContent>
+                            </TabsContent>
 
-                          {/* Assessment Builder Tab */}
-                          <TabsContent
-                            value="assessment"
-                            className="flex h-full flex-col space-y-4 overflow-hidden data-[state=inactive]:hidden"
-                          >
-                            <div className="flex flex-1 gap-4 overflow-hidden">
-                              {/* Main content with tabs */}
-                              <div className="flex flex-1 flex-col overflow-hidden">
-                                <Tabs
-                                  value={assessmentBuilderActiveTab}
-                                  onValueChange={v => {
-                                    setAssessmentBuilderActiveTab(v as 'content' | 'pci')
-                                  }}
-                                  className="flex h-full w-full flex-col"
-                                >
-                                  <TabsList className="mb-1 grid h-8 w-full grid-cols-2 rounded-full border border-gray-200 bg-white p-px shadow-sm">
-                                    <TabsTrigger
+                            {/* Assessment Builder Tab */}
+                            <TabsContent
+                              value="assessment"
+                              className="flex h-full flex-col space-y-4 overflow-hidden data-[state=inactive]:hidden"
+                            >
+                              <div className="flex flex-1 gap-4 overflow-hidden">
+                                {/* Main content with tabs */}
+                                <div className="flex flex-1 flex-col overflow-hidden">
+                                  <Tabs
+                                    value={assessmentBuilderActiveTab}
+                                    onValueChange={v => {
+                                      setAssessmentBuilderActiveTab(v as 'content' | 'pci')
+                                    }}
+                                    className="flex h-full w-full flex-col"
+                                  >
+                                    <TabsList className="mb-1 grid h-8 w-full grid-cols-2 rounded-full border border-gray-200 bg-white p-px shadow-sm">
+                                      <TabsTrigger
+                                        value="content"
+                                        className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                      >
+                                        Assessment
+                                      </TabsTrigger>
+                                      <TabsTrigger
+                                        value="pci"
+                                        className="w-full rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                      >
+                                        PCI
+                                      </TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent
                                       value="content"
-                                      className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                      className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
-                                      Assessment
-                                    </TabsTrigger>
-                                    <TabsTrigger
-                                      value="pci"
-                                      className="w-full rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
-                                    >
-                                      PCI
-                                    </TabsTrigger>
-                                  </TabsList>
-                                  <TabsContent
-                                    value="content"
-                                    className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
-                                  >
-                                    <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
-                                      {assessmentSourceDocument?.mimeType === 'application/pdf' ? (
-                                        <>
-                                          <div className="min-h-0 flex-1 border-b">
-                                            <PDFViewer fileUrl={assessmentSourceDocument.fileUrl} />
-                                          </div>
-                                          <AutoTextarea
-                                            placeholder="Optional notes or instructions..."
-                                            className="h-24 w-full shrink-0 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                                            disableAutoResize
-                                            onDrop={(e: any) =>
-                                              handleDragFiles(
-                                                e,
-                                                text => {
-                                                  setAssessmentBuilder(prev => {
-                                                    const combined =
-                                                      prev.taskContent +
-                                                      (prev.taskContent ? '\n\n' : '') +
-                                                      text
-                                                    return {
-                                                      ...prev,
-                                                      taskContent: combined,
-                                                    }
-                                                  })
-                                                },
-                                                'assessment'
-                                              )
-                                            }
-                                            value={assessmentBuilder.taskContent}
-                                            onChange={(e: any) => {
-                                              const newContent = e.target.value
-                                              // Auto-create assessment if none loaded
-                                              if (!loadedAssessmentId) {
-                                                autoCreateAssessment()
-                                              }
-                                              setAssessmentBuilder(prev => ({
-                                                ...prev,
-                                                taskContent: newContent,
-                                              }))
-                                            }}
-                                          />
-                                        </>
-                                      ) : (
-                                        <>
-                                          <AutoTextarea
-                                            placeholder="Enter assessment content or drop files here..."
-                                            className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                                            disableAutoResize
-                                            onDrop={(e: any) =>
-                                              handleDragFiles(
-                                                e,
-                                                text => {
-                                                  setAssessmentBuilder(prev => {
-                                                    const combined =
-                                                      prev.taskContent +
-                                                      (prev.taskContent ? '\n\n' : '') +
-                                                      text
-                                                    return {
-                                                      ...prev,
-                                                      taskContent: combined,
-                                                    }
-                                                  })
-                                                },
-                                                'assessment'
-                                              )
-                                            }
-                                            value={assessmentBuilder.taskContent}
-                                            onChange={(e: any) => {
-                                              const newContent = e.target.value
-                                              // Auto-create assessment if none loaded
-                                              if (!loadedAssessmentId) {
-                                                autoCreateAssessment()
-                                              }
-                                              setAssessmentBuilder(prev => ({
-                                                ...prev,
-                                                taskContent: newContent,
-                                              }))
-                                            }}
-                                          />
-                                          {assessmentSourceDocument &&
-                                            assessmentSourceDocument.mimeType !==
-                                              'application/pdf' &&
-                                            assessmentSourceDocument.mimeType.startsWith(
-                                              'image/'
-                                            ) && (
-                                              <div className="shrink-0 border-t p-2">
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img
-                                                  src={assessmentSourceDocument.fileUrl}
-                                                  alt={assessmentSourceDocument.fileName}
-                                                  className="h-48 w-full object-contain"
-                                                />
-                                              </div>
-                                            )}
-                                          {assessmentSourceDocument &&
-                                            assessmentSourceDocument.mimeType !==
-                                              'application/pdf' &&
-                                            !assessmentSourceDocument.mimeType.startsWith(
-                                              'image/'
-                                            ) && (
-                                              <div className="flex shrink-0 items-center gap-2 border-t bg-gray-50 p-2">
-                                                <FileText className="h-4 w-4 text-blue-600" />
-                                                <a
-                                                  href={assessmentSourceDocument.fileUrl}
-                                                  target="_blank"
-                                                  rel="noreferrer"
-                                                  className="text-xs text-blue-600 underline"
-                                                >
-                                                  Open {assessmentSourceDocument.fileName}
-                                                </a>
-                                              </div>
-                                            )}
-                                        </>
-                                      )}
-                                    </div>
-                                    {/* Uploaded Files List - only show for assessment (not extensions) */}
-                                    {/* Upload button - only for assessment (not extensions) */}
-                                    {/* Assets Folder added to Slide Tab removed from here */}
-                                  </TabsContent>
-                                  <TabsContent
-                                    value="pci"
-                                    className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
-                                  >
-                                    <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
-                                      <div className="flex-1 space-y-3 overflow-y-auto p-3">
-                                        {(assessmentPciMessagesMap[loadedAssessmentId || ''] || [])
-                                          .length === 0 && (
-                                          <p className="text-muted-foreground text-xs">
-                                            Start a PCI chat to build instructions with the
-                                            assistant.
-                                          </p>
-                                        )}
-                                        {(
-                                          assessmentPciMessagesMap[loadedAssessmentId || ''] || []
-                                        ).map((msg, idx) => (
-                                          <div
-                                            key={idx}
-                                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                          >
-                                            <div
-                                              className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-                                                msg.role === 'user'
-                                                  ? 'bg-blue-50 text-gray-900'
-                                                  : 'bg-gray-100 text-gray-800'
-                                              }`}
-                                            >
-                                              <div className="whitespace-pre-wrap">
-                                                {msg.content}
-                                              </div>
+                                      <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
+                                        {assessmentSourceDocument?.mimeType ===
+                                        'application/pdf' ? (
+                                          <>
+                                            <div className="min-h-0 flex-1 border-b">
+                                              <PDFViewer
+                                                fileUrl={assessmentSourceDocument.fileUrl}
+                                              />
                                             </div>
-                                          </div>
-                                        ))}
-                                        {(assessmentPciLoadingMap[loadedAssessmentId || ''] ||
-                                          false) && (
-                                          <div className="flex justify-start">
-                                            <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
-                                              <Loader2 className="h-4 w-4 animate-spin" />
-                                              <span className="text-xs text-gray-600">
-                                                Thinking...
-                                              </span>
-                                            </div>
-                                          </div>
+                                            <AutoTextarea
+                                              placeholder="Optional notes or instructions..."
+                                              className="h-24 w-full shrink-0 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                              disableAutoResize
+                                              onDrop={(e: any) =>
+                                                handleDragFiles(
+                                                  e,
+                                                  text => {
+                                                    setAssessmentBuilder(prev => {
+                                                      const combined =
+                                                        prev.taskContent +
+                                                        (prev.taskContent ? '\n\n' : '') +
+                                                        text
+                                                      return {
+                                                        ...prev,
+                                                        taskContent: combined,
+                                                      }
+                                                    })
+                                                  },
+                                                  'assessment'
+                                                )
+                                              }
+                                              value={assessmentBuilder.taskContent}
+                                              onChange={(e: any) => {
+                                                const newContent = e.target.value
+                                                // Auto-create assessment if none loaded
+                                                if (!loadedAssessmentId) {
+                                                  autoCreateAssessment()
+                                                }
+                                                setAssessmentBuilder(prev => ({
+                                                  ...prev,
+                                                  taskContent: newContent,
+                                                }))
+                                              }}
+                                            />
+                                          </>
+                                        ) : (
+                                          <>
+                                            <AutoTextarea
+                                              placeholder="Enter assessment content or drop files here..."
+                                              className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                              disableAutoResize
+                                              onDrop={(e: any) =>
+                                                handleDragFiles(
+                                                  e,
+                                                  text => {
+                                                    setAssessmentBuilder(prev => {
+                                                      const combined =
+                                                        prev.taskContent +
+                                                        (prev.taskContent ? '\n\n' : '') +
+                                                        text
+                                                      return {
+                                                        ...prev,
+                                                        taskContent: combined,
+                                                      }
+                                                    })
+                                                  },
+                                                  'assessment'
+                                                )
+                                              }
+                                              value={assessmentBuilder.taskContent}
+                                              onChange={(e: any) => {
+                                                const newContent = e.target.value
+                                                // Auto-create assessment if none loaded
+                                                if (!loadedAssessmentId) {
+                                                  autoCreateAssessment()
+                                                }
+                                                setAssessmentBuilder(prev => ({
+                                                  ...prev,
+                                                  taskContent: newContent,
+                                                }))
+                                              }}
+                                            />
+                                            {assessmentSourceDocument &&
+                                              assessmentSourceDocument.mimeType !==
+                                                'application/pdf' &&
+                                              assessmentSourceDocument.mimeType.startsWith(
+                                                'image/'
+                                              ) && (
+                                                <div className="shrink-0 border-t p-2">
+                                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                  <img
+                                                    src={assessmentSourceDocument.fileUrl}
+                                                    alt={assessmentSourceDocument.fileName}
+                                                    className="h-48 w-full object-contain"
+                                                  />
+                                                </div>
+                                              )}
+                                            {assessmentSourceDocument &&
+                                              assessmentSourceDocument.mimeType !==
+                                                'application/pdf' &&
+                                              !assessmentSourceDocument.mimeType.startsWith(
+                                                'image/'
+                                              ) && (
+                                                <div className="flex shrink-0 items-center gap-2 border-t bg-gray-50 p-2">
+                                                  <FileText className="h-4 w-4 text-blue-600" />
+                                                  <a
+                                                    href={assessmentSourceDocument.fileUrl}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-xs text-blue-600 underline"
+                                                  >
+                                                    Open {assessmentSourceDocument.fileName}
+                                                  </a>
+                                                </div>
+                                              )}
+                                          </>
                                         )}
                                       </div>
-                                      <div className="border-t p-2">
-                                        {(assessmentPciErrorHintMap[loadedAssessmentId || ''] ||
-                                          '') && (
-                                          <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
-                                            PCI assistant error:{' '}
-                                            {assessmentPciErrorHintMap[loadedAssessmentId || ''] ||
-                                              ''}
-                                          </div>
-                                        )}
-                                        <div className="relative flex items-end gap-2">
-                                          <AutoTextarea
-                                            placeholder="Ask the PCI assistant..."
-                                            className="min-h-[44px] w-full pr-11"
-                                            value={
-                                              assessmentPciInputMap[loadedAssessmentId || ''] || ''
-                                            }
-                                            onChange={(e: any) =>
-                                              setAssessmentPciInputMap(prev => ({
-                                                ...prev,
-                                                [loadedAssessmentId || '']: e.target.value,
-                                              }))
-                                            }
-                                            onKeyDown={(e: any) => {
-                                              if (e.key === 'Enter' && !e.shiftKey) {
-                                                e.preventDefault()
-                                                handlePciSend('assessment')
-                                              }
-                                            }}
-                                          />
-                                          <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="icon"
-                                            className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
-                                            disabled={
-                                              assessmentPciLoadingMap[loadedAssessmentId || ''] ||
-                                              false ||
-                                              !(
+                                      {/* Uploaded Files List - only show for assessment (not extensions) */}
+                                      {/* Upload button - only for assessment (not extensions) */}
+                                      {/* Assets Folder added to Slide Tab removed from here */}
+                                    </TabsContent>
+                                    <TabsContent
+                                      value="pci"
+                                      className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                                    >
+                                      <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
+                                        <div className="flex-1 space-y-3 overflow-y-auto p-3">
+                                          {(
+                                            assessmentPciMessagesMap[loadedAssessmentId || ''] || []
+                                          ).length === 0 && (
+                                            <p className="text-muted-foreground text-xs">
+                                              Start a PCI chat to build instructions with the
+                                              assistant.
+                                            </p>
+                                          )}
+                                          {(
+                                            assessmentPciMessagesMap[loadedAssessmentId || ''] || []
+                                          ).map((msg, idx) => (
+                                            <div
+                                              key={idx}
+                                              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                            >
+                                              <div
+                                                className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                                                  msg.role === 'user'
+                                                    ? 'bg-blue-50 text-gray-900'
+                                                    : 'bg-gray-100 text-gray-800'
+                                                }`}
+                                              >
+                                                <div className="whitespace-pre-wrap">
+                                                  {msg.content}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ))}
+                                          {(assessmentPciLoadingMap[loadedAssessmentId || ''] ||
+                                            false) && (
+                                            <div className="flex justify-start">
+                                              <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                <span className="text-xs text-gray-600">
+                                                  Thinking...
+                                                </span>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                        <div className="border-t p-2">
+                                          {(assessmentPciErrorHintMap[loadedAssessmentId || ''] ||
+                                            '') && (
+                                            <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
+                                              PCI assistant error:{' '}
+                                              {assessmentPciErrorHintMap[
+                                                loadedAssessmentId || ''
+                                              ] || ''}
+                                            </div>
+                                          )}
+                                          <div className="relative flex items-end gap-2">
+                                            <AutoTextarea
+                                              placeholder="Ask the PCI assistant..."
+                                              className="min-h-[44px] w-full pr-11"
+                                              value={
                                                 assessmentPciInputMap[loadedAssessmentId || ''] ||
                                                 ''
-                                              ).trim()
-                                            }
-                                            onClick={() => handlePciSend('assessment')}
-                                            aria-label="Send"
-                                          >
-                                            {assessmentPciLoadingMap[loadedAssessmentId || ''] ||
-                                            false ? (
-                                              <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                              <Send className="h-4 w-4" />
-                                            )}
-                                          </Button>
+                                              }
+                                              onChange={(e: any) =>
+                                                setAssessmentPciInputMap(prev => ({
+                                                  ...prev,
+                                                  [loadedAssessmentId || '']: e.target.value,
+                                                }))
+                                              }
+                                              onKeyDown={(e: any) => {
+                                                if (e.key === 'Enter' && !e.shiftKey) {
+                                                  e.preventDefault()
+                                                  handlePciSend('assessment')
+                                                }
+                                              }}
+                                            />
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              size="icon"
+                                              className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
+                                              disabled={
+                                                assessmentPciLoadingMap[loadedAssessmentId || ''] ||
+                                                false ||
+                                                !(
+                                                  assessmentPciInputMap[loadedAssessmentId || ''] ||
+                                                  ''
+                                                ).trim()
+                                              }
+                                              onClick={() => handlePciSend('assessment')}
+                                              aria-label="Send"
+                                            >
+                                              {assessmentPciLoadingMap[loadedAssessmentId || ''] ||
+                                              false ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                              ) : (
+                                                <Send className="h-4 w-4" />
+                                              )}
+                                            </Button>
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  </TabsContent>
-                                </Tabs>
-                                {/* Buttons row with Test, Generate DMI, and Version History */}
-                                <div className="mt-3 flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      // Prefill Test PCI with content from Assessment Builder
-                                      const content = assessmentBuilder.taskContent
+                                    </TabsContent>
+                                  </Tabs>
+                                  {/* Buttons row with Test, Generate DMI, and Version History */}
+                                  <div className="mt-3 flex gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        // Prefill Test PCI with content from Assessment Builder
+                                        const content = assessmentBuilder.taskContent
 
-                                      setTestPciScores({})
-                                      setTestPciInput('')
+                                        setTestPciScores({})
+                                        setTestPciInput('')
 
-                                      setTestPciContent({
-                                        classroom: content,
-                                        student1: content,
-                                        student2: content,
-                                      })
-                                      setTestPciSource('assessment')
-                                      // Switch to Test PCI tab
-                                      setMainTab('test-pci')
-                                      toast.success('Test PCI prefilled with assessment content')
-                                    }}
-                                  >
-                                    Test
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={dmiGenerating}
-                                    onClick={() => {
-                                      // Generate DMI from Assessment content or PDF
-                                      const content = assessmentBuilder.taskContent
-                                      const hasPdf =
-                                        assessmentSourceDocument?.mimeType === 'application/pdf'
-                                      if (!content.trim() && !hasPdf) {
-                                        toast.error(
-                                          'Please add content to the Assessment tab or load a PDF first'
-                                        )
-                                        return
-                                      }
-                                      handleGenerateDMI('assessment')
-                                    }}
-                                  >
-                                    {dmiGenerating ? (
-                                      <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                                    ) : null}
-                                    Generate DMI
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="px-2"
-                                    onClick={() => setShowDmiVersionList(true)}
-                                    title="View DMI Versions"
-                                  >
-                                    <History className="h-4 w-4" />
-                                    {assessmentDmiVersions.length > 0 && (
-                                      <span className="ml-1 text-xs">
-                                        ({assessmentDmiVersions.length})
-                                      </span>
-                                    )}
-                                  </Button>
+                                        setTestPciContent({
+                                          classroom: content,
+                                          student1: content,
+                                          student2: content,
+                                        })
+                                        setTestPciSource('assessment')
+                                        // Switch to Test PCI tab
+                                        setMainTab('test-pci')
+                                        toast.success('Test PCI prefilled with assessment content')
+                                      }}
+                                    >
+                                      Test
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      disabled={dmiGenerating}
+                                      onClick={() => {
+                                        // Generate DMI from Assessment content or PDF
+                                        const content = assessmentBuilder.taskContent
+                                        const hasPdf =
+                                          assessmentSourceDocument?.mimeType === 'application/pdf'
+                                        if (!content.trim() && !hasPdf) {
+                                          toast.error(
+                                            'Please add content to the Assessment tab or load a PDF first'
+                                          )
+                                          return
+                                        }
+                                        handleGenerateDMI('assessment')
+                                      }}
+                                    >
+                                      {dmiGenerating ? (
+                                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                      ) : null}
+                                      Generate DMI
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="px-2"
+                                      onClick={() => setShowDmiVersionList(true)}
+                                      title="View DMI Versions"
+                                    >
+                                      <History className="h-4 w-4" />
+                                      {assessmentDmiVersions.length > 0 && (
+                                        <span className="ml-1 text-xs">
+                                          ({assessmentDmiVersions.length})
+                                        </span>
+                                      )}
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </TabsContent>
+                            </TabsContent>
                           </div>
                         </Tabs>
                       </CardContent>
