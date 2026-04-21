@@ -3813,19 +3813,35 @@ FEEDBACK: [your explanation]`
               <TabsTrigger
                 value="live"
                 className={cn(
-                  'group gap-0 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm',
-                  !isSessionActive && 'cursor-default'
+                  'group gap-0 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm'
                 )}
-              >
-                <div
-                  className="flex cursor-pointer items-center gap-2 rounded-full border-l border-r border-blue-200/50 px-2 transition-colors group-hover:bg-blue-100/50"
-                  onClick={e => {
+                onClick={e => {
+                  if (mainTab !== 'live') {
+                    setMainTab('live')
+                  } else {
+                    // If already selected, clicking the outer tab triggers the Coming Soon modal
+                    e.preventDefault()
                     e.stopPropagation()
                     if (!isSessionActive) {
-                      e.preventDefault()
                       setComingSoonDialog(true)
-                    } else {
-                      setMainTab('live')
+                    }
+                  }
+                }}
+              >
+                <div
+                  className={cn(
+                    'flex items-center gap-2 rounded-full border-l border-r px-2 py-0.5 transition-colors',
+                    mainTab === 'live'
+                      ? 'cursor-pointer border-blue-200/50 group-hover:bg-blue-100/50'
+                      : 'border-transparent'
+                  )}
+                  onClick={e => {
+                    if (mainTab === 'live') {
+                      e.stopPropagation()
+                      if (!isSessionActive) {
+                        e.preventDefault()
+                        setComingSoonDialog(true)
+                      }
                     }
                   }}
                 >
@@ -3851,12 +3867,35 @@ FEEDBACK: [your explanation]`
             <TabsTrigger
               value="builder"
               className="group gap-0 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
+              onClick={e => {
+                if (mainTab !== 'builder') {
+                  setMainTab('builder')
+                } else {
+                  // If already selected, clicking the outer tab triggers the toggle logic
+                  e.preventDefault()
+                  e.stopPropagation()
+                  if (isSessionActive) {
+                    toast.error('Cannot toggle Live/Draft while class is in session')
+                    return
+                  }
+                  if (onSaveModeChange) {
+                    onSaveModeChange(saveMode === 'live' ? 'draft' : 'live')
+                  } else {
+                    setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
+                  }
+                }
+              }}
             >
               <div
-                className="flex cursor-pointer items-center gap-2 rounded-full border-l border-r border-blue-200/50 px-2 transition-colors group-hover:bg-blue-100/50"
+                className={cn(
+                  'flex items-center gap-2 rounded-full border-l border-r px-2 py-0.5 transition-colors',
+                  mainTab === 'builder'
+                    ? 'cursor-pointer border-blue-200/50 group-hover:bg-blue-100/50'
+                    : 'border-transparent'
+                )}
                 onClick={e => {
-                  e.stopPropagation()
                   if (mainTab === 'builder') {
+                    e.stopPropagation()
                     if (isSessionActive) {
                       e.preventDefault()
                       toast.error('Cannot toggle Live/Draft while class is in session')
@@ -3868,8 +3907,6 @@ FEEDBACK: [your explanation]`
                     } else {
                       setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
                     }
-                  } else {
-                    setMainTab('builder')
                   }
                 }}
               >
