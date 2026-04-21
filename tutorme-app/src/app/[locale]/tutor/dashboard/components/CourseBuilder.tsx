@@ -3817,6 +3817,11 @@ FEEDBACK: [your explanation]`
             <TabsTrigger
               value="builder"
               className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
+              onClick={(e) => {
+                if (mainTab === 'builder') {
+                  setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
+                }
+              }}
             >
               <Radio 
                 className={cn(
@@ -3869,20 +3874,6 @@ FEEDBACK: [your explanation]`
                           </Badge>
                         </div>
                         <div className="flex items-center gap-1">
-                          {mainTab === 'builder' && (
-                            <div className="flex items-center gap-2 mr-2 rounded-md bg-muted/50 px-2 py-1">
-                              <span className={cn("text-xs font-medium transition-colors", !coursePropsModal.isLive ? "text-gray-500" : "text-gray-400")}>Draft</span>
-                              <Switch
-                                checked={coursePropsModal.isLive}
-                                onCheckedChange={(checked) => setCoursePropsModal(prev => ({ ...prev, isLive: checked }))}
-                                className={cn(
-                                  "data-[state=checked]:bg-green-500 transition-all duration-300",
-                                  coursePropsModal.isLive ? "drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : ""
-                                )}
-                              />
-                              <span className={cn("text-xs font-medium transition-colors", coursePropsModal.isLive ? "text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : "text-gray-400")}>Live</span>
-                            </div>
-                          )}
                           {mainTab === 'live' && (
                             <div className="flex items-center gap-2">
                               {insightsProps?.onEndSession && (

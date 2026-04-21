@@ -700,6 +700,24 @@ export default function PublicTutorPage() {
     return result
   }, [data?.courses, courseSearchQuery, courseCountryFilter, courseSortOrder])
 
+  const sortedClassroomPickerSessions = useMemo(() => {
+    const now = Date.now()
+    const sessions = [...classroomPickerSessions]
+    sessions.sort((a, b) => {
+      const aStart = new Date(a.scheduledAt ?? 0).getTime()
+      const bStart = new Date(b.scheduledAt ?? 0).getTime()
+      const aOngoing = a.status === 'active' && aStart <= now
+      const bOngoing = b.status === 'active' && bStart <= now
+      if (aOngoing !== bOngoing) return aOngoing ? -1 : 1
+      const aUpcoming = aStart >= now
+      const bUpcoming = bStart >= now
+      if (aUpcoming !== bUpcoming) return aUpcoming ? -1 : 1
+      if (aUpcoming && bUpcoming) return aStart - bStart
+      return bStart - aStart
+    })
+    return sessions
+  }, [classroomPickerSessions])
+
   if (loading) {
     return (
       <div className="w-full p-4 sm:p-6">
@@ -824,24 +842,6 @@ export default function PublicTutorPage() {
       setStudentJoiningCourseId(null)
     }
   }
-
-  const sortedClassroomPickerSessions = useMemo(() => {
-    const now = Date.now()
-    const sessions = [...classroomPickerSessions]
-    sessions.sort((a, b) => {
-      const aStart = new Date(a.scheduledAt ?? 0).getTime()
-      const bStart = new Date(b.scheduledAt ?? 0).getTime()
-      const aOngoing = a.status === 'active' && aStart <= now
-      const bOngoing = b.status === 'active' && bStart <= now
-      if (aOngoing !== bOngoing) return aOngoing ? -1 : 1
-      const aUpcoming = aStart >= now
-      const bUpcoming = bStart >= now
-      if (aUpcoming !== bUpcoming) return aUpcoming ? -1 : 1
-      if (aUpcoming && bUpcoming) return aStart - bStart
-      return bStart - aStart
-    })
-    return sessions
-  }, [classroomPickerSessions])
 
   const handleEnrollClick = (course: PublicTutorResponse['courses'][number]) => {
     if (!session?.user) {

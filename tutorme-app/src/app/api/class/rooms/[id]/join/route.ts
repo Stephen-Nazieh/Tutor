@@ -31,6 +31,9 @@ export const POST = withCsrf(
 
       if (classSessionRow.status !== 'active') {
         if (classSessionRow.status === 'scheduled') {
+          if (!classSessionRow.scheduledAt) {
+            throw new ValidationError('Scheduled session has no scheduled time')
+          }
           const scheduledAtMs = new Date(classSessionRow.scheduledAt).getTime()
           const enterOpensAtMs = scheduledAtMs - 20 * 60 * 1000
           const nowMs = Date.now()

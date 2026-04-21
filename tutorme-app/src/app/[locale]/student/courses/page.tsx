@@ -38,7 +38,7 @@ import {
   Globe,
   ArrowLeft,
   Heart,
-  X,
+  BookOpen,
 } from 'lucide-react'
 import {
   Dialog,
