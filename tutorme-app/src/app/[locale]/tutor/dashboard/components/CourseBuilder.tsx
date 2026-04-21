@@ -2608,15 +2608,15 @@ FEEDBACK: [your explanation]`
         ...lesson,
         id: `lesson-${generateId()}`,
         title: `${lesson.title} (copy)`,
-        tasks: lesson.tasks?.map(t => ({ 
-          ...t, 
+        tasks: lesson.tasks?.map(t => ({
+          ...t,
           id: `task-${generateId()}`,
-          questions: t.questions?.map(q => ({ ...q, id: `q-${generateId()}` }))
+          questions: t.questions?.map(q => ({ ...q, id: `q-${generateId()}` })),
         })),
-        homework: lesson.homework?.map(h => ({ 
-          ...h, 
+        homework: lesson.homework?.map(h => ({
+          ...h,
           id: `homework-${generateId()}`,
-          questions: h.questions?.map(q => ({ ...q, id: `q-${generateId()}` }))
+          questions: h.questions?.map(q => ({ ...q, id: `q-${generateId()}` })),
         })),
       }
       const nodeIndex = nodes.findIndex(m => m.id === nodeId)
@@ -2636,24 +2636,24 @@ FEEDBACK: [your explanation]`
         ...node,
         id: `node-${generateId()}`,
         title: `${node.title} (copy)`,
-        lessons: node.lessons?.map(l => ({ 
-          ...l, 
+        lessons: node.lessons?.map(l => ({
+          ...l,
           id: `lesson-${generateId()}`,
-          tasks: l.tasks?.map(t => ({ 
-            ...t, 
+          tasks: l.tasks?.map(t => ({
+            ...t,
             id: `task-${generateId()}`,
-            questions: t.questions?.map(q => ({ ...q, id: `q-${generateId()}` }))
+            questions: t.questions?.map(q => ({ ...q, id: `q-${generateId()}` })),
           })),
-          homework: l.homework?.map(h => ({ 
-            ...h, 
+          homework: l.homework?.map(h => ({
+            ...h,
             id: `homework-${generateId()}`,
-            questions: h.questions?.map(q => ({ ...q, id: `q-${generateId()}` }))
+            questions: h.questions?.map(q => ({ ...q, id: `q-${generateId()}` })),
           })),
         })),
-        quizzes: node.quizzes?.map(q => ({ 
-          ...q, 
+        quizzes: node.quizzes?.map(q => ({
+          ...q,
           id: `quiz-${generateId()}`,
-          questions: q.questions?.map(qu => ({ ...qu, id: `q-${generateId()}` }))
+          questions: q.questions?.map(qu => ({ ...qu, id: `q-${generateId()}` })),
         })),
       }
       setCourseBuilderNodes([...nodes, copy])
@@ -3817,17 +3817,19 @@ FEEDBACK: [your explanation]`
             <TabsTrigger
               value="builder"
               className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
-              onClick={(e) => {
+              onClick={e => {
                 if (mainTab === 'builder') {
                   setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
                 }
               }}
             >
-              <Radio 
+              <Radio
                 className={cn(
-                  "h-4 w-4 transition-all duration-300", 
-                  coursePropsModal.isLive ? "text-green-400 animate-pulse drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : "text-gray-400"
-                )} 
+                  'h-4 w-4 transition-all duration-300',
+                  coursePropsModal.isLive
+                    ? 'animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
+                    : 'text-gray-400'
+                )}
               />
               Build
             </TabsTrigger>
@@ -4115,7 +4117,7 @@ FEEDBACK: [your explanation]`
                                                     >
                                                       <div
                                                         className={cn(
-                                                          'group/item mb-px ml-0 mr-0 flex cursor-pointer items-center gap-1.5 rounded-lg border px-px py-px shadow-sm transition-colors min-w-0',
+                                                          'group/item mb-px ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-lg border px-px py-px shadow-sm transition-colors',
                                                           selectedItem?.type === 'task' &&
                                                             selectedItem?.id === task.id
                                                             ? 'border-blue-200 bg-blue-50 ring-1 ring-blue-300'
@@ -4250,7 +4252,7 @@ FEEDBACK: [your explanation]`
                                                           />
                                                         ) : (
                                                           <span
-                                                            className="flex-1 min-w-0 truncate text-xs font-semibold text-blue-700"
+                                                            className="min-w-0 flex-1 truncate text-xs font-semibold text-blue-700"
                                                             title={`${idx + 1}. ${task.title}`}
                                                           >
                                                             {idx + 1}. {task.title}
@@ -4456,7 +4458,11 @@ FEEDBACK: [your explanation]`
                                                             <DropdownMenuItem
                                                               onClick={e => {
                                                                 e.stopPropagation()
-                                                                duplicateTask(node.id, primaryLesson.id, task)
+                                                                duplicateTask(
+                                                                  node.id,
+                                                                  primaryLesson.id,
+                                                                  task
+                                                                )
                                                               }}
                                                             >
                                                               Duplicate
@@ -4688,7 +4694,7 @@ FEEDBACK: [your explanation]`
                                                   >
                                                     <div
                                                       className={cn(
-                                                        'group/item mb-1 ml-0 mr-0 flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors min-w-0',
+                                                        'group/item mb-1 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors',
                                                         selectedItem?.type === 'homework' &&
                                                           selectedItem?.id === hw.id
                                                           ? 'border-indigo-200 bg-indigo-50 ring-1 ring-indigo-300'
@@ -4806,7 +4812,7 @@ FEEDBACK: [your explanation]`
                                                         />
                                                       ) : (
                                                         <span
-                                                          className="flex-1 min-w-0 truncate text-xs font-semibold text-indigo-700"
+                                                          className="min-w-0 flex-1 truncate text-xs font-semibold text-indigo-700"
                                                           title={`${idx + 1}. ${hw.title}`}
                                                         >
                                                           {idx + 1}. {hw.title}
@@ -4869,7 +4875,11 @@ FEEDBACK: [your explanation]`
                                                           <DropdownMenuItem
                                                             onClick={e => {
                                                               e.stopPropagation()
-                                                              duplicateAssessment(node.id, primaryLesson.id, hw)
+                                                              duplicateAssessment(
+                                                                node.id,
+                                                                primaryLesson.id,
+                                                                hw
+                                                              )
                                                             }}
                                                           >
                                                             Duplicate
@@ -4954,7 +4964,7 @@ FEEDBACK: [your explanation]`
                                                       >
                                                         <div
                                                           className={cn(
-                                                            'group/item mb-1 ml-0 mr-0 flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors min-w-0',
+                                                            'group/item mb-1 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors',
                                                             selectedItem?.type === 'homework' &&
                                                               selectedItem?.id === hw.id
                                                               ? 'border-emerald-200 bg-emerald-50 ring-1 ring-emerald-300'
@@ -5022,7 +5032,7 @@ FEEDBACK: [your explanation]`
                                                             />
                                                           ) : (
                                                             <span
-                                                              className="flex-1 min-w-0 truncate text-xs font-semibold text-emerald-700"
+                                                              className="min-w-0 flex-1 truncate text-xs font-semibold text-emerald-700"
                                                               title={`${hwIdx + 1}. ${hw.title}`}
                                                             >
                                                               {hwIdx + 1}. {hw.title}
@@ -5071,7 +5081,11 @@ FEEDBACK: [your explanation]`
                                                               <DropdownMenuItem
                                                                 onClick={e => {
                                                                   e.stopPropagation()
-                                                                  duplicateAssessment(node.id, primaryLesson.id, hw)
+                                                                  duplicateAssessment(
+                                                                    node.id,
+                                                                    primaryLesson.id,
+                                                                    hw
+                                                                  )
                                                                 }}
                                                               >
                                                                 Duplicate
@@ -5605,13 +5619,13 @@ FEEDBACK: [your explanation]`
                             <TabsList className="flex shrink-0 gap-0 rounded-full bg-white p-0.5 shadow-sm">
                               <TabsTrigger
                                 value="task"
-                                className="w-52 rounded-full py-px text-sm font-medium transition-all data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-500 data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white"
+                                className="w-52 rounded-full py-px text-sm font-medium transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=inactive]:text-gray-500"
                               >
                                 Task Builder
                               </TabsTrigger>
                               <TabsTrigger
                                 value="assessment"
-                                className="w-52 rounded-full py-px text-sm font-medium transition-all data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-500 data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white"
+                                className="w-52 rounded-full py-px text-sm font-medium transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=inactive]:text-gray-500"
                               >
                                 Assessment Builder
                               </TabsTrigger>

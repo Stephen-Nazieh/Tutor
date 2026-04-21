@@ -144,7 +144,9 @@ export const GET = withAuth(async (req, session) => {
 
   // Build filter
   const filtersOfRequest: SQL[] = [
-    includeScheduled ? inArray(liveSession.status, ['active', 'scheduled']) : eq(liveSession.status, 'active'),
+    includeScheduled
+      ? inArray(liveSession.status, ['active', 'scheduled'])
+      : eq(liveSession.status, 'active'),
     gte(liveSession.scheduledAt, new Date(Date.now() - 4 * 60 * 60 * 1000)),
   ]
 

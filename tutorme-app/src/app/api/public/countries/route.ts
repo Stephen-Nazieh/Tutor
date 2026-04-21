@@ -11,9 +11,10 @@ export async function GET() {
     .where(eq(course.isPublished, true))
 
   const countries = Array.from(
-    new Set(rows.map(r => r.country).filter((c): c is string => typeof c === 'string' && !!c.trim()))
+    new Set(
+      rows.map(r => r.country).filter((c): c is string => typeof c === 'string' && !!c.trim())
+    )
   ).sort((a, b) => a.localeCompare(b))
 
   return NextResponse.json({ countries })
 }
-

@@ -850,7 +850,9 @@ export default function PublicTutorPage() {
       return
     }
     const subject = course.categories?.[0] || 'general'
-    router.push(`/${locale}/student/subjects/${encodeURIComponent(subject)}/courses/${encodeURIComponent(course.id)}`)
+    router.push(
+      `/${locale}/student/subjects/${encodeURIComponent(subject)}/courses/${encodeURIComponent(course.id)}`
+    )
   }
 
   return (

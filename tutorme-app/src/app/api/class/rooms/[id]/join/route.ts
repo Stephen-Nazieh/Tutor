@@ -34,7 +34,9 @@ export const POST = withCsrf(
           if (!classSessionRow.scheduledAt) {
             throw new ValidationError('Scheduled session has no scheduled time')
           }
-          const scheduledAtMs = new Date(classSessionRow.scheduledAt).getTime()
+          const scheduledAtMs = new Date(
+            classSessionRow.scheduledAt as string | number | Date
+          ).getTime()
           const enterOpensAtMs = scheduledAtMs - 20 * 60 * 1000
           const nowMs = Date.now()
           if (nowMs < enterOpensAtMs) {

@@ -160,7 +160,7 @@ export async function GET(
         enrollmentCount: 0, // Placeholder
         lessonCount: lessonCounts[c.courseId] || 0,
         price: c.isFree ? 0 : c.price,
-        isFree: c.isFree || (c.price == null || c.price === 0),
+        isFree: c.isFree || c.price == null || c.price === 0,
         currency: c.currency || 'USD',
         schedule: c.schedule || [],
         scheduleSummary,
