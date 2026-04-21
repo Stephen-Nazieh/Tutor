@@ -5710,7 +5710,7 @@ FEEDBACK: [your explanation]`
                             </div>
 
                             {/* Center: nested pill tabs */}
-                            <TabsList className="grid h-8 w-96 shrink-0 grid-cols-2 rounded-full border border-gray-200 bg-white p-px shadow-sm">
+                            <TabsList className="grid h-8 w-[420px] shrink-0 grid-cols-2 rounded-full border border-gray-200 bg-white p-px shadow-sm">
                               <TabsTrigger
                                 value="task"
                                 className="relative flex w-full items-center justify-center gap-2 rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
