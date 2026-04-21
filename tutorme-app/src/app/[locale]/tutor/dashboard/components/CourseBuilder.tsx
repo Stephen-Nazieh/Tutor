@@ -3860,7 +3860,25 @@ FEEDBACK: [your explanation]`
 
           <div className="flex h-full w-full min-w-0 flex-1 gap-4">
             {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
-            {!leftPanelHidden && (
+            {leftPanelHidden ? (
+              <div
+                className="flex w-12 shrink-0 cursor-pointer flex-col items-center rounded-2xl border border-slate-200 bg-white py-4 shadow-sm transition-colors hover:bg-slate-50"
+                onClick={() => setLeftPanelHidden(false)}
+                title="Show directory"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                  <ChevronRight className="h-5 w-5" />
+                </div>
+                <div className="mt-8 flex flex-1 items-start justify-center">
+                  <span
+                    className="text-xs font-bold tracking-[0.2em] text-slate-400"
+                    style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                  >
+                    DIRECTORY
+                  </span>
+                </div>
+              </div>
+            ) : (
               <>
                 <div
                   ref={leftPanelRef}
