@@ -25,6 +25,7 @@ import {
   LogOut,
   User,
   FileText,
+  ChevronRight,
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -119,98 +120,118 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Floating Action Button to Show Navigation on Desktop */}
-      {!desktopNavOpen && (
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setDesktopNavOpen(true)}
-          className="fixed left-4 top-4 z-50 hidden rounded-full border-gray-200 bg-white shadow-md lg:flex"
-        >
-          <PanelLeftOpen className="h-5 w-5" />
-        </Button>
-      )}
-
       {/* Left Navigation Sidebar - Desktop */}
       <aside
         className={cn(
-          'sticky top-0 z-40 hidden h-screen flex-col border-r bg-white transition-all duration-300 lg:flex',
-          desktopNavOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full overflow-hidden border-r-0'
+          'sticky top-0 z-40 hidden h-screen flex-col bg-white transition-all duration-300 lg:flex',
+          desktopNavOpen
+            ? 'w-64 translate-x-0 border-r'
+            : 'my-4 ml-4 h-[calc(100vh-32px)] w-12 translate-x-0 cursor-pointer rounded-full border border-r-0 border-slate-200 shadow-sm hover:bg-slate-50'
         )}
+        onClick={() => {
+          if (!desktopNavOpen) setDesktopNavOpen(true)
+        }}
       >
-        <div className="flex min-w-[256px] items-center justify-between border-b p-4">
-          <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600"></Link>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setDesktopNavOpen(false)}
-              title="Hide Navigation text-gray-400"
-            >
-              <PanelLeftClose className="h-4 w-4" />
-            </Button>
-            <Link href="/tutor/notifications">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
-              </Button>
-            </Link>
+        {desktopNavOpen ? (
+          <>
+            <div className="flex min-w-[256px] items-center justify-between border-b p-4">
+              <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600"></Link>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={e => {
+                    e.stopPropagation()
+                    setDesktopNavOpen(false)
+                  }}
+                  title="Hide Navigation"
+                  className="text-gray-400"
+                >
+                  <PanelLeftClose className="h-4 w-4" />
+                </Button>
+                <Link href="/tutor/notifications" onClick={e => e.stopPropagation()}>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="h-5 w-5" />
+                    <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            <nav className="flex-1 space-y-0.5 overflow-y-auto p-4">
+              {navItems.map(item => {
+                const Icon = item.icon
+                const href =
+                  item.href === '/tutor/insights' ? `${localePrefix}/tutor/insights` : item.href
+                const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                return (
+                  <Link
+                    key={`${item.href}-${item.label}`}
+                    href={href}
+                    onClick={e => e.stopPropagation()}
+                    className={cn(
+                      'flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors',
+                      item.inactive && 'pointer-events-none opacity-50',
+                      isActive
+                        ? 'bg-blue-50 font-medium text-blue-700'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    )}
+                  >
+                    <Icon className="h-5 w-5 flex-shrink-0" />
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </Link>
+                )
+              })}
+            </nav>
+
+            <div className="space-y-1 border-t p-4">
+              {bottomNavItems.map(item => {
+                const Icon = item.icon
+                const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                return (
+                  <Link
+                    key={`${item.href}-${item.label}`}
+                    href={item.href}
+                    onClick={e => e.stopPropagation()}
+                    className={cn(
+                      'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
+                      isActive
+                        ? 'bg-blue-50 font-medium text-blue-700'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    )}
+                  >
+                    <Icon className="h-5 w-5 flex-shrink-0" />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                )
+              })}
+              <button
+                onClick={e => {
+                  e.stopPropagation()
+                  signOut({ callbackUrl: '/' })
+                }}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+              >
+                <LogOut className="h-5 w-5 flex-shrink-0" />
+                <span className="font-medium">Logout</span>
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex h-full w-full flex-col items-center py-4" title="Show navigation">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+              <ChevronRight className="h-5 w-5" />
+            </div>
+            <div className="mt-8 flex flex-1 items-start justify-center">
+              <span
+                className="text-xs font-bold tracking-[0.2em] text-slate-400"
+                style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+              >
+                DIRECTORY
+              </span>
+            </div>
           </div>
-        </div>
-
-        <nav className="flex-1 space-y-0.5 overflow-y-auto p-4">
-          {navItems.map(item => {
-            const Icon = item.icon
-            const href =
-              item.href === '/tutor/insights' ? `${localePrefix}/tutor/insights` : item.href
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-            return (
-              <Link
-                key={`${item.href}-${item.label}`}
-                href={href}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors',
-                  item.inactive && 'pointer-events-none opacity-50',
-                  isActive
-                    ? 'bg-blue-50 font-medium text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                )}
-              >
-                <Icon className="h-5 w-5 flex-shrink-0" />
-                <span className="text-sm font-medium">{item.label}</span>
-              </Link>
-            )
-          })}
-        </nav>
-
-        <div className="space-y-1 border-t p-4">
-          {bottomNavItems.map(item => {
-            const Icon = item.icon
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-            return (
-              <Link
-                key={`${item.href}-${item.label}`}
-                href={item.href}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
-                  isActive
-                    ? 'bg-blue-50 font-medium text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                )}
-              >
-                <Icon className="h-5 w-5 flex-shrink-0" />
-                <span className="font-medium">{item.label}</span>
-              </Link>
-            )
-          })}
-          <button
-            onClick={() => signOut({ callbackUrl: '/' })}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-          >
-            <LogOut className="h-5 w-5 flex-shrink-0" />
-            <span className="font-medium">Logout</span>
-          </button>
-        </div>
+        )}
       </aside>
 
       {/* Mobile Navigation Header */}

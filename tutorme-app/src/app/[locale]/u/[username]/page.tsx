@@ -1279,10 +1279,18 @@ export default function PublicTutorPage() {
                           )}
                         </div>
 
-                        <div className={cn('mt-auto flex w-full flex-wrap items-center gap-4 pt-2', isList && 'justify-end')}>
+                        <div
+                          className={cn(
+                            'mt-auto flex w-full flex-wrap items-center gap-4 pt-2',
+                            isList && 'justify-end'
+                          )}
+                        >
                           <button
                             type="button"
-                            className={cn('inline-flex items-center text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 disabled:opacity-50', isCompact && 'text-xs')}
+                            className={cn(
+                              'inline-flex items-center text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 disabled:opacity-50',
+                              isCompact && 'text-xs'
+                            )}
                             onClick={() => setDetailsCourse(course)}
                           >
                             <FileText className="mr-1.5 h-3.5 w-3.5" />
@@ -1292,7 +1300,10 @@ export default function PublicTutorPage() {
                           {isTutorOwner ? (
                             <button
                               type="button"
-                              className={cn('inline-flex items-center text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 disabled:opacity-50', isCompact && 'text-xs')}
+                              className={cn(
+                                'inline-flex items-center text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 disabled:opacity-50',
+                                isCompact && 'text-xs'
+                              )}
                               onClick={() => handleEnterClassroom(course)}
                               disabled={launchingCourseId === course.id}
                             >
@@ -1307,7 +1318,10 @@ export default function PublicTutorPage() {
                                     {enrolledCourseIds.has(course.id) ? (
                                       <button
                                         type="button"
-                                        className={cn('inline-flex items-center text-sm font-medium text-emerald-600 disabled:opacity-50', isCompact && 'text-xs')}
+                                        className={cn(
+                                          'inline-flex items-center text-sm font-medium text-emerald-600 disabled:opacity-50',
+                                          isCompact && 'text-xs'
+                                        )}
                                         disabled
                                       >
                                         <CheckCircle className="mr-1.5 h-3.5 w-3.5" />
@@ -1316,7 +1330,10 @@ export default function PublicTutorPage() {
                                     ) : (
                                       <button
                                         type="button"
-                                        className={cn('inline-flex items-center text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 disabled:opacity-50', isCompact && 'text-xs')}
+                                        className={cn(
+                                          'inline-flex items-center text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 disabled:opacity-50',
+                                          isCompact && 'text-xs'
+                                        )}
                                         onClick={() => handleEnrollClick(course)}
                                         disabled={enrollingCourseId === course.id}
                                       >
@@ -1325,23 +1342,22 @@ export default function PublicTutorPage() {
                                         ) : (
                                           <UserPlus className="mr-1.5 h-3.5 w-3.5" />
                                         )}
-                                        {enrollingCourseId === course.id
-                                          ? 'Enrolling…'
-                                          : 'Enroll'}
+                                        {enrollingCourseId === course.id ? 'Enrolling…' : 'Enroll'}
                                       </button>
                                     )}
                                   </>
                                 )}
                               <button
                                 type="button"
-                                className={cn('inline-flex items-center text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 disabled:opacity-50', isCompact && 'text-xs')}
+                                className={cn(
+                                  'inline-flex items-center text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 disabled:opacity-50',
+                                  isCompact && 'text-xs'
+                                )}
                                 onClick={() => void handleStudentEnterClassroom(course)}
                                 disabled={studentJoiningCourseId === course.id}
                               >
                                 <FileText className="mr-1.5 h-3.5 w-3.5" />
-                                {studentJoiningCourseId === course.id
-                                  ? 'Enrolling…'
-                                  : 'Classroom'}
+                                {studentJoiningCourseId === course.id ? 'Enrolling…' : 'Classroom'}
                               </button>
                             </>
                           )}

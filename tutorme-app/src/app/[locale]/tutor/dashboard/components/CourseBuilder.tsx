@@ -3812,19 +3812,45 @@ FEEDBACK: [your explanation]`
             {insightsProps && (
               <TabsTrigger
                 value="live"
-                className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setComingSoonDialog(true);
+                className={cn(
+                  'gap-1.5 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm',
+                  !isSessionActive && 'cursor-default'
+                )}
+                onPointerDown={e => {
+                  const target = e.target as HTMLElement
+                  if (!isSessionActive || !target.closest('.live-pipe-zone')) {
+                    e.preventDefault()
+                  }
                 }}
               >
-                <VideoIcon
-                  className={cn(
-                    "h-4 w-4 transition-all duration-300",
-                    isLiveMode ? "animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : ""
-                  )}
-                />
-                Go Live
+                <span className="pointer-events-none font-light text-blue-300/70">|</span>
+                <div
+                  className="live-pipe-zone flex cursor-pointer items-center gap-1.5 rounded-sm px-1 transition-colors hover:bg-blue-100/50"
+                  onPointerDown={e => {
+                    if (!isSessionActive) {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setComingSoonDialog(true)
+                    }
+                  }}
+                  onClick={e => {
+                    if (!isSessionActive) {
+                      e.preventDefault()
+                      e.stopPropagation()
+                    }
+                  }}
+                >
+                  <VideoIcon
+                    className={cn(
+                      'h-4 w-4 transition-all duration-300',
+                      isLiveMode
+                        ? 'animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
+                        : ''
+                    )}
+                  />
+                  Go Live
+                </div>
+                <span className="pointer-events-none font-light text-blue-300/70">|</span>
               </TabsTrigger>
             )}
             <TabsTrigger
@@ -3836,31 +3862,45 @@ FEEDBACK: [your explanation]`
             </TabsTrigger>
             <TabsTrigger
               value="builder"
-              className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
-              onClick={e => {
-                if (mainTab === 'builder') {
-                  if (isSessionActive) {
-                    toast.error('Cannot toggle Live/Draft while class is in session')
-                    return
-                  }
-
-                  if (onSaveModeChange) {
-                    onSaveModeChange(saveMode === 'live' ? 'draft' : 'live')
-                  } else {
-                    setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
-                  }
+              className="gap-1.5 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
+              onPointerDown={e => {
+                const target = e.target as HTMLElement
+                if (!target.closest('.build-pipe-zone')) {
+                  e.preventDefault()
                 }
               }}
             >
-              <Radio
-                className={cn(
-                  'h-4 w-4 transition-all duration-300',
-                  isLiveMode
-                    ? 'animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
-                    : 'text-gray-400'
-                )}
-              />
-              Build
+              <span className="pointer-events-none font-light text-blue-300/70">|</span>
+              <div
+                className="build-pipe-zone flex cursor-pointer items-center gap-1.5 rounded-sm px-1 transition-colors hover:bg-blue-100/50"
+                onClick={e => {
+                  e.stopPropagation()
+                  e.preventDefault()
+                  if (mainTab === 'builder') {
+                    if (isSessionActive) {
+                      toast.error('Cannot toggle Live/Draft while class is in session')
+                      return
+                    }
+
+                    if (onSaveModeChange) {
+                      onSaveModeChange(saveMode === 'live' ? 'draft' : 'live')
+                    } else {
+                      setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
+                    }
+                  }
+                }}
+              >
+                <Radio
+                  className={cn(
+                    'h-4 w-4 transition-all duration-300',
+                    isLiveMode
+                      ? 'animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
+                      : 'text-gray-400'
+                  )}
+                />
+                Build
+              </div>
+              <span className="pointer-events-none font-light text-blue-300/70">|</span>
             </TabsTrigger>
           </TabsList>
 
@@ -3868,11 +3908,11 @@ FEEDBACK: [your explanation]`
             {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
             {leftPanelHidden ? (
               <div
-                className="flex w-12 shrink-0 cursor-pointer flex-col items-center rounded-2xl border border-slate-200 bg-white py-4 shadow-sm transition-colors hover:bg-slate-50"
+                className="flex w-12 shrink-0 cursor-pointer flex-col items-center rounded-full border border-slate-200 bg-white py-4 shadow-sm transition-colors hover:bg-slate-50"
                 onClick={() => setLeftPanelHidden(false)}
                 title="Show directory"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600">
                   <ChevronRight className="h-5 w-5" />
                 </div>
                 <div className="mt-8 flex flex-1 items-start justify-center">
@@ -3944,7 +3984,11 @@ FEEDBACK: [your explanation]`
                                   className="h-7 w-7 p-0"
                                   title={insightsProps.isRecording ? 'Stop Recording' : 'Record'}
                                 >
-                                  {insightsProps.isRecording ? <Square className="h-3.5 w-3.5 fill-current" /> : <Circle className="h-3.5 w-3.5 fill-current text-red-500" />}
+                                  {insightsProps.isRecording ? (
+                                    <Square className="h-3.5 w-3.5 fill-current" />
+                                  ) : (
+                                    <Circle className="h-3.5 w-3.5 fill-current text-red-500" />
+                                  )}
                                 </Button>
                               )}
                               {insightsProps?.isRecording &&
@@ -4115,7 +4159,7 @@ FEEDBACK: [your explanation]`
                                             <DroppableTaskZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex w-full min-h-[40px] items-center justify-between rounded-full bg-gradient-to-r from-sky-400 to-blue-600 px-3 py-2 shadow-sm transition-all"
+                                              className="flex h-10 w-full items-center justify-between rounded-full bg-gradient-to-r from-sky-400 to-blue-600 px-3 shadow-sm transition-all"
                                             >
                                               <div className="flex items-center gap-2">
                                                 <button
@@ -4693,7 +4737,7 @@ FEEDBACK: [your explanation]`
                                             <DroppableAssessmentZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex w-full min-h-[40px] items-center justify-between rounded-full bg-gradient-to-r from-indigo-400 to-purple-600 px-3 py-2 shadow-sm transition-all"
+                                              className="flex h-10 w-full items-center justify-between rounded-full bg-gradient-to-r from-indigo-400 to-purple-600 px-3 shadow-sm transition-all"
                                             >
                                               <div className="flex items-center gap-2">
                                                 <button
@@ -4873,14 +4917,14 @@ FEEDBACK: [your explanation]`
                                                             variant="ghost"
                                                             size="icon"
                                                             className={cn(
-                                                            'h-7 w-7',
-                                                            directoryMenusAlwaysVisible
-                                                              ? 'opacity-80 hover:opacity-100'
-                                                              : 'opacity-0 group-hover/item:opacity-100'
-                                                          )}
-                                                          onClick={e => e.stopPropagation()}
-                                                        >
-                                                          <MoreVertical className="h-5 w-5 text-slate-700" />
+                                                              'h-7 w-7',
+                                                              directoryMenusAlwaysVisible
+                                                                ? 'opacity-80 hover:opacity-100'
+                                                                : 'opacity-0 group-hover/item:opacity-100'
+                                                            )}
+                                                            onClick={e => e.stopPropagation()}
+                                                          >
+                                                            <MoreVertical className="h-5 w-5 text-slate-700" />
                                                           </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
@@ -4971,7 +5015,7 @@ FEEDBACK: [your explanation]`
                                                   <DroppableHomeworkZone
                                                     nodeId={node.id}
                                                     lessonId={primaryLesson.id}
-                                                    className="flex w-full min-h-[40px] items-center justify-between rounded-full bg-gradient-to-r from-emerald-400 to-teal-600 px-3 py-2 shadow-sm transition-all"
+                                                    className="flex h-10 w-full items-center justify-between rounded-full bg-gradient-to-r from-emerald-400 to-teal-600 px-3 shadow-sm transition-all"
                                                   >
                                                     <div className="flex items-center gap-2">
                                                       <button
@@ -5092,14 +5136,14 @@ FEEDBACK: [your explanation]`
                                                                 variant="ghost"
                                                                 size="icon"
                                                                 className={cn(
-                                                                'h-7 w-7',
-                                                                directoryMenusAlwaysVisible
-                                                                  ? 'opacity-80 hover:opacity-100'
-                                                                  : 'opacity-0 group-hover/item:opacity-100'
-                                                              )}
-                                                              onClick={e => e.stopPropagation()}
-                                                            >
-                                                              <MoreVertical className="h-5 w-5 text-slate-700" />
+                                                                  'h-7 w-7',
+                                                                  directoryMenusAlwaysVisible
+                                                                    ? 'opacity-80 hover:opacity-100'
+                                                                    : 'opacity-0 group-hover/item:opacity-100'
+                                                                )}
+                                                                onClick={e => e.stopPropagation()}
+                                                              >
+                                                                <MoreVertical className="h-5 w-5 text-slate-700" />
                                                               </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
