@@ -5352,14 +5352,14 @@ FEEDBACK: [your explanation]`
                   <div className="h-full w-full flex-1">
                     {/* COMBINED BUILDER: Task & Assessment Tabs */}
                     <Card className="border-border bg-card/95 flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border shadow-xl backdrop-blur-md">
-                      <CardContent className="flex h-full flex-col overflow-hidden pt-4">
+                      <CardContent className="flex h-full flex-col overflow-hidden p-1">
                         <Tabs
                           value={mainBuilderTab}
                           onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
                           className="flex h-full w-full flex-col"
                         >
                           {/* Main Builder Tabs — pill strip with curved active tab */}
-                          <div className="mb-3 flex w-full items-stretch overflow-hidden rounded-2xl bg-gray-100 p-1 shadow-sm">
+                          <div className="mb-1 flex w-full items-stretch overflow-hidden rounded-2xl bg-gray-100 p-1 shadow-sm">
                             {/* Left: current task name */}
                             <div className="flex min-w-0 flex-1 items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-500">
                               <ListTodo className="h-4 w-4 shrink-0 text-blue-500" />
@@ -5394,7 +5394,7 @@ FEEDBACK: [your explanation]`
                           </div>
 
                           {/* Content area */}
-                          <div className="relative flex-1 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                          <div className="relative flex-1 rounded-2xl border border-gray-200 bg-white p-1 shadow-sm">
                             {/* Task Builder Tab */}
                             <TabsContent
                               value="task"
