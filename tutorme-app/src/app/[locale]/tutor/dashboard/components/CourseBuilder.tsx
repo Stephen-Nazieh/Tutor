@@ -3762,7 +3762,7 @@ FEEDBACK: [your explanation]`
                   className="flex min-h-0 shrink-0 flex-col"
                 >
                   <Card className="border-border bg-card flex h-full min-h-0 flex-1 flex-col rounded-2xl border shadow-xl ring-1 ring-black/5">
-                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden pt-3">
+                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-2">
                       {/* Header with Hide, Import, and +Lesson buttons */}
                       <div className="mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
