@@ -41,7 +41,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   { href: '/tutor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/tutor/my-page', label: 'My Page', icon: Globe },
-  { href: '/tutor/insights', label: 'Insights', icon: Lightbulb },
+  { href: '/tutor/insights', label: 'Course Builder', icon: Lightbulb },
 
   { href: '/tutor/group-builder', label: 'Groups', icon: Users },
   { href: '/tutor/documents', label: 'PDF Viewer', icon: FileText },

@@ -281,19 +281,6 @@ function CourseBuilderInsightsRouteInner({
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <button
-            onClick={() => setLeftPanelHidden(v => !v)}
-            className={cn(
-              'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
-              leftPanelHidden
-                ? 'bg-muted text-muted-foreground hover:bg-muted/80'
-                : 'bg-primary text-primary-foreground'
-            )}
-            title={leftPanelHidden ? 'Show directory' : 'Hide directory'}
-          >
-            <LayoutTemplate className="h-3.5 w-3.5" />
-            Directory
-          </button>
           <div className="flex shrink-0 items-center gap-3">
             {activeMainTab === 'live' && (
               <h1 className="text-foreground flex items-center gap-2 text-lg font-bold tracking-tight">
