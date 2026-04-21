@@ -37,6 +37,7 @@ export default function TutorDocumentsPage() {
           ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
         },
         body: formData,
+        credentials: 'include',
       })
 
       const data = await res.json()

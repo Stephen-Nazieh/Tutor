@@ -89,8 +89,10 @@ export async function GET(
         schedule: course.schedule,
         updatedAt: course.updatedAt,
         categories: course.categories,
+        country: profile.countryOfResidence,
       })
       .from(course)
+      .leftJoin(profile, eq(course.creatorId, profile.userId))
       .where(and(eq(course.creatorId, tutorId), eq(course.isPublished, true)))
 
     // Derive specialties from published course categories
@@ -154,8 +156,11 @@ export async function GET(
         enrollmentCount: 0, // Placeholder
         lessonCount: lessonCounts[c.courseId] || 0,
         price: c.isFree ? 0 : c.price,
+        isFree: c.isFree,
         currency: c.currency || 'USD',
+        schedule: c.schedule || [],
         scheduleSummary,
+        country: c.country,
         liveSessionsTotal: 0,
         liveSessionsCompleted: 0,
         enrollmentStatus: 'ongoing' as const,

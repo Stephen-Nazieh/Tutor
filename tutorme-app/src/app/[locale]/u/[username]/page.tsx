@@ -80,8 +80,11 @@ interface PublicTutorResponse {
     enrollmentCount: number
     lessonCount: number
     price?: number | null
+    isFree?: boolean
     currency?: string | null
     scheduleSummary?: string | null
+    country?: string | null
+    schedule?: any[]
     liveSessionsTotal?: number
     liveSessionsCompleted?: number
     enrollmentStatus?: 'ongoing' | 'ended'
@@ -508,12 +511,16 @@ export default function PublicTutorPage() {
   })
   const [catalogLayout, setCatalogLayout] = useState<'grid' | 'list' | 'compact'>('compact')
   const [courseSearchQuery, setCourseSearchQuery] = useState('')
+  const [courseCountryFilter, setCourseCountryFilter] = useState('global')
   const [courseSortOrder, setCourseSortOrder] = useState<'newest' | 'price_asc' | 'price_desc'>(
     'newest'
   )
   const [bookDialogOpen, setBookDialogOpen] = useState(false)
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set())
   const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null)
+  const [detailCourse, setDetailCourse] = useState<PublicTutorResponse['courses'][number] | null>(
+    null
+  )
 
   useEffect(() => {
     loadTutorData()
@@ -648,6 +655,10 @@ export default function PublicTutorPage() {
       )
     }
 
+    if (courseCountryFilter !== 'global') {
+      result = result.filter(c => c.country === courseCountryFilter)
+    }
+
     if (courseSortOrder === 'price_asc') {
       result = [...result].sort((a, b) => (a.price || 0) - (b.price || 0))
     } else if (courseSortOrder === 'price_desc') {
@@ -655,7 +666,7 @@ export default function PublicTutorPage() {
     }
 
     return result
-  }, [data?.courses, courseSearchQuery, courseSortOrder])
+  }, [data?.courses, courseSearchQuery, courseCountryFilter, courseSortOrder])
 
   if (loading) {
     return (
@@ -749,7 +760,7 @@ export default function PublicTutorPage() {
     try {
       if (!enrolledCourseIds.has(course.id)) {
         toast.info('Please enroll in the course first.')
-        router.push(`/${locale}/course/${course.id}`)
+        router.push(`/${locale}/courses/${course.id}`)
         return
       }
 
@@ -803,8 +814,13 @@ export default function PublicTutorPage() {
       if (enrollRes.ok) {
         toast.success(data?.message || 'Enrolled successfully')
         setEnrolledCourseIds(prev => new Set(prev).add(courseId))
+        router.push(`/${locale}/student/courses?tab=mine`)
       } else {
-        toast.error(data?.error || 'Failed to enroll')
+        if (data?.requiresPayment) {
+          router.push(`/${locale}/courses/${courseId}`)
+        } else {
+          toast.error(data?.error || 'Failed to enroll')
+        }
       }
     } catch {
       toast.error('Failed to enroll')
@@ -1009,7 +1025,7 @@ export default function PublicTutorPage() {
             </div>
 
             <div className="flex flex-1 flex-col items-stretch gap-3 sm:flex-row sm:items-center lg:justify-end">
-              <div className="relative flex w-full max-w-sm items-center gap-2">
+              <div className="relative flex w-full max-w-lg items-center gap-2">
                 <div className="relative flex-1">
                   <Search className="text-muted-foreground absolute left-2.5 top-2.5 h-4 w-4" />
                   <Input
@@ -1020,6 +1036,24 @@ export default function PublicTutorPage() {
                     onChange={e => setCourseSearchQuery(e.target.value)}
                   />
                 </div>
+                <Select
+                  value={courseCountryFilter}
+                  onValueChange={(val: any) => setCourseCountryFilter(val)}
+                >
+                  <SelectTrigger className="h-9 w-[120px]">
+                    <SelectValue placeholder="Country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="global">Global</SelectItem>
+                    {Array.from(
+                      new Set((data?.courses || []).map(c => c.country).filter(Boolean))
+                    ).map(country => (
+                      <SelectItem key={country as string} value={country as string}>
+                        {country as string}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Select
                   value={courseSortOrder}
                   onValueChange={(val: any) => setCourseSortOrder(val)}
@@ -1166,12 +1200,16 @@ export default function PublicTutorPage() {
                             </dt>
                             <dd className="min-w-0 text-slate-800">
                               {course.scheduleSummary ? (
-                                <Link
-                                  href={`/${locale}/course/${course.id}#schedule`}
+                                <button
+                                  type="button"
+                                  onClick={e => {
+                                    e.preventDefault()
+                                    setDetailCourse(course)
+                                  }}
                                   className="inline-flex items-center gap-1 font-medium text-blue-600 transition-colors hover:text-blue-800 hover:underline"
                                 >
                                   {course.scheduleSummary} <ExternalLink className="h-3 w-3" />
-                                </Link>
+                                </button>
                               ) : (
                                 'Schedule to be announced'
                               )}
@@ -1202,7 +1240,9 @@ export default function PublicTutorPage() {
                         )}
                       >
                         <StarRating rating={course.rating ?? null} count={course.reviewCount} />
-                        {course.price ? (
+                        {course.isFree ? (
+                          <span className="text-sm font-bold text-emerald-600">Free</span>
+                        ) : course.price ? (
                           <span className="text-sm font-bold text-slate-900">
                             ${course.price}{' '}
                             <span className="text-[10px] font-normal text-slate-500">
@@ -1273,7 +1313,7 @@ export default function PublicTutorPage() {
                             variant="outline"
                             className={cn(isCompact && 'h-7 text-xs')}
                           >
-                            <Link href={`/${locale}/course/${course.id}`}>
+                            <Link href={`/${locale}/courses/${course.id}`}>
                               <FileText className="mr-1 h-3 w-3" />
                               Details
                             </Link>
@@ -1297,6 +1337,39 @@ export default function PublicTutorPage() {
         username={normalizedUsername}
         locale={locale}
       />
+
+      {/* Detail Modal */}
+      <Dialog open={!!detailCourse} onOpenChange={open => !open && setDetailCourse(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{detailCourse?.name}</DialogTitle>
+            <DialogDescription>{detailCourse?.description}</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <h4 className="mb-2 text-sm font-semibold">Weekly Schedule</h4>
+            {detailCourse?.schedule && detailCourse.schedule.length > 0 ? (
+              <div className="space-y-2">
+                {detailCourse.schedule.map((slot: any, idx: number) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between rounded-lg border bg-gray-50 p-2 text-sm"
+                  >
+                    <span className="font-medium">{slot.dayOfWeek}</span>
+                    <span>
+                      {slot.startTime} ({slot.durationMinutes} mins)
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">No fixed schedule for this course.</p>
+            )}
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={() => setDetailCourse(null)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

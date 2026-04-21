@@ -168,10 +168,43 @@ function CoursePageInner() {
   const loadCourses = async () => {
     setIsLoading(true)
     try {
-      const res = await fetch(`/api/course?filter=all`)
+      const res = await fetch(`/api/student/enrollments`, { credentials: 'include' })
       if (res.ok) {
         const data = await res.json()
-        setCourses(data.courses)
+        const enrollments = data.enrollments || []
+
+        // Map enrollments to match the expected Course interface
+        const mappedCourses = enrollments.map((e: any) => {
+          const startDate = e.startDate || e.enrolledAt
+          return {
+            id: e.courseId,
+            name: e.course?.name || 'Unknown Course',
+            description: e.course?.description || null,
+            subject: e.course?.categories?.[0] || 'general',
+            difficulty: 'All Levels',
+            estimatedHours: 0,
+            _count: {
+              modules: 0,
+              lessons: e.course?._count?.lessons || 0,
+              batches: 0,
+            },
+            availability: {
+              summary: null,
+              slots: e.course?.schedule || [],
+            },
+            progress: {
+              lessonsCompleted: 0,
+              totalLessons: e.course?._count?.lessons || 0,
+              averageScore: null,
+              isCompleted: false,
+            },
+            enrollment: {
+              startDate: startDate,
+            },
+          }
+        })
+
+        setCourses(mappedCourses)
       }
     } catch (error) {
       console.error('Failed to load courses:', error)
