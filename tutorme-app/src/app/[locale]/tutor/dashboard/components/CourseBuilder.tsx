@@ -3762,9 +3762,9 @@ FEEDBACK: [your explanation]`
                   className="flex min-h-0 shrink-0 flex-col"
                 >
                   <Card className="border-border bg-card flex h-full min-h-0 flex-1 flex-col rounded-2xl border shadow-xl ring-1 ring-black/5">
-                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-2">
+                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-px">
                       {/* Header with Hide, Import, and +Lesson buttons */}
-                      <div className="mb-3 flex items-center justify-between">
+                      <div className="mb-1 flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           <Button
                             variant="ghost"
@@ -3837,7 +3837,7 @@ FEEDBACK: [your explanation]`
                         </div>
                       </div>
 
-                      <div className="mb-3">
+                      <div className="mb-1">
                         <Input
                           placeholder="Search course..."
                           value={searchQuery}
@@ -3873,12 +3873,12 @@ FEEDBACK: [your explanation]`
                                     depth={0}
                                     isLast={nodeIdx === nodes.length - 1}
                                     inlineDragHandle
-                                    className="mb-4 ml-0 overflow-hidden rounded-lg border border-l-0 border-slate-200 bg-white pl-0 shadow-sm"
+                                    className="mb-1 ml-0 overflow-hidden rounded-lg border border-l-0 border-slate-200 bg-white pl-0 shadow-sm"
                                   >
                                     <div className="group">
                                       <div
                                         className={cn(
-                                          'flex w-full cursor-pointer flex-wrap items-center gap-1.5 border-t-4 border-t-cyan-600 bg-blue-50/50 px-3 py-2 transition-colors hover:bg-blue-50'
+                                          'flex w-full cursor-pointer flex-wrap items-center gap-1.5 border-t-4 border-t-cyan-600 bg-blue-50/50 px-2 py-1 transition-colors hover:bg-blue-50'
                                         )}
                                         onClick={() => toggleCourseBuilderNode(node.id)}
                                       >
@@ -3922,7 +3922,7 @@ FEEDBACK: [your explanation]`
                                       </div>
 
                                       {expandedCourseBuilderNodes.has(node.id) && (
-                                        <div className="mt-1 flex flex-col gap-0 px-2 pb-2">
+                                        <div className="mt-0.5 flex flex-col gap-0 px-1 pb-0.5">
                                           {/* Tasks - droppable so homework can be moved here */}
                                           <TreeItem
                                             depth={0}
@@ -3932,7 +3932,7 @@ FEEDBACK: [your explanation]`
                                             <DroppableTaskZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex w-full items-center justify-between rounded-lg bg-gradient-to-r from-sky-400 to-blue-600 px-3 py-2 shadow-sm transition-all"
+                                              className="flex w-full items-center justify-between rounded-lg bg-gradient-to-r from-sky-400 to-blue-600 px-2 py-1 shadow-sm transition-all"
                                             >
                                               <div className="flex items-center gap-2">
                                                 <button
@@ -4472,7 +4472,7 @@ FEEDBACK: [your explanation]`
                                             <DroppableAssessmentZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex w-full items-center justify-between rounded-lg bg-gradient-to-r from-indigo-400 to-purple-600 px-3 py-2 shadow-sm transition-all"
+                                              className="flex w-full items-center justify-between rounded-lg bg-gradient-to-r from-indigo-400 to-purple-600 px-2 py-1 shadow-sm transition-all"
                                             >
                                               <div className="flex items-center gap-2">
                                                 <button
@@ -4725,7 +4725,7 @@ FEEDBACK: [your explanation]`
                                                   <DroppableHomeworkZone
                                                     nodeId={node.id}
                                                     lessonId={primaryLesson.id}
-                                                    className="flex w-full items-center justify-between rounded-lg bg-gradient-to-r from-emerald-400 to-teal-600 px-3 py-2 shadow-sm transition-all"
+                                                    className="flex w-full items-center justify-between rounded-lg bg-gradient-to-r from-emerald-400 to-teal-600 px-2 py-1 shadow-sm transition-all"
                                                   >
                                                     <div className="flex items-center gap-2">
                                                       <button
@@ -4913,7 +4913,7 @@ FEEDBACK: [your explanation]`
                                               className="ml-0 mt-1 border-l-0 pl-0"
                                             >
                                               <div
-                                                className="group flex cursor-pointer items-center gap-1.5 rounded-lg border bg-red-500 px-3 py-2 shadow-sm transition-colors hover:bg-red-600"
+                                                className="group flex cursor-pointer items-center gap-1.5 rounded-lg border bg-red-500 px-2 py-1 shadow-sm transition-colors hover:bg-red-600"
                                                 onClick={() =>
                                                   setSelectedItem({ type: 'nodeQuiz', id: quiz.id })
                                                 }
@@ -4968,7 +4968,7 @@ FEEDBACK: [your explanation]`
                             </SortableContext>
 
                             {nodes.length === 0 && (
-                              <div className="text-muted-foreground py-8 text-center">
+                              <div className="text-muted-foreground py-2 text-center">
                                 <Layers className="mx-auto mb-2 h-8 w-8 opacity-30" />
                                 <p className="text-sm">
                                   No lessons yet. Click "Lesson" to add one.
@@ -5004,8 +5004,8 @@ FEEDBACK: [your explanation]`
                 {mainTab !== 'builder' && (
                   <div className="h-full w-full flex-1">
                     <Card className="border-border bg-card flex h-full w-full min-w-0 flex-1 overflow-hidden rounded-2xl border shadow-xl ring-1 ring-black/5">
-                      <CardContent className="flex h-full min-h-0 w-full flex-col overflow-hidden p-0 pt-4">
-                        <CardTitle className="mb-3 flex items-center justify-between gap-2 px-4 text-base font-semibold">
+                      <CardContent className="flex h-full min-h-0 w-full flex-col overflow-hidden p-0 pt-1">
+                        <CardTitle className="mb-1 flex items-center justify-between gap-2 px-1 text-base font-semibold">
                           <div>
                             {/* Timer removed — kept in CourseBuilderInsightsRoute header instead */}
                           </div>
@@ -5019,7 +5019,7 @@ FEEDBACK: [your explanation]`
                                 onValueChange={setTestPciActiveTab}
                                 className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-hidden"
                               >
-                                <TabsList className="mb-2 flex w-full shrink-0 flex-nowrap items-stretch border-b border-gray-200">
+                                <TabsList className="mb-px flex w-full shrink-0 flex-nowrap items-stretch border-b border-gray-200">
                                   {testPciTabs.map(tab => (
                                     <div key={tab.id} className="relative min-w-0 flex-1 basis-0">
                                       {editingTabId === tab.id ? (
@@ -5061,7 +5061,7 @@ FEEDBACK: [your explanation]`
                                   >
                                     {tab.id === 'insights' ? (
                                       insightsProps ? (
-                                        <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cyan-200/70 bg-gradient-to-br from-white via-slate-50 to-cyan-50 p-4 shadow-[0_10px_40px_-20px_rgba(14,116,144,0.65)] ring-1 ring-cyan-200/60">
+                                        <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-cyan-200/70 bg-gradient-to-br from-white via-slate-50 to-cyan-50 p-1 shadow-[0_10px_40px_-20px_rgba(14,116,144,0.65)] ring-1 ring-cyan-200/60">
                                           {/* Recording status removed from Insights tab */}
 
                                           <Tabs
@@ -5073,7 +5073,7 @@ FEEDBACK: [your explanation]`
                                             }
                                             className="flex h-full min-h-0 flex-col"
                                           >
-                                            <TabsList className="mb-4 grid w-full grid-cols-3 gap-1 rounded-xl p-1 shadow-sm">
+                                            <TabsList className="mb-1 grid w-full grid-cols-3 gap-1 rounded-xl p-px shadow-sm">
                                               <TabsTrigger
                                                 value="analytics"
                                                 className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
@@ -5113,8 +5113,8 @@ FEEDBACK: [your explanation]`
                                               value="poll"
                                               className="flex flex-1 flex-col justify-end pt-2 data-[state=active]:flex data-[state=inactive]:hidden"
                                             >
-                                              <div className="flex h-[40%] flex-col rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
-                                                <div className="flex flex-1 flex-col space-y-2 p-3">
+                                              <div className="flex h-[40%] flex-col rounded-2xl border border-cyan-100 bg-white/40 p-px shadow-xl backdrop-blur-md">
+                                                <div className="flex flex-1 flex-col space-y-0.5 p-1">
                                                   <div className="flex items-center justify-between">
                                                     <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
                                                       Poll question
@@ -5161,7 +5161,7 @@ FEEDBACK: [your explanation]`
                                                     </Button>
                                                   </div>
                                                 </div>
-                                                <div className="border-t border-cyan-50/50 bg-cyan-50/20 px-4 py-3">
+                                                <div className="border-t border-cyan-50/50 bg-cyan-50/20 px-1 py-1">
                                                   <div className="flex items-center justify-between gap-3">
                                                     <div className="flex items-center gap-2">
                                                       <span className="text-muted-foreground text-[10px] uppercase tracking-wider">
@@ -5191,8 +5191,8 @@ FEEDBACK: [your explanation]`
                                               value="question"
                                               className="flex flex-1 flex-col justify-end pt-2 data-[state=active]:flex data-[state=inactive]:hidden"
                                             >
-                                              <div className="flex h-[40%] flex-col rounded-2xl border border-cyan-100 bg-white/40 p-1 shadow-xl backdrop-blur-md">
-                                                <div className="flex flex-1 flex-col space-y-2 p-3">
+                                              <div className="flex h-[40%] flex-col rounded-2xl border border-cyan-100 bg-white/40 p-px shadow-xl backdrop-blur-md">
+                                                <div className="flex flex-1 flex-col space-y-0.5 p-1">
                                                   <div className="flex items-center justify-between">
                                                     <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
                                                       Question prompt
@@ -5239,7 +5239,7 @@ FEEDBACK: [your explanation]`
                                                     </Button>
                                                   </div>
                                                 </div>
-                                                <div className="border-t border-cyan-50/50 bg-cyan-50/20 px-4 py-3 text-[10px]">
+                                                <div className="border-t border-cyan-50/50 bg-cyan-50/20 px-1 py-1 text-[10px]">
                                                   <div className="flex items-center justify-between">
                                                     <p className="font-medium text-cyan-600">
                                                       Topic:{' '}
@@ -5259,7 +5259,7 @@ FEEDBACK: [your explanation]`
                                         </div>
                                       ) : null
                                     ) : (
-                                      <div className="bg-muted flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg p-4">
+                                      <div className="bg-muted flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg p-1">
                                         <p className="text-muted-foreground whitespace-pre-wrap text-sm">
                                           {testPciContent[tab.id] || `${tab.label} view content`}
                                         </p>
@@ -5272,7 +5272,7 @@ FEEDBACK: [your explanation]`
                                             {testPciScores[tab.id].map((score, idx) => (
                                               <div
                                                 key={idx}
-                                                className="mb-2 rounded border border-gray-400 bg-white p-2"
+                                                className="mb-1 rounded border border-gray-400 bg-white p-1"
                                               >
                                                 <div className="flex items-center gap-2">
                                                   <Badge
@@ -5301,8 +5301,8 @@ FEEDBACK: [your explanation]`
                                 ))}
                               </Tabs>
                               {testPciActiveTab !== 'insights' && (
-                                <div className="border-border bg-background mt-4 rounded-2xl border shadow-xl backdrop-blur-md">
-                                  <div className="relative p-1">
+                                <div className="border-border bg-background mt-1 rounded-2xl border shadow-xl backdrop-blur-md">
+                                  <div className="relative p-px">
                                     <MentionTextarea
                                       mentionItems={mentionItems}
                                       className="min-h-[100px] w-full border-0 bg-transparent py-4 pl-4 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -5331,7 +5331,7 @@ FEEDBACK: [your explanation]`
                                       <Send className="h-4 w-4" />
                                     </Button>
                                   </div>
-                                  <div className="border-border/50 bg-muted/20 border-t px-4 py-2.5">
+                                  <div className="border-border/50 bg-muted/20 border-t px-1 py-1">
                                     <p className="text-muted-foreground text-[10px]">
                                       Tip: Start line with &quot;1.&quot;, &quot;-&quot;, or
                                       &quot;a.&quot; for auto-numbering. Use Tab/Shift+Tab to
@@ -5352,16 +5352,16 @@ FEEDBACK: [your explanation]`
                   <div className="h-full w-full flex-1">
                     {/* COMBINED BUILDER: Task & Assessment Tabs */}
                     <Card className="border-border bg-card/95 flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border shadow-xl backdrop-blur-md">
-                      <CardContent className="flex h-full flex-col overflow-hidden p-1">
+                      <CardContent className="flex h-full flex-col overflow-hidden p-px">
                         <Tabs
                           value={mainBuilderTab}
                           onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
                           className="flex h-full w-full flex-col"
                         >
                           {/* Main Builder Tabs — pill strip with curved active tab */}
-                          <div className="mb-1 flex w-full items-stretch overflow-hidden rounded-2xl bg-gray-100 p-1 shadow-sm">
+                          <div className="mb-px flex w-full items-stretch overflow-hidden rounded-2xl bg-gray-100 p-px shadow-sm">
                             {/* Left: current task name */}
-                            <div className="flex min-w-0 flex-1 items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-500">
+                            <div className="flex min-w-0 flex-1 items-center gap-2 px-2 py-1 text-sm font-medium text-gray-500">
                               <ListTodo className="h-4 w-4 shrink-0 text-blue-500" />
                               <span className="truncate">
                                 {taskBuilder.title || ''}
@@ -5372,20 +5372,20 @@ FEEDBACK: [your explanation]`
                             <TabsList className="flex shrink-0 gap-0 bg-transparent p-0">
                               <TabsTrigger
                                 value="task"
-                                className="relative w-52 justify-end overflow-visible py-2.5 pr-5 text-right text-sm font-medium transition-all data-[state=inactive]:bg-gray-200/60 data-[state=inactive]:text-gray-500 data-[state=active]:rounded-l-xl data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:before:absolute data-[state=active]:before:bottom-0 data-[state=active]:before:left-0 data-[state=active]:before:z-10 data-[state=active]:before:h-8 data-[state=active]:before:w-8 data-[state=active]:before:bg-gray-100 data-[state=active]:before:rounded-tr-full"
+                                className="relative w-52 justify-end overflow-visible py-1 pr-5 text-right text-sm font-medium transition-all data-[state=inactive]:bg-gray-200/60 data-[state=inactive]:text-gray-500 data-[state=active]:rounded-l-xl data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:before:absolute data-[state=active]:before:bottom-0 data-[state=active]:before:left-0 data-[state=active]:before:z-10 data-[state=active]:before:h-8 data-[state=active]:before:w-8 data-[state=active]:before:bg-gray-100 data-[state=active]:before:rounded-tr-full"
                               >
                                 Task Builder
                               </TabsTrigger>
                               <TabsTrigger
                                 value="assessment"
-                                className="relative w-52 justify-start overflow-visible py-2.5 pl-5 text-left text-sm font-medium transition-all data-[state=inactive]:bg-gray-200/60 data-[state=inactive]:text-gray-500 data-[state=active]:rounded-r-xl data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:right-0 data-[state=active]:after:z-10 data-[state=active]:after:h-8 data-[state=active]:after:w-8 data-[state=active]:after:bg-gray-100 data-[state=active]:after:rounded-tl-full"
+                                className="relative w-52 justify-start overflow-visible py-1 pl-5 text-left text-sm font-medium transition-all data-[state=inactive]:bg-gray-200/60 data-[state=inactive]:text-gray-500 data-[state=active]:rounded-r-xl data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:right-0 data-[state=active]:after:z-10 data-[state=active]:after:h-8 data-[state=active]:after:w-8 data-[state=active]:after:bg-gray-100 data-[state=active]:after:rounded-tl-full"
                               >
                                 Assessment Builder
                               </TabsTrigger>
                             </TabsList>
 
                             {/* Right: current assessment name */}
-                            <div className="flex min-w-0 flex-1 items-center justify-end gap-2 px-4 py-2.5 text-sm font-medium text-gray-500">
+                            <div className="flex min-w-0 flex-1 items-center justify-end gap-2 px-2 py-1 text-sm font-medium text-gray-500">
                               <span className="truncate">
                                 {assessmentBuilder.title || ''}
                               </span>
@@ -5394,11 +5394,11 @@ FEEDBACK: [your explanation]`
                           </div>
 
                           {/* Content area */}
-                          <div className="relative flex-1 rounded-2xl border border-gray-200 bg-white p-1 shadow-sm">
+                          <div className="relative flex-1 rounded-2xl border border-gray-200 bg-white p-px shadow-sm">
                             {/* Task Builder Tab */}
                             <TabsContent
                               value="task"
-                              className="flex h-full flex-col space-y-4 overflow-hidden data-[state=inactive]:hidden"
+                              className="flex h-full flex-col space-y-1 overflow-hidden data-[state=inactive]:hidden"
                             >
                             <div className="flex flex-1 gap-4 overflow-hidden">
                               {/* Main content with tabs */}
@@ -5410,7 +5410,7 @@ FEEDBACK: [your explanation]`
                                   }}
                                   className="flex h-full w-full flex-col"
                                 >
-                                  <TabsList className="grid h-10 w-full grid-cols-2 rounded-full border border-gray-200 bg-white p-1 shadow-sm">
+                                  <TabsList className="grid h-8 w-full grid-cols-2 rounded-full border border-gray-200 bg-white p-px shadow-sm">
                                     <TabsTrigger
                                       value="content"
                                       className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
@@ -5426,7 +5426,7 @@ FEEDBACK: [your explanation]`
                                   </TabsList>
                                   <TabsContent
                                     value="content"
-                                    className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                                    className="mt-0.5 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                   >
                                     <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
                                       <AutoTextarea
@@ -5555,10 +5555,10 @@ FEEDBACK: [your explanation]`
                                   </TabsContent>
                                   <TabsContent
                                     value="pci"
-                                    className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                                    className="mt-0.5 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                   >
                                     <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
-                                      <div className="flex-1 space-y-3 overflow-y-auto p-3">
+                                      <div className="flex-1 space-y-1 overflow-y-auto p-1">
                                         {activeTaskPciMessages.length === 0 && (
                                           <p className="text-muted-foreground text-xs">
                                             Start a PCI chat to build instructions with the
@@ -5594,7 +5594,7 @@ FEEDBACK: [your explanation]`
                                           </div>
                                         )}
                                       </div>
-                                      <div className="border-t p-2">
+                                      <div className="border-t p-px">
                                         {taskPciErrorHint && (
                                           <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
                                             PCI assistant error: {taskPciErrorHint}
@@ -5692,7 +5692,7 @@ FEEDBACK: [your explanation]`
                                   }}
                                   className="flex h-full w-full flex-col"
                                 >
-                                  <TabsList className="mb-4 grid h-10 w-full grid-cols-2 rounded-full border border-gray-200 bg-white p-1 shadow-sm">
+                                  <TabsList className="mb-1 grid h-8 w-full grid-cols-2 rounded-full border border-gray-200 bg-white p-px shadow-sm">
                                     <TabsTrigger
                                       value="content"
                                       className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
