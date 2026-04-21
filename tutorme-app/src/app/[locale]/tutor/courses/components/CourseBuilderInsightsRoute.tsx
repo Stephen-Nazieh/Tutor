@@ -267,22 +267,20 @@ function CourseBuilderInsightsRouteInner({
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          {activeMainTab === 'builder' && (
-            <button
-              type="button"
-              onClick={() => setLeftPanelHidden(v => !v)}
-              className={cn(
-                'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
-                leftPanelHidden
-                  ? 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  : 'bg-primary text-primary-foreground'
-              )}
-              title={leftPanelHidden ? 'Show directory' : 'Hide directory'}
-            >
-              <LayoutTemplate className="h-3.5 w-3.5" />
-              Directory
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => setLeftPanelHidden(v => !v)}
+            className={cn(
+              'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
+              leftPanelHidden
+                ? 'bg-muted text-muted-foreground hover:bg-muted/80'
+                : 'bg-primary text-primary-foreground'
+            )}
+            title={leftPanelHidden ? 'Show directory' : 'Hide directory'}
+          >
+            <LayoutTemplate className="h-3.5 w-3.5" />
+            Directory
+          </button>
           {onSaveModeChange && activeMainTab === 'builder' && (
             <div className="flex items-center rounded-lg border p-0.5">
               <button
