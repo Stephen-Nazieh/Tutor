@@ -5602,32 +5602,32 @@ FEEDBACK: [your explanation]`
                           onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
                           className="flex h-full w-full flex-col"
                         >
-                          {/* Main Builder Tabs — pill strip with curved active tab */}
-                          <div className="mb-px flex w-full items-stretch overflow-hidden rounded-2xl bg-gray-100 p-px shadow-sm">
+                          {/* Main Builder Tabs — nested pill design */}
+                          <div className="mb-px flex w-full items-center rounded-full bg-gray-100 p-1 shadow-sm">
                             {/* Left: current task name */}
-                            <div className="flex min-w-0 flex-1 items-center gap-2 px-2 py-1 text-sm font-medium text-gray-500">
+                            <div className="flex min-w-0 flex-1 items-center gap-2 px-3 py-1 text-sm font-medium text-gray-500">
                               <ListTodo className="h-4 w-4 shrink-0 text-blue-500" />
                               <span className="truncate">{taskBuilder.title || ''}</span>
                             </div>
 
-                            {/* Center: tabs with curved outer edges when active */}
-                            <TabsList className="flex shrink-0 gap-0 bg-transparent p-0">
+                            {/* Center: nested pill tabs */}
+                            <TabsList className="flex shrink-0 gap-0 rounded-full bg-white p-0.5 shadow-sm">
                               <TabsTrigger
                                 value="task"
-                                className="relative w-52 justify-end overflow-visible py-1 pr-5 text-right text-sm font-medium transition-all data-[state=active]:rounded-l-xl data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-200/60 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=inactive]:text-gray-500 data-[state=active]:before:absolute data-[state=active]:before:bottom-0 data-[state=active]:before:left-0 data-[state=active]:before:z-10 data-[state=active]:before:h-8 data-[state=active]:before:w-8 data-[state=active]:before:rounded-tr-full data-[state=active]:before:bg-gray-100"
+                                className="w-52 rounded-full py-2 text-sm font-medium transition-all data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-500 data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white"
                               >
                                 Task Builder
                               </TabsTrigger>
                               <TabsTrigger
                                 value="assessment"
-                                className="relative w-52 justify-start overflow-visible py-1 pl-5 text-left text-sm font-medium transition-all data-[state=active]:rounded-r-xl data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-200/60 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=inactive]:text-gray-500 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:right-0 data-[state=active]:after:z-10 data-[state=active]:after:h-8 data-[state=active]:after:w-8 data-[state=active]:after:rounded-tl-full data-[state=active]:after:bg-gray-100"
+                                className="w-52 rounded-full py-2 text-sm font-medium transition-all data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-500 data-[state=active]:bg-blue-500 data-[state=active]:font-semibold data-[state=active]:text-white"
                               >
                                 Assessment Builder
                               </TabsTrigger>
                             </TabsList>
 
                             {/* Right: current assessment name */}
-                            <div className="flex min-w-0 flex-1 items-center justify-end gap-2 px-2 py-1 text-sm font-medium text-gray-500">
+                            <div className="flex min-w-0 flex-1 items-center justify-end gap-2 px-3 py-1 text-sm font-medium text-gray-500">
                               <span className="truncate">{assessmentBuilder.title || ''}</span>
                               <FileQuestion className="h-4 w-4 shrink-0 text-indigo-500" />
                             </div>
