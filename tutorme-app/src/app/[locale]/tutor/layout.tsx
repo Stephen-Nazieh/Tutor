@@ -104,7 +104,16 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
 
   const isAccountPage = pathname === '/tutor/settings' || pathname?.startsWith('/tutor/settings/')
 
-  if (isCourseBuilder || isCoursePublishPage || isMyPage || isInsightsPage || isAccountPage) {
+  const isGroupBuilder = pathname?.includes('/tutor/group-builder')
+
+  if (
+    isCourseBuilder ||
+    isCoursePublishPage ||
+    isMyPage ||
+    isInsightsPage ||
+    isAccountPage ||
+    isGroupBuilder
+  ) {
     return <>{children}</>
   }
 
