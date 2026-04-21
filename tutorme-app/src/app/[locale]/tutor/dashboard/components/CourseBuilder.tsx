@@ -3932,7 +3932,7 @@ FEEDBACK: [your explanation]`
                                             <DroppableTaskZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex w-full items-center justify-between rounded-lg bg-blue-500 px-3 py-2 shadow-sm transition-all"
+                                              className="flex w-full items-center justify-between rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-3 py-2 shadow-sm transition-all"
                                             >
                                               <div className="flex items-center gap-2">
                                                 <button
@@ -4472,7 +4472,7 @@ FEEDBACK: [your explanation]`
                                             <DroppableAssessmentZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex w-full items-center justify-between rounded-lg bg-indigo-500 px-3 py-2 shadow-sm transition-all"
+                                              className="flex w-full items-center justify-between rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 px-3 py-2 shadow-sm transition-all"
                                             >
                                               <div className="flex items-center gap-2">
                                                 <button
@@ -4725,7 +4725,7 @@ FEEDBACK: [your explanation]`
                                                   <DroppableHomeworkZone
                                                     nodeId={node.id}
                                                     lessonId={primaryLesson.id}
-                                                    className="flex w-full items-center justify-between rounded-lg bg-emerald-500 px-3 py-2 shadow-sm transition-all"
+                                                    className="flex w-full items-center justify-between rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 px-3 py-2 shadow-sm transition-all"
                                                   >
                                                     <div className="flex items-center gap-2">
                                                       <button
