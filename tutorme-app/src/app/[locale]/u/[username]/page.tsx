@@ -1279,78 +1279,72 @@ export default function PublicTutorPage() {
                           )}
                         </div>
 
-                        <div className={cn('mt-auto flex w-full flex-col gap-2')}>
-                          <div className={cn('flex w-full gap-2', isList && 'justify-end')}>
-                            {isTutorOwner ? (
-                              <Button
-                                size="sm"
-                                variant="default"
-                                className={cn('flex-1', isCompact && 'h-7 text-xs')}
-                                onClick={() => handleEnterClassroom(course)}
-                                disabled={launchingCourseId === course.id}
-                              >
-                                <FileText className="mr-1 h-3 w-3" />
-                                {launchingCourseId === course.id ? 'Launching…' : 'Classroom'}
-                              </Button>
-                            ) : (
-                              <>
-                                {session?.user?.role === 'STUDENT' &&
-                                  course.enrollmentStatus !== 'ended' && (
-                                    <>
-                                      {enrolledCourseIds.has(course.id) ? (
-                                        <Button
-                                          size="sm"
-                                          variant="secondary"
-                                          className={cn('flex-1', isCompact && 'h-7 text-xs')}
-                                          disabled
-                                        >
-                                          <CheckCircle className="mr-1 h-3 w-3" />
-                                          Enrolled
-                                        </Button>
-                                      ) : (
-                                        <Button
-                                          size="sm"
-                                          variant="default"
-                                          className={cn('flex-1', isCompact && 'h-7 text-xs')}
-                                          onClick={() => handleEnrollClick(course)}
-                                          disabled={enrollingCourseId === course.id}
-                                        >
-                                          {enrollingCourseId === course.id ? (
-                                            <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                                          ) : (
-                                            <UserPlus className="mr-1 h-3 w-3" />
-                                          )}
-                                          {enrollingCourseId === course.id
-                                            ? 'Enrolling…'
-                                            : 'Enroll'}
-                                        </Button>
-                                      )}
-                                    </>
-                                  )}
-                                <Button
-                                  size="sm"
-                                  variant="default"
-                                  className={cn('flex-1', isCompact && 'h-7 text-xs')}
-                                  onClick={() => void handleStudentEnterClassroom(course)}
-                                  disabled={studentJoiningCourseId === course.id}
-                                >
-                                  <FileText className="mr-1 h-3 w-3" />
-                                  {studentJoiningCourseId === course.id
-                                    ? 'Enrolling…'
-                                    : 'Classroom'}
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className={cn('w-full', isCompact && 'h-7 text-xs')}
+                        <div className={cn('mt-auto flex w-full flex-wrap items-center gap-4 pt-2', isList && 'justify-end')}>
+                          <button
+                            type="button"
+                            className={cn('inline-flex items-center text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 disabled:opacity-50', isCompact && 'text-xs')}
                             onClick={() => setDetailsCourse(course)}
                           >
-                            <FileText className="mr-1 h-3 w-3" />
+                            <FileText className="mr-1.5 h-3.5 w-3.5" />
                             Details
-                          </Button>
+                          </button>
+
+                          {isTutorOwner ? (
+                            <button
+                              type="button"
+                              className={cn('inline-flex items-center text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 disabled:opacity-50', isCompact && 'text-xs')}
+                              onClick={() => handleEnterClassroom(course)}
+                              disabled={launchingCourseId === course.id}
+                            >
+                              <FileText className="mr-1.5 h-3.5 w-3.5" />
+                              {launchingCourseId === course.id ? 'Launching…' : 'Classroom'}
+                            </button>
+                          ) : (
+                            <>
+                              {session?.user?.role === 'STUDENT' &&
+                                course.enrollmentStatus !== 'ended' && (
+                                  <>
+                                    {enrolledCourseIds.has(course.id) ? (
+                                      <button
+                                        type="button"
+                                        className={cn('inline-flex items-center text-sm font-medium text-emerald-600 disabled:opacity-50', isCompact && 'text-xs')}
+                                        disabled
+                                      >
+                                        <CheckCircle className="mr-1.5 h-3.5 w-3.5" />
+                                        Enrolled
+                                      </button>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        className={cn('inline-flex items-center text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 disabled:opacity-50', isCompact && 'text-xs')}
+                                        onClick={() => handleEnrollClick(course)}
+                                        disabled={enrollingCourseId === course.id}
+                                      >
+                                        {enrollingCourseId === course.id ? (
+                                          <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                        ) : (
+                                          <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                                        )}
+                                        {enrollingCourseId === course.id
+                                          ? 'Enrolling…'
+                                          : 'Enroll'}
+                                      </button>
+                                    )}
+                                  </>
+                                )}
+                              <button
+                                type="button"
+                                className={cn('inline-flex items-center text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 disabled:opacity-50', isCompact && 'text-xs')}
+                                onClick={() => void handleStudentEnterClassroom(course)}
+                                disabled={studentJoiningCourseId === course.id}
+                              >
+                                <FileText className="mr-1.5 h-3.5 w-3.5" />
+                                {studentJoiningCourseId === course.id
+                                  ? 'Enrolling…'
+                                  : 'Classroom'}
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
