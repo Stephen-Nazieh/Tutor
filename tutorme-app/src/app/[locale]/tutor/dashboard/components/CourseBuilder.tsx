@@ -3812,40 +3812,19 @@ FEEDBACK: [your explanation]`
             {insightsProps && (
               <TabsTrigger
                 value="live"
-                className={cn(
-                  "gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm",
-                  !isSessionActive && "cursor-default"
-                )}
-                onPointerDown={(e) => {
-                  if (!isSessionActive) {
-                    e.preventDefault()
-                  }
+                className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setComingSoonDialog(true);
                 }}
               >
-                <div
-                  className="flex items-center gap-2 border-l border-r border-blue-200/50 px-2 cursor-pointer hover:bg-blue-100/50 rounded-sm transition-colors"
-                  onPointerDown={(e) => {
-                    if (!isSessionActive) {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      setComingSoonDialog(true)
-                    }
-                  }}
-                  onClick={(e) => {
-                    if (!isSessionActive) {
-                      e.preventDefault()
-                      e.stopPropagation()
-                    }
-                  }}
-                >
-                  <VideoIcon
-                    className={cn(
-                      "h-4 w-4 transition-all duration-300",
-                      isLiveMode ? "animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : ""
-                    )}
-                  />
-                  Go Live
-                </div>
+                <VideoIcon
+                  className={cn(
+                    "h-4 w-4 transition-all duration-300",
+                    isLiveMode ? "animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : ""
+                  )}
+                />
+                Go Live
               </TabsTrigger>
             )}
             <TabsTrigger
@@ -3858,36 +3837,30 @@ FEEDBACK: [your explanation]`
             <TabsTrigger
               value="builder"
               className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
-            >
-              <div
-                className="flex items-center gap-2 border-l border-r border-blue-200/50 px-2 cursor-pointer hover:bg-blue-100/50 rounded-sm transition-colors"
-                onClick={e => {
-                  e.stopPropagation()
-                  e.preventDefault()
-                  if (mainTab === 'builder') {
-                    if (isSessionActive) {
-                      toast.error('Cannot toggle Live/Draft while class is in session')
-                      return
-                    }
-
-                    if (onSaveModeChange) {
-                      onSaveModeChange(saveMode === 'live' ? 'draft' : 'live')
-                    } else {
-                      setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
-                    }
+              onClick={e => {
+                if (mainTab === 'builder') {
+                  if (isSessionActive) {
+                    toast.error('Cannot toggle Live/Draft while class is in session')
+                    return
                   }
-                }}
-              >
-                <Radio
-                  className={cn(
-                    'h-4 w-4 transition-all duration-300',
-                    isLiveMode
-                      ? 'animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
-                      : 'text-gray-400'
-                  )}
-                />
-                Build
-              </div>
+
+                  if (onSaveModeChange) {
+                    onSaveModeChange(saveMode === 'live' ? 'draft' : 'live')
+                  } else {
+                    setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
+                  }
+                }
+              }}
+            >
+              <Radio
+                className={cn(
+                  'h-4 w-4 transition-all duration-300',
+                  isLiveMode
+                    ? 'animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
+                    : 'text-gray-400'
+                )}
+              />
+              Build
             </TabsTrigger>
           </TabsList>
 
