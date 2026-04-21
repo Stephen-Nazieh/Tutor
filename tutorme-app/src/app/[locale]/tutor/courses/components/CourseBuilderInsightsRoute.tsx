@@ -319,7 +319,7 @@ function CourseBuilderInsightsRouteInner({
               <h1 className="text-foreground flex items-center gap-2 text-lg font-bold tracking-tight">
                 {model.course?.name && (
                   <span className="text-muted-foreground ml-2 text-sm font-normal">
-                    — {model.course.name}
+                    {model.course.name}
                   </span>
                 )}
                 {scheduledDateStr && (
