@@ -3982,12 +3982,12 @@ FEEDBACK: [your explanation]`
                                     depth={0}
                                     isLast={nodeIdx === nodes.length - 1}
                                     inlineDragHandle
-                                    className="mb-px ml-0 overflow-hidden rounded-lg border border-l-0 border-slate-200 bg-white pl-0 shadow-sm"
+                                    className="mb-px ml-0 overflow-hidden rounded-none border border-l-0 border-slate-200 bg-white pl-0 shadow-sm"
                                   >
                                     <div className="group">
                                       <div
                                         className={cn(
-                                          'flex w-full cursor-pointer flex-nowrap items-center gap-1.5 border-t-4 border-t-cyan-600 bg-blue-50/50 px-px py-px transition-colors hover:bg-blue-50'
+                                          'flex w-full cursor-pointer flex-nowrap items-center gap-1.5 border-t-4 border-t-cyan-600 bg-blue-50/50 px-3 py-2 transition-colors hover:bg-blue-50'
                                         )}
                                         onClick={() => toggleCourseBuilderNode(node.id)}
                                       >
@@ -4091,7 +4091,7 @@ FEEDBACK: [your explanation]`
                                             <DroppableTaskZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex w-full items-center justify-between rounded-lg bg-gradient-to-r from-sky-400 to-blue-600 px-px py-px shadow-sm transition-all"
+                                              className="flex w-full items-center justify-between rounded-full bg-gradient-to-r from-sky-400 to-blue-600 px-3 py-2 shadow-sm transition-all"
                                             >
                                               <div className="flex items-center gap-2">
                                                 <button
@@ -4141,7 +4141,7 @@ FEEDBACK: [your explanation]`
                                                     >
                                                       <div
                                                         className={cn(
-                                                          'group/item mb-px ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-lg border px-px py-px shadow-sm transition-colors',
+                                                          'group/item mb-1 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-none border px-3 py-2 shadow-sm transition-colors',
                                                           selectedItem?.type === 'task' &&
                                                             selectedItem?.id === task.id
                                                             ? 'border-blue-200 bg-blue-50 ring-1 ring-blue-300'
@@ -4518,7 +4518,7 @@ FEEDBACK: [your explanation]`
                                                       taskBuilder.extensions.length > 0 && (
                                                         <div className="mb-px ml-0 mt-px space-y-px">
                                                           <div
-                                                            className="flex cursor-pointer items-center justify-between rounded-lg border-0 bg-gray-100/50 px-px py-px text-xs font-medium text-gray-500 shadow-inner transition-colors hover:bg-gray-100"
+                                                            className="flex cursor-pointer items-center justify-between rounded-none border-0 bg-gray-100/50 px-3 py-2 text-xs font-medium text-gray-500 shadow-inner transition-colors hover:bg-gray-100"
                                                             onClick={() =>
                                                               toggleExtensions(task.id)
                                                             }
@@ -4542,7 +4542,7 @@ FEEDBACK: [your explanation]`
                                                                   <div
                                                                     key={ext.id}
                                                                     className={cn(
-                                                                      'group/extension ml-0 flex cursor-pointer items-center gap-2 rounded-lg border px-px py-px text-xs shadow-sm transition-colors',
+                                                                      'group/extension mb-1 ml-0 flex cursor-pointer items-center gap-2 rounded-none border px-3 py-2 text-xs shadow-sm transition-colors',
                                                                       taskBuilder.activeExtensionId ===
                                                                         ext.id
                                                                         ? 'border-orange-200 bg-orange-50 ring-1 ring-orange-300'
@@ -4669,7 +4669,7 @@ FEEDBACK: [your explanation]`
                                             <DroppableAssessmentZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex w-full items-center justify-between rounded-lg bg-gradient-to-r from-indigo-400 to-purple-600 px-px py-px shadow-sm transition-all"
+                                              className="flex w-full items-center justify-between rounded-full bg-gradient-to-r from-indigo-400 to-purple-600 px-3 py-2 shadow-sm transition-all"
                                             >
                                               <div className="flex items-center gap-2">
                                                 <button
@@ -4718,7 +4718,7 @@ FEEDBACK: [your explanation]`
                                                   >
                                                     <div
                                                       className={cn(
-                                                        'group/item mb-1 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors',
+                                                        'group/item mb-1 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-none border px-3 py-2 shadow-sm transition-colors',
                                                         selectedItem?.type === 'homework' &&
                                                           selectedItem?.id === hw.id
                                                           ? 'border-indigo-200 bg-indigo-50 ring-1 ring-indigo-300'
@@ -4947,7 +4947,7 @@ FEEDBACK: [your explanation]`
                                                   <DroppableHomeworkZone
                                                     nodeId={node.id}
                                                     lessonId={primaryLesson.id}
-                                                    className="flex w-full items-center justify-between rounded-lg bg-gradient-to-r from-emerald-400 to-teal-600 px-px py-px shadow-sm transition-all"
+                                                    className="flex w-full items-center justify-between rounded-full bg-gradient-to-r from-emerald-400 to-teal-600 px-3 py-2 shadow-sm transition-all"
                                                   >
                                                     <div className="flex items-center gap-2">
                                                       <button
@@ -4988,7 +4988,7 @@ FEEDBACK: [your explanation]`
                                                       >
                                                         <div
                                                           className={cn(
-                                                            'group/item mb-1 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 shadow-sm transition-colors',
+                                                            'group/item mb-1 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-none border px-3 py-2 shadow-sm transition-colors',
                                                             selectedItem?.type === 'homework' &&
                                                               selectedItem?.id === hw.id
                                                               ? 'border-emerald-200 bg-emerald-50 ring-1 ring-emerald-300'
@@ -5175,7 +5175,7 @@ FEEDBACK: [your explanation]`
                                               className="ml-0 mt-1 border-l-0 pl-0"
                                             >
                                               <div
-                                                className="group flex cursor-pointer items-center gap-1.5 rounded-lg border bg-red-500 px-px py-px shadow-sm transition-colors hover:bg-red-600"
+                                                className="group flex cursor-pointer items-center gap-1.5 rounded-none border bg-red-500 px-3 py-2 shadow-sm transition-colors hover:bg-red-600"
                                                 onClick={() =>
                                                   setSelectedItem({ type: 'nodeQuiz', id: quiz.id })
                                                 }
@@ -5840,7 +5840,7 @@ FEEDBACK: [your explanation]`
                                               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                             >
                                               <div
-                                                className={`max-w-[80%] rounded-lg px-px py-px text-sm ${
+                                                className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
                                                   msg.role === 'user'
                                                     ? 'bg-blue-50 text-gray-900'
                                                     : 'bg-gray-100 text-gray-800'
@@ -6126,7 +6126,7 @@ FEEDBACK: [your explanation]`
                                               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                             >
                                               <div
-                                                className={`max-w-[80%] rounded-lg px-px py-px text-sm ${
+                                                className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
                                                   msg.role === 'user'
                                                     ? 'bg-blue-50 text-gray-900'
                                                     : 'bg-gray-100 text-gray-800'
