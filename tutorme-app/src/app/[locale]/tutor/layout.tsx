@@ -134,7 +134,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
               </Button>
               <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600"></Link>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <Link href="/tutor/notifications" onClick={e => e.stopPropagation()}>
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-5 w-5" />

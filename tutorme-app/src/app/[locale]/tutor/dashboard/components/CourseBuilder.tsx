@@ -3824,17 +3824,6 @@ FEEDBACK: [your explanation]`
                 className={cn(
                   'group gap-0 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm'
                 )}
-                onPointerDown={e => {
-                  if (mainTab !== 'live') {
-                    // Let native click handle tab change
-                  } else {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    if (!isSessionActive) {
-                      setComingSoonDialog(true)
-                    }
-                  }
-                }}
                 onClick={e => {
                   if (mainTab !== 'live') {
                     setMainTab('live')
@@ -3845,14 +3834,14 @@ FEEDBACK: [your explanation]`
                   className={cn(
                     'flex items-center gap-2 rounded-full border-l border-r px-2 py-0.5 transition-colors',
                     mainTab === 'live'
-                      ? 'cursor-pointer border-blue-200/50 group-hover:bg-blue-100/50'
-                      : 'border-transparent'
+                      ? 'pointer-events-auto cursor-pointer border-blue-200/50 group-hover:bg-blue-100/50'
+                      : 'pointer-events-none border-transparent'
                   )}
-                  onPointerDown={e => {
+                  onClick={e => {
                     if (mainTab === 'live') {
+                      e.preventDefault()
                       e.stopPropagation()
                       if (!isSessionActive) {
-                        e.preventDefault()
                         setComingSoonDialog(true)
                       }
                     }
@@ -3880,28 +3869,6 @@ FEEDBACK: [your explanation]`
             <TabsTrigger
               value="builder"
               className="group gap-0 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
-              onPointerDown={e => {
-                if (mainTab !== 'builder') {
-                  // Let native click handle tab change
-                } else {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  if (isSessionActive) {
-                    setAlertDialog({
-                      open: true,
-                      title: 'Action Unavailable',
-                      message:
-                        'Cannot toggle Live/Draft mode while a class is actively in session. Please end the session first.',
-                    })
-                    return
-                  }
-                  if (onSaveModeChange) {
-                    onSaveModeChange(saveMode === 'live' ? 'draft' : 'live')
-                  } else {
-                    setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
-                  }
-                }
-              }}
               onClick={e => {
                 if (mainTab !== 'builder') {
                   setMainTab('builder')
@@ -3912,14 +3879,14 @@ FEEDBACK: [your explanation]`
                 className={cn(
                   'flex items-center gap-2 rounded-full border-l border-r px-2 py-0.5 transition-colors',
                   mainTab === 'builder'
-                    ? 'cursor-pointer border-blue-200/50 group-hover:bg-blue-100/50'
-                    : 'border-transparent'
+                    ? 'pointer-events-auto cursor-pointer border-blue-200/50 group-hover:bg-blue-100/50'
+                    : 'pointer-events-none border-transparent'
                 )}
-                onPointerDown={e => {
+                onClick={e => {
                   if (mainTab === 'builder') {
+                    e.preventDefault()
                     e.stopPropagation()
                     if (isSessionActive) {
-                      e.preventDefault()
                       setAlertDialog({
                         open: true,
                         title: 'Action Unavailable',
@@ -5756,17 +5723,17 @@ FEEDBACK: [your explanation]`
                             <TabsList className="grid h-8 w-96 shrink-0 grid-cols-2 rounded-full border border-gray-200 bg-white p-px shadow-sm">
                               <TabsTrigger
                                 value="task"
-                                className="flex w-full items-center justify-center gap-2 rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                className="relative flex w-full items-center justify-center gap-2 rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
                               >
-                                <ListTodo className="h-4 w-4 shrink-0" />
+                                <ListTodo className="absolute left-4 h-4 w-4 shrink-0" />
                                 Task Builder
                               </TabsTrigger>
                               <TabsTrigger
                                 value="assessment"
-                                className="flex w-full items-center justify-center gap-2 rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                className="relative flex w-full items-center justify-center gap-2 rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
                               >
                                 Assessment Builder
-                                <FileQuestion className="h-4 w-4 shrink-0" />
+                                <FileQuestion className="absolute right-4 h-4 w-4 shrink-0" />
                               </TabsTrigger>
                             </TabsList>
 
