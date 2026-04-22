@@ -3184,7 +3184,11 @@ FEEDBACK: [your explanation]`
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="z-[100]">
-                      <DropdownMenuItem onSelect={() => handleLoadAsset(asset)}>
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          setTimeout(() => handleLoadAsset(asset), 50)
+                        }}
+                      >
                         Load
                       </DropdownMenuItem>
                       <DropdownMenuItem
@@ -3244,10 +3248,7 @@ FEEDBACK: [your explanation]`
                     className="w-full justify-start gap-2"
                     variant="outline"
                     onClick={() => {
-                      if (!assetToLoad) {
-                        toast.error('Asset data is missing')
-                        return
-                      }
+                      if (!assetToLoad) return
                       const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
                       if (taskBuilder.activeExtensionId) {
                         setTaskBuilder(prev => ({
@@ -3331,10 +3332,7 @@ FEEDBACK: [your explanation]`
                     className="w-full justify-start gap-2"
                     variant="outline"
                     onClick={() => {
-                      if (!assetToLoad) {
-                        toast.error('Asset data is missing')
-                        return
-                      }
+                      if (!assetToLoad) return
                       const { nodeId, lessonId } = ensureFirstLessonContext()
                       const nodeIndex = nodes.findIndex(m => m.id === nodeId)
                       const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
@@ -3379,10 +3377,7 @@ FEEDBACK: [your explanation]`
                     className="w-full justify-start gap-2"
                     variant="outline"
                     onClick={() => {
-                      if (!assetToLoad) {
-                        toast.error('Asset data is missing')
-                        return
-                      }
+                      if (!assetToLoad) return
                       const { nodeId, lessonId } = ensureFirstLessonContext()
                       const nodeIndex = nodes.findIndex(m => m.id === nodeId)
                       const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
@@ -3426,10 +3421,7 @@ FEEDBACK: [your explanation]`
                     className="w-full justify-start gap-2"
                     variant="outline"
                     onClick={() => {
-                      if (!assetToLoad) {
-                        toast.error('Asset data is missing')
-                        return
-                      }
+                      if (!assetToLoad) return
                       const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
 
                       let pages: string[] = []
@@ -3689,8 +3681,8 @@ FEEDBACK: [your explanation]`
                                 <DropdownMenuContent align="end" className="z-[600]">
                                   <DropdownMenuItem
                                     onSelect={() => {
-                                      handleLoadAsset(asset)
                                       setAssetsViewOpen(false)
+                                      setTimeout(() => handleLoadAsset(asset), 50)
                                     }}
                                   >
                                     Load
