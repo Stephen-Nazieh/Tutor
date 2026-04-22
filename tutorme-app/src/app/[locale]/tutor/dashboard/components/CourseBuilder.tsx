@@ -1573,11 +1573,11 @@ FEEDBACK: [your explanation]`
 
         for (let i = 1; i <= Math.min(maxPages, doc.numPages); i++) {
           const page = await doc.getPage(i)
-          const viewport = page.getViewport({ scale: 1.5 })
+          const viewport = page.getViewport({ scale: 1.0 })
           canvas.width = viewport.width
           canvas.height = viewport.height
           await page.render({ canvasContext: ctx, viewport }).promise
-          images.push(canvas.toDataURL('image/png'))
+          images.push(canvas.toDataURL('image/jpeg', 0.8))
         }
         return images
       } catch (error) {
@@ -1604,7 +1604,7 @@ FEEDBACK: [your explanation]`
       setDmiGenerating(true)
       try {
         let pdfPages: string[] | undefined
-        if (!hasContent && hasPdf) {
+        if (hasPdf) {
           toast.info('Analyzing PDF with AI...')
           pdfPages = await renderPdfToImages(sourceDoc.fileUrl, 3)
         }
@@ -1615,7 +1615,7 @@ FEEDBACK: [your explanation]`
           body: JSON.stringify({
             type,
             title: builder.title,
-            content: hasContent ? content : undefined,
+            content: !hasPdf && hasContent ? content : undefined,
             pdfPages,
           }),
         })
@@ -3825,11 +3825,11 @@ FEEDBACK: [your explanation]`
 
                       const startIndex =
                         newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.length
-                      const baseName = assetToLoad.name.replace(/\.[^/.]+$/, '') // Remove extension
+                      const groupNumber = startIndex + 1
 
                       pages.forEach((pageContent, idx) => {
                         const newAssess = DEFAULT_HOMEWORK(startIndex + idx, 'assessment')
-                        newAssess.title = `Assessment ${startIndex + idx + 1} (${baseName})`
+                        newAssess.title = `Assessment ${groupNumber}.${idx + 1}`
                         newAssess.description = pageContent
                         // Don't set sourceDocument for per-page to avoid loading the whole PDF in the viewer
                         // since we are extracting text per page. Or we can set it if they want the viewer,

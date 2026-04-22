@@ -281,7 +281,7 @@ export async function generateWithKimiVision(
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: options.model || DEFAULT_MODEL,
+          model: options.model || 'moonshot-v1-8k-vision-preview',
           messages,
           temperature: options.temperature ?? 0.7,
           max_tokens: options.maxTokens ?? 2048,

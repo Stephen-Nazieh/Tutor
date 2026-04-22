@@ -11,6 +11,8 @@ import { AISecurityManager } from '@/lib/security/ai-sanitization'
 import { generateWithKimi, generateWithKimiVision } from '@/lib/ai/kimi'
 import { z } from 'zod'
 
+export const maxDuration = 60
+
 const GenerateDmiRequestSchema = z.object({
   type: z.enum(['task', 'assessment']),
   title: z.string().max(200).optional(),
