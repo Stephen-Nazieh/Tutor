@@ -396,7 +396,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       }
       return []
     })
-    const [loadAsStep, setLoadAsStep] = useState<'main' | 'task-options'>('main')
+    const [loadAsStep, setLoadAsStep] = useState<'main' | 'task-options' | 'assessment-options'>(
+      'main'
+    )
     const [loadTaskMode, setLoadTaskMode] = useState<'single' | 'multi'>('single')
     const [leftPanelHiddenInternal, setLeftPanelHiddenInternal] = useState(false)
     const leftPanelHidden = leftPanelHiddenProp ?? leftPanelHiddenInternal
@@ -3331,44 +3333,14 @@ FEEDBACK: [your explanation]`
                   <Button
                     className="w-full justify-start gap-2"
                     variant="outline"
-                    onClick={() => {
-                      if (!assetToLoad) return
-                      const { nodeId, lessonId } = ensureFirstLessonContext()
-                      const nodeIndex = nodes.findIndex(m => m.id === nodeId)
-                      const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
-                      const newAssess = DEFAULT_HOMEWORK(
-                        nodes[nodeIndex].lessons[lessonIndex].homework.length,
-                        'assessment'
-                      )
-                      // Leave description empty for PDF assets so the raw document
-                      // preview is shown instead of extracted text (which loses
-                      // images, diagrams, formulas, and math).
-                      newAssess.description = ''
-                      if (assetToLoad.url) {
-                        newAssess.sourceDocument = {
-                          fileName: assetToLoad.name,
-                          fileUrl: assetToLoad.url,
-                          mimeType: assetToLoad.mimeType || 'application/pdf',
-                          uploadedAt: new Date().toISOString(),
-                        }
-                      }
-                      const newCourseBuilderNodes = [...nodes]
-                      newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.push(newAssess)
-                      setCourseBuilderNodes(newCourseBuilderNodes)
-                      setMainBuilderTab('assessment')
-                      setSelectedItem({ type: 'assessment', id: newAssess.id })
-                      loadAssessmentIntoBuilder(newAssess)
-
-                      toast.success(`Created new Assessment and loaded '${assetToLoad?.name}'`)
-                      setLoadAsModalOpen(false)
-                      setAssetToLoad(null)
-                    }}
+                    onClick={() => setLoadAsStep('assessment-options')}
                   >
                     <FileQuestion className="h-4 w-4 text-purple-500" />
                     Assessment
+                    <ChevronRight className="ml-auto h-4 w-4 text-gray-400" />
                   </Button>
                 </>
-              ) : (
+              ) : loadAsStep === 'task-options' ? (
                 <>
                   <p className="text-sm text-gray-500">
                     Choose how to load &quot;{assetToLoad?.name}&quot; as Task(s):
@@ -3502,6 +3474,178 @@ FEEDBACK: [your explanation]`
                       <span>Task + Extensions</span>
                       <span className="text-xs text-gray-500">
                         First page as task, remaining as extensions
+                      </span>
+                    </div>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setLoadAsStep('main')}
+                    className="mt-2"
+                  >
+                    <ChevronLeft className="mr-1 h-4 w-4" />
+                    Back
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-500">
+                    Choose how to load &quot;{assetToLoad?.name}&quot; as Assessment(s):
+                  </p>
+                  <Button
+                    className="h-auto w-full justify-start gap-2 py-3"
+                    variant="outline"
+                    onClick={() => {
+                      if (!assetToLoad) return
+                      const { nodeId, lessonId } = ensureFirstLessonContext()
+                      const nodeIndex = nodes.findIndex(m => m.id === nodeId)
+                      const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+
+                      let targetAssess: Assessment
+
+                      if (loadedAssessmentId) {
+                        const existingAssess = nodes[nodeIndex].lessons[lessonIndex].homework.find(
+                          h => h.id === loadedAssessmentId
+                        )
+                        if (existingAssess) {
+                          targetAssess = { ...existingAssess }
+                        } else {
+                          targetAssess = DEFAULT_HOMEWORK(
+                            nodes[nodeIndex].lessons[lessonIndex].homework.length,
+                            'assessment'
+                          )
+                        }
+                      } else {
+                        targetAssess = DEFAULT_HOMEWORK(
+                          nodes[nodeIndex].lessons[lessonIndex].homework.length,
+                          'assessment'
+                        )
+                      }
+
+                      // Leave description empty for PDF assets so the raw document
+                      // preview is shown instead of extracted text (which loses
+                      // images, diagrams, formulas, and math).
+                      targetAssess.description = ''
+                      if (assetToLoad.url) {
+                        targetAssess.sourceDocument = {
+                          fileName: assetToLoad.name,
+                          fileUrl: assetToLoad.url,
+                          mimeType: assetToLoad.mimeType || 'application/pdf',
+                          uploadedAt: new Date().toISOString(),
+                        }
+                      }
+
+                      const newCourseBuilderNodes = [...nodes]
+
+                      if (
+                        loadedAssessmentId &&
+                        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.some(
+                          h => h.id === loadedAssessmentId
+                        )
+                      ) {
+                        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework =
+                          newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.map(h =>
+                            h.id === loadedAssessmentId ? targetAssess : h
+                          )
+                      } else {
+                        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.push(
+                          targetAssess
+                        )
+                      }
+
+                      setCourseBuilderNodes(newCourseBuilderNodes)
+                      setMainBuilderTab('assessment')
+                      setSelectedItem({ type: 'assessment', id: targetAssess.id })
+                      loadAssessmentIntoBuilder(targetAssess)
+
+                      toast.success(`Loaded '${assetToLoad?.name}' into Assessment`)
+                      setLoadAsStep('main')
+                      setLoadAsModalOpen(false)
+                      setAssetToLoad(null)
+                    }}
+                  >
+                    <FileQuestion className="mt-1 h-4 w-4 shrink-0 text-purple-500" />
+                    <div className="flex flex-col items-start text-left">
+                      <span>Single Assessment</span>
+                      <span className="mt-0.5 text-xs font-normal text-gray-500">
+                        Load entire document into {loadedAssessmentId ? 'current' : 'a new'}{' '}
+                        assessment
+                      </span>
+                    </div>
+                  </Button>
+                  <Button
+                    className="h-auto w-full justify-start gap-2 py-3"
+                    variant="outline"
+                    onClick={() => {
+                      if (!assetToLoad) return
+                      const { nodeId, lessonId } = ensureFirstLessonContext()
+                      const nodeIndex = nodes.findIndex(m => m.id === nodeId)
+                      const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+
+                      const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
+
+                      let pages: string[] = []
+                      if (textToInsert.includes('\f')) {
+                        pages = textToInsert.split('\f').filter(p => p.trim())
+                      } else if (textToInsert.includes('--- Page')) {
+                        pages = textToInsert.split(/--- Page \d+ ---/).filter(p => p.trim())
+                      } else {
+                        const chunks = textToInsert.split(/\n\n+/).filter(p => p.trim().length > 50)
+                        pages = chunks.length > 1 ? chunks : [textToInsert]
+                      }
+
+                      const newCourseBuilderNodes = [...nodes]
+                      const newAssessments: Assessment[] = []
+
+                      const startIndex =
+                        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.length
+                      const baseName = assetToLoad.name.replace(/\.[^/.]+$/, '') // Remove extension
+
+                      pages.forEach((pageContent, idx) => {
+                        const newAssess = DEFAULT_HOMEWORK(startIndex + idx, 'assessment')
+                        newAssess.title = `Assessment ${startIndex + idx + 1} (${baseName})`
+                        newAssess.description = pageContent
+                        // Don't set sourceDocument for per-page to avoid loading the whole PDF in the viewer
+                        // since we are extracting text per page. Or we can set it if they want the viewer,
+                        // but the viewer currently shows the whole document.
+                        // Let's set it but note that it's the whole document.
+                        if (assetToLoad.url) {
+                          newAssess.sourceDocument = {
+                            fileName: assetToLoad.name,
+                            fileUrl: assetToLoad.url,
+                            mimeType: assetToLoad.mimeType || 'application/pdf',
+                            uploadedAt: new Date().toISOString(),
+                          }
+                        }
+                        newAssessments.push(newAssess)
+                      })
+
+                      newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.push(
+                        ...newAssessments
+                      )
+
+                      setCourseBuilderNodes(newCourseBuilderNodes)
+                      setMainBuilderTab('assessment')
+
+                      if (newAssessments.length > 0) {
+                        const firstNew = newAssessments[0]
+                        setSelectedItem({ type: 'assessment', id: firstNew.id })
+                        loadAssessmentIntoBuilder(firstNew)
+                      }
+
+                      toast.success(
+                        `Created ${pages.length} Assessment(s) from '${assetToLoad?.name}'`
+                      )
+                      setLoadAsStep('main')
+                      setLoadAsModalOpen(false)
+                      setAssetToLoad(null)
+                    }}
+                  >
+                    <Layers2 className="mt-1 h-4 w-4 shrink-0 text-indigo-500" />
+                    <div className="flex flex-col items-start text-left">
+                      <span>One Assessment per Page</span>
+                      <span className="mt-0.5 text-xs font-normal text-gray-500">
+                        Extract text and create multiple assessments
                       </span>
                     </div>
                   </Button>
@@ -4463,6 +4607,20 @@ FEEDBACK: [your explanation]`
                                                             <DropdownMenuItem
                                                               onClick={e => {
                                                                 e.stopPropagation()
+                                                                setSelectedItem({
+                                                                  type: 'task',
+                                                                  id: task.id,
+                                                                })
+                                                                loadTaskIntoBuilder(task)
+                                                                setMainBuilderTab('task')
+                                                                setAssetsViewOpen(true)
+                                                              }}
+                                                            >
+                                                              Load
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                              onClick={e => {
+                                                                e.stopPropagation()
                                                                 setRenamingItemId(task.id)
                                                               }}
                                                             >
@@ -5024,6 +5182,20 @@ FEEDBACK: [your explanation]`
                                                           <DropdownMenuItem
                                                             onClick={e => {
                                                               e.stopPropagation()
+                                                              setSelectedItem({
+                                                                type: 'assessment',
+                                                                id: hw.id,
+                                                              })
+                                                              loadAssessmentIntoBuilder(hw)
+                                                              setMainBuilderTab('assessment')
+                                                              setAssetsViewOpen(true)
+                                                            }}
+                                                          >
+                                                            Load
+                                                          </DropdownMenuItem>
+                                                          <DropdownMenuItem
+                                                            onClick={e => {
+                                                              e.stopPropagation()
                                                               setRenamingItemId(hw.id)
                                                             }}
                                                           >
@@ -5240,6 +5412,20 @@ FEEDBACK: [your explanation]`
                                                               </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
+                                                              <DropdownMenuItem
+                                                                onClick={e => {
+                                                                  e.stopPropagation()
+                                                                  setSelectedItem({
+                                                                    type: 'homework',
+                                                                    id: hw.id,
+                                                                  })
+                                                                  loadAssessmentIntoBuilder(hw)
+                                                                  setMainBuilderTab('assessment')
+                                                                  setAssetsViewOpen(true)
+                                                                }}
+                                                              >
+                                                                Load
+                                                              </DropdownMenuItem>
                                                               <DropdownMenuItem
                                                                 onClick={e => {
                                                                   e.stopPropagation()
