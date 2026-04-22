@@ -6183,7 +6183,7 @@ FEEDBACK: [your explanation]`
                                       className="mt-px flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div
-                                        className="flex h-full min-h-0 flex-col rounded-lg border bg-white"
+                                        className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border bg-white"
                                         onDragOver={e => e.preventDefault()}
                                         onDrop={(e: any) => {
                                           handleDragFiles(
@@ -6204,10 +6204,21 @@ FEEDBACK: [your explanation]`
                                         {assessmentSourceDocument?.mimeType ===
                                         'application/pdf' ? (
                                           <>
-                                            <div className="min-h-0 flex-1 border-b">
-                                              <PDFViewer
-                                                fileUrl={assessmentSourceDocument.fileUrl}
-                                              />
+                                            <div className="relative min-h-0 flex-1 overflow-hidden border-b bg-gray-100">
+                                              {assessmentSourceDocument.fileUrl ? (
+                                                <PDFViewer
+                                                  key={assessmentSourceDocument.fileUrl}
+                                                  fileUrl={assessmentSourceDocument.fileUrl}
+                                                  className="absolute inset-0 h-full w-full"
+                                                />
+                                              ) : (
+                                                <div className="flex h-full flex-col items-center justify-center text-gray-400">
+                                                  <FileText className="mb-4 h-16 w-16 text-gray-300" />
+                                                  <p className="text-lg font-medium text-gray-600">
+                                                    No document selected
+                                                  </p>
+                                                </div>
+                                              )}
                                             </div>
                                             <AutoTextarea
                                               placeholder="Optional notes or instructions..."
