@@ -536,7 +536,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
     // Test PCI state
     const [testPciInput, setTestPciInput] = useState('')
-    const [testPciViewMode, setTestPciViewMode] = useState<'pdf' | 'text'>('pdf')
+    const [testPciViewMode, setTestPciViewMode] = useState<string>('pdf')
     const [testPciContent, setTestPciContent] = useState<Record<string, string>>({
       classroom: '',
       student1: '',
@@ -1688,6 +1688,21 @@ FEEDBACK: [your explanation]`
         setAssessmentDmiItems(version.items)
       }
       setShowDmiVersionList(false)
+
+      // Also open the Test tab and display this DMI
+      const content = type === 'task' ? taskBuilder.taskContent : assessmentBuilder.taskContent
+      setTestPciScores({})
+      setTestPciInput('')
+      setTestPciContent({
+        classroom: content,
+        student1: content,
+        student2: content,
+      })
+      setTestPciSource(type)
+      setTestPciViewMode(`dmi_${version.id}`)
+      setTestPciActiveTab('classroom')
+      setMainTab('test-pci')
+
       toast.success(`Loaded DMI version ${version.versionNumber}`)
     }
 
@@ -6155,28 +6170,83 @@ FEEDBACK: [your explanation]`
                                       ) : null
                                     ) : (
                                       <div className="bg-muted flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg p-1">
-                                        {testPciViewMode === 'pdf' &&
-                                        tab.id === 'classroom' &&
-                                        (taskBuilder.sourceDocument?.fileUrl ||
-                                          taskBuilder.sourceDocument?.extractedText) ? (
-                                          <div className="h-full w-full">
-                                            {taskBuilder.sourceDocument?.fileUrl ? (
-                                              <iframe
-                                                src={`${taskBuilder.sourceDocument.fileUrl}#toolbar=0&navpanes=0`}
-                                                className="h-full w-full rounded-md border-0"
-                                                title="PDF Viewer"
-                                              />
-                                            ) : (
+                                        {(() => {
+                                          if (tab.id !== 'classroom') {
+                                            return (
                                               <p className="text-muted-foreground whitespace-pre-wrap text-sm">
-                                                {taskBuilder.sourceDocument?.extractedText}
+                                                {testPciContent[tab.id] ||
+                                                  `${tab.label} view content`}
                                               </p>
-                                            )}
-                                          </div>
-                                        ) : (
-                                          <p className="text-muted-foreground whitespace-pre-wrap text-sm">
-                                            {testPciContent[tab.id] || `${tab.label} view content`}
-                                          </p>
-                                        )}
+                                            )
+                                          }
+
+                                          if (testPciViewMode === 'pdf') {
+                                            const doc =
+                                              testPciSource === 'task'
+                                                ? taskBuilder.sourceDocument
+                                                : assessmentSourceDocument
+                                            if (doc?.fileUrl || doc?.extractedText) {
+                                              return (
+                                                <div className="h-full w-full">
+                                                  {doc?.fileUrl ? (
+                                                    <iframe
+                                                      src={`${doc.fileUrl}#toolbar=0&navpanes=0`}
+                                                      className="h-full w-full rounded-md border-0"
+                                                      title="PDF Viewer"
+                                                    />
+                                                  ) : (
+                                                    <p className="text-muted-foreground whitespace-pre-wrap text-sm">
+                                                      {doc?.extractedText}
+                                                    </p>
+                                                  )}
+                                                </div>
+                                              )
+                                            }
+                                          }
+
+                                          if (testPciViewMode.startsWith('dmi_')) {
+                                            const versionId = testPciViewMode.replace('dmi_', '')
+                                            const versions =
+                                              testPciSource === 'task'
+                                                ? taskDmiVersions
+                                                : assessmentDmiVersions
+                                            const version = versions.find(v => v.id === versionId)
+                                            if (version) {
+                                              return (
+                                                <div className="h-full w-full overflow-y-auto rounded-md border bg-white p-4">
+                                                  <div className="space-y-4">
+                                                    {version.items.map(item => (
+                                                      <div
+                                                        key={item.id}
+                                                        className="rounded-lg border bg-gray-50 p-3"
+                                                      >
+                                                        <p className="text-sm font-medium text-gray-900">
+                                                          <span className="mr-1 text-indigo-600">
+                                                            Q{item.questionNumber}:
+                                                          </span>
+                                                          {item.questionText}
+                                                        </p>
+                                                        <p className="mt-2 whitespace-pre-wrap text-sm text-gray-600">
+                                                          <span className="font-medium">
+                                                            Answer:
+                                                          </span>{' '}
+                                                          {item.answer}
+                                                        </p>
+                                                      </div>
+                                                    ))}
+                                                  </div>
+                                                </div>
+                                              )
+                                            }
+                                          }
+
+                                          return (
+                                            <p className="text-muted-foreground whitespace-pre-wrap text-sm">
+                                              {testPciContent[tab.id] ||
+                                                `${tab.label} view content`}
+                                            </p>
+                                          )
+                                        })()}
                                         {/* Show AI scores if any */}
                                         {testPciScores[tab.id]?.length > 0 && (
                                           <div className="mt-3 border-t border-gray-400 pt-3">
@@ -6230,27 +6300,67 @@ FEEDBACK: [your explanation]`
                                               <Plus className="h-4 w-4" />
                                             </Button>
                                           </DropdownMenuTrigger>
-                                          <DropdownMenuContent align="start" className="w-40">
-                                            <DropdownMenuItem
-                                              onClick={() => setTestPciViewMode('pdf')}
-                                              className="flex items-center gap-2"
-                                            >
-                                              <FileText className="h-4 w-4" />
-                                              PDF Document
-                                              {testPciViewMode === 'pdf' && (
-                                                <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
-                                              )}
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                              onClick={() => setTestPciViewMode('text')}
-                                              className="flex items-center gap-2"
-                                            >
-                                              <ListTodo className="h-4 w-4" />
-                                              Extracted Text
-                                              {testPciViewMode === 'text' && (
-                                                <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
-                                              )}
-                                            </DropdownMenuItem>
+                                          <DropdownMenuContent
+                                            align="start"
+                                            className="max-h-64 w-56 overflow-y-auto"
+                                          >
+                                            {testPciSource === 'task' ? (
+                                              <>
+                                                <DropdownMenuItem
+                                                  onClick={() => setTestPciViewMode('pdf')}
+                                                  className="flex items-center gap-2"
+                                                >
+                                                  <FileText className="h-4 w-4" />
+                                                  PDF Document
+                                                  {testPciViewMode === 'pdf' && (
+                                                    <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
+                                                  )}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                  onClick={() => setTestPciViewMode('text')}
+                                                  className="flex items-center gap-2"
+                                                >
+                                                  <ListTodo className="h-4 w-4" />
+                                                  Extracted Text
+                                                  {testPciViewMode === 'text' && (
+                                                    <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
+                                                  )}
+                                                </DropdownMenuItem>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <DropdownMenuItem
+                                                  onClick={() => setTestPciViewMode('text')}
+                                                  className="flex items-center gap-2"
+                                                >
+                                                  <ListTodo className="h-4 w-4" />
+                                                  Extracted Text
+                                                  {testPciViewMode === 'text' && (
+                                                    <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
+                                                  )}
+                                                </DropdownMenuItem>
+                                                {assessmentDmiVersions.length > 0 && (
+                                                  <div className="text-muted-foreground px-2 py-1.5 text-xs font-semibold">
+                                                    DMI Versions
+                                                  </div>
+                                                )}
+                                                {assessmentDmiVersions.map(version => (
+                                                  <DropdownMenuItem
+                                                    key={version.id}
+                                                    onClick={() =>
+                                                      setTestPciViewMode(`dmi_${version.id}`)
+                                                    }
+                                                    className="flex items-center gap-2"
+                                                  >
+                                                    <Wand2 className="h-4 w-4 text-indigo-500" />
+                                                    Version {version.versionNumber}
+                                                    {testPciViewMode === `dmi_${version.id}` && (
+                                                      <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
+                                                    )}
+                                                  </DropdownMenuItem>
+                                                ))}
+                                              </>
+                                            )}
                                           </DropdownMenuContent>
                                         </DropdownMenu>
                                       )}
@@ -6764,6 +6874,7 @@ FEEDBACK: [your explanation]`
                                           student2: content,
                                         })
                                         setTestPciSource('task')
+                                        setTestPciViewMode('pdf')
                                         // Switch to Test PCI tab
                                         setMainTab('test-pci')
                                         toast.success('Test PCI prefilled with task content')
@@ -7083,6 +7194,11 @@ FEEDBACK: [your explanation]`
                                           student2: content,
                                         })
                                         setTestPciSource('assessment')
+                                        if (assessmentDmiVersions.length > 0) {
+                                          setTestPciViewMode(`dmi_${assessmentDmiVersions[0].id}`)
+                                        } else {
+                                          setTestPciViewMode('text')
+                                        }
                                         // Switch to Test PCI tab
                                         setMainTab('test-pci')
                                         toast.success('Test PCI prefilled with assessment content')
