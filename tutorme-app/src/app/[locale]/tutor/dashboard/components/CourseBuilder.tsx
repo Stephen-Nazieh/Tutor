@@ -6293,10 +6293,10 @@ FEEDBACK: [your explanation]`
                               {testPciActiveTab !== 'insights' && (
                                 <div className="border-border bg-background mt-1 w-full rounded-2xl border shadow-xl backdrop-blur-md">
                                   <div className="relative flex w-full flex-col p-px">
-                                    <div className="flex w-full flex-col p-2">
+                                    <div className="flex w-full flex-col">
                                       <MentionTextarea
                                         mentionItems={mentionItems}
-                                        className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-2 py-4 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                        className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-4 py-4 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                         placeholder={
                                           testPciActiveTab === 'classroom'
                                             ? 'Enter answer (goes to both students)...'
@@ -6390,13 +6390,13 @@ FEEDBACK: [your explanation]`
                                         </Button>
                                       </div>
                                     </div>
-                                  </div>
-                                  <div className="border-border/50 bg-muted/20 border-t px-1 py-1">
-                                    <p className="text-muted-foreground text-[10px]">
-                                      Tip: Start line with &quot;1.&quot;, &quot;-&quot;, or
-                                      &quot;a.&quot; for auto-numbering. Use Tab/Shift+Tab to
-                                      indent.
-                                    </p>
+                                    <div className="border-border/50 bg-muted/20 border-t px-1 py-1">
+                                      <p className="text-muted-foreground text-[10px]">
+                                        Tip: Start line with &quot;1.&quot;, &quot;-&quot;, or
+                                        &quot;a.&quot; for auto-numbering. Use Tab/Shift+Tab to
+                                        indent.
+                                      </p>
+                                    </div>
                                   </div>
                                 </div>
                               )}
@@ -6578,7 +6578,7 @@ FEEDBACK: [your explanation]`
                                             )}
                                           >
                                             <div className="flex h-9 shrink-0 items-center justify-between border-b bg-slate-50 p-1">
-                                              <div className="flex w-full items-center justify-between">
+                                              <div className="flex w-full items-center gap-2">
                                                 <Button
                                                   variant="ghost"
                                                   size="sm"
@@ -6591,7 +6591,7 @@ FEEDBACK: [your explanation]`
                                                 >
                                                   <ChevronLeft className="h-4 w-4" />
                                                 </Button>
-                                                <div className="flex items-center gap-2 pr-12">
+                                                <div className="flex items-center gap-2">
                                                   <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -7085,7 +7085,7 @@ FEEDBACK: [your explanation]`
                                             )}
                                           >
                                             <div className="flex h-9 shrink-0 items-center justify-between border-b bg-slate-50 p-1">
-                                              <div className="flex w-full items-center justify-between">
+                                              <div className="flex w-full items-center gap-2">
                                                 <Button
                                                   variant="ghost"
                                                   size="sm"
@@ -7099,7 +7099,7 @@ FEEDBACK: [your explanation]`
                                                 >
                                                   <ChevronLeft className="h-4 w-4" />
                                                 </Button>
-                                                <div className="flex items-center gap-2 pr-12">
+                                                <div className="flex items-center gap-2">
                                                   <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -7928,7 +7928,7 @@ FEEDBACK: [your explanation]`
 
         {/* Daily.co Video Frame for Tutor */}
         {insightsProps && sessionContext?.roomUrl && (
-          <div className="fixed bottom-4 right-4 z-50 w-72 overflow-hidden rounded-xl border border-slate-600 bg-black shadow-2xl sm:w-80">
+          <div className="fixed bottom-4 right-4 z-50 hidden w-72 overflow-hidden rounded-xl border border-slate-600 bg-black shadow-2xl sm:w-80">
             <DailyVideoFrame roomUrl={sessionContext.roomUrl} token={sessionContext.token} />
           </div>
         )}
