@@ -3129,8 +3129,18 @@ FEEDBACK: [your explanation]`
       mimeType?: string
       folder?: string
     }) => {
-      // Always open the "Load as..." modal so the user can choose where to load
       setAssetToLoad(asset)
+
+      // If we already opened the view assets modal from an assessment or task kebab menu,
+      // we know the target context, so we can skip the 'main' choice and go straight to options.
+      if (selectedItem?.type === 'assessment') {
+        setLoadAsStep('assessment-options')
+      } else if (selectedItem?.type === 'task') {
+        setLoadAsStep('task-options')
+      } else {
+        setLoadAsStep('main')
+      }
+
       setLoadAsModalOpen(true)
     }
 
@@ -3580,11 +3590,20 @@ FEEDBACK: [your explanation]`
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setLoadAsStep('main')}
+                    onClick={() => {
+                      if (selectedItem?.type === 'task' || selectedItem?.type === 'assessment') {
+                        setLoadAsModalOpen(false)
+                        setAssetToLoad(null)
+                      } else {
+                        setLoadAsStep('main')
+                      }
+                    }}
                     className="mt-2"
                   >
                     <ChevronLeft className="mr-1 h-4 w-4" />
-                    Back
+                    {selectedItem?.type === 'task' || selectedItem?.type === 'assessment'
+                      ? 'Cancel'
+                      : 'Back'}
                   </Button>
                 </>
               ) : (
@@ -3790,11 +3809,20 @@ FEEDBACK: [your explanation]`
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setLoadAsStep('main')}
+                    onClick={() => {
+                      if (selectedItem?.type === 'task' || selectedItem?.type === 'assessment') {
+                        setLoadAsModalOpen(false)
+                        setAssetToLoad(null)
+                      } else {
+                        setLoadAsStep('main')
+                      }
+                    }}
                     className="mt-2"
                   >
                     <ChevronLeft className="mr-1 h-4 w-4" />
-                    Back
+                    {selectedItem?.type === 'task' || selectedItem?.type === 'assessment'
+                      ? 'Cancel'
+                      : 'Back'}
                   </Button>
                 </>
               )}
@@ -4752,6 +4780,7 @@ FEEDBACK: [your explanation]`
                                                                 loadTaskIntoBuilder(task)
                                                                 setMainBuilderTab('task')
                                                                 setAssetsViewOpen(true)
+                                                                setLoadAsStep('task-options')
                                                               }}
                                                             >
                                                               Load
@@ -5327,6 +5356,7 @@ FEEDBACK: [your explanation]`
                                                               loadAssessmentIntoBuilder(hw)
                                                               setMainBuilderTab('assessment')
                                                               setAssetsViewOpen(true)
+                                                              setLoadAsStep('assessment-options')
                                                             }}
                                                           >
                                                             Load
@@ -5560,6 +5590,9 @@ FEEDBACK: [your explanation]`
                                                                   loadAssessmentIntoBuilder(hw)
                                                                   setMainBuilderTab('assessment')
                                                                   setAssetsViewOpen(true)
+                                                                  setLoadAsStep(
+                                                                    'assessment-options'
+                                                                  )
                                                                 }}
                                                               >
                                                                 Load
