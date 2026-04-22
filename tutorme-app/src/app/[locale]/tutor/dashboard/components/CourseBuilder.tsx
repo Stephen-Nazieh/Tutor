@@ -5775,7 +5775,7 @@ FEEDBACK: [your explanation]`
                           {/* Main Builder Tabs — nested pill design */}
                           <div className="mb-px flex w-full items-center rounded-full bg-gray-100 p-px shadow-sm">
                             {/* Left: current task name */}
-                            <div className="flex min-w-0 flex-1 items-center gap-2 px-4 py-px text-sm font-medium text-gray-500">
+                            <div className="flex min-w-0 flex-1 items-center gap-2 px-6 py-px text-sm font-medium text-gray-500">
                               <span className="truncate">{taskBuilder.title || ''}</span>
                             </div>
 
@@ -5798,7 +5798,7 @@ FEEDBACK: [your explanation]`
                             </TabsList>
 
                             {/* Right: current assessment name */}
-                            <div className="flex min-w-0 flex-1 items-center justify-end gap-2 px-4 py-px text-sm font-medium text-gray-500">
+                            <div className="flex min-w-0 flex-1 items-center justify-end gap-2 px-6 py-px text-sm font-medium text-gray-500">
                               <span className="truncate">{assessmentBuilder.title || ''}</span>
                             </div>
                           </div>
