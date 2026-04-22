@@ -2832,10 +2832,64 @@ FEEDBACK: [your explanation]`
     }
 
     const handleDragFiles = async (
-      e: React.DragEvent<HTMLTextAreaElement>,
+      e: React.DragEvent<HTMLTextAreaElement | HTMLDivElement>,
       onText: (t: string) => void,
       target?: 'task' | 'assessment'
     ) => {
+      // First, try internal JSON asset drop from left panel
+      try {
+        const assetData = e.dataTransfer.getData('application/json')
+        if (assetData) {
+          const { type, asset } = JSON.parse(assetData)
+          if (type === 'asset' && asset) {
+            e.preventDefault()
+            e.stopPropagation()
+
+            if (target === 'assessment') {
+              let currentId = loadedAssessmentId
+              if (!currentId) {
+                const created = autoCreateAssessment()
+                if (!created) {
+                  toast.error('Failed to create assessment')
+                  return
+                }
+                currentId = created.id
+              }
+
+              const newDoc = {
+                fileName: asset.name,
+                fileUrl: asset.url || '',
+                mimeType: asset.mimeType || 'application/pdf',
+                uploadedAt: new Date().toISOString(),
+              }
+
+              setAssessmentSourceDocument(newDoc)
+              setAssessmentUploadedFiles([{ id: 'source', name: asset.name }])
+
+              setCourseBuilderNodes(prev =>
+                prev.map(mod => ({
+                  ...mod,
+                  lessons: mod.lessons.map(lesson => ({
+                    ...lesson,
+                    homework: lesson.homework.map(hw =>
+                      hw.id === currentId ? { ...hw, sourceDocument: newDoc } : hw
+                    ),
+                  })),
+                }))
+              )
+              toast.success(`Loaded '${asset.name}' into Assessment`)
+            } else {
+              // For tasks, just dump the text
+              onText(asset.content || `[Asset: ${asset.name}]`)
+              toast.success(`Loaded text from '${asset.name}'`)
+            }
+            return
+          }
+        }
+      } catch (err) {
+        // ignore and fall through to native files
+      }
+
       const files = Array.from(e.dataTransfer.files || [])
       if (files.length > 0) {
         e.preventDefault()
@@ -3084,7 +3138,14 @@ FEEDBACK: [your explanation]`
             recentAssets.map(asset => (
               <div
                 key={asset.id}
-                className="flex items-center justify-between rounded-xl bg-slate-200/70 px-3 py-2.5"
+                draggable
+                onDragStart={e => {
+                  e.dataTransfer.setData(
+                    'application/json',
+                    JSON.stringify({ type: 'asset', asset })
+                  )
+                }}
+                className="flex cursor-grab items-center justify-between rounded-xl bg-slate-200/70 px-3 py-2.5 transition-colors hover:bg-slate-300/70 active:cursor-grabbing"
               >
                 <div className="mr-2 flex flex-1 items-center gap-2 overflow-hidden">
                   <FileText className="h-4 w-4 shrink-0 text-slate-500" />
@@ -3544,7 +3605,16 @@ FEEDBACK: [your explanation]`
                         filteredViewAssets.map(asset => (
                           <div
                             key={asset.id}
-                            className="flex items-center justify-between rounded-xl bg-slate-100 px-4 py-3"
+                            draggable
+                            onDragStart={e => {
+                              e.dataTransfer.setData(
+                                'application/json',
+                                JSON.stringify({ type: 'asset', asset })
+                              )
+                              // Close modal immediately after drag starts so user can drop onto the builder
+                              setTimeout(() => setAssetsViewOpen(false), 0)
+                            }}
+                            className="flex cursor-grab items-center justify-between rounded-xl bg-slate-100 px-4 py-3 transition-colors hover:bg-slate-200 active:cursor-grabbing"
                           >
                             <div className="mr-3 flex flex-1 items-center gap-3 overflow-hidden">
                               <FileText className="h-5 w-5 shrink-0 text-slate-400" />
@@ -5768,7 +5838,48 @@ FEEDBACK: [your explanation]`
                                       value="content"
                                       className="mt-px flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
-                                      <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
+                                      <div
+                                        className="flex h-full min-h-0 flex-col rounded-lg border bg-white"
+                                        onDragOver={e => e.preventDefault()}
+                                        onDrop={(e: any) => {
+                                          if (e.dataTransfer.types.includes('application/json')) {
+                                            handleDragFiles(
+                                              e,
+                                              text => {
+                                                setTaskBuilder(prev => {
+                                                  if (prev.activeExtensionId) {
+                                                    const ext = prev.extensions.find(
+                                                      x => x.id === prev.activeExtensionId
+                                                    )
+                                                    const combined = ext
+                                                      ? ext.content +
+                                                        (ext.content ? '\n\n' : '') +
+                                                        text
+                                                      : text
+                                                    return {
+                                                      ...prev,
+                                                      extensions: prev.extensions.map(x =>
+                                                        x.id === prev.activeExtensionId
+                                                          ? { ...x, content: combined }
+                                                          : x
+                                                      ),
+                                                    }
+                                                  } else {
+                                                    return {
+                                                      ...prev,
+                                                      taskContent:
+                                                        prev.taskContent +
+                                                        (prev.taskContent ? '\n\n' : '') +
+                                                        text,
+                                                    }
+                                                  }
+                                                })
+                                              },
+                                              'task'
+                                            )
+                                          }
+                                        }}
+                                      >
                                         <AutoTextarea
                                           placeholder={
                                             taskBuilder.activeExtensionId
@@ -6053,7 +6164,27 @@ FEEDBACK: [your explanation]`
                                       value="content"
                                       className="mt-px flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
-                                      <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
+                                      <div
+                                        className="flex h-full min-h-0 flex-col rounded-lg border bg-white"
+                                        onDragOver={e => e.preventDefault()}
+                                        onDrop={(e: any) => {
+                                          if (e.dataTransfer.types.includes('application/json')) {
+                                            handleDragFiles(
+                                              e,
+                                              text => {
+                                                setAssessmentBuilder(prev => ({
+                                                  ...prev,
+                                                  taskContent:
+                                                    prev.taskContent +
+                                                    (prev.taskContent ? '\n\n' : '') +
+                                                    text,
+                                                }))
+                                              },
+                                              'assessment'
+                                            )
+                                          }
+                                        }}
+                                      >
                                         {assessmentSourceDocument?.mimeType ===
                                         'application/pdf' ? (
                                           <>
