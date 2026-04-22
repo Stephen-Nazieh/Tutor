@@ -501,7 +501,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [assessmentPciMessagesMap, setAssessmentPciMessagesMap] = useState<
       Record<string, { role: 'user' | 'assistant'; content: string }[]>
     >({})
-    const [taskPciInput, setTaskPciInput] = useState('')
+    const [taskPciInputMap, setTaskPciInputMap] = useState<Record<string, string>>({})
     const [assessmentPciInputMap, setAssessmentPciInputMap] = useState<Record<string, string>>({})
     const [taskPciLoading, setTaskPciLoading] = useState(false)
     const [assessmentPciLoadingMap, setAssessmentPciLoadingMap] = useState<Record<string, boolean>>(
@@ -541,7 +541,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       student2: '',
     })
     const [testPciViewMode, setTestPciViewMode] = useState<string>('pdf')
-    const [extractedTextFontSize, setExtractedTextFontSize] = useState<number>(14)
     const [testPciContent, setTestPciContent] = useState<Record<string, string>>({
       classroom: '',
       student1: '',
@@ -615,11 +614,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
     }
 
-    // Insights panel state
-    const [insightsTab, setInsightsTab] = useState<'analytics' | 'poll' | 'question'>('analytics')
-    const [pollPrompt, setPollPrompt] = useState('Did you find this task difficult')
-    const [questionPrompt, setQuestionPrompt] = useState('Do you have a question about this task?')
-
     // Live session context
     const [sessionContext, setSessionContext] = useState<{
       topic: string | null
@@ -646,11 +640,43 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // Track currently loaded item for saving back
     const [loadedTaskId, setLoadedTaskId] = useState<string | null>(null)
     const [loadedAssessmentId, setLoadedAssessmentId] = useState<string | null>(null)
+    const [extractedTextFontSizeMap, setExtractedTextFontSizeMap] = useState<
+      Record<string, number>
+    >({})
+    const activeItemId = mainBuilderTab === 'assessment' ? loadedAssessmentId : loadedTaskId
+    const extractedTextFontSize = activeItemId ? (extractedTextFontSizeMap[activeItemId] ?? 14) : 14
+    const setExtractedTextFontSize = (val: number) => {
+      if (activeItemId) setExtractedTextFontSizeMap(prev => ({ ...prev, [activeItemId]: val }))
+    }
     const activeInsightsTaskId = mainBuilderTab === 'assessment' ? loadedAssessmentId : loadedTaskId
     const activeInsightsTask =
       activeInsightsTaskId && insightsProps
         ? (insightsProps.liveTasks.find(task => task.id === activeInsightsTaskId) ?? null)
         : null
+
+    // Insights panel state (per item)
+    const [insightsTabMap, setInsightsTabMap] = useState<
+      Record<string, 'analytics' | 'poll' | 'question'>
+    >({})
+    const [pollPromptMap, setPollPromptMap] = useState<Record<string, string>>({})
+    const [questionPromptMap, setQuestionPromptMap] = useState<Record<string, string>>({})
+
+    const currentInsightsId =
+      mainBuilderTab === 'task' && taskBuilder.activeExtensionId
+        ? taskBuilder.activeExtensionId
+        : activeInsightsTaskId || 'default'
+    const insightsTab = insightsTabMap[currentInsightsId] ?? 'analytics'
+    const setInsightsTab = (val: 'analytics' | 'poll' | 'question') =>
+      setInsightsTabMap(prev => ({ ...prev, [currentInsightsId]: val }))
+
+    const pollPrompt = pollPromptMap[currentInsightsId] ?? 'Did you find this task difficult'
+    const setPollPrompt = (val: string) =>
+      setPollPromptMap(prev => ({ ...prev, [currentInsightsId]: val }))
+
+    const questionPrompt =
+      questionPromptMap[currentInsightsId] ?? 'Do you have a question about this task?'
+    const setQuestionPrompt = (val: string) =>
+      setQuestionPromptMap(prev => ({ ...prev, [currentInsightsId]: val }))
 
     const mentionItems: MentionItem[] = useMemo(() => {
       const items: MentionItem[] = []
@@ -800,6 +826,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           activeExtensionId,
         })
         setTaskDmiItems(task.dmiItems || [])
+        setTaskDmiVersions(task.dmiVersions || [])
+        setTestPciSource('task')
+        if (task.activeDmiVersionId) {
+          setTestPciViewMode(`dmi_${task.activeDmiVersionId}`)
+        } else {
+          setTestPciViewMode('pdf')
+        }
         setTaskPciMessages(parsePciTranscript(task.instructions || ''))
         setTaskExtensionPciMessages(
           (task.extensions || []).reduce<
@@ -837,6 +870,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         activeExtensionId: null,
       })
       setAssessmentDmiItems(assessment.dmiItems || [])
+      setAssessmentDmiVersions(assessment.dmiVersions || [])
+      setTestPciSource('assessment')
+      if (assessment.activeDmiVersionId) {
+        setTestPciViewMode(`dmi_${assessment.activeDmiVersionId}`)
+      } else {
+        setTestPciViewMode('pdf')
+      }
       setLoadedAssessmentId(assessment.id)
       setAssessmentUploadedFiles(
         assessment.sourceDocument
@@ -977,6 +1017,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                       instructions: taskBuilder.taskPci,
                       extensions: taskBuilder.extensions,
                       dmiItems: taskDmiItems,
+                      dmiVersions: taskDmiVersions,
+                      activeDmiVersionId:
+                        testPciSource === 'task' && testPciViewMode.startsWith('dmi_')
+                          ? testPciViewMode.replace('dmi_', '')
+                          : task.activeDmiVersionId,
                       sourceDocument: task.sourceDocument,
                     }
                   : task
@@ -994,6 +1039,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       taskBuilder.taskPci,
       taskBuilder.extensions,
       taskDmiItems,
+      taskDmiVersions,
+      testPciSource,
+      testPciViewMode,
       loadedTaskId,
     ])
 
@@ -1015,6 +1063,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                       description: assessmentBuilder.taskContent,
                       instructions: assessmentBuilder.taskPci,
                       dmiItems: assessmentDmiItems,
+                      dmiVersions: assessmentDmiVersions,
+                      activeDmiVersionId:
+                        testPciSource === 'assessment' && testPciViewMode.startsWith('dmi_')
+                          ? testPciViewMode.replace('dmi_', '')
+                          : hw.activeDmiVersionId,
                       sourceDocument: hw.sourceDocument,
                     }
                   : hw
@@ -1030,6 +1083,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       assessmentBuilder.taskContent,
       assessmentBuilder.taskPci,
       assessmentDmiItems,
+      assessmentDmiVersions,
+      testPciSource,
+      testPciViewMode,
       loadedAssessmentId,
     ])
 
@@ -1083,7 +1139,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         }
 
         if (onSave) {
-          onSave(
+          return onSave(
             nodes.map(n => n.lessons[0] || ({} as any)),
             {
               developmentMode: devMode,
@@ -1267,7 +1323,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
       const activeTaskInput = taskBuilder.activeExtensionId
         ? taskExtensionPciInputs[taskBuilder.activeExtensionId] || ''
-        : taskPciInput
+        : taskPciInputMap[taskId || ''] || ''
       const assessmentInput = assessmentPciInputMap[assessmentId || ''] || ''
       const input = isTask ? activeTaskInput : assessmentInput
       const assessmentLoading = assessmentPciLoadingMap[assessmentId || ''] || false
@@ -1282,7 +1338,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
             [taskBuilder.activeExtensionId as string]: '',
           }))
         } else {
-          setTaskPciInput('')
+          setTaskPciInputMap(prev => ({ ...prev, [taskId || '']: '' }))
         }
       } else {
         setAssessmentPciInputMap(prev => ({ ...prev, [assessmentId || '']: '' }))
@@ -1698,9 +1754,13 @@ FEEDBACK: [your explanation]`
         if (isTask) {
           setTaskDmiItems(items)
           setTaskDmiVersions(prev => [...prev, newVersion])
+          setTestPciSource('task')
+          setTestPciViewMode(`dmi_${newVersion.id}`)
         } else {
           setAssessmentDmiItems(items)
           setAssessmentDmiVersions(prev => [...prev, newVersion])
+          setTestPciSource('assessment')
+          setTestPciViewMode(`dmi_${newVersion.id}`)
         }
 
         toast.success(`DMI form v${nextVersionNumber} created with ${items.length} questions`)
@@ -4208,7 +4268,7 @@ FEEDBACK: [your explanation]`
       : taskPciMessages
     const activeTaskPciInput = taskBuilder.activeExtensionId
       ? taskExtensionPciInputs[taskBuilder.activeExtensionId] || ''
-      : taskPciInput
+      : taskPciInputMap[loadedTaskId || ''] || ''
     const taskHeaderTitle = activeTaskExtension
       ? `${taskBuilder.title || 'Task'} ${activeTaskExtension.name}`
       : taskBuilder.title || 'Task'
@@ -4216,11 +4276,41 @@ FEEDBACK: [your explanation]`
       ? activeTaskExtension.description || 'Add a short description'
       : taskBuilder.details || 'Add a short description'
 
-    const [taskTextVisible, setTaskTextVisible] = useState(true)
-    const [taskPdfVisible, setTaskPdfVisible] = useState(true)
+    const [taskTextVisibleMap, setTaskTextVisibleMap] = useState<Record<string, boolean>>({})
+    const [taskPdfVisibleMap, setTaskPdfVisibleMap] = useState<Record<string, boolean>>({})
 
-    const [assessmentTextVisible, setAssessmentTextVisible] = useState(true)
-    const [assessmentPdfVisible, setAssessmentPdfVisible] = useState(true)
+    const [assessmentTextVisibleMap, setAssessmentTextVisibleMap] = useState<
+      Record<string, boolean>
+    >({})
+    const [assessmentPdfVisibleMap, setAssessmentPdfVisibleMap] = useState<Record<string, boolean>>(
+      {}
+    )
+
+    const taskTextVisible = loadedTaskId ? (taskTextVisibleMap[loadedTaskId] ?? true) : true
+    const taskPdfVisible = loadedTaskId ? (taskPdfVisibleMap[loadedTaskId] ?? true) : true
+
+    const setTaskTextVisible = (val: boolean) => {
+      if (loadedTaskId) setTaskTextVisibleMap(prev => ({ ...prev, [loadedTaskId]: val }))
+    }
+    const setTaskPdfVisible = (val: boolean) => {
+      if (loadedTaskId) setTaskPdfVisibleMap(prev => ({ ...prev, [loadedTaskId]: val }))
+    }
+
+    const assessmentTextVisible = loadedAssessmentId
+      ? (assessmentTextVisibleMap[loadedAssessmentId] ?? true)
+      : true
+    const assessmentPdfVisible = loadedAssessmentId
+      ? (assessmentPdfVisibleMap[loadedAssessmentId] ?? true)
+      : true
+
+    const setAssessmentTextVisible = (val: boolean) => {
+      if (loadedAssessmentId)
+        setAssessmentTextVisibleMap(prev => ({ ...prev, [loadedAssessmentId]: val }))
+    }
+    const setAssessmentPdfVisible = (val: boolean) => {
+      if (loadedAssessmentId)
+        setAssessmentPdfVisibleMap(prev => ({ ...prev, [loadedAssessmentId]: val }))
+    }
 
     const handleSaveAll = () => {
       if (!onSave) return
@@ -6093,7 +6183,7 @@ FEEDBACK: [your explanation]`
                                                         )
                                                           return
                                                         insightsProps.onSendPoll({
-                                                          taskId: activeInsightsTaskId,
+                                                          taskId: currentInsightsId,
                                                           question: pollPrompt,
                                                         })
                                                         setPollPrompt('')
@@ -6171,7 +6261,7 @@ FEEDBACK: [your explanation]`
                                                         )
                                                           return
                                                         insightsProps.onSendQuestion({
-                                                          taskId: activeInsightsTaskId,
+                                                          taskId: currentInsightsId,
                                                           prompt: questionPrompt,
                                                         })
                                                         setQuestionPrompt('')
@@ -6910,9 +7000,10 @@ FEEDBACK: [your explanation]`
                                             </div>
                                           )}
                                           <div className="relative flex items-end gap-px">
-                                            <AutoTextarea
+                                            <MentionTextarea
+                                              mentionItems={mentionItems}
                                               placeholder="Ask the PCI assistant..."
-                                              className="min-h-[44px] w-full pr-11"
+                                              className="min-h-[44px] w-full border-0 pr-11 focus-visible:ring-0 focus-visible:ring-offset-0"
                                               value={activeTaskPciInput}
                                               onChange={(e: any) => {
                                                 const value = e.target.value
@@ -6923,7 +7014,10 @@ FEEDBACK: [your explanation]`
                                                       value,
                                                   }))
                                                 } else {
-                                                  setTaskPciInput(value)
+                                                  setTaskPciInputMap(prev => ({
+                                                    ...prev,
+                                                    [loadedTaskId || '']: value,
+                                                  }))
                                                 }
                                               }}
                                               onKeyDown={(e: any) => {
@@ -7325,9 +7419,10 @@ FEEDBACK: [your explanation]`
                                             </div>
                                           )}
                                           <div className="relative flex items-end gap-px">
-                                            <AutoTextarea
+                                            <MentionTextarea
+                                              mentionItems={mentionItems}
                                               placeholder="Ask the PCI assistant..."
-                                              className="min-h-[44px] w-full pr-11"
+                                              className="min-h-[44px] w-full border-0 pr-11 focus-visible:ring-0 focus-visible:ring-offset-0"
                                               value={
                                                 assessmentPciInputMap[loadedAssessmentId || ''] ||
                                                 ''

@@ -87,6 +87,8 @@ export interface Task extends WithDifficultyVariants {
     pci: string
   }>
   dmiItems?: DMIQuestion[]
+  dmiVersions?: DMIVersion[]
+  activeDmiVersionId?: string
   estimatedMinutes: number
   points: number
   submissionType: 'text' | 'file' | 'link' | 'none' | 'questions'
@@ -111,6 +113,8 @@ export interface Assessment extends WithDifficultyVariants {
   description: string
   instructions: string
   dmiItems?: DMIQuestion[]
+  dmiVersions?: DMIVersion[]
+  activeDmiVersionId?: string
   category?: 'assessment' | 'homework'
   difficulty?: string
   dueDate?: string

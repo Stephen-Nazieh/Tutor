@@ -198,7 +198,47 @@ function CourseBuilderInsightsRouteInner({
 
     // 2. Get current lessons from the builder ref
     const getLessonsCb = (model.courseBuilderRef.current as any)?.getLessons
-    const lessons = typeof getLessonsCb === 'function' ? getLessonsCb() : []
+    const rawLessons = typeof getLessonsCb === 'function' ? getLessonsCb() : []
+
+    let hasNoDmis = false
+    const lessons = rawLessons.map((lesson: any) => ({
+      ...lesson,
+      homework: (lesson.homework || []).map((hw: any) => {
+        if (!hw.dmiVersions || hw.dmiVersions.length === 0) {
+          hasNoDmis = true
+          return hw
+        }
+        const activeVersionId = hw.activeDmiVersionId || hw.dmiVersions[0].id
+        const activeVersion =
+          hw.dmiVersions.find((v: any) => v.id === activeVersionId) || hw.dmiVersions[0]
+        return {
+          ...hw,
+          dmiItems: activeVersion.items,
+        }
+      }),
+      tasks: (lesson.tasks || []).map((task: any) => {
+        if (!task.dmiVersions || task.dmiVersions.length === 0) {
+          return task
+        }
+        const activeVersionId = task.activeDmiVersionId || task.dmiVersions[0].id
+        const activeVersion =
+          task.dmiVersions.find((v: any) => v.id === activeVersionId) || task.dmiVersions[0]
+        return {
+          ...task,
+          dmiItems: activeVersion.items,
+        }
+      }),
+    }))
+
+    if (hasNoDmis) {
+      if (
+        !window.confirm(
+          'Some assessments have no DMIs. Are you sure you want to proceed and publish?'
+        )
+      ) {
+        return
+      }
+    }
 
     const courseTitle = courseName || detachedCourseName || 'Untitled Course'
 
@@ -371,9 +411,9 @@ function CourseBuilderInsightsRouteInner({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => {
+                onClick={async () => {
                   const cb = (model.courseBuilderRef.current as any)?.saveAll
-                  if (typeof cb === 'function') cb()
+                  if (typeof cb === 'function') await cb()
                   const syncCb = (model.courseBuilderRef.current as any)?.syncToLive
                   if (typeof syncCb === 'function') syncCb()
                   onSyncToLiveSession()
@@ -397,10 +437,10 @@ function CourseBuilderInsightsRouteInner({
                   <DropdownMenuContent align="end">
                     {onSaveCourse && (
                       <DropdownMenuItem
-                        onClick={() => {
+                        onClick={async () => {
                           const cb = (model.courseBuilderRef.current as any)?.saveAll
-                          if (typeof cb === 'function') cb()
-                          else onSaveCourse([])
+                          if (typeof cb === 'function') await cb()
+                          else if (onSaveCourse) onSaveCourse([])
                         }}
                       >
                         Save
