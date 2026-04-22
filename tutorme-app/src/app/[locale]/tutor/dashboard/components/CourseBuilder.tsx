@@ -452,20 +452,28 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // Task content is always preserved. Extensions have their own content.
     // When activeExtensionId is null, we show/edit taskContent/taskPci
     // When activeExtensionId is set, we show/edit that extension's content
-    const [taskBuilder, setTaskBuilder] = useState({
+    const [taskBuilder, setTaskBuilder] = useState<{
+      title: string
+      taskContent: string
+      taskPci: string
+      details: string
+      sourceDocument?: {
+        fileName: string
+        fileUrl: string
+        mimeType: string
+        uploadedAt: string
+        extractedText?: string
+      }
+      extensions: { id: string; name: string; description?: string; content: string; pci: string }[]
+      activeExtensionId: string | null
+    }>({
       title: '',
       taskContent: '', // Base task content (never overwritten by extensions)
       taskPci: '', // Base task PCI (never overwritten by extensions)
       details: '',
       // Extensions have their own content stored separately
-      extensions: [] as {
-        id: string
-        name: string
-        description?: string
-        content: string
-        pci: string
-      }[],
-      activeExtensionId: null as string | null, // null = viewing task, string = viewing extension
+      extensions: [],
+      activeExtensionId: null, // null = viewing task, string = viewing extension
     })
 
     const [assessmentBuilder, setAssessmentBuilder] = useState({
@@ -528,6 +536,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
     // Test PCI state
     const [testPciInput, setTestPciInput] = useState('')
+    const [testPciViewMode, setTestPciViewMode] = useState<'pdf' | 'text'>('pdf')
     const [testPciContent, setTestPciContent] = useState<Record<string, string>>({
       classroom: '',
       student1: '',
@@ -6146,9 +6155,28 @@ FEEDBACK: [your explanation]`
                                       ) : null
                                     ) : (
                                       <div className="bg-muted flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto rounded-lg p-1">
-                                        <p className="text-muted-foreground whitespace-pre-wrap text-sm">
-                                          {testPciContent[tab.id] || `${tab.label} view content`}
-                                        </p>
+                                        {testPciViewMode === 'pdf' &&
+                                        tab.id === 'classroom' &&
+                                        (taskBuilder.sourceDocument?.fileUrl ||
+                                          taskBuilder.sourceDocument?.extractedText) ? (
+                                          <div className="h-full w-full">
+                                            {taskBuilder.sourceDocument?.fileUrl ? (
+                                              <iframe
+                                                src={`${taskBuilder.sourceDocument.fileUrl}#toolbar=0&navpanes=0`}
+                                                className="h-full w-full rounded-md border-0"
+                                                title="PDF Viewer"
+                                              />
+                                            ) : (
+                                              <p className="text-muted-foreground whitespace-pre-wrap text-sm">
+                                                {taskBuilder.sourceDocument?.extractedText}
+                                              </p>
+                                            )}
+                                          </div>
+                                        ) : (
+                                          <p className="text-muted-foreground whitespace-pre-wrap text-sm">
+                                            {testPciContent[tab.id] || `${tab.label} view content`}
+                                          </p>
+                                        )}
                                         {/* Show AI scores if any */}
                                         {testPciScores[tab.id]?.length > 0 && (
                                           <div className="mt-3 border-t border-gray-400 pt-3">
@@ -6189,33 +6217,71 @@ FEEDBACK: [your explanation]`
                               {testPciActiveTab !== 'insights' && (
                                 <div className="border-border bg-background mt-1 rounded-2xl border shadow-xl backdrop-blur-md">
                                   <div className="relative p-px">
-                                    <MentionTextarea
-                                      mentionItems={mentionItems}
-                                      className="min-h-[100px] w-full border-0 bg-transparent py-4 pl-4 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                                      placeholder={
-                                        testPciActiveTab === 'classroom'
-                                          ? 'Enter answer (goes to both students)...'
-                                          : 'Ask your AI coach or share a reflection...'
-                                      }
-                                      value={testPciInput}
-                                      onChange={(e: any) => setTestPciInput(e.target.value)}
-                                      onKeyDown={(e: any) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                          if (testPciInput.trim() && !testPciLoading) {
-                                            e.preventDefault()
-                                            handleTestPciSubmit()
-                                          }
+                                    <div className="flex w-full items-end gap-2 p-2">
+                                      {testPciActiveTab === 'classroom' && (
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button
+                                              variant="outline"
+                                              size="icon"
+                                              className="mb-1 h-9 w-9 shrink-0 rounded-xl"
+                                              title="Toggle View Mode"
+                                            >
+                                              <Plus className="h-4 w-4" />
+                                            </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="start" className="w-40">
+                                            <DropdownMenuItem
+                                              onClick={() => setTestPciViewMode('pdf')}
+                                              className="flex items-center gap-2"
+                                            >
+                                              <FileText className="h-4 w-4" />
+                                              PDF Document
+                                              {testPciViewMode === 'pdf' && (
+                                                <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
+                                              )}
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                              onClick={() => setTestPciViewMode('text')}
+                                              className="flex items-center gap-2"
+                                            >
+                                              <ListTodo className="h-4 w-4" />
+                                              Extracted Text
+                                              {testPciViewMode === 'text' && (
+                                                <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
+                                              )}
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+                                      )}
+                                      <MentionTextarea
+                                        mentionItems={mentionItems}
+                                        className="min-h-[100px] flex-1 border-0 bg-transparent py-4 pl-2 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                        placeholder={
+                                          testPciActiveTab === 'classroom'
+                                            ? 'Enter answer (goes to both students)...'
+                                            : 'Ask your AI coach or share a reflection...'
                                         }
-                                      }}
-                                    />
-                                    <Button
-                                      size="icon"
-                                      className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-slate-600 shadow-lg hover:bg-slate-700 disabled:opacity-30"
-                                      disabled={!testPciInput.trim() || testPciLoading}
-                                      onClick={handleTestPciSubmit}
-                                    >
-                                      <Send className="h-4 w-4" />
-                                    </Button>
+                                        value={testPciInput}
+                                        onChange={(e: any) => setTestPciInput(e.target.value)}
+                                        onKeyDown={(e: any) => {
+                                          if (e.key === 'Enter' && !e.shiftKey) {
+                                            if (testPciInput.trim() && !testPciLoading) {
+                                              e.preventDefault()
+                                              handleTestPciSubmit()
+                                            }
+                                          }
+                                        }}
+                                      />
+                                      <Button
+                                        size="icon"
+                                        className="mb-1 h-9 w-9 shrink-0 rounded-xl bg-slate-600 shadow-lg hover:bg-slate-700 disabled:opacity-30"
+                                        disabled={!testPciInput.trim() || testPciLoading}
+                                        onClick={handleTestPciSubmit}
+                                      >
+                                        <Send className="h-4 w-4" />
+                                      </Button>
+                                    </div>
                                   </div>
                                   <div className="border-border/50 bg-muted/20 border-t px-1 py-1">
                                     <p className="text-muted-foreground text-[10px]">
