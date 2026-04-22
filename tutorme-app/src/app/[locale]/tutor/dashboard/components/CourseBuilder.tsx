@@ -3148,9 +3148,9 @@ FEEDBACK: [your explanation]`
 
       // If we already opened the view assets modal from an assessment or task kebab menu,
       // we know the target context, so we can skip the 'main' choice and go straight to options.
-      if (selectedItem?.type === 'assessment') {
+      if (assetPickerTarget === 'assessment') {
         setLoadAsStep('assessment-options')
-      } else if (selectedItem?.type === 'task') {
+      } else if (assetPickerTarget === 'task') {
         setLoadAsStep('task-options')
       } else {
         setLoadAsStep('main')
@@ -3489,17 +3489,49 @@ FEEDBACK: [your explanation]`
                     variant="outline"
                     onClick={() => {
                       if (!assetToLoad) return
-                      const { nodeId, lessonId } = ensureFirstLessonContext()
-                      const nodeIndex = nodes.findIndex(m => m.id === nodeId)
-                      const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
-                      const newTask = DEFAULT_TASK(
-                        nodes[nodeIndex].lessons[lessonIndex].tasks.length
-                      )
+
+                      let nodeIndex = -1
+                      let lessonIndex = -1
+                      let existingTask: Task | undefined
+
+                      if (loadedTaskId) {
+                        for (let nIdx = 0; nIdx < nodes.length; nIdx++) {
+                          for (let lIdx = 0; lIdx < nodes[nIdx].lessons.length; lIdx++) {
+                            const task = nodes[nIdx].lessons[lIdx].tasks.find(
+                              t => t.id === loadedTaskId
+                            )
+                            if (task) {
+                              existingTask = task
+                              nodeIndex = nIdx
+                              lessonIndex = lIdx
+                              break
+                            }
+                          }
+                          if (existingTask) break
+                        }
+                      }
+
+                      if (nodeIndex === -1 || lessonIndex === -1) {
+                        const { nodeId, lessonId } = ensureFirstLessonContext()
+                        nodeIndex = nodes.findIndex(m => m.id === nodeId)
+                        lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+                      }
+
+                      let targetTask: Task
+
+                      if (existingTask) {
+                        targetTask = { ...existingTask }
+                      } else {
+                        targetTask = DEFAULT_TASK(
+                          nodes[nodeIndex].lessons[lessonIndex].tasks.length
+                        )
+                      }
+
                       const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
 
-                      newTask.description = textToInsert
+                      targetTask.description = textToInsert
                       if (assetToLoad.url && assetToLoad.mimeType) {
-                        newTask.sourceDocument = {
+                        targetTask.sourceDocument = {
                           fileName: assetToLoad.name,
                           fileUrl: assetToLoad.url,
                           mimeType: assetToLoad.mimeType,
@@ -3508,13 +3540,22 @@ FEEDBACK: [your explanation]`
                       }
 
                       const newCourseBuilderNodes = [...nodes]
-                      newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(newTask)
+
+                      if (existingTask) {
+                        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks =
+                          newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.map(t =>
+                            t.id === loadedTaskId ? targetTask : t
+                          )
+                      } else {
+                        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(targetTask)
+                      }
+
                       setCourseBuilderNodes(newCourseBuilderNodes)
                       setMainBuilderTab('task')
-                      setSelectedItem({ type: 'task', id: newTask.id })
-                      loadTaskIntoBuilder(newTask)
+                      setSelectedItem({ type: 'task', id: targetTask.id })
+                      loadTaskIntoBuilder(targetTask)
 
-                      toast.success(`Created new Task and loaded '${assetToLoad?.name}'`)
+                      toast.success(`Loaded '${assetToLoad?.name}' into Task`)
                       setLoadAsStep('main')
                       setLoadAsModalOpen(false)
                       setAssetToLoad(null)
@@ -3524,7 +3565,7 @@ FEEDBACK: [your explanation]`
                     <div className="flex flex-col items-start">
                       <span>Single Task</span>
                       <span className="text-xs text-gray-500">
-                        Load entire document as one task
+                        Load entire document into {loadedTaskId ? 'current' : 'a new'} task
                       </span>
                     </div>
                   </Button>
