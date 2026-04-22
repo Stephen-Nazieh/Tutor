@@ -11,12 +11,18 @@ interface PDFViewerProps {
   fileUrl: string
   className?: string
   defaultScale?: number
+  onHidePreview?: () => void
 }
 
 /** Maximum pages to render in scroll-all mode before switching to single-page pagination. */
 const MAX_SCROLL_PAGES = 20
 
-export function PDFViewer({ fileUrl, className = '', defaultScale = 1.25 }: PDFViewerProps) {
+export function PDFViewer({
+  fileUrl,
+  className = '',
+  defaultScale = 1.25,
+  onHidePreview,
+}: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>(0)
   const [pageNumber, setPageNumber] = useState<number>(1)
   const [scale, setScale] = useState<number>(defaultScale)
@@ -100,7 +106,7 @@ export function PDFViewer({ fileUrl, className = '', defaultScale = 1.25 }: PDFV
 
       {/* Toolbar — zoom + page navigation */}
       {!loading && !error && numPages > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-white px-3 py-1.5">
+        <div className="flex h-9 shrink-0 items-center justify-between border-b bg-slate-50 px-3">
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => changePage(-1)}
@@ -139,6 +145,27 @@ export function PDFViewer({ fileUrl, className = '', defaultScale = 1.25 }: PDFV
             >
               +
             </button>
+            {onHidePreview && (
+              <button
+                onClick={onHidePreview}
+                className="ml-2 flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-gray-100 hover:text-slate-700"
+                title="Hide Preview"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
       )}

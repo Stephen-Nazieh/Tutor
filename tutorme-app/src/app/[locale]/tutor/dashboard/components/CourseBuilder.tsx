@@ -813,9 +813,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
     // Load assessment data into assessmentBuilder
     const loadAssessmentIntoBuilder = useCallback((assessment: Assessment) => {
-      // Prioritize description over sourceDocument - description holds edited content
-      // Do NOT fall back to extractedText; the raw PDF is rendered via PDFViewer component.
-      const content = assessment.description || ''
+      const content = assessment.description || assessment.sourceDocument?.extractedText || ''
       setAssessmentBuilder({
         title: assessment.title || '',
         taskContent: content,
@@ -2884,15 +2882,18 @@ FEEDBACK: [your explanation]`
                 currentId = created.id
               }
 
+              const extractedText = asset.content || `[Asset: ${asset.name}]`
               const newDoc = {
                 fileName: asset.name,
                 fileUrl: asset.url || '',
                 mimeType: asset.mimeType || 'application/pdf',
                 uploadedAt: new Date().toISOString(),
+                extractedText,
               }
 
               setAssessmentSourceDocument(newDoc)
               setAssessmentUploadedFiles([{ id: 'source', name: asset.name }])
+              setAssessmentBuilder(prev => ({ ...prev, taskContent: extractedText }))
 
               setCourseBuilderNodes(prev =>
                 prev.map(mod => ({
@@ -2900,7 +2901,9 @@ FEEDBACK: [your explanation]`
                   lessons: mod.lessons.map(lesson => ({
                     ...lesson,
                     homework: lesson.homework.map(hw =>
-                      hw.id === currentId ? { ...hw, sourceDocument: newDoc } : hw
+                      hw.id === currentId
+                        ? { ...hw, sourceDocument: newDoc, description: extractedText }
+                        : hw
                     ),
                   })),
                 }))
@@ -2926,6 +2929,13 @@ FEEDBACK: [your explanation]`
           const f = files[0]
           if (!f) return
           toast.info(`Uploading '${f.name}'...`)
+
+          let extractedText = ''
+          try {
+            extractedText = (await extractTextFromFile(f)) || ''
+          } catch {
+            extractedText = ''
+          }
 
           let fileUrl = ''
           let fileMimeType = 'application/pdf'
@@ -2965,7 +2975,7 @@ FEEDBACK: [your explanation]`
           const newAsset = {
             id: `asset-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
             name: f.name,
-            content: `[Imported ${f.name}]`,
+            content: extractedText || `[Imported ${f.name}]`,
             url: fileUrl,
             mimeType: fileMimeType,
           }
@@ -2987,10 +2997,12 @@ FEEDBACK: [your explanation]`
             fileUrl: newAsset.url,
             mimeType: newAsset.mimeType,
             uploadedAt: new Date().toISOString(),
+            extractedText: newAsset.content,
           }
 
           setAssessmentSourceDocument(newDoc)
           setAssessmentUploadedFiles([{ id: 'source', name: newAsset.name }])
+          setAssessmentBuilder(prev => ({ ...prev, taskContent: newAsset.content || '' }))
 
           setCourseBuilderNodes(prev =>
             prev.map(mod => ({
@@ -2998,7 +3010,9 @@ FEEDBACK: [your explanation]`
               lessons: mod.lessons.map(lesson => ({
                 ...lesson,
                 homework: lesson.homework.map(hw =>
-                  hw.id === currentId ? { ...hw, sourceDocument: newDoc } : hw
+                  hw.id === currentId
+                    ? { ...hw, sourceDocument: newDoc, description: newAsset.content || '' }
+                    : hw
                 ),
               })),
             }))
@@ -3677,16 +3691,15 @@ FEEDBACK: [your explanation]`
                         )
                       }
 
-                      // Leave description empty for PDF assets so the raw document
-                      // preview is shown instead of extracted text (which loses
-                      // images, diagrams, formulas, and math).
-                      targetAssess.description = ''
+                      const extractedText = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
+                      targetAssess.description = extractedText
                       if (assetToLoad.url) {
                         targetAssess.sourceDocument = {
                           fileName: assetToLoad.name,
                           fileUrl: assetToLoad.url,
                           mimeType: assetToLoad.mimeType || 'application/pdf',
                           uploadedAt: new Date().toISOString(),
+                          extractedText,
                         }
                       }
 
@@ -6423,22 +6436,6 @@ FEEDBACK: [your explanation]`
                                               </div>
                                             )}
 
-                                            <div className="flex h-9 shrink-0 items-center justify-between border-b bg-slate-50 p-1">
-                                              <div />
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => {
-                                                  if (!taskTextVisible) setTaskTextVisible(true)
-                                                  setTaskPdfVisible(false)
-                                                }}
-                                                className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
-                                                title="Hide Preview"
-                                              >
-                                                <ChevronRight className="h-4 w-4" />
-                                              </Button>
-                                            </div>
-
                                             <div className="relative min-h-0 flex-1 overflow-hidden">
                                               {!taskBuilder.activeExtensionId &&
                                               taskSourceDocument?.mimeType === 'application/pdf' ? (
@@ -6447,12 +6444,32 @@ FEEDBACK: [your explanation]`
                                                   fileUrl={taskSourceDocument.fileUrl}
                                                   className="absolute inset-0 h-full w-full"
                                                   defaultScale={0.75}
+                                                  onHidePreview={() => {
+                                                    if (!taskTextVisible) setTaskTextVisible(true)
+                                                    setTaskPdfVisible(false)
+                                                  }}
                                                 />
                                               ) : !taskBuilder.activeExtensionId &&
                                                 taskSourceDocument &&
                                                 taskSourceDocument.mimeType !== 'application/pdf' &&
                                                 taskSourceDocument.mimeType.startsWith('image/') ? (
                                                 <div className="absolute inset-0 flex items-center justify-center bg-white p-4">
+                                                  <div className="absolute left-0 top-0 flex h-9 w-full shrink-0 items-center justify-between border-b bg-slate-50 p-1">
+                                                    <div />
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => {
+                                                        if (!taskTextVisible)
+                                                          setTaskTextVisible(true)
+                                                        setTaskPdfVisible(false)
+                                                      }}
+                                                      className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                      title="Hide Preview"
+                                                    >
+                                                      <ChevronRight className="h-4 w-4" />
+                                                    </Button>
+                                                  </div>
                                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                                   <img
                                                     src={taskSourceDocument.fileUrl}
@@ -6467,6 +6484,22 @@ FEEDBACK: [your explanation]`
                                                   'image/'
                                                 ) ? (
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-white p-6">
+                                                  <div className="absolute left-0 top-0 flex h-9 w-full shrink-0 items-center justify-between border-b bg-slate-50 p-1">
+                                                    <div />
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => {
+                                                        if (!taskTextVisible)
+                                                          setTaskTextVisible(true)
+                                                        setTaskPdfVisible(false)
+                                                      }}
+                                                      className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                      title="Hide Preview"
+                                                    >
+                                                      <ChevronRight className="h-4 w-4" />
+                                                    </Button>
+                                                  </div>
                                                   <FileText className="mb-4 h-16 w-16 text-blue-500" />
                                                   <a
                                                     href={taskSourceDocument.fileUrl}
@@ -6479,6 +6512,22 @@ FEEDBACK: [your explanation]`
                                                 </div>
                                               ) : (
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+                                                  <div className="absolute left-0 top-0 flex h-9 w-full shrink-0 items-center justify-between border-b bg-slate-50 p-1">
+                                                    <div />
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => {
+                                                        if (!taskTextVisible)
+                                                          setTaskTextVisible(true)
+                                                        setTaskPdfVisible(false)
+                                                      }}
+                                                      className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                      title="Hide Preview"
+                                                    >
+                                                      <ChevronRight className="h-4 w-4" />
+                                                    </Button>
+                                                  </div>
                                                   <FileText className="mb-4 h-16 w-16 text-gray-300" />
                                                   <p className="text-lg font-medium text-gray-500">
                                                     No document selected
@@ -6755,23 +6804,6 @@ FEEDBACK: [your explanation]`
                                               </div>
                                             )}
 
-                                            <div className="flex h-9 shrink-0 items-center justify-between border-b bg-slate-50 p-1">
-                                              <div />
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => {
-                                                  if (!assessmentTextVisible)
-                                                    setAssessmentTextVisible(true)
-                                                  setAssessmentPdfVisible(false)
-                                                }}
-                                                className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
-                                                title="Hide Preview"
-                                              >
-                                                <ChevronRight className="h-4 w-4" />
-                                              </Button>
-                                            </div>
-
                                             <div className="relative min-h-0 flex-1 overflow-hidden">
                                               {assessmentSourceDocument?.fileUrl ? (
                                                 <PDFViewer
@@ -6779,9 +6811,30 @@ FEEDBACK: [your explanation]`
                                                   fileUrl={assessmentSourceDocument.fileUrl}
                                                   className="absolute inset-0 h-full w-full"
                                                   defaultScale={0.75}
+                                                  onHidePreview={() => {
+                                                    if (!assessmentTextVisible)
+                                                      setAssessmentTextVisible(true)
+                                                    setAssessmentPdfVisible(false)
+                                                  }}
                                                 />
                                               ) : (
                                                 <div className="flex h-full flex-col items-center justify-center text-gray-400">
+                                                  <div className="absolute left-0 top-0 flex h-9 w-full shrink-0 items-center justify-between border-b bg-slate-50 p-1">
+                                                    <div />
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => {
+                                                        if (!assessmentTextVisible)
+                                                          setAssessmentTextVisible(true)
+                                                        setAssessmentPdfVisible(false)
+                                                      }}
+                                                      className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                      title="Hide Preview"
+                                                    >
+                                                      <ChevronRight className="h-4 w-4" />
+                                                    </Button>
+                                                  </div>
                                                   <FileText className="mb-4 h-16 w-16 text-gray-300" />
                                                   <p className="text-lg font-medium text-gray-600">
                                                     No document selected
