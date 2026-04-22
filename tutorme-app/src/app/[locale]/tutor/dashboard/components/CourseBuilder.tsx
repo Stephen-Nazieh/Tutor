@@ -3497,24 +3497,38 @@ FEEDBACK: [your explanation]`
                     variant="outline"
                     onClick={() => {
                       if (!assetToLoad) return
-                      const { nodeId, lessonId } = ensureFirstLessonContext()
-                      const nodeIndex = nodes.findIndex(m => m.id === nodeId)
-                      const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+
+                      let nodeIndex = -1
+                      let lessonIndex = -1
+                      let existingAssess: Assessment | undefined
+
+                      if (loadedAssessmentId) {
+                        for (let nIdx = 0; nIdx < nodes.length; nIdx++) {
+                          for (let lIdx = 0; lIdx < nodes[nIdx].lessons.length; lIdx++) {
+                            const hw = nodes[nIdx].lessons[lIdx].homework.find(
+                              h => h.id === loadedAssessmentId
+                            )
+                            if (hw) {
+                              existingAssess = hw
+                              nodeIndex = nIdx
+                              lessonIndex = lIdx
+                              break
+                            }
+                          }
+                          if (existingAssess) break
+                        }
+                      }
+
+                      if (nodeIndex === -1 || lessonIndex === -1) {
+                        const { nodeId, lessonId } = ensureFirstLessonContext()
+                        nodeIndex = nodes.findIndex(m => m.id === nodeId)
+                        lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+                      }
 
                       let targetAssess: Assessment
 
-                      if (loadedAssessmentId) {
-                        const existingAssess = nodes[nodeIndex].lessons[lessonIndex].homework.find(
-                          h => h.id === loadedAssessmentId
-                        )
-                        if (existingAssess) {
-                          targetAssess = { ...existingAssess }
-                        } else {
-                          targetAssess = DEFAULT_HOMEWORK(
-                            nodes[nodeIndex].lessons[lessonIndex].homework.length,
-                            'assessment'
-                          )
-                        }
+                      if (existingAssess) {
+                        targetAssess = { ...existingAssess }
                       } else {
                         targetAssess = DEFAULT_HOMEWORK(
                           nodes[nodeIndex].lessons[lessonIndex].homework.length,
@@ -3537,12 +3551,7 @@ FEEDBACK: [your explanation]`
 
                       const newCourseBuilderNodes = [...nodes]
 
-                      if (
-                        loadedAssessmentId &&
-                        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.some(
-                          h => h.id === loadedAssessmentId
-                        )
-                      ) {
+                      if (existingAssess) {
                         newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework =
                           newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.map(h =>
                             h.id === loadedAssessmentId ? targetAssess : h
@@ -3578,9 +3587,31 @@ FEEDBACK: [your explanation]`
                     variant="outline"
                     onClick={() => {
                       if (!assetToLoad) return
-                      const { nodeId, lessonId } = ensureFirstLessonContext()
-                      const nodeIndex = nodes.findIndex(m => m.id === nodeId)
-                      const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+
+                      let nodeIndex = -1
+                      let lessonIndex = -1
+
+                      if (loadedAssessmentId) {
+                        for (let nIdx = 0; nIdx < nodes.length; nIdx++) {
+                          for (let lIdx = 0; lIdx < nodes[nIdx].lessons.length; lIdx++) {
+                            const hw = nodes[nIdx].lessons[lIdx].homework.find(
+                              h => h.id === loadedAssessmentId
+                            )
+                            if (hw) {
+                              nodeIndex = nIdx
+                              lessonIndex = lIdx
+                              break
+                            }
+                          }
+                          if (nodeIndex !== -1) break
+                        }
+                      }
+
+                      if (nodeIndex === -1 || lessonIndex === -1) {
+                        const { nodeId, lessonId } = ensureFirstLessonContext()
+                        nodeIndex = nodes.findIndex(m => m.id === nodeId)
+                        lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+                      }
 
                       const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
 
