@@ -3944,8 +3944,12 @@ FEEDBACK: [your explanation]`
                         filteredViewAssets.map(asset => (
                           <div
                             key={asset.id}
-                            draggable
+                            draggable={!assetPickerTarget}
                             onDragStart={e => {
+                              if (assetPickerTarget) {
+                                e.preventDefault()
+                                return
+                              }
                               e.dataTransfer.setData(
                                 'application/json',
                                 JSON.stringify({ type: 'asset', asset })
@@ -3955,11 +3959,23 @@ FEEDBACK: [your explanation]`
                               document.body.classList.add('hide-radix-dialogs-for-drag')
                             }}
                             onDragEnd={() => {
+                              if (assetPickerTarget) return
                               setIsDraggingFromModal(false)
                               document.body.classList.remove('hide-radix-dialogs-for-drag')
                               setAssetsViewOpen(false)
                             }}
-                            className="flex cursor-grab items-center justify-between rounded-xl bg-slate-100 px-4 py-3 transition-colors hover:bg-slate-200 active:cursor-grabbing"
+                            onClick={() => {
+                              if (assetPickerTarget) {
+                                setAssetsViewOpen(false)
+                                setTimeout(() => handleLoadAsset(asset), 50)
+                              }
+                            }}
+                            className={cn(
+                              'flex items-center justify-between rounded-xl px-4 py-3 transition-colors',
+                              assetPickerTarget
+                                ? 'cursor-pointer bg-slate-100 ring-2 ring-transparent hover:bg-slate-200 hover:ring-blue-400'
+                                : 'cursor-grab bg-slate-100 hover:bg-slate-200 active:cursor-grabbing'
+                            )}
                           >
                             <div className="mr-3 flex flex-1 items-center gap-3 overflow-hidden">
                               <FileText className="h-5 w-5 shrink-0 text-slate-400" />
@@ -3975,6 +3991,7 @@ FEEDBACK: [your explanation]`
                             <div className="flex shrink-0 items-center gap-2">
                               {/* Folder assignment dropdown */}
                               <select
+                                onClick={e => e.stopPropagation()}
                                 className="h-7 rounded-md border border-gray-200 bg-white px-2 text-[11px] text-gray-600 outline-none focus:border-blue-400"
                                 value={asset.folder || ''}
                                 onChange={e => {
@@ -6284,7 +6301,7 @@ FEEDBACK: [your explanation]`
                                               taskPdfVisible ? 'w-1/2 border-r' : 'w-full'
                                             )}
                                           >
-                                            <div className="flex shrink-0 items-center justify-between border-b bg-slate-50 p-1">
+                                            <div className="flex h-9 shrink-0 items-center justify-between border-b bg-slate-50 p-1">
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
@@ -6294,21 +6311,7 @@ FEEDBACK: [your explanation]`
                                               >
                                                 <ChevronLeft className="h-4 w-4" />
                                               </Button>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => setTaskPdfVisible(!taskPdfVisible)}
-                                                className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
-                                                title={
-                                                  taskPdfVisible ? 'Hide Preview' : 'Show Preview'
-                                                }
-                                              >
-                                                {taskPdfVisible ? (
-                                                  <ChevronRight className="h-4 w-4" />
-                                                ) : (
-                                                  <ChevronLeft className="h-4 w-4" />
-                                                )}
-                                              </Button>
+                                              <div />
                                             </div>
                                             <AutoTextarea
                                               placeholder={
@@ -6414,6 +6417,19 @@ FEEDBACK: [your explanation]`
                                               </div>
                                             )}
 
+                                            <div className="flex h-9 shrink-0 items-center justify-between border-b bg-slate-50 p-1">
+                                              <div />
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setTaskPdfVisible(false)}
+                                                className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                title="Hide Preview"
+                                              >
+                                                <ChevronRight className="h-4 w-4" />
+                                              </Button>
+                                            </div>
+
                                             <div className="relative min-h-0 flex-1 overflow-hidden">
                                               {!taskBuilder.activeExtensionId &&
                                               taskSourceDocument?.mimeType === 'application/pdf' ? (
@@ -6421,6 +6437,7 @@ FEEDBACK: [your explanation]`
                                                   key={taskSourceDocument.fileUrl}
                                                   fileUrl={taskSourceDocument.fileUrl}
                                                   className="absolute inset-0 h-full w-full"
+                                                  defaultScale={0.75}
                                                 />
                                               ) : !taskBuilder.activeExtensionId &&
                                                 taskSourceDocument &&

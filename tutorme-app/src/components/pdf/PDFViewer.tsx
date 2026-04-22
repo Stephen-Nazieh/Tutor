@@ -10,15 +10,16 @@ pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
 interface PDFViewerProps {
   fileUrl: string
   className?: string
+  defaultScale?: number
 }
 
 /** Maximum pages to render in scroll-all mode before switching to single-page pagination. */
 const MAX_SCROLL_PAGES = 20
 
-export function PDFViewer({ fileUrl, className = '' }: PDFViewerProps) {
+export function PDFViewer({ fileUrl, className = '', defaultScale = 1.25 }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>(0)
   const [pageNumber, setPageNumber] = useState<number>(1)
-  const [scale, setScale] = useState<number>(1.25)
+  const [scale, setScale] = useState<number>(defaultScale)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [useFallback, setUseFallback] = useState<boolean>(false)
