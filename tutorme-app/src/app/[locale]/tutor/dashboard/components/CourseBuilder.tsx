@@ -4109,6 +4109,9 @@ FEEDBACK: [your explanation]`
     const [taskTextVisible, setTaskTextVisible] = useState(true)
     const [taskPdfVisible, setTaskPdfVisible] = useState(true)
 
+    const [assessmentTextVisible, setAssessmentTextVisible] = useState(true)
+    const [assessmentPdfVisible, setAssessmentPdfVisible] = useState(true)
+
     const handleSaveAll = () => {
       if (!onSave) return
       onSave(
@@ -4406,10 +4409,10 @@ FEEDBACK: [your explanation]`
                               {insightsProps?.onEndSession && (
                                 <Button
                                   size="sm"
-                                  variant="destructive"
+                                  variant="ghost"
                                   onClick={insightsProps.onEndSession}
                                   disabled={insightsProps.endingSession}
-                                  className="h-7 gap-1 px-2 text-xs"
+                                  className="h-7 gap-1 px-2 text-xs font-medium text-red-500 hover:bg-red-50 hover:text-red-600"
                                 >
                                   {insightsProps.endingSession ? 'Ending…' : 'End'}
                                 </Button>
@@ -4417,13 +4420,13 @@ FEEDBACK: [your explanation]`
                               {insightsProps?.onToggleRecording && (
                                 <Button
                                   size="sm"
-                                  variant={insightsProps.isRecording ? 'destructive' : 'default'}
+                                  variant="ghost"
                                   onClick={insightsProps.onToggleRecording}
-                                  className="h-7 w-7 p-0"
+                                  className="h-7 w-7 p-0 hover:bg-slate-200"
                                   title={insightsProps.isRecording ? 'Stop Recording' : 'Record'}
                                 >
                                   {insightsProps.isRecording ? (
-                                    <Square className="h-3.5 w-3.5 fill-current" />
+                                    <Square className="h-3.5 w-3.5 fill-current text-red-500" />
                                   ) : (
                                     <Circle className="h-3.5 w-3.5 fill-current text-red-500" />
                                   )}
@@ -6651,35 +6654,147 @@ FEEDBACK: [your explanation]`
                                       className="mt-px flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div
-                                        className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border bg-white"
+                                        className="flex h-full min-h-0 flex-row overflow-hidden rounded-lg border bg-white"
                                         onDragOver={e => e.preventDefault()}
                                         onDrop={(e: any) => {
                                           handleDragFiles(
                                             e,
-                                            text => {}, // We don't append text anymore for the assessment tab
+                                            text => {
+                                              setAssessmentBuilder(prev => ({
+                                                ...prev,
+                                                taskContent:
+                                                  prev.taskContent +
+                                                  (prev.taskContent ? '\n\n' : '') +
+                                                  text,
+                                              }))
+                                            },
                                             'assessment'
                                           )
                                         }}
                                       >
-                                        <div className="relative min-h-0 flex-1 overflow-hidden bg-gray-100">
-                                          {assessmentSourceDocument?.fileUrl ? (
-                                            <PDFViewer
-                                              key={assessmentSourceDocument.fileUrl}
-                                              fileUrl={assessmentSourceDocument.fileUrl}
-                                              className="absolute inset-0 h-full w-full"
-                                            />
-                                          ) : (
-                                            <div className="flex h-full flex-col items-center justify-center text-gray-400">
-                                              <FileText className="mb-4 h-16 w-16 text-gray-300" />
-                                              <p className="text-lg font-medium text-gray-600">
-                                                No document selected
-                                              </p>
-                                              <p className="mt-2 text-sm">
-                                                Drag & drop an asset here, or use the Load button
-                                              </p>
+                                        {/* Left Panel (Text) */}
+                                        {assessmentTextVisible && (
+                                          <div
+                                            className={cn(
+                                              'relative flex h-full flex-col',
+                                              assessmentPdfVisible ? 'w-1/2 border-r' : 'w-full'
+                                            )}
+                                          >
+                                            <div className="flex h-9 shrink-0 items-center justify-between border-b bg-slate-50 p-1">
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => {
+                                                  if (!assessmentPdfVisible)
+                                                    setAssessmentPdfVisible(true)
+                                                  setAssessmentTextVisible(false)
+                                                }}
+                                                className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                title="Hide Text"
+                                              >
+                                                <ChevronLeft className="h-4 w-4" />
+                                              </Button>
+                                              <div />
                                             </div>
-                                          )}
-                                        </div>
+                                            <AutoTextarea
+                                              placeholder="Enter assessment content or drop files here..."
+                                              className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                              disableAutoResize
+                                              onDrop={(e: any) =>
+                                                handleDragFiles(
+                                                  e,
+                                                  text => {
+                                                    setAssessmentBuilder(prev => {
+                                                      const combined =
+                                                        prev.taskContent +
+                                                        (prev.taskContent ? '\n\n' : '') +
+                                                        text
+                                                      return {
+                                                        ...prev,
+                                                        taskContent: combined,
+                                                      }
+                                                    })
+                                                  },
+                                                  'assessment'
+                                                )
+                                              }
+                                              value={assessmentBuilder.taskContent}
+                                              onChange={(e: any) => {
+                                                const newContent = e.target.value
+                                                if (!loadedAssessmentId) {
+                                                  autoCreateAssessment()
+                                                }
+                                                setAssessmentBuilder(prev => ({
+                                                  ...prev,
+                                                  taskContent: newContent,
+                                                }))
+                                              }}
+                                            />
+                                          </div>
+                                        )}
+
+                                        {/* Right Panel (Preview) */}
+                                        {assessmentPdfVisible && (
+                                          <div
+                                            className={cn(
+                                              'relative flex h-full flex-col bg-gray-100',
+                                              assessmentTextVisible ? 'w-1/2' : 'w-full'
+                                            )}
+                                          >
+                                            {!assessmentTextVisible && (
+                                              <div className="absolute left-2 top-2 z-10">
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => setAssessmentTextVisible(true)}
+                                                  className="h-8 w-8 bg-white/90 p-0 shadow-sm backdrop-blur-sm hover:bg-white"
+                                                  title="Show Text"
+                                                >
+                                                  <ChevronRight className="h-4 w-4 text-slate-600" />
+                                                </Button>
+                                              </div>
+                                            )}
+
+                                            <div className="flex h-9 shrink-0 items-center justify-between border-b bg-slate-50 p-1">
+                                              <div />
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => {
+                                                  if (!assessmentTextVisible)
+                                                    setAssessmentTextVisible(true)
+                                                  setAssessmentPdfVisible(false)
+                                                }}
+                                                className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                title="Hide Preview"
+                                              >
+                                                <ChevronRight className="h-4 w-4" />
+                                              </Button>
+                                            </div>
+
+                                            <div className="relative min-h-0 flex-1 overflow-hidden">
+                                              {assessmentSourceDocument?.fileUrl ? (
+                                                <PDFViewer
+                                                  key={assessmentSourceDocument.fileUrl}
+                                                  fileUrl={assessmentSourceDocument.fileUrl}
+                                                  className="absolute inset-0 h-full w-full"
+                                                  defaultScale={0.75}
+                                                />
+                                              ) : (
+                                                <div className="flex h-full flex-col items-center justify-center text-gray-400">
+                                                  <FileText className="mb-4 h-16 w-16 text-gray-300" />
+                                                  <p className="text-lg font-medium text-gray-600">
+                                                    No document selected
+                                                  </p>
+                                                  <p className="mt-2 text-sm">
+                                                    Drag & drop an asset here, or use the Load
+                                                    button
+                                                  </p>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        )}
                                       </div>
                                       {/* Uploaded Files List - only show for assessment (not extensions) */}
                                       {/* Upload button - only for assessment (not extensions) */}
