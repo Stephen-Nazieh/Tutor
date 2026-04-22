@@ -2866,6 +2866,13 @@ FEEDBACK: [your explanation]`
             e.stopPropagation()
 
             if (target === 'assessment') {
+              if (!asset.url) {
+                toast.error(
+                  `The document '${asset.name}' is missing its file URL. Please delete and upload it again.`
+                )
+                return
+              }
+
               let currentId = loadedAssessmentId
               if (!currentId) {
                 const created = autoCreateAssessment()
@@ -2913,6 +2920,91 @@ FEEDBACK: [your explanation]`
       const files = Array.from(e.dataTransfer.files || [])
       if (files.length > 0) {
         e.preventDefault()
+
+        if (target === 'assessment') {
+          const f = files[0]
+          if (!f) return
+          toast.info(`Uploading '${f.name}'...`)
+
+          let fileUrl = ''
+          let fileMimeType = 'application/pdf'
+          try {
+            const uploadForm = new FormData()
+            uploadForm.append('file', f)
+
+            const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+            const csrfData = await csrfRes.json().catch(() => ({}))
+            const csrfToken = csrfData?.token ?? null
+
+            const uploadRes = await fetch('/api/uploads/documents', {
+              method: 'POST',
+              headers: {
+                ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+              },
+              body: uploadForm,
+              credentials: 'include',
+            })
+            if (uploadRes.ok) {
+              const uploadData = await uploadRes.json()
+              fileUrl = uploadData.url || ''
+              fileMimeType = uploadData.isPdf
+                ? 'application/pdf'
+                : uploadData.type || 'application/pdf'
+            }
+          } catch {
+            toast.error('Failed to upload document')
+            return
+          }
+
+          if (!fileUrl) {
+            toast.error('Failed to retrieve document URL')
+            return
+          }
+
+          const newAsset = {
+            id: `asset-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+            name: f.name,
+            content: `[Imported ${f.name}]`,
+            url: fileUrl,
+            mimeType: fileMimeType,
+          }
+
+          setCourseAssets(prev => [...prev, newAsset])
+
+          let currentId = loadedAssessmentId
+          if (!currentId) {
+            const created = autoCreateAssessment()
+            if (!created) {
+              toast.error('Failed to create assessment')
+              return
+            }
+            currentId = created.id
+          }
+
+          const newDoc = {
+            fileName: newAsset.name,
+            fileUrl: newAsset.url,
+            mimeType: newAsset.mimeType,
+            uploadedAt: new Date().toISOString(),
+          }
+
+          setAssessmentSourceDocument(newDoc)
+          setAssessmentUploadedFiles([{ id: 'source', name: newAsset.name }])
+
+          setCourseBuilderNodes(prev =>
+            prev.map(mod => ({
+              ...mod,
+              lessons: mod.lessons.map(lesson => ({
+                ...lesson,
+                homework: lesson.homework.map(hw =>
+                  hw.id === currentId ? { ...hw, sourceDocument: newDoc } : hw
+                ),
+              })),
+            }))
+          )
+          toast.success(`Loaded '${newAsset.name}' into Assessment`)
+          return
+        }
 
         // Check if any file is a PowerPoint
         const pptFile = files.find(isPowerPointFile)
@@ -3111,8 +3203,16 @@ FEEDBACK: [your explanation]`
                       try {
                         const uploadForm = new FormData()
                         uploadForm.append('file', f)
+
+                        const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+                        const csrfData = await csrfRes.json().catch(() => ({}))
+                        const csrfToken = csrfData?.token ?? null
+
                         const uploadRes = await fetch('/api/uploads/documents', {
                           method: 'POST',
+                          headers: {
+                            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+                          },
                           body: uploadForm,
                           credentials: 'include',
                         })
@@ -3497,6 +3597,13 @@ FEEDBACK: [your explanation]`
                     variant="outline"
                     onClick={() => {
                       if (!assetToLoad) return
+
+                      if (!assetToLoad.url) {
+                        toast.error(
+                          `The document '${assetToLoad.name}' is missing its file URL. Please delete and upload it again.`
+                        )
+                        return
+                      }
 
                       let nodeIndex = -1
                       let lessonIndex = -1
