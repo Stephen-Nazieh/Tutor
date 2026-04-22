@@ -1492,16 +1492,22 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           testPciActiveTab === 'classroom'
             ? testPciContent.classroom
             : testPciContent[testPciActiveTab] || ''
+
+        // Truncate to avoid 2000 char limit on /api/ai/chat
+        const safeGradingContent = gradingContent.slice(0, 500)
+        const safePciContent = (pciContent || '').slice(0, 500)
+        const safeAnswer = answer.slice(0, 500)
+
         const prompt = `You are an AI grading assistant. Please evaluate the following student answer.
 
 Question/Task Content:
-${gradingContent || 'No content provided'}
+${safeGradingContent || 'No content provided'}
 
 PCI (Instructions/Criteria):
-${pciContent || 'No PCI provided - use your best judgment'}
+${safePciContent || 'No PCI provided - use your best judgment'}
 
 Student Answer:
-${answer}
+${safeAnswer}
 
 Please provide:
 1. A score from 0-100
@@ -1515,15 +1521,14 @@ FEEDBACK: [your explanation]`
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            messages: [{ role: 'user', content: prompt }],
-            temperature: 0.3,
+            message: prompt,
           }),
         })
 
         if (!response.ok) throw new Error('Failed to get AI response')
 
         const data = await response.json()
-        const aiResponse = data.content || ''
+        const aiResponse = data.response || ''
 
         // Parse AI response
         const scoreMatch = aiResponse.match(/SCORE:\s*(\d+)/i)
@@ -1531,6 +1536,16 @@ FEEDBACK: [your explanation]`
 
         const score = scoreMatch ? parseInt(scoreMatch[1]) : 50
         const feedback = feedbackMatch ? feedbackMatch[1].trim() : 'No feedback provided'
+
+        // Update content for all affected tabs
+        setTestPciContent(prev => {
+          const newContent = { ...prev }
+          tabsToUpdate.forEach(tab => {
+            newContent[tab] =
+              (newContent[tab] ? newContent[tab] + '\n\n' : '') + `AI Coach: ${feedback}`
+          })
+          return newContent
+        })
 
         // Update scores for all affected tabs
         setTestPciScores(prev => {
@@ -1547,6 +1562,17 @@ FEEDBACK: [your explanation]`
         toast.success(`Answer scored: ${score}%`)
       } catch (error) {
         toast.error('Failed to score answer')
+        // Update content for all affected tabs
+        setTestPciContent(prev => {
+          const newContent = { ...prev }
+          tabsToUpdate.forEach(tab => {
+            newContent[tab] =
+              (newContent[tab] ? newContent[tab] + '\n\n' : '') +
+              `AI Coach: Error - ${error instanceof Error ? error.message : 'Unknown error'}`
+          })
+          return newContent
+        })
+
         // Still add the answer without scoring
         setTestPciScores(prev => {
           const newScores = { ...prev }
