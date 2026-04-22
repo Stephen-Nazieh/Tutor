@@ -6305,7 +6305,10 @@ FEEDBACK: [your explanation]`
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                onClick={() => setTaskTextVisible(false)}
+                                                onClick={() => {
+                                                  if (!taskPdfVisible) setTaskPdfVisible(true)
+                                                  setTaskTextVisible(false)
+                                                }}
                                                 className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
                                                 title="Hide Text"
                                               >
@@ -6422,7 +6425,10 @@ FEEDBACK: [your explanation]`
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                onClick={() => setTaskPdfVisible(false)}
+                                                onClick={() => {
+                                                  if (!taskTextVisible) setTaskTextVisible(true)
+                                                  setTaskPdfVisible(false)
+                                                }}
                                                 className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
                                                 title="Hide Preview"
                                               >
