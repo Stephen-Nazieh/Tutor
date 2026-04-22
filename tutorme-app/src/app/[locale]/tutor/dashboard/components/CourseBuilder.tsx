@@ -383,6 +383,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     } | null>(null)
     const [assetsViewOpen, setAssetsViewOpen] = useState(false)
     const [isDraggingFromModal, setIsDraggingFromModal] = useState(false)
+    const [assetPickerTarget, setAssetPickerTarget] = useState<'task' | 'assessment' | null>(null)
     const [assetViewSearch, setAssetViewSearch] = useState('')
     const [assetViewFolder, setAssetViewFolder] = useState<string>('All')
     const [assetFoldersList, setAssetFoldersList] = useState<string[]>(() => {
@@ -3268,14 +3269,28 @@ FEEDBACK: [your explanation]`
             recentAssets.map(asset => (
               <div
                 key={asset.id}
-                draggable
+                draggable={!assetPickerTarget}
                 onDragStart={e => {
+                  if (assetPickerTarget) {
+                    e.preventDefault()
+                    return
+                  }
                   e.dataTransfer.setData(
                     'application/json',
                     JSON.stringify({ type: 'asset', asset })
                   )
                 }}
-                className="flex cursor-grab items-center justify-between rounded-xl bg-slate-200/70 px-3 py-2.5 transition-colors hover:bg-slate-300/70 active:cursor-grabbing"
+                onClick={() => {
+                  if (assetPickerTarget) {
+                    handleLoadAsset(asset)
+                  }
+                }}
+                className={cn(
+                  'flex items-center justify-between rounded-xl bg-slate-200/70 px-3 py-2.5 transition-colors hover:bg-slate-300/70',
+                  assetPickerTarget
+                    ? 'cursor-pointer ring-2 ring-transparent hover:ring-blue-400'
+                    : 'cursor-grab active:cursor-grabbing'
+                )}
               >
                 <div className="mr-2 flex flex-1 items-center gap-2 overflow-hidden">
                   <FileText className="h-4 w-4 shrink-0 text-slate-500" />
@@ -4074,6 +4089,9 @@ FEEDBACK: [your explanation]`
       ? activeTaskExtension.description || 'Add a short description'
       : taskBuilder.details || 'Add a short description'
 
+    const [taskTextVisible, setTaskTextVisible] = useState(true)
+    const [taskPdfVisible, setTaskPdfVisible] = useState(true)
+
     const handleSaveAll = () => {
       if (!onSave) return
       onSave(
@@ -4779,6 +4797,7 @@ FEEDBACK: [your explanation]`
                                                                 })
                                                                 loadTaskIntoBuilder(task)
                                                                 setMainBuilderTab('task')
+                                                                setAssetPickerTarget('task')
                                                                 setAssetsViewOpen(true)
                                                                 setLoadAsStep('task-options')
                                                               }}
@@ -5355,6 +5374,7 @@ FEEDBACK: [your explanation]`
                                                               })
                                                               loadAssessmentIntoBuilder(hw)
                                                               setMainBuilderTab('assessment')
+                                                              setAssetPickerTarget('assessment')
                                                               setAssetsViewOpen(true)
                                                               setLoadAsStep('assessment-options')
                                                             }}
@@ -5589,6 +5609,7 @@ FEEDBACK: [your explanation]`
                                                                   })
                                                                   loadAssessmentIntoBuilder(hw)
                                                                   setMainBuilderTab('assessment')
+                                                                  setAssetPickerTarget('assessment')
                                                                   setAssetsViewOpen(true)
                                                                   setLoadAsStep(
                                                                     'assessment-options'
@@ -6216,7 +6237,7 @@ FEEDBACK: [your explanation]`
                                       className="mt-px flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div
-                                        className="flex h-full min-h-0 flex-col rounded-lg border bg-white"
+                                        className="flex h-full min-h-0 flex-row overflow-hidden rounded-lg border bg-white"
                                         onDragOver={e => e.preventDefault()}
                                         onDrop={(e: any) => {
                                           handleDragFiles(
@@ -6255,125 +6276,192 @@ FEEDBACK: [your explanation]`
                                           )
                                         }}
                                       >
-                                        <AutoTextarea
-                                          placeholder={
-                                            taskBuilder.activeExtensionId
-                                              ? 'Extension content...'
-                                              : 'Enter task content or drop files here...'
-                                          }
-                                          className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                                          disableAutoResize
-                                          onDrop={(e: any) =>
-                                            handleDragFiles(
-                                              e,
-                                              text => {
-                                                setTaskBuilder(prev => {
-                                                  if (prev.activeExtensionId) {
-                                                    const ext = prev.extensions.find(
-                                                      x => x.id === prev.activeExtensionId
-                                                    )
-                                                    const combined = ext
-                                                      ? ext.content +
-                                                        (ext.content ? '\n\n' : '') +
-                                                        text
-                                                      : text
+                                        {/* Left Panel (Text) */}
+                                        {taskTextVisible && (
+                                          <div
+                                            className={cn(
+                                              'relative flex h-full flex-col',
+                                              taskPdfVisible ? 'w-1/2 border-r' : 'w-full'
+                                            )}
+                                          >
+                                            <div className="flex shrink-0 items-center justify-between border-b bg-slate-50 p-1">
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setTaskTextVisible(false)}
+                                                className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                title="Hide Text"
+                                              >
+                                                <ChevronLeft className="h-4 w-4" />
+                                              </Button>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setTaskPdfVisible(!taskPdfVisible)}
+                                                className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                title={
+                                                  taskPdfVisible ? 'Hide Preview' : 'Show Preview'
+                                                }
+                                              >
+                                                {taskPdfVisible ? (
+                                                  <ChevronRight className="h-4 w-4" />
+                                                ) : (
+                                                  <ChevronLeft className="h-4 w-4" />
+                                                )}
+                                              </Button>
+                                            </div>
+                                            <AutoTextarea
+                                              placeholder={
+                                                taskBuilder.activeExtensionId
+                                                  ? 'Extension content...'
+                                                  : 'Enter task content or drop files here...'
+                                              }
+                                              className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                              disableAutoResize
+                                              onDrop={(e: any) =>
+                                                handleDragFiles(
+                                                  e,
+                                                  text => {
+                                                    setTaskBuilder(prev => {
+                                                      if (prev.activeExtensionId) {
+                                                        const ext = prev.extensions.find(
+                                                          x => x.id === prev.activeExtensionId
+                                                        )
+                                                        const combined = ext
+                                                          ? ext.content +
+                                                            (ext.content ? '\n\n' : '') +
+                                                            text
+                                                          : text
+                                                        return {
+                                                          ...prev,
+                                                          extensions: prev.extensions.map(x =>
+                                                            x.id === prev.activeExtensionId
+                                                              ? { ...x, content: combined }
+                                                              : x
+                                                          ),
+                                                        }
+                                                      } else {
+                                                        const combined =
+                                                          prev.taskContent +
+                                                          (prev.taskContent ? '\n\n' : '') +
+                                                          text
+                                                        return {
+                                                          ...prev,
+                                                          taskContent: combined,
+                                                        }
+                                                      }
+                                                    })
+                                                  },
+                                                  'task'
+                                                )
+                                              }
+                                              value={
+                                                taskBuilder.activeExtensionId
+                                                  ? taskBuilder.extensions.find(
+                                                      e => e.id === taskBuilder.activeExtensionId
+                                                    )?.content || ''
+                                                  : taskBuilder.taskContent
+                                              }
+                                              onChange={(e: any) => {
+                                                const newContent = e.target.value
+                                                if (
+                                                  !loadedTaskId &&
+                                                  !taskBuilder.activeExtensionId
+                                                ) {
+                                                  autoCreateTask()
+                                                }
+                                                if (taskBuilder.activeExtensionId) {
+                                                  setTaskBuilder(prev => {
                                                     return {
                                                       ...prev,
-                                                      extensions: prev.extensions.map(x =>
-                                                        x.id === prev.activeExtensionId
-                                                          ? { ...x, content: combined }
-                                                          : x
+                                                      extensions: prev.extensions.map(ext =>
+                                                        ext.id === prev.activeExtensionId
+                                                          ? { ...ext, content: newContent }
+                                                          : ext
                                                       ),
                                                     }
-                                                  } else {
-                                                    const combined =
-                                                      prev.taskContent +
-                                                      (prev.taskContent ? '\n\n' : '') +
-                                                      text
-                                                    return {
-                                                      ...prev,
-                                                      taskContent: combined,
-                                                    }
-                                                  }
-                                                })
-                                              },
-                                              'task'
-                                            )
-                                          }
-                                          // Show task content if no extension active, otherwise show active extension's content
-                                          value={
-                                            taskBuilder.activeExtensionId
-                                              ? taskBuilder.extensions.find(
-                                                  e => e.id === taskBuilder.activeExtensionId
-                                                )?.content || ''
-                                              : taskBuilder.taskContent
-                                          }
-                                          onChange={(e: any) => {
-                                            const newContent = e.target.value
-                                            // Auto-create task if none loaded
-                                            if (!loadedTaskId && !taskBuilder.activeExtensionId) {
-                                              autoCreateTask()
-                                            }
-                                            if (taskBuilder.activeExtensionId) {
-                                              // Update extension content
-                                              setTaskBuilder(prev => {
-                                                return {
-                                                  ...prev,
-                                                  extensions: prev.extensions.map(ext =>
-                                                    ext.id === prev.activeExtensionId
-                                                      ? { ...ext, content: newContent }
-                                                      : ext
-                                                  ),
+                                                  })
+                                                } else {
+                                                  setTaskBuilder(prev => ({
+                                                    ...prev,
+                                                    taskContent: newContent,
+                                                  }))
                                                 }
-                                              })
-                                            } else {
-                                              // Update task content
-                                              setTaskBuilder(prev => ({
-                                                ...prev,
-                                                taskContent: newContent,
-                                              }))
-                                            }
-                                          }}
-                                        />
-                                        {!taskBuilder.activeExtensionId &&
-                                          taskSourceDocument?.mimeType === 'application/pdf' && (
-                                            <div className="shrink-0 border-t">
-                                              <iframe
-                                                src={taskSourceDocument.fileUrl}
-                                                title={taskSourceDocument.fileName}
-                                                className="h-48 w-full"
-                                              />
+                                              }}
+                                            />
+                                          </div>
+                                        )}
+
+                                        {/* Right Panel (Preview) */}
+                                        {taskPdfVisible && (
+                                          <div
+                                            className={cn(
+                                              'relative flex h-full flex-col bg-gray-100',
+                                              taskTextVisible ? 'w-1/2' : 'w-full'
+                                            )}
+                                          >
+                                            {!taskTextVisible && (
+                                              <div className="absolute left-2 top-2 z-10">
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => setTaskTextVisible(true)}
+                                                  className="h-8 w-8 bg-white/90 p-0 shadow-sm backdrop-blur-sm hover:bg-white"
+                                                  title="Show Text"
+                                                >
+                                                  <ChevronRight className="h-4 w-4 text-slate-600" />
+                                                </Button>
+                                              </div>
+                                            )}
+
+                                            <div className="relative min-h-0 flex-1 overflow-hidden">
+                                              {!taskBuilder.activeExtensionId &&
+                                              taskSourceDocument?.mimeType === 'application/pdf' ? (
+                                                <PDFViewer
+                                                  key={taskSourceDocument.fileUrl}
+                                                  fileUrl={taskSourceDocument.fileUrl}
+                                                  className="absolute inset-0 h-full w-full"
+                                                />
+                                              ) : !taskBuilder.activeExtensionId &&
+                                                taskSourceDocument &&
+                                                taskSourceDocument.mimeType !== 'application/pdf' &&
+                                                taskSourceDocument.mimeType.startsWith('image/') ? (
+                                                <div className="absolute inset-0 flex items-center justify-center bg-white p-4">
+                                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                  <img
+                                                    src={taskSourceDocument.fileUrl}
+                                                    alt={taskSourceDocument.fileName}
+                                                    className="max-h-full max-w-full object-contain"
+                                                  />
+                                                </div>
+                                              ) : !taskBuilder.activeExtensionId &&
+                                                taskSourceDocument &&
+                                                taskSourceDocument.mimeType !== 'application/pdf' &&
+                                                !taskSourceDocument.mimeType.startsWith(
+                                                  'image/'
+                                                ) ? (
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white p-6">
+                                                  <FileText className="mb-4 h-16 w-16 text-blue-500" />
+                                                  <a
+                                                    href={taskSourceDocument.fileUrl}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-center text-sm font-medium text-blue-600 hover:underline"
+                                                  >
+                                                    Open {taskSourceDocument.fileName} in new tab
+                                                  </a>
+                                                </div>
+                                              ) : (
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+                                                  <FileText className="mb-4 h-16 w-16 text-gray-300" />
+                                                  <p className="text-lg font-medium text-gray-500">
+                                                    No document selected
+                                                  </p>
+                                                </div>
+                                              )}
                                             </div>
-                                          )}
-                                        {!taskBuilder.activeExtensionId &&
-                                          taskSourceDocument &&
-                                          taskSourceDocument.mimeType !== 'application/pdf' &&
-                                          taskSourceDocument.mimeType.startsWith('image/') && (
-                                            <div className="shrink-0 border-t p-px">
-                                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                                              <img
-                                                src={taskSourceDocument.fileUrl}
-                                                alt={taskSourceDocument.fileName}
-                                                className="h-48 w-full object-contain"
-                                              />
-                                            </div>
-                                          )}
-                                        {!taskBuilder.activeExtensionId &&
-                                          taskSourceDocument &&
-                                          taskSourceDocument.mimeType !== 'application/pdf' &&
-                                          !taskSourceDocument.mimeType.startsWith('image/') && (
-                                            <div className="flex shrink-0 items-center gap-px border-t bg-gray-50 p-px">
-                                              <FileText className="h-4 w-4 text-blue-600" />
-                                              <a
-                                                href={taskSourceDocument.fileUrl}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="text-xs text-blue-600 underline"
-                                              >
-                                                Open {taskSourceDocument.fileName}
-                                              </a>
-                                            </div>
-                                          )}
+                                          </div>
+                                        )}
                                       </div>
                                       {/* Uploaded Files List - only show for task (not extensions) */}
                                       {/* Upload button - only for task (not extensions) */}
