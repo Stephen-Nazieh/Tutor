@@ -6487,7 +6487,7 @@ FEEDBACK: [your explanation]`
                                       className="mt-px flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div
-                                        className="flex h-full min-h-0 flex-row overflow-hidden rounded-lg border bg-white"
+                                        className="relative flex h-full min-h-0 flex-row overflow-hidden rounded-lg border bg-white"
                                         onDragOver={e => e.preventDefault()}
                                         onDrop={(e: any) => {
                                           handleDragFiles(
@@ -6526,6 +6526,47 @@ FEEDBACK: [your explanation]`
                                           )
                                         }}
                                       >
+                                        {/* Centered Pill for Test button */}
+                                        <div className="pointer-events-none absolute left-1/2 top-1 z-20 flex -translate-x-1/2 items-center justify-center">
+                                          <div className="pointer-events-auto flex h-7 items-center gap-1 rounded-full border border-gray-200 bg-white/90 px-2 shadow-sm backdrop-blur-sm">
+                                            <span className="text-xs font-light text-gray-400">
+                                              (
+                                            </span>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-5 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
+                                              onClick={() => {
+                                                const content = taskBuilder.activeExtensionId
+                                                  ? taskBuilder.extensions.find(
+                                                      e => e.id === taskBuilder.activeExtensionId
+                                                    )?.content || taskBuilder.taskContent
+                                                  : taskBuilder.taskContent
+
+                                                setTestPciScores({})
+                                                setTestPciInput('')
+
+                                                setTestPciContent({
+                                                  classroom: content,
+                                                  student1: content,
+                                                  student2: content,
+                                                })
+                                                setTestPciSource('task')
+                                                setTestPciViewMode('pdf')
+                                                setMainTab('test-pci')
+                                                toast.success(
+                                                  'Test PCI prefilled with task content'
+                                                )
+                                              }}
+                                            >
+                                              Test
+                                            </Button>
+                                            <span className="text-xs font-light text-gray-400">
+                                              )
+                                            </span>
+                                          </div>
+                                        </div>
+
                                         {/* Left Panel (Text) */}
                                         {taskTextVisible && (
                                           <div
@@ -6852,37 +6893,6 @@ FEEDBACK: [your explanation]`
                                       </div>
                                     </TabsContent>
                                   </Tabs>
-                                  {/* Buttons row with Test and Save */}
-                                  <div className="mt-px flex gap-px">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => {
-                                        // Prefill Test PCI with content from Task Builder
-                                        const content = taskBuilder.activeExtensionId
-                                          ? taskBuilder.extensions.find(
-                                              e => e.id === taskBuilder.activeExtensionId
-                                            )?.content || taskBuilder.taskContent
-                                          : taskBuilder.taskContent
-
-                                        setTestPciScores({})
-                                        setTestPciInput('')
-
-                                        setTestPciContent({
-                                          classroom: content,
-                                          student1: content,
-                                          student2: content,
-                                        })
-                                        setTestPciSource('task')
-                                        setTestPciViewMode('pdf')
-                                        // Switch to Test PCI tab
-                                        setMainTab('test-pci')
-                                        toast.success('Test PCI prefilled with task content')
-                                      }}
-                                    >
-                                      Test
-                                    </Button>
-                                  </div>
                                 </div>
                               </div>
                             </TabsContent>
@@ -6921,7 +6931,7 @@ FEEDBACK: [your explanation]`
                                       className="mt-px flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div
-                                        className="flex h-full min-h-0 flex-row overflow-hidden rounded-lg border bg-white"
+                                        className="relative flex h-full min-h-0 flex-row overflow-hidden rounded-lg border bg-white"
                                         onDragOver={e => e.preventDefault()}
                                         onDrop={(e: any) => {
                                           handleDragFiles(
@@ -6939,6 +6949,93 @@ FEEDBACK: [your explanation]`
                                           )
                                         }}
                                       >
+                                        {/* Centered Pill for Test, Generate DMI, and Version History */}
+                                        <div className="pointer-events-none absolute left-1/2 top-1 z-20 flex -translate-x-1/2 items-center justify-center">
+                                          <div className="pointer-events-auto flex h-7 items-center gap-1 rounded-full border border-gray-200 bg-white/90 px-2 shadow-sm backdrop-blur-sm">
+                                            <span className="text-xs font-light text-gray-400">
+                                              (
+                                            </span>
+
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-5 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
+                                              onClick={() => {
+                                                const content = assessmentBuilder.taskContent
+                                                setTestPciScores({})
+                                                setTestPciInput('')
+                                                setTestPciContent({
+                                                  classroom: content,
+                                                  student1: content,
+                                                  student2: content,
+                                                })
+                                                setTestPciSource('assessment')
+                                                if (assessmentDmiVersions.length > 0) {
+                                                  setTestPciViewMode(
+                                                    `dmi_${assessmentDmiVersions[0].id}`
+                                                  )
+                                                } else {
+                                                  setTestPciViewMode('text')
+                                                }
+                                                setMainTab('test-pci')
+                                                toast.success(
+                                                  'Test PCI prefilled with assessment content'
+                                                )
+                                              }}
+                                            >
+                                              Test
+                                            </Button>
+
+                                            <div className="h-3 w-px bg-gray-300" />
+
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-5 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
+                                              disabled={dmiGenerating}
+                                              onClick={() => {
+                                                const content = assessmentBuilder.taskContent
+                                                const hasPdf =
+                                                  assessmentSourceDocument?.mimeType ===
+                                                  'application/pdf'
+                                                if (!content.trim() && !hasPdf) {
+                                                  toast.error(
+                                                    'Please add content to the Assessment tab or load a PDF first'
+                                                  )
+                                                  return
+                                                }
+                                                handleGenerateDMI('assessment')
+                                              }}
+                                            >
+                                              {dmiGenerating ? (
+                                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                              ) : null}
+                                              Generate DMI
+                                            </Button>
+
+                                            <div className="h-3 w-px bg-gray-300" />
+
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-5 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
+                                              onClick={() => setShowDmiVersionList(true)}
+                                              title="View DMI Versions"
+                                            >
+                                              <History className="h-3 w-3" />
+                                              {assessmentDmiVersions.length > 0 && (
+                                                <span className="ml-1">
+                                                  ({assessmentDmiVersions.length})
+                                                </span>
+                                              )}
+                                            </Button>
+
+                                            <span className="text-xs font-light text-gray-400">
+                                              )
+                                            </span>
+                                          </div>
+                                        </div>
+
                                         {/* Left Panel (Text) */}
                                         {assessmentTextVisible && (
                                           <div
@@ -7176,74 +7273,6 @@ FEEDBACK: [your explanation]`
                                       </div>
                                     </TabsContent>
                                   </Tabs>
-                                  {/* Buttons row with Test, Generate DMI, and Version History */}
-                                  <div className="mt-px flex gap-px">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => {
-                                        // Prefill Test PCI with content from Assessment Builder
-                                        const content = assessmentBuilder.taskContent
-
-                                        setTestPciScores({})
-                                        setTestPciInput('')
-
-                                        setTestPciContent({
-                                          classroom: content,
-                                          student1: content,
-                                          student2: content,
-                                        })
-                                        setTestPciSource('assessment')
-                                        if (assessmentDmiVersions.length > 0) {
-                                          setTestPciViewMode(`dmi_${assessmentDmiVersions[0].id}`)
-                                        } else {
-                                          setTestPciViewMode('text')
-                                        }
-                                        // Switch to Test PCI tab
-                                        setMainTab('test-pci')
-                                        toast.success('Test PCI prefilled with assessment content')
-                                      }}
-                                    >
-                                      Test
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      disabled={dmiGenerating}
-                                      onClick={() => {
-                                        // Generate DMI from Assessment content or PDF
-                                        const content = assessmentBuilder.taskContent
-                                        const hasPdf =
-                                          assessmentSourceDocument?.mimeType === 'application/pdf'
-                                        if (!content.trim() && !hasPdf) {
-                                          toast.error(
-                                            'Please add content to the Assessment tab or load a PDF first'
-                                          )
-                                          return
-                                        }
-                                        handleGenerateDMI('assessment')
-                                      }}
-                                    >
-                                      {dmiGenerating ? (
-                                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                                      ) : null}
-                                      Generate DMI
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="px-2"
-                                      onClick={() => setShowDmiVersionList(true)}
-                                      title="View DMI Versions"
-                                    >
-                                      <History className="h-4 w-4" />
-                                      {assessmentDmiVersions.length > 0 && (
-                                        <span className="ml-1 text-xs">
-                                          ({assessmentDmiVersions.length})
-                                        </span>
-                                      )}
-                                    </Button>
-                                  </div>
                                 </div>
                               </div>
                             </TabsContent>
