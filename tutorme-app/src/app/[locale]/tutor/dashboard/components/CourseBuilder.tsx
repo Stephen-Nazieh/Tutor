@@ -535,7 +535,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     >(undefined)
 
     // Test PCI state
-    const [testPciInput, setTestPciInput] = useState('')
+    const [testPciInputs, setTestPciInputs] = useState<Record<string, string>>({
+      classroom: '',
+      student1: '',
+      student2: '',
+    })
     const [testPciViewMode, setTestPciViewMode] = useState<string>('pdf')
     const [extractedTextFontSize, setExtractedTextFontSize] = useState<number>(14)
     const [testPciContent, setTestPciContent] = useState<Record<string, string>>({
@@ -1447,10 +1451,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
     // Handle Test PCI answer submission with AI scoring
     const handleTestPciSubmit = async () => {
-      if (!testPciInput.trim() || testPciLoading) return
+      const currentInput = testPciInputs[testPciActiveTab] || ''
+      if (!currentInput.trim() || testPciLoading) return
 
-      const answer = testPciInput.trim()
-      setTestPciInput('')
+      const answer = currentInput.trim()
+      setTestPciInputs(prev => ({ ...prev, [testPciActiveTab]: '' }))
       setTestPciLoading(true)
 
       // Get PCI content from active task/assessment
@@ -1693,7 +1698,7 @@ FEEDBACK: [your explanation]`
       // Also open the Test tab and display this DMI
       const content = type === 'task' ? taskBuilder.taskContent : assessmentBuilder.taskContent
       setTestPciScores({})
-      setTestPciInput('')
+      setTestPciInputs({ classroom: '', student1: '', student2: '' })
       setTestPciContent({
         classroom: content,
         student1: content,
@@ -6286,22 +6291,29 @@ FEEDBACK: [your explanation]`
                                 ))}
                               </Tabs>
                               {testPciActiveTab !== 'insights' && (
-                                <div className="border-border bg-background mt-1 rounded-2xl border shadow-xl backdrop-blur-md">
-                                  <div className="relative p-px">
+                                <div className="border-border bg-background mt-1 w-full rounded-2xl border shadow-xl backdrop-blur-md">
+                                  <div className="relative w-full p-px">
                                     <div className="flex w-full items-end gap-2 p-2">
                                       <MentionTextarea
                                         mentionItems={mentionItems}
-                                        className="min-h-[100px] flex-1 border-0 bg-transparent py-4 pl-2 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                        className="min-h-[100px] w-full flex-1 border-0 bg-transparent py-4 pl-2 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                         placeholder={
                                           testPciActiveTab === 'classroom'
                                             ? 'Enter answer (goes to both students)...'
                                             : 'Ask your AI coach or share a reflection...'
                                         }
-                                        value={testPciInput}
-                                        onChange={(e: any) => setTestPciInput(e.target.value)}
+                                        value={testPciInputs[testPciActiveTab] || ''}
+                                        onChange={(e: any) =>
+                                          setTestPciInputs(prev => ({
+                                            ...prev,
+                                            [testPciActiveTab]: e.target.value,
+                                          }))
+                                        }
                                         onKeyDown={(e: any) => {
                                           if (e.key === 'Enter' && !e.shiftKey) {
-                                            if (testPciInput.trim() && !testPciLoading) {
+                                            const currentInput =
+                                              testPciInputs[testPciActiveTab] || ''
+                                            if (currentInput.trim() && !testPciLoading) {
                                               e.preventDefault()
                                               handleTestPciSubmit()
                                             }
@@ -6315,7 +6327,7 @@ FEEDBACK: [your explanation]`
                                               <Button
                                                 variant="outline"
                                                 size="icon"
-                                                className="h-9 w-9 rounded-xl"
+                                                className="h-9 w-9 rounded-xl border-gray-300 shadow-sm hover:bg-gray-100"
                                                 title="Toggle View Mode"
                                               >
                                                 <Plus className="h-4 w-4" />
@@ -6367,8 +6379,11 @@ FEEDBACK: [your explanation]`
                                         )}
                                         <Button
                                           size="icon"
-                                          className="h-9 w-9 rounded-xl bg-slate-600 shadow-lg hover:bg-slate-700 disabled:opacity-30"
-                                          disabled={!testPciInput.trim() || testPciLoading}
+                                          className="h-9 w-9 rounded-xl bg-slate-400 shadow-sm hover:bg-slate-500 disabled:opacity-30"
+                                          disabled={
+                                            !(testPciInputs[testPciActiveTab] || '').trim() ||
+                                            testPciLoading
+                                          }
                                           onClick={handleTestPciSubmit}
                                         >
                                           <Send className="h-4 w-4" />
@@ -6527,7 +6542,11 @@ FEEDBACK: [your explanation]`
                                                   : taskBuilder.taskContent
 
                                                 setTestPciScores({})
-                                                setTestPciInput('')
+                                                setTestPciInputs({
+                                                  classroom: '',
+                                                  student1: '',
+                                                  student2: '',
+                                                })
 
                                                 setTestPciContent({
                                                   classroom: content,
@@ -6571,7 +6590,7 @@ FEEDBACK: [your explanation]`
                                               >
                                                 <ChevronLeft className="h-4 w-4" />
                                               </Button>
-                                              <div className="flex items-center gap-2 pr-2">
+                                              <div className="flex items-center gap-2 pr-12">
                                                 <Button
                                                   variant="ghost"
                                                   size="sm"
@@ -6978,7 +6997,11 @@ FEEDBACK: [your explanation]`
                                               onClick={() => {
                                                 const content = assessmentBuilder.taskContent
                                                 setTestPciScores({})
-                                                setTestPciInput('')
+                                                setTestPciInputs({
+                                                  classroom: '',
+                                                  student1: '',
+                                                  student2: '',
+                                                })
                                                 setTestPciContent({
                                                   classroom: content,
                                                   student1: content,
@@ -7073,7 +7096,7 @@ FEEDBACK: [your explanation]`
                                               >
                                                 <ChevronLeft className="h-4 w-4" />
                                               </Button>
-                                              <div className="flex items-center gap-2 pr-2">
+                                              <div className="flex items-center gap-2 pr-12">
                                                 <Button
                                                   variant="ghost"
                                                   size="sm"
