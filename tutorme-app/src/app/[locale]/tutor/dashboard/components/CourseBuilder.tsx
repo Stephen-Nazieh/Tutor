@@ -297,6 +297,23 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       initialMainTab ?? 'builder'
     )
 
+    // Global styles for hiding Radix modals during drag
+    useEffect(() => {
+      const style = document.createElement('style')
+      style.innerHTML = `
+        body.hide-radix-dialogs-for-drag [data-radix-popper-content-wrapper],
+        body.hide-radix-dialogs-for-drag .z-modal-backdrop,
+        body.hide-radix-dialogs-for-drag [role="dialog"] {
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+      `
+      document.head.appendChild(style)
+      return () => {
+        document.head.removeChild(style)
+      }
+    }, [])
+
     const resolvedInitialCourseBuilderNodes = useMemo(() => {
       return (initialLessons || []).map((lesson, idx) => ({
         id: `node-${lesson.id || idx}`,
@@ -365,6 +382,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       folder?: string
     } | null>(null)
     const [assetsViewOpen, setAssetsViewOpen] = useState(false)
+    const [isDraggingFromModal, setIsDraggingFromModal] = useState(false)
     const [assetViewSearch, setAssetViewSearch] = useState('')
     const [assetViewFolder, setAssetViewFolder] = useState<string>('All')
     const [assetFoldersList, setAssetFoldersList] = useState<string[]>(() => {
@@ -3328,15 +3346,14 @@ FEEDBACK: [your explanation]`
                       // preview is shown instead of extracted text (which loses
                       // images, diagrams, formulas, and math).
                       newAssess.description = ''
-                      if (assetToLoad.url && assetToLoad.mimeType) {
+                      if (assetToLoad.url) {
                         newAssess.sourceDocument = {
                           fileName: assetToLoad.name,
                           fileUrl: assetToLoad.url,
-                          mimeType: assetToLoad.mimeType,
+                          mimeType: assetToLoad.mimeType || 'application/pdf',
                           uploadedAt: new Date().toISOString(),
                         }
                       }
-
                       const newCourseBuilderNodes = [...nodes]
                       newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.push(newAssess)
                       setCourseBuilderNodes(newCourseBuilderNodes)
@@ -3513,7 +3530,12 @@ FEEDBACK: [your explanation]`
 
         {/* Assets View Modal */}
         <Dialog open={assetsViewOpen} onOpenChange={setAssetsViewOpen}>
-          <DialogContent className="max-w-4xl rounded-2xl border-0 bg-gray-200/90 p-5 shadow-2xl backdrop-blur-sm">
+          <DialogContent
+            className={cn(
+              'max-w-4xl rounded-2xl border-0 bg-gray-200/90 p-5 shadow-2xl backdrop-blur-sm transition-opacity duration-200',
+              isDraggingFromModal && 'pointer-events-none opacity-0'
+            )}
+          >
             <div className="flex h-[520px] flex-col gap-4">
               {/* Modal Header — only title/subtitle, no custom X (Dialog has built-in close) */}
               <div>
@@ -3611,8 +3633,14 @@ FEEDBACK: [your explanation]`
                                 'application/json',
                                 JSON.stringify({ type: 'asset', asset })
                               )
-                              // Close modal immediately after drag starts so user can drop onto the builder
-                              setTimeout(() => setAssetsViewOpen(false), 0)
+                              // Hide modal visually so user can drop onto the builder
+                              setIsDraggingFromModal(true)
+                              document.body.classList.add('hide-radix-dialogs-for-drag')
+                            }}
+                            onDragEnd={() => {
+                              setIsDraggingFromModal(false)
+                              document.body.classList.remove('hide-radix-dialogs-for-drag')
+                              setAssetsViewOpen(false)
                             }}
                             className="flex cursor-grab items-center justify-between rounded-xl bg-slate-100 px-4 py-3 transition-colors hover:bg-slate-200 active:cursor-grabbing"
                           >
@@ -5842,42 +5870,40 @@ FEEDBACK: [your explanation]`
                                         className="flex h-full min-h-0 flex-col rounded-lg border bg-white"
                                         onDragOver={e => e.preventDefault()}
                                         onDrop={(e: any) => {
-                                          if (e.dataTransfer.types.includes('application/json')) {
-                                            handleDragFiles(
-                                              e,
-                                              text => {
-                                                setTaskBuilder(prev => {
-                                                  if (prev.activeExtensionId) {
-                                                    const ext = prev.extensions.find(
-                                                      x => x.id === prev.activeExtensionId
-                                                    )
-                                                    const combined = ext
-                                                      ? ext.content +
-                                                        (ext.content ? '\n\n' : '') +
-                                                        text
-                                                      : text
-                                                    return {
-                                                      ...prev,
-                                                      extensions: prev.extensions.map(x =>
-                                                        x.id === prev.activeExtensionId
-                                                          ? { ...x, content: combined }
-                                                          : x
-                                                      ),
-                                                    }
-                                                  } else {
-                                                    return {
-                                                      ...prev,
-                                                      taskContent:
-                                                        prev.taskContent +
-                                                        (prev.taskContent ? '\n\n' : '') +
-                                                        text,
-                                                    }
+                                          handleDragFiles(
+                                            e,
+                                            text => {
+                                              setTaskBuilder(prev => {
+                                                if (prev.activeExtensionId) {
+                                                  const ext = prev.extensions.find(
+                                                    x => x.id === prev.activeExtensionId
+                                                  )
+                                                  const combined = ext
+                                                    ? ext.content +
+                                                      (ext.content ? '\n\n' : '') +
+                                                      text
+                                                    : text
+                                                  return {
+                                                    ...prev,
+                                                    extensions: prev.extensions.map(x =>
+                                                      x.id === prev.activeExtensionId
+                                                        ? { ...x, content: combined }
+                                                        : x
+                                                    ),
                                                   }
-                                                })
-                                              },
-                                              'task'
-                                            )
-                                          }
+                                                } else {
+                                                  return {
+                                                    ...prev,
+                                                    taskContent:
+                                                      prev.taskContent +
+                                                      (prev.taskContent ? '\n\n' : '') +
+                                                      text,
+                                                  }
+                                                }
+                                              })
+                                            },
+                                            'task'
+                                          )
                                         }}
                                       >
                                         <AutoTextarea
@@ -6168,21 +6194,19 @@ FEEDBACK: [your explanation]`
                                         className="flex h-full min-h-0 flex-col rounded-lg border bg-white"
                                         onDragOver={e => e.preventDefault()}
                                         onDrop={(e: any) => {
-                                          if (e.dataTransfer.types.includes('application/json')) {
-                                            handleDragFiles(
-                                              e,
-                                              text => {
-                                                setAssessmentBuilder(prev => ({
-                                                  ...prev,
-                                                  taskContent:
-                                                    prev.taskContent +
-                                                    (prev.taskContent ? '\n\n' : '') +
-                                                    text,
-                                                }))
-                                              },
-                                              'assessment'
-                                            )
-                                          }
+                                          handleDragFiles(
+                                            e,
+                                            text => {
+                                              setAssessmentBuilder(prev => ({
+                                                ...prev,
+                                                taskContent:
+                                                  prev.taskContent +
+                                                  (prev.taskContent ? '\n\n' : '') +
+                                                  text,
+                                              }))
+                                            },
+                                            'assessment'
+                                          )
                                         }}
                                       >
                                         {assessmentSourceDocument?.mimeType ===
