@@ -6188,146 +6188,30 @@ FEEDBACK: [your explanation]`
                                         onDrop={(e: any) => {
                                           handleDragFiles(
                                             e,
-                                            text => {
-                                              setAssessmentBuilder(prev => ({
-                                                ...prev,
-                                                taskContent:
-                                                  prev.taskContent +
-                                                  (prev.taskContent ? '\n\n' : '') +
-                                                  text,
-                                              }))
-                                            },
+                                            text => {}, // We don't append text anymore for the assessment tab
                                             'assessment'
                                           )
                                         }}
                                       >
-                                        {assessmentSourceDocument?.mimeType ===
-                                        'application/pdf' ? (
-                                          <>
-                                            <div className="relative min-h-0 flex-1 overflow-hidden border-b bg-gray-100">
-                                              {assessmentSourceDocument.fileUrl ? (
-                                                <PDFViewer
-                                                  key={assessmentSourceDocument.fileUrl}
-                                                  fileUrl={assessmentSourceDocument.fileUrl}
-                                                  className="absolute inset-0 h-full w-full"
-                                                />
-                                              ) : (
-                                                <div className="flex h-full flex-col items-center justify-center text-gray-400">
-                                                  <FileText className="mb-4 h-16 w-16 text-gray-300" />
-                                                  <p className="text-lg font-medium text-gray-600">
-                                                    No document selected
-                                                  </p>
-                                                </div>
-                                              )}
+                                        <div className="relative min-h-0 flex-1 overflow-hidden bg-gray-100">
+                                          {assessmentSourceDocument?.fileUrl ? (
+                                            <PDFViewer
+                                              key={assessmentSourceDocument.fileUrl}
+                                              fileUrl={assessmentSourceDocument.fileUrl}
+                                              className="absolute inset-0 h-full w-full"
+                                            />
+                                          ) : (
+                                            <div className="flex h-full flex-col items-center justify-center text-gray-400">
+                                              <FileText className="mb-4 h-16 w-16 text-gray-300" />
+                                              <p className="text-lg font-medium text-gray-600">
+                                                No document selected
+                                              </p>
+                                              <p className="mt-2 text-sm">
+                                                Drag & drop an asset here, or use the Load button
+                                              </p>
                                             </div>
-                                            <AutoTextarea
-                                              placeholder="Optional notes or instructions..."
-                                              className="h-24 w-full shrink-0 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                                              disableAutoResize
-                                              onDrop={(e: any) =>
-                                                handleDragFiles(
-                                                  e,
-                                                  text => {
-                                                    setAssessmentBuilder(prev => {
-                                                      const combined =
-                                                        prev.taskContent +
-                                                        (prev.taskContent ? '\n\n' : '') +
-                                                        text
-                                                      return {
-                                                        ...prev,
-                                                        taskContent: combined,
-                                                      }
-                                                    })
-                                                  },
-                                                  'assessment'
-                                                )
-                                              }
-                                              value={assessmentBuilder.taskContent}
-                                              onChange={(e: any) => {
-                                                const newContent = e.target.value
-                                                // Auto-create assessment if none loaded
-                                                if (!loadedAssessmentId) {
-                                                  autoCreateAssessment()
-                                                }
-                                                setAssessmentBuilder(prev => ({
-                                                  ...prev,
-                                                  taskContent: newContent,
-                                                }))
-                                              }}
-                                            />
-                                          </>
-                                        ) : (
-                                          <>
-                                            <AutoTextarea
-                                              placeholder="Enter assessment content or drop files here..."
-                                              className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                                              disableAutoResize
-                                              onDrop={(e: any) =>
-                                                handleDragFiles(
-                                                  e,
-                                                  text => {
-                                                    setAssessmentBuilder(prev => {
-                                                      const combined =
-                                                        prev.taskContent +
-                                                        (prev.taskContent ? '\n\n' : '') +
-                                                        text
-                                                      return {
-                                                        ...prev,
-                                                        taskContent: combined,
-                                                      }
-                                                    })
-                                                  },
-                                                  'assessment'
-                                                )
-                                              }
-                                              value={assessmentBuilder.taskContent}
-                                              onChange={(e: any) => {
-                                                const newContent = e.target.value
-                                                // Auto-create assessment if none loaded
-                                                if (!loadedAssessmentId) {
-                                                  autoCreateAssessment()
-                                                }
-                                                setAssessmentBuilder(prev => ({
-                                                  ...prev,
-                                                  taskContent: newContent,
-                                                }))
-                                              }}
-                                            />
-                                            {assessmentSourceDocument &&
-                                              assessmentSourceDocument.mimeType !==
-                                                'application/pdf' &&
-                                              assessmentSourceDocument.mimeType.startsWith(
-                                                'image/'
-                                              ) && (
-                                                <div className="shrink-0 border-t p-px">
-                                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                  <img
-                                                    src={assessmentSourceDocument.fileUrl}
-                                                    alt={assessmentSourceDocument.fileName}
-                                                    className="h-48 w-full object-contain"
-                                                  />
-                                                </div>
-                                              )}
-                                            {assessmentSourceDocument &&
-                                              assessmentSourceDocument.mimeType !==
-                                                'application/pdf' &&
-                                              !assessmentSourceDocument.mimeType.startsWith(
-                                                'image/'
-                                              ) && (
-                                                <div className="flex shrink-0 items-center gap-px border-t bg-gray-50 p-px">
-                                                  <FileText className="h-4 w-4 text-blue-600" />
-                                                  <a
-                                                    href={assessmentSourceDocument.fileUrl}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="text-xs text-blue-600 underline"
-                                                  >
-                                                    Open {assessmentSourceDocument.fileName}
-                                                  </a>
-                                                </div>
-                                              )}
-                                          </>
-                                        )}
+                                          )}
+                                        </div>
                                       </div>
                                       {/* Uploaded Files List - only show for assessment (not extensions) */}
                                       {/* Upload button - only for assessment (not extensions) */}
