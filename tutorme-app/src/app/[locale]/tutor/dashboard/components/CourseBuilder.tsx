@@ -6292,11 +6292,11 @@ FEEDBACK: [your explanation]`
                               </Tabs>
                               {testPciActiveTab !== 'insights' && (
                                 <div className="border-border bg-background mt-1 w-full rounded-2xl border shadow-xl backdrop-blur-md">
-                                  <div className="relative w-full p-px">
-                                    <div className="flex w-full items-end gap-2 p-2">
+                                  <div className="relative flex w-full flex-col p-px">
+                                    <div className="flex w-full flex-col p-2">
                                       <MentionTextarea
                                         mentionItems={mentionItems}
-                                        className="min-h-[100px] w-full flex-1 border-0 bg-transparent py-4 pl-2 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                        className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-2 py-4 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                         placeholder={
                                           testPciActiveTab === 'classroom'
                                             ? 'Enter answer (goes to both students)...'
@@ -6320,7 +6320,7 @@ FEEDBACK: [your explanation]`
                                           }
                                         }}
                                       />
-                                      <div className="mb-1 flex shrink-0 items-center gap-2">
+                                      <div className="flex w-full items-center justify-end gap-2 px-2 pb-2">
                                         {testPciActiveTab === 'classroom' && (
                                           <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
@@ -6578,48 +6578,50 @@ FEEDBACK: [your explanation]`
                                             )}
                                           >
                                             <div className="flex h-9 shrink-0 items-center justify-between border-b bg-slate-50 p-1">
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => {
-                                                  if (!taskPdfVisible) setTaskPdfVisible(true)
-                                                  setTaskTextVisible(false)
-                                                }}
-                                                className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
-                                                title="Hide Text"
-                                              >
-                                                <ChevronLeft className="h-4 w-4" />
-                                              </Button>
-                                              <div className="flex items-center gap-2 pr-12">
+                                              <div className="flex w-full items-center justify-between">
                                                 <Button
                                                   variant="ghost"
                                                   size="sm"
-                                                  onClick={() =>
-                                                    setExtractedTextFontSize(
-                                                      Math.max(10, extractedTextFontSize - 2)
-                                                    )
-                                                  }
-                                                  className="h-6 w-6 p-0 text-slate-500 hover:text-slate-800"
-                                                  title="Decrease font size"
+                                                  onClick={() => {
+                                                    if (!taskPdfVisible) setTaskPdfVisible(true)
+                                                    setTaskTextVisible(false)
+                                                  }}
+                                                  className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                  title="Hide Text"
                                                 >
-                                                  A-
+                                                  <ChevronLeft className="h-4 w-4" />
                                                 </Button>
-                                                <span className="w-4 text-center text-xs font-medium text-slate-500">
-                                                  {extractedTextFontSize}
-                                                </span>
-                                                <Button
-                                                  variant="ghost"
-                                                  size="sm"
-                                                  onClick={() =>
-                                                    setExtractedTextFontSize(
-                                                      Math.min(32, extractedTextFontSize + 2)
-                                                    )
-                                                  }
-                                                  className="h-6 w-6 p-0 text-slate-500 hover:text-slate-800"
-                                                  title="Increase font size"
-                                                >
-                                                  A+
-                                                </Button>
+                                                <div className="flex items-center gap-2 pr-12">
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                      setExtractedTextFontSize(
+                                                        Math.max(10, extractedTextFontSize - 2)
+                                                      )
+                                                    }
+                                                    className="h-6 w-6 p-0 text-slate-500 hover:text-slate-800"
+                                                    title="Decrease font size"
+                                                  >
+                                                    A-
+                                                  </Button>
+                                                  <span className="w-4 text-center text-xs font-medium text-slate-500">
+                                                    {extractedTextFontSize}
+                                                  </span>
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                      setExtractedTextFontSize(
+                                                        Math.min(32, extractedTextFontSize + 2)
+                                                      )
+                                                    }
+                                                    className="h-6 w-6 p-0 text-slate-500 hover:text-slate-800"
+                                                    title="Increase font size"
+                                                  >
+                                                    A+
+                                                  </Button>
+                                                </div>
                                               </div>
                                             </div>
                                             <AutoTextarea
@@ -7083,49 +7085,51 @@ FEEDBACK: [your explanation]`
                                             )}
                                           >
                                             <div className="flex h-9 shrink-0 items-center justify-between border-b bg-slate-50 p-1">
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => {
-                                                  if (!assessmentPdfVisible)
-                                                    setAssessmentPdfVisible(true)
-                                                  setAssessmentTextVisible(false)
-                                                }}
-                                                className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
-                                                title="Hide Text"
-                                              >
-                                                <ChevronLeft className="h-4 w-4" />
-                                              </Button>
-                                              <div className="flex items-center gap-2 pr-12">
+                                              <div className="flex w-full items-center justify-between">
                                                 <Button
                                                   variant="ghost"
                                                   size="sm"
-                                                  onClick={() =>
-                                                    setExtractedTextFontSize(
-                                                      Math.max(10, extractedTextFontSize - 2)
-                                                    )
-                                                  }
-                                                  className="h-6 w-6 p-0 text-slate-500 hover:text-slate-800"
-                                                  title="Decrease font size"
+                                                  onClick={() => {
+                                                    if (!assessmentPdfVisible)
+                                                      setAssessmentPdfVisible(true)
+                                                    setAssessmentTextVisible(false)
+                                                  }}
+                                                  className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                  title="Hide Text"
                                                 >
-                                                  A-
+                                                  <ChevronLeft className="h-4 w-4" />
                                                 </Button>
-                                                <span className="w-4 text-center text-xs font-medium text-slate-500">
-                                                  {extractedTextFontSize}
-                                                </span>
-                                                <Button
-                                                  variant="ghost"
-                                                  size="sm"
-                                                  onClick={() =>
-                                                    setExtractedTextFontSize(
-                                                      Math.min(32, extractedTextFontSize + 2)
-                                                    )
-                                                  }
-                                                  className="h-6 w-6 p-0 text-slate-500 hover:text-slate-800"
-                                                  title="Increase font size"
-                                                >
-                                                  A+
-                                                </Button>
+                                                <div className="flex items-center gap-2 pr-12">
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                      setExtractedTextFontSize(
+                                                        Math.max(10, extractedTextFontSize - 2)
+                                                      )
+                                                    }
+                                                    className="h-6 w-6 p-0 text-slate-500 hover:text-slate-800"
+                                                    title="Decrease font size"
+                                                  >
+                                                    A-
+                                                  </Button>
+                                                  <span className="w-4 text-center text-xs font-medium text-slate-500">
+                                                    {extractedTextFontSize}
+                                                  </span>
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                      setExtractedTextFontSize(
+                                                        Math.min(32, extractedTextFontSize + 2)
+                                                      )
+                                                    }
+                                                    className="h-6 w-6 p-0 text-slate-500 hover:text-slate-800"
+                                                    title="Increase font size"
+                                                  >
+                                                    A+
+                                                  </Button>
+                                                </div>
                                               </div>
                                             </div>
                                             <AutoTextarea
