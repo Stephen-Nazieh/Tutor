@@ -11,6 +11,7 @@ interface PDFViewerProps {
   fileUrl: string
   className?: string
   defaultScale?: number
+  hidePageNavigation?: boolean
   onHidePreview?: () => void
 }
 
@@ -21,6 +22,7 @@ export function PDFViewer({
   fileUrl,
   className = '',
   defaultScale = 1.25,
+  hidePageNavigation = false,
   onHidePreview,
 }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>(0)
@@ -108,23 +110,27 @@ export function PDFViewer({
       {!loading && !error && numPages > 0 && (
         <div className="flex h-9 shrink-0 items-center justify-between border-b bg-slate-50 px-3">
           <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => changePage(-1)}
-              disabled={pageNumber <= 1}
-              className="rounded px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:text-gray-400"
-            >
-              ← Prev
-            </button>
-            <span className="min-w-[80px] text-center text-xs text-gray-600">
-              Page {pageNumber} of {numPages}
-            </span>
-            <button
-              onClick={() => changePage(1)}
-              disabled={pageNumber >= numPages}
-              className="rounded px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:text-gray-400"
-            >
-              Next →
-            </button>
+            {!hidePageNavigation && (
+              <>
+                <button
+                  onClick={() => changePage(-1)}
+                  disabled={pageNumber <= 1}
+                  className="rounded px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:text-gray-400"
+                >
+                  ← Prev
+                </button>
+                <span className="min-w-[80px] text-center text-xs text-gray-600">
+                  Page {pageNumber} of {numPages}
+                </span>
+                <button
+                  onClick={() => changePage(1)}
+                  disabled={pageNumber >= numPages}
+                  className="rounded px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:text-gray-400"
+                >
+                  Next →
+                </button>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-1.5">

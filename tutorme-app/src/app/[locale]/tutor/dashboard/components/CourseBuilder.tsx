@@ -537,6 +537,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // Test PCI state
     const [testPciInput, setTestPciInput] = useState('')
     const [testPciViewMode, setTestPciViewMode] = useState<string>('pdf')
+    const [extractedTextFontSize, setExtractedTextFontSize] = useState<number>(14)
     const [testPciContent, setTestPciContent] = useState<Record<string, string>>({
       classroom: '',
       student1: '',
@@ -6288,82 +6289,6 @@ FEEDBACK: [your explanation]`
                                 <div className="border-border bg-background mt-1 rounded-2xl border shadow-xl backdrop-blur-md">
                                   <div className="relative p-px">
                                     <div className="flex w-full items-end gap-2 p-2">
-                                      {testPciActiveTab === 'classroom' && (
-                                        <DropdownMenu>
-                                          <DropdownMenuTrigger asChild>
-                                            <Button
-                                              variant="outline"
-                                              size="icon"
-                                              className="mb-1 h-9 w-9 shrink-0 rounded-xl"
-                                              title="Toggle View Mode"
-                                            >
-                                              <Plus className="h-4 w-4" />
-                                            </Button>
-                                          </DropdownMenuTrigger>
-                                          <DropdownMenuContent
-                                            align="start"
-                                            className="max-h-64 w-56 overflow-y-auto"
-                                          >
-                                            {testPciSource === 'task' ? (
-                                              <>
-                                                <DropdownMenuItem
-                                                  onClick={() => setTestPciViewMode('pdf')}
-                                                  className="flex items-center gap-2"
-                                                >
-                                                  <FileText className="h-4 w-4" />
-                                                  PDF Document
-                                                  {testPciViewMode === 'pdf' && (
-                                                    <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
-                                                  )}
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                  onClick={() => setTestPciViewMode('text')}
-                                                  className="flex items-center gap-2"
-                                                >
-                                                  <ListTodo className="h-4 w-4" />
-                                                  Extracted Text
-                                                  {testPciViewMode === 'text' && (
-                                                    <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
-                                                  )}
-                                                </DropdownMenuItem>
-                                              </>
-                                            ) : (
-                                              <>
-                                                <DropdownMenuItem
-                                                  onClick={() => setTestPciViewMode('text')}
-                                                  className="flex items-center gap-2"
-                                                >
-                                                  <ListTodo className="h-4 w-4" />
-                                                  Extracted Text
-                                                  {testPciViewMode === 'text' && (
-                                                    <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
-                                                  )}
-                                                </DropdownMenuItem>
-                                                {assessmentDmiVersions.length > 0 && (
-                                                  <div className="text-muted-foreground px-2 py-1.5 text-xs font-semibold">
-                                                    DMI Versions
-                                                  </div>
-                                                )}
-                                                {assessmentDmiVersions.map(version => (
-                                                  <DropdownMenuItem
-                                                    key={version.id}
-                                                    onClick={() =>
-                                                      setTestPciViewMode(`dmi_${version.id}`)
-                                                    }
-                                                    className="flex items-center gap-2"
-                                                  >
-                                                    <Wand2 className="h-4 w-4 text-indigo-500" />
-                                                    Version {version.versionNumber}
-                                                    {testPciViewMode === `dmi_${version.id}` && (
-                                                      <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
-                                                    )}
-                                                  </DropdownMenuItem>
-                                                ))}
-                                              </>
-                                            )}
-                                          </DropdownMenuContent>
-                                        </DropdownMenu>
-                                      )}
                                       <MentionTextarea
                                         mentionItems={mentionItems}
                                         className="min-h-[100px] flex-1 border-0 bg-transparent py-4 pl-2 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -6383,14 +6308,72 @@ FEEDBACK: [your explanation]`
                                           }
                                         }}
                                       />
-                                      <Button
-                                        size="icon"
-                                        className="mb-1 h-9 w-9 shrink-0 rounded-xl bg-slate-600 shadow-lg hover:bg-slate-700 disabled:opacity-30"
-                                        disabled={!testPciInput.trim() || testPciLoading}
-                                        onClick={handleTestPciSubmit}
-                                      >
-                                        <Send className="h-4 w-4" />
-                                      </Button>
+                                      <div className="mb-1 flex shrink-0 items-center gap-2">
+                                        {testPciActiveTab === 'classroom' && (
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                              <Button
+                                                variant="outline"
+                                                size="icon"
+                                                className="h-9 w-9 rounded-xl"
+                                                title="Toggle View Mode"
+                                              >
+                                                <Plus className="h-4 w-4" />
+                                              </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent
+                                              align="end"
+                                              className="max-h-64 w-56 overflow-y-auto"
+                                            >
+                                              {testPciSource === 'task' ? (
+                                                <>
+                                                  <DropdownMenuItem
+                                                    onClick={() => setTestPciViewMode('pdf')}
+                                                    className="flex items-center gap-2"
+                                                  >
+                                                    <FileText className="h-4 w-4" />
+                                                    PDF Document
+                                                    {testPciViewMode === 'pdf' && (
+                                                      <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
+                                                    )}
+                                                  </DropdownMenuItem>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  {assessmentDmiVersions.length > 0 && (
+                                                    <div className="text-muted-foreground px-2 py-1.5 text-xs font-semibold">
+                                                      DMI Versions
+                                                    </div>
+                                                  )}
+                                                  {assessmentDmiVersions.map(version => (
+                                                    <DropdownMenuItem
+                                                      key={version.id}
+                                                      onClick={() =>
+                                                        setTestPciViewMode(`dmi_${version.id}`)
+                                                      }
+                                                      className="flex items-center gap-2"
+                                                    >
+                                                      <Wand2 className="h-4 w-4 text-indigo-500" />
+                                                      Version {version.versionNumber}
+                                                      {testPciViewMode === `dmi_${version.id}` && (
+                                                        <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
+                                                      )}
+                                                    </DropdownMenuItem>
+                                                  ))}
+                                                </>
+                                              )}
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
+                                        )}
+                                        <Button
+                                          size="icon"
+                                          className="h-9 w-9 rounded-xl bg-slate-600 shadow-lg hover:bg-slate-700 disabled:opacity-30"
+                                          disabled={!testPciInput.trim() || testPciLoading}
+                                          onClick={handleTestPciSubmit}
+                                        >
+                                          <Send className="h-4 w-4" />
+                                        </Button>
+                                      </div>
                                     </div>
                                   </div>
                                   <div className="border-border/50 bg-muted/20 border-t px-1 py-1">
@@ -6588,7 +6571,37 @@ FEEDBACK: [your explanation]`
                                               >
                                                 <ChevronLeft className="h-4 w-4" />
                                               </Button>
-                                              <div />
+                                              <div className="flex items-center gap-2 pr-2">
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() =>
+                                                    setExtractedTextFontSize(
+                                                      Math.max(10, extractedTextFontSize - 2)
+                                                    )
+                                                  }
+                                                  className="h-6 w-6 p-0 text-slate-500 hover:text-slate-800"
+                                                  title="Decrease font size"
+                                                >
+                                                  A-
+                                                </Button>
+                                                <span className="w-4 text-center text-xs font-medium text-slate-500">
+                                                  {extractedTextFontSize}
+                                                </span>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() =>
+                                                    setExtractedTextFontSize(
+                                                      Math.min(32, extractedTextFontSize + 2)
+                                                    )
+                                                  }
+                                                  className="h-6 w-6 p-0 text-slate-500 hover:text-slate-800"
+                                                  title="Increase font size"
+                                                >
+                                                  A+
+                                                </Button>
+                                              </div>
                                             </div>
                                             <AutoTextarea
                                               placeholder={
@@ -6597,6 +6610,7 @@ FEEDBACK: [your explanation]`
                                                   : 'Enter task content or drop files here...'
                                               }
                                               className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                              style={{ fontSize: `${extractedTextFontSize}px` }}
                                               disableAutoResize
                                               onDrop={(e: any) =>
                                                 handleDragFiles(
@@ -6702,6 +6716,7 @@ FEEDBACK: [your explanation]`
                                                   fileUrl={taskSourceDocument.fileUrl}
                                                   className="absolute inset-0 h-full w-full"
                                                   defaultScale={0.75}
+                                                  hidePageNavigation
                                                   onHidePreview={() => {
                                                     if (!taskTextVisible) setTaskTextVisible(true)
                                                     setTaskPdfVisible(false)
@@ -7058,11 +7073,42 @@ FEEDBACK: [your explanation]`
                                               >
                                                 <ChevronLeft className="h-4 w-4" />
                                               </Button>
-                                              <div />
+                                              <div className="flex items-center gap-2 pr-2">
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() =>
+                                                    setExtractedTextFontSize(
+                                                      Math.max(10, extractedTextFontSize - 2)
+                                                    )
+                                                  }
+                                                  className="h-6 w-6 p-0 text-slate-500 hover:text-slate-800"
+                                                  title="Decrease font size"
+                                                >
+                                                  A-
+                                                </Button>
+                                                <span className="w-4 text-center text-xs font-medium text-slate-500">
+                                                  {extractedTextFontSize}
+                                                </span>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() =>
+                                                    setExtractedTextFontSize(
+                                                      Math.min(32, extractedTextFontSize + 2)
+                                                    )
+                                                  }
+                                                  className="h-6 w-6 p-0 text-slate-500 hover:text-slate-800"
+                                                  title="Increase font size"
+                                                >
+                                                  A+
+                                                </Button>
+                                              </div>
                                             </div>
                                             <AutoTextarea
                                               placeholder="Enter assessment content or drop files here..."
                                               className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                              style={{ fontSize: `${extractedTextFontSize}px` }}
                                               disableAutoResize
                                               onDrop={(e: any) =>
                                                 handleDragFiles(
@@ -7126,6 +7172,7 @@ FEEDBACK: [your explanation]`
                                                   fileUrl={assessmentSourceDocument.fileUrl}
                                                   className="absolute inset-0 h-full w-full"
                                                   defaultScale={0.75}
+                                                  hidePageNavigation
                                                   onHidePreview={() => {
                                                     if (!assessmentTextVisible)
                                                       setAssessmentTextVisible(true)
