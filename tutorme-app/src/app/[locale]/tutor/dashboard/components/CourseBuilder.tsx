@@ -4615,7 +4615,7 @@ FEEDBACK: [your explanation]`
             </TabsTrigger>
           </TabsList>
 
-          <div className="flex h-full w-full min-w-0 flex-1 gap-4">
+          <div className="flex h-full w-full min-w-0 flex-1 gap-0">
             {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
             {leftPanelHidden ? (
               <div

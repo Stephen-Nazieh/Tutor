@@ -760,193 +760,191 @@ function CoursesAndClassesTab() {
 
   return (
     <TabsContent value="overview" className="space-y-6">
+      {/* Top Row - Course List & Sessions Side by Side */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Left Side - Course List + Sessions */}
-        <div className="space-y-6">
-          <Card className="border-2 border-gray-400 shadow-sm">
-            <CardHeader>
-              <CardTitle>Courses & Classes ({courses.length})</CardTitle>
-              <CardDescription>
-                All published courses and completed classes, sorted by publication date.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="max-h-[500px] space-y-2 overflow-y-auto">
-              {coursesLoading ? (
-                <div className="flex items-center justify-center py-10 text-sm text-gray-500">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Loading courses...
+        <Card className="border-2 border-gray-400 shadow-sm flex flex-col">
+          <CardHeader>
+            <CardTitle>Courses & Classes ({courses.length})</CardTitle>
+            <CardDescription>
+              All published courses and completed classes, sorted by publication date.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="h-[400px] space-y-2 overflow-y-auto">
+            {coursesLoading ? (
+              <div className="flex h-full items-center justify-center py-10 text-sm text-gray-500">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Loading courses...
+              </div>
+            ) : courses.length === 0 ? (
+              <div className="flex h-full items-center justify-center py-10 text-center text-sm text-gray-500">
+                No published courses found.
+              </div>
+            ) : (
+              courses.map(course => (
+                <div
+                  key={course.id}
+                  className={cn(
+                    'cursor-pointer rounded border p-3 transition-colors',
+                    selectedItem?.type === 'course' && selectedItem.id === course.id
+                      ? 'border-blue-300 bg-blue-50'
+                      : 'hover:bg-gray-50'
+                  )}
+                  onClick={() => {
+                    setSelectedItem(
+                      selectedItem?.type === 'course' && selectedItem.id === course.id ? null : { type: 'course', id: course.id }
+                    )
+                  }}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="font-medium">{course.name}</div>
+                    <Badge variant="secondary">Course</Badge>
+                  </div>
+                  <div className="text-muted-foreground text-sm">
+                    {course.description || course.categories[0] || 'Untitled'}
+                  </div>
+                  <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                    <Calendar className="h-3 w-3" />
+                    Published: {formatDate(course.createdAt)}
+                  </div>
                 </div>
-              ) : courses.length === 0 ? (
-                <div className="py-10 text-center text-sm text-gray-500">
-                  No published courses found.
-                </div>
-              ) : (
-                courses.map(course => (
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-gray-300 shadow-sm flex flex-col">
+          <CardHeader>
+            <CardTitle>Sessions</CardTitle>
+            <CardDescription>All sessions with current status.</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[400px] space-y-3 overflow-y-auto">
+            {sessionsLoading ? (
+              <div className="text-muted-foreground flex h-full items-center justify-center py-10 text-sm">
+                Loading sessions...
+              </div>
+            ) : sessionsOverview.length === 0 ? (
+              <div className="text-muted-foreground flex h-full items-center justify-center py-10 text-center text-sm">
+                No sessions found.
+              </div>
+            ) : (
+              sessionsOverview.map((sessionItem: SessionOverviewItem) => {
+                const isOngoing = sessionItem.status === 'ACTIVE'
+                const isEnded = Boolean(sessionItem.endedAt) || sessionItem.status === 'COMPLETED'
+                const statusLabel = isOngoing ? 'Ongoing' : isEnded ? 'Ended' : 'Scheduled'
+                return (
                   <div
-                    key={course.id}
+                    key={sessionItem.id}
                     className={cn(
-                      'cursor-pointer rounded border p-3 transition-colors',
-                      selectedItem?.type === 'course' && selectedItem.id === course.id
+                      'cursor-pointer rounded-lg border bg-white p-3 transition-colors',
+                      selectedItem?.type === 'session' && selectedItem.id === sessionItem.id
                         ? 'border-blue-300 bg-blue-50'
-                        : 'hover:bg-gray-50'
+                        : 'border-gray-200 hover:bg-gray-50'
                     )}
                     onClick={() => {
                       setSelectedItem(
-                        selectedItem?.type === 'course' && selectedItem.id === course.id ? null : { type: 'course', id: course.id }
+                        selectedItem?.type === 'session' && selectedItem.id === sessionItem.id ? null : { type: 'session', id: sessionItem.id }
                       )
                     }}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="font-medium">{course.name}</div>
-                      <Badge variant="secondary">Course</Badge>
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{sessionItem.title}</p>
+                        <p className="text-muted-foreground text-xs">{sessionItem.subject}</p>
+                      </div>
+                      <Badge variant={isOngoing ? 'default' : isEnded ? 'secondary' : 'outline'}>
+                        {statusLabel}
+                      </Badge>
                     </div>
-                    <div className="text-muted-foreground text-sm">
-                      {course.description || course.categories[0] || 'Untitled'}
-                    </div>
-                    <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
-                      <Calendar className="h-3 w-3" />
-                      Published: {formatDate(course.createdAt)}
-                    </div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="border-2 border-gray-300 shadow-sm">
-            <CardHeader>
-              <CardTitle>Sessions</CardTitle>
-              <CardDescription>All sessions with current status.</CardDescription>
-            </CardHeader>
-            <CardContent className="max-h-[420px] space-y-3 overflow-y-auto">
-              {sessionsLoading ? (
-                <div className="text-muted-foreground flex items-center justify-center py-10 text-sm">
-                  Loading sessions...
-                </div>
-              ) : sessionsOverview.length === 0 ? (
-                <div className="text-muted-foreground py-10 text-center text-sm">
-                  No sessions found.
-                </div>
-              ) : (
-                sessionsOverview.map((sessionItem: SessionOverviewItem) => {
-                  const isOngoing = sessionItem.status === 'ACTIVE'
-                  const isEnded = Boolean(sessionItem.endedAt) || sessionItem.status === 'COMPLETED'
-                  const statusLabel = isOngoing ? 'Ongoing' : isEnded ? 'Ended' : 'Scheduled'
-                  return (
-                    <div
-                      key={sessionItem.id}
-                      className={cn(
-                        'cursor-pointer rounded-lg border bg-white p-3 transition-colors',
-                        selectedItem?.type === 'session' && selectedItem.id === sessionItem.id
-                          ? 'border-blue-300 bg-blue-50'
-                          : 'border-gray-200 hover:bg-gray-50'
+                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                      <span>Scheduled: {formatDate(sessionItem.scheduledAt)}</span>
+                      {sessionItem.endedAt && (
+                        <span>Ended: {formatDate(sessionItem.endedAt)}</span>
                       )}
-                      onClick={() => {
-                        setSelectedItem(
-                          selectedItem?.type === 'session' && selectedItem.id === sessionItem.id ? null : { type: 'session', id: sessionItem.id }
-                        )
-                      }}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">{sessionItem.title}</p>
-                          <p className="text-muted-foreground text-xs">{sessionItem.subject}</p>
-                        </div>
-                        <Badge variant={isOngoing ? 'default' : isEnded ? 'secondary' : 'outline'}>
-                          {statusLabel}
-                        </Badge>
-                      </div>
-                      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                        <span>Scheduled: {formatDate(sessionItem.scheduledAt)}</span>
-                        {sessionItem.endedAt && (
-                          <span>Ended: {formatDate(sessionItem.endedAt)}</span>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Side - Analytics & AI Chat */}
-        <div className="space-y-6">
-          {selectedCourse ? (
-            <>
-              <Card className="border-2 border-blue-400 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <BarChart3 className="h-5 w-5 text-blue-500" />
-                    Analytics: {selectedCourse.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-lg bg-gray-50 p-3">
-                      <p className="text-xs text-gray-500">Date Published</p>
-                      <p className="font-medium">{formatDate(selectedCourse.createdAt)}</p>
-                    </div>
-                    <div className="rounded-lg bg-gray-50 p-3">
-                      <p className="text-xs text-gray-500">No. of Sessions</p>
-                      <p className="font-medium">{courseSessions.length}</p>
-                    </div>
-                    <div className="rounded-lg bg-gray-50 p-3">
-                      <p className="text-xs text-gray-500">Category</p>
-                      <p className="font-medium">{selectedCourse.categories[0] || 'N/A'}</p>
-                    </div>
-                    <div className="rounded-lg bg-gray-50 p-3">
-                      <p className="text-xs text-gray-500">Enrolled Students</p>
-                      <p className="font-medium">{students.length}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                )
+              })
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
-              <ItemAIChat course={selectedCourse} session={null} sessions={courseSessions} students={students} />
-            </>
-          ) : selectedSession ? (
-            <>
-              <Card className="border-2 border-blue-400 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <BarChart3 className="h-5 w-5 text-blue-500" />
-                    Analytics: {selectedSession.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-lg bg-gray-50 p-3">
-                      <p className="text-xs text-gray-500">Status</p>
-                      <p className="font-medium">{selectedSession.status}</p>
-                    </div>
-                    <div className="rounded-lg bg-gray-50 p-3">
-                      <p className="text-xs text-gray-500">Scheduled Date</p>
-                      <p className="font-medium">{formatDate(selectedSession.scheduledAt)}</p>
-                    </div>
-                    <div className="rounded-lg bg-gray-50 p-3">
-                      <p className="text-xs text-gray-500">Subject</p>
-                      <p className="font-medium">{selectedSession.subject || 'N/A'}</p>
-                    </div>
-                    <div className="rounded-lg bg-gray-50 p-3">
-                      <p className="text-xs text-gray-500">Total Enrolled</p>
-                      <p className="font-medium">{students.length}</p>
-                    </div>
+      {/* Bottom Rows - Analytics Strip & AI Chat */}
+      <div className="space-y-6">
+        {selectedCourse ? (
+          <>
+            <Card className="border-2 border-blue-400 shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <BarChart3 className="h-5 w-5 text-blue-500" />
+                  Analytics: {selectedCourse.name}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <p className="text-xs text-gray-500">Date Published</p>
+                    <p className="mt-1 text-lg font-medium">{formatDate(selectedCourse.createdAt)}</p>
                   </div>
-                </CardContent>
-              </Card>
-
-              <ItemAIChat course={null} session={selectedSession} sessions={sessionsOverview} students={students} />
-            </>
-          ) : (
-            <Card className="flex h-full min-h-[400px] items-center justify-center border-2 border-gray-400 shadow-sm">
-              <CardContent className="py-12 text-center">
-                <BarChart3 className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-                <p className="text-gray-500">Select a course or class to view analytics.</p>
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <p className="text-xs text-gray-500">No. of Sessions</p>
+                    <p className="mt-1 text-lg font-medium">{courseSessions.length}</p>
+                  </div>
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <p className="text-xs text-gray-500">Category</p>
+                    <p className="mt-1 text-lg font-medium">{selectedCourse.categories[0] || 'N/A'}</p>
+                  </div>
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <p className="text-xs text-gray-500">Enrolled Students</p>
+                    <p className="mt-1 text-lg font-medium">{students.length}</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
-          )}
-        </div>
+
+            <ItemAIChat course={selectedCourse} session={null} sessions={courseSessions} students={students} />
+          </>
+        ) : selectedSession ? (
+          <>
+            <Card className="border-2 border-blue-400 shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <BarChart3 className="h-5 w-5 text-blue-500" />
+                  Analytics: {selectedSession.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <p className="text-xs text-gray-500">Status</p>
+                    <p className="mt-1 text-lg font-medium">{selectedSession.status}</p>
+                  </div>
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <p className="text-xs text-gray-500">Scheduled Date</p>
+                    <p className="mt-1 text-lg font-medium">{formatDate(selectedSession.scheduledAt)}</p>
+                  </div>
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <p className="text-xs text-gray-500">Subject</p>
+                    <p className="mt-1 text-lg font-medium">{selectedSession.subject || 'N/A'}</p>
+                  </div>
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <p className="text-xs text-gray-500">Total Enrolled</p>
+                    <p className="mt-1 text-lg font-medium">{students.length}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <ItemAIChat course={null} session={selectedSession} sessions={sessionsOverview} students={students} />
+          </>
+        ) : (
+          <Card className="flex items-center justify-center border-2 border-gray-400 shadow-sm">
+            <CardContent className="py-12 text-center">
+              <BarChart3 className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+              <p className="text-gray-500">Select a course or class to view analytics.</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </TabsContent>
   )
