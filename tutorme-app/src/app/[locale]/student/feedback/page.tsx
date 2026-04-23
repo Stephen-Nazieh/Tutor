@@ -392,7 +392,7 @@ function StudentFeedbackContent() {
             {portalTarget ? (
               createPortal(
                 <div className="min-h-[48px] shrink-0 w-full mb-0">
-                  <TabsList className="grid w-full h-[48px] gap-2 grid-cols-3">
+                  <TabsList className="grid w-full h-[48px] gap-2 grid-cols-3 bg-transparent border-0 shadow-none">
                     <TabsTrigger
                       value="task"
                       className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:shadow-sm text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm border border-transparent"

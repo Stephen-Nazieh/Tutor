@@ -186,21 +186,11 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       {/* Floating collapsed pill */}
       {!isFeedbackRoute && !desktopNavOpen && (
         <div
-          className="sticky top-0 z-40 my-4 ml-4 hidden h-[calc(100vh-32px)] w-12 shrink-0 cursor-pointer flex-col items-center rounded-full border border-slate-200 bg-white py-4 shadow-sm transition-colors hover:bg-slate-50 lg:flex"
+          className="sticky top-0 z-40 my-4 ml-4 hidden h-16 w-8 shrink-0 cursor-pointer flex-col items-center justify-center rounded-full border border-slate-200 bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:bg-slate-50 hover:w-10 lg:flex"
           onClick={() => setDesktopNavOpen(true)}
           title="Show navigation"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-            <ChevronRight className="h-5 w-5" />
-          </div>
-          <div className="mt-8 flex flex-1 items-start justify-center">
-            <span
-              className="text-xs font-bold tracking-[0.2em] text-slate-400"
-              style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
-            >
-              DIRECTORY
-            </span>
-          </div>
+          <ChevronRight className="h-5 w-5 text-blue-600" />
         </div>
       )}
 
