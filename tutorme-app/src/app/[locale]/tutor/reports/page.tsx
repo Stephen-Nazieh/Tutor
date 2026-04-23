@@ -464,7 +464,7 @@ export default function TutorReports() {
 }
 
 // Inline AI Chat for course insights
-function CourseAIChat({
+function ItemAIChat({
   course,
   session,
   sessions,

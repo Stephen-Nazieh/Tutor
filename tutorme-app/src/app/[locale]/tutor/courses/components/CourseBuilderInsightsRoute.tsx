@@ -293,6 +293,12 @@ function CourseBuilderInsightsRouteInner({
           lessons,
           developmentMode: 'single',
           previewDifficulty: 'all',
+        }, (key, value) => {
+          // Remove any DOM nodes or Window objects
+          if (value && (value instanceof Window || value instanceof Node)) {
+            return undefined
+          }
+          return value
         }),
       })
 
@@ -303,8 +309,10 @@ function CourseBuilderInsightsRouteInner({
       }
 
       model.router.push(`/tutor/courses/${newCourseId}`)
-    } catch {
-      toast.error('Failed to publish course')
+    } catch (err: any) {
+      console.error('Publish draft error:', err)
+      const errMsg = err?.message || String(err) || 'Unknown error'
+      toast.error(`Failed to publish course: ${errMsg}`)
     }
   }
 
