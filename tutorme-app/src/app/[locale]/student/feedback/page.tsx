@@ -391,23 +391,23 @@ function StudentFeedbackContent() {
           <Tabs defaultValue="task" className="flex flex-1 flex-col">
             {portalTarget ? (
               createPortal(
-                <div className="min-h-[52px] shrink-0 w-full mb-0">
-                  <TabsList className="grid w-full h-[52px] gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)] grid-cols-3">
+                <div className="min-h-[48px] shrink-0 w-full mb-0">
+                  <TabsList className="grid w-full h-[48px] gap-2 grid-cols-3">
                     <TabsTrigger
                       value="task"
-                      className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:shadow-[0_1px_2px_rgba(37,99,235,0.12)] text-[#667085] hover:text-[#344054] hover:bg-white/70"
+                      className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:shadow-sm text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm border border-transparent"
                     >
                       Classroom
                     </TabsTrigger>
                     <TabsTrigger
                       value="my-board"
-                      className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:shadow-[0_1px_2px_rgba(37,99,235,0.12)] text-[#667085] hover:text-[#344054] hover:bg-white/70"
+                      className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:shadow-sm text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm border border-transparent"
                     >
                       My Board
                     </TabsTrigger>
                     <TabsTrigger
                       value="tutor-board"
-                      className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:shadow-[0_1px_2px_rgba(37,99,235,0.12)] text-[#667085] hover:text-[#344054] hover:bg-white/70"
+                      className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:shadow-sm text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm border border-transparent"
                     >
                       Tutor Board
                     </TabsTrigger>

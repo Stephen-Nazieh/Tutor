@@ -4359,17 +4359,17 @@ FEEDBACK: [your explanation]`
         >
           {portalTarget ? (
             createPortal(
-              <div className="min-h-[52px] shrink-0 w-full mb-0">
-                <TabsList className="grid w-full h-[52px] gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)] grid-cols-3">
+              <div className="min-h-[48px] shrink-0 w-full mb-0">
+                <TabsList className="grid w-full h-[48px] gap-2 grid-cols-3">
                   <TabsTrigger 
                     value="live" 
                     className={cn(
                       'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
                       mainTab === 'live'
                         ? (!isSessionActive 
-                            ? 'bg-white text-green-600 border border-green-200 shadow-[0_1px_2px_rgba(34,197,94,0.12)]' 
-                            : 'bg-white text-red-600 border border-red-200 shadow-[0_1px_2px_rgba(220,38,38,0.12)]')
-                        : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
+                            ? 'bg-white text-green-600 border border-green-200 shadow-sm' 
+                            : 'bg-white text-red-600 border border-red-200 shadow-sm')
+                        : 'text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm border border-transparent'
                     )}
                     onClick={e => {
                       if (mainTab !== 'live') {
@@ -4400,7 +4400,7 @@ FEEDBACK: [your explanation]`
                               : 'animate-pulse text-red-500 drop-shadow-[0_0_8px_rgba(220,38,38,0.8)]')
                           : ''
                       )} />
-                      {isSessionActive ? 'End' : 'Start'}
+                      {isSessionActive ? 'End' : 'Go Live'}
                     </div>
                   </TabsTrigger>
                   <TabsTrigger 
@@ -4408,8 +4408,8 @@ FEEDBACK: [your explanation]`
                     className={cn(
                       'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
                       mainTab === 'test-pci'
-                        ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
-                        : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
+                        ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-sm'
+                        : 'text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm border border-transparent'
                     )}
                   >
                     <TestTube2 className="h-4 w-4" />
@@ -4420,8 +4420,8 @@ FEEDBACK: [your explanation]`
                     className={cn(
                       'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
                       mainTab === 'builder'
-                        ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
-                        : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
+                        ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-sm'
+                        : 'text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm border border-transparent'
                     )}
                     onClick={e => {
                       if (mainTab !== 'builder') {
