@@ -4641,7 +4641,8 @@ FEEDBACK: [your explanation]`
                   'relative z-10 flex items-center gap-2 rounded-full border-l border-r px-2 py-0.5 transition-colors',
                   mainTab === 'builder'
                     ? 'pointer-events-auto cursor-pointer border-orange-200/50 group-hover:bg-orange-50/50'
-                    : 'pointer-events-none border-transparent'
+                    : 'pointer-events-none border-transparent',
+                  isLiveMode && 'animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)] border-green-300/50 bg-green-50/30'
                 )}
                 onPointerDown={e => {
                   if (mainTab === 'builder') {
@@ -6946,7 +6947,7 @@ FEEDBACK: [your explanation]`
                                                   )}
                                                   title="Hide Text"
                                                 >
-                                                  <ChevronLeft className="h-4 w-4" />
+                                                  <ChevronLeft className="h-5 w-5" />
                                                 </Button>
                                                 <div className="flex items-center justify-center absolute left-1/2 -translate-x-1/2 gap-1 rounded-lg border border-[#E5E7EB] bg-slate-50/50 p-1">
                                                   <Button
@@ -6987,7 +6988,7 @@ FEEDBACK: [your explanation]`
                                                     className="h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-700"
                                                     title="Show Preview"
                                                   >
-                                                    <ChevronRight className="h-4 w-4" />
+                                                    <ChevronRight className="h-5 w-5" />
                                                   </Button>
                                                 ) : (
                                                   <div className="w-8" />
@@ -7094,7 +7095,7 @@ FEEDBACK: [your explanation]`
                                                   className="h-8 w-8 bg-white/90 p-0 shadow-sm backdrop-blur-sm hover:bg-white"
                                                   title="Show Text"
                                                 >
-                                                  <ChevronRight className="h-4 w-4 text-slate-600" />
+                                                  <ChevronRight className="h-5 w-5 text-slate-600" />
                                                 </Button>
                                               </div>
                                             )}
@@ -7128,10 +7129,10 @@ FEEDBACK: [your explanation]`
                                                           setTaskTextVisible(true)
                                                         setTaskPdfVisible(false)
                                                       }}
-                                                      className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                      className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
                                                       title="Hide Preview"
                                                     >
-                                                      <ChevronRight className="h-4 w-4" />
+                                                      <ChevronRight className="h-5 w-5" />
                                                     </Button>
                                                   </div>
                                                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -7158,10 +7159,10 @@ FEEDBACK: [your explanation]`
                                                           setTaskTextVisible(true)
                                                         setTaskPdfVisible(false)
                                                       }}
-                                                      className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                      className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
                                                       title="Hide Preview"
                                                     >
-                                                      <ChevronRight className="h-4 w-4" />
+                                                      <ChevronRight className="h-5 w-5" />
                                                     </Button>
                                                   </div>
                                                   <FileText className="mb-4 h-16 w-16 text-blue-500" />
@@ -7186,10 +7187,10 @@ FEEDBACK: [your explanation]`
                                                           setTaskTextVisible(true)
                                                         setTaskPdfVisible(false)
                                                       }}
-                                                      className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                      className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
                                                       title="Hide Preview"
                                                     >
-                                                      <ChevronRight className="h-4 w-4" />
+                                                      <ChevronRight className="h-5 w-5" />
                                                     </Button>
                                                   </div>
                                                   <FileText className="mb-4 h-16 w-16 text-gray-300" />
@@ -7476,7 +7477,7 @@ FEEDBACK: [your explanation]`
                                                   )}
                                                   title="Hide Text"
                                                 >
-                                                  <ChevronLeft className="h-4 w-4" />
+                                                  <ChevronLeft className="h-5 w-5" />
                                                 </Button>
                                                 <div className="flex items-center justify-center absolute left-1/2 -translate-x-1/2 gap-1 rounded-lg border border-[#E5E7EB] bg-slate-50/50 p-1">
                                                   <Button
@@ -7517,7 +7518,7 @@ FEEDBACK: [your explanation]`
                                                     className="h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-700"
                                                     title="Show Preview"
                                                   >
-                                                    <ChevronRight className="h-4 w-4" />
+                                                    <ChevronRight className="h-5 w-5" />
                                                   </Button>
                                                 ) : (
                                                   <div className="w-8" />
@@ -7579,7 +7580,7 @@ FEEDBACK: [your explanation]`
                                                   className="h-8 w-8 bg-white/90 p-0 shadow-sm backdrop-blur-sm hover:bg-white"
                                                   title="Show Text"
                                                 >
-                                                  <ChevronRight className="h-4 w-4 text-slate-600" />
+                                                  <ChevronRight className="h-5 w-5 text-slate-600" />
                                                 </Button>
                                               </div>
                                             )}
@@ -7610,10 +7611,10 @@ FEEDBACK: [your explanation]`
                                                           setAssessmentTextVisible(true)
                                                         setAssessmentPdfVisible(false)
                                                       }}
-                                                      className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                      className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
                                                       title="Hide Preview"
                                                     >
-                                                      <ChevronRight className="h-4 w-4" />
+                                                      <ChevronRight className="h-5 w-5" />
                                                     </Button>
                                                   </div>
                                                   <FileText className="mb-4 h-16 w-16 text-gray-300" />

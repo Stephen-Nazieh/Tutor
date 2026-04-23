@@ -33,7 +33,7 @@ export function MentionTextarea({
   const [highlightedIndex, setHighlightedIndex] = useState(0)
   const [cursorPos, setCursorPos] = useState(0)
   const [dropdownPos, setDropdownPos] = useState<{
-    top: number
+    bottom: number
     left: number
     width: number
   } | null>(null)
@@ -79,8 +79,8 @@ export function MentionTextarea({
     if (!textarea) return
     const rect = textarea.getBoundingClientRect()
     setDropdownPos({
-      top: rect.bottom + window.scrollY + 4,
-      left: rect.left + window.scrollX,
+      bottom: window.innerHeight - rect.top + 4,
+      left: rect.left,
       width: rect.width,
     })
   }, [])
@@ -243,7 +243,7 @@ export function MentionTextarea({
       className="rounded-lg border bg-white p-1 shadow-lg"
       style={{
         position: 'fixed',
-        top: dropdownPos?.top ?? 0,
+        bottom: dropdownPos?.bottom ?? 0,
         left: dropdownPos?.left ?? 0,
         width: dropdownPos?.width ?? 'auto',
         maxHeight: 220,
@@ -279,7 +279,7 @@ export function MentionTextarea({
   )
 
   return (
-    <div ref={containerRef} className="relative flex flex-col gap-2">
+    <div ref={containerRef} className="relative flex flex-col gap-2 flex-1 w-full">
       {/* Mention pills */}
       {parsedMentions.length > 0 && (
         <div className="flex flex-wrap gap-1.5">

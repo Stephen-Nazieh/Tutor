@@ -154,13 +154,13 @@ export function PDFViewer({
             {onHidePreview && (
               <button
                 onClick={onHidePreview}
-                className="ml-2 flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-gray-100 hover:text-slate-700"
+                className="ml-2 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-gray-100 hover:text-slate-700"
                 title="Hide Preview"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
