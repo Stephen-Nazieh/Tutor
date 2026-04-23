@@ -4709,7 +4709,6 @@ FEEDBACK: [your explanation]`
                             </Button>
                             <div className="text-sm font-semibold text-[#1F2933]">Course Directory</div>
                           </div>
-                          <div className="text-xs text-[#667085] ml-9">Navigate lessons, tasks, and assessments</div>
                         </div>
                         <div className="flex items-center gap-1">
                           {mainTab === 'live' && (
@@ -6193,7 +6192,7 @@ FEEDBACK: [your explanation]`
                         </DndContext>
                       </ScrollArea>
                       {/* Assets Folder added to the bottom of the left panel */}
-                      <div className="mt-4 border-t pt-4">{renderAssetsFolder()}</div>
+                      <div>{renderAssetsFolder()}</div>
                     </CardContent>
                   </Card>
                 </div>
@@ -6341,7 +6340,7 @@ FEEDBACK: [your explanation]`
                                                   />
                                                 </div>
                                               ) : (
-                                                <InsightsReportView type="poll" onMentionStudent={(name) => setPollPrompt(prev => prev ? `${prev} @[${name}](student:${name}) ` : `@[${name}](student:${name}) `)} />
+                                                <InsightsReportView type="poll" onMentionStudent={(name) => setPollPrompt(pollPrompt ? `${pollPrompt} @[${name}](student:${name}) ` : `@[${name}](student:${name}) `)} />
                                               )}
                                               <div className={cn("flex flex-col rounded-2xl border border-cyan-100 bg-white/40 p-px shadow-xl backdrop-blur-md transition-all duration-300", showAIPoll ? "h-[30%] min-h-[120px]" : "h-[40%] min-h-[150px]")}>
                                                 <div className="flex flex-1 flex-col space-y-0.5 p-1">
@@ -6447,7 +6446,7 @@ FEEDBACK: [your explanation]`
                                                   />
                                                 </div>
                                               ) : (
-                                                <InsightsReportView type="question" onMentionStudent={(name) => setQuestionPrompt(prev => prev ? `${prev} @[${name}](student:${name}) ` : `@[${name}](student:${name}) `)} />
+                                                <InsightsReportView type="question" onMentionStudent={(name) => setQuestionPrompt(questionPrompt ? `${questionPrompt} @[${name}](student:${name}) ` : `@[${name}](student:${name}) `)} />
                                               )}
                                               <div className={cn("flex flex-col rounded-2xl border border-cyan-100 bg-white/40 p-px shadow-xl backdrop-blur-md transition-all duration-300", showAIQuestion ? "h-[30%] min-h-[120px]" : "h-[40%] min-h-[150px]")}>
                                                 <div className="flex flex-1 flex-col space-y-0.5 p-1">
