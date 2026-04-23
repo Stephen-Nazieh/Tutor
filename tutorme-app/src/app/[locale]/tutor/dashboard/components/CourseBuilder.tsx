@@ -4572,7 +4572,7 @@ FEEDBACK: [your explanation]`
               <TabsTrigger
                 value="live"
                 className={cn(
-                  'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                  'flex items-center justify-center gap-2 rounded-xl px-4 h-[46px] text-sm font-semibold transition-all',
                   mainTab === 'live'
                     ? 'bg-white text-green-600 border border-green-200 shadow-[0_1px_2px_rgba(34,197,94,0.12)]'
                     : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
@@ -4613,7 +4613,7 @@ FEEDBACK: [your explanation]`
             <TabsTrigger
               value="test-pci"
               className={cn(
-                'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                'flex items-center justify-center gap-2 rounded-xl px-4 h-[46px] text-sm font-semibold transition-all',
                 mainTab === 'test-pci'
                   ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
                   : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
@@ -4625,7 +4625,7 @@ FEEDBACK: [your explanation]`
             <TabsTrigger
               value="builder"
               className={cn(
-                'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                'flex items-center justify-center gap-2 rounded-xl px-4 h-[46px] text-sm font-semibold transition-all',
                 mainTab === 'builder'
                   ? 'bg-white text-[#C7681A] border border-[#F7C99C] shadow-[0_1px_2px_rgba(199,104,26,0.12)]'
                   : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'

@@ -53,12 +53,14 @@ const guides = [
 export default function TutorHelpPage() {
   return (
     <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
-          <HelpCircle className="h-6 w-6" />
-          Support
-        </h1>
-        <p className="mt-1 text-gray-600">Find answers, tutorials, and get support</p>
+      <div className="min-h-[52px] shrink-0 mb-6">
+        <div className="flex items-center justify-between w-full h-full gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)]">
+          <div className="flex items-center gap-2">
+            <HelpCircle className="h-5 w-5 text-[#2563EB]" />
+            <h1 className="text-[#1F2933] text-sm font-semibold">Support</h1>
+          </div>
+          <p className="text-xs text-[#667085] hidden sm:block">Find answers, tutorials, and get support</p>
+        </div>
       </div>
 
       {/* Search */}

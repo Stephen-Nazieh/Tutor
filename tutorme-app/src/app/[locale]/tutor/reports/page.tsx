@@ -347,24 +347,58 @@ export default function TutorReports() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6 h-auto flex-wrap">
-            <TabsTrigger value="overview" className="gap-2">
-              <BookOpen className="h-4 w-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="revenue" className="gap-2">
-              <DollarSign className="h-4 w-4" />
-              Revenue Insights
-            </TabsTrigger>
-            <TabsTrigger value="students" className="gap-2">
-              <Users className="h-4 w-4" />
-              Student Roster
-            </TabsTrigger>
-            <TabsTrigger value="engagement" className="gap-2">
-              <Activity className="h-4 w-4" />
-              Engagement
-            </TabsTrigger>
-          </TabsList>
+          <div className="min-h-[52px] shrink-0 mb-6">
+            <TabsList className="grid w-full h-full gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)] grid-cols-4">
+              <TabsTrigger 
+                value="overview" 
+                className={cn(
+                  'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                  activeTab === 'overview'
+                    ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
+                    : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
+                )}
+              >
+                <BookOpen className="h-4 w-4" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger 
+                value="revenue" 
+                className={cn(
+                  'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                  activeTab === 'revenue'
+                    ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
+                    : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
+                )}
+              >
+                <DollarSign className="h-4 w-4" />
+                Revenue Insights
+              </TabsTrigger>
+              <TabsTrigger 
+                value="students" 
+                className={cn(
+                  'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                  activeTab === 'students'
+                    ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
+                    : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
+                )}
+              >
+                <Users className="h-4 w-4" />
+                Student Roster
+              </TabsTrigger>
+              <TabsTrigger 
+                value="engagement" 
+                className={cn(
+                  'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                  activeTab === 'engagement'
+                    ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
+                    : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
+                )}
+              >
+                <Activity className="h-4 w-4" />
+                Engagement
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Revenue Tab */}
           <TabsContent value="revenue" className="h-full">
