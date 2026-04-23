@@ -250,6 +250,101 @@ import { ChevronLeft as ChevronLeftIcon } from 'lucide-react'
 // MAIN COURSE BUILDER COMPONENT
 // ============================================
 
+function InsightsReportView({
+  type,
+  onMentionStudent
+}: {
+  type: 'poll' | 'question'
+  onMentionStudent: (studentName: string) => void
+}) {
+  const [reportType, setReportType] = useState<'simple' | 'detailed'>('simple')
+  const [selectedGroup, setSelectedGroup] = useState<{ label: string, students: string[] } | null>(null)
+
+  const simpleData = [
+    { label: 'Option A', count: 12, percent: 40, students: ['Alice', 'Bob', 'Charlie', 'Dave', 'Eve'] },
+    { label: 'Option B', count: 9, percent: 30, students: ['Frank', 'Grace', 'Heidi'] },
+    { label: 'Option C', count: 6, percent: 20, students: ['Ivan', 'Judy'] },
+    { label: 'Option D', count: 3, percent: 10, students: ['Mallory'] }
+  ]
+
+  const detailedData = [
+    { group: 'Male', data: [{ label: 'Option A', count: 5, students: ['Alice', 'Bob'] }, { label: 'Option B', count: 4, students: ['Charlie'] }] },
+    { group: 'Female', data: [{ label: 'Option A', count: 7, students: ['Dave', 'Eve'] }, { label: 'Option B', count: 5, students: ['Frank'] }] },
+    { group: 'US', data: [{ label: 'Option A', count: 8, students: ['Grace', 'Heidi'] }, { label: 'Option B', count: 3, students: ['Ivan'] }] },
+    { group: 'UK', data: [{ label: 'Option A', count: 4, students: ['Judy'] }, { label: 'Option B', count: 6, students: ['Mallory'] }] }
+  ]
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden mb-2 rounded-2xl border border-cyan-100 bg-white/60 shadow-sm backdrop-blur-md p-3">
+      <div className="flex items-center justify-between mb-3 border-b border-cyan-100 pb-2">
+        <span className="text-sm font-semibold text-cyan-800 uppercase tracking-wider">{type === 'poll' ? 'Poll Results' : 'Question Results'}</span>
+        <Button variant="outline" size="sm" className="h-7 text-xs bg-white text-cyan-700 hover:bg-cyan-50" onClick={() => setReportType(r => r === 'simple' ? 'detailed' : 'simple')}>
+          {reportType === 'simple' ? 'Detailed Report' : 'Simple Report'}
+        </Button>
+      </div>
+      <div className="flex-1 overflow-y-auto pr-2">
+        {reportType === 'simple' ? (
+          <div className="space-y-4">
+            {simpleData.map(item => (
+              <div key={item.label} className="cursor-pointer hover:bg-white p-2 rounded-xl transition-colors border border-transparent hover:border-cyan-100 shadow-sm" onClick={() => setSelectedGroup({ label: item.label, students: item.students })}>
+                <div className="flex justify-between text-xs font-medium text-slate-700 mb-1.5">
+                  <span>{item.label}</span>
+                  <span className="text-cyan-600">{item.count} ({item.percent}%)</span>
+                </div>
+                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-cyan-500 rounded-full" style={{ width: `${item.percent}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {detailedData.map(group => (
+              <div key={group.group} className="bg-white/50 p-2 rounded-xl border border-slate-100">
+                <h4 className="text-xs font-semibold text-slate-700 mb-2">{group.group}</h4>
+                <div className="space-y-2">
+                  {group.data.map(item => (
+                    <div key={item.label} className="cursor-pointer hover:bg-white p-1.5 rounded-lg transition-colors flex items-center justify-between group/item" onClick={() => setSelectedGroup({ label: `${group.group} - ${item.label}`, students: item.students })}>
+                      <span className="text-xs text-slate-600 group-hover/item:text-cyan-700">{item.label}</span>
+                      <span className="text-xs font-medium text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded-full">{item.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <Dialog open={!!selectedGroup} onOpenChange={(o) => !o && setSelectedGroup(null)}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="text-lg">Students in {selectedGroup?.label}</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[300px] mt-2 overflow-y-auto">
+            <div className="space-y-2 pr-4">
+              {selectedGroup?.students.map(s => (
+                <div key={s} className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-xl cursor-pointer border border-slate-100 transition-colors" onClick={() => {
+                  onMentionStudent(s)
+                  setSelectedGroup(null)
+                }}>
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-700 font-medium text-xs">
+                      {s.charAt(0)}
+                    </div>
+                    <span className="text-sm font-medium text-slate-700">{s}</span>
+                  </div>
+                  <Button size="sm" variant="ghost" className="h-8 text-xs text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50">@ Mention</Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
 // Main Course Builder
 
 // LessonSelectorDialog Removed
@@ -4466,12 +4561,13 @@ FEEDBACK: [your explanation]`
           onValueChange={v => setMainTab(v as 'live' | 'builder' | 'test-pci')}
           className="flex h-full w-full flex-1 flex-col"
         >
-          <TabsList
-            className={cn(
-              'mb-4 grid w-full gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)]',
-              insightsProps ? 'grid-cols-3' : 'grid-cols-2'
-            )}
-          >
+          <div className="min-h-[52px] shrink-0 mb-4">
+            <TabsList
+              className={cn(
+                'grid w-full h-full gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)]',
+                insightsProps ? 'grid-cols-3' : 'grid-cols-2'
+              )}
+            >
             {insightsProps && (
               <TabsTrigger
                 value="live"
@@ -4566,6 +4662,7 @@ FEEDBACK: [your explanation]`
               </div>
             </TabsTrigger>
           </TabsList>
+          </div>
 
           <div className="flex h-full w-full min-w-0 flex-1 gap-0">
             {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
@@ -6230,7 +6327,7 @@ FEEDBACK: [your explanation]`
                                               value="poll"
                                               className="flex flex-1 flex-col justify-end pt-2 data-[state=active]:flex data-[state=inactive]:hidden overflow-hidden"
                                             >
-                                              {showAIPoll && (
+                                              {showAIPoll ? (
                                                 <div className="flex-1 overflow-hidden mb-2 rounded-2xl border border-cyan-100 bg-white/60 shadow-sm backdrop-blur-md">
                                                   <AITeachingAssistant 
                                                     mode="poll"
@@ -6243,6 +6340,8 @@ FEEDBACK: [your explanation]`
                                                     onClose={() => setShowAIPoll(false)}
                                                   />
                                                 </div>
+                                              ) : (
+                                                <InsightsReportView type="poll" onMentionStudent={(name) => setPollPrompt(prev => prev ? `${prev} @[${name}](student:${name}) ` : `@[${name}](student:${name}) `)} />
                                               )}
                                               <div className={cn("flex flex-col rounded-2xl border border-cyan-100 bg-white/40 p-px shadow-xl backdrop-blur-md transition-all duration-300", showAIPoll ? "h-[30%] min-h-[120px]" : "h-[40%] min-h-[150px]")}>
                                                 <div className="flex flex-1 flex-col space-y-0.5 p-1">
@@ -6334,7 +6433,7 @@ FEEDBACK: [your explanation]`
                                               value="question"
                                               className="flex flex-1 flex-col justify-end pt-2 data-[state=active]:flex data-[state=inactive]:hidden overflow-hidden"
                                             >
-                                              {showAIQuestion && (
+                                              {showAIQuestion ? (
                                                 <div className="flex-1 overflow-hidden mb-2 rounded-2xl border border-cyan-100 bg-white/60 shadow-sm backdrop-blur-md">
                                                   <AITeachingAssistant 
                                                     mode="question"
@@ -6347,6 +6446,8 @@ FEEDBACK: [your explanation]`
                                                     onClose={() => setShowAIQuestion(false)}
                                                   />
                                                 </div>
+                                              ) : (
+                                                <InsightsReportView type="question" onMentionStudent={(name) => setQuestionPrompt(prev => prev ? `${prev} @[${name}](student:${name}) ` : `@[${name}](student:${name}) `)} />
                                               )}
                                               <div className={cn("flex flex-col rounded-2xl border border-cyan-100 bg-white/40 p-px shadow-xl backdrop-blur-md transition-all duration-300", showAIQuestion ? "h-[30%] min-h-[120px]" : "h-[40%] min-h-[150px]")}>
                                                 <div className="flex flex-1 flex-col space-y-0.5 p-1">

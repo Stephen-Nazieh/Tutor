@@ -108,6 +108,8 @@ interface SessionOverviewItem {
   courseId?: string | null
 }
 
+import { MentionTextarea } from '@/components/class/mention-textarea'
+
 interface CourseItem {
   id: string
   name: string
@@ -467,11 +469,13 @@ export default function TutorReports() {
 function ItemAIChat({
   course,
   session,
+  courses,
   sessions,
   students,
 }: {
   course: CourseItem | null
   session?: SessionOverviewItem | null
+  courses: CourseItem[]
   sessions: SessionOverviewItem[]
   students: Student[]
 }) {
@@ -569,6 +573,14 @@ function ItemAIChat({
     [handleSend]
   )
 
+  const mentionItems = useMemo(() => {
+    const items: { id: string; type: string; label: string; subtitle?: string }[] = []
+    courses.forEach(c => items.push({ id: c.id, type: 'course', label: c.name, subtitle: 'Course' }))
+    sessions.forEach(s => items.push({ id: s.id, type: 'session', label: s.title, subtitle: 'Session' }))
+    students.forEach(s => items.push({ id: s.id, type: 'student', label: s.name, subtitle: 'Student' }))
+    return items
+  }, [courses, sessions, students])
+
   const isCourse = !!course
   const isSession = !!session
 
@@ -653,7 +665,8 @@ function ItemAIChat({
         {/* Input Area */}
         <div className="p-4 shrink-0">
           <div className="relative flex items-end gap-2 rounded-2xl border border-gray-200 bg-white p-1 pl-3 shadow-sm focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-200 transition-all">
-            <textarea
+            <MentionTextarea
+              mentionItems={mentionItems}
               placeholder={
                 isCourse 
                   ? "Ask about course performance..." 
@@ -661,7 +674,7 @@ function ItemAIChat({
                   ? "Ask about this session..." 
                   : "Ask a general question..."
               }
-              className="max-h-[120px] min-h-[44px] w-full resize-none bg-transparent py-3 text-sm outline-none placeholder:text-gray-400"
+              className="max-h-[120px] min-h-[44px] w-full resize-none bg-transparent py-3 text-sm outline-none placeholder:text-gray-400 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -939,6 +952,7 @@ function CoursesAndClassesTab() {
         <ItemAIChat 
           course={selectedCourse} 
           session={selectedSession} 
+          courses={courses}
           sessions={sessionsOverview} 
           students={students} 
         />
