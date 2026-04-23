@@ -393,7 +393,7 @@ function CourseBuilderInsightsRouteInner({
                 onChange={e => {
                   const newName = e.target.value
                   if (newName.trim() !== '') {
-                    onCourseNameChange(courseId, newName)
+                    onCourseNameChange(newName)
                   }
                 }}
                 placeholder="Course Name..."

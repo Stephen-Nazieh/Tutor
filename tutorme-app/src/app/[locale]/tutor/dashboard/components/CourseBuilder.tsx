@@ -1419,7 +1419,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       homework: (lesson.homework || []).map(cloneAssessment),
     })
 
-    const handlePciSend = async (type: 'task' | 'assessment') => {
+    const handlePciSend = async (type: 'task' | 'assessment', overrideMessage?: string) => {
       const isTask = type === 'task'
       let taskId = loadedTaskId
       let assessmentId = loadedAssessmentId
@@ -1436,23 +1436,27 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         ? taskExtensionPciInputs[taskBuilder.activeExtensionId] || ''
         : taskPciInputMap[taskId || ''] || ''
       const assessmentInput = assessmentPciInputMap[assessmentId || ''] || ''
-      const input = isTask ? activeTaskInput : assessmentInput
+      const input = overrideMessage || (isTask ? activeTaskInput : assessmentInput)
       const assessmentLoading = assessmentPciLoadingMap[assessmentId || ''] || false
       const loading = isTask ? taskPciLoading : assessmentLoading
       if (!input.trim() || loading) return
 
       const userMessage = input.trim()
-      if (isTask) {
-        if (taskBuilder.activeExtensionId) {
-          setTaskExtensionPciInputs(prev => ({
-            ...prev,
-            [taskBuilder.activeExtensionId as string]: '',
-          }))
+      
+      // Only clear input map if we didn't use an override
+      if (!overrideMessage) {
+        if (isTask) {
+          if (taskBuilder.activeExtensionId) {
+            setTaskExtensionPciInputs(prev => ({
+              ...prev,
+              [taskBuilder.activeExtensionId as string]: '',
+            }))
+          } else {
+            setTaskPciInputMap(prev => ({ ...prev, [taskId || '']: '' }))
+          }
         } else {
-          setTaskPciInputMap(prev => ({ ...prev, [taskId || '']: '' }))
+          setAssessmentPciInputMap(prev => ({ ...prev, [assessmentId || '']: '' }))
         }
-      } else {
-        setAssessmentPciInputMap(prev => ({ ...prev, [assessmentId || '']: '' }))
       }
 
       const currentTaskMessages = taskBuilder.activeExtensionId
@@ -3677,6 +3681,15 @@ FEEDBACK: [your explanation]`
                     const firstNew = newTasks[0]
                     setSelectedItem({ type: 'task', id: firstNew.id })
                     loadTaskIntoBuilder(firstNew)
+                    
+                    // Show PDF by default, hide text
+                    setTaskPdfVisibleMap(prev => ({ ...prev, [firstNew.id]: true }))
+                    setTaskTextVisibleMap(prev => ({ ...prev, [firstNew.id]: false }))
+
+                    // Auto-send first PCI message
+                    setTimeout(() => {
+                      handlePciSend('task', `I just uploaded a document named '${assetToLoad?.name}'. Please provide a brief summary of its content, especially noting any diagrams or images if applicable, and ask me to confirm if you got it right so we can build a rubric together.`)
+                    }, 500)
                   }
 
                   toast.success(`Created ${pages.length} Task(s) from '${assetToLoad?.name}'`)
@@ -3766,11 +3779,20 @@ FEEDBACK: [your explanation]`
                     extensions.reduce((acc, ext) => ({ ...acc, [ext.id]: '' }), {})
                   )
 
+                  // Show PDF by default, hide text
+                  setTaskPdfVisibleMap(prev => ({ ...prev, [newTask.id]: true }))
+                  setTaskTextVisibleMap(prev => ({ ...prev, [newTask.id]: false }))
+
                   toast.success(
                     `Created Task with ${extensions.length} extension(s) from '${assetToLoad?.name}'`
                   )
                   setLoadAsModalOpen(false)
                   setAssetToLoad(null)
+                  
+                  // Auto-send first PCI message
+                  setTimeout(() => {
+                    handlePciSend('task', `I just uploaded a document named '${assetToLoad?.name}'. Please provide a brief summary of its content, especially noting any diagrams or images if applicable, and ask me to confirm if you got it right so we can build a rubric together.`)
+                  }, 500)
                 }}
               >
                 <Layers2 className="mt-1 h-4 w-4 shrink-0 text-green-500" />
@@ -3857,9 +3879,18 @@ FEEDBACK: [your explanation]`
                   setSelectedItem({ type: 'assessment', id: targetAssess.id })
                   loadAssessmentIntoBuilder(targetAssess)
 
+                  // Show PDF by default, hide text
+                  setAssessmentPdfVisibleMap(prev => ({ ...prev, [targetAssess.id]: true }))
+                  setAssessmentTextVisibleMap(prev => ({ ...prev, [targetAssess.id]: false }))
+
                   toast.success(`Loaded '${assetToLoad?.name}' into Assessment`)
                   setLoadAsModalOpen(false)
                   setAssetToLoad(null)
+
+                  // Auto-send first PCI message
+                  setTimeout(() => {
+                    handlePciSend('assessment', `I just uploaded a document named '${assetToLoad?.name}'. Please provide a brief summary of its content, especially noting any diagrams or images if applicable, and ask me to confirm if you got it right so we can build a rubric together.`)
+                  }, 500)
                 }}
               >
                 <FileQuestion className="mt-1 h-4 w-4 shrink-0 text-purple-500" />
@@ -4145,7 +4176,7 @@ FEEDBACK: [your explanation]`
       {}
     )
 
-    const taskTextVisible = loadedTaskId ? (taskTextVisibleMap[loadedTaskId] ?? true) : true
+    const taskTextVisible = loadedTaskId ? (taskTextVisibleMap[loadedTaskId] ?? false) : false
     const taskPdfVisible = loadedTaskId ? (taskPdfVisibleMap[loadedTaskId] ?? true) : true
 
     const setTaskTextVisible = (val: boolean) => {
@@ -4156,8 +4187,8 @@ FEEDBACK: [your explanation]`
     }
 
     const assessmentTextVisible = loadedAssessmentId
-      ? (assessmentTextVisibleMap[loadedAssessmentId] ?? true)
-      : true
+      ? (assessmentTextVisibleMap[loadedAssessmentId] ?? false)
+      : false
     const assessmentPdfVisible = loadedAssessmentId
       ? (assessmentPdfVisibleMap[loadedAssessmentId] ?? true)
       : true
