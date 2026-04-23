@@ -422,6 +422,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       },
       [onLeftPanelHiddenChange]
     )
+    const [rightPanelHidden, setRightPanelHidden] = useState(false)
     const [leftPanelWidth, setLeftPanelWidth] = useState(340)
     const [leftPanelResizing, setLeftPanelResizing] = useState(false)
     const leftPanelRef = useRef<HTMLDivElement>(null)
@@ -4609,7 +4610,7 @@ FEEDBACK: [your explanation]`
                             >
                               <ChevronLeftIcon className="h-4 w-4" />
                             </Button>
-                            <div className="text-sm font-semibold text-[#1F2933]">Course Syllabus</div>
+                            <div className="text-sm font-semibold text-[#1F2933]">Course Directory</div>
                           </div>
                           <div className="text-xs text-[#667085] ml-9">Navigate lessons, tasks, and assessments</div>
                         </div>
@@ -6778,15 +6779,15 @@ FEEDBACK: [your explanation]`
                                         }}
                                       >
                                         {/* Centered Pill for Test button */}
-                                        <div className="pointer-events-none absolute left-1/2 top-1 z-20 flex -translate-x-1/2 items-center justify-center">
-                                          <div className="pointer-events-auto flex h-7 items-center gap-1 rounded-full border border-gray-200 bg-white/90 px-2 shadow-sm backdrop-blur-sm">
+                                        <div className="pointer-events-none absolute left-1/2 top-0 z-20 flex -translate-x-1/2 items-center justify-center">
+                                          <div className="pointer-events-auto flex h-11 items-center gap-1 bg-white/90 px-2 backdrop-blur-sm border-x border-b border-[#E5E7EB] rounded-b-xl shadow-sm">
                                             <span className="text-xs font-light text-gray-400">
                                               (
                                             </span>
                                             <Button
                                               variant="ghost"
                                               size="sm"
-                                              className="h-5 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
+                                              className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
                                               onClick={() => {
                                                 const content = taskBuilder.activeExtensionId
                                                   ? taskBuilder.extensions.find(
@@ -6831,7 +6832,7 @@ FEEDBACK: [your explanation]`
                                             )}
                                           >
                                             <div className="flex h-11 shrink-0 items-center justify-between border-b border-[#E5E7EB] bg-white px-2">
-                                              <div className="flex w-full items-center gap-2">
+                                              <div className="flex w-full items-center justify-between gap-2">
                                                 <Button
                                                   variant="ghost"
                                                   size="sm"
@@ -6839,12 +6840,15 @@ FEEDBACK: [your explanation]`
                                                     if (!taskPdfVisible) setTaskPdfVisible(true)
                                                     setTaskTextVisible(false)
                                                   }}
-                                                  className="h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                                                  className={cn(
+                                                    "h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-700",
+                                                    taskPdfVisible && taskTextVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+                                                  )}
                                                   title="Hide Text"
                                                 >
                                                   <ChevronLeft className="h-4 w-4" />
                                                 </Button>
-                                                <div className="flex items-center gap-1 rounded-lg border border-[#E5E7EB] bg-slate-50/50 p-1">
+                                                <div className="flex items-center justify-center absolute left-1/2 -translate-x-1/2 gap-1 rounded-lg border border-[#E5E7EB] bg-slate-50/50 p-1">
                                                   <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -6875,6 +6879,19 @@ FEEDBACK: [your explanation]`
                                                     A+
                                                   </Button>
                                                 </div>
+                                                {!taskPdfVisible ? (
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setTaskPdfVisible(true)}
+                                                    className="h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                                                    title="Show Preview"
+                                                  >
+                                                    <ChevronRight className="h-4 w-4" />
+                                                  </Button>
+                                                ) : (
+                                                  <div className="w-8" />
+                                                )}
                                               </div>
                                             </div>
                                             <AutoTextarea
@@ -6969,7 +6986,7 @@ FEEDBACK: [your explanation]`
                                           )}
                                         >
                                             {!taskTextVisible && (
-                                              <div className="absolute left-2 top-2 z-10">
+                                              <div className="absolute left-2 top-2 z-10 flex gap-2">
                                                 <Button
                                                   variant="outline"
                                                   size="sm"
@@ -7001,7 +7018,7 @@ FEEDBACK: [your explanation]`
                                                 taskSourceDocument.mimeType !== 'application/pdf' &&
                                                 taskSourceDocument.mimeType.startsWith('image/') ? (
                                                 <div className="absolute inset-0 flex items-center justify-center bg-white p-4">
-                                                  <div className="absolute left-0 top-0 flex h-9 w-full shrink-0 items-center justify-between border-b bg-slate-50 p-1">
+                                                  <div className="absolute left-0 top-0 flex h-11 w-full shrink-0 items-center justify-between border-b border-[#E5E7EB] bg-white p-1">
                                                     <div />
                                                     <Button
                                                       variant="ghost"
@@ -7031,7 +7048,7 @@ FEEDBACK: [your explanation]`
                                                   'image/'
                                                 ) ? (
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-white p-6">
-                                                  <div className="absolute left-0 top-0 flex h-9 w-full shrink-0 items-center justify-between border-b bg-slate-50 p-1">
+                                                  <div className="absolute left-0 top-0 flex h-11 w-full shrink-0 items-center justify-between border-b border-[#E5E7EB] bg-white p-1">
                                                     <div />
                                                     <Button
                                                       variant="ghost"
@@ -7059,7 +7076,7 @@ FEEDBACK: [your explanation]`
                                                 </div>
                                               ) : (
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
-                                                  <div className="absolute left-0 top-0 flex h-9 w-full shrink-0 items-center justify-between border-b bg-slate-50 p-1">
+                                                  <div className="absolute left-0 top-0 flex h-11 w-full shrink-0 items-center justify-between border-b border-[#E5E7EB] bg-white p-1">
                                                     <div />
                                                     <Button
                                                       variant="ghost"
@@ -7245,8 +7262,8 @@ FEEDBACK: [your explanation]`
                                         }}
                                       >
                                         {/* Centered Pill for Test, Generate DMI, and Version History */}
-                                        <div className="pointer-events-none absolute left-1/2 top-1 z-20 flex -translate-x-1/2 items-center justify-center">
-                                          <div className="pointer-events-auto flex h-7 items-center gap-1 rounded-full border border-gray-200 bg-white/90 px-2 shadow-sm backdrop-blur-sm">
+                                        <div className="pointer-events-none absolute left-1/2 top-0 z-20 flex -translate-x-1/2 items-center justify-center">
+                                          <div className="pointer-events-auto flex h-11 items-center gap-1 bg-white/90 px-2 backdrop-blur-sm border-x border-b border-[#E5E7EB] rounded-b-xl shadow-sm">
                                             <span className="text-xs font-light text-gray-400">
                                               (
                                             </span>
@@ -7254,7 +7271,7 @@ FEEDBACK: [your explanation]`
                                             <Button
                                               variant="ghost"
                                               size="sm"
-                                              className="h-5 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
+                                              className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
                                               onClick={() => {
                                                 const content = assessmentBuilder.taskContent
                                                 setTestPciScores({})
@@ -7290,7 +7307,7 @@ FEEDBACK: [your explanation]`
                                             <Button
                                               variant="ghost"
                                               size="sm"
-                                              className="h-5 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
+                                              className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
                                               disabled={dmiGenerating}
                                               onClick={() => {
                                                 const content = assessmentBuilder.taskContent
@@ -7317,7 +7334,7 @@ FEEDBACK: [your explanation]`
                                             <Button
                                               variant="ghost"
                                               size="sm"
-                                              className="h-5 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
+                                              className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
                                               onClick={() => setShowDmiVersionList(true)}
                                               title="View DMI Versions"
                                             >
@@ -7344,7 +7361,7 @@ FEEDBACK: [your explanation]`
                                             )}
                                           >
                                             <div className="flex h-11 shrink-0 items-center justify-between border-b border-[#E5E7EB] bg-white px-2">
-                                              <div className="flex w-full items-center gap-2">
+                                              <div className="flex w-full items-center justify-between gap-2">
                                                 <Button
                                                   variant="ghost"
                                                   size="sm"
@@ -7353,12 +7370,15 @@ FEEDBACK: [your explanation]`
                                                       setAssessmentPdfVisible(true)
                                                     setAssessmentTextVisible(false)
                                                   }}
-                                                  className="h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                                                  className={cn(
+                                                    "h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-700",
+                                                    assessmentPdfVisible && assessmentTextVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+                                                  )}
                                                   title="Hide Text"
                                                 >
                                                   <ChevronLeft className="h-4 w-4" />
                                                 </Button>
-                                                <div className="flex items-center gap-1 rounded-lg border border-[#E5E7EB] bg-slate-50/50 p-1">
+                                                <div className="flex items-center justify-center absolute left-1/2 -translate-x-1/2 gap-1 rounded-lg border border-[#E5E7EB] bg-slate-50/50 p-1">
                                                   <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -7389,6 +7409,19 @@ FEEDBACK: [your explanation]`
                                                     A+
                                                   </Button>
                                                 </div>
+                                                {!assessmentPdfVisible ? (
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setAssessmentPdfVisible(true)}
+                                                    className="h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                                                    title="Show Preview"
+                                                  >
+                                                    <ChevronRight className="h-4 w-4" />
+                                                  </Button>
+                                                ) : (
+                                                  <div className="w-8" />
+                                                )}
                                               </div>
                                             </div>
                                             <AutoTextarea
@@ -7438,7 +7471,7 @@ FEEDBACK: [your explanation]`
                                             )}
                                           >
                                             {!assessmentTextVisible && (
-                                              <div className="absolute left-2 top-2 z-10">
+                                              <div className="absolute left-2 top-2 z-10 flex gap-2">
                                                 <Button
                                                   variant="outline"
                                                   size="sm"
@@ -7467,7 +7500,7 @@ FEEDBACK: [your explanation]`
                                                 />
                                               ) : (
                                                 <div className="flex h-full flex-col items-center justify-center text-gray-400">
-                                                  <div className="absolute left-0 top-0 flex h-9 w-full shrink-0 items-center justify-between border-b bg-slate-50 p-1">
+                                                  <div className="absolute left-0 top-0 flex h-11 w-full shrink-0 items-center justify-between border-b border-[#E5E7EB] bg-white p-1">
                                                     <div />
                                                     <Button
                                                       variant="ghost"

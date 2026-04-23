@@ -108,7 +108,7 @@ export function PDFViewer({
 
       {/* Toolbar — zoom + page navigation */}
       {!loading && !error && numPages > 0 && (
-        <div className="flex h-9 shrink-0 items-center justify-between border-b bg-slate-50 px-3">
+        <div className="flex h-11 shrink-0 items-center justify-between border-b border-[#E5E7EB] bg-white px-2">
           <div className="flex items-center gap-1.5">
             {!hidePageNavigation && (
               <>
@@ -133,7 +133,7 @@ export function PDFViewer({
             )}
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center justify-end w-full">
             <button
               onClick={() => changeScale(-0.25)}
               disabled={scale <= 0.5}
