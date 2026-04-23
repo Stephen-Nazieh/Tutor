@@ -4641,7 +4641,7 @@ FEEDBACK: [your explanation]`
                   style={{ width: leftPanelWidth }}
                   className="flex min-h-0 shrink-0 flex-col"
                 >
-                  <Card className="border-border bg-card flex h-full min-h-0 flex-1 flex-col rounded-2xl border shadow-xl ring-1 ring-black/5">
+                  <Card className="bg-transparent flex h-full min-h-0 flex-1 flex-col border-none shadow-none">
                     <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-px">
                       {/* Header with Hide, Import, and +Lesson buttons */}
                       <div className="mb-1 flex items-center justify-between">
@@ -6153,7 +6153,7 @@ FEEDBACK: [your explanation]`
               <div className="flex min-h-0 w-full flex-1 grow flex-col items-stretch gap-4">
                 {mainTab !== 'builder' && (
                   <div className="h-full w-full flex-1">
-                    <Card className="border-border bg-card flex h-full w-full min-w-0 flex-1 overflow-hidden rounded-2xl border shadow-xl ring-1 ring-black/5">
+                    <Card className="bg-transparent flex h-full w-full min-w-0 flex-1 overflow-hidden border-none shadow-none">
                       <CardContent className="flex h-full min-h-0 w-full flex-col overflow-hidden p-0 pt-1">
                         <CardTitle className="mb-1 flex items-center justify-between gap-2 px-1 text-base font-semibold">
                           <div>
@@ -6661,7 +6661,7 @@ FEEDBACK: [your explanation]`
                 {mainTab === 'builder' && (
                   <div className="h-full w-full flex-1">
                     {/* COMBINED BUILDER: Task & Assessment Tabs */}
-                    <Card className="border-border bg-card/95 flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border shadow-xl backdrop-blur-md">
+                    <Card className="bg-transparent flex h-full w-full flex-shrink-0 flex-col overflow-hidden border-none shadow-none">
                       <CardContent className="flex h-full flex-col overflow-hidden p-px">
                         <Tabs
                           value={mainBuilderTab}
