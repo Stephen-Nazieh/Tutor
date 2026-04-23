@@ -4342,7 +4342,7 @@ FEEDBACK: [your explanation]`
     return (
       <div
         className={cn(
-          'flex h-full w-full flex-col items-stretch bg-transparent',
+          'flex h-full w-full flex-col items-stretch',
           panelMode === 'live-class' && 'pt-3'
         )}
       >
@@ -4355,18 +4355,20 @@ FEEDBACK: [your explanation]`
               onMainTabChange(v as 'live' | 'builder' | 'test-pci')
             }
           }}
-          className="flex h-full w-full flex-1 flex-col px-4 sm:px-6 pt-6"
+          className="flex h-full w-full flex-1 flex-col px-4 sm:px-6 pt-0 bg-gray-50/50"
         >
           {portalTarget ? (
             createPortal(
-              <div className="min-h-[52px] shrink-0 w-full">
+              <div className="min-h-[52px] shrink-0 w-full mb-0">
                 <TabsList className="grid w-full h-[52px] gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)] grid-cols-3">
                   <TabsTrigger 
                     value="live" 
                     className={cn(
                       'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
                       mainTab === 'live'
-                        ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
+                        ? (!isSessionActive 
+                            ? 'bg-white text-green-600 border border-green-200 shadow-[0_1px_2px_rgba(34,197,94,0.12)]' 
+                            : 'bg-white text-red-600 border border-red-200 shadow-[0_1px_2px_rgba(220,38,38,0.12)]')
                         : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
                     )}
                     onClick={e => {
@@ -4375,8 +4377,31 @@ FEEDBACK: [your explanation]`
                       }
                     }}
                   >
-                    <VideoIcon className={cn('h-4 w-4', isLiveMode ? 'animate-pulse text-[#2563EB]' : '')} />
-                    Go Live
+                    <div
+                      className={cn(
+                        'relative z-10 flex items-center gap-2 rounded-full px-2 py-0.5 transition-colors',
+                        mainTab === 'live'
+                          ? 'pointer-events-auto cursor-pointer'
+                          : 'pointer-events-none'
+                      )}
+                      onPointerDown={e => {
+                        if (mainTab === 'live') {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          setComingSoonDialog(true)
+                        }
+                      }}
+                    >
+                      <VideoIcon className={cn(
+                        'h-4 w-4 transition-all duration-300', 
+                        isLiveMode 
+                          ? (!isSessionActive 
+                              ? 'animate-pulse text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
+                              : 'animate-pulse text-red-500 drop-shadow-[0_0_8px_rgba(220,38,38,0.8)]')
+                          : ''
+                      )} />
+                      {isSessionActive ? 'End' : 'Start'}
+                    </div>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="test-pci" 
@@ -4404,8 +4429,31 @@ FEEDBACK: [your explanation]`
                       }
                     }}
                   >
-                    <PencilRuler className="h-4 w-4" />
-                    Build
+                    <div
+                      className={cn(
+                        'relative z-10 flex items-center gap-2 rounded-full px-2 py-0.5 transition-colors',
+                        mainTab === 'builder'
+                          ? 'pointer-events-auto cursor-pointer'
+                          : 'pointer-events-none',
+                        isLiveMode && 'animate-pulse shadow-[0_0_8px_rgba(37,99,235,0.5)] border-blue-300/50 bg-blue-50/30'
+                      )}
+                      onPointerDown={e => {
+                        if (mainTab === 'builder') {
+                          e.preventDefault()
+                          e.stopPropagation()
+
+                          // Always allow toggling for now since Live feature is "Coming Soon"
+                          if (onSaveModeChange) {
+                            onSaveModeChange(saveMode === 'live' ? 'draft' : 'live')
+                          } else {
+                            setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
+                          }
+                        }
+                      }}
+                    >
+                      <PencilRuler className="h-4 w-4" />
+                      Build
+                    </div>
                   </TabsTrigger>
                 </TabsList>
               </div>,
@@ -4421,27 +4469,19 @@ FEEDBACK: [your explanation]`
             </div>
           )}
 
-          <div className="flex h-full w-full min-w-0 flex-1 gap-0 pb-6 pt-0">
+          <div className="relative flex h-full w-full min-w-0 flex-1 gap-0 pb-6 pt-0">
             {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
-            {leftPanelHidden ? (
+            {leftPanelHidden && (
               <div
-                className="flex w-12 shrink-0 cursor-pointer flex-col items-center rounded-2xl border border-[#E5E7EB] bg-white py-4 shadow-sm transition-colors hover:bg-slate-50 mr-4"
+                className="absolute left-0 top-1/2 z-50 -translate-y-1/2 flex h-16 w-8 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:bg-slate-50 hover:w-10"
                 onClick={() => setLeftPanelHidden(false)}
                 title="Show directory"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EEF4FF] text-[#2B5FB8]">
-                  <ChevronRight className="h-5 w-5" />
-                </div>
-                <div className="mt-8 flex flex-1 items-start justify-center">
-                  <span
-                    className="text-xs font-bold tracking-[0.2em] text-[#98A2B3]"
-                    style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
-                  >
-                    DIRECTORY
-                  </span>
-                </div>
+                <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
               </div>
-            ) : (
+            )}
+            
+            {!leftPanelHidden && (
               <>
                 <div
                   ref={leftPanelRef}

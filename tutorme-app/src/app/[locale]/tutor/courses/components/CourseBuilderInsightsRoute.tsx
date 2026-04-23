@@ -324,8 +324,8 @@ function CourseBuilderInsightsRouteInner({
       data-tutor-route="insights-builder"
       style={model.themeStyle}
     >
-      <div className="border-border bg-card sticky top-0 z-10 w-full border-b">
-        <div className="flex w-full flex-col gap-6 px-4 pt-6 sm:px-6 pb-6">
+      <div className="bg-gray-50 sticky top-0 z-10 w-full pb-2">
+        <div className="flex w-full flex-col gap-6 px-4 pt-6 sm:px-6 pb-0">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full">
             <div className="flex items-center gap-4">
               <Link href="/tutor/dashboard">
@@ -395,7 +395,7 @@ function CourseBuilderInsightsRouteInner({
 
                   {onCourseNameChange && courseId && courseId !== 'insights-draft' && (
                     <input
-                      className="h-10 min-w-[200px] border-none bg-transparent px-2 text-2xl font-bold focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none hover:bg-slate-100 rounded-md transition-colors placeholder:text-gray-400"
+                      className="h-9 min-w-[200px] border-none bg-transparent px-2 text-sm font-semibold focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none hover:bg-slate-100 rounded-md transition-colors placeholder:text-gray-400"
                       value={courseName || ''}
                       onChange={e => {
                         const newName = e.target.value
@@ -515,7 +515,7 @@ function CourseBuilderInsightsRouteInner({
           </div>
           
           {/* The outer container for Course Builder Tabs */}
-          <div id="course-builder-tabs-portal" className="w-full mt-4"></div>
+          <div id="course-builder-tabs-portal" className="w-full mt-2"></div>
         </div>
       </div>
 

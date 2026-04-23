@@ -313,7 +313,7 @@ function StudentFeedbackContent() {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      <div className="border-b bg-white px-4 sm:px-6 pt-6 pb-6">
+      <div className="bg-gray-50 px-4 sm:px-6 pt-6 pb-2">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full">
           <div className="flex items-center gap-4">
             <Button
@@ -377,7 +377,7 @@ function StudentFeedbackContent() {
             )}
           </div>
         )}
-        <div id="student-live-tabs-portal" className="w-full mt-4"></div>
+        <div id="student-live-tabs-portal" className="w-full mt-2" />
       </div>
 
       {sessionContext?.roomUrl && (
@@ -386,12 +386,12 @@ function StudentFeedbackContent() {
         </div>
       )}
 
-      <div className="flex-1 p-4 sm:p-6 pt-6">
+      <div className="flex-1 p-4 sm:p-6 pt-4">
         <div className="flex h-full flex-col gap-6">
           <Tabs defaultValue="task" className="flex flex-1 flex-col">
             {portalTarget ? (
               createPortal(
-                <div className="min-h-[52px] shrink-0 w-full mt-2">
+                <div className="min-h-[52px] shrink-0 w-full mb-0">
                   <TabsList className="grid w-full h-[52px] gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)] grid-cols-3">
                     <TabsTrigger
                       value="task"
@@ -585,7 +585,7 @@ function StudentFeedbackContent() {
       <Sheet open={showTasksPanel} onOpenChange={setShowTasksPanel}>
         <SheetContent side="right" className="w-[340px] sm:w-[380px]">
           <SheetHeader>
-            <SheetTitle>Tasks</SheetTitle>
+            <SheetTitle>Tasks & Assessments</SheetTitle>
           </SheetHeader>
           <div className="mt-4 space-y-2">
             {tasks.length === 0 && <p className="text-sm text-gray-500">No tasks deployed yet.</p>}
