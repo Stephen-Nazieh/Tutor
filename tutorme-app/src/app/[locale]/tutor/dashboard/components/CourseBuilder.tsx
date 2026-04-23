@@ -7519,7 +7519,7 @@ FEEDBACK: [your explanation]`
                                                 size="sm"
                                                 className="h-8 rounded-full text-xs font-medium text-gray-600 hover:text-gray-900 bg-white shadow-sm"
                                                 onClick={() => {
-                                                  const content = assessmentBuilder.description
+                                                  const content = assessmentBuilder.taskContent
 
                                                   setTestPciScores({})
                                                   setTestPciInputs({
