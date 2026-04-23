@@ -658,18 +658,26 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
     // Insights panel state (per item)
     const [insightsTabMap, setInsightsTabMap] = useState<
-      Record<string, 'analytics' | 'poll' | 'question' | 'assistant'>
+      Record<string, 'analytics' | 'poll' | 'question'>
     >({})
     const [pollPromptMap, setPollPromptMap] = useState<Record<string, string>>({})
     const [questionPromptMap, setQuestionPromptMap] = useState<Record<string, string>>({})
+    const [showAIPollMap, setShowAIPollMap] = useState<Record<string, boolean>>({})
+    const [showAIQuestionMap, setShowAIQuestionMap] = useState<Record<string, boolean>>({})
 
     const currentInsightsId =
       mainBuilderTab === 'task' && taskBuilder.activeExtensionId
         ? taskBuilder.activeExtensionId
         : activeInsightsTaskId || 'default'
     const insightsTab = insightsTabMap[currentInsightsId] ?? 'analytics'
-    const setInsightsTab = (val: 'analytics' | 'poll' | 'question' | 'assistant') =>
+    const setInsightsTab = (val: 'analytics' | 'poll' | 'question') =>
       setInsightsTabMap(prev => ({ ...prev, [currentInsightsId]: val }))
+
+    const showAIPoll = showAIPollMap[currentInsightsId] ?? false
+    const setShowAIPoll = (val: boolean) => setShowAIPollMap(prev => ({ ...prev, [currentInsightsId]: val }))
+
+    const showAIQuestion = showAIQuestionMap[currentInsightsId] ?? false
+    const setShowAIQuestion = (val: boolean) => setShowAIQuestionMap(prev => ({ ...prev, [currentInsightsId]: val }))
 
     const pollPrompt = pollPromptMap[currentInsightsId] ?? 'Did you find this task difficult'
     const setPollPrompt = (val: string) =>
@@ -677,76 +685,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
     const questionPrompt = questionPromptMap[currentInsightsId] ?? 'Do you have a question about this task?'
     const setQuestionPrompt = (val: string) => setQuestionPromptMap(prev => ({ ...prev, [currentInsightsId]: val }))
-
-    const [generatingPoll, setGeneratingPoll] = useState(false)
-    const handleGeneratePollPrompt = async () => {
-      if (!activeInsightsTask) return
-      setGeneratingPoll(true)
-      try {
-        const content = (activeInsightsTask.description || activeInsightsTask.title || '').slice(0, 800)
-        const pci = (activeInsightsTask.instructions || '').slice(0, 800)
-        const prompt = `You are a Socratic AI tutor. Based on this lesson task, generate a single engaging poll question (1 sentence, no options needed, just the question) to check students' understanding or feelings about the topic.
-        
-Task Content:
-${content}
-
-PCI Instructions:
-${pci}
-
-Respond ONLY with the poll question.`
-        
-        const response = await fetch('/api/ai/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: prompt }),
-        })
-        if (!response.ok) throw new Error('Failed to generate')
-        const data = await response.json()
-        if (data.response) {
-          setPollPrompt(data.response.replace(/^["']|["']$/g, '').trim())
-          toast.success('Poll generated')
-        }
-      } catch (error) {
-        toast.error('Failed to generate poll')
-      } finally {
-        setGeneratingPoll(false)
-      }
-    }
-
-    const [generatingQuestion, setGeneratingQuestion] = useState(false)
-    const handleGenerateQuestionPrompt = async () => {
-      if (!activeInsightsTask) return
-      setGeneratingQuestion(true)
-      try {
-        const content = (activeInsightsTask.description || activeInsightsTask.title || '').slice(0, 800)
-        const pci = (activeInsightsTask.instructions || '').slice(0, 800)
-        const prompt = `You are a Socratic AI tutor. Based on this lesson task, generate a single Socratic question (1-2 sentences) to prompt deeper student reflection and critical thinking. Do not give away the answer.
-        
-Task Content:
-${content}
-
-PCI Instructions:
-${pci}
-
-Respond ONLY with the Socratic question.`
-        
-        const response = await fetch('/api/ai/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: prompt }),
-        })
-        if (!response.ok) throw new Error('Failed to generate')
-        const data = await response.json()
-        if (data.response) {
-          setQuestionPrompt(data.response.replace(/^["']|["']$/g, '').trim())
-          toast.success('Question generated')
-        }
-      } catch (error) {
-        toast.error('Failed to generate question')
-      } finally {
-        setGeneratingQuestion(false)
-      }
-    }
 
     const mentionItems: MentionItem[] = useMemo(() => {
       const items: MentionItem[] = []
@@ -4511,7 +4449,7 @@ FEEDBACK: [your explanation]`
     return (
       <div
         className={cn(
-          'flex h-full w-full flex-col items-stretch space-y-4',
+          'flex h-full w-full flex-col items-stretch space-y-4 bg-[#F8FAFC]',
           panelMode === 'live-class' && 'pt-3'
         )}
       >
@@ -4522,7 +4460,7 @@ FEEDBACK: [your explanation]`
         >
           <TabsList
             className={cn(
-              'mb-4 grid w-full gap-2 rounded-xl p-1',
+              'mb-4 grid w-full gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)]',
               insightsProps ? 'grid-cols-3' : 'grid-cols-2'
             )}
           >
@@ -4530,7 +4468,10 @@ FEEDBACK: [your explanation]`
               <TabsTrigger
                 value="live"
                 className={cn(
-                  'group gap-0 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm'
+                  'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                  mainTab === 'live'
+                    ? 'bg-white text-green-600 border border-green-200 shadow-[0_1px_2px_rgba(34,197,94,0.12)]'
+                    : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
                 )}
                 onClick={e => {
                   if (mainTab !== 'live') {
@@ -4542,7 +4483,7 @@ FEEDBACK: [your explanation]`
                   className={cn(
                     'relative z-10 flex items-center gap-2 rounded-full border-l border-r px-2 py-0.5 transition-colors',
                     mainTab === 'live'
-                      ? 'pointer-events-auto cursor-pointer border-blue-200/50 group-hover:bg-blue-100/50'
+                      ? 'pointer-events-auto cursor-pointer border-green-200/50 group-hover:bg-green-50/50'
                       : 'pointer-events-none border-transparent'
                   )}
                   onPointerDown={e => {
@@ -4557,7 +4498,7 @@ FEEDBACK: [your explanation]`
                     className={cn(
                       'h-4 w-4 transition-all duration-300',
                       isLiveMode
-                        ? 'animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
+                        ? 'animate-pulse text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
                         : ''
                     )}
                   />
@@ -4567,14 +4508,24 @@ FEEDBACK: [your explanation]`
             )}
             <TabsTrigger
               value="test-pci"
-              className="gap-2 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
+              className={cn(
+                'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                mainTab === 'test-pci'
+                  ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
+                  : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
+              )}
             >
-              <BrainCircuit className="h-4 w-4" />
+              <TestTube2 className="h-4 w-4" />
               Test
             </TabsTrigger>
             <TabsTrigger
               value="builder"
-              className="group gap-0 rounded-lg bg-blue-50 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm"
+              className={cn(
+                'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                mainTab === 'builder'
+                  ? 'bg-white text-[#C7681A] border border-[#F7C99C] shadow-[0_1px_2px_rgba(199,104,26,0.12)]'
+                  : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
+              )}
               onClick={e => {
                 if (mainTab !== 'builder') {
                   setMainTab('builder')
@@ -4585,7 +4536,7 @@ FEEDBACK: [your explanation]`
                 className={cn(
                   'relative z-10 flex items-center gap-2 rounded-full border-l border-r px-2 py-0.5 transition-colors',
                   mainTab === 'builder'
-                    ? 'pointer-events-auto cursor-pointer border-blue-200/50 group-hover:bg-blue-100/50'
+                    ? 'pointer-events-auto cursor-pointer border-orange-200/50 group-hover:bg-orange-50/50'
                     : 'pointer-events-none border-transparent'
                 )}
                 onPointerDown={e => {
@@ -4602,14 +4553,7 @@ FEEDBACK: [your explanation]`
                   }
                 }}
               >
-                <Radio
-                  className={cn(
-                    'h-4 w-4 transition-all duration-300',
-                    isLiveMode
-                      ? 'animate-pulse text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
-                      : 'text-gray-400'
-                  )}
-                />
+                <PencilRuler className="h-4 w-4" />
                 Build
               </div>
             </TabsTrigger>
@@ -4640,38 +4584,27 @@ FEEDBACK: [your explanation]`
                 <div
                   ref={leftPanelRef}
                   style={{ width: leftPanelWidth }}
-                  className="flex min-h-0 shrink-0 flex-col"
+                  className="flex min-h-0 shrink-0 flex-col pr-4"
                 >
-                  <Card className="bg-transparent flex h-full min-h-0 flex-1 flex-col border-none shadow-none">
-                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-px">
+                  <Card className="flex h-full min-h-0 flex-1 flex-col rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_6px_16px_rgba(0,0,0,0.06)]">
+                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
                       {/* Header with Hide, Import, and +Lesson buttons */}
-                      <div className="mb-1 flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => setLeftPanelHidden(true)}
-                            title="Hide panel"
-                            aria-label="Hide panel"
-                          >
-                            <ChevronLeftIcon className="h-4 w-4" />
-                          </Button>
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              'h-5 text-[10px] font-normal',
-                              mainTab === 'live' && 'border-blue-300 text-blue-600',
-                              mainTab === 'test-pci' && 'border-amber-300 text-amber-600',
-                              mainTab === 'builder' && 'border-emerald-300 text-emerald-600'
-                            )}
-                          >
-                            {mainTab === 'live'
-                              ? 'Live'
-                              : mainTab === 'test-pci'
-                                ? 'Test'
-                                : 'Build'}
-                          </Badge>
+                      <div className="mb-4 flex items-center justify-between">
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 hover:bg-[#F2F4F7] text-[#98A2B3]"
+                              onClick={() => setLeftPanelHidden(true)}
+                              title="Hide panel"
+                              aria-label="Hide panel"
+                            >
+                              <ChevronLeftIcon className="h-4 w-4" />
+                            </Button>
+                            <div className="text-sm font-semibold text-[#1F2933]">Course Syllabus</div>
+                          </div>
+                          <div className="text-xs text-[#667085] ml-9">Navigate lessons, tasks, and assessments</div>
                         </div>
                         <div className="flex items-center gap-1">
                           {mainTab === 'live' && (
@@ -4724,24 +4657,25 @@ FEEDBACK: [your explanation]`
                       </div>
 
                       {!hideDirectorySearch && (
-                        <div className="mb-1">
-                          <Input
+                        <div className="relative mb-4">
+                          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#98A2B3]" />
+                          <input
                             placeholder="Search course..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            className="h-8 text-xs"
+                            className="w-full rounded-2xl border border-[#E5E7EB] bg-white py-2.5 pl-10 pr-4 text-sm text-[#1F2933] outline-none placeholder:text-[#98A2B3] focus:border-[#B8CCFF] focus:ring-2 focus:ring-[#DCEAFF]"
                           />
                         </div>
                       )}
 
-                      <ScrollArea className="min-h-0 flex-1">
+                      <ScrollArea className="min-h-0 flex-1 pr-2">
                         <DndContext
                           sensors={sensors}
                           collisionDetection={closestCenter}
                           onDragStart={handleDragStart}
                           onDragEnd={handleDragEnd}
                         >
-                          <div className="space-y-px">
+                          <div className="flex flex-col gap-4">
                             {/* Lessons (formerly nodes) - with drag sorting */}
                             <SortableContext
                               items={filteredCourseBuilderNodes.map(node => node.id)}
@@ -4761,54 +4695,53 @@ FEEDBACK: [your explanation]`
                                     depth={0}
                                     isLast={nodeIdx === nodes.length - 1}
                                     inlineDragHandle
-                                    className="mb-px ml-0 overflow-hidden rounded-2xl border border-l-0 border-slate-200 bg-white pl-0 shadow-sm"
+                                    className="mb-0 ml-0 overflow-hidden rounded-[24px] border border-[#E7ECF3] bg-white pl-0 shadow-[0_8px_24px_rgba(15,23,42,0.04)]"
                                   >
                                     <div className="group">
                                       <div
                                         className={cn(
-                                          'flex w-full cursor-pointer flex-nowrap items-center gap-1.5 border-t-4 border-t-cyan-600 bg-blue-50/50 px-3 py-2 transition-colors hover:bg-blue-50'
+                                          'flex w-full cursor-pointer flex-nowrap items-center justify-between gap-3 border-b border-[#F1F5F9] px-4 py-3.5 transition-colors hover:bg-slate-50'
                                         )}
                                         onClick={() => toggleCourseBuilderNode(node.id)}
                                       >
-                                        <div className="flex shrink-0 items-center">
-                                          {expandedCourseBuilderNodes.has(node.id) ? (
-                                            <ChevronDown className="h-3 w-3 text-blue-600" />
-                                          ) : (
-                                            <ChevronRight className="h-3 w-3 text-blue-600" />
-                                          )}
+                                        <div className="flex min-w-0 items-center gap-3">
+                                          <button className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F2F4F7] text-[#667085]">
+                                            {expandedCourseBuilderNodes.has(node.id) ? (
+                                              <ChevronDown className="h-4 w-4" />
+                                            ) : (
+                                              <ChevronRight className="h-4 w-4" />
+                                            )}
+                                          </button>
+                                          <div className="min-w-0">
+                                            <div
+                                              className="truncate text-sm font-semibold text-[#1F2933]"
+                                              title={node.title}
+                                            >
+                                              {node.title}
+                                            </div>
+                                            <div className="mt-0.5 text-xs text-[#667085]">
+                                              Structured lesson module
+                                            </div>
+                                          </div>
                                         </div>
-                                        <Layers className="h-3 w-3 shrink-0 text-blue-600" />
-                                        <span
-                                          className="min-w-0 flex-1 truncate text-sm font-medium"
-                                          title={node.title}
-                                        >
-                                          {node.title}
-                                        </span>
-                                        <span className="shrink-0 text-blue-400">:</span>
-                                        <Badge
-                                          variant="secondary"
-                                          className="h-4 shrink-0 text-[10px]"
-                                        >
-                                          {totalItems}
-                                        </Badge>
 
-                                        <div
-                                          className="shrink-0"
-                                          onClick={e => e.stopPropagation()}
-                                        >
+                                        <div className="flex shrink-0 items-center gap-2">
+                                          <div className="flex h-7 min-w-[28px] items-center justify-center rounded-full bg-[#1D4ED8] px-2 text-xs font-semibold text-white">
+                                            {totalItems}
+                                          </div>
                                           <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                               <Button
                                                 variant="ghost"
                                                 size="icon"
                                                 className={cn(
-                                                  'h-6 w-6',
+                                                  'h-7 w-7 rounded-full transition-opacity hover:bg-[#F2F4F7]',
                                                   directoryMenusAlwaysVisible
                                                     ? 'opacity-80 hover:opacity-100'
                                                     : 'opacity-0 group-hover:opacity-100'
                                                 )}
                                               >
-                                                <MoreVertical className="h-4 w-4 text-slate-500" />
+                                                <MoreVertical className="h-4 w-4 text-[#98A2B3]" />
                                               </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end" className="z-[100]">
@@ -4860,7 +4793,7 @@ FEEDBACK: [your explanation]`
                                       </div>
 
                                       {expandedCourseBuilderNodes.has(node.id) && (
-                                        <div className="mt-px flex flex-col gap-0 px-px pb-px">
+                                        <div className="mt-1 flex flex-col gap-3 px-3 pb-3">
                                           {/* Tasks - droppable so homework can be moved here */}
                                           <TreeItem
                                             depth={0}
@@ -4870,35 +4803,43 @@ FEEDBACK: [your explanation]`
                                             <DroppableTaskZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex h-10 w-full items-center justify-between rounded-full bg-gradient-to-r from-sky-400 to-blue-600 px-3 shadow-sm transition-all"
+                                              className="flex items-center justify-between gap-3 rounded-2xl border border-[#D5E5FF] bg-[#EEF4FF] px-3 py-2.5"
                                             >
+                                              <div className="flex min-w-0 items-center gap-3">
+                                                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#DCEAFF] text-[#2B5FB8]">
+                                                  <ClipboardList className="h-4 w-4" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                  <div className="text-sm font-semibold text-[#2B5FB8]">Tasks</div>
+                                                  <div className="text-[11px] text-[#667085]">
+                                                    {taskCount > 0 ? `${taskCount} item${taskCount > 1 ? 's' : ''}` : 'No items yet'}
+                                                  </div>
+                                                </div>
+                                              </div>
                                               <div className="flex items-center gap-2">
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-6 w-6 rounded-md bg-[#2B5FB8]/10 p-0 text-[#2B5FB8] hover:bg-[#2B5FB8]/20"
+                                                  onClick={() => addTask(node.id, primaryLesson.id)}
+                                                >
+                                                  <Plus className="h-4 w-4" />
+                                                </Button>
                                                 <button
                                                   type="button"
-                                                  className="flex items-center justify-center"
+                                                  className="flex h-6 w-6 items-center justify-center rounded-md text-[#2B5FB8] hover:bg-[#2B5FB8]/10"
                                                   onClick={e => {
                                                     e.stopPropagation()
                                                     toggleSection(node.id, 'task')
                                                   }}
                                                 >
                                                   {isSectionCollapsed(node.id, 'task') ? (
-                                                    <ChevronRight className="h-3 w-3 text-white/80" />
+                                                    <ChevronRight className="h-4 w-4" />
                                                   ) : (
-                                                    <ChevronDown className="h-3 w-3 text-white/80" />
+                                                    <ChevronDown className="h-4 w-4" />
                                                   )}
                                                 </button>
-                                                <span className="text-sm font-semibold text-white drop-shadow-sm">
-                                                  Tasks
-                                                </span>
                                               </div>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-6 w-6 rounded-md bg-white/20 p-0 text-white hover:bg-white/30"
-                                                onClick={() => addTask(node.id, primaryLesson.id)}
-                                              >
-                                                <Plus className="h-4 w-4" />
-                                              </Button>
                                             </DroppableTaskZone>
                                           </TreeItem>
                                           {!isSectionCollapsed(node.id, 'task') && (
@@ -4920,11 +4861,11 @@ FEEDBACK: [your explanation]`
                                                     >
                                                       <div
                                                         className={cn(
-                                                          'group/item mb-1 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-none border px-3 py-2 shadow-sm transition-colors',
+                                                          'group/item relative overflow-hidden mb-2 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-2 shadow-sm transition-colors',
                                                           selectedItem?.type === 'task' &&
                                                             selectedItem?.id === task.id
-                                                            ? 'border-blue-200 bg-blue-50 ring-1 ring-blue-300'
-                                                            : 'border-transparent bg-blue-50 hover:bg-blue-100'
+                                                            ? 'border-[#4A90FF] bg-[#F2F7FF] ring-1 ring-[#4A90FF]'
+                                                            : 'border-[#E7ECF3] bg-white hover:bg-[#F8FAFC]'
                                                         )}
                                                         onClick={e => {
                                                           if (
@@ -5006,13 +4947,14 @@ FEEDBACK: [your explanation]`
                                                           setMainBuilderTab('task')
                                                         }}
                                                       >
+                                                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#4A90FF]" />
                                                         <DragHandle className="shrink-0" />
-                                                        <ListTodo className="h-3 w-3 shrink-0 text-blue-600" />
+                                                        <ListTodo className="h-3 w-3 shrink-0 text-[#2B5FB8]" />
                                                         {renamingItemId === task.id ? (
                                                           <Input
                                                             autoFocus
                                                             defaultValue={task.title}
-                                                            className="h-6 flex-1 text-xs font-semibold text-blue-700"
+                                                            className="h-6 flex-1 text-xs font-semibold text-[#1F2933]"
                                                             onClick={e => e.stopPropagation()}
                                                             onBlur={e => {
                                                               const newTitle = e.target.value.trim()
@@ -5054,12 +4996,14 @@ FEEDBACK: [your explanation]`
                                                             }}
                                                           />
                                                         ) : (
-                                                          <span
-                                                            className="min-w-0 flex-1 truncate text-xs font-semibold text-blue-700"
-                                                            title={`${idx + 1}. ${task.title}`}
-                                                          >
-                                                            {idx + 1}. {task.title}
-                                                          </span>
+                                                          <div className="min-w-0 flex-1 flex flex-col">
+                                                            <div className="text-sm font-medium text-[#1F2933] truncate flex items-center gap-2">
+                                                              {idx + 1}. {task.title}
+                                                            </div>
+                                                            {task.description && (
+                                                              <div className="text-[11px] text-[#667085] mt-0.5 truncate">{task.description.slice(0, 30)}...</div>
+                                                            )}
+                                                          </div>
                                                         )}
                                                         <DropdownMenu>
                                                           <DropdownMenuTrigger asChild>
@@ -5067,14 +5011,14 @@ FEEDBACK: [your explanation]`
                                                               variant="ghost"
                                                               size="icon"
                                                               className={cn(
-                                                                'h-7 w-7',
+                                                                'h-7 w-7 transition-opacity hover:bg-[#F2F4F7]',
                                                                 directoryMenusAlwaysVisible
                                                                   ? 'opacity-80 hover:opacity-100'
                                                                   : 'opacity-0 group-hover/item:opacity-100'
                                                               )}
                                                               onClick={e => e.stopPropagation()}
                                                             >
-                                                              <MoreVertical className="h-5 w-5 text-slate-700" />
+                                                              <MoreVertical className="h-5 w-5 text-[#98A2B3]" />
                                                             </Button>
                                                           </DropdownMenuTrigger>
                                                           <DropdownMenuContent align="end">
@@ -5488,37 +5432,43 @@ FEEDBACK: [your explanation]`
                                             <DroppableAssessmentZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex h-10 w-full items-center justify-between rounded-full bg-gradient-to-r from-indigo-400 to-purple-600 px-3 shadow-sm transition-all"
+                                              className="flex items-center justify-between gap-3 rounded-2xl border border-[#E2D8FF] bg-[#F3EEFF] px-3 py-2.5"
                                             >
+                                              <div className="flex min-w-0 items-center gap-3">
+                                                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#E7DEFF] text-[#6D59D8]">
+                                                  <FileText className="h-4 w-4" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                  <div className="text-sm font-semibold text-[#6D59D8]">Assessments</div>
+                                                  <div className="text-[11px] text-[#667085]">
+                                                    {assessments.length > 0 ? `${assessments.length} item${assessments.length > 1 ? 's' : ''}` : 'No items yet'}
+                                                  </div>
+                                                </div>
+                                              </div>
                                               <div className="flex items-center gap-2">
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-6 w-6 rounded-md bg-[#6D59D8]/10 p-0 text-[#6D59D8] hover:bg-[#6D59D8]/20"
+                                                  onClick={() => addAssessment(node.id, primaryLesson.id)}
+                                                >
+                                                  <Plus className="h-4 w-4" />
+                                                </Button>
                                                 <button
                                                   type="button"
-                                                  className="flex items-center justify-center"
+                                                  className="flex h-6 w-6 items-center justify-center rounded-md text-[#6D59D8] hover:bg-[#6D59D8]/10"
                                                   onClick={e => {
                                                     e.stopPropagation()
                                                     toggleSection(node.id, 'assessment')
                                                   }}
                                                 >
                                                   {isSectionCollapsed(node.id, 'assessment') ? (
-                                                    <ChevronRight className="h-3 w-3 text-white/80" />
+                                                    <ChevronRight className="h-4 w-4" />
                                                   ) : (
-                                                    <ChevronDown className="h-3 w-3 text-white/80" />
+                                                    <ChevronDown className="h-4 w-4" />
                                                   )}
                                                 </button>
-                                                <span className="text-sm font-semibold text-white drop-shadow-sm">
-                                                  Assessments
-                                                </span>
                                               </div>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-6 w-6 rounded-md bg-white/20 p-0 text-white hover:bg-white/30"
-                                                onClick={() =>
-                                                  addAssessment(node.id, primaryLesson.id)
-                                                }
-                                              >
-                                                <Plus className="h-4 w-4" />
-                                              </Button>
                                             </DroppableAssessmentZone>
                                           </TreeItem>
                                           {!isSectionCollapsed(node.id, 'assessment') && (
@@ -5537,11 +5487,11 @@ FEEDBACK: [your explanation]`
                                                   >
                                                     <div
                                                       className={cn(
-                                                        'group/item mb-1 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-none border px-3 py-2 shadow-sm transition-colors',
+                                                        'group/item relative overflow-hidden mb-2 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-2 shadow-sm transition-colors',
                                                         selectedItem?.type === 'homework' &&
                                                           selectedItem?.id === hw.id
-                                                          ? 'border-indigo-200 bg-indigo-50 ring-1 ring-indigo-300'
-                                                          : 'border-transparent bg-indigo-50 hover:bg-indigo-100'
+                                                          ? 'border-[#8B6DFF] bg-[#F3EEFF] ring-1 ring-[#8B6DFF]'
+                                                          : 'border-[#E7ECF3] bg-white hover:bg-[#F8FAFC]'
                                                       )}
                                                       onClick={e => {
                                                         if (
@@ -5614,9 +5564,10 @@ FEEDBACK: [your explanation]`
                                                         setMainBuilderTab('assessment')
                                                       }}
                                                     >
-                                                      <DragHandle className="shrink-0" />
-                                                      <FileQuestion className="h-3 w-3 shrink-0 text-indigo-600" />
-                                                      {renamingItemId === hw.id ? (
+                                                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#8B6DFF]" />
+                                                        <DragHandle className="shrink-0" />
+                                                        <FileQuestion className="h-3 w-3 shrink-0 text-[#6D59D8]" />
+                                                        {renamingItemId === hw.id ? (
                                                         <Input
                                                           autoFocus
                                                           defaultValue={hw.title}
@@ -5654,12 +5605,14 @@ FEEDBACK: [your explanation]`
                                                           }}
                                                         />
                                                       ) : (
-                                                        <span
-                                                          className="min-w-0 flex-1 truncate text-xs font-semibold text-indigo-700"
-                                                          title={`${idx + 1}. ${hw.title}`}
-                                                        >
-                                                          {idx + 1}. {hw.title}
-                                                        </span>
+                                                        <div className="min-w-0 flex-1 flex flex-col">
+                                                          <div className="text-sm font-medium text-[#1F2933] truncate flex items-center gap-2">
+                                                            {idx + 1}. {hw.title}
+                                                          </div>
+                                                          {hw.description && (
+                                                            <div className="text-[11px] text-[#667085] mt-0.5 truncate">{hw.description.slice(0, 30)}...</div>
+                                                          )}
+                                                        </div>
                                                       )}
 
                                                       <DropdownMenu>
@@ -5668,14 +5621,14 @@ FEEDBACK: [your explanation]`
                                                             variant="ghost"
                                                             size="icon"
                                                             className={cn(
-                                                              'h-7 w-7',
+                                                              'h-7 w-7 transition-opacity hover:bg-[#F2F4F7]',
                                                               directoryMenusAlwaysVisible
                                                                 ? 'opacity-80 hover:opacity-100'
                                                                 : 'opacity-0 group-hover/item:opacity-100'
                                                             )}
                                                             onClick={e => e.stopPropagation()}
                                                           >
-                                                            <MoreVertical className="h-5 w-5 text-slate-700" />
+                                                            <MoreVertical className="h-5 w-5 text-[#98A2B3]" />
                                                           </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
@@ -5805,29 +5758,34 @@ FEEDBACK: [your explanation]`
                                                   <DroppableHomeworkZone
                                                     nodeId={node.id}
                                                     lessonId={primaryLesson.id}
-                                                    className="flex h-10 w-full items-center justify-between rounded-full bg-gradient-to-r from-emerald-400 to-teal-600 px-3 shadow-sm transition-all"
+                                                    className="flex items-center justify-between gap-3 rounded-2xl border border-[#D2F3E3] bg-[#ECFBF4] px-3 py-2.5"
                                                   >
+                                                    <div className="flex min-w-0 items-center gap-3">
+                                                      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#D7F6E8] text-[#1E9E72]">
+                                                        <FolderOpen className="h-4 w-4" />
+                                                      </div>
+                                                      <div className="min-w-0">
+                                                        <div className="text-sm font-semibold text-[#1E9E72]">Homework</div>
+                                                        <div className="text-[11px] text-[#667085]">
+                                                          {hwItems.length > 0 ? `${hwItems.length} item${hwItems.length > 1 ? 's' : ''}` : 'No items yet'}
+                                                        </div>
+                                                      </div>
+                                                    </div>
                                                     <div className="flex items-center gap-2">
                                                       <button
                                                         type="button"
-                                                        className="flex items-center justify-center"
+                                                        className="flex h-6 w-6 items-center justify-center rounded-md text-[#1E9E72] hover:bg-[#1E9E72]/10"
                                                         onClick={e => {
                                                           e.stopPropagation()
                                                           toggleSection(node.id, 'homework')
                                                         }}
                                                       >
                                                         {isSectionCollapsed(node.id, 'homework') ? (
-                                                          <ChevronRight className="h-3 w-3 text-white/80" />
+                                                          <ChevronRight className="h-4 w-4" />
                                                         ) : (
-                                                          <ChevronDown className="h-3 w-3 text-white/80" />
+                                                          <ChevronDown className="h-4 w-4" />
                                                         )}
                                                       </button>
-                                                      <span className="text-sm font-semibold text-white drop-shadow-sm">
-                                                        Homework{' '}
-                                                        {hwItems.length > 0
-                                                          ? `(${hwItems.length})`
-                                                          : ''}
-                                                      </span>
                                                     </div>
                                                   </DroppableHomeworkZone>
                                                 </TreeItem>
@@ -5847,11 +5805,11 @@ FEEDBACK: [your explanation]`
                                                       >
                                                         <div
                                                           className={cn(
-                                                            'group/item mb-1 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-none border px-3 py-2 shadow-sm transition-colors',
+                                                            'group/item relative overflow-hidden mb-2 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-2 shadow-sm transition-colors',
                                                             selectedItem?.type === 'homework' &&
                                                               selectedItem?.id === hw.id
-                                                              ? 'border-emerald-200 bg-emerald-50 ring-1 ring-emerald-300'
-                                                              : 'border-transparent bg-emerald-50 hover:bg-emerald-100'
+                                                              ? 'border-[#2FC98F] bg-[#ECFBF4] ring-1 ring-[#2FC98F]'
+                                                              : 'border-[#E7ECF3] bg-white hover:bg-[#F8FAFC]'
                                                           )}
                                                           onClick={() => {
                                                             setSelectedItem({
@@ -5862,9 +5820,10 @@ FEEDBACK: [your explanation]`
                                                             setMainBuilderTab('assessment')
                                                           }}
                                                         >
-                                                          <DragHandle className="shrink-0" />
-                                                          <FileQuestion className="h-3 w-3 shrink-0 text-emerald-600" />
-                                                          {renamingItemId === hw.id ? (
+                                                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#2FC98F]" />
+                                                            <DragHandle className="shrink-0" />
+                                                            <FolderOpen className="h-3 w-3 shrink-0 text-[#1E9E72]" />
+                                                            {renamingItemId === hw.id ? (
                                                             <Input
                                                               autoFocus
                                                               defaultValue={hw.title}
@@ -5914,12 +5873,14 @@ FEEDBACK: [your explanation]`
                                                               }}
                                                             />
                                                           ) : (
-                                                            <span
-                                                              className="min-w-0 flex-1 truncate text-xs font-semibold text-emerald-700"
-                                                              title={`${hwIdx + 1}. ${hw.title}`}
-                                                            >
-                                                              {hwIdx + 1}. {hw.title}
-                                                            </span>
+                                                            <div className="min-w-0 flex-1 flex flex-col">
+                                                              <div className="text-sm font-medium text-[#1F2933] truncate flex items-center gap-2">
+                                                                {hwIdx + 1}. {hw.title}
+                                                              </div>
+                                                              {hw.description && (
+                                                                <div className="text-[11px] text-[#667085] mt-0.5 truncate">{hw.description.slice(0, 30)}...</div>
+                                                              )}
+                                                            </div>
                                                           )}
                                                           <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
@@ -5927,14 +5888,14 @@ FEEDBACK: [your explanation]`
                                                                 variant="ghost"
                                                                 size="icon"
                                                                 className={cn(
-                                                                  'h-7 w-7',
+                                                                  'h-7 w-7 transition-opacity hover:bg-[#F2F4F7]',
                                                                   directoryMenusAlwaysVisible
                                                                     ? 'opacity-80 hover:opacity-100'
                                                                     : 'opacity-0 group-hover/item:opacity-100'
                                                                 )}
                                                                 onClick={e => e.stopPropagation()}
                                                               >
-                                                                <MoreVertical className="h-5 w-5 text-slate-700" />
+                                                                <MoreVertical className="h-5 w-5 text-[#98A2B3]" />
                                                               </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
@@ -6150,11 +6111,11 @@ FEEDBACK: [your explanation]`
             )}
 
             {/* CENTER PANEL - New Three-Section Design */}
-            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-stretch">
+            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-stretch pl-4">
               <div className="flex min-h-0 w-full flex-1 grow flex-col items-stretch gap-4">
                 {mainTab !== 'builder' && (
                   <div className="h-full w-full flex-1">
-                    <Card className="bg-transparent flex h-full w-full min-w-0 flex-1 overflow-hidden border-none shadow-none">
+                    <Card className="flex h-full w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_6px_16px_rgba(0,0,0,0.06)]">
                       <CardContent className="flex h-full min-h-0 w-full flex-col overflow-hidden p-0 pt-1">
                         <CardTitle className="mb-1 flex items-center justify-between gap-2 px-1 text-base font-semibold">
                           <div>
@@ -6224,7 +6185,7 @@ FEEDBACK: [your explanation]`
                                             }
                                             className="flex h-full min-h-0 flex-col"
                                           >
-                                            <TabsList className="mb-1 grid w-full grid-cols-4 gap-1 rounded-xl p-px shadow-sm">
+                                            <TabsList className="mb-1 grid w-full grid-cols-3 gap-1 rounded-xl p-px shadow-sm">
                                               <TabsTrigger
                                                 value="analytics"
                                                 className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 text-xs px-1"
@@ -6242,12 +6203,6 @@ FEEDBACK: [your explanation]`
                                                 className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 text-xs px-1"
                                               >
                                                 Question
-                                              </TabsTrigger>
-                                              <TabsTrigger
-                                                value="assistant"
-                                                className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 text-xs px-1"
-                                              >
-                                                Assistant
                                               </TabsTrigger>
                                             </TabsList>
 
@@ -6268,9 +6223,23 @@ FEEDBACK: [your explanation]`
 
                                             <TabsContent
                                               value="poll"
-                                              className="flex flex-1 flex-col justify-end pt-2 data-[state=active]:flex data-[state=inactive]:hidden"
+                                              className="flex flex-1 flex-col justify-end pt-2 data-[state=active]:flex data-[state=inactive]:hidden overflow-hidden"
                                             >
-                                              <div className="flex h-[40%] flex-col rounded-2xl border border-cyan-100 bg-white/40 p-px shadow-xl backdrop-blur-md">
+                                              {showAIPoll && (
+                                                <div className="flex-1 overflow-hidden mb-2 rounded-2xl border border-cyan-100 bg-white/60 shadow-sm backdrop-blur-md">
+                                                  <AITeachingAssistant 
+                                                    mode="poll"
+                                                    currentTopic={activeInsightsTask?.title || 'General Course Content'}
+                                                    nodes={nodes}
+                                                    onSelectPrompt={(text) => {
+                                                      setPollPrompt(text)
+                                                      setShowAIPoll(false)
+                                                    }}
+                                                    onClose={() => setShowAIPoll(false)}
+                                                  />
+                                                </div>
+                                              )}
+                                              <div className={cn("flex flex-col rounded-2xl border border-cyan-100 bg-white/40 p-px shadow-xl backdrop-blur-md transition-all duration-300", showAIPoll ? "h-[30%] min-h-[120px]" : "h-[40%] min-h-[150px]")}>
                                                 <div className="flex flex-1 flex-col space-y-0.5 p-1">
                                                   <div className="flex items-center justify-between">
                                                     <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
@@ -6295,12 +6264,12 @@ FEEDBACK: [your explanation]`
                                                       <Button
                                                         size="icon"
                                                         variant="ghost"
-                                                        className="h-9 w-9 rounded-xl text-cyan-600 hover:bg-cyan-100 hover:text-cyan-700 disabled:opacity-30"
+                                                        className={cn("h-9 w-9 rounded-xl hover:bg-cyan-100 hover:text-cyan-700 disabled:opacity-30", showAIPoll ? "bg-cyan-100 text-cyan-700" : "text-cyan-600")}
                                                         title="Generate with Socratic AI"
-                                                        onClick={handleGeneratePollPrompt}
-                                                        disabled={!activeInsightsTask || generatingPoll}
+                                                        onClick={() => setShowAIPoll(!showAIPoll)}
+                                                        disabled={!activeInsightsTask}
                                                       >
-                                                        {generatingPoll ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                                        <Sparkles className="h-4 w-4" />
                                                       </Button>
                                                       <Button
                                                         size="icon"
@@ -6309,8 +6278,7 @@ FEEDBACK: [your explanation]`
                                                           !activeInsightsTaskId ||
                                                           !activeInsightsTask ||
                                                           !insightsProps.sessionId ||
-                                                          !pollPrompt.trim() ||
-                                                          generatingPoll
+                                                          !pollPrompt.trim()
                                                         }
                                                         onClick={() => {
                                                           if (
@@ -6359,9 +6327,23 @@ FEEDBACK: [your explanation]`
 
                                             <TabsContent
                                               value="question"
-                                              className="flex flex-1 flex-col justify-end pt-2 data-[state=active]:flex data-[state=inactive]:hidden"
+                                              className="flex flex-1 flex-col justify-end pt-2 data-[state=active]:flex data-[state=inactive]:hidden overflow-hidden"
                                             >
-                                              <div className="flex h-[40%] flex-col rounded-2xl border border-cyan-100 bg-white/40 p-px shadow-xl backdrop-blur-md">
+                                              {showAIQuestion && (
+                                                <div className="flex-1 overflow-hidden mb-2 rounded-2xl border border-cyan-100 bg-white/60 shadow-sm backdrop-blur-md">
+                                                  <AITeachingAssistant 
+                                                    mode="question"
+                                                    currentTopic={activeInsightsTask?.title || 'General Course Content'}
+                                                    nodes={nodes}
+                                                    onSelectPrompt={(text) => {
+                                                      setQuestionPrompt(text)
+                                                      setShowAIQuestion(false)
+                                                    }}
+                                                    onClose={() => setShowAIQuestion(false)}
+                                                  />
+                                                </div>
+                                              )}
+                                              <div className={cn("flex flex-col rounded-2xl border border-cyan-100 bg-white/40 p-px shadow-xl backdrop-blur-md transition-all duration-300", showAIQuestion ? "h-[30%] min-h-[120px]" : "h-[40%] min-h-[150px]")}>
                                                 <div className="flex flex-1 flex-col space-y-0.5 p-1">
                                                   <div className="flex items-center justify-between">
                                                     <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
@@ -6386,12 +6368,12 @@ FEEDBACK: [your explanation]`
                                                       <Button
                                                         size="icon"
                                                         variant="ghost"
-                                                        className="h-9 w-9 rounded-xl text-cyan-600 hover:bg-cyan-100 hover:text-cyan-700 disabled:opacity-30"
+                                                        className={cn("h-9 w-9 rounded-xl hover:bg-cyan-100 hover:text-cyan-700 disabled:opacity-30", showAIQuestion ? "bg-cyan-100 text-cyan-700" : "text-cyan-600")}
                                                         title="Generate with Socratic AI"
-                                                        onClick={handleGenerateQuestionPrompt}
-                                                        disabled={!activeInsightsTask || generatingQuestion}
+                                                        onClick={() => setShowAIQuestion(!showAIQuestion)}
+                                                        disabled={!activeInsightsTask}
                                                       >
-                                                        {generatingQuestion ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                                        <Sparkles className="h-4 w-4" />
                                                       </Button>
                                                       <Button
                                                         size="icon"
@@ -6400,8 +6382,7 @@ FEEDBACK: [your explanation]`
                                                           !activeInsightsTaskId ||
                                                           !activeInsightsTask ||
                                                           !insightsProps.sessionId ||
-                                                          !questionPrompt.trim() ||
-                                                          generatingQuestion
+                                                          !questionPrompt.trim()
                                                         }
                                                         onClick={() => {
                                                           if (
@@ -6686,51 +6667,76 @@ FEEDBACK: [your explanation]`
                 {mainTab === 'builder' && (
                   <div className="h-full w-full flex-1">
                     {/* COMBINED BUILDER: Task & Assessment Tabs */}
-                    <Card className="bg-transparent flex h-full w-full flex-shrink-0 flex-col overflow-hidden border-none shadow-none">
-                      <CardContent className="flex h-full flex-col overflow-hidden p-px">
+                    <Card className="flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_6px_16px_rgba(0,0,0,0.06)]">
+                      <CardContent className="flex h-full flex-col overflow-hidden p-4">
                         <Tabs
                           value={mainBuilderTab}
                           onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
                           className="flex h-full w-full flex-col"
                         >
                           {/* Main Builder Tabs — nested pill design */}
-                          <div className="mb-px flex w-full items-center rounded-full bg-gray-100 p-px shadow-sm">
-                            {/* Left: current task name */}
-                            <div className="flex min-w-0 flex-1 items-center gap-2 px-6 py-px text-sm font-medium text-gray-500">
-                              <span className="truncate">{taskBuilder.title || ''}</span>
-                            </div>
-
-                            {/* Center: nested pill tabs */}
-                            <TabsList className="grid h-8 w-[420px] shrink-0 grid-cols-2 rounded-full border border-gray-200 bg-white p-px shadow-sm">
+                          <div className="mb-4 grid grid-cols-2 gap-3">
+                            <TabsList className="col-span-1 grid h-[52px] w-full grid-cols-2 gap-2 bg-transparent p-0 shadow-none">
                               <TabsTrigger
                                 value="task"
-                                className="relative flex w-full items-center justify-center gap-2 rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                className="relative flex w-full items-center justify-center gap-2 rounded-xl border border-[#E5E7EB] bg-white py-3 text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=active]:font-medium data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50"
                               >
-                                <ListTodo className="absolute left-4 h-4 w-4 shrink-0" />
+                                <Wrench className="h-4 w-4 shrink-0" />
                                 Task Builder
                               </TabsTrigger>
                               <TabsTrigger
                                 value="assessment"
-                                className="relative flex w-full items-center justify-center gap-2 rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                className="relative flex w-full items-center justify-center gap-2 rounded-xl border border-[#E5E7EB] bg-white py-3 text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:hover:bg-slate-50"
                               >
+                                <FileCheck2 className="h-4 w-4 shrink-0" />
                                 Assessment Builder
-                                <FileQuestion className="absolute right-4 h-4 w-4 shrink-0" />
                               </TabsTrigger>
                             </TabsList>
-
-                            {/* Right: current assessment name */}
-                            <div className="flex min-w-0 flex-1 items-center justify-end gap-2 px-6 py-px text-sm font-medium text-gray-500">
-                              <span className="truncate">{assessmentBuilder.title || ''}</span>
-                            </div>
                           </div>
 
                           {/* Content area */}
-                          <div className="relative flex-1 rounded-2xl border border-gray-200 bg-white p-px shadow-sm">
+                          <div className="relative flex-1 rounded-none border-0 bg-transparent p-0 shadow-none">
                             {/* Task Builder Tab */}
                             <TabsContent
                               value="task"
-                              className="flex h-full flex-col space-y-px overflow-hidden data-[state=inactive]:hidden"
+                              className="flex h-full flex-col space-y-4 overflow-hidden data-[state=inactive]:hidden"
                             >
+                              <div className="grid grid-cols-2 gap-3">
+                                <Input
+                                  placeholder="Task Name"
+                                  value={taskBuilder.title}
+                                  onChange={e =>
+                                    setTaskBuilder({ ...taskBuilder, title: e.target.value })
+                                  }
+                                  className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#DCEAFF]"
+                                />
+                                <Input
+                                  placeholder="Extension Description"
+                                  value={
+                                    taskBuilder.activeExtensionId
+                                      ? taskBuilder.extensions.find(
+                                          x => x.id === taskBuilder.activeExtensionId
+                                        )?.title || ''
+                                      : taskBuilder.description || ''
+                                  }
+                                  onChange={e => {
+                                    if (taskBuilder.activeExtensionId) {
+                                      setTaskBuilder(prev => ({
+                                        ...prev,
+                                        extensions: prev.extensions.map(x =>
+                                          x.id === taskBuilder.activeExtensionId
+                                            ? { ...x, title: e.target.value }
+                                            : x
+                                        ),
+                                      }))
+                                    } else {
+                                      setTaskBuilder({ ...taskBuilder, description: e.target.value })
+                                    }
+                                  }}
+                                  className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#DCEAFF]"
+                                />
+                              </div>
+
                               <div className="flex flex-1 gap-px overflow-hidden">
                                 {/* Main content with tabs */}
                                 <div className="flex flex-1 flex-col overflow-hidden">
@@ -6741,26 +6747,28 @@ FEEDBACK: [your explanation]`
                                     }}
                                     className="flex h-full w-full flex-col"
                                   >
-                                    <TabsList className="grid h-8 w-full grid-cols-2 rounded-full border border-gray-200 bg-white p-px shadow-sm">
+                                    <TabsList className="mb-px grid h-[46px] w-full grid-cols-2 gap-2 rounded-xl bg-transparent p-0 shadow-none">
                                       <TabsTrigger
                                         value="content"
-                                        className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=active]:font-medium data-[state=active]:text-[#2B5FB8] data-[state=inactive]:bg-white data-[state=inactive]:hover:bg-slate-50"
                                       >
+                                        <LayoutPanelTop className="mr-2 h-4 w-4 shrink-0" />
                                         Slide
                                       </TabsTrigger>
                                       <TabsTrigger
                                         value="pci"
-                                        className="w-full rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:bg-white data-[state=inactive]:hover:bg-slate-50"
                                       >
+                                        <Brain className="mr-2 h-4 w-4 shrink-0" />
                                         PCI
                                       </TabsTrigger>
                                     </TabsList>
                                     <TabsContent
                                       value="content"
-                                      className="mt-px flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                                      className="mt-3 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div
-                                        className="relative flex h-full min-h-0 flex-row overflow-hidden rounded-lg border bg-white"
+                                        className="relative flex h-full min-h-0 flex-row overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-sm"
                                         onDragOver={e => e.preventDefault()}
                                         onDrop={(e: any) => {
                                           handleDragFiles(
@@ -6848,11 +6856,11 @@ FEEDBACK: [your explanation]`
                                         {taskTextVisible && (
                                           <div
                                             className={cn(
-                                              'relative flex h-full flex-col',
+                                              'relative flex h-full flex-col bg-[#FBFCFD]',
                                               taskPdfVisible ? 'w-1/2 border-r' : 'w-full'
                                             )}
                                           >
-                                            <div className="flex h-9 shrink-0 items-center justify-between border-b bg-slate-50 p-1">
+                                            <div className="flex h-11 shrink-0 items-center justify-between border-b border-[#E5E7EB] bg-white px-2">
                                               <div className="flex w-full items-center gap-2">
                                                 <Button
                                                   variant="ghost"
@@ -6861,12 +6869,12 @@ FEEDBACK: [your explanation]`
                                                     if (!taskPdfVisible) setTaskPdfVisible(true)
                                                     setTaskTextVisible(false)
                                                   }}
-                                                  className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                  className="h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-700"
                                                   title="Hide Text"
                                                 >
                                                   <ChevronLeft className="h-4 w-4" />
                                                 </Button>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-1 rounded-lg border border-[#E5E7EB] bg-slate-50/50 p-1">
                                                   <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -6875,12 +6883,12 @@ FEEDBACK: [your explanation]`
                                                         Math.max(10, extractedTextFontSize - 2)
                                                       )
                                                     }
-                                                    className="h-6 w-6 p-0 text-slate-500 hover:text-slate-800"
+                                                    className="h-6 w-6 rounded-md p-0 text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm"
                                                     title="Decrease font size"
                                                   >
                                                     A-
                                                   </Button>
-                                                  <span className="w-4 text-center text-xs font-medium text-slate-500">
+                                                  <span className="w-6 text-center text-xs font-semibold text-slate-600">
                                                     {extractedTextFontSize}
                                                   </span>
                                                   <Button
@@ -6891,7 +6899,7 @@ FEEDBACK: [your explanation]`
                                                         Math.min(32, extractedTextFontSize + 2)
                                                       )
                                                     }
-                                                    className="h-6 w-6 p-0 text-slate-500 hover:text-slate-800"
+                                                    className="h-6 w-6 rounded-md p-0 text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm"
                                                     title="Increase font size"
                                                   >
                                                     A+
@@ -6905,7 +6913,7 @@ FEEDBACK: [your explanation]`
                                                   ? 'Extension content...'
                                                   : 'Enter task content or drop files here...'
                                               }
-                                              className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                              className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent p-4 text-[#1F2933] focus-visible:ring-0 focus-visible:ring-offset-0"
                                               style={{ fontSize: `${extractedTextFontSize}px` }}
                                               disableAutoResize
                                               onDrop={(e: any) =>
@@ -6985,11 +6993,11 @@ FEEDBACK: [your explanation]`
                                         {/* Right Panel (Preview) */}
                                         {taskPdfVisible && (
                                           <div
-                                            className={cn(
-                                              'relative flex h-full flex-col bg-gray-100',
-                                              taskTextVisible ? 'w-1/2' : 'w-full'
-                                            )}
-                                          >
+                                          className={cn(
+                                            'relative flex h-full flex-col bg-[#FBFCFD]',
+                                            taskTextVisible ? 'w-1/2' : 'w-full'
+                                          )}
+                                        >
                                             {!taskTextVisible && (
                                               <div className="absolute left-2 top-2 z-10">
                                                 <Button
@@ -7010,7 +7018,7 @@ FEEDBACK: [your explanation]`
                                                 <PDFViewer
                                                   key={taskSourceDocument.fileUrl}
                                                   fileUrl={taskSourceDocument.fileUrl}
-                                                  className="absolute inset-0 h-full w-full"
+                                                  className="absolute inset-0 h-full w-full bg-[#F1F5F9]"
                                                   defaultScale={0.75}
                                                   hidePageNavigation
                                                   onHidePreview={() => {
@@ -7115,7 +7123,7 @@ FEEDBACK: [your explanation]`
                                       value="pci"
                                       className="mt-0.5 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
-                                      <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
+                                      <div className="flex h-full min-h-0 flex-col rounded-2xl border border-[#E5E7EB] bg-white shadow-sm">
                                         <div className="flex-1 space-y-px overflow-y-auto p-px">
                                           {activeTaskPciMessages.length === 0 && (
                                             <p className="text-muted-foreground text-xs">
@@ -7227,16 +7235,16 @@ FEEDBACK: [your explanation]`
                                     }}
                                     className="flex h-full w-full flex-col"
                                   >
-                                    <TabsList className="mb-px grid h-8 w-full grid-cols-2 rounded-full border border-gray-200 bg-white p-px shadow-sm">
+                                    <TabsList className="mb-px grid h-10 w-full grid-cols-2 gap-2 rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
                                       <TabsTrigger
                                         value="content"
-                                        className="w-full rounded-l-full rounded-r-none text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                        className="w-full rounded-lg text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-[#2B5FB8] data-[state=inactive]:bg-gray-50 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
                                       >
                                         Assessment
                                       </TabsTrigger>
                                       <TabsTrigger
                                         value="pci"
-                                        className="w-full rounded-l-none rounded-r-full text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-blue-500 data-[state=inactive]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                        className="w-full rounded-lg text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-[#2B5FB8] data-[state=inactive]:bg-gray-50 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
                                       >
                                         PCI
                                       </TabsTrigger>
@@ -7246,7 +7254,7 @@ FEEDBACK: [your explanation]`
                                       className="mt-px flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div
-                                        className="relative flex h-full min-h-0 flex-row overflow-hidden rounded-lg border bg-white"
+                                        className="relative flex h-full min-h-0 flex-row overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-sm"
                                         onDragOver={e => e.preventDefault()}
                                         onDrop={(e: any) => {
                                           handleDragFiles(
@@ -7359,11 +7367,11 @@ FEEDBACK: [your explanation]`
                                         {assessmentTextVisible && (
                                           <div
                                             className={cn(
-                                              'relative flex h-full flex-col',
+                                              'relative flex h-full flex-col bg-[#FBFCFD]',
                                               assessmentPdfVisible ? 'w-1/2 border-r' : 'w-full'
                                             )}
                                           >
-                                            <div className="flex h-9 shrink-0 items-center justify-between border-b bg-slate-50 p-1">
+                                            <div className="flex h-11 shrink-0 items-center justify-between border-b border-[#E5E7EB] bg-white px-2">
                                               <div className="flex w-full items-center gap-2">
                                                 <Button
                                                   variant="ghost"
@@ -7373,12 +7381,12 @@ FEEDBACK: [your explanation]`
                                                       setAssessmentPdfVisible(true)
                                                     setAssessmentTextVisible(false)
                                                   }}
-                                                  className="h-6 w-6 p-0 text-slate-400 hover:text-slate-700"
+                                                  className="h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-700"
                                                   title="Hide Text"
                                                 >
                                                   <ChevronLeft className="h-4 w-4" />
                                                 </Button>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-1 rounded-lg border border-[#E5E7EB] bg-slate-50/50 p-1">
                                                   <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -7387,12 +7395,12 @@ FEEDBACK: [your explanation]`
                                                         Math.max(10, extractedTextFontSize - 2)
                                                       )
                                                     }
-                                                    className="h-6 w-6 p-0 text-slate-500 hover:text-slate-800"
+                                                    className="h-6 w-6 rounded-md p-0 text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm"
                                                     title="Decrease font size"
                                                   >
                                                     A-
                                                   </Button>
-                                                  <span className="w-4 text-center text-xs font-medium text-slate-500">
+                                                  <span className="w-6 text-center text-xs font-semibold text-slate-600">
                                                     {extractedTextFontSize}
                                                   </span>
                                                   <Button
@@ -7403,7 +7411,7 @@ FEEDBACK: [your explanation]`
                                                         Math.min(32, extractedTextFontSize + 2)
                                                       )
                                                     }
-                                                    className="h-6 w-6 p-0 text-slate-500 hover:text-slate-800"
+                                                    className="h-6 w-6 rounded-md p-0 text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm"
                                                     title="Increase font size"
                                                   >
                                                     A+
@@ -7413,7 +7421,7 @@ FEEDBACK: [your explanation]`
                                             </div>
                                             <AutoTextarea
                                               placeholder="Enter assessment content or drop files here..."
-                                              className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                                              className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent p-4 text-[#1F2933] focus-visible:ring-0 focus-visible:ring-offset-0"
                                               style={{ fontSize: `${extractedTextFontSize}px` }}
                                               disableAutoResize
                                               onDrop={(e: any) =>
@@ -7453,7 +7461,7 @@ FEEDBACK: [your explanation]`
                                         {assessmentPdfVisible && (
                                           <div
                                             className={cn(
-                                              'relative flex h-full flex-col bg-gray-100',
+                                              'relative flex h-full flex-col bg-[#FBFCFD]',
                                               assessmentTextVisible ? 'w-1/2' : 'w-full'
                                             )}
                                           >
@@ -7476,7 +7484,7 @@ FEEDBACK: [your explanation]`
                                                 <PDFViewer
                                                   key={assessmentSourceDocument.fileUrl}
                                                   fileUrl={assessmentSourceDocument.fileUrl}
-                                                  className="absolute inset-0 h-full w-full"
+                                                  className="absolute inset-0 h-full w-full bg-[#F1F5F9]"
                                                   defaultScale={0.75}
                                                   hidePageNavigation
                                                   onHidePreview={() => {
@@ -7525,7 +7533,7 @@ FEEDBACK: [your explanation]`
                                       value="pci"
                                       className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
-                                      <div className="flex h-full min-h-0 flex-col rounded-lg border bg-white">
+                                      <div className="flex h-full min-h-0 flex-col rounded-2xl border border-[#E5E7EB] bg-white shadow-sm">
                                         <div className="flex-1 space-y-px overflow-y-auto p-px">
                                           {(
                                             assessmentPciMessagesMap[loadedAssessmentId || ''] || []

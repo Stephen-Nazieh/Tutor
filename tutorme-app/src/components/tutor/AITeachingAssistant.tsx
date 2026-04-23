@@ -14,13 +14,15 @@ import {
   BookOpen,
   HelpCircle,
   Loader2,
+  X,
 } from 'lucide-react'
 
 interface AITeachingAssistantProps {
   currentTopic?: string
   nodes?: any[]
-  onUseAsPoll?: (text: string) => void
-  onUseAsQuestion?: (text: string) => void
+  mode?: 'poll' | 'question'
+  onSelectPrompt?: (text: string) => void
+  onClose?: () => void
 }
 
 interface SocraticPrompt {
@@ -63,8 +65,9 @@ const buildSocraticPrompts = (): SocraticPrompt[] => [
 export function AITeachingAssistant({
   currentTopic = 'General Course Content',
   nodes = [],
-  onUseAsPoll,
-  onUseAsQuestion,
+  mode = 'question',
+  onSelectPrompt,
+  onClose,
 }: AITeachingAssistantProps) {
   const [activeTab, setActiveTab] = useState<'question'>('question')
   const [selectedPrompt, setSelectedPrompt] = useState<SocraticPrompt | null>(null)
@@ -82,11 +85,15 @@ export function AITeachingAssistant({
         tasks: node.lessons[0]?.tasks?.map((t: any) => t.title).join(', ')
       })).slice(0, 10)
 
+      const specificInstructions = mode === 'poll' 
+        ? 'Generate exactly 3 Socratic poll questions that can be answered on a 1-5 scale (e.g., 1=Strongly Disagree, 5=Strongly Agree).'
+        : 'Generate exactly 3 close-ended Socratic questions (e.g., Yes/No, True/False, or Multiple Choice style) to check student understanding.'
+
       const promptText = `You are a Socratic AI Teaching Assistant helping a tutor engage their students.
 The course structure is: ${JSON.stringify(courseSummary)}
 The current topic is: ${currentTopic}
 
-Generate exactly 3 Socratic questions that the tutor can use as a Poll or Discussion Question.
+${specificInstructions}
 Return ONLY a valid JSON array of objects. Do not include markdown formatting like \`\`\`json.
 Each object must match this interface:
 {
@@ -128,8 +135,8 @@ Each object must match this interface:
   }, [])
 
   return (
-    <Card className="flex h-full flex-col">
-      <CardHeader className="pb-3">
+    <Card className="flex h-full flex-col border-0 shadow-none bg-transparent">
+      <CardHeader className="pb-3 px-2 pt-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-blue-500">
@@ -140,136 +147,115 @@ Each object must match this interface:
               <p className="text-xs text-gray-500">Real-time insights & guidance</p>
             </div>
           </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="mt-3 flex gap-1">
-          <Button
-            variant={activeTab === 'question' ? 'default' : 'ghost'}
-            size="sm"
-            className="flex-1 text-xs"
-            onClick={() => setActiveTab('question')}
-          >
-            <HelpCircle className="mr-1 h-3 w-3" />
-            Question
-          </Button>
+          {onClose && (
+            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 text-gray-500 hover:text-gray-900">
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
 
       <CardContent className="flex-1 p-0">
-        <ScrollArea className="h-[calc(100%-20px)]">
-          <div className="px-4 pb-4">
-            {activeTab === 'question' && (
+        <ScrollArea className="h-full pr-3">
+          <div className="px-2 pb-4">
+            {selectedPrompt ? (
               <div className="space-y-3">
-                {selectedPrompt ? (
-                  <div className="space-y-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs"
-                      onClick={() => {
-                        setSelectedPrompt(null)
-                        setShowFollowUps(false)
-                      }}
-                    >
-                      ← Back to prompts
-                    </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs px-0 text-gray-500 hover:text-gray-900"
+                  onClick={() => {
+                    setSelectedPrompt(null)
+                    setShowFollowUps(false)
+                  }}
+                >
+                  ← Back to prompts
+                </Button>
 
-                    <div className="rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-                      <Badge className="mb-2 bg-blue-600">Selected Prompt</Badge>
-                      <p className="mb-2 text-sm text-gray-600">{selectedPrompt.context}</p>
-                      <p className="text-lg font-medium text-gray-800">{selectedPrompt.question}</p>
+                <div className="rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+                  <Badge className="mb-2 bg-blue-600">Selected Prompt</Badge>
+                  <p className="mb-2 text-sm text-gray-600">{selectedPrompt.context}</p>
+                  <p className="text-lg font-medium text-gray-800">{selectedPrompt.question}</p>
 
-                      <div className="mt-4 flex gap-2">
-                        {onUseAsQuestion && (
-                          <Button className="w-full gap-2" onClick={() => onUseAsQuestion(selectedPrompt.question)}>
-                            <MessageCircle className="h-4 w-4" />
-                            Use as Question
-                          </Button>
-                        )}
-                        {onUseAsPoll && (
-                          <Button variant="secondary" className="w-full gap-2" onClick={() => onUseAsPoll(selectedPrompt.question)}>
-                            <HelpCircle className="h-4 w-4" />
-                            Use as Poll
-                          </Button>
-                        )}
-                        {!onUseAsQuestion && !onUseAsPoll && (
-                          <Button className="w-full gap-2" onClick={() => setShowFollowUps(true)}>
-                            <MessageCircle className="h-4 w-4" />
-                            Show Follow-ups
-                          </Button>
-                        )}
-                      </div>
+                  <div className="mt-4 flex gap-2">
+                    {onSelectPrompt && (
+                      <Button className="w-full gap-2" onClick={() => onSelectPrompt(selectedPrompt.question)}>
+                        <MessageCircle className="h-4 w-4" />
+                        Use this {mode === 'poll' ? 'Poll' : 'Question'}
+                      </Button>
+                    )}
+                  </div>
 
-                      {showFollowUps && (
-                        <div className="mt-4 space-y-2">
-                          <p className="text-xs font-medium text-gray-500">Follow-up questions:</p>
-                          {selectedPrompt.followUps.map((followUp, idx) => (
-                            <button
-                              key={idx}
-                              className="w-full rounded border bg-white p-2 text-left text-sm transition-colors hover:border-blue-300"
-                            >
-                              {followUp}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                  {showFollowUps && selectedPrompt.followUps.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      <p className="text-xs font-medium text-gray-500">Follow-up questions:</p>
+                      {selectedPrompt.followUps.map((followUp, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => onSelectPrompt?.(followUp)}
+                          className="w-full rounded border bg-white p-2 text-left text-sm transition-colors hover:border-blue-300"
+                        >
+                          {followUp}
+                        </button>
+                      ))}
                     </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="rounded-lg border border-purple-200 bg-purple-50 p-3">
+                  <div className="mb-2 flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-purple-600" />
+                    <span className="text-sm font-medium text-purple-800">Current Topic</span>
+                  </div>
+                  <p className="text-sm text-purple-700">{currentTopic}</p>
+                </div>
+
+                <div className="mb-2 mt-4 flex items-center justify-between">
+                  <p className="text-[10px] font-bold tracking-wider text-gray-500">
+                    SUGGESTED {mode === 'poll' ? 'POLLS' : 'QUESTIONS'}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-[10px] text-blue-600"
+                    onClick={() => generatePrompts()}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Sparkles className="mr-1 h-3 w-3" />}
+                    Regenerate
+                  </Button>
+                </div>
+
+                {isLoading ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                    <Loader2 className="h-6 w-6 animate-spin text-blue-500 mb-2" />
+                    <p className="text-xs">Analyzing course content...</p>
                   </div>
                 ) : (
-                  <>
-                    <div className="rounded-lg border border-purple-200 bg-purple-50 p-3">
-                      <div className="mb-2 flex items-center gap-2">
-                        <BookOpen className="h-4 w-4 text-purple-600" />
-                        <span className="text-sm font-medium text-purple-800">Current Topic</span>
-                      </div>
-                      <p className="text-sm text-purple-700">{currentTopic}</p>
-                    </div>
-
-                    <div className="mb-2 mt-4 flex items-center justify-between">
-                      <p className="text-xs font-medium text-gray-500">
-                        SUGGESTED QUESTIONS
-                      </p>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 px-2 text-[10px] text-blue-600"
-                        onClick={() => generatePrompts()}
-                        disabled={isLoading}
+                  <div className="space-y-2">
+                    {socraticPrompts.map(prompt => (
+                      <button
+                        key={prompt.id}
+                        className="w-full rounded-lg border border-gray-200 p-3 text-left transition-all hover:border-blue-300 hover:bg-blue-50"
+                        onClick={() => {
+                          setSelectedPrompt(prompt)
+                          setShowFollowUps(true)
+                        }}
                       >
-                        {isLoading ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Sparkles className="mr-1 h-3 w-3" />}
-                        Regenerate
-                      </Button>
-                    </div>
-
-                    {isLoading ? (
-                      <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                        <Loader2 className="h-6 w-6 animate-spin text-blue-500 mb-2" />
-                        <p className="text-xs">Analyzing course content...</p>
-                      </div>
-                    ) : (
-                      socraticPrompts.map(prompt => (
-                        <button
-                          key={prompt.id}
-                          className="w-full rounded-lg border border-gray-200 p-3 text-left transition-all hover:border-blue-300 hover:bg-blue-50"
-                          onClick={() => {
-                            setSelectedPrompt(prompt)
-                            setShowFollowUps(true)
-                          }}
-                        >
-                          <div className="mb-1 flex items-center justify-between">
-                            <span className="text-xs text-gray-500">{prompt.context}</span>
-                            <Badge variant="outline" className="text-xs">
-                              {prompt.difficulty}
-                            </Badge>
-                          </div>
-                          <p className="text-sm font-medium text-gray-800">{prompt.question}</p>
-                        </button>
-                      ))
-                    )}
-                  </>
+                        <div className="mb-1 flex items-center justify-between">
+                          <span className="text-xs text-gray-500">{prompt.context}</span>
+                          <Badge variant="outline" className="text-[10px] h-4 font-normal">
+                            {prompt.difficulty}
+                          </Badge>
+                        </div>
+                        <p className="text-sm font-medium text-gray-800">{prompt.question}</p>
+                      </button>
+                    ))}
+                  </div>
                 )}
-              </div>
+              </>
             )}
           </div>
         </ScrollArea>
