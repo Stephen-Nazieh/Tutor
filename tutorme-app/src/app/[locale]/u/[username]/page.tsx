@@ -512,7 +512,6 @@ export default function PublicTutorPage() {
   const [catalogLayout, setCatalogLayout] = useState<'grid' | 'list' | 'compact'>('compact')
   const [courseSearchQuery, setCourseSearchQuery] = useState('')
   const [courseCountryFilter, setCourseCountryFilter] = useState('global')
-  const [courseCountryOptions, setCourseCountryOptions] = useState<string[]>([])
   const [courseSortOrder, setCourseSortOrder] = useState<'newest' | 'price_asc' | 'price_desc'>(
     'newest'
   )
@@ -543,25 +542,20 @@ export default function PublicTutorPage() {
   }, [username])
 
   useEffect(() => {
-    const loadCountries = async () => {
-      try {
-        const res = await fetch('/api/public/countries', { cache: 'no-store' })
-        const json = await res.json().catch(() => ({}))
-        const countries = Array.isArray(json?.countries)
-          ? (json.countries as string[]).filter(c => typeof c === 'string' && !!c.trim())
-          : []
-        setCourseCountryOptions(countries)
-      } catch {
-        setCourseCountryOptions([])
-      }
-    }
-    loadCountries()
-  }, [])
-
-  useEffect(() => {
     if (!data?.tutor?.id) return
     loadFollowState(data.tutor.id)
   }, [data?.tutor?.id])
+
+  const courseCountryOptions = useMemo(() => {
+    if (!data?.courses) return []
+    const countries = new Set<string>()
+    data.courses.forEach(c => {
+      if (c.country && typeof c.country === 'string' && c.country.trim()) {
+        countries.add(c.country.trim())
+      }
+    })
+    return Array.from(countries).sort()
+  }, [data?.courses])
 
   useEffect(() => {
     if (session?.user?.role === 'STUDENT') {
