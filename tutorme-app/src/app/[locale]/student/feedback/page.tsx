@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, Suspense, type ComponentProps } from 'react'
+import { createPortal } from 'react-dom'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -101,6 +102,15 @@ function StudentFeedbackContent() {
   )
   const [tutorBoardPageIndex, setTutorBoardPageIndex] = useState(0)
   const saveBoardsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Portal target for TabsList
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    const el = document.getElementById('student-live-tabs-portal')
+    if (el) {
+      setPortalTarget(el)
+    }
+  }, [])
 
   useEffect(() => {
     const loadSessions = async () => {
@@ -303,28 +313,29 @@ function StudentFeedbackContent() {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      <div className="border-b bg-white">
-        <div className="flex items-center gap-4 px-4 py-3 sm:px-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => window.history.back()}
-            className="gap-2 text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-          <div className="h-6 w-px bg-gray-200" />
-          <div className="flex flex-1 flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-1 items-center justify-center">
-              <h1 className="text-lg font-semibold text-gray-900">Live Classroom</h1>
+      <div className="border-b bg-white px-4 sm:px-6 pt-6 pb-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => window.history.back()}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex flex-col justify-center">
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold tracking-tight">Live Classroom</h1>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
+          </div>
+          
+          <div className="flex flex-col items-end gap-4 justify-between">
+            <div className="flex shrink-0 items-center gap-2 mt-0">
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => setShowTasksPanel(true)}
-                className="gap-2"
+                className="gap-2 font-medium text-slate-700 hover:text-slate-900"
               >
                 <ListTodo className="h-4 w-4" />
                 Directory
@@ -336,9 +347,8 @@ function StudentFeedbackContent() {
               </Button>
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => setShowFeedbackPanel(true)}
-                className="gap-2"
+                className="gap-2 font-medium text-slate-700 hover:text-slate-900"
               >
                 <MessageSquare className="h-4 w-4" />
                 Feedback
@@ -367,6 +377,7 @@ function StudentFeedbackContent() {
             )}
           </div>
         )}
+        <div id="student-live-tabs-portal" className="w-full mt-4"></div>
       </div>
 
       {sessionContext?.roomUrl && (
@@ -375,29 +386,44 @@ function StudentFeedbackContent() {
         </div>
       )}
 
-      <div className="flex-1 p-4 sm:p-6">
+      <div className="flex-1 p-4 sm:p-6 pt-6">
         <div className="flex h-full flex-col gap-6">
           <Tabs defaultValue="task" className="flex flex-1 flex-col">
-            <TabsList className="mx-auto mb-6 grid w-full grid-cols-3 gap-1 rounded-xl border border-gray-200 bg-white p-1 md:w-[600px]">
-              <TabsTrigger
-                value="task"
-                className="rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
-              >
-                Classroom
-              </TabsTrigger>
-              <TabsTrigger
-                value="my-board"
-                className="rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
-              >
-                My Board
-              </TabsTrigger>
-              <TabsTrigger
-                value="tutor-board"
-                className="rounded-lg data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
-              >
-                Tutor Board
-              </TabsTrigger>
-            </TabsList>
+            {portalTarget ? (
+              createPortal(
+                <div className="min-h-[52px] shrink-0 w-full mt-2">
+                  <TabsList className="grid w-full h-[52px] gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)] grid-cols-3">
+                    <TabsTrigger
+                      value="task"
+                      className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:shadow-[0_1px_2px_rgba(37,99,235,0.12)] text-[#667085] hover:text-[#344054] hover:bg-white/70"
+                    >
+                      Classroom
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="my-board"
+                      className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:shadow-[0_1px_2px_rgba(37,99,235,0.12)] text-[#667085] hover:text-[#344054] hover:bg-white/70"
+                    >
+                      My Board
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="tutor-board"
+                      className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:shadow-[0_1px_2px_rgba(37,99,235,0.12)] text-[#667085] hover:text-[#344054] hover:bg-white/70"
+                    >
+                      Tutor Board
+                    </TabsTrigger>
+                  </TabsList>
+                </div>,
+                portalTarget
+              )
+            ) : (
+              <div className="hidden">
+                <TabsList>
+                  <TabsTrigger value="task">Classroom</TabsTrigger>
+                  <TabsTrigger value="my-board">My Board</TabsTrigger>
+                  <TabsTrigger value="tutor-board">Tutor Board</TabsTrigger>
+                </TabsList>
+              </div>
+            )}
 
             <TabsContent value="task" className="flex-1 outline-none">
               <Card className="min-h-[420px]">

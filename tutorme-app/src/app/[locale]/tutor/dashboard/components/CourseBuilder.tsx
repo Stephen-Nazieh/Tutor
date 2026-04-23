@@ -4359,54 +4359,56 @@ FEEDBACK: [your explanation]`
         >
           {portalTarget ? (
             createPortal(
-              <TabsList className="flex w-[350px] h-10 gap-1 rounded-full border border-gray-200 bg-white p-1 shadow-sm">
-                <TabsTrigger 
-                  value="live" 
-                  className={cn(
-                    'flex-1 flex items-center justify-center gap-2 rounded-full px-4 h-full text-sm font-medium transition-all',
-                    mainTab === 'live'
-                      ? 'bg-blue-50 text-blue-700 shadow-none'
-                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50/50'
-                  )}
-                  onClick={e => {
-                    if (mainTab !== 'live') {
-                      setMainTab('live')
-                    }
-                  }}
-                >
-                  <VideoIcon className={cn('h-4 w-4', isLiveMode ? 'animate-pulse text-[#2563EB]' : '')} />
-                  Go Live
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="test-pci" 
-                  className={cn(
-                    'flex-1 flex items-center justify-center gap-2 rounded-full px-4 h-full text-sm font-medium transition-all',
-                    mainTab === 'test-pci'
-                      ? 'bg-blue-50 text-blue-700 shadow-none'
-                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50/50'
-                  )}
-                >
-                  <TestTube2 className="h-4 w-4" />
-                  Test
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="builder" 
-                  className={cn(
-                    'flex-1 flex items-center justify-center gap-2 rounded-full px-4 h-full text-sm font-medium transition-all',
-                    mainTab === 'builder'
-                      ? 'bg-blue-50 text-blue-700 shadow-none'
-                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50/50'
-                  )}
-                  onClick={e => {
-                    if (mainTab !== 'builder') {
-                      setMainTab('builder')
-                    }
-                  }}
-                >
-                  <PencilRuler className="h-4 w-4" />
-                  Build
-                </TabsTrigger>
-              </TabsList>,
+              <div className="min-h-[52px] shrink-0 w-full">
+                <TabsList className="grid w-full h-[52px] gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)] grid-cols-3">
+                  <TabsTrigger 
+                    value="live" 
+                    className={cn(
+                      'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                      mainTab === 'live'
+                        ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
+                        : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
+                    )}
+                    onClick={e => {
+                      if (mainTab !== 'live') {
+                        setMainTab('live')
+                      }
+                    }}
+                  >
+                    <VideoIcon className={cn('h-4 w-4', isLiveMode ? 'animate-pulse text-[#2563EB]' : '')} />
+                    Go Live
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="test-pci" 
+                    className={cn(
+                      'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                      mainTab === 'test-pci'
+                        ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
+                        : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
+                    )}
+                  >
+                    <TestTube2 className="h-4 w-4" />
+                    Test
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="builder" 
+                    className={cn(
+                      'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                      mainTab === 'builder'
+                        ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
+                        : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
+                    )}
+                    onClick={e => {
+                      if (mainTab !== 'builder') {
+                        setMainTab('builder')
+                      }
+                    }}
+                  >
+                    <PencilRuler className="h-4 w-4" />
+                    Build
+                  </TabsTrigger>
+                </TabsList>
+              </div>,
               portalTarget
             )
           ) : (

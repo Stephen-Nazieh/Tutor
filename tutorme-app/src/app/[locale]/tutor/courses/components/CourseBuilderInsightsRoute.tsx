@@ -325,196 +325,197 @@ function CourseBuilderInsightsRouteInner({
       style={model.themeStyle}
     >
       <div className="border-border bg-card sticky top-0 z-10 w-full border-b">
-        <div className="flex w-full flex-col gap-4 px-4 pt-4 sm:flex-row sm:items-start sm:justify-between sm:px-6 pb-0">
-          <div className="flex items-start gap-4">
-            <Link href="/tutor/dashboard">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
+        <div className="flex w-full flex-col gap-6 px-4 pt-6 sm:px-6 pb-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full">
+            <div className="flex items-center gap-4">
+              <Link href="/tutor/dashboard">
+                <Button variant="ghost" size="icon">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
 
-            <div className="flex flex-col h-full justify-between">
-              <div className="flex items-center gap-2">
-                {activeMainTab !== 'live' && saveMode === 'draft' && insightsProps.onCourseChange && (
-                  <Select
-                    value={courseId ?? ''}
-                    onValueChange={v => insightsProps.onCourseChange?.(v)}
-                  >
-                    <SelectTrigger className="h-9 w-[160px] text-sm font-semibold border-none bg-transparent shadow-none hover:bg-slate-100 transition-colors focus:ring-0">
-                      <SelectValue placeholder="Select course">
-                        {saveMode === 'draft'
-                          ? draftCourses?.find(c => c.id === courseId)?.name || courseName || 'Select course'
-                          : courses?.find(c => c.id === courseId)?.name || courseName || 'Select course'}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {courses && courses.length > 0 && (
-                        <SelectItem
-                          value="__live-header__"
-                          disabled
-                          className="text-muted-foreground text-xs font-semibold"
-                        >
-                          Live Courses
-                        </SelectItem>
-                      )}
-                      {courses?.map(c => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                      {draftCourses && draftCourses.length > 0 && (
-                        <SelectItem
-                          value="__draft-header__"
-                          disabled
-                          className="text-muted-foreground text-xs font-semibold"
-                        >
-                          Draft Courses
-                        </SelectItem>
-                      )}
-                      {draftCourses?.map(c => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-                
-                {activeMainTab === 'builder' && saveMode === 'draft' && onCreateCourse && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-8 w-8 p-0 text-slate-500 hover:text-slate-700"
-                    onClick={onCreateCourse}
-                    title="New Course"
-                  >
-                    <Plus className="h-5 w-5" />
-                  </Button>
-                )}
-
-                {onCourseNameChange && courseId && courseId !== 'insights-draft' && (
-                  <input
-                    className="h-10 min-w-[200px] border-none bg-transparent px-2 text-2xl font-bold focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none hover:bg-slate-100 rounded-md transition-colors placeholder:text-gray-400"
-                    value={courseName || ''}
-                    onChange={e => {
-                      const newName = e.target.value
-                      if (newName.trim() !== '') {
-                        onCourseNameChange(newName)
-                      }
-                    }}
-                    placeholder="Course Name..."
-                  />
-                )}
-                
-                {activeMainTab === 'live' && (
-                  <h1 className="text-foreground flex items-center gap-2 text-2xl font-bold tracking-tight">
-                    {model.course?.name && (
-                      <span className="text-muted-foreground ml-2 text-xl font-normal">
-                        {model.course.name}
-                      </span>
-                    )}
-                    {scheduledDateStr && (
-                      <span
-                        className={cn(
-                          'ml-2 flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-sm font-medium shadow-sm transition-colors',
-                          isOverdue
-                            ? 'border-red-200 bg-red-50 text-red-700'
-                            : 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                        )}
-                      >
-                        <Timer className="h-4 w-4" />
-                        <span>{countdownText}</span>
-                      </span>
-                    )}
-                  </h1>
-                )}
-                {(sessionCategory || sessionNationality) && (
-                  <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ml-2">
-                    {sessionCategory && sessionNationality
-                      ? `${sessionCategory} — ${sessionNationality}`
-                      : sessionCategory || sessionNationality}
-                  </span>
-                )}
-              </div>
-              <p className="text-gray-500 mt-1 mb-4">Build and manage your course content</p>
-            </div>
-          </div>
-          
-          <div className="flex flex-col items-end gap-4 h-full justify-between pb-3">
-            <div className="flex shrink-0 items-center gap-2 mt-1">
-                  {activeMainTab === 'builder' && insightsProps.sessionId && onSyncToLiveSession && (
-                    <Button
-                      variant="outline"
-                      onClick={async () => {
-                        const cb = (model.courseBuilderRef.current as any)?.saveAll
-                        if (typeof cb === 'function') await cb()
-                        const syncCb = (model.courseBuilderRef.current as any)?.syncToLive
-                        if (typeof syncCb === 'function') syncCb()
-                        onSyncToLiveSession()
-                      }}
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-2">
+                  {activeMainTab !== 'live' && saveMode === 'draft' && insightsProps.onCourseChange && (
+                    <Select
+                      value={courseId ?? ''}
+                      onValueChange={v => insightsProps.onCourseChange?.(v)}
                     >
-                      <RefreshCw className="mr-2 h-4 w-4" />
-                      Sync
+                      <SelectTrigger className="h-9 w-[160px] text-sm font-semibold border-none bg-transparent shadow-none hover:bg-slate-100 transition-colors focus:ring-0">
+                        <SelectValue placeholder="Select course">
+                          {saveMode === 'draft'
+                            ? draftCourses?.find(c => c.id === courseId)?.name || courseName || 'Select course'
+                            : courses?.find(c => c.id === courseId)?.name || courseName || 'Select course'}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {courses && courses.length > 0 && (
+                          <SelectItem
+                            value="__live-header__"
+                            disabled
+                            className="text-muted-foreground text-xs font-semibold"
+                          >
+                            Live Courses
+                          </SelectItem>
+                        )}
+                        {courses?.map(c => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                        {draftCourses && draftCourses.length > 0 && (
+                          <SelectItem
+                            value="__draft-header__"
+                            disabled
+                            className="text-muted-foreground text-xs font-semibold"
+                          >
+                            Draft Courses
+                          </SelectItem>
+                        )}
+                        {draftCourses?.map(c => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  
+                  {activeMainTab === 'builder' && saveMode === 'draft' && onCreateCourse && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 text-slate-500 hover:text-slate-700"
+                      onClick={onCreateCourse}
+                      title="New Course"
+                    >
+                      <Plus className="h-5 w-5" />
                     </Button>
                   )}
-              {activeMainTab === 'builder' &&
-                (onSaveCourse ||
-                  (onCreateCourse && !insightsProps.sessionId) ||
-                  (onDeleteCourse && !insightsProps.sessionId && ((courses && courses.length > 1) || (draftCourses && draftCourses.length > 1))) ||
-                  (onCourseNameChange && courseId && courseId !== 'insights-draft')) && (
-                  <>
-                    {onSaveCourse && (
+
+                  {onCourseNameChange && courseId && courseId !== 'insights-draft' && (
+                    <input
+                      className="h-10 min-w-[200px] border-none bg-transparent px-2 text-2xl font-bold focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none hover:bg-slate-100 rounded-md transition-colors placeholder:text-gray-400"
+                      value={courseName || ''}
+                      onChange={e => {
+                        const newName = e.target.value
+                        if (newName.trim() !== '') {
+                          onCourseNameChange(newName)
+                        }
+                      }}
+                      placeholder="Course Name..."
+                    />
+                  )}
+                  
+                  {activeMainTab === 'live' && (
+                    <h1 className="text-foreground flex items-center gap-2 text-2xl font-bold tracking-tight">
+                      {model.course?.name && (
+                        <span className="text-muted-foreground ml-2 text-xl font-normal">
+                          {model.course.name}
+                        </span>
+                      )}
+                      {scheduledDateStr && (
+                        <span
+                          className={cn(
+                            'ml-2 flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-sm font-medium shadow-sm transition-colors',
+                            isOverdue
+                              ? 'border-red-200 bg-red-50 text-red-700'
+                              : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                          )}
+                        >
+                          <Timer className="h-4 w-4" />
+                          <span>{countdownText}</span>
+                        </span>
+                      )}
+                    </h1>
+                  )}
+                  {(sessionCategory || sessionNationality) && (
+                    <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ml-2">
+                      {sessionCategory && sessionNationality
+                        ? `${sessionCategory} — ${sessionNationality}`
+                        : sessionCategory || sessionNationality}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex flex-col items-end gap-4 h-full justify-between pb-0">
+              <div className="flex shrink-0 items-center gap-2 mt-0">
+                    {activeMainTab === 'builder' && insightsProps.sessionId && onSyncToLiveSession && (
                       <Button
                         variant="outline"
-                        className="gap-2 font-medium text-slate-700 hover:text-slate-900"
                         onClick={async () => {
                           const cb = (model.courseBuilderRef.current as any)?.saveAll
                           if (typeof cb === 'function') await cb()
-                          else if (onSaveCourse) onSaveCourse([])
+                          const syncCb = (model.courseBuilderRef.current as any)?.syncToLive
+                          if (typeof syncCb === 'function') syncCb()
+                          onSyncToLiveSession()
                         }}
                       >
-                        <Save className="h-4 w-4" />
-                        Save
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Sync
                       </Button>
                     )}
-                    {courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
-                      <Button
-                        variant="default"
-                        className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium"
-                        onClick={handlePublishDraft}
-                      >
-                        <Calendar className="h-4 w-4" />
-                        Schedule
-                      </Button>
-                    )}
-                    {onDeleteCourse &&
-                      !insightsProps.sessionId &&
-                      saveMode === 'draft' &&
-                      ((courses && courses.length > 1) ||
-                        (draftCourses && draftCourses.length > 1)) && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon">
-                              <MoreVertical className="h-5 w-5" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={onDeleteCourse}
-                              className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                            >
-                              Delete Course
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                {activeMainTab === 'builder' &&
+                  (onSaveCourse ||
+                    (onCreateCourse && !insightsProps.sessionId) ||
+                    (onDeleteCourse && !insightsProps.sessionId && ((courses && courses.length > 1) || (draftCourses && draftCourses.length > 1))) ||
+                    (onCourseNameChange && courseId && courseId !== 'insights-draft')) && (
+                    <>
+                      {onSaveCourse && (
+                        <Button
+                          variant="outline"
+                          className="gap-2 font-medium text-slate-700 hover:text-slate-900"
+                          onClick={async () => {
+                            const cb = (model.courseBuilderRef.current as any)?.saveAll
+                            if (typeof cb === 'function') await cb()
+                            else if (onSaveCourse) onSaveCourse([])
+                          }}
+                        >
+                          <Save className="h-4 w-4" />
+                          Save
+                        </Button>
                       )}
-                  </>
-                )}
+                      {courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
+                        <Button
+                          variant="default"
+                          className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                          onClick={handlePublishDraft}
+                        >
+                          <Calendar className="h-4 w-4" />
+                          Schedule
+                        </Button>
+                      )}
+                      {onDeleteCourse &&
+                        !insightsProps.sessionId &&
+                        saveMode === 'draft' &&
+                        ((courses && courses.length > 1) ||
+                          (draftCourses && draftCourses.length > 1)) && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="icon">
+                                <MoreVertical className="h-5 w-5" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={onDeleteCourse}
+                                className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                              >
+                                Delete Course
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                    </>
+                  )}
+              </div>
             </div>
-            
-            {/* The outer container for Course Builder Tabs */}
-            <div id="course-builder-tabs-portal" className="flex items-center min-w-[350px] mb-0 mt-auto justify-end pb-0 translate-y-3"></div>
           </div>
+          
+          {/* The outer container for Course Builder Tabs */}
+          <div id="course-builder-tabs-portal" className="w-full mt-4"></div>
         </div>
       </div>
 
