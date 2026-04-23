@@ -1214,14 +1214,9 @@ export default function PublicTutorPage() {
                           )}
                         >
                           <div className="flex gap-1">
-                            <dt className="font-medium text-slate-500">Sessions</dt>
-                            <dd className="text-slate-800">{course.lessonCount} lessons</dd>
+                            <dd className="font-medium text-slate-800">{course.lessonCount} lessons</dd>
                           </div>
                           <div className="flex items-start gap-1">
-                            <dt className="flex shrink-0 items-center gap-0.5 font-medium text-slate-500">
-                              <CalendarDays className="h-3.5 w-3.5" />
-                              Schedule
-                            </dt>
                             <dd className="min-w-0 text-slate-800">
                               {course.scheduleSummary ? (
                                 <button
@@ -1232,10 +1227,14 @@ export default function PublicTutorPage() {
                                   }}
                                   className="inline-flex items-center gap-1 font-medium text-blue-600 transition-colors hover:text-blue-800 hover:underline"
                                 >
-                                  {course.scheduleSummary} <ExternalLink className="h-3 w-3" />
+                                  <CalendarDays className="h-3.5 w-3.5" />
+                                  Schedule <ExternalLink className="h-3 w-3" />
                                 </button>
                               ) : (
-                                'Schedule to be announced'
+                                <span className="flex shrink-0 items-center gap-0.5 font-medium text-slate-500">
+                                  <CalendarDays className="h-3.5 w-3.5" />
+                                  Schedule to be announced
+                                </span>
                               )}
                             </dd>
                           </div>

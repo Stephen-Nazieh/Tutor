@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,8 @@ interface VariantScheduleEditorProps {
   schedule: ScheduleItem[]
   onScheduleChange: (updater: (prev: ScheduleItem[]) => ScheduleItem[]) => void
   price?: number | null
+  weeksToSchedule?: number
+  onWeeksChange?: (weeks: number) => void
 }
 
 const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -57,10 +59,12 @@ export function VariantScheduleEditor({
   schedule,
   onScheduleChange,
   price,
+  weeksToSchedule = 8,
+  onWeeksChange,
 }: VariantScheduleEditorProps) {
   const [scheduleWeekOffset, setScheduleWeekOffset] = useState(0)
   const [scheduleRepeatWeekly, setScheduleRepeatWeekly] = useState(false)
-  const [numberOfWeeks, setNumberOfWeeks] = useState(4)
+  const [numberOfWeeks, setNumberOfWeeks] = useState(weeksToSchedule)
   const [totalSessionsDesired, setTotalSessionsDesired] = useState<number | ''>('')
 
   const scheduleWeekStart = (() => {
@@ -94,6 +98,11 @@ export function VariantScheduleEditor({
     scheduleRepeatWeekly && schedule.length > 0 && totalSessionsDesired !== ''
       ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
       : numberOfWeeks
+
+  // Add this effect to notify the parent when effectiveWeeks changes
+  useEffect(() => {
+    onWeeksChange?.(effectiveWeeks)
+  }, [effectiveWeeks, onWeeksChange])
 
   const scheduleSummary = useMemo(() => {
     if (schedule.length === 0) return []

@@ -53,6 +53,7 @@ interface ScheduleItem {
   dayOfWeek: string
   startTime: string
   durationMinutes: number
+  date?: string
 }
 
 interface VariantConfig {
@@ -63,6 +64,7 @@ interface VariantConfig {
   currency: string
   languageOfInstruction: string
   schedule: ScheduleItem[]
+  weeksToSchedule?: number
 }
 
 const DAY_MAP: Record<string, number> = {
@@ -173,6 +175,20 @@ function generateSessionDates(
 
     const [hours, minutes] = slot.startTime.split(':').map(Number)
     if (hours === undefined || minutes === undefined) continue
+
+    if (slot.date) {
+      // Manual specific date
+      const [year, month, day] = slot.date.split('-').map(Number)
+      if (year && month && day) {
+        const sessionDate = new Date(year, month - 1, day, hours, minutes, 0, 0)
+        sessions.push({
+          scheduledAt: sessionDate,
+          title: `Live Session — ${slot.date} ${slot.startTime}`,
+          durationMinutes: slot.durationMinutes || 60,
+        })
+      }
+      continue
+    }
 
     // Find the next occurrence of this day
     const cursor = new Date(today)
@@ -386,7 +402,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         // Generate live sessions from schedule
         const schedule = Array.isArray(v.schedule) ? v.schedule : []
         if (schedule.length > 0) {
-          const sessionDates = generateSessionDates(schedule, 8)
+          const sessionDates = generateSessionDates(schedule, v.weeksToSchedule || 8)
 
           // Fetch existing scheduled sessions for this course to avoid duplicates
           const existingSessions = await tx

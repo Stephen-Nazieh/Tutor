@@ -4901,7 +4901,7 @@ FEEDBACK: [your explanation]`
                                             </DroppableTaskZone>
                                           </TreeItem>
                                           {!isSectionCollapsed(node.id, 'task') && (
-                                            <>
+                                            <div className="mt-2 space-y-1">
                                               <SortableContext
                                                 items={primaryLesson.tasks?.map(t => t.id) || []}
                                                 strategy={verticalListSortingStrategy}
@@ -5475,7 +5475,7 @@ FEEDBACK: [your explanation]`
                                                   </div>
                                                 ))}
                                               </SortableContext>
-                                            </>
+                                            </div>
                                           )}
 
                                           {/* Assessments - droppable so homework can be moved here */}
@@ -5521,7 +5521,7 @@ FEEDBACK: [your explanation]`
                                             </DroppableAssessmentZone>
                                           </TreeItem>
                                           {!isSectionCollapsed(node.id, 'assessment') && (
-                                            <>
+                                            <div className="mt-2 space-y-1">
                                               <SortableContext
                                                 items={assessments.map(h => h.id)}
                                                 strategy={verticalListSortingStrategy}
@@ -5786,7 +5786,7 @@ FEEDBACK: [your explanation]`
                                                   </SortableTreeItem>
                                                 ))}
                                               </SortableContext>
-                                            </>
+                                            </div>
                                           )}
 
                                           {/* Homework (per-lesson) - drop zone; header + description in one box; sortable items with drag handle */}
@@ -5831,10 +5831,11 @@ FEEDBACK: [your explanation]`
                                                   </DroppableHomeworkZone>
                                                 </TreeItem>
                                                 {!isSectionCollapsed(node.id, 'homework') && (
-                                                  <SortableContext
-                                                    items={hwItems.map(h => h.id)}
-                                                    strategy={verticalListSortingStrategy}
-                                                  >
+                                                  <div className="mt-2 space-y-1">
+                                                    <SortableContext
+                                                      items={hwItems.map(h => h.id)}
+                                                      strategy={verticalListSortingStrategy}
+                                                    >
                                                     {hwItems.map((hw, hwIdx) => (
                                                       <SortableTreeItem
                                                         key={hw.id}
@@ -6036,6 +6037,7 @@ FEEDBACK: [your explanation]`
                                                       </SortableTreeItem>
                                                     ))}
                                                   </SortableContext>
+                                                  </div>
                                                 )}
                                               </>
                                             )

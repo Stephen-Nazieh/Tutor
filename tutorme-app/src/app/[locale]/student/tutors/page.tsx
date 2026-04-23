@@ -2,18 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -69,14 +62,6 @@ interface TutorDirectoryItem {
   totalReviewCount?: number
 }
 
-interface CategoryInfo {
-  name: string
-  courses: TutorCoursePreview[]
-  averageRate: number
-  averageRating: number
-  totalReviews: number
-}
-
 function getInitials(name: string): string {
   return name
     .split(' ')
@@ -98,6 +83,7 @@ function StarRating({ rating, count }: { rating: number; count?: number }) {
 
 export default function StudentTutorDirectoryPage() {
   const params = useParams<{ locale?: string }>()
+  const router = useRouter()
   const locale = typeof params?.locale === 'string' ? params.locale : 'en'
 
   const [loading, setLoading] = useState(true)
@@ -108,7 +94,6 @@ export default function StudentTutorDirectoryPage() {
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [nationalityFilter, setNationalityFilter] = useState('all')
   const [sortBy, setSortBy] = useState<'popular' | 'newest' | 'courses' | 'rate'>('popular')
-  const [activeTutor, setActiveTutor] = useState<TutorDirectoryItem | null>(null)
   const [following, setFollowing] = useState<Set<string>>(new Set())
 
   // Theme state with localStorage persistence
@@ -232,26 +217,6 @@ export default function StudentTutorDirectoryPage() {
       totalEnrollments,
     }
   }, [tutors])
-
-  // Group courses by category for the modal
-  const getCategoryGroups = (tutor: TutorDirectoryItem): CategoryInfo[] => {
-    const groups = new Map<string, TutorCoursePreview[]>()
-    tutor.coursePreview.forEach(course => {
-      course.categories.forEach(category => {
-        const existing = groups.get(category) || []
-        existing.push(course)
-        groups.set(category, existing)
-      })
-    })
-
-    return Array.from(groups.entries()).map(([name, courses]) => ({
-      name,
-      courses,
-      averageRate: courses.reduce((sum, c) => sum + (c.price || 0), 0) / courses.length,
-      averageRating: courses.reduce((sum, c) => sum + (c.rating || 0), 0) / courses.length,
-      totalReviews: courses.reduce((sum, c) => sum + (c.reviewCount || 0), 0),
-    }))
-  }
 
   return (
     <div
@@ -406,7 +371,7 @@ export default function StudentTutorDirectoryPage() {
                 'border-border bg-card shadow-lg hover:-translate-y-3 hover:scale-[1.02] hover:shadow-2xl',
                 'ring-1 ring-black/5'
               )}
-              onClick={() => setActiveTutor(tutor)}
+              onClick={() => router.push(`/${locale}/u/${tutor.username}`)}
             >
               <Button
                 variant={following.has(tutor.id) ? 'default' : 'outline'}
@@ -440,9 +405,7 @@ export default function StudentTutorDirectoryPage() {
               </CardHeader>
               <CardContent className="space-y-2 p-4 pt-0">
                 <div className="flex items-center gap-2">
-                  {tutor.averageRating && (
-                    <StarRating rating={tutor.averageRating} count={tutor.totalReviewCount} />
-                  )}
+                  <StarRating rating={tutor.averageRating || 0} count={tutor.totalReviewCount || 0} />
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {tutor.categories.slice(0, 3).map(category => (
@@ -504,164 +467,6 @@ export default function StudentTutorDirectoryPage() {
         )}
       </div>
 
-      <Dialog open={Boolean(activeTutor)} onOpenChange={open => !open && setActiveTutor(null)}>
-        <DialogContent className="border-border bg-card max-h-[88vh] overflow-y-auto sm:max-w-3xl">
-          {activeTutor ? (
-            <>
-              <DialogHeader>
-                <DialogTitle className="text-foreground flex items-center gap-3">
-                  <Avatar className="border-border h-10 w-10 border">
-                    <AvatarImage
-                      src={activeTutor.avatarUrl || undefined}
-                      alt={`${activeTutor.name} avatar`}
-                    />
-                    <AvatarFallback className="bg-muted">
-                      {getInitials(activeTutor.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <span>{activeTutor.name}</span>
-                    {activeTutor.averageRating && (
-                      <div className="flex items-center gap-1 text-sm font-normal">
-                        <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                        <span>{activeTutor.averageRating.toFixed(1)}</span>
-                        <span className="text-muted-foreground">
-                          ({activeTutor.totalReviewCount} reviews)
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </DialogTitle>
-                <DialogDescription>@{activeTutor.username}</DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-4">
-                <div className="border-border bg-muted/20 text-foreground rounded-lg border p-3 text-sm">
-                  {activeTutor.bio || 'No bio provided yet.'}
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="border-border bg-muted/30 rounded-md border p-3">
-                    <p className="text-muted-foreground text-xs">Courses</p>
-                    <p className="text-foreground text-lg font-semibold">
-                      {activeTutor.courseCount}
-                    </p>
-                  </div>
-                  <div className="border-border bg-muted/30 rounded-md border p-3">
-                    <p className="text-muted-foreground text-xs">Enrollments</p>
-                    <p className="text-foreground text-lg font-semibold">
-                      {activeTutor.totalEnrollments}
-                    </p>
-                  </div>
-                  <div className="border-border bg-muted/30 rounded-md border p-3">
-                    <p className="text-muted-foreground text-xs">Rating</p>
-                    <p className="text-foreground text-lg font-semibold">
-                      {activeTutor.averageRating?.toFixed(1) || 'N/A'}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-foreground mb-2 text-sm font-medium">Specialties</p>
-                  <div className="flex flex-wrap gap-2">
-                    {(activeTutor.specialties.length > 0
-                      ? activeTutor.specialties
-                      : ['General Tutoring']
-                    ).map(specialty => (
-                      <Badge
-                        key={`${activeTutor.id}:${specialty}`}
-                        variant="secondary"
-                        className="bg-muted"
-                      >
-                        <Sparkles className="mr-1 h-3 w-3" />
-                        {specialty}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                {(activeTutor.tutorNationalities || []).length > 0 && (
-                  <div>
-                    <p className="text-foreground mb-2 text-sm font-medium">Countries</p>
-                    <div className="flex flex-wrap gap-2">
-                      {activeTutor.tutorNationalities?.map(nat => (
-                        <Badge
-                          key={`${activeTutor.id}:nat:${nat}`}
-                          variant="outline"
-                          className="border-border"
-                        >
-                          {nat}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-3">
-                  <p className="text-foreground text-sm font-medium">Categories & Courses</p>
-                  {getCategoryGroups(activeTutor).map(category => (
-                    <div
-                      key={category.name}
-                      className="border-border bg-muted/10 rounded-lg border p-3"
-                    >
-                      <div className="mb-2 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="bg-muted">
-                            {category.name}
-                          </Badge>
-                          <span className="text-muted-foreground text-xs">
-                            {category.courses.length} courses
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3 text-sm">
-                          <StarRating
-                            rating={category.averageRating}
-                            count={category.totalReviews}
-                          />
-                          <span className="text-foreground font-medium">
-                            ${category.averageRate.toFixed(0)}/course
-                          </span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        {category.courses.slice(0, 3).map(course => (
-                          <div
-                            key={course.id}
-                            className="flex items-center justify-between text-sm"
-                          >
-                            <span className="text-muted-foreground">{course.name}</span>
-                            <div className="flex items-center gap-2">
-                              <StarRating rating={course.rating || 0} count={course.reviewCount} />
-                              <span className="text-foreground font-medium">
-                                ${course.price}
-                                {course.currency}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                        {category.courses.length > 3 && (
-                          <p className="text-muted-foreground text-xs">
-                            +{category.courses.length - 3} more courses
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <Button asChild>
-                    <Link href={`/${locale}/u/${activeTutor.username}`} target="_blank">
-                      Open Full Public Page
-                      <ExternalLink className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </>
-          ) : null}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

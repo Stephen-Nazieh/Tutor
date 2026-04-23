@@ -35,6 +35,7 @@ interface VariantConfig {
   currency: string
   languageOfInstruction: string
   schedule: ScheduleItem[]
+  weeksToSchedule?: number
 }
 
 interface VariantManagerProps {
@@ -91,6 +92,7 @@ export function VariantManager({
           currency: v.currency || 'USD',
           languageOfInstruction: v.languageOfInstruction || '',
           schedule: Array.isArray(v.schedule) ? v.schedule : [],
+          weeksToSchedule: typeof v.weeksToSchedule === 'number' ? v.weeksToSchedule : 8,
         }))
         setVariants(loaded)
       })
@@ -138,6 +140,7 @@ export function VariantManager({
             currency: globalCurrency,
             languageOfInstruction: globalLanguage,
             schedule: [...defaultSchedule],
+            weeksToSchedule: 8,
           })
           changed = true
         }
@@ -477,6 +480,13 @@ export function VariantManager({
                     }))
                   }
                   price={dialogVariant.price}
+                  weeksToSchedule={dialogVariant.weeksToSchedule}
+                  onWeeksChange={weeks => 
+                    updateVariant(scheduleDialogIndex, v => ({
+                      ...v,
+                      weeksToSchedule: weeks,
+                    }))
+                  }
                 />
               </div>
             )}
