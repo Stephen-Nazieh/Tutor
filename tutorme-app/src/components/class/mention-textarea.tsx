@@ -8,7 +8,7 @@ import { AutoTextarea } from '@/components/ui/auto-textarea'
 
 export interface MentionItem {
   id: string
-  type: 'lesson' | 'task' | 'assessment' | 'extension' | 'dmi'
+  type: 'lesson' | 'task' | 'assessment' | 'extension' | 'dmi' | 'course' | 'session' | 'student' | string
   label: string
   subtitle?: string
 }
