@@ -659,9 +659,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     }
     const activeInsightsTaskId = mainBuilderTab === 'assessment' ? loadedAssessmentId : loadedTaskId
     const activeInsightsTask =
-      activeInsightsTaskId && insightsProps
-        ? (insightsProps.liveTasks.find(task => task.id === activeInsightsTaskId) ?? null)
-        : null
+  activeInsightsTaskId
+    ? (nodes.flatMap(n => n.lessons.flatMap(l => [...l.tasks, ...(l.homework || [])])).find(item => item.id === activeInsightsTaskId) ?? null)
+    : null
 
     // Insights panel state (per item)
     const [insightsTabMap, setInsightsTabMap] = useState<
@@ -4570,16 +4570,16 @@ FEEDBACK: [your explanation]`
             {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
             {leftPanelHidden ? (
               <div
-                className="flex w-12 shrink-0 cursor-pointer flex-col items-center rounded-full border border-slate-200 bg-white py-4 shadow-sm transition-colors hover:bg-slate-50"
+                className="flex w-12 shrink-0 cursor-pointer flex-col items-center rounded-2xl border border-[#E5E7EB] bg-white py-4 shadow-sm transition-colors hover:bg-slate-50 mr-4"
                 onClick={() => setLeftPanelHidden(false)}
                 title="Show directory"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EEF4FF] text-[#2B5FB8]">
                   <ChevronRight className="h-5 w-5" />
                 </div>
                 <div className="mt-8 flex flex-1 items-start justify-center">
                   <span
-                    className="text-xs font-bold tracking-[0.2em] text-slate-400"
+                    className="text-xs font-bold tracking-[0.2em] text-[#98A2B3]"
                     style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
                   >
                     DIRECTORY
@@ -4596,8 +4596,8 @@ FEEDBACK: [your explanation]`
                   <Card className="flex h-full min-h-0 flex-1 flex-col rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_6px_16px_rgba(0,0,0,0.06)]">
                     <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
                       {/* Header with Hide, Import, and +Lesson buttons */}
-                      <div className="mb-4 flex items-center justify-between">
-                        <div className="flex flex-col gap-1.5">
+                      <div className="mb-4 flex min-h-[58px] items-center justify-between">
+                        <div className="flex flex-col justify-center gap-1">
                           <div className="flex items-center gap-2">
                             <Button
                               variant="ghost"
@@ -4725,9 +4725,6 @@ FEEDBACK: [your explanation]`
                                               title={node.title}
                                             >
                                               {node.title}
-                                            </div>
-                                            <div className="mt-0.5 text-xs text-[#667085]">
-                                              Structured lesson module
                                             </div>
                                           </div>
                                         </div>
@@ -6138,9 +6135,9 @@ FEEDBACK: [your explanation]`
                                 onValueChange={setTestPciActiveTab}
                                 className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-hidden"
                               >
-                                <TabsList className="mb-px flex w-full shrink-0 flex-nowrap items-stretch border-b border-gray-200">
+                                <TabsList className="mb-4 grid w-full grid-cols-3 gap-3 bg-transparent p-0 shadow-none">
                                   {testPciTabs.map(tab => (
-                                    <div key={tab.id} className="relative min-w-0 flex-1 basis-0">
+                                    <div key={tab.id} className="relative w-full">
                                       {editingTabId === tab.id ? (
                                         <Input
                                           value={tab.label}
@@ -6157,13 +6154,13 @@ FEEDBACK: [your explanation]`
                                           onKeyDown={(e: any) => {
                                             if (e.key === 'Enter') setEditingTabId(null)
                                           }}
-                                          className="h-[3.2rem] min-w-0 border-0 text-center text-xs font-medium focus-visible:ring-0"
+                                          className="w-full rounded-xl border border-[#CFE0FF] bg-[#EEF4FF] px-3 py-2.5 text-center text-sm font-medium text-[#2B5FB8] focus-visible:ring-0"
                                           autoFocus
                                         />
                                       ) : (
                                         <TabsTrigger
                                           value={tab.id}
-                                          className="flex h-[3.2rem] w-full min-w-0 items-center justify-center truncate border-b-2 border-transparent bg-transparent px-2 text-xs font-medium text-gray-500 transition-colors hover:text-gray-700 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 sm:text-sm"
+                                          className="relative flex w-full items-center justify-center truncate rounded-xl border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50"
                                           onDoubleClick={() => setEditingTabId(tab.id)}
                                         >
                                           {tab.label}
@@ -6274,7 +6271,7 @@ FEEDBACK: [your explanation]`
                                                         className={cn("h-9 w-9 rounded-xl hover:bg-cyan-100 hover:text-cyan-700 disabled:opacity-30", showAIPoll ? "bg-cyan-100 text-cyan-700" : "text-cyan-600")}
                                                         title="Generate with Socratic AI"
                                                         onClick={() => setShowAIPoll(!showAIPoll)}
-                                                        disabled={!activeInsightsTask}
+                                                        disabled={!activeInsightsTaskId}
                                                       >
                                                         <Sparkles className="h-4 w-4" />
                                                       </Button>
@@ -6378,7 +6375,7 @@ FEEDBACK: [your explanation]`
                                                         className={cn("h-9 w-9 rounded-xl hover:bg-cyan-100 hover:text-cyan-700 disabled:opacity-30", showAIQuestion ? "bg-cyan-100 text-cyan-700" : "text-cyan-600")}
                                                         title="Generate with Socratic AI"
                                                         onClick={() => setShowAIQuestion(!showAIQuestion)}
-                                                        disabled={!activeInsightsTask}
+                                                        disabled={!activeInsightsTaskId}
                                                       >
                                                         <Sparkles className="h-4 w-4" />
                                                       </Button>
@@ -6664,23 +6661,43 @@ FEEDBACK: [your explanation]`
                           className="flex h-full w-full flex-col"
                         >
                           {/* Main Builder Tabs — nested pill design */}
-                          <div className="mb-4 grid grid-cols-2 gap-3">
-                            <TabsList className="col-span-1 grid h-[52px] w-full grid-cols-2 gap-2 bg-transparent p-0 shadow-none">
+                          <div className="mb-4 flex w-full items-center justify-between gap-4 rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] p-1.5 shadow-sm">
+                            {/* Left: current task name */}
+                            <div className="flex min-w-0 flex-1 items-center gap-2 px-3 text-sm font-semibold text-[#1F2933]">
+                              <span className="truncate">
+                                {mainBuilderTab === 'task' 
+                                  ? (taskBuilder.activeExtensionId 
+                                      ? taskBuilder.extensions.find(x => x.id === taskBuilder.activeExtensionId)?.name || 'Extension'
+                                      : taskBuilder.title || 'Select a Task')
+                                  : ''}
+                              </span>
+                            </div>
+
+                            <TabsList className="grid h-[46px] w-[400px] shrink-0 grid-cols-2 gap-2 bg-transparent p-0 shadow-none">
                               <TabsTrigger
                                 value="task"
-                                className="relative flex w-full items-center justify-center gap-2 rounded-xl border border-[#E5E7EB] bg-white py-3 text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=active]:font-medium data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50"
+                                className="relative flex w-full items-center justify-center gap-2 rounded-xl border border-transparent bg-transparent py-2.5 text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=active]:font-semibold data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50"
                               >
                                 <Wrench className="h-4 w-4 shrink-0" />
                                 Task Builder
                               </TabsTrigger>
                               <TabsTrigger
                                 value="assessment"
-                                className="relative flex w-full items-center justify-center gap-2 rounded-xl border border-[#E5E7EB] bg-white py-3 text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:hover:bg-slate-50"
+                                className="relative flex w-full items-center justify-center gap-2 rounded-xl border border-transparent bg-transparent py-2.5 text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=active]:font-semibold data-[state=active]:text-[#6D59D8] data-[state=inactive]:hover:bg-slate-50"
                               >
                                 <FileCheck2 className="h-4 w-4 shrink-0" />
                                 Assessment Builder
                               </TabsTrigger>
                             </TabsList>
+
+                            {/* Right: current assessment name */}
+                            <div className="flex min-w-0 flex-1 items-center justify-end gap-2 px-3 text-sm font-semibold text-[#1F2933]">
+                              <span className="truncate">
+                                {mainBuilderTab === 'assessment' 
+                                  ? (assessmentBuilder.title || 'Select an Assessment')
+                                  : ''}
+                              </span>
+                            </div>
                           </div>
 
                           {/* Content area */}
@@ -6688,44 +6705,8 @@ FEEDBACK: [your explanation]`
                             {/* Task Builder Tab */}
                             <TabsContent
                               value="task"
-                              className="flex h-full flex-col space-y-4 overflow-hidden data-[state=inactive]:hidden"
+                              className="flex h-full flex-col space-y-px overflow-hidden data-[state=inactive]:hidden"
                             >
-                              <div className="grid grid-cols-2 gap-3">
-                                <Input
-                                  placeholder="Task Name"
-                                  value={taskBuilder.title}
-                                  onChange={e =>
-                                    setTaskBuilder({ ...taskBuilder, title: e.target.value })
-                                  }
-                                  className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#DCEAFF]"
-                                />
-                                <Input
-                                  placeholder="Extension Description"
-                                  value={
-                                    taskBuilder.activeExtensionId
-                                      ? taskBuilder.extensions.find(
-                                          x => x.id === taskBuilder.activeExtensionId
-                                        )?.name || ''
-                                      : taskBuilder.details || ''
-                                  }
-                                  onChange={e => {
-                                    if (taskBuilder.activeExtensionId) {
-                                      setTaskBuilder(prev => ({
-                                        ...prev,
-                                        extensions: prev.extensions.map(x =>
-                                          x.id === taskBuilder.activeExtensionId
-                                            ? { ...x, name: e.target.value }
-                                            : x
-                                        ),
-                                      }))
-                                    } else {
-                                      setTaskBuilder({ ...taskBuilder, details: e.target.value })
-                                    }
-                                  }}
-                                  className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#DCEAFF]"
-                                />
-                              </div>
-
                               <div className="flex flex-1 gap-px overflow-hidden">
                                 {/* Main content with tabs */}
                                 <div className="flex flex-1 flex-col overflow-hidden">
@@ -7007,7 +6988,7 @@ FEEDBACK: [your explanation]`
                                                 <PDFViewer
                                                   key={taskSourceDocument.fileUrl}
                                                   fileUrl={taskSourceDocument.fileUrl}
-                                                  className="absolute inset-0 h-full w-full bg-[#F1F5F9]"
+                                                  className="absolute inset-0 h-full w-full"
                                                   defaultScale={0.75}
                                                   hidePageNavigation
                                                   onHidePreview={() => {
@@ -7149,13 +7130,13 @@ FEEDBACK: [your explanation]`
                                             </div>
                                           )}
                                         </div>
-                                        <div className="border-t p-px">
+                                        <div className="mt-auto p-0">
                                           {taskPciErrorHint && (
                                             <div className="mb-px rounded-md border border-rose-200 bg-rose-50 px-px py-px text-xs text-rose-700">
                                               PCI assistant error: {taskPciErrorHint}
                                             </div>
                                           )}
-                                          <div className="relative flex items-end gap-px">
+                                          <div className="relative flex w-full items-end">
                                             <MentionTextarea
                                               mentionItems={mentionItems}
                                               placeholder="Ask the PCI assistant..."
@@ -7224,23 +7205,25 @@ FEEDBACK: [your explanation]`
                                     }}
                                     className="flex h-full w-full flex-col"
                                   >
-                                    <TabsList className="mb-px grid h-10 w-full grid-cols-2 gap-2 rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
+                                    <TabsList className="mb-px grid h-[46px] w-full grid-cols-2 gap-2 rounded-xl bg-transparent p-0 shadow-none">
                                       <TabsTrigger
                                         value="content"
-                                        className="w-full rounded-lg text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-[#2B5FB8] data-[state=inactive]:bg-gray-50 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=active]:font-medium data-[state=active]:text-[#2B5FB8] data-[state=inactive]:bg-white data-[state=inactive]:hover:bg-slate-50"
                                       >
+                                        <LayoutPanelTop className="mr-2 h-4 w-4 shrink-0" />
                                         Assessment
                                       </TabsTrigger>
                                       <TabsTrigger
                                         value="pci"
-                                        className="w-full rounded-lg text-sm font-medium text-gray-500 transition-all data-[state=active]:bg-[#2B5FB8] data-[state=inactive]:bg-gray-50 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-sm"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:bg-white data-[state=inactive]:hover:bg-slate-50"
                                       >
+                                        <Brain className="mr-2 h-4 w-4 shrink-0" />
                                         PCI
                                       </TabsTrigger>
                                     </TabsList>
                                     <TabsContent
                                       value="content"
-                                      className="mt-px flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                                      className="mt-3 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div
                                         className="relative flex h-full min-h-0 flex-row overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-sm"
@@ -7473,7 +7456,7 @@ FEEDBACK: [your explanation]`
                                                 <PDFViewer
                                                   key={assessmentSourceDocument.fileUrl}
                                                   fileUrl={assessmentSourceDocument.fileUrl}
-                                                  className="absolute inset-0 h-full w-full bg-[#F1F5F9]"
+                                                  className="absolute inset-0 h-full w-full"
                                                   defaultScale={0.75}
                                                   hidePageNavigation
                                                   onHidePreview={() => {
@@ -7564,7 +7547,7 @@ FEEDBACK: [your explanation]`
                                             </div>
                                           )}
                                         </div>
-                                        <div className="border-t p-px">
+                                        <div className="mt-auto p-0">
                                           {(assessmentPciErrorHintMap[loadedAssessmentId || ''] ||
                                             '') && (
                                             <div className="mb-px rounded-md border border-rose-200 bg-rose-50 px-px py-px text-xs text-rose-700">
@@ -7574,7 +7557,7 @@ FEEDBACK: [your explanation]`
                                               ] || ''}
                                             </div>
                                           )}
-                                          <div className="relative flex items-end gap-px">
+                                          <div className="relative flex w-full items-end">
                                             <MentionTextarea
                                               mentionItems={mentionItems}
                                               placeholder="Ask the PCI assistant..."

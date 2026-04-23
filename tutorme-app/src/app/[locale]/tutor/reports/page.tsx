@@ -573,9 +573,9 @@ function ItemAIChat({
   const isSession = !!session
 
   return (
-    <Card className="h-full flex flex-col border border-gray-200 shadow-sm overflow-hidden bg-white">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-gray-50/50 shrink-0">
+      <div className="flex items-center justify-between p-4 shrink-0">
         <span className="text-sm font-semibold text-gray-800 uppercase tracking-wider">
           {isCourse 
             ? `ASK AI ABOUT ${course.name}` 
@@ -589,7 +589,7 @@ function ItemAIChat({
       </div>
 
       {/* Chat Area */}
-      <CardContent className="flex-1 flex flex-col p-0 min-h-0">
+      <div className="flex-1 flex flex-col p-0 min-h-0">
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
@@ -651,8 +651,8 @@ function ItemAIChat({
         </div>
 
         {/* Input Area */}
-        <div className="p-4 bg-white border-t shrink-0">
-          <div className="relative flex items-end gap-2 rounded-2xl border border-gray-200 bg-gray-50/50 p-1 pl-3 shadow-sm focus-within:border-blue-300 focus-within:bg-white focus-within:ring-1 focus-within:ring-blue-200 transition-all">
+        <div className="p-4 shrink-0">
+          <div className="relative flex items-end gap-2 rounded-2xl border border-gray-200 bg-white p-1 pl-3 shadow-sm focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-200 transition-all">
             <textarea
               placeholder={
                 isCourse 
@@ -682,8 +682,8 @@ function ItemAIChat({
             </Button>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
@@ -779,12 +779,12 @@ function CoursesAndClassesTab() {
   return (
     <TabsContent value="overview" className="flex flex-col h-[calc(100vh-140px)] space-y-4">
       {/* Top Row - Course List & Sessions Side by Side */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 shrink-0 h-[280px]">
-        <Card className="border border-gray-200 shadow-sm flex flex-col overflow-hidden">
-          <CardHeader className="py-3 px-4 shrink-0 bg-gray-50/50 border-b">
-            <CardTitle className="text-base">Courses & Classes ({courses.length})</CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto p-3 space-y-2 bg-white">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 shrink-0 h-[280px]">
+        <div className="flex flex-col overflow-hidden">
+          <div className="py-2 shrink-0">
+            <h3 className="text-sm font-semibold text-gray-800">Courses & Classes ({courses.length})</h3>
+          </div>
+          <div className="flex-1 overflow-y-auto space-y-2 pr-2">
             {coursesLoading ? (
               <div className="flex h-full items-center justify-center py-10 text-sm text-gray-500">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -799,10 +799,10 @@ function CoursesAndClassesTab() {
                 <div
                   key={course.id}
                   className={cn(
-                    'cursor-pointer rounded-lg border p-3 transition-colors',
+                    'cursor-pointer rounded-xl border bg-white p-3 transition-colors shadow-sm',
                     selectedItem?.type === 'course' && selectedItem.id === course.id
-                      ? 'border-blue-400 bg-blue-50 shadow-sm ring-1 ring-blue-400/20'
-                      : 'hover:bg-gray-50 hover:border-gray-300'
+                      ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-400/20'
+                      : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                   )}
                   onClick={() => {
                     setSelectedItem(
@@ -812,7 +812,7 @@ function CoursesAndClassesTab() {
                 >
                   <div className="flex items-start justify-between">
                     <div className="font-medium text-sm text-gray-900">{course.name}</div>
-                    <Badge variant="secondary" className="text-[10px]">Course</Badge>
+                    <Badge variant="secondary" className="text-[10px] bg-blue-600 text-white hover:bg-blue-700">Course</Badge>
                   </div>
                   <div className="text-muted-foreground text-xs mt-1 truncate">
                     {course.description || course.categories[0] || 'Untitled'}
@@ -820,14 +820,14 @@ function CoursesAndClassesTab() {
                 </div>
               ))
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="border border-gray-200 shadow-sm flex flex-col overflow-hidden">
-          <CardHeader className="py-3 px-4 shrink-0 bg-gray-50/50 border-b">
-            <CardTitle className="text-base">Sessions</CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto p-3 space-y-2 bg-white">
+        <div className="flex flex-col overflow-hidden">
+          <div className="py-2 shrink-0">
+            <h3 className="text-sm font-semibold text-gray-800">Sessions</h3>
+          </div>
+          <div className="flex-1 overflow-y-auto space-y-2 pr-2">
             {sessionsLoading ? (
               <div className="text-muted-foreground flex h-full items-center justify-center py-10 text-sm">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -846,9 +846,9 @@ function CoursesAndClassesTab() {
                   <div
                     key={sessionItem.id}
                     className={cn(
-                      'cursor-pointer rounded-lg border bg-white p-3 transition-colors',
+                      'cursor-pointer rounded-xl border bg-white p-3 transition-colors shadow-sm',
                       selectedItem?.type === 'session' && selectedItem.id === sessionItem.id
-                        ? 'border-blue-400 bg-blue-50 shadow-sm ring-1 ring-blue-400/20'
+                        ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-400/20'
                         : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                     )}
                     onClick={() => {
@@ -870,8 +870,8 @@ function CoursesAndClassesTab() {
                 )
               })
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Analytics Strip (Minimal) */}
