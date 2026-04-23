@@ -232,6 +232,13 @@ import {
   CornerDownLeft,
   Eye,
   Search,
+  TestTube2,
+  PencilRuler,
+  Wrench,
+  FileCheck2,
+  LayoutPanelTop,
+  Brain,
+  ClipboardList,
 } from 'lucide-react'
 import { ChevronLeft as ChevronLeftIcon } from 'lucide-react'
 
@@ -6177,14 +6184,14 @@ FEEDBACK: [your explanation]`
                                           {/* Recording status removed from Insights tab */}
 
                                           <Tabs
-                                            value={insightsTab}
-                                            onValueChange={value =>
-                                              setInsightsTab(
-                                                value as 'analytics' | 'poll' | 'question' | 'assistant'
-                                              )
-                                            }
-                                            className="flex h-full min-h-0 flex-col"
-                                          >
+                                              value={insightsTab}
+                                              onValueChange={value =>
+                                                setInsightsTab(
+                                                  value as 'analytics' | 'poll' | 'question'
+                                                )
+                                              }
+                                              className="flex h-full min-h-0 flex-col"
+                                            >
                                             <TabsList className="mb-1 grid w-full grid-cols-3 gap-1 rounded-xl p-px shadow-sm">
                                               <TabsTrigger
                                                 value="analytics"
@@ -6418,24 +6425,6 @@ FEEDBACK: [your explanation]`
                                                   </div>
                                                 </div>
                                               </div>
-                                            </TabsContent>
-
-                                            <TabsContent
-                                              value="assistant"
-                                              className="flex flex-1 flex-col data-[state=active]:flex data-[state=inactive]:hidden overflow-hidden"
-                                            >
-                                              <AITeachingAssistant 
-                                                currentTopic={activeInsightsTask?.title || 'General Course Content'}
-                                                nodes={nodes}
-                                                onUseAsPoll={(text) => {
-                                                  setPollPrompt(text)
-                                                  setInsightsTab('poll')
-                                                }}
-                                                onUseAsQuestion={(text) => {
-                                                  setQuestionPrompt(text)
-                                                  setInsightsTab('question')
-                                                }}
-                                              />
                                             </TabsContent>
                                           </Tabs>
                                         </div>
@@ -6716,8 +6705,8 @@ FEEDBACK: [your explanation]`
                                     taskBuilder.activeExtensionId
                                       ? taskBuilder.extensions.find(
                                           x => x.id === taskBuilder.activeExtensionId
-                                        )?.title || ''
-                                      : taskBuilder.description || ''
+                                        )?.name || ''
+                                      : taskBuilder.details || ''
                                   }
                                   onChange={e => {
                                     if (taskBuilder.activeExtensionId) {
@@ -6725,12 +6714,12 @@ FEEDBACK: [your explanation]`
                                         ...prev,
                                         extensions: prev.extensions.map(x =>
                                           x.id === taskBuilder.activeExtensionId
-                                            ? { ...x, title: e.target.value }
+                                            ? { ...x, name: e.target.value }
                                             : x
                                         ),
                                       }))
                                     } else {
-                                      setTaskBuilder({ ...taskBuilder, description: e.target.value })
+                                      setTaskBuilder({ ...taskBuilder, details: e.target.value })
                                     }
                                   }}
                                   className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#DCEAFF]"

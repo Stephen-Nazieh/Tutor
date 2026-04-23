@@ -573,95 +573,113 @@ function ItemAIChat({
   const isSession = !!session
 
   return (
-    <Card className="border-2 border-cyan-100 bg-cyan-50/30 shadow-sm overflow-hidden">
-      <CardContent className="p-0">
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 pb-2">
-            <span className="text-xs font-bold text-cyan-700 tracking-wider">
-              {isCourse ? 'ASK AI ABOUT THIS COURSE' : isSession ? 'ASK AI ABOUT THIS SESSION' : 'QUESTION PROMPT'}
-            </span>
-            <span className="text-xs text-cyan-600 font-medium truncate max-w-[200px]">
-              {isCourse ? course.name : isSession ? session.title : 'No item selected'}
-            </span>
-          </div>
+    <Card className="h-full flex flex-col border border-gray-200 shadow-sm overflow-hidden bg-white">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b bg-gray-50/50 shrink-0">
+        <span className="text-sm font-semibold text-gray-800 uppercase tracking-wider">
+          {isCourse 
+            ? `ASK AI ABOUT ${course.name}` 
+            : isSession 
+            ? `ASK AI ABOUT ${session.title}` 
+            : 'ASK AI ABOUT YOUR COURSES & STUDENTS'}
+        </span>
+        <Badge variant="outline" className="text-[10px] font-medium text-gray-500 bg-white">
+          AI Integrated
+        </Badge>
+      </div>
 
-          {/* Chat History */}
-          {messages.length > 0 && (
-            <ScrollArea className="max-h-[300px] px-4 pb-2">
-              <div className="space-y-4">
-                {messages.map(msg => (
+      {/* Chat Area */}
+      <CardContent className="flex-1 flex flex-col p-0 min-h-0">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
+              <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center">
+                <Bot className="h-6 w-6 text-blue-500" />
+              </div>
+              <p className="text-sm text-gray-500 max-w-[280px]">
+                {isCourse 
+                  ? "Ask me anything about student performance, engagement, or insights for this course." 
+                  : isSession 
+                  ? "Ask me about attendance, participation, or metrics for this specific session." 
+                  : "Select a course or session to ask specific questions, or ask me general questions about your students."}
+              </p>
+            </div>
+          ) : (
+            <>
+              {messages.map(msg => (
+                <div
+                  key={msg.id}
+                  className={cn(
+                    'flex gap-3',
+                    msg.role === 'user' ? 'justify-end' : 'justify-start'
+                  )}
+                >
+                  {msg.role === 'assistant' && (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100">
+                      <Bot className="h-4 w-4 text-blue-600" />
+                    </div>
+                  )}
                   <div
-                    key={msg.id}
                     className={cn(
-                      'flex gap-3',
-                      msg.role === 'user' ? 'justify-end' : 'justify-start'
+                      'max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm',
+                      msg.role === 'user' 
+                        ? 'bg-blue-600 text-white rounded-tr-sm' 
+                        : 'border border-gray-100 bg-white text-gray-800 rounded-tl-sm'
                     )}
                   >
-                    {msg.role === 'assistant' && (
-                      <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-cyan-100">
-                        <Bot className="h-3 w-3 text-cyan-600" />
-                      </div>
-                    )}
-                    <div
-                      className={cn(
-                        'max-w-[80%] rounded-lg p-2.5 text-sm',
-                        msg.role === 'user' ? 'bg-cyan-600 text-white' : 'border border-cyan-100 bg-white shadow-sm text-gray-700'
-                      )}
-                    >
-                      <div className="whitespace-pre-line">{msg.content}</div>
+                    <div className="whitespace-pre-line leading-relaxed">{msg.content}</div>
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100">
+                    <Bot className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div className="rounded-2xl rounded-tl-sm border border-gray-100 bg-white px-4 py-3 shadow-sm">
+                    <div className="flex gap-1.5">
+                      <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-400" />
+                      <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-400 delay-100" />
+                      <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-400 delay-200" />
                     </div>
                   </div>
-                ))}
-                {isLoading && (
-                  <div className="flex gap-3">
-                    <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-cyan-100">
-                      <Bot className="h-3 w-3 text-cyan-600" />
-                    </div>
-                    <div className="rounded-lg border border-cyan-100 bg-white p-2.5 shadow-sm">
-                      <div className="flex gap-1">
-                        <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-cyan-400" />
-                        <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-cyan-400 delay-100" />
-                        <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-cyan-400 delay-200" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-            </ScrollArea>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </>
           )}
+        </div>
 
-          {/* Textarea */}
-          <div className="relative px-4 pb-4">
+        {/* Input Area */}
+        <div className="p-4 bg-white border-t shrink-0">
+          <div className="relative flex items-end gap-2 rounded-2xl border border-gray-200 bg-gray-50/50 p-1 pl-3 shadow-sm focus-within:border-blue-300 focus-within:bg-white focus-within:ring-1 focus-within:ring-blue-200 transition-all">
             <textarea
-              placeholder={isCourse ? "Ask questions about student performance, course insights, or recommendations..." : "Ask questions about this session's engagement or performance..."}
-              className="w-full min-h-[100px] resize-none bg-transparent outline-none border-none text-sm placeholder:text-cyan-600/50 text-cyan-900 focus:ring-0 p-0"
+              placeholder={
+                isCourse 
+                  ? "Ask about course performance..." 
+                  : isSession 
+                  ? "Ask about this session..." 
+                  : "Ask a general question..."
+              }
+              className="max-h-[120px] min-h-[44px] w-full resize-none bg-transparent py-3 text-sm outline-none placeholder:text-gray-400"
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
+              rows={1}
             />
             <Button
               size="icon"
               className={cn(
-                "absolute bottom-4 right-4 h-8 w-8 rounded-full shadow-md transition-colors",
-                input.trim() ? "bg-cyan-500 hover:bg-cyan-600 text-white" : "bg-cyan-200 text-white hover:bg-cyan-200"
+                "mb-1 mr-1 h-9 w-9 shrink-0 rounded-xl transition-all",
+                input.trim() 
+                  ? "bg-blue-600 text-white shadow-md hover:bg-blue-700" 
+                  : "bg-gray-200 text-white hover:bg-gray-200"
               )}
               onClick={handleSend}
               disabled={isLoading || !input.trim()}
             >
-              <Send className="h-4 w-4" />
+              <Send className="h-4 w-4 ml-0.5" />
             </Button>
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between p-3 px-4 border-t border-cyan-100/50">
-            <span className="text-xs text-cyan-600 font-medium">
-              Topic: {isCourse ? course.categories?.[0] || 'General' : isSession ? session.subject || 'General' : 'General'}
-            </span>
-            <span className="rounded-full border border-cyan-400 px-3 py-1 text-[10px] font-semibold text-cyan-600 tracking-wider">
-              AI Integrated
-            </span>
           </div>
         </div>
       </CardContent>
@@ -759,17 +777,14 @@ function CoursesAndClassesTab() {
     : []
 
   return (
-    <TabsContent value="overview" className="space-y-6">
+    <TabsContent value="overview" className="flex flex-col h-[calc(100vh-140px)] space-y-4">
       {/* Top Row - Course List & Sessions Side by Side */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card className="border-2 border-gray-400 shadow-sm flex flex-col">
-          <CardHeader>
-            <CardTitle>Courses & Classes ({courses.length})</CardTitle>
-            <CardDescription>
-              All published courses and completed classes, sorted by publication date.
-            </CardDescription>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 shrink-0 h-[280px]">
+        <Card className="border border-gray-200 shadow-sm flex flex-col overflow-hidden">
+          <CardHeader className="py-3 px-4 shrink-0 bg-gray-50/50 border-b">
+            <CardTitle className="text-base">Courses & Classes ({courses.length})</CardTitle>
           </CardHeader>
-          <CardContent className="h-[400px] space-y-2 overflow-y-auto">
+          <CardContent className="flex-1 overflow-y-auto p-3 space-y-2 bg-white">
             {coursesLoading ? (
               <div className="flex h-full items-center justify-center py-10 text-sm text-gray-500">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -784,10 +799,10 @@ function CoursesAndClassesTab() {
                 <div
                   key={course.id}
                   className={cn(
-                    'cursor-pointer rounded border p-3 transition-colors',
+                    'cursor-pointer rounded-lg border p-3 transition-colors',
                     selectedItem?.type === 'course' && selectedItem.id === course.id
-                      ? 'border-blue-300 bg-blue-50'
-                      : 'hover:bg-gray-50'
+                      ? 'border-blue-400 bg-blue-50 shadow-sm ring-1 ring-blue-400/20'
+                      : 'hover:bg-gray-50 hover:border-gray-300'
                   )}
                   onClick={() => {
                     setSelectedItem(
@@ -796,15 +811,11 @@ function CoursesAndClassesTab() {
                   }}
                 >
                   <div className="flex items-start justify-between">
-                    <div className="font-medium">{course.name}</div>
-                    <Badge variant="secondary">Course</Badge>
+                    <div className="font-medium text-sm text-gray-900">{course.name}</div>
+                    <Badge variant="secondary" className="text-[10px]">Course</Badge>
                   </div>
-                  <div className="text-muted-foreground text-sm">
+                  <div className="text-muted-foreground text-xs mt-1 truncate">
                     {course.description || course.categories[0] || 'Untitled'}
-                  </div>
-                  <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
-                    <Calendar className="h-3 w-3" />
-                    Published: {formatDate(course.createdAt)}
                   </div>
                 </div>
               ))
@@ -812,14 +823,14 @@ function CoursesAndClassesTab() {
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-gray-300 shadow-sm flex flex-col">
-          <CardHeader>
-            <CardTitle>Sessions</CardTitle>
-            <CardDescription>All sessions with current status.</CardDescription>
+        <Card className="border border-gray-200 shadow-sm flex flex-col overflow-hidden">
+          <CardHeader className="py-3 px-4 shrink-0 bg-gray-50/50 border-b">
+            <CardTitle className="text-base">Sessions</CardTitle>
           </CardHeader>
-          <CardContent className="h-[400px] space-y-3 overflow-y-auto">
+          <CardContent className="flex-1 overflow-y-auto p-3 space-y-2 bg-white">
             {sessionsLoading ? (
               <div className="text-muted-foreground flex h-full items-center justify-center py-10 text-sm">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Loading sessions...
               </div>
             ) : sessionsOverview.length === 0 ? (
@@ -837,8 +848,8 @@ function CoursesAndClassesTab() {
                     className={cn(
                       'cursor-pointer rounded-lg border bg-white p-3 transition-colors',
                       selectedItem?.type === 'session' && selectedItem.id === sessionItem.id
-                        ? 'border-blue-300 bg-blue-50'
-                        : 'border-gray-200 hover:bg-gray-50'
+                        ? 'border-blue-400 bg-blue-50 shadow-sm ring-1 ring-blue-400/20'
+                        : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                     )}
                     onClick={() => {
                       setSelectedItem(
@@ -847,19 +858,13 @@ function CoursesAndClassesTab() {
                     }}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">{sessionItem.title}</p>
-                        <p className="text-muted-foreground text-xs">{sessionItem.subject}</p>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{sessionItem.title}</p>
+                        <p className="text-muted-foreground text-xs truncate mt-0.5">{sessionItem.subject}</p>
                       </div>
-                      <Badge variant={isOngoing ? 'default' : isEnded ? 'secondary' : 'outline'}>
+                      <Badge variant={isOngoing ? 'default' : isEnded ? 'secondary' : 'outline'} className="text-[10px] shrink-0">
                         {statusLabel}
                       </Badge>
-                    </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                      <span>Scheduled: {formatDate(sessionItem.scheduledAt)}</span>
-                      {sessionItem.endedAt && (
-                        <span>Ended: {formatDate(sessionItem.endedAt)}</span>
-                      )}
                     </div>
                   </div>
                 )
@@ -869,82 +874,74 @@ function CoursesAndClassesTab() {
         </Card>
       </div>
 
-      {/* Bottom Rows - Analytics Strip & AI Chat */}
-      <div className="space-y-6">
+      {/* Analytics Strip (Minimal) */}
+      <div className="shrink-0 flex items-center bg-gray-50 rounded-xl border border-gray-200 px-4 py-3 gap-6 overflow-x-auto">
         {selectedCourse ? (
           <>
-            <Card className="border-2 border-blue-400 shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <BarChart3 className="h-5 w-5 text-blue-500" />
-                  Analytics: {selectedCourse.name}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                  <div className="rounded-lg bg-gray-50 p-4">
-                    <p className="text-xs text-gray-500">Date Published</p>
-                    <p className="mt-1 text-lg font-medium">{formatDate(selectedCourse.createdAt)}</p>
-                  </div>
-                  <div className="rounded-lg bg-gray-50 p-4">
-                    <p className="text-xs text-gray-500">No. of Sessions</p>
-                    <p className="mt-1 text-lg font-medium">{courseSessions.length}</p>
-                  </div>
-                  <div className="rounded-lg bg-gray-50 p-4">
-                    <p className="text-xs text-gray-500">Category</p>
-                    <p className="mt-1 text-lg font-medium">{selectedCourse.categories[0] || 'N/A'}</p>
-                  </div>
-                  <div className="rounded-lg bg-gray-50 p-4">
-                    <p className="text-xs text-gray-500">Enrolled Students</p>
-                    <p className="mt-1 text-lg font-medium">{students.length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <ItemAIChat course={selectedCourse} session={null} sessions={courseSessions} students={students} />
+            <div className="flex items-center gap-2 text-blue-600 font-semibold border-r border-gray-200 pr-6 shrink-0">
+              <BarChart3 className="h-4 w-4" />
+              <span className="text-sm">{selectedCourse.name}</span>
+            </div>
+            <div className="flex items-center gap-8 text-sm">
+              <div className="flex flex-col">
+                <span className="text-[10px] text-gray-500 uppercase font-medium">Published</span>
+                <span className="font-medium text-gray-900">{formatDate(selectedCourse.createdAt)}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-gray-500 uppercase font-medium">Sessions</span>
+                <span className="font-medium text-gray-900">{courseSessions.length}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-gray-500 uppercase font-medium">Category</span>
+                <span className="font-medium text-gray-900">{selectedCourse.categories[0] || 'N/A'}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-gray-500 uppercase font-medium">Students</span>
+                <span className="font-medium text-gray-900">{students.length}</span>
+              </div>
+            </div>
           </>
         ) : selectedSession ? (
           <>
-            <Card className="border-2 border-blue-400 shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <BarChart3 className="h-5 w-5 text-blue-500" />
-                  Analytics: {selectedSession.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                  <div className="rounded-lg bg-gray-50 p-4">
-                    <p className="text-xs text-gray-500">Status</p>
-                    <p className="mt-1 text-lg font-medium">{selectedSession.status}</p>
-                  </div>
-                  <div className="rounded-lg bg-gray-50 p-4">
-                    <p className="text-xs text-gray-500">Scheduled Date</p>
-                    <p className="mt-1 text-lg font-medium">{formatDate(selectedSession.scheduledAt)}</p>
-                  </div>
-                  <div className="rounded-lg bg-gray-50 p-4">
-                    <p className="text-xs text-gray-500">Subject</p>
-                    <p className="mt-1 text-lg font-medium">{selectedSession.subject || 'N/A'}</p>
-                  </div>
-                  <div className="rounded-lg bg-gray-50 p-4">
-                    <p className="text-xs text-gray-500">Total Enrolled</p>
-                    <p className="mt-1 text-lg font-medium">{students.length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <ItemAIChat course={null} session={selectedSession} sessions={sessionsOverview} students={students} />
+            <div className="flex items-center gap-2 text-blue-600 font-semibold border-r border-gray-200 pr-6 shrink-0">
+              <BarChart3 className="h-4 w-4" />
+              <span className="text-sm">{selectedSession.title}</span>
+            </div>
+            <div className="flex items-center gap-8 text-sm">
+              <div className="flex flex-col">
+                <span className="text-[10px] text-gray-500 uppercase font-medium">Status</span>
+                <span className="font-medium text-gray-900">{selectedSession.status}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-gray-500 uppercase font-medium">Scheduled</span>
+                <span className="font-medium text-gray-900">{formatDate(selectedSession.scheduledAt)}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-gray-500 uppercase font-medium">Subject</span>
+                <span className="font-medium text-gray-900">{selectedSession.subject || 'N/A'}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-gray-500 uppercase font-medium">Students</span>
+                <span className="font-medium text-gray-900">{students.length}</span>
+              </div>
+            </div>
           </>
         ) : (
-          <Card className="flex items-center justify-center border-2 border-gray-400 shadow-sm">
-            <CardContent className="py-12 text-center">
-              <BarChart3 className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-              <p className="text-gray-500">Select a course or class to view analytics.</p>
-            </CardContent>
-          </Card>
+          <div className="flex items-center gap-2 text-gray-500 w-full justify-center">
+            <BarChart3 className="h-4 w-4" />
+            <span className="text-sm font-medium">Select a course or class to view analytics</span>
+          </div>
         )}
+      </div>
+
+      {/* AI Chat Component (Always Rendered, Flexible Height) */}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <ItemAIChat 
+          course={selectedCourse} 
+          session={selectedSession} 
+          sessions={sessionsOverview} 
+          students={students} 
+        />
       </div>
     </TabsContent>
   )
