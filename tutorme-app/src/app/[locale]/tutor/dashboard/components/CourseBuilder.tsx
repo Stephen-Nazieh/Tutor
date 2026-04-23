@@ -1522,14 +1522,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
             ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.name
             : undefined
 
-        const sourceDocument =
-          !isTask && assessmentSourceDocument
-            ? {
-                fileName: assessmentSourceDocument.fileName,
-                fileUrl: assessmentSourceDocument.fileUrl,
-                mimeType: assessmentSourceDocument.mimeType,
-              }
-            : undefined
+        const sourceDocData = isTask ? taskSourceDocument : assessmentSourceDocument
+        const sourceDocument = sourceDocData
+          ? {
+              fileName: sourceDocData.fileName,
+              fileUrl: sourceDocData.fileUrl,
+              mimeType: sourceDocData.mimeType,
+            }
+          : undefined
 
         const response = await fetch('/api/ai/pci-master', {
           method: 'POST',
@@ -7090,7 +7090,13 @@ FEEDBACK: [your explanation]`
                                                     student2: content,
                                                   })
                                                   setTestPciSource('task')
-                                                  setTestPciViewMode('pdf')
+                                                  if (taskDmiVersions.length > 0) {
+                                                    setTestPciViewMode(
+                                                      `dmi_${taskDmiVersions[0].id}`
+                                                    )
+                                                  } else {
+                                                    setTestPciViewMode('pdf')
+                                                  }
                                                   setMainTab('test-pci')
                                                   toast.success(
                                                     'Test PCI prefilled with task content'
@@ -7197,42 +7203,6 @@ FEEDBACK: [your explanation]`
                                             <span className="text-xs font-light text-gray-400">
                                               (
                                             </span>
-
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
-                                              onClick={() => {
-                                                const content = assessmentBuilder.taskContent
-                                                setTestPciScores({})
-                                                setTestPciInputs({
-                                                  classroom: '',
-                                                  student1: '',
-                                                  student2: '',
-                                                })
-                                                setTestPciContent({
-                                                  classroom: content,
-                                                  student1: content,
-                                                  student2: content,
-                                                })
-                                                setTestPciSource('assessment')
-                                                if (assessmentDmiVersions.length > 0) {
-                                                  setTestPciViewMode(
-                                                    `dmi_${assessmentDmiVersions[0].id}`
-                                                  )
-                                                } else {
-                                                  setTestPciViewMode('text')
-                                                }
-                                                setMainTab('test-pci')
-                                                toast.success(
-                                                  'Test PCI prefilled with assessment content'
-                                                )
-                                              }}
-                                            >
-                                              Test
-                                            </Button>
-
-                                            <div className="h-3 w-px bg-gray-300" />
 
                                             <Button
                                               variant="ghost"
@@ -7524,7 +7494,7 @@ FEEDBACK: [your explanation]`
                                             <MentionTextarea
                                               mentionItems={mentionItems}
                                               placeholder="Ask the PCI assistant..."
-                                              className="min-h-[44px] w-full border-0 pr-11 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                              className="min-h-[44px] w-full border-0 pr-[130px] focus-visible:ring-0 focus-visible:ring-offset-0"
                                               value={
                                                 assessmentPciInputMap[loadedAssessmentId || ''] ||
                                                 ''
@@ -7542,29 +7512,78 @@ FEEDBACK: [your explanation]`
                                                 }
                                               }}
                                             />
-                                            <Button
-                                              type="button"
-                                              variant="outline"
-                                              size="icon"
-                                              className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
-                                              disabled={
-                                                assessmentPciLoadingMap[loadedAssessmentId || ''] ||
-                                                false ||
-                                                !(
-                                                  assessmentPciInputMap[loadedAssessmentId || ''] ||
-                                                  ''
-                                                ).trim()
-                                              }
-                                              onClick={() => handlePciSend('assessment')}
-                                              aria-label="Send"
-                                            >
-                                              {assessmentPciLoadingMap[loadedAssessmentId || ''] ||
-                                              false ? (
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                              ) : (
-                                                <Send className="h-4 w-4" />
-                                              )}
-                                            </Button>
+                                            <div className="absolute bottom-1 right-1 flex items-center gap-1">
+                                              <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 rounded-full text-xs font-medium text-gray-600 hover:text-gray-900 bg-white shadow-sm"
+                                                onClick={() => {
+                                                  const content = assessmentBuilder.description
+
+                                                  setTestPciScores({})
+                                                  setTestPciInputs({
+                                                    classroom: '',
+                                                    student1: '',
+                                                    student2: '',
+                                                  })
+
+                                                  setTestPciContent({
+                                                    classroom: content,
+                                                    student1: content,
+                                                    student2: content,
+                                                  })
+                                                  setTestPciSource('assessment')
+                                                  if (assessmentDmiVersions.length > 0) {
+                                                    setTestPciViewMode(
+                                                      `dmi_${assessmentDmiVersions[0].id}`
+                                                    )
+                                                  } else {
+                                                    setTestPciViewMode('text')
+                                                  }
+                                                  setMainTab('test-pci')
+                                                  toast.success(
+                                                    'Test PCI prefilled with assessment content'
+                                                  )
+                                                }}
+                                              >
+                                                Test
+                                              </Button>
+                                              <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 rounded-full text-xs font-medium text-gray-600 hover:text-gray-900 bg-white shadow-sm"
+                                                onClick={() => {
+                                                  toast.success('Assessment saved successfully')
+                                                }}
+                                              >
+                                                Save
+                                              </Button>
+                                              <Button
+                                                type="button"
+                                                variant="default"
+                                                size="icon"
+                                                className="h-8 w-8 shrink-0 rounded-full"
+                                                disabled={
+                                                  assessmentPciLoadingMap[loadedAssessmentId || ''] ||
+                                                  false ||
+                                                  !(
+                                                    assessmentPciInputMap[loadedAssessmentId || ''] ||
+                                                    ''
+                                                  ).trim()
+                                                }
+                                                onClick={() => handlePciSend('assessment')}
+                                                aria-label="Send"
+                                              >
+                                                {assessmentPciLoadingMap[loadedAssessmentId || ''] ||
+                                                false ? (
+                                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                  <Send className="h-4 w-4" />
+                                                )}
+                                              </Button>
+                                            </div>
                                           </div>
                                         </div>
                                       </div>
