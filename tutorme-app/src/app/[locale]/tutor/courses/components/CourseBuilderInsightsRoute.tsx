@@ -324,51 +324,20 @@ function CourseBuilderInsightsRouteInner({
     >
       <div className="border-border bg-card sticky top-0 z-10 w-full border-b">
         <div className="flex w-full items-center justify-between gap-4 px-4 py-1 sm:px-6">
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" asChild>
-            <Link href="/tutor/dashboard">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
           <div className="flex shrink-0 items-center gap-3">
-            {activeMainTab === 'live' && (
-              <h1 className="text-foreground flex items-center gap-2 text-lg font-bold tracking-tight">
-                {model.course?.name && (
-                  <span className="text-muted-foreground ml-2 text-sm font-normal">
-                    {model.course.name}
-                  </span>
-                )}
-                {scheduledDateStr && (
-                  <span
-                    className={cn(
-                      'ml-2 flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium shadow-sm transition-colors',
-                      isOverdue
-                        ? 'border-red-200 bg-red-50 text-red-700'
-                        : 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                    )}
-                  >
-                    <Timer className="h-3.5 w-3.5" />
-                    <span>{countdownText}</span>
-                  </span>
-                )}
-              </h1>
-            )}
-            {(sessionCategory || sessionNationality) && (
-              <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
-                {sessionCategory && sessionNationality
-                  ? `${sessionCategory} — ${sessionNationality}`
-                  : sessionCategory || sessionNationality}
-              </span>
-            )}
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" asChild>
+              <Link href="/tutor/dashboard">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+
             {activeMainTab !== 'live' && saveMode === 'draft' && insightsProps.onCourseChange && (
               <>
-                <BookOpen className="text-muted-foreground h-4 w-4" />
                 <Select
                   value={courseId ?? ''}
                   onValueChange={v => insightsProps.onCourseChange?.(v)}
                 >
-                  <SelectTrigger className="h-8 w-[160px] text-xs">
+                  <SelectTrigger className="h-8 w-[160px] text-xs font-semibold border-none bg-transparent shadow-none hover:bg-slate-100 transition-colors focus:ring-0">
                     <SelectValue placeholder="Select course" />
                   </SelectTrigger>
                   <SelectContent>
@@ -404,17 +373,64 @@ function CourseBuilderInsightsRouteInner({
                 </Select>
               </>
             )}
+            
             {activeMainTab === 'builder' && saveMode === 'draft' && onCreateCourse && (
               <Button
                 size="sm"
-                variant="outline"
-                className="h-8 w-8 p-0"
+                variant="ghost"
+                className="h-8 w-8 p-0 text-slate-500 hover:text-slate-700"
                 onClick={onCreateCourse}
                 title="New Course"
               >
                 <Plus className="h-4 w-4" />
               </Button>
             )}
+
+            {onCourseNameChange && courseId && courseId !== 'insights-draft' && (
+              <input
+                className="h-8 min-w-[200px] border-none bg-transparent px-2 text-sm font-medium focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none hover:bg-slate-100 rounded-md transition-colors"
+                value={courseName || ''}
+                onChange={e => {
+                  const newName = e.target.value
+                  if (newName.trim() !== '') {
+                    onCourseNameChange(courseId, newName)
+                  }
+                }}
+                placeholder="Course Name..."
+              />
+            )}
+            
+            {activeMainTab === 'live' && (
+              <h1 className="text-foreground flex items-center gap-2 text-lg font-bold tracking-tight">
+                {model.course?.name && (
+                  <span className="text-muted-foreground ml-2 text-sm font-normal">
+                    {model.course.name}
+                  </span>
+                )}
+                {scheduledDateStr && (
+                  <span
+                    className={cn(
+                      'ml-2 flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium shadow-sm transition-colors',
+                      isOverdue
+                        ? 'border-red-200 bg-red-50 text-red-700'
+                        : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                    )}
+                  >
+                    <Timer className="h-3.5 w-3.5" />
+                    <span>{countdownText}</span>
+                  </span>
+                )}
+              </h1>
+            )}
+            {(sessionCategory || sessionNationality) && (
+              <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
+                {sessionCategory && sessionNationality
+                  ? `${sessionCategory} — ${sessionNationality}`
+                  : sessionCategory || sessionNationality}
+              </span>
+            )}
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
             {activeMainTab === 'builder' && insightsProps.sessionId && onSyncToLiveSession && (
               <Button
                 size="sm"
@@ -434,56 +450,55 @@ function CourseBuilderInsightsRouteInner({
             {activeMainTab === 'builder' &&
               (onSaveCourse ||
                 (onCreateCourse && !insightsProps.sessionId) ||
-                (onDeleteCourse && !insightsProps.sessionId && courses && courses.length > 1) ||
+                (onDeleteCourse && !insightsProps.sessionId && ((courses && courses.length > 1) || (draftCourses && draftCourses.length > 1))) ||
                 (onCourseNameChange && courseId && courseId !== 'insights-draft')) && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="sm" variant="outline">
-                      <MoreVertical className="h-4 w-4" />
+                <>
+                  {onSaveCourse && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 font-medium text-slate-700 hover:text-slate-900"
+                      onClick={async () => {
+                        const cb = (model.courseBuilderRef.current as any)?.saveAll
+                        if (typeof cb === 'function') await cb()
+                        else if (onSaveCourse) onSaveCourse([])
+                      }}
+                    >
+                      Save
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {onSaveCourse && (
-                      <DropdownMenuItem
-                        onClick={async () => {
-                          const cb = (model.courseBuilderRef.current as any)?.saveAll
-                          if (typeof cb === 'function') await cb()
-                          else if (onSaveCourse) onSaveCourse([])
-                        }}
-                      >
-                        Save
-                      </DropdownMenuItem>
+                  )}
+                  {courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
+                    <Button
+                      size="sm"
+                      variant="default"
+                      className="h-8 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                      onClick={handlePublishDraft}
+                    >
+                      Schedule
+                    </Button>
+                  )}
+                  {onDeleteCourse &&
+                    !insightsProps.sessionId &&
+                    saveMode === 'draft' &&
+                    ((courses && courses.length > 1) ||
+                      (draftCourses && draftCourses.length > 1)) && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={onDeleteCourse}
+                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                          >
+                            Delete Course
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     )}
-                    {onCreateCourse && !insightsProps.sessionId && saveMode === 'draft' && (
-                      <DropdownMenuItem onClick={onCreateCourse}>New Course</DropdownMenuItem>
-                    )}
-                    {onCourseNameChange && courseId && courseId !== 'insights-draft' && (
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setRenameValue(courseName || '')
-                          setIsRenameDialogOpen(true)
-                        }}
-                      >
-                        Rename Course
-                      </DropdownMenuItem>
-                    )}
-                    {courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
-                      <DropdownMenuItem onClick={handlePublishDraft}>Schedule</DropdownMenuItem>
-                    )}
-                    {onDeleteCourse &&
-                      !insightsProps.sessionId &&
-                      saveMode === 'draft' &&
-                      ((courses && courses.length > 1) ||
-                        (draftCourses && draftCourses.length > 1)) && (
-                        <DropdownMenuItem
-                          onClick={onDeleteCourse}
-                          className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                        >
-                          Delete
-                        </DropdownMenuItem>
-                      )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                </>
               )}
           </div>
         </div>

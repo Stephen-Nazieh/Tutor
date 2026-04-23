@@ -3428,8 +3428,9 @@ FEEDBACK: [your explanation]`
                 setAssetViewFolder('All')
                 setAssetsViewOpen(true)
               }}
+              title="View all assets"
             >
-              View
+              <Eye className="h-4 w-4" />
             </button>
             <label className="cursor-pointer">
               <input
@@ -3493,8 +3494,8 @@ FEEDBACK: [your explanation]`
                   e.target.value = ''
                 }}
               />
-              <span className="text-sm font-medium text-blue-600 hover:text-blue-700">
-                Upload Asset
+              <span className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-700" title="Upload Asset">
+                <Plus className="h-4 w-4" />
               </span>
             </label>
           </div>
@@ -3594,534 +3595,281 @@ FEEDBACK: [your explanation]`
           <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
-                {loadAsStep === 'task-options' ? 'Load as Task...' : 'Load as...'}
+                Load as...
               </DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4 py-4">
-              {loadAsStep === 'main' ? (
-                <>
-                  <p className="text-sm text-gray-500">
-                    Select how you would like to load &quot;{assetToLoad?.name}&quot;:
-                  </p>
-                  <Button
-                    className="w-full justify-start gap-2"
-                    variant="outline"
-                    onClick={() => setLoadAsStep('task-options')}
-                  >
-                    <ListTodo className="h-4 w-4 text-orange-500" />
-                    Task
-                    <ChevronRight className="ml-auto h-4 w-4 text-gray-400" />
-                  </Button>
-                  <Button
-                    className="w-full justify-start gap-2"
-                    variant="outline"
-                    onClick={() => {
-                      if (!assetToLoad) return
-                      const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
-                      if (taskBuilder.activeExtensionId) {
-                        setTaskBuilder(prev => ({
-                          ...prev,
-                          extensions: prev.extensions.map(ext =>
-                            ext.id === prev.activeExtensionId
-                              ? { ...ext, content: textToInsert }
-                              : ext
-                          ),
-                        }))
-                        if (loadedTaskId) {
-                          setCourseBuilderNodes(prev =>
-                            prev.map(mod => ({
-                              ...mod,
-                              lessons: mod.lessons.map(lesson => ({
-                                ...lesson,
-                                tasks: lesson.tasks.map(t =>
-                                  t.id === loadedTaskId
-                                    ? {
-                                        ...t,
-                                        extensions: (t.extensions || []).map(ext =>
-                                          ext.id === taskBuilder.activeExtensionId
-                                            ? { ...ext, content: textToInsert }
-                                            : ext
-                                        ),
-                                      }
-                                    : t
-                                ),
-                              })),
-                            }))
-                          )
-                        }
-                        setMainBuilderTab('task')
-                        toast.success(`Loaded '${assetToLoad?.name}' into extension`)
-                        setLoadAsModalOpen(false)
-                        setAssetToLoad(null)
-                        return
-                      }
-                      if (!loadedTaskId) {
-                        toast.error('Select a task to add an extension')
-                        return
-                      }
-                      const extNumber = taskBuilder.extensions.length + 1
-                      const newExtension = {
-                        id: `ext-${Date.now()}`,
-                        name: `Extension ${extNumber}`,
-                        description: '',
-                        content: textToInsert,
-                        pci: '',
-                      }
-                      setTaskExtensionPciMessages(prev => ({ ...prev, [newExtension.id]: [] }))
-                      setTaskExtensionPciInputs(prev => ({ ...prev, [newExtension.id]: '' }))
-                      setTaskBuilder(prev => ({
-                        ...prev,
-                        extensions: [...prev.extensions, newExtension],
-                        activeExtensionId: newExtension.id,
-                      }))
-                      setCourseBuilderNodes(prev =>
-                        prev.map(mod => ({
-                          ...mod,
-                          lessons: mod.lessons.map(lesson => ({
-                            ...lesson,
-                            tasks: lesson.tasks.map(t =>
-                              t.id === loadedTaskId
-                                ? { ...t, extensions: [...(t.extensions || []), newExtension] }
-                                : t
-                            ),
-                          })),
-                        }))
-                      )
-                      setMainBuilderTab('task')
-                      toast.success(`Created extension and loaded '${assetToLoad?.name}'`)
-                      setLoadAsModalOpen(false)
-                      setAssetToLoad(null)
-                    }}
-                  >
-                    <Layers2 className="h-4 w-4 text-orange-500" />
-                    Extensions
-                  </Button>
-                  <Button
-                    className="w-full justify-start gap-2"
-                    variant="outline"
-                    onClick={() => setLoadAsStep('assessment-options')}
-                  >
-                    <FileQuestion className="h-4 w-4 text-purple-500" />
-                    Assessment
-                    <ChevronRight className="ml-auto h-4 w-4 text-gray-400" />
-                  </Button>
-                </>
-              ) : loadAsStep === 'task-options' ? (
-                <>
-                  <p className="text-sm text-gray-500">
-                    Choose how to load &quot;{assetToLoad?.name}&quot; as Task(s):
-                  </p>
-                  <Button
-                    className="w-full justify-start gap-2"
-                    variant="outline"
-                    onClick={() => {
-                      if (!assetToLoad) return
+              <p className="text-sm text-gray-500">
+                Select how you would like to load &quot;{assetToLoad?.name}&quot;:
+              </p>
 
-                      let nodeIndex = -1
-                      let lessonIndex = -1
-                      let existingTask: Task | undefined
+              {/* Option 1: Tasks (One task per page) */}
+              <Button
+                className="h-auto w-full justify-start gap-2 py-3"
+                variant="outline"
+                onClick={() => {
+                  if (!assetToLoad) return
 
-                      if (loadedTaskId) {
-                        for (let nIdx = 0; nIdx < nodes.length; nIdx++) {
-                          for (let lIdx = 0; lIdx < nodes[nIdx].lessons.length; lIdx++) {
-                            const task = nodes[nIdx].lessons[lIdx].tasks.find(
-                              t => t.id === loadedTaskId
-                            )
-                            if (task) {
-                              existingTask = task
-                              nodeIndex = nIdx
-                              lessonIndex = lIdx
-                              break
-                            }
-                          }
-                          if (existingTask) break
-                        }
-                      }
+                  let nodeIndex = -1
+                  let lessonIndex = -1
 
-                      if (nodeIndex === -1 || lessonIndex === -1) {
-                        const { nodeId, lessonId } = ensureFirstLessonContext()
-                        nodeIndex = nodes.findIndex(m => m.id === nodeId)
-                        lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
-                      }
-
-                      let targetTask: Task
-
-                      if (existingTask) {
-                        targetTask = { ...existingTask }
-                      } else {
-                        targetTask = DEFAULT_TASK(
-                          nodes[nodeIndex].lessons[lessonIndex].tasks.length
+                  if (loadedTaskId) {
+                    for (let nIdx = 0; nIdx < nodes.length; nIdx++) {
+                      for (let lIdx = 0; lIdx < nodes[nIdx].lessons.length; lIdx++) {
+                        const t = nodes[nIdx].lessons[lIdx].tasks.find(
+                          task => task.id === loadedTaskId
                         )
-                      }
-
-                      const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
-
-                      targetTask.description = textToInsert
-                      if (assetToLoad.url && assetToLoad.mimeType) {
-                        targetTask.sourceDocument = {
-                          fileName: assetToLoad.name,
-                          fileUrl: assetToLoad.url,
-                          mimeType: assetToLoad.mimeType,
-                          uploadedAt: new Date().toISOString(),
+                        if (t) {
+                          nodeIndex = nIdx
+                          lessonIndex = lIdx
+                          break
                         }
                       }
+                      if (nodeIndex !== -1) break
+                    }
+                  }
 
-                      const newCourseBuilderNodes = [...nodes]
+                  if (nodeIndex === -1 || lessonIndex === -1) {
+                    const { nodeId, lessonId } = ensureFirstLessonContext()
+                    nodeIndex = nodes.findIndex(m => m.id === nodeId)
+                    lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+                  }
 
-                      if (existingTask) {
-                        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks =
-                          newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.map(t =>
-                            t.id === loadedTaskId ? targetTask : t
-                          )
-                      } else {
-                        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(targetTask)
+                  const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
+
+                  let pages: string[] = []
+                  if (textToInsert.includes('\f')) {
+                    pages = textToInsert.split('\f').filter(p => p.trim())
+                  } else if (textToInsert.includes('--- Page')) {
+                    pages = textToInsert.split(/--- Page \d+ ---/).filter(p => p.trim())
+                  } else {
+                    const chunks = textToInsert.split(/\n\n+/).filter(p => p.trim().length > 50)
+                    pages = chunks.length > 1 ? chunks : [textToInsert]
+                  }
+
+                  const newCourseBuilderNodes = [...nodes]
+                  const newTasks: Task[] = []
+
+                  const startIndex = newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.length
+                  const groupNumber = startIndex + 1
+
+                  pages.forEach((pageContent, idx) => {
+                    const newTask = DEFAULT_TASK(startIndex + idx)
+                    newTask.title = `Task ${groupNumber}.${idx + 1}`
+                    newTask.description = pageContent
+                    if (assetToLoad.url && assetToLoad.mimeType) {
+                      newTask.sourceDocument = {
+                        fileName: assetToLoad.name,
+                        fileUrl: assetToLoad.url,
+                        mimeType: assetToLoad.mimeType,
+                        uploadedAt: new Date().toISOString(),
                       }
+                    }
+                    newTasks.push(newTask)
+                  })
 
-                      setCourseBuilderNodes(newCourseBuilderNodes)
-                      setMainBuilderTab('task')
-                      setSelectedItem({ type: 'task', id: targetTask.id })
-                      loadTaskIntoBuilder(targetTask)
+                  newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(...newTasks)
 
-                      toast.success(`Loaded '${assetToLoad?.name}' into Task`)
-                      setLoadAsStep('main')
-                      setLoadAsModalOpen(false)
-                      setAssetToLoad(null)
-                    }}
-                  >
-                    <FileText className="h-4 w-4 text-blue-500" />
-                    <div className="flex flex-col items-start">
-                      <span>Single Task</span>
-                      <span className="text-xs text-gray-500">
-                        Load entire document into {loadedTaskId ? 'current' : 'a new'} task
-                      </span>
-                    </div>
-                  </Button>
-                  <Button
-                    className="w-full justify-start gap-2"
-                    variant="outline"
-                    onClick={() => {
-                      if (!assetToLoad) return
-                      const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
+                  setCourseBuilderNodes(newCourseBuilderNodes)
+                  setMainBuilderTab('task')
 
-                      let pages: string[] = []
-                      if (textToInsert.includes('\f')) {
-                        pages = textToInsert.split('\f').filter(p => p.trim())
-                      } else if (textToInsert.includes('--- Page')) {
-                        pages = textToInsert.split(/--- Page \d+ ---/).filter(p => p.trim())
-                      } else {
-                        const chunks = textToInsert.split(/\n\n+/).filter(p => p.trim().length > 50)
-                        pages = chunks.length > 1 ? chunks : [textToInsert]
-                      }
+                  if (newTasks.length > 0) {
+                    const firstNew = newTasks[0]
+                    setSelectedItem({ type: 'task', id: firstNew.id })
+                    loadTaskIntoBuilder(firstNew)
+                  }
 
-                      const { nodeId, lessonId } = ensureFirstLessonContext()
-                      const nodeIndex = nodes.findIndex(m => m.id === nodeId)
-                      const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+                  toast.success(`Created ${pages.length} Task(s) from '${assetToLoad?.name}'`)
+                  setLoadAsModalOpen(false)
+                  setAssetToLoad(null)
+                }}
+              >
+                <ListTodo className="mt-1 h-4 w-4 shrink-0 text-orange-500" />
+                <div className="flex flex-col items-start text-left">
+                  <span>Tasks</span>
+                  <span className="mt-0.5 text-xs font-normal text-gray-500">
+                    Extract text and create one task per page
+                  </span>
+                </div>
+              </Button>
 
-                      const newTask = DEFAULT_TASK(
-                        nodes[nodeIndex].lessons[lessonIndex].tasks.length
-                      )
-                      newTask.description = pages[0] || textToInsert
-                      if (assetToLoad.url && assetToLoad.mimeType) {
-                        newTask.sourceDocument = {
-                          fileName: assetToLoad.name,
-                          fileUrl: assetToLoad.url,
-                          mimeType: assetToLoad.mimeType,
-                          uploadedAt: new Date().toISOString(),
-                        }
-                      }
+              {/* Option 2: Task + Extensions */}
+              <Button
+                className="h-auto w-full justify-start gap-2 py-3"
+                variant="outline"
+                onClick={() => {
+                  if (!assetToLoad) return
+                  const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
 
-                      const extensions = pages.slice(1).map((pageContent, idx) => ({
-                        id: `ext-${Date.now()}-${idx}`,
-                        name: `Extension ${idx + 1}`,
-                        description: '',
-                        content: pageContent,
-                        pci: '',
-                      }))
+                  let pages: string[] = []
+                  if (textToInsert.includes('\f')) {
+                    pages = textToInsert.split('\f').filter(p => p.trim())
+                  } else if (textToInsert.includes('--- Page')) {
+                    pages = textToInsert.split(/--- Page \d+ ---/).filter(p => p.trim())
+                  } else {
+                    const chunks = textToInsert.split(/\n\n+/).filter(p => p.trim().length > 50)
+                    pages = chunks.length > 1 ? chunks : [textToInsert]
+                  }
 
-                      newTask.extensions = extensions
+                  const { nodeId, lessonId } = ensureFirstLessonContext()
+                  const nodeIndex = nodes.findIndex(m => m.id === nodeId)
+                  const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
 
-                      const newCourseBuilderNodes = [...nodes]
-                      newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(newTask)
-                      setCourseBuilderNodes(newCourseBuilderNodes)
-                      setMainBuilderTab('task')
-                      setSelectedItem({ type: 'task', id: newTask.id })
+                  const newTask = DEFAULT_TASK(
+                    nodes[nodeIndex].lessons[lessonIndex].tasks.length
+                  )
+                  newTask.description = pages[0] || textToInsert
+                  if (assetToLoad.url && assetToLoad.mimeType) {
+                    newTask.sourceDocument = {
+                      fileName: assetToLoad.name,
+                      fileUrl: assetToLoad.url,
+                      mimeType: assetToLoad.mimeType,
+                      uploadedAt: new Date().toISOString(),
+                    }
+                  }
 
-                      setTaskBuilder({
-                        title: newTask.title,
-                        taskContent: newTask.description,
-                        taskPci: '',
-                        details: '',
-                        extensions: extensions,
-                        activeExtensionId: null,
-                      })
-                      setLoadedTaskId(newTask.id)
+                  const extensions = pages.slice(1).map((pageContent, idx) => ({
+                    id: `ext-${Date.now()}-${idx}`,
+                    name: `Extension ${idx + 1}`,
+                    description: '',
+                    content: pageContent,
+                    pci: '',
+                  }))
 
-                      const extPciMessages: Record<
-                        string,
-                        { role: 'user' | 'assistant'; content: string }[]
-                      > = {}
-                      extensions.forEach(ext => {
-                        extPciMessages[ext.id] = []
-                      })
-                      setTaskExtensionPciMessages(extPciMessages)
-                      setTaskExtensionPciInputs(
-                        extensions.reduce((acc, ext) => ({ ...acc, [ext.id]: '' }), {})
-                      )
+                  newTask.extensions = extensions
 
-                      toast.success(
-                        `Created Task with ${extensions.length} extension(s) from '${assetToLoad?.name}'`
-                      )
-                      setLoadAsStep('main')
-                      setLoadAsModalOpen(false)
-                      setAssetToLoad(null)
-                    }}
-                  >
-                    <Layers2 className="h-4 w-4 text-green-500" />
-                    <div className="flex flex-col items-start">
-                      <span>Task + Extensions</span>
-                      <span className="text-xs text-gray-500">
-                        First page as task, remaining as extensions
-                      </span>
-                    </div>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      if (selectedItem?.type === 'task' || selectedItem?.type === 'assessment') {
-                        setLoadAsModalOpen(false)
-                        setAssetToLoad(null)
-                      } else {
-                        setLoadAsStep('main')
-                      }
-                    }}
-                    className="mt-2"
-                  >
-                    <ChevronLeft className="mr-1 h-4 w-4" />
-                    {selectedItem?.type === 'task' || selectedItem?.type === 'assessment'
-                      ? 'Cancel'
-                      : 'Back'}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <p className="text-sm text-gray-500">
-                    Choose how to load &quot;{assetToLoad?.name}&quot; as Assessment(s):
-                  </p>
-                  <Button
-                    className="h-auto w-full justify-start gap-2 py-3"
-                    variant="outline"
-                    onClick={() => {
-                      if (!assetToLoad) return
+                  const newCourseBuilderNodes = [...nodes]
+                  newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(newTask)
+                  setCourseBuilderNodes(newCourseBuilderNodes)
+                  setMainBuilderTab('task')
+                  setSelectedItem({ type: 'task', id: newTask.id })
 
-                      if (!assetToLoad.url) {
-                        toast.error(
-                          `The document '${assetToLoad.name}' is missing its file URL. Please delete and upload it again.`
+                  setTaskBuilder({
+                    title: newTask.title,
+                    taskContent: newTask.description,
+                    taskPci: '',
+                    details: '',
+                    extensions: extensions,
+                    activeExtensionId: null,
+                  })
+                  setLoadedTaskId(newTask.id)
+
+                  const extPciMessages: Record<
+                    string,
+                    { role: 'user' | 'assistant'; content: string }[]
+                  > = {}
+                  extensions.forEach(ext => {
+                    extPciMessages[ext.id] = []
+                  })
+                  setTaskExtensionPciMessages(extPciMessages)
+                  setTaskExtensionPciInputs(
+                    extensions.reduce((acc, ext) => ({ ...acc, [ext.id]: '' }), {})
+                  )
+
+                  toast.success(
+                    `Created Task with ${extensions.length} extension(s) from '${assetToLoad?.name}'`
+                  )
+                  setLoadAsModalOpen(false)
+                  setAssetToLoad(null)
+                }}
+              >
+                <Layers2 className="mt-1 h-4 w-4 shrink-0 text-green-500" />
+                <div className="flex flex-col items-start text-left">
+                  <span>Task + Extensions</span>
+                  <span className="mt-0.5 text-xs font-normal text-gray-500">
+                    First page as task, remaining as extensions
+                  </span>
+                </div>
+              </Button>
+
+              {/* Option 3: Assessment */}
+              <Button
+                className="h-auto w-full justify-start gap-2 py-3"
+                variant="outline"
+                onClick={() => {
+                  if (!assetToLoad) return
+
+                  let nodeIndex = -1
+                  let lessonIndex = -1
+                  let existingAssess: Assessment | undefined
+
+                  if (loadedAssessmentId) {
+                    for (let nIdx = 0; nIdx < nodes.length; nIdx++) {
+                      for (let lIdx = 0; lIdx < nodes[nIdx].lessons.length; lIdx++) {
+                        const hw = nodes[nIdx].lessons[lIdx].homework.find(
+                          h => h.id === loadedAssessmentId
                         )
-                        return
-                      }
-
-                      let nodeIndex = -1
-                      let lessonIndex = -1
-                      let existingAssess: Assessment | undefined
-
-                      if (loadedAssessmentId) {
-                        for (let nIdx = 0; nIdx < nodes.length; nIdx++) {
-                          for (let lIdx = 0; lIdx < nodes[nIdx].lessons.length; lIdx++) {
-                            const hw = nodes[nIdx].lessons[lIdx].homework.find(
-                              h => h.id === loadedAssessmentId
-                            )
-                            if (hw) {
-                              existingAssess = hw
-                              nodeIndex = nIdx
-                              lessonIndex = lIdx
-                              break
-                            }
-                          }
-                          if (existingAssess) break
+                        if (hw) {
+                          existingAssess = hw
+                          nodeIndex = nIdx
+                          lessonIndex = lIdx
+                          break
                         }
                       }
+                      if (existingAssess) break
+                    }
+                  }
 
-                      if (nodeIndex === -1 || lessonIndex === -1) {
-                        const { nodeId, lessonId } = ensureFirstLessonContext()
-                        nodeIndex = nodes.findIndex(m => m.id === nodeId)
-                        lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
-                      }
+                  if (nodeIndex === -1 || lessonIndex === -1) {
+                    const { nodeId, lessonId } = ensureFirstLessonContext()
+                    nodeIndex = nodes.findIndex(m => m.id === nodeId)
+                    lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+                  }
 
-                      let targetAssess: Assessment
+                  let targetAssess: Assessment
 
-                      if (existingAssess) {
-                        targetAssess = { ...existingAssess }
-                      } else {
-                        targetAssess = DEFAULT_HOMEWORK(
-                          nodes[nodeIndex].lessons[lessonIndex].homework.length,
-                          'assessment'
-                        )
-                      }
+                  if (existingAssess) {
+                    targetAssess = { ...existingAssess }
+                  } else {
+                    targetAssess = DEFAULT_HOMEWORK(
+                      nodes[nodeIndex].lessons[lessonIndex].homework.length,
+                      'assessment'
+                    )
+                  }
 
-                      const extractedText = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
-                      targetAssess.description = extractedText
-                      if (assetToLoad.url) {
-                        targetAssess.sourceDocument = {
-                          fileName: assetToLoad.name,
-                          fileUrl: assetToLoad.url,
-                          mimeType: assetToLoad.mimeType || 'application/pdf',
-                          uploadedAt: new Date().toISOString(),
-                          extractedText,
-                        }
-                      }
+                  const extractedText = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
+                  targetAssess.description = extractedText
+                  if (assetToLoad.url) {
+                    targetAssess.sourceDocument = {
+                      fileName: assetToLoad.name,
+                      fileUrl: assetToLoad.url,
+                      mimeType: assetToLoad.mimeType || 'application/pdf',
+                      uploadedAt: new Date().toISOString(),
+                      extractedText,
+                    }
+                  }
 
-                      const newCourseBuilderNodes = [...nodes]
+                  const newCourseBuilderNodes = [...nodes]
 
-                      if (existingAssess) {
-                        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework =
-                          newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.map(h =>
-                            h.id === loadedAssessmentId ? targetAssess : h
-                          )
-                      } else {
-                        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.push(
-                          targetAssess
-                        )
-                      }
-
-                      setCourseBuilderNodes(newCourseBuilderNodes)
-                      setMainBuilderTab('assessment')
-                      setSelectedItem({ type: 'assessment', id: targetAssess.id })
-                      loadAssessmentIntoBuilder(targetAssess)
-
-                      toast.success(`Loaded '${assetToLoad?.name}' into Assessment`)
-                      setLoadAsStep('main')
-                      setLoadAsModalOpen(false)
-                      setAssetToLoad(null)
-                    }}
-                  >
-                    <FileQuestion className="mt-1 h-4 w-4 shrink-0 text-purple-500" />
-                    <div className="flex flex-col items-start text-left">
-                      <span>Single Assessment</span>
-                      <span className="mt-0.5 text-xs font-normal text-gray-500">
-                        Load entire document into {loadedAssessmentId ? 'current' : 'a new'}{' '}
-                        assessment
-                      </span>
-                    </div>
-                  </Button>
-                  <Button
-                    className="h-auto w-full justify-start gap-2 py-3"
-                    variant="outline"
-                    onClick={() => {
-                      if (!assetToLoad) return
-
-                      let nodeIndex = -1
-                      let lessonIndex = -1
-
-                      if (loadedAssessmentId) {
-                        for (let nIdx = 0; nIdx < nodes.length; nIdx++) {
-                          for (let lIdx = 0; lIdx < nodes[nIdx].lessons.length; lIdx++) {
-                            const hw = nodes[nIdx].lessons[lIdx].homework.find(
-                              h => h.id === loadedAssessmentId
-                            )
-                            if (hw) {
-                              nodeIndex = nIdx
-                              lessonIndex = lIdx
-                              break
-                            }
-                          }
-                          if (nodeIndex !== -1) break
-                        }
-                      }
-
-                      if (nodeIndex === -1 || lessonIndex === -1) {
-                        const { nodeId, lessonId } = ensureFirstLessonContext()
-                        nodeIndex = nodes.findIndex(m => m.id === nodeId)
-                        lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
-                      }
-
-                      const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
-
-                      let pages: string[] = []
-                      if (textToInsert.includes('\f')) {
-                        pages = textToInsert.split('\f').filter(p => p.trim())
-                      } else if (textToInsert.includes('--- Page')) {
-                        pages = textToInsert.split(/--- Page \d+ ---/).filter(p => p.trim())
-                      } else {
-                        const chunks = textToInsert.split(/\n\n+/).filter(p => p.trim().length > 50)
-                        pages = chunks.length > 1 ? chunks : [textToInsert]
-                      }
-
-                      const newCourseBuilderNodes = [...nodes]
-                      const newAssessments: Assessment[] = []
-
-                      const startIndex =
-                        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.length
-                      const groupNumber = startIndex + 1
-
-                      pages.forEach((pageContent, idx) => {
-                        const newAssess = DEFAULT_HOMEWORK(startIndex + idx, 'assessment')
-                        newAssess.title = `Assessment ${groupNumber}.${idx + 1}`
-                        newAssess.description = pageContent
-                        // Don't set sourceDocument for per-page to avoid loading the whole PDF in the viewer
-                        // since we are extracting text per page. Or we can set it if they want the viewer,
-                        // but the viewer currently shows the whole document.
-                        // Let's set it but note that it's the whole document.
-                        if (assetToLoad.url) {
-                          newAssess.sourceDocument = {
-                            fileName: assetToLoad.name,
-                            fileUrl: assetToLoad.url,
-                            mimeType: assetToLoad.mimeType || 'application/pdf',
-                            uploadedAt: new Date().toISOString(),
-                          }
-                        }
-                        newAssessments.push(newAssess)
-                      })
-
-                      newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.push(
-                        ...newAssessments
+                  if (existingAssess) {
+                    newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework =
+                      newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.map(h =>
+                        h.id === loadedAssessmentId ? targetAssess : h
                       )
+                  } else {
+                    newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.push(
+                      targetAssess
+                    )
+                  }
 
-                      setCourseBuilderNodes(newCourseBuilderNodes)
-                      setMainBuilderTab('assessment')
+                  setCourseBuilderNodes(newCourseBuilderNodes)
+                  setMainBuilderTab('assessment')
+                  setSelectedItem({ type: 'assessment', id: targetAssess.id })
+                  loadAssessmentIntoBuilder(targetAssess)
 
-                      if (newAssessments.length > 0) {
-                        const firstNew = newAssessments[0]
-                        setSelectedItem({ type: 'assessment', id: firstNew.id })
-                        loadAssessmentIntoBuilder(firstNew)
-                      }
-
-                      toast.success(
-                        `Created ${pages.length} Assessment(s) from '${assetToLoad?.name}'`
-                      )
-                      setLoadAsStep('main')
-                      setLoadAsModalOpen(false)
-                      setAssetToLoad(null)
-                    }}
-                  >
-                    <Layers2 className="mt-1 h-4 w-4 shrink-0 text-indigo-500" />
-                    <div className="flex flex-col items-start text-left">
-                      <span>One Assessment per Page</span>
-                      <span className="mt-0.5 text-xs font-normal text-gray-500">
-                        Extract text and create multiple assessments
-                      </span>
-                    </div>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      if (selectedItem?.type === 'task' || selectedItem?.type === 'assessment') {
-                        setLoadAsModalOpen(false)
-                        setAssetToLoad(null)
-                      } else {
-                        setLoadAsStep('main')
-                      }
-                    }}
-                    className="mt-2"
-                  >
-                    <ChevronLeft className="mr-1 h-4 w-4" />
-                    {selectedItem?.type === 'task' || selectedItem?.type === 'assessment'
-                      ? 'Cancel'
-                      : 'Back'}
-                  </Button>
-                </>
-              )}
+                  toast.success(`Loaded '${assetToLoad?.name}' into Assessment`)
+                  setLoadAsModalOpen(false)
+                  setAssetToLoad(null)
+                }}
+              >
+                <FileQuestion className="mt-1 h-4 w-4 shrink-0 text-purple-500" />
+                <div className="flex flex-col items-start text-left">
+                  <span>Assessment</span>
+                  <span className="mt-0.5 text-xs font-normal text-gray-500">
+                    Load entire document into {loadedAssessmentId ? 'current' : 'a new'} assessment
+                  </span>
+                </div>
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -4967,7 +4715,8 @@ FEEDBACK: [your explanation]`
                                                           selectedItem?.type === 'task' &&
                                                             selectedItem?.id === task.id
                                                             ? 'border-[#4A90FF] bg-[#F2F7FF] ring-1 ring-[#4A90FF]'
-                                                            : 'border-[#E7ECF3] bg-white hover:bg-[#F8FAFC]'
+                                                            : 'border-[#E7ECF3] bg-white hover:bg-[#F8FAFC]',
+                                                          mainTab === 'test-pci' && !(testPciSource === 'task' && loadedTaskId === task.id) && 'opacity-40 pointer-events-none grayscale'
                                                         )}
                                                         onClick={e => {
                                                           if (
@@ -5588,13 +5337,14 @@ FEEDBACK: [your explanation]`
                                                     isLast={idx === assessments.length - 1}
                                                   >
                                                     <div
-                                                      className={cn(
-                                                        'group/item relative overflow-hidden mb-2 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-2 shadow-sm transition-colors',
-                                                        selectedItem?.type === 'homework' &&
-                                                          selectedItem?.id === hw.id
-                                                          ? 'border-[#8B6DFF] bg-[#F3EEFF] ring-1 ring-[#8B6DFF]'
-                                                          : 'border-[#E7ECF3] bg-white hover:bg-[#F8FAFC]'
-                                                      )}
+                                                        className={cn(
+                                                          'group/item relative overflow-hidden mb-2 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-2 shadow-sm transition-colors',
+                                                          selectedItem?.type === 'homework' &&
+                                                            selectedItem?.id === hw.id
+                                                            ? 'border-[#8B6DFF] bg-[#F3EEFF] ring-1 ring-[#8B6DFF]'
+                                                            : 'border-[#E7ECF3] bg-white hover:bg-[#F8FAFC]',
+                                                          mainTab === 'test-pci' && !(testPciSource === 'assessment' && selectedItem?.id === hw.id) && 'opacity-40 pointer-events-none grayscale'
+                                                        )}
                                                       onClick={e => {
                                                         if (
                                                           (e.target as HTMLElement).closest('input')
@@ -5906,13 +5656,14 @@ FEEDBACK: [your explanation]`
                                                         isLast={hwIdx === hwItems.length - 1}
                                                       >
                                                         <div
-                                                          className={cn(
-                                                            'group/item relative overflow-hidden mb-2 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-2 shadow-sm transition-colors',
-                                                            selectedItem?.type === 'homework' &&
-                                                              selectedItem?.id === hw.id
-                                                              ? 'border-[#2FC98F] bg-[#ECFBF4] ring-1 ring-[#2FC98F]'
-                                                              : 'border-[#E7ECF3] bg-white hover:bg-[#F8FAFC]'
-                                                          )}
+                                                            className={cn(
+                                                              'group/item relative overflow-hidden mb-2 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-2 shadow-sm transition-colors',
+                                                              selectedItem?.type === 'homework' &&
+                                                                selectedItem?.id === hw.id
+                                                                ? 'border-[#2FC98F] bg-[#ECFBF4] ring-1 ring-[#2FC98F]'
+                                                                : 'border-[#E7ECF3] bg-white hover:bg-[#F8FAFC]',
+                                                              mainTab === 'test-pci' && !(testPciSource === 'assessment' && selectedItem?.id === hw.id) && 'opacity-40 pointer-events-none grayscale'
+                                                            )}
                                                           onClick={() => {
                                                             setSelectedItem({
                                                               type: 'homework',
@@ -7258,7 +7009,7 @@ FEEDBACK: [your explanation]`
                                             <MentionTextarea
                                               mentionItems={mentionItems}
                                               placeholder="Ask the PCI assistant..."
-                                              className="min-h-[44px] w-full border-0 pr-11 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                              className="min-h-[44px] w-full border-0 pr-[130px] focus-visible:ring-0 focus-visible:ring-offset-0"
                                               value={activeTaskPciInput}
                                               onChange={(e: any) => {
                                                 const value = e.target.value
@@ -7282,23 +7033,70 @@ FEEDBACK: [your explanation]`
                                                 }
                                               }}
                                             />
-                                            <Button
-                                              type="button"
-                                              variant="outline"
-                                              size="icon"
-                                              className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
-                                              disabled={
-                                                taskPciLoading || !activeTaskPciInput.trim()
-                                              }
-                                              onClick={() => handlePciSend('task')}
-                                              aria-label="Send"
-                                            >
-                                              {taskPciLoading ? (
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                              ) : (
-                                                <Send className="h-4 w-4" />
-                                              )}
-                                            </Button>
+                                            <div className="absolute bottom-1 right-1 flex items-center gap-1">
+                                              <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 rounded-full text-xs font-medium text-gray-600 hover:text-gray-900 bg-white shadow-sm"
+                                                onClick={() => {
+                                                  const content = taskBuilder.activeExtensionId
+                                                    ? taskBuilder.extensions.find(
+                                                        e => e.id === taskBuilder.activeExtensionId
+                                                      )?.content || taskBuilder.taskContent
+                                                    : taskBuilder.taskContent
+
+                                                  setTestPciScores({})
+                                                  setTestPciInputs({
+                                                    classroom: '',
+                                                    student1: '',
+                                                    student2: '',
+                                                  })
+
+                                                  setTestPciContent({
+                                                    classroom: content,
+                                                    student1: content,
+                                                    student2: content,
+                                                  })
+                                                  setTestPciSource('task')
+                                                  setTestPciViewMode('pdf')
+                                                  setMainTab('test-pci')
+                                                  toast.success(
+                                                    'Test PCI prefilled with task content'
+                                                  )
+                                                }}
+                                              >
+                                                Test
+                                              </Button>
+                                              <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 rounded-full text-xs font-medium text-gray-600 hover:text-gray-900 bg-white shadow-sm"
+                                                onClick={() => {
+                                                  toast.success('Task saved successfully')
+                                                }}
+                                              >
+                                                Save
+                                              </Button>
+                                              <Button
+                                                type="button"
+                                                variant="default"
+                                                size="icon"
+                                                className="h-8 w-8 shrink-0 rounded-full"
+                                                disabled={
+                                                  taskPciLoading || !activeTaskPciInput.trim()
+                                                }
+                                                onClick={() => handlePciSend('task')}
+                                                aria-label="Send"
+                                              >
+                                                {taskPciLoading ? (
+                                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                  <Send className="h-4 w-4" />
+                                                )}
+                                              </Button>
+                                            </div>
                                           </div>
                                         </div>
                                       </div>
