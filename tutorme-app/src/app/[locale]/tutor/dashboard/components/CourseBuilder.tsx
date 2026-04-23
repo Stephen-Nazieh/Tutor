@@ -9,6 +9,7 @@ import {
   forwardRef,
   useImperativeHandle,
 } from 'react'
+import { createPortal } from 'react-dom'
 import {
   DndContext,
   closestCenter,
@@ -4327,124 +4328,98 @@ FEEDBACK: [your explanation]`
       : null
     const isSessionActive = activeSession?.status === 'active'
     const isLiveMode = saveMode !== undefined ? saveMode === 'live' : coursePropsModal.isLive
+    
+    // Check if the portal target exists
+    const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null)
+    
+    useEffect(() => {
+      const el = document.getElementById('course-builder-tabs-portal')
+      if (el) {
+        setPortalTarget(el)
+      }
+    }, [])
 
     return (
       <div
         className={cn(
-          'flex h-full w-full flex-col items-stretch space-y-4 bg-[#F8FAFC]',
+          'flex h-full w-full flex-col items-stretch bg-transparent',
           panelMode === 'live-class' && 'pt-3'
         )}
       >
         <Tabs
           value={mainTab}
-          onValueChange={v => setMainTab(v as 'live' | 'builder' | 'test-pci')}
-          className="flex h-full w-full flex-1 flex-col"
+          onValueChange={v => {
+            setMainTab(v as 'live' | 'builder' | 'test-pci')
+            // Add callback to notify parent route
+            if (onMainTabChange) {
+              onMainTabChange(v as 'live' | 'builder' | 'test-pci')
+            }
+          }}
+          className="flex h-full w-full flex-1 flex-col px-4 sm:px-6 pt-6"
         >
-          <div className="min-h-[52px] shrink-0 mb-4">
-            <TabsList
-              className={cn(
-                'grid w-full h-full gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)]',
-                insightsProps ? 'grid-cols-3' : 'grid-cols-2'
-              )}
-            >
-            {insightsProps && (
-              <TabsTrigger
-                value="live"
-                className={cn(
-                  'flex items-center justify-center gap-2 rounded-xl px-4 h-[46px] text-sm font-semibold transition-all',
-                  mainTab === 'live'
-                    ? 'bg-white text-green-600 border border-green-200 shadow-[0_1px_2px_rgba(34,197,94,0.12)]'
-                    : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
-                )}
-                onClick={e => {
-                  if (mainTab !== 'live') {
-                    setMainTab('live')
-                  }
-                }}
-              >
-                <div
+          {portalTarget ? (
+            createPortal(
+              <TabsList className="flex w-[350px] h-10 gap-1 rounded-full border border-gray-200 bg-white p-1 shadow-sm">
+                <TabsTrigger 
+                  value="live" 
                   className={cn(
-                    'relative z-10 flex items-center gap-2 rounded-full border-l border-r px-2 py-0.5 transition-colors',
+                    'flex-1 flex items-center justify-center gap-2 rounded-full px-4 h-full text-sm font-medium transition-all',
                     mainTab === 'live'
-                      ? 'pointer-events-auto cursor-pointer border-green-200/50 group-hover:bg-green-50/50'
-                      : 'pointer-events-none border-transparent'
+                      ? 'bg-blue-50 text-blue-700 shadow-none'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50/50'
                   )}
-                  onPointerDown={e => {
-                    if (mainTab === 'live') {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      setComingSoonDialog(true)
+                  onClick={e => {
+                    if (mainTab !== 'live') {
+                      setMainTab('live')
                     }
                   }}
                 >
-                  <VideoIcon
-                    className={cn(
-                      'h-4 w-4 transition-all duration-300',
-                      isLiveMode
-                        ? 'animate-pulse text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
-                        : ''
-                    )}
-                  />
+                  <VideoIcon className={cn('h-4 w-4', isLiveMode ? 'animate-pulse text-[#2563EB]' : '')} />
                   Go Live
-                </div>
-              </TabsTrigger>
-            )}
-            <TabsTrigger
-              value="test-pci"
-              className={cn(
-                'flex items-center justify-center gap-2 rounded-xl px-4 h-[46px] text-sm font-semibold transition-all',
-                mainTab === 'test-pci'
-                  ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
-                  : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
-              )}
-            >
-              <TestTube2 className="h-4 w-4" />
-              Test
-            </TabsTrigger>
-            <TabsTrigger
-              value="builder"
-              className={cn(
-                'flex items-center justify-center gap-2 rounded-xl px-4 h-[46px] text-sm font-semibold transition-all',
-                mainTab === 'builder'
-                  ? 'bg-white text-[#C7681A] border border-[#F7C99C] shadow-[0_1px_2px_rgba(199,104,26,0.12)]'
-                  : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
-              )}
-              onClick={e => {
-                if (mainTab !== 'builder') {
-                  setMainTab('builder')
-                }
-              }}
-            >
-              <div
-                className={cn(
-                  'relative z-10 flex items-center gap-2 rounded-full border-l border-r px-2 py-0.5 transition-colors',
-                  mainTab === 'builder'
-                    ? 'pointer-events-auto cursor-pointer border-orange-200/50 group-hover:bg-orange-50/50'
-                    : 'pointer-events-none border-transparent',
-                  isLiveMode && 'animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)] border-green-300/50 bg-green-50/30'
-                )}
-                onPointerDown={e => {
-                  if (mainTab === 'builder') {
-                    e.preventDefault()
-                    e.stopPropagation()
-
-                    // Always allow toggling for now since Live feature is "Coming Soon"
-                    if (onSaveModeChange) {
-                      onSaveModeChange(saveMode === 'live' ? 'draft' : 'live')
-                    } else {
-                      setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="test-pci" 
+                  className={cn(
+                    'flex-1 flex items-center justify-center gap-2 rounded-full px-4 h-full text-sm font-medium transition-all',
+                    mainTab === 'test-pci'
+                      ? 'bg-blue-50 text-blue-700 shadow-none'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50/50'
+                  )}
+                >
+                  <TestTube2 className="h-4 w-4" />
+                  Test
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="builder" 
+                  className={cn(
+                    'flex-1 flex items-center justify-center gap-2 rounded-full px-4 h-full text-sm font-medium transition-all',
+                    mainTab === 'builder'
+                      ? 'bg-blue-50 text-blue-700 shadow-none'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50/50'
+                  )}
+                  onClick={e => {
+                    if (mainTab !== 'builder') {
+                      setMainTab('builder')
                     }
-                  }
-                }}
-              >
-                <PencilRuler className="h-4 w-4" />
-                Build
-              </div>
-            </TabsTrigger>
-          </TabsList>
-          </div>
+                  }}
+                >
+                  <PencilRuler className="h-4 w-4" />
+                  Build
+                </TabsTrigger>
+              </TabsList>,
+              portalTarget
+            )
+          ) : (
+            <div className="hidden">
+              <TabsList>
+                <TabsTrigger value="live">Go Live</TabsTrigger>
+                <TabsTrigger value="test-pci">Test</TabsTrigger>
+                <TabsTrigger value="builder">Build</TabsTrigger>
+              </TabsList>
+            </div>
+          )}
 
-          <div className="flex h-full w-full min-w-0 flex-1 gap-0">
+          <div className="flex h-full w-full min-w-0 flex-1 gap-0 pb-6 pt-0">
             {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
             {leftPanelHidden ? (
               <div
