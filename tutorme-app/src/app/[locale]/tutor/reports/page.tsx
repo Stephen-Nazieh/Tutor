@@ -466,10 +466,12 @@ export default function TutorReports() {
 // Inline AI Chat for course insights
 function CourseAIChat({
   course,
+  session,
   sessions,
   students,
 }: {
   course: CourseItem | null
+  session?: SessionOverviewItem | null
   sessions: SessionOverviewItem[]
   students: Student[]
 }) {
@@ -496,14 +498,16 @@ function CourseAIChat({
     setIsLoading(true)
 
     try {
-      const courseSessions = sessions.filter(
-        s => s.courseId === course?.id || s.subject === course?.name
-      )
+      const courseSessions = course ? sessions.filter(
+        s => s.courseId === course.id || s.subject === course.name
+      ) : session ? [session] : []
 
       const contextPayload = {
         courseName: course?.name,
         courseDescription: course?.description,
         courseCategory: course?.categories?.[0],
+        sessionTitle: session?.title,
+        sessionSubject: session?.subject,
         sessionCount: courseSessions.length,
         sessions: courseSessions.map(s => ({
           title: s.title,
@@ -521,7 +525,7 @@ function CourseAIChat({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: text,
-          subject: course?.categories?.[0] ?? 'general',
+          subject: course?.categories?.[0] ?? session?.subject ?? 'general',
           context: {
             ...contextPayload,
             previousMessages: [...messages, userMsg].slice(-6).map(m => ({
@@ -553,10 +557,10 @@ function CourseAIChat({
     } finally {
       setIsLoading(false)
     }
-  }, [input, isLoading, course, sessions, students, messages])
+  }, [input, isLoading, course, session, sessions, students, messages])
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
         handleSend()
@@ -565,22 +569,26 @@ function CourseAIChat({
     [handleSend]
   )
 
+  const isCourse = !!course
+  const isSession = !!session
+
   return (
-    <Card className="border-2 border-gray-400 shadow-sm">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Bot className="h-5 w-5 text-purple-500" />
-          Ask AI about this course
-        </CardTitle>
-        <CardDescription>
-          Ask questions about student performance, course insights, or recommendations.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+    <Card className="border-2 border-cyan-100 bg-cyan-50/30 shadow-sm overflow-hidden">
+      <CardContent className="p-0">
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 pb-2">
+            <span className="text-xs font-bold text-cyan-700 tracking-wider">
+              {isCourse ? 'ASK AI ABOUT THIS COURSE' : isSession ? 'ASK AI ABOUT THIS SESSION' : 'QUESTION PROMPT'}
+            </span>
+            <span className="text-xs text-cyan-600 font-medium truncate max-w-[200px]">
+              {isCourse ? course.name : isSession ? session.title : 'No item selected'}
+            </span>
+          </div>
+
           {/* Chat History */}
           {messages.length > 0 && (
-            <ScrollArea className="h-[300px] rounded-lg border bg-gray-50 p-4">
+            <ScrollArea className="max-h-[300px] px-4 pb-2">
               <div className="space-y-4">
                 {messages.map(msg => (
                   <div
@@ -591,35 +599,30 @@ function CourseAIChat({
                     )}
                   >
                     {msg.role === 'assistant' && (
-                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-purple-100">
-                        <Bot className="h-4 w-4 text-purple-600" />
+                      <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-cyan-100">
+                        <Bot className="h-3 w-3 text-cyan-600" />
                       </div>
                     )}
                     <div
                       className={cn(
-                        'max-w-[80%] rounded-lg p-3 text-sm',
-                        msg.role === 'user' ? 'bg-blue-500 text-white' : 'border bg-white shadow-sm'
+                        'max-w-[80%] rounded-lg p-2.5 text-sm',
+                        msg.role === 'user' ? 'bg-cyan-600 text-white' : 'border border-cyan-100 bg-white shadow-sm text-gray-700'
                       )}
                     >
                       <div className="whitespace-pre-line">{msg.content}</div>
                     </div>
-                    {msg.role === 'user' && (
-                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-100">
-                        <User className="h-4 w-4 text-blue-600" />
-                      </div>
-                    )}
                   </div>
                 ))}
                 {isLoading && (
                   <div className="flex gap-3">
-                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-purple-100">
-                      <Bot className="h-4 w-4 text-purple-600" />
+                    <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-cyan-100">
+                      <Bot className="h-3 w-3 text-cyan-600" />
                     </div>
-                    <div className="rounded-lg border bg-white p-3 shadow-sm">
+                    <div className="rounded-lg border border-cyan-100 bg-white p-2.5 shadow-sm">
                       <div className="flex gap-1">
-                        <div className="h-2 w-2 animate-bounce rounded-full bg-purple-400" />
-                        <div className="h-2 w-2 animate-bounce rounded-full bg-purple-400 delay-100" />
-                        <div className="h-2 w-2 animate-bounce rounded-full bg-purple-400 delay-200" />
+                        <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-cyan-400" />
+                        <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-cyan-400 delay-100" />
+                        <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-cyan-400 delay-200" />
                       </div>
                     </div>
                   </div>
@@ -629,38 +632,36 @@ function CourseAIChat({
             </ScrollArea>
           )}
 
-          {/* Input Area */}
-          <div className="flex gap-2">
-            <Input
-              placeholder="e.g., Which students are struggling with this course?"
+          {/* Textarea */}
+          <div className="relative px-4 pb-4">
+            <textarea
+              placeholder={isCourse ? "Ask questions about student performance, course insights, or recommendations..." : "Ask questions about this session's engagement or performance..."}
+              className="w-full min-h-[100px] resize-none bg-transparent outline-none border-none text-sm placeholder:text-cyan-600/50 text-cyan-900 focus:ring-0 p-0"
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
             />
-            <Button onClick={handleSend} disabled={!input.trim() || isLoading}>
+            <Button
+              size="icon"
+              className={cn(
+                "absolute bottom-4 right-4 h-8 w-8 rounded-full shadow-md transition-colors",
+                input.trim() ? "bg-cyan-500 hover:bg-cyan-600 text-white" : "bg-cyan-200 text-white hover:bg-cyan-200"
+              )}
+              onClick={handleSend}
+              disabled={isLoading || !input.trim()}
+            >
               <Send className="h-4 w-4" />
             </Button>
           </div>
 
-          {/* Example Questions */}
-          <div className="text-xs text-gray-500">
-            Example questions:
-            <div className="mt-2 flex flex-wrap gap-2">
-              {[
-                'What is the average completion rate?',
-                'Which students are struggling?',
-                'Recommend improvements',
-                'Compare with other courses',
-              ].map(q => (
-                <button
-                  key={q}
-                  onClick={() => setInput(q)}
-                  className="rounded bg-gray-100 px-2 py-1 text-xs transition-colors hover:bg-gray-200"
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
+          {/* Footer */}
+          <div className="flex items-center justify-between p-3 px-4 border-t border-cyan-100/50">
+            <span className="text-xs text-cyan-600 font-medium">
+              Topic: {isCourse ? course.categories?.[0] || 'General' : isSession ? session.subject || 'General' : 'General'}
+            </span>
+            <span className="rounded-full border border-cyan-400 px-3 py-1 text-[10px] font-semibold text-cyan-600 tracking-wider">
+              AI Integrated
+            </span>
           </div>
         </div>
       </CardContent>
@@ -672,12 +673,13 @@ function CourseAIChat({
 function CoursesAndClassesTab() {
   const [courses, setCourses] = useState<CourseItem[]>([])
   const [coursesLoading, setCoursesLoading] = useState(true)
-  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
+  const [selectedItem, setSelectedItem] = useState<{ type: 'course' | 'session', id: string } | null>(null)
   const [sessionsOverview, setSessionsOverview] = useState<SessionOverviewItem[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
   const [students, setStudents] = useState<Student[]>([])
 
-  const selectedCourse = courses.find(c => c.id === selectedCourseId)
+  const selectedCourse = selectedItem?.type === 'course' ? courses.find(c => c.id === selectedItem.id) || null : null
+  const selectedSession = selectedItem?.type === 'session' ? sessionsOverview.find(s => s.id === selectedItem.id) || null : null
 
   useEffect(() => {
     const loadCourses = async () => {
@@ -784,12 +786,14 @@ function CoursesAndClassesTab() {
                     key={course.id}
                     className={cn(
                       'cursor-pointer rounded border p-3 transition-colors',
-                      selectedCourseId === course.id
+                      selectedItem?.type === 'course' && selectedItem.id === course.id
                         ? 'border-blue-300 bg-blue-50'
                         : 'hover:bg-gray-50'
                     )}
                     onClick={() => {
-                      setSelectedCourseId(course.id === selectedCourseId ? null : course.id)
+                      setSelectedItem(
+                        selectedItem?.type === 'course' && selectedItem.id === course.id ? null : { type: 'course', id: course.id }
+                      )
                     }}
                   >
                     <div className="flex items-start justify-between">
@@ -831,7 +835,17 @@ function CoursesAndClassesTab() {
                   return (
                     <div
                       key={sessionItem.id}
-                      className="rounded-lg border border-gray-200 bg-white p-3"
+                      className={cn(
+                        'cursor-pointer rounded-lg border bg-white p-3 transition-colors',
+                        selectedItem?.type === 'session' && selectedItem.id === sessionItem.id
+                          ? 'border-blue-300 bg-blue-50'
+                          : 'border-gray-200 hover:bg-gray-50'
+                      )}
+                      onClick={() => {
+                        setSelectedItem(
+                          selectedItem?.type === 'session' && selectedItem.id === sessionItem.id ? null : { type: 'session', id: sessionItem.id }
+                        )
+                      }}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
@@ -889,7 +903,40 @@ function CoursesAndClassesTab() {
                 </CardContent>
               </Card>
 
-              <CourseAIChat course={selectedCourse} sessions={courseSessions} students={students} />
+              <ItemAIChat course={selectedCourse} session={null} sessions={courseSessions} students={students} />
+            </>
+          ) : selectedSession ? (
+            <>
+              <Card className="border-2 border-blue-400 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <BarChart3 className="h-5 w-5 text-blue-500" />
+                    Analytics: {selectedSession.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-lg bg-gray-50 p-3">
+                      <p className="text-xs text-gray-500">Status</p>
+                      <p className="font-medium">{selectedSession.status}</p>
+                    </div>
+                    <div className="rounded-lg bg-gray-50 p-3">
+                      <p className="text-xs text-gray-500">Scheduled Date</p>
+                      <p className="font-medium">{formatDate(selectedSession.scheduledAt)}</p>
+                    </div>
+                    <div className="rounded-lg bg-gray-50 p-3">
+                      <p className="text-xs text-gray-500">Subject</p>
+                      <p className="font-medium">{selectedSession.subject || 'N/A'}</p>
+                    </div>
+                    <div className="rounded-lg bg-gray-50 p-3">
+                      <p className="text-xs text-gray-500">Total Enrolled</p>
+                      <p className="font-medium">{students.length}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <ItemAIChat course={null} session={selectedSession} sessions={sessionsOverview} students={students} />
             </>
           ) : (
             <Card className="flex h-full min-h-[400px] items-center justify-center border-2 border-gray-400 shadow-sm">

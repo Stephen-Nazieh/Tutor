@@ -96,12 +96,16 @@ export interface LiveTask {
   id: string
   title: string
   content: string
+  description?: string
+  instructions?: string
   source: 'task' | 'assessment'
   dmiItems?: LiveTaskDmiItem[]
   deployedAt: number
   polls: LiveTaskPoll[]
   questions: LiveTaskQuestion[]
   sourceDocument?: LiveTaskSourceDocument
+  parentId?: string
+  isExtension?: boolean
 }
 
 // Environment validation

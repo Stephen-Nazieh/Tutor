@@ -58,6 +58,7 @@ import { Switch } from '@/components/ui/switch'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 import { DailyVideoFrame } from '@/components/class/daily-video-frame'
 import { PDFViewer } from '@/components/pdf/PDFViewer'
 import {
@@ -673,10 +674,78 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const setPollPrompt = (val: string) =>
       setPollPromptMap(prev => ({ ...prev, [currentInsightsId]: val }))
 
-    const questionPrompt =
-      questionPromptMap[currentInsightsId] ?? 'Do you have a question about this task?'
-    const setQuestionPrompt = (val: string) =>
-      setQuestionPromptMap(prev => ({ ...prev, [currentInsightsId]: val }))
+    const questionPrompt = questionPromptMap[currentInsightsId] ?? 'Do you have a question about this task?'
+    const setQuestionPrompt = (val: string) => setQuestionPromptMap(prev => ({ ...prev, [currentInsightsId]: val }))
+
+    const [generatingPoll, setGeneratingPoll] = useState(false)
+    const handleGeneratePollPrompt = async () => {
+      if (!activeInsightsTask) return
+      setGeneratingPoll(true)
+      try {
+        const content = (activeInsightsTask.description || activeInsightsTask.title || '').slice(0, 800)
+        const pci = (activeInsightsTask.instructions || '').slice(0, 800)
+        const prompt = `You are a Socratic AI tutor. Based on this lesson task, generate a single engaging poll question (1 sentence, no options needed, just the question) to check students' understanding or feelings about the topic.
+        
+Task Content:
+${content}
+
+PCI Instructions:
+${pci}
+
+Respond ONLY with the poll question.`
+        
+        const response = await fetch('/api/ai/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: prompt }),
+        })
+        if (!response.ok) throw new Error('Failed to generate')
+        const data = await response.json()
+        if (data.response) {
+          setPollPrompt(data.response.replace(/^["']|["']$/g, '').trim())
+          toast.success('Poll generated')
+        }
+      } catch (error) {
+        toast.error('Failed to generate poll')
+      } finally {
+        setGeneratingPoll(false)
+      }
+    }
+
+    const [generatingQuestion, setGeneratingQuestion] = useState(false)
+    const handleGenerateQuestionPrompt = async () => {
+      if (!activeInsightsTask) return
+      setGeneratingQuestion(true)
+      try {
+        const content = (activeInsightsTask.description || activeInsightsTask.title || '').slice(0, 800)
+        const pci = (activeInsightsTask.instructions || '').slice(0, 800)
+        const prompt = `You are a Socratic AI tutor. Based on this lesson task, generate a single Socratic question (1-2 sentences) to prompt deeper student reflection and critical thinking. Do not give away the answer.
+        
+Task Content:
+${content}
+
+PCI Instructions:
+${pci}
+
+Respond ONLY with the Socratic question.`
+        
+        const response = await fetch('/api/ai/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: prompt }),
+        })
+        if (!response.ok) throw new Error('Failed to generate')
+        const data = await response.json()
+        if (data.response) {
+          setQuestionPrompt(data.response.replace(/^["']|["']$/g, '').trim())
+          toast.success('Question generated')
+        }
+      } catch (error) {
+        toast.error('Failed to generate question')
+      } finally {
+        setGeneratingQuestion(false)
+      }
+    }
 
     const mentionItems: MentionItem[] = useMemo(() => {
       const items: MentionItem[] = []
@@ -5008,6 +5077,29 @@ FEEDBACK: [your explanation]`
                                                             </Button>
                                                           </DropdownMenuTrigger>
                                                           <DropdownMenuContent align="end">
+                                                            {insightsProps?.onDeployTask && (
+                                                              <DropdownMenuItem
+                                                                className="text-emerald-600 focus:text-emerald-600 font-medium"
+                                                                onClick={e => {
+                                                                  e.stopPropagation()
+                                                                  const dmiVersion = (task.dmiVersions || []).find(v => v.id === task.activeDmiVersionId) || (task.dmiVersions || [])[0]
+                                                                  insightsProps.onDeployTask({
+                                                                    id: task.id,
+                                                                    title: task.title,
+                                                                    content: task.description || task.title,
+                                                                    source: 'task',
+                                                                    dmiItems: dmiVersion?.items || task.dmiItems || [],
+                                                                    sourceDocument: task.sourceDocument,
+                                                                    deployedAt: Date.now(),
+                                                                    polls: [],
+                                                                    questions: [],
+                                                                  })
+                                                                }}
+                                                              >
+                                                                <Send className="mr-2 h-4 w-4" />
+                                                                Deploy
+                                                              </DropdownMenuItem>
+                                                            )}
                                                             <DropdownMenuItem
                                                               onClick={e => {
                                                                 e.stopPropagation()
@@ -5292,86 +5384,87 @@ FEEDBACK: [your explanation]`
                                                                     <span className="text-muted-foreground flex-1 truncate">
                                                                       {ext.name}
                                                                     </span>
-                                                                    <Button
-                                                                      variant="ghost"
-                                                                      size="icon"
-                                                                      className={cn(
-                                                                        'h-7 w-7',
-                                                                        directoryMenusAlwaysVisible
-                                                                          ? 'opacity-80 hover:opacity-100'
-                                                                          : 'opacity-0 group-hover/extension:opacity-100'
-                                                                      )}
-                                                                      onClick={(e: any) => {
-                                                                        e.stopPropagation()
-                                                                        if (
-                                                                          !confirm(
-                                                                            `Delete "${ext.name}"?`
-                                                                          )
-                                                                        )
-                                                                          return
-                                                                        setTaskExtensionPciMessages(
-                                                                          prev => {
-                                                                            const next = { ...prev }
-                                                                            delete next[ext.id]
-                                                                            return next
-                                                                          }
-                                                                        )
-                                                                        setTaskExtensionPciInputs(
-                                                                          prev => {
-                                                                            const next = { ...prev }
-                                                                            delete next[ext.id]
-                                                                            return next
-                                                                          }
-                                                                        )
-                                                                        setTaskBuilder(prev => ({
-                                                                          ...prev,
-                                                                          extensions:
-                                                                            prev.extensions.filter(
-                                                                              e => e.id !== ext.id
-                                                                            ),
-                                                                          activeExtensionId:
-                                                                            prev.activeExtensionId ===
-                                                                            ext.id
-                                                                              ? null
-                                                                              : prev.activeExtensionId,
-                                                                        }))
-                                                                        if (loadedTaskId) {
-                                                                          setCourseBuilderNodes(
-                                                                            prev =>
-                                                                              prev.map(mod => ({
-                                                                                ...mod,
-                                                                                lessons:
-                                                                                  mod.lessons.map(
-                                                                                    lesson => ({
-                                                                                      ...lesson,
-                                                                                      tasks:
-                                                                                        lesson.tasks.map(
-                                                                                          t =>
-                                                                                            t.id ===
-                                                                                            loadedTaskId
-                                                                                              ? {
-                                                                                                  ...t,
-                                                                                                  extensions:
-                                                                                                    (
-                                                                                                      t.extensions ||
-                                                                                                      []
-                                                                                                    ).filter(
-                                                                                                      e =>
-                                                                                                        e.id !==
-                                                                                                        ext.id
-                                                                                                    ),
-                                                                                                }
-                                                                                              : t
-                                                                                        ),
-                                                                                    })
-                                                                                  ),
-                                                                              }))
-                                                                          )
-                                                                        }
-                                                                      }}
-                                                                    >
-                                                                      <Trash2 className="h-5 w-5 text-red-500" />
-                                                                    </Button>
+                                                                    <DropdownMenu>
+                                                                      <DropdownMenuTrigger asChild>
+                                                                        <Button
+                                                                          variant="ghost"
+                                                                          size="icon"
+                                                                          className={cn(
+                                                                            'h-7 w-7',
+                                                                            directoryMenusAlwaysVisible
+                                                                              ? 'opacity-80 hover:opacity-100'
+                                                                              : 'opacity-0 group-hover/extension:opacity-100'
+                                                                          )}
+                                                                          onClick={(e: any) => e.stopPropagation()}
+                                                                        >
+                                                                          <MoreVertical className="h-5 w-5 text-slate-700" />
+                                                                        </Button>
+                                                                      </DropdownMenuTrigger>
+                                                                      <DropdownMenuContent align="end">
+                                                                        {insightsProps?.onDeployTask && (
+                                                                          <DropdownMenuItem
+                                                                            className="text-emerald-600 focus:text-emerald-600 font-medium"
+                                                                            onClick={e => {
+                                                                              e.stopPropagation()
+                                                                              insightsProps.onDeployTask({
+                                                                                id: ext.id,
+                                                                                title: ext.name,
+                                                                                content: ext.description || ext.name,
+                                                                                source: 'task',
+                                                                                parentId: task.id,
+                                                                                isExtension: true,
+                                                                                deployedAt: Date.now(),
+                                                                                polls: [],
+                                                                                questions: [],
+                                                                              })
+                                                                            }}
+                                                                          >
+                                                                            <Send className="mr-2 h-4 w-4" />
+                                                                            Deploy
+                                                                          </DropdownMenuItem>
+                                                                        )}
+                                                                        <DropdownMenuItem
+                                                                          className="text-red-500"
+                                                                          onClick={(e: any) => {
+                                                                            e.stopPropagation()
+                                                                            if (!confirm(`Delete "${ext.name}"?`)) return
+                                                                            setTaskExtensionPciMessages(prev => {
+                                                                              const next = { ...prev }
+                                                                              delete next[ext.id]
+                                                                              return next
+                                                                            })
+                                                                            setTaskExtensionPciInputs(prev => {
+                                                                              const next = { ...prev }
+                                                                              delete next[ext.id]
+                                                                              return next
+                                                                            })
+                                                                            setTaskBuilder(prev => ({
+                                                                              ...prev,
+                                                                              extensions: prev.extensions.filter(e => e.id !== ext.id),
+                                                                              activeExtensionId: prev.activeExtensionId === ext.id ? null : prev.activeExtensionId,
+                                                                            }))
+                                                                            if (loadedTaskId) {
+                                                                              setCourseBuilderNodes(prev =>
+                                                                                prev.map(mod => ({
+                                                                                  ...mod,
+                                                                                  lessons: mod.lessons.map(lesson => ({
+                                                                                    ...lesson,
+                                                                                    tasks: lesson.tasks.map(t =>
+                                                                                      t.id === loadedTaskId
+                                                                                        ? { ...t, extensions: (t.extensions || []).filter(e => e.id !== ext.id) }
+                                                                                        : t
+                                                                                    ),
+                                                                                  })),
+                                                                                }))
+                                                                              )
+                                                                            }
+                                                                          }}
+                                                                        >
+                                                                          <Trash2 className="mr-2 h-4 w-4" />
+                                                                          Delete
+                                                                        </DropdownMenuItem>
+                                                                      </DropdownMenuContent>
+                                                                    </DropdownMenu>
                                                                   </div>
                                                                 )
                                                               )}
@@ -5585,6 +5678,29 @@ FEEDBACK: [your explanation]`
                                                           </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
+                                                          {insightsProps?.onDeployTask && (
+                                                            <DropdownMenuItem
+                                                              className="text-emerald-600 focus:text-emerald-600 font-medium"
+                                                              onClick={e => {
+                                                                e.stopPropagation()
+                                                                const dmiVersion = (hw.dmiVersions || []).find(v => v.id === hw.activeDmiVersionId) || (hw.dmiVersions || [])[0]
+                                                                insightsProps.onDeployTask({
+                                                                  id: hw.id,
+                                                                  title: hw.title,
+                                                                  content: hw.description || hw.title,
+                                                                  source: 'assessment',
+                                                                  dmiItems: dmiVersion?.items || hw.dmiItems || [],
+                                                                  sourceDocument: hw.sourceDocument,
+                                                                  deployedAt: Date.now(),
+                                                                  polls: [],
+                                                                  questions: [],
+                                                                })
+                                                              }}
+                                                            >
+                                                              <Send className="mr-2 h-4 w-4" />
+                                                              Deploy
+                                                            </DropdownMenuItem>
+                                                          )}
                                                           <DropdownMenuItem
                                                             onClick={e => {
                                                               e.stopPropagation()
@@ -6158,7 +6274,7 @@ FEEDBACK: [your explanation]`
                                                   <div className="relative flex-1">
                                                     <MentionTextarea
                                                       mentionItems={mentionItems}
-                                                      className="h-full min-h-[100px] w-full border-0 bg-transparent py-4 pl-3 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                                      className="h-full min-h-[100px] w-full border-0 bg-transparent py-4 pl-3 pr-24 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                                       placeholder="What should students answer?"
                                                       disableAutoResize
                                                       value={pollPrompt}
@@ -6166,31 +6282,44 @@ FEEDBACK: [your explanation]`
                                                         setPollPrompt(event.target.value)
                                                       }
                                                     />
-                                                    <Button
-                                                      size="icon"
-                                                      className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-cyan-600 shadow-lg hover:bg-cyan-700 disabled:opacity-30"
-                                                      disabled={
-                                                        !activeInsightsTaskId ||
-                                                        !activeInsightsTask ||
-                                                        !insightsProps.sessionId ||
-                                                        !pollPrompt.trim()
-                                                      }
-                                                      onClick={() => {
-                                                        if (
+                                                    <div className="absolute bottom-3 right-3 flex items-center gap-1">
+                                                      <Button
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        className="h-9 w-9 rounded-xl text-cyan-600 hover:bg-cyan-100 hover:text-cyan-700 disabled:opacity-30"
+                                                        title="Generate with Socratic AI"
+                                                        onClick={handleGeneratePollPrompt}
+                                                        disabled={!activeInsightsTask || generatingPoll}
+                                                      >
+                                                        {generatingPoll ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                                      </Button>
+                                                      <Button
+                                                        size="icon"
+                                                        className="h-9 w-9 rounded-xl bg-cyan-600 shadow-lg hover:bg-cyan-700 disabled:opacity-30"
+                                                        disabled={
                                                           !activeInsightsTaskId ||
                                                           !activeInsightsTask ||
-                                                          !insightsProps.sessionId
-                                                        )
-                                                          return
-                                                        insightsProps.onSendPoll({
-                                                          taskId: currentInsightsId,
-                                                          question: pollPrompt,
-                                                        })
-                                                        setPollPrompt('')
-                                                      }}
-                                                    >
-                                                      <Send className="h-4 w-4" />
-                                                    </Button>
+                                                          !insightsProps.sessionId ||
+                                                          !pollPrompt.trim() ||
+                                                          generatingPoll
+                                                        }
+                                                        onClick={() => {
+                                                          if (
+                                                            !activeInsightsTaskId ||
+                                                            !activeInsightsTask ||
+                                                            !insightsProps.sessionId
+                                                          )
+                                                            return
+                                                          insightsProps.onSendPoll({
+                                                            taskId: currentInsightsId,
+                                                            question: pollPrompt,
+                                                          })
+                                                          setPollPrompt('')
+                                                        }}
+                                                      >
+                                                        <Send className="h-4 w-4" />
+                                                      </Button>
+                                                    </div>
                                                   </div>
                                                 </div>
                                                 <div className="border-t border-cyan-50/50 bg-cyan-50/20 px-1 py-1">
@@ -6236,7 +6365,7 @@ FEEDBACK: [your explanation]`
                                                   <div className="relative flex-1">
                                                     <MentionTextarea
                                                       mentionItems={mentionItems}
-                                                      className="h-full min-h-[120px] w-full border-0 bg-transparent py-4 pl-3 pr-14 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                                      className="h-full min-h-[120px] w-full border-0 bg-transparent py-4 pl-3 pr-24 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                                       placeholder="Ask your AI coach or share a reflection..."
                                                       disableAutoResize
                                                       value={questionPrompt}
@@ -6244,31 +6373,44 @@ FEEDBACK: [your explanation]`
                                                         setQuestionPrompt(event.target.value)
                                                       }
                                                     />
-                                                    <Button
-                                                      size="icon"
-                                                      className="absolute bottom-3 right-3 h-9 w-9 rounded-xl bg-cyan-600 shadow-lg hover:bg-cyan-700 disabled:opacity-30"
-                                                      disabled={
-                                                        !activeInsightsTaskId ||
-                                                        !activeInsightsTask ||
-                                                        !insightsProps.sessionId ||
-                                                        !questionPrompt.trim()
-                                                      }
-                                                      onClick={() => {
-                                                        if (
+                                                    <div className="absolute bottom-3 right-3 flex items-center gap-1">
+                                                      <Button
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        className="h-9 w-9 rounded-xl text-cyan-600 hover:bg-cyan-100 hover:text-cyan-700 disabled:opacity-30"
+                                                        title="Generate with Socratic AI"
+                                                        onClick={handleGenerateQuestionPrompt}
+                                                        disabled={!activeInsightsTask || generatingQuestion}
+                                                      >
+                                                        {generatingQuestion ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                                      </Button>
+                                                      <Button
+                                                        size="icon"
+                                                        className="h-9 w-9 rounded-xl bg-cyan-600 shadow-lg hover:bg-cyan-700 disabled:opacity-30"
+                                                        disabled={
                                                           !activeInsightsTaskId ||
                                                           !activeInsightsTask ||
-                                                          !insightsProps.sessionId
-                                                        )
-                                                          return
-                                                        insightsProps.onSendQuestion({
-                                                          taskId: currentInsightsId,
-                                                          prompt: questionPrompt,
-                                                        })
-                                                        setQuestionPrompt('')
-                                                      }}
-                                                    >
-                                                      <Send className="h-4 w-4" />
-                                                    </Button>
+                                                          !insightsProps.sessionId ||
+                                                          !questionPrompt.trim() ||
+                                                          generatingQuestion
+                                                        }
+                                                        onClick={() => {
+                                                          if (
+                                                            !activeInsightsTaskId ||
+                                                            !activeInsightsTask ||
+                                                            !insightsProps.sessionId
+                                                          )
+                                                            return
+                                                          insightsProps.onSendQuestion({
+                                                            taskId: currentInsightsId,
+                                                            prompt: questionPrompt,
+                                                          })
+                                                          setQuestionPrompt('')
+                                                        }}
+                                                      >
+                                                        <Send className="h-4 w-4" />
+                                                      </Button>
+                                                    </div>
                                                   </div>
                                                 </div>
                                                 <div className="border-t border-cyan-50/50 bg-cyan-50/20 px-1 py-1 text-[10px]">
@@ -6302,71 +6444,61 @@ FEEDBACK: [your explanation]`
                                             )
                                           }
 
-                                          if (testPciViewMode === 'pdf') {
-                                            const doc =
-                                              testPciSource === 'task'
-                                                ? taskBuilder.sourceDocument
-                                                : assessmentSourceDocument
-                                            if (doc?.fileUrl || doc?.extractedText) {
-                                              return (
-                                                <div className="h-full w-full">
-                                                  {doc?.fileUrl ? (
-                                                    <iframe
-                                                      src={`${doc.fileUrl}#toolbar=0&navpanes=0`}
-                                                      className="h-full w-full rounded-md border-0"
-                                                      title="PDF Viewer"
-                                                    />
-                                                  ) : (
-                                                    <p className="text-muted-foreground whitespace-pre-wrap text-sm">
-                                                      {doc?.extractedText}
-                                                    </p>
-                                                  )}
-                                                </div>
-                                              )
-                                            }
-                                          }
+                                          const doc = testPciSource === 'task' ? taskBuilder.sourceDocument : assessmentSourceDocument
+                                          const versionId = testPciViewMode.startsWith('dmi_') ? testPciViewMode.replace('dmi_', '') : null
+                                          const versions = testPciSource === 'task' ? taskDmiVersions : assessmentDmiVersions
+                                          const version = versionId ? versions.find(v => v.id === versionId) : versions[0]
+                                          const hasDoc = !!(doc?.fileUrl || doc?.extractedText)
+                                          const hasDmi = !!version
 
-                                          if (testPciViewMode.startsWith('dmi_')) {
-                                            const versionId = testPciViewMode.replace('dmi_', '')
-                                            const versions =
-                                              testPciSource === 'task'
-                                                ? taskDmiVersions
-                                                : assessmentDmiVersions
-                                            const version = versions.find(v => v.id === versionId)
-                                            if (version) {
-                                              return (
-                                                <div className="h-full w-full overflow-y-auto rounded-md border bg-white p-4">
-                                                  <div className="space-y-4">
-                                                    {version.items.map(item => (
-                                                      <div
-                                                        key={item.id}
-                                                        className="rounded-lg border bg-gray-50 p-3"
-                                                      >
-                                                        <p className="text-sm font-medium text-gray-900">
-                                                          <span className="mr-1 text-indigo-600">
-                                                            Q{item.questionNumber}:
-                                                          </span>
-                                                          {item.questionText}
-                                                        </p>
-                                                        <p className="mt-2 whitespace-pre-wrap text-sm text-gray-600">
-                                                          <span className="font-medium">
-                                                            Answer:
-                                                          </span>{' '}
-                                                          {item.answer}
-                                                        </p>
-                                                      </div>
-                                                    ))}
-                                                  </div>
-                                                </div>
-                                              )
-                                            }
+                                          if (!hasDoc && !hasDmi) {
+                                            return (
+                                              <p className="text-muted-foreground whitespace-pre-wrap text-sm">
+                                                {testPciContent[tab.id] || `${tab.label} view content`}
+                                              </p>
+                                            )
                                           }
 
                                           return (
-                                            <p className="text-muted-foreground whitespace-pre-wrap text-sm">
-                                              {testPciContent[tab.id] ||
-                                                `${tab.label} view content`}
-                                            </p>
+                                            <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
+                                              {hasDoc && (
+                                                <ResizablePanel defaultSize={hasDmi ? 50 : 100} minSize={20}>
+                                                  <div className="h-full w-full pr-1">
+                                                    {doc?.fileUrl ? (
+                                                      <iframe
+                                                        src={`${doc.fileUrl}#toolbar=0&navpanes=0`}
+                                                        className="h-full w-full rounded-md border-0"
+                                                        title="PDF Viewer"
+                                                      />
+                                                    ) : (
+                                                      <p className="text-muted-foreground whitespace-pre-wrap p-2 text-sm">
+                                                        {doc?.extractedText}
+                                                      </p>
+                                                    )}
+                                                  </div>
+                                                </ResizablePanel>
+                                              )}
+                                              {hasDoc && hasDmi && <ResizableHandle withHandle />}
+                                              {hasDmi && (
+                                                <ResizablePanel defaultSize={hasDoc ? 50 : 100} minSize={20}>
+                                                  <div className="h-full w-full overflow-y-auto rounded-md border bg-white p-4 ml-1">
+                                                    <div className="space-y-4">
+                                                      {version.items.map(item => (
+                                                        <div key={item.id} className="rounded-lg border bg-gray-50 p-3">
+                                                          <p className="text-sm font-medium text-gray-900">
+                                                            <span className="mr-1 text-indigo-600">Q{item.questionNumber}:</span>
+                                                            {item.questionText}
+                                                          </p>
+                                                          <p className="mt-2 whitespace-pre-wrap text-sm text-gray-600">
+                                                            <span className="font-medium">Answer:</span> {item.answer}
+                                                          </p>
+                                                        </div>
+                                                      ))}
+                                                    </div>
+                                                  </div>
+                                                </ResizablePanel>
+                                              )}
+                                            </ResizablePanelGroup>
                                           )
                                         })()}
                                         {/* Show AI scores if any */}

@@ -30,6 +30,7 @@ import {
   FileText,
 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
 import { DailyVideoFrame } from '@/components/class/daily-video-frame'
 import type { LiveTask, LiveTaskPoll, LiveTaskQuestion, ChatMessage } from '@/lib/socket'
@@ -408,69 +409,86 @@ function StudentFeedbackContent() {
                     </Button>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 flex-1 h-[calc(100vh-280px)] min-h-[600px] overflow-hidden p-0">
                   {activeTask ? (
-                    <div className="space-y-4">
-                      {activeTask.sourceDocument ? (
-                        <div className="space-y-2">
-                          <p className="text-xs font-semibold uppercase text-gray-500">Document</p>
-                          {activeTask.sourceDocument.mimeType === 'application/pdf' ? (
-                            <div className="overflow-hidden rounded border">
-                              <iframe
-                                src={activeTask.sourceDocument.fileUrl}
-                                title={activeTask.sourceDocument.fileName}
-                                className="h-[500px] w-full"
-                              />
-                            </div>
-                          ) : activeTask.sourceDocument.mimeType.startsWith('image/') ? (
-                            <div className="overflow-hidden rounded border">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={activeTask.sourceDocument.fileUrl}
-                                alt={activeTask.sourceDocument.fileName}
-                                className="h-auto max-h-[500px] w-full object-contain"
-                              />
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2 rounded border bg-white p-4">
-                              <FileText className="h-5 w-5 text-blue-600" />
-                              <a
-                                href={activeTask.sourceDocument.fileUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-sm text-blue-600 underline"
-                              >
-                                Open {activeTask.sourceDocument.fileName}
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="rounded-lg border bg-white p-4 text-sm text-gray-700">
-                          <p className="whitespace-pre-wrap">{activeTask.content}</p>
-                        </div>
-                      )}
-                      {activeTask.dmiItems && activeTask.dmiItems.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-xs font-semibold uppercase text-gray-500">
-                            Task Prompts
-                          </p>
-                          <div className="space-y-2">
-                            {activeTask.dmiItems.map(item => (
-                              <div key={item.id} className="rounded-lg border bg-white p-3">
-                                <p className="text-xs font-semibold text-blue-600">
-                                  Q{item.questionNumber}
-                                </p>
-                                <p className="text-sm text-gray-700">{item.questionText}</p>
+                    <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
+                      {(activeTask.sourceDocument || activeTask.content) && (
+                        <ResizablePanel defaultSize={activeTask.dmiItems?.length ? 50 : 100} minSize={20}>
+                          <div className="h-full w-full overflow-y-auto p-4">
+                            {activeTask.sourceDocument ? (
+                              <div className="space-y-2 h-full">
+                                <p className="text-xs font-semibold uppercase text-gray-500">Document</p>
+                                {activeTask.sourceDocument.mimeType === 'application/pdf' ? (
+                                  <div className="h-[calc(100%-24px)] w-full overflow-hidden rounded border">
+                                    <iframe
+                                      src={`${activeTask.sourceDocument.fileUrl}#toolbar=0&navpanes=0`}
+                                      title={activeTask.sourceDocument.fileName}
+                                      className="h-full w-full"
+                                    />
+                                  </div>
+                                ) : activeTask.sourceDocument.mimeType.startsWith('image/') ? (
+                                  <div className="overflow-hidden rounded border">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={activeTask.sourceDocument.fileUrl}
+                                      alt={activeTask.sourceDocument.fileName}
+                                      className="h-auto max-h-[500px] w-full object-contain"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2 rounded border bg-white p-4">
+                                    <FileText className="h-5 w-5 text-blue-600" />
+                                    <a
+                                      href={activeTask.sourceDocument.fileUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-sm text-blue-600 underline"
+                                    >
+                                      Open {activeTask.sourceDocument.fileName}
+                                    </a>
+                                  </div>
+                                )}
                               </div>
-                            ))}
+                            ) : (
+                              <div className="rounded-lg border bg-white p-4 text-sm text-gray-700">
+                                <p className="whitespace-pre-wrap">{activeTask.content}</p>
+                              </div>
+                            )}
                           </div>
-                        </div>
+                        </ResizablePanel>
                       )}
-                    </div>
+                      
+                      {((activeTask.sourceDocument || activeTask.content) && activeTask.dmiItems?.length) ? (
+                        <ResizableHandle withHandle />
+                      ) : null}
+
+                      {activeTask.dmiItems && activeTask.dmiItems.length > 0 && (
+                        <ResizablePanel defaultSize={activeTask.sourceDocument || activeTask.content ? 50 : 100} minSize={20}>
+                          <div className="h-full w-full overflow-y-auto p-4 bg-gray-50/50">
+                            <div className="space-y-2">
+                              <p className="text-xs font-semibold uppercase text-gray-500">
+                                Task Prompts (DMI)
+                              </p>
+                              <div className="space-y-2">
+                                {activeTask.dmiItems.map(item => (
+                                  <div key={item.id} className="rounded-lg border bg-white p-3 shadow-sm">
+                                    <p className="text-xs font-semibold text-blue-600 mb-1">
+                                      Q{item.questionNumber}
+                                    </p>
+                                    <p className="text-sm text-gray-800 font-medium">{item.questionText}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </ResizablePanel>
+                      )}
+                    </ResizablePanelGroup>
                   ) : (
-                    <div className="rounded-lg border border-dashed border-gray-200 p-8 text-center text-sm text-gray-500">
-                      Choose a task from the Tasks panel to view it here.
+                    <div className="flex h-full items-center justify-center p-8">
+                      <div className="rounded-lg border border-dashed border-gray-200 p-8 text-center text-sm text-gray-500">
+                        Choose a task from the Tasks panel to view it here.
+                      </div>
                     </div>
                   )}
                 </CardContent>
