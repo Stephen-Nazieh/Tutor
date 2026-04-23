@@ -6,7 +6,8 @@ RUN apt-get update && apt-get install -y ca-certificates curl libreoffice-writer
 # Dependencies
 FROM base AS deps
 COPY package.json package-lock.json* ./
-RUN npm ci --legacy-peer-deps
+# Allocate more memory to Node to prevent SIGXCPU/OOM (Exit code 152) during heavy dependency resolution
+RUN NODE_OPTIONS="--max-old-space-size=4096" npm ci --legacy-peer-deps
 
 # Build
 FROM base AS builder

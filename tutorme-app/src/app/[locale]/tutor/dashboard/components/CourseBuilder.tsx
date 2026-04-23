@@ -126,6 +126,7 @@ export type {
 } from './builder-types'
 
 import { AnalyticsPanel } from './AnalyticsPanel'
+import { AITeachingAssistant } from '@/components/tutor/AITeachingAssistant'
 import { MentionTextarea } from '@/components/class/mention-textarea'
 import type { MentionItem } from '@/components/class/mention-textarea'
 import {
@@ -657,7 +658,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
     // Insights panel state (per item)
     const [insightsTabMap, setInsightsTabMap] = useState<
-      Record<string, 'analytics' | 'poll' | 'question'>
+      Record<string, 'analytics' | 'poll' | 'question' | 'assistant'>
     >({})
     const [pollPromptMap, setPollPromptMap] = useState<Record<string, string>>({})
     const [questionPromptMap, setQuestionPromptMap] = useState<Record<string, string>>({})
@@ -667,7 +668,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         ? taskBuilder.activeExtensionId
         : activeInsightsTaskId || 'default'
     const insightsTab = insightsTabMap[currentInsightsId] ?? 'analytics'
-    const setInsightsTab = (val: 'analytics' | 'poll' | 'question') =>
+    const setInsightsTab = (val: 'analytics' | 'poll' | 'question' | 'assistant') =>
       setInsightsTabMap(prev => ({ ...prev, [currentInsightsId]: val }))
 
     const pollPrompt = pollPromptMap[currentInsightsId] ?? 'Did you find this task difficult'
@@ -6218,29 +6219,35 @@ FEEDBACK: [your explanation]`
                                             value={insightsTab}
                                             onValueChange={value =>
                                               setInsightsTab(
-                                                value as 'analytics' | 'poll' | 'question'
+                                                value as 'analytics' | 'poll' | 'question' | 'assistant'
                                               )
                                             }
                                             className="flex h-full min-h-0 flex-col"
                                           >
-                                            <TabsList className="mb-1 grid w-full grid-cols-3 gap-1 rounded-xl p-px shadow-sm">
+                                            <TabsList className="mb-1 grid w-full grid-cols-4 gap-1 rounded-xl p-px shadow-sm">
                                               <TabsTrigger
                                                 value="analytics"
-                                                className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
+                                                className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 text-xs px-1"
                                               >
                                                 Analytics
                                               </TabsTrigger>
                                               <TabsTrigger
                                                 value="poll"
-                                                className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
+                                                className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 text-xs px-1"
                                               >
                                                 Poll
                                               </TabsTrigger>
                                               <TabsTrigger
                                                 value="question"
-                                                className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900"
+                                                className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 text-xs px-1"
                                               >
                                                 Question
+                                              </TabsTrigger>
+                                              <TabsTrigger
+                                                value="assistant"
+                                                className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 text-xs px-1"
+                                              >
+                                                Assistant
                                               </TabsTrigger>
                                             </TabsList>
 
@@ -6430,6 +6437,24 @@ FEEDBACK: [your explanation]`
                                                   </div>
                                                 </div>
                                               </div>
+                                            </TabsContent>
+
+                                            <TabsContent
+                                              value="assistant"
+                                              className="flex flex-1 flex-col data-[state=active]:flex data-[state=inactive]:hidden overflow-hidden"
+                                            >
+                                              <AITeachingAssistant 
+                                                currentTopic={activeInsightsTask?.title || 'General Course Content'}
+                                                nodes={nodes}
+                                                onUseAsPoll={(text) => {
+                                                  setPollPrompt(text)
+                                                  setInsightsTab('poll')
+                                                }}
+                                                onUseAsQuestion={(text) => {
+                                                  setQuestionPrompt(text)
+                                                  setInsightsTab('question')
+                                                }}
+                                              />
                                             </TabsContent>
                                           </Tabs>
                                         </div>
