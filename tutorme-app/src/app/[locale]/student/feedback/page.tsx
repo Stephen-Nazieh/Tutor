@@ -120,9 +120,10 @@ function StudentFeedbackContent() {
   // Assets state
   const [courseAssets, setCourseAssets] = useState<any[]>([])
   const [assetsLoading, setAssetsLoading] = useState(false)
+  const [studentDirectory, setStudentDirectory] = useState<Record<string, Record<string, any[]>>>(
+    {}
+  )
   const [foldersOpen, setFoldersOpen] = useState<Record<string, boolean>>({
-    tutorRoot: true,
-    courseCategory: true,
     tasks: true,
     assessments: true,
     homework: true,
@@ -132,6 +133,39 @@ function StudentFeedbackContent() {
 
   // Portal target for TabsList
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    const loadDirectory = async () => {
+      try {
+        const res = await fetch('/api/student/directory', { credentials: 'include' })
+        if (res.ok) {
+          const data = await res.json()
+          setStudentDirectory(data.directory || {})
+
+          // Open all top-level and second-level folders by default
+          const newFoldersOpen: Record<string, boolean> = {
+            tasks: true,
+            assessments: true,
+            homework: true,
+            reports: true,
+            recordedSessions: true,
+          }
+          if (data.directory) {
+            Object.keys(data.directory).forEach(tutor => {
+              newFoldersOpen[`tutor_${tutor}`] = true
+              Object.keys(data.directory[tutor]).forEach(category => {
+                newFoldersOpen[`cat_${tutor}_${category}`] = true
+              })
+            })
+          }
+          setFoldersOpen(newFoldersOpen)
+        }
+      } catch (err) {
+        console.error('Failed to load student directory:', err)
+      }
+    }
+    loadDirectory()
+  }, [])
+
   useEffect(() => {
     const el = document.getElementById('student-live-tabs-portal')
     if (el) {
@@ -400,257 +434,299 @@ function StudentFeedbackContent() {
           </div>
           <ScrollArea className="flex-1 p-3">
             <div className="space-y-1">
-              {/* Tutor Root Folder */}
-              <div>
-                <button
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
-                  onClick={() => setFoldersOpen(prev => ({ ...prev, tutorRoot: !prev.tutorRoot }))}
-                >
-                  {foldersOpen.tutorRoot ? (
-                    <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
-                  )}
-                  <Folder className="h-4 w-4 shrink-0 text-slate-400" fill="currentColor" />
-                  <span className="truncate text-sm font-medium text-slate-700">
-                    Tutor@{sessionContext?.tutorUsername || 'username'}
-                  </span>
-                </button>
+              {Object.keys(studentDirectory).length === 0 ? (
+                <div className="px-2 py-4 text-center text-sm text-slate-500">
+                  No enrolled courses found.
+                </div>
+              ) : (
+                Object.entries(studentDirectory).map(([tutorUsername, categories]) => {
+                  const tutorKey = `tutor_${tutorUsername}`
+                  const isTutorOpen = foldersOpen[tutorKey]
 
-                {foldersOpen.tutorRoot && (
-                  <div className="mt-1 flex flex-col gap-1 pl-4">
-                    {/* Course Category Folder */}
-                    <div>
+                  return (
+                    <div key={tutorUsername}>
                       <button
                         className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
                         onClick={() =>
-                          setFoldersOpen(prev => ({
-                            ...prev,
-                            courseCategory: !prev.courseCategory,
-                          }))
+                          setFoldersOpen(prev => ({ ...prev, [tutorKey]: !prev[tutorKey] }))
                         }
                       >
-                        {foldersOpen.courseCategory ? (
+                        {isTutorOpen ? (
                           <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
                         ) : (
                           <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
                         )}
-                        <Folder className="h-4 w-4 shrink-0 text-indigo-400" fill="currentColor" />
+                        <Folder className="h-4 w-4 shrink-0 text-slate-400" fill="currentColor" />
                         <span className="truncate text-sm font-medium text-slate-700">
-                          {sessionContext?.courseCategory || 'Course Category'}
+                          {tutorUsername}
                         </span>
                       </button>
 
-                      {foldersOpen.courseCategory && (
+                      {isTutorOpen && (
                         <div className="mt-1 flex flex-col gap-1 pl-4">
-                          {/* 1. Tasks */}
-                          <div>
-                            <button
-                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
-                              onClick={() =>
-                                setFoldersOpen(prev => ({ ...prev, tasks: !prev.tasks }))
-                              }
-                            >
-                              {foldersOpen.tasks ? (
-                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
-                              )}
-                              <Folder
-                                className="h-4 w-4 shrink-0 text-blue-400"
-                                fill="currentColor"
-                              />
-                              <span className="text-sm font-medium text-slate-700">Tasks</span>
-                              {unseenTaskIds.length > 0 && (
-                                <span className="ml-auto rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] text-white">
-                                  {unseenTaskIds.length}
-                                </span>
-                              )}
-                            </button>
-                            {foldersOpen.tasks && (
-                              <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                {tasks.length === 0 && (
-                                  <span className="px-2 py-1 text-xs text-slate-500">
-                                    Empty folder
+                          {Object.entries(categories).map(([categoryName, courses]) => {
+                            const catKey = `cat_${tutorUsername}_${categoryName}`
+                            const isCatOpen = foldersOpen[catKey]
+                            // We only highlight tasks from the *current* session's category, but here we just show all
+                            // For a truly robust system, we would associate tasks with the specific courseId
+                            // But for now, we just map the current session's tasks if it matches the current category
+                            const isCurrentCategory =
+                              sessionContext?.courseCategory === categoryName &&
+                              sessionContext?.tutorUsername &&
+                              tutorUsername ===
+                                `Tutor@${sessionContext.tutorUsername.replace(/\\s+/g, '')}`
+
+                            return (
+                              <div key={categoryName}>
+                                <button
+                                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                                  onClick={() =>
+                                    setFoldersOpen(prev => ({ ...prev, [catKey]: !prev[catKey] }))
+                                  }
+                                >
+                                  {isCatOpen ? (
+                                    <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                                  ) : (
+                                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                                  )}
+                                  <Folder
+                                    className="h-4 w-4 shrink-0 text-indigo-400"
+                                    fill="currentColor"
+                                  />
+                                  <span className="truncate text-sm font-medium text-slate-700">
+                                    {categoryName}
                                   </span>
+                                </button>
+
+                                {isCatOpen && (
+                                  <div className="mt-1 flex flex-col gap-1 pl-4">
+                                    {/* 1. Tasks */}
+                                    <div>
+                                      <button
+                                        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                                        onClick={() =>
+                                          setFoldersOpen(prev => ({
+                                            ...prev,
+                                            tasks: !prev.tasks,
+                                          }))
+                                        }
+                                      >
+                                        {foldersOpen.tasks ? (
+                                          <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                                        ) : (
+                                          <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                                        )}
+                                        <Folder
+                                          className="h-4 w-4 shrink-0 text-blue-400"
+                                          fill="currentColor"
+                                        />
+                                        <span className="text-sm font-medium text-slate-700">
+                                          Tasks
+                                        </span>
+                                        {unseenTaskIds.length > 0 && (
+                                          <span className="ml-auto rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] text-white">
+                                            {unseenTaskIds.length}
+                                          </span>
+                                        )}
+                                      </button>
+                                      {foldersOpen.tasks && (
+                                        <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                                          {tasks.length === 0 && (
+                                            <span className="px-2 py-1 text-xs text-slate-500">
+                                              Empty folder
+                                            </span>
+                                          )}
+                                          {tasks.map(task => (
+                                            <button
+                                              key={task.id}
+                                              onClick={() => handleSelectTask(task.id)}
+                                              className={cn(
+                                                'flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                activeTaskId === task.id
+                                                  ? 'bg-blue-50 font-medium text-blue-700'
+                                                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                              )}
+                                            >
+                                              <FileText className="h-3.5 w-3.5 shrink-0" />
+                                              <span className="truncate">{task.title}</span>
+                                              {unseenTaskIds.includes(task.id) && (
+                                                <div className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+                                              )}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* 2. Assessments */}
+                                    <div>
+                                      <button
+                                        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                                        onClick={() =>
+                                          setFoldersOpen(prev => ({
+                                            ...prev,
+                                            assessments: !prev.assessments,
+                                          }))
+                                        }
+                                      >
+                                        {foldersOpen.assessments ? (
+                                          <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                                        ) : (
+                                          <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                                        )}
+                                        <Folder
+                                          className="h-4 w-4 shrink-0 text-purple-400"
+                                          fill="currentColor"
+                                        />
+                                        <span className="text-sm font-medium text-slate-700">
+                                          Assessments
+                                        </span>
+                                      </button>
+                                      {foldersOpen.assessments && (
+                                        <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                                          <span className="px-2 py-1 text-xs text-slate-500">
+                                            Empty folder
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* 3. Homework */}
+                                    <div>
+                                      <button
+                                        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                                        onClick={() =>
+                                          setFoldersOpen(prev => ({
+                                            ...prev,
+                                            homework: !prev.homework,
+                                          }))
+                                        }
+                                      >
+                                        {foldersOpen.homework ? (
+                                          <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                                        ) : (
+                                          <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                                        )}
+                                        <Folder
+                                          className="h-4 w-4 shrink-0 text-emerald-400"
+                                          fill="currentColor"
+                                        />
+                                        <span className="text-sm font-medium text-slate-700">
+                                          Homework
+                                        </span>
+                                      </button>
+                                      {foldersOpen.homework && (
+                                        <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                                          <span className="px-2 py-1 text-xs text-slate-500">
+                                            Empty folder
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* 4. Reports */}
+                                    <div>
+                                      <button
+                                        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                                        onClick={() =>
+                                          setFoldersOpen(prev => ({
+                                            ...prev,
+                                            reports: !prev.reports,
+                                          }))
+                                        }
+                                      >
+                                        {foldersOpen.reports ? (
+                                          <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                                        ) : (
+                                          <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                                        )}
+                                        <Folder
+                                          className="h-4 w-4 shrink-0 text-orange-400"
+                                          fill="currentColor"
+                                        />
+                                        <span className="text-sm font-medium text-slate-700">
+                                          Reports
+                                        </span>
+                                      </button>
+                                      {foldersOpen.reports && (
+                                        <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                                          <span className="px-2 py-1 text-xs text-slate-500">
+                                            Empty folder
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* 5. Recorded Sessions */}
+                                    <div>
+                                      <button
+                                        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                                        onClick={() =>
+                                          setFoldersOpen(prev => ({
+                                            ...prev,
+                                            recordedSessions: !prev.recordedSessions,
+                                          }))
+                                        }
+                                      >
+                                        {foldersOpen.recordedSessions ? (
+                                          <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                                        ) : (
+                                          <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                                        )}
+                                        <Folder
+                                          className="h-4 w-4 shrink-0 text-rose-400"
+                                          fill="currentColor"
+                                        />
+                                        <span className="text-sm font-medium text-slate-700">
+                                          Recorded sessions
+                                        </span>
+                                      </button>
+                                      {foldersOpen.recordedSessions && (
+                                        <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                                          <span className="px-2 py-1 text-xs text-slate-500">
+                                            Empty folder
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
                                 )}
-                                {tasks.map(task => (
-                                  <button
-                                    key={task.id}
-                                    onClick={() => handleSelectTask(task.id)}
-                                    className={cn(
-                                      'flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
-                                      activeTaskId === task.id
-                                        ? 'bg-blue-50 font-medium text-blue-700'
-                                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                                    )}
-                                  >
-                                    <FileText className="h-3.5 w-3.5 shrink-0" />
-                                    <span className="truncate">{task.title}</span>
-                                    {unseenTaskIds.includes(task.id) && (
-                                      <div className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
-                                    )}
-                                  </button>
-                                ))}
                               </div>
-                            )}
-                          </div>
-
-                          {/* 2. Assessments */}
-                          <div>
-                            <button
-                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
-                              onClick={() =>
-                                setFoldersOpen(prev => ({
-                                  ...prev,
-                                  assessments: !prev.assessments,
-                                }))
-                              }
-                            >
-                              {foldersOpen.assessments ? (
-                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
-                              )}
-                              <Folder
-                                className="h-4 w-4 shrink-0 text-purple-400"
-                                fill="currentColor"
-                              />
-                              <span className="text-sm font-medium text-slate-700">
-                                Assessments
-                              </span>
-                            </button>
-                            {foldersOpen.assessments && (
-                              <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                <span className="px-2 py-1 text-xs text-slate-500">
-                                  Empty folder
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* 3. Homework */}
-                          <div>
-                            <button
-                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
-                              onClick={() =>
-                                setFoldersOpen(prev => ({ ...prev, homework: !prev.homework }))
-                              }
-                            >
-                              {foldersOpen.homework ? (
-                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
-                              )}
-                              <Folder
-                                className="h-4 w-4 shrink-0 text-emerald-400"
-                                fill="currentColor"
-                              />
-                              <span className="text-sm font-medium text-slate-700">Homework</span>
-                            </button>
-                            {foldersOpen.homework && (
-                              <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                <span className="px-2 py-1 text-xs text-slate-500">
-                                  Empty folder
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* 4. Reports */}
-                          <div>
-                            <button
-                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
-                              onClick={() =>
-                                setFoldersOpen(prev => ({ ...prev, reports: !prev.reports }))
-                              }
-                            >
-                              {foldersOpen.reports ? (
-                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
-                              )}
-                              <Folder
-                                className="h-4 w-4 shrink-0 text-orange-400"
-                                fill="currentColor"
-                              />
-                              <span className="text-sm font-medium text-slate-700">Reports</span>
-                            </button>
-                            {foldersOpen.reports && (
-                              <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                <span className="px-2 py-1 text-xs text-slate-500">
-                                  Empty folder
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* 5. Recorded Sessions */}
-                          <div>
-                            <button
-                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
-                              onClick={() =>
-                                setFoldersOpen(prev => ({
-                                  ...prev,
-                                  recordedSessions: !prev.recordedSessions,
-                                }))
-                              }
-                            >
-                              {foldersOpen.recordedSessions ? (
-                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
-                              )}
-                              <Folder
-                                className="h-4 w-4 shrink-0 text-rose-400"
-                                fill="currentColor"
-                              />
-                              <span className="text-sm font-medium text-slate-700">
-                                Recorded sessions
-                              </span>
-                            </button>
-                            {foldersOpen.recordedSessions && (
-                              <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                <span className="px-2 py-1 text-xs text-slate-500">
-                                  Empty folder
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Legacy Assets Mapping - Fallback to Course Category root for now */}
-                          {courseAssets.length > 0 && (
-                            <div className="mt-2 flex flex-col gap-0.5 pl-6">
-                              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                                Shared Assets
-                              </div>
-                              {assetsLoading ? (
-                                <span className="flex items-center gap-2 px-2 py-1 text-xs text-slate-500">
-                                  <Loader2 className="h-3 w-3 animate-spin" /> Loading...
-                                </span>
-                              ) : (
-                                courseAssets.map(asset => (
-                                  <a
-                                    key={asset.resourceId}
-                                    href={asset.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
-                                    title={asset.name}
-                                  >
-                                    <FileText className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                                    <span className="truncate">{asset.name}</span>
-                                  </a>
-                                ))
-                              )}
-                            </div>
-                          )}
+                            )
+                          })}
                         </div>
                       )}
                     </div>
+                  )
+                })
+              )}
+              {/* Legacy Assets Mapping - Fallback to Course Category root for now */}
+              {courseAssets.length > 0 && (
+                <div className="mt-4 flex flex-col gap-0.5">
+                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    Shared Assets
                   </div>
-                )}
-              </div>
+                  {assetsLoading ? (
+                    <span className="flex items-center gap-2 px-2 py-1 text-xs text-slate-500">
+                      <Loader2 className="h-3 w-3 animate-spin" /> Loading...
+                    </span>
+                  ) : (
+                    courseAssets.map(asset => (
+                      <a
+                        key={asset.resourceId}
+                        href={asset.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                        title={asset.name}
+                      >
+                        <FileText className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                        <span className="truncate">{asset.name}</span>
+                      </a>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           </ScrollArea>
 
