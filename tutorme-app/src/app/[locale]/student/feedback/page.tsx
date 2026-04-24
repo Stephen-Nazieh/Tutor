@@ -313,42 +313,44 @@ function StudentFeedbackContent() {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      <div className="bg-gray-50 px-4 pb-2 pt-6 sm:px-6">
-        <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="flex flex-col justify-center">
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight">Live Classroom</h1>
+      <div className="bg-[#fafafc] px-4 pt-4 sm:px-6 pb-2">
+        <div className="flex w-full flex-col gap-4">
+          <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] border border-[#E5E7EB]">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl font-bold tracking-tight">Live Classroom</h1>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex flex-col items-end justify-between gap-4">
-            <div className="mt-0 flex shrink-0 items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowTasksPanel(true)}
-                className="gap-2 font-medium text-slate-700 hover:text-slate-900"
-              >
-                <ListTodo className="h-4 w-4" />
-                Directory
-                {unseenTaskIds.length > 0 && (
-                  <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
-                    {unseenTaskIds.length}
-                  </span>
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowFeedbackPanel(true)}
-                className="gap-2 font-medium text-slate-700 hover:text-slate-900"
-              >
-                <MessageSquare className="h-4 w-4" />
-                Feedback
-              </Button>
+            <div className="flex flex-col items-end justify-between gap-4">
+              <div className="mt-0 flex shrink-0 items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowTasksPanel(true)}
+                  className="gap-2 font-medium text-slate-700 hover:text-slate-900"
+                >
+                  <ListTodo className="h-4 w-4" />
+                  Directory
+                  {unseenTaskIds.length > 0 && (
+                    <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
+                      {unseenTaskIds.length}
+                    </span>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowFeedbackPanel(true)}
+                  className="gap-2 font-medium text-slate-700 hover:text-slate-900"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Feedback
+                </Button>
+              </div>
             </div>
           </div>
         </div>

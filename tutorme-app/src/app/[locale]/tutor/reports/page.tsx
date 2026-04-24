@@ -297,56 +297,60 @@ export default function TutorReports() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-[#fafafc]">
       <div className="w-full">
-        {/* Header */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/tutor/dashboard">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold">Analytics</h1>
-              <p className="text-gray-500">Track student performance and class progress</p>
+        {/* Header Container */}
+        <div className="bg-[#fafafc] px-4 pt-4 sm:px-6 pb-2">
+          <div className="flex w-full flex-col gap-4">
+            <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] border border-[#E5E7EB]">
+              <div className="flex items-center gap-4">
+                <Link href="/tutor/dashboard">
+                  <Button variant="ghost" size="icon">
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                </Link>
+                <div>
+                  <h1 className="text-2xl font-bold">Analytics</h1>
+                </div>
+              </div>
+
+              {/* Export Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="gap-2"
+                    disabled={isExporting || !selectedClassId}
+                  >
+                    {isExporting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                    Export Report
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleExportReport('pdf')} className="gap-2">
+                    <FileText className="h-4 w-4 text-red-500" />
+                    Export as PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportReport('excel')} className="gap-2">
+                    <FileSpreadsheet className="h-4 w-4 text-green-500" />
+                    Export as Excel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportReport('csv')} className="gap-2">
+                    <FileIcon className="h-4 w-4 text-blue-500" />
+                    Export as CSV
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
-
-          {/* Export Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="gap-2"
-                disabled={isExporting || !selectedClassId}
-              >
-                {isExporting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="h-4 w-4" />
-                )}
-                Export Report
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleExportReport('pdf')} className="gap-2">
-                <FileText className="h-4 w-4 text-red-500" />
-                Export as PDF
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExportReport('excel')} className="gap-2">
-                <FileSpreadsheet className="h-4 w-4 text-green-500" />
-                Export as Excel
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExportReport('csv')} className="gap-2">
-                <FileIcon className="h-4 w-4 text-blue-500" />
-                Export as CSV
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="px-4 sm:px-6 pt-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="mb-6 min-h-[52px] shrink-0">
             <TabsList className="grid h-full w-full grid-cols-4 gap-2 border-0 bg-transparent shadow-none p-0">
               <TabsTrigger
@@ -493,7 +497,8 @@ export default function TutorReports() {
 
           {/* Courses & Classes Tab */}
           <CoursesAndClassesTab />
-        </Tabs>
+          </Tabs>
+        </div>
       </div>
     </div>
   )
