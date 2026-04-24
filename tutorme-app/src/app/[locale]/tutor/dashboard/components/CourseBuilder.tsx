@@ -4349,10 +4349,10 @@ FEEDBACK: [your explanation]`
         <Tabs
           value={mainTab}
           onValueChange={v => {
-            setMainTab(v as 'live' | 'builder')
+            setMainTab(v as 'live' | 'builder' | 'test-pci')
             // Add callback to notify parent route
             if (onMainTabChange) {
-              onMainTabChange(v as 'live' | 'builder')
+              onMainTabChange(v as 'live' | 'builder' | 'test-pci')
             }
           }}
           className="flex h-full w-full flex-1 flex-col px-4 sm:px-6 pt-0 bg-gray-50/50"
@@ -4360,7 +4360,7 @@ FEEDBACK: [your explanation]`
           {portalTarget ? (
             createPortal(
               <div className="min-h-[48px] shrink-0 w-full mb-0">
-                <TabsList className="grid w-full h-[48px] gap-2 grid-cols-2 bg-transparent border-0 shadow-none">
+                <TabsList className="grid w-full h-[48px] gap-2 grid-cols-3 bg-transparent border-0 shadow-none">
                   <TabsTrigger 
                     value="live" 
                     className={cn(
@@ -4402,6 +4402,23 @@ FEEDBACK: [your explanation]`
                       )} />
                       {isSessionActive ? 'End' : 'Go Live'}
                     </div>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="test-pci" 
+                    className={cn(
+                      'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                      mainTab === 'test-pci'
+                        ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-sm'
+                        : 'text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm border border-transparent'
+                    )}
+                    onClick={e => {
+                      if (mainTab !== 'test-pci') {
+                        setMainTab('test-pci')
+                      }
+                    }}
+                  >
+                    <TestTube2 className="h-4 w-4" />
+                    Test
                   </TabsTrigger>
                   <TabsTrigger 
                     value="builder" 
@@ -4451,6 +4468,7 @@ FEEDBACK: [your explanation]`
             <div className="hidden">
               <TabsList>
                 <TabsTrigger value="live">Go Live</TabsTrigger>
+                <TabsTrigger value="test-pci">Test</TabsTrigger>
                 <TabsTrigger value="builder">Build</TabsTrigger>
               </TabsList>
             </div>
@@ -6665,49 +6683,6 @@ FEEDBACK: [your explanation]`
                                         }}
                                       >
                                         {/* Centered Pill for Test button */}
-                                        <div className="pointer-events-none absolute left-1/2 top-0 z-20 flex -translate-x-1/2 items-center justify-center">
-                                          <div className="pointer-events-auto flex h-11 items-center gap-1 bg-white/90 px-2 backdrop-blur-sm border-x border-b border-[#E5E7EB] rounded-b-xl shadow-sm">
-                                            <span className="text-xs font-light text-gray-400">
-                                              (
-                                            </span>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
-                                              onClick={() => {
-                                                const content = taskBuilder.activeExtensionId
-                                                  ? taskBuilder.extensions.find(
-                                                      e => e.id === taskBuilder.activeExtensionId
-                                                    )?.content || taskBuilder.taskContent
-                                                  : taskBuilder.taskContent
-
-                                                setTestPciScores({})
-                                                setTestPciInputs({
-                                                  classroom: '',
-                                                  student1: '',
-                                                  student2: '',
-                                                })
-
-                                                setTestPciContent({
-                                                  classroom: content,
-                                                  student1: content,
-                                                  student2: content,
-                                                })
-                                                setTestPciSource('task')
-                                                setTestPciViewMode('pdf')
-                                                setMainTab('test-pci')
-                                                toast.success(
-                                                  'Test PCI prefilled with task content'
-                                                )
-                                              }}
-                                            >
-                                              Test
-                                            </Button>
-                                            <span className="text-xs font-light text-gray-400">
-                                              )
-                                            </span>
-                                          </div>
-                                        </div>
 
                                         {/* Left Panel (Text) */}
                                         {taskTextVisible && (
