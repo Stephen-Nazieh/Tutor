@@ -502,6 +502,27 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       }
       return []
     })
+
+    // Compute the full list of folders combining custom folders and published course categories
+    const computedAssetFolders = useMemo(() => {
+      const folders = new Set<string>(assetFoldersList)
+      
+      // Add custom folders that assets might already be in
+      courseAssets.forEach(a => {
+        if (a.folder) folders.add(a.folder)
+      })
+
+      // Add categories from published courses
+      if (Array.isArray(insightsProps?.courses)) {
+        insightsProps.courses.forEach(c => {
+          if (c.isPublished && Array.isArray(c.categories)) {
+            c.categories.forEach(cat => folders.add(cat))
+          }
+        })
+      }
+
+      return ['All', ...Array.from(folders).sort()]
+    }, [courseAssets, assetFoldersList, insightsProps?.courses])
     const [loadAsStep, setLoadAsStep] = useState<'main' | 'task-options' | 'assessment-options'>(
       'main'
     )
@@ -3400,13 +3421,7 @@ FEEDBACK: [your explanation]`
       }
     }, [assetFoldersList])
 
-    const assetFolders = useMemo(() => {
-      const folders = new Set<string>(assetFoldersList)
-      courseAssets.forEach(a => {
-        if (a.folder) folders.add(a.folder)
-      })
-      return ['All', ...Array.from(folders).sort()]
-    }, [courseAssets, assetFoldersList])
+    const assetFolders = computedAssetFolders
 
     const filteredViewAssets = useMemo(() => {
       let list = courseAssets
@@ -3934,10 +3949,12 @@ FEEDBACK: [your explanation]`
                       const name = prompt('Folder name:')
                       if (name && name.trim()) {
                         const trimmed = name.trim()
-                        setAssetFoldersList(prev =>
-                          prev.includes(trimmed) ? prev : [...prev, trimmed]
-                        )
-                        toast.success(`Folder "${trimmed}" created`)
+                        if (!computedAssetFolders.includes(trimmed)) {
+                          setAssetFoldersList(prev => [...prev, trimmed])
+                          toast.success(`Folder "${trimmed}" created`)
+                        } else {
+                          toast.error(`Folder "${trimmed}" already exists`)
+                        }
                       }
                     }}
                   >
@@ -4063,7 +4080,7 @@ FEEDBACK: [your explanation]`
                                 }}
                               >
                                 <option value="">Uncategorized</option>
-                                {assetFoldersList.map(f => (
+                                {computedAssetFolders.filter(f => f !== 'All').map(f => (
                                   <option key={f} value={f}>
                                     {f}
                                   </option>

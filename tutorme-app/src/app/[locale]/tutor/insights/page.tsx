@@ -714,7 +714,12 @@ function TutorInsightsPageInner() {
         detachedCourseName={dataMode === 'detached' ? detachedCourseName : undefined}
         insightsProps={{
           courseId,
-          courses: courses.map(course => ({ id: course.id, name: course.name })),
+          courses: courses.map(course => ({ 
+            id: course.id, 
+            name: course.name,
+            categories: course.categories,
+            isPublished: course.isPublished
+          })),
           onCourseChange: value => {
             setCourseId(value)
             const match = [...courses, ...draftCourses].find(course => course.id === value)

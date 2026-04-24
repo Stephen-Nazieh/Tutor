@@ -134,29 +134,29 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
           <div className="flex h-full w-64 flex-col">
             <div className="flex shrink-0 min-w-[256px] items-center justify-between p-4">
               <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={e => {
-                  e.stopPropagation()
-                  setDesktopNavOpen(false)
-                }}
-                title="Hide Navigation"
-                className="text-gray-400"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-              <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600"></Link>
-            </div>
-            <div className="flex items-center gap-2">
-              <Link href="/tutor/notifications" onClick={e => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={e => {
+                    e.stopPropagation()
+                    setDesktopNavOpen(false)
+                  }}
+                  title="Hide Navigation"
+                  className="text-gray-400"
+                >
+                  <ChevronLeft className="h-5 w-5" />
                 </Button>
-              </Link>
+                <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600"></Link>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link href="/tutor/notifications" onClick={e => e.stopPropagation()}>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="h-5 w-5" />
+                    <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
+                  </Button>
+                </Link>
+              </div>
             </div>
-          </div>
 
           <nav className="flex-1 min-h-0 space-y-0.5 overflow-y-auto p-4">
             {navItems.map(item => {
