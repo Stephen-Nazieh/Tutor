@@ -595,7 +595,7 @@ function CourseBuilderInsightsRouteInner({
           <CourseBuilder
             ref={model.courseBuilderRef}
             courseId={courseId ?? ''}
-            courseName={model.course?.name}
+            courseName={courseName || model.course?.name}
             initialLessons={model.loadedLessons ?? undefined}
             hideDirectorySearch
             directoryMenusAlwaysVisible

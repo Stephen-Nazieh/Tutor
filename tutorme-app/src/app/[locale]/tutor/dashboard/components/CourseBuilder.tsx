@@ -570,6 +570,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       return courseName?.trim() || 'Uncategorized'
     }, [(insightsProps as any)?.courses, courseId, courseName])
 
+    // Auto-select the designated folder when course changes so users immediately see their relevant assets
+    useEffect(() => {
+      setAssetViewFolder(designatedFolder !== 'Uncategorized' ? designatedFolder : 'All')
+    }, [courseId, designatedFolder])
+
     const [assetFoldersList, setAssetFoldersList] = useState<string[]>(() => {
       if (typeof window !== 'undefined') {
         try {
@@ -604,7 +609,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       }
 
       return ['All', ...Array.from(folders).sort()]
-    }, [courseAssets, assetFoldersList, (insightsProps as any)?.courses])
+    }, [courseAssets, assetFoldersList, (insightsProps as any)?.courses, designatedFolder])
     const [loadAsStep, setLoadAsStep] = useState<'main' | 'task-options' | 'assessment-options'>(
       'main'
     )
