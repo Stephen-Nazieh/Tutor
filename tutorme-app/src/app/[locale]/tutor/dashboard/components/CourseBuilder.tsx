@@ -4513,7 +4513,7 @@ FEEDBACK: [your explanation]`
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
-                          {mainTab === 'live' && (
+                          {mainTab === 'live' && isSessionActive && (
                             <div className="flex items-center gap-2">
                               {insightsProps?.onEndSession && (
                                 <Button
