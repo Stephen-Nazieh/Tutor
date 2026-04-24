@@ -26,6 +26,8 @@ interface CourseSummary {
   id: string
   name: string
   updatedAt: string
+  categories?: string[]
+  isPublished?: boolean
 }
 
 interface InsightsSessionOption {
@@ -77,6 +79,8 @@ function TutorInsightsPageInner() {
               id: c.id,
               name: c.name,
               updatedAt: c.updatedAt,
+              categories: c.categories || [],
+              isPublished: c.isPublished || false,
             }))
           )
         }

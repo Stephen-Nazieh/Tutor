@@ -318,6 +318,8 @@ function CourseBuilderInsightsRouteInner({
     }
   }
 
+  const currentCourse = (saveMode === 'draft' ? draftCourses : courses)?.find(c => c.id === courseId)
+
   return (
     <div
       className="text-foreground flex h-screen w-full flex-col items-stretch overflow-hidden bg-[#fafafc]"
@@ -429,13 +431,18 @@ function CourseBuilderInsightsRouteInner({
                       )}
                     </h1>
                   )}
-                  {(sessionCategory || sessionNationality) && (
+                  {activeMainTab === 'live' && (sessionCategory || sessionNationality) && (
                     <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ml-2">
                       {sessionCategory && sessionNationality
                         ? `${sessionCategory} — ${sessionNationality}`
                         : sessionCategory || sessionNationality}
                     </span>
                   )}
+                  {activeMainTab !== 'live' && currentCourse && (currentCourse as any).categories?.length > 0 ? (
+                    <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ml-2">
+                      {(currentCourse as any).categories.join(', ')}
+                    </span>
+                  ) : null}
                 </div>
               </div>
             </div>
