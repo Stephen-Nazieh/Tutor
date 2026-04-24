@@ -290,6 +290,9 @@ export interface InsightsSessionOption {
 }
 
 export interface CourseBuilderInsightsProps {
+  courseId?: string | null
+  courses?: Array<{ id: string; name: string; categories?: string[]; isPublished?: boolean }>
+  onCourseChange?: (courseId: string) => void
   sessionId: string | null
   sessions: InsightsSessionOption[]
   onSessionChange: (sessionId: string) => void

@@ -563,12 +563,12 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [assetViewFolder, setAssetViewFolder] = useState<string>('All')
 
     const designatedFolder = useMemo(() => {
-      const liveCourse = insightsProps?.courses?.find(c => c.id === courseId)
+      const liveCourse = (insightsProps as any)?.courses?.find((c: any) => c.id === courseId)
       if (liveCourse && (liveCourse as any).categories?.length > 0) {
         return (liveCourse as any).categories[0]
       }
       return courseName?.trim() || 'Uncategorized'
-    }, [insightsProps?.courses, courseId, courseName])
+    }, [(insightsProps as any)?.courses, courseId, courseName])
 
     const [assetFoldersList, setAssetFoldersList] = useState<string[]>(() => {
       if (typeof window !== 'undefined') {
@@ -595,16 +595,16 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       if (designatedFolder !== 'Uncategorized') folders.add(designatedFolder)
 
       // Add categories from published courses
-      if (Array.isArray(insightsProps?.courses)) {
-        insightsProps.courses.forEach(c => {
+      if (Array.isArray((insightsProps as any)?.courses)) {
+        (insightsProps as any).courses.forEach((c: any) => {
           if (c.isPublished && Array.isArray(c.categories)) {
-            c.categories.forEach(cat => folders.add(cat))
+            c.categories.forEach((cat: any) => folders.add(cat))
           }
         })
       }
 
       return ['All', ...Array.from(folders).sort()]
-    }, [courseAssets, assetFoldersList, insightsProps?.courses])
+    }, [courseAssets, assetFoldersList, (insightsProps as any)?.courses])
     const [loadAsStep, setLoadAsStep] = useState<'main' | 'task-options' | 'assessment-options'>(
       'main'
     )
