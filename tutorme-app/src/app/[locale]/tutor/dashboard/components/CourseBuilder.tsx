@@ -6645,8 +6645,8 @@ FEEDBACK: [your explanation]`
                                         {(() => {
                                           const doc =
                                             testPciSource === 'task'
-                                              ? taskBuilder.sourceDocument || taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.sourceDocument
-                                              : assessmentSourceDocument || assessmentBuilder.sourceDocument
+                                              ? taskBuilder.sourceDocument || (taskBuilder.activeExtensionId ? taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId)?.sourceDocument : undefined)
+                                              : assessmentSourceDocument || (assessmentBuilder as any).sourceDocument
                                           const versionId = testPciViewMode.startsWith('dmi_')
                                             ? testPciViewMode.replace('dmi_', '')
                                             : null
@@ -7405,7 +7405,7 @@ FEEDBACK: [your explanation]`
                                                       `dmi_${taskDmiVersions[0].id}`
                                                     )
                                                   } else {
-                                                    const hasDoc = !!(taskBuilder.sourceDocument || taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.sourceDocument)
+                                                    const hasDoc = !!(taskBuilder.sourceDocument || (taskBuilder.activeExtensionId ? taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId)?.sourceDocument : undefined))
                                                     setTestPciViewMode(hasDoc ? 'pdf' : 'text')
                                                   }
                                                   setTestPciActiveTab('classroom')
@@ -7853,7 +7853,7 @@ FEEDBACK: [your explanation]`
                                                       `dmi_${assessmentDmiVersions[0].id}`
                                                     )
                                                   } else {
-                                                    const hasDoc = !!(assessmentBuilder.sourceDocument)
+                                                    const hasDoc = !!((assessmentBuilder as any).sourceDocument)
                                                     setTestPciViewMode(hasDoc ? 'pdf' : 'text')
                                                   }
                                                   setTestPciActiveTab('classroom')
