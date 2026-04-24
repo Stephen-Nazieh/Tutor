@@ -6899,7 +6899,7 @@ FEEDBACK: [your explanation]`
                           className="flex h-full w-full flex-col"
                         >
                           {/* Main Builder Tabs — nested pill design */}
-                          <div className="mb-4 flex w-full items-center justify-between gap-4 rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] p-1.5 shadow-sm">
+                          <div className="mb-4 flex w-full items-center justify-between gap-4">
                             {/* Left: current task name */}
                             <div className="flex min-w-0 flex-1 items-center gap-2 px-3 text-sm font-semibold text-[#1F2933]">
                               <span className="truncate">
