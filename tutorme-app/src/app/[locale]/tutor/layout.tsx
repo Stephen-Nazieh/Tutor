@@ -104,7 +104,15 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
 
   const isReportsPage = pathname === '/tutor/reports' || pathname?.startsWith('/tutor/reports/')
 
-  if (isCourseBuilder || isCoursePublishPage || isMyPage || isInsightsPage || isAccountPage || isReportsPage) {
+  useEffect(() => {
+    if (isMyPage) {
+      setDesktopNavOpen(false)
+    } else {
+      setDesktopNavOpen(true)
+    }
+  }, [isMyPage])
+
+  if (isCourseBuilder || isCoursePublishPage || isInsightsPage || isAccountPage || isReportsPage) {
     return <>{children}</>
   }
 
@@ -209,11 +217,11 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       {/* Floating collapsed pill */}
       {!desktopNavOpen && (
         <div
-          className="sticky top-0 z-40 my-4 ml-4 hidden h-16 w-8 shrink-0 cursor-pointer flex-col items-center justify-center rounded-full border border-slate-200 bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:bg-slate-50 hover:w-10 lg:flex"
+          className="fixed left-0 top-1/2 z-50 -translate-y-1/2 hidden h-16 w-8 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:bg-slate-50 hover:w-10 lg:flex"
           onClick={() => setDesktopNavOpen(true)}
           title="Show navigation"
         >
-          <ChevronRight className="h-5 w-5 text-blue-600" />
+          <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
         </div>
       )}
 
