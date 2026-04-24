@@ -242,6 +242,7 @@ import {
   ClipboardList,
 } from 'lucide-react'
 import { ChevronLeft as ChevronLeftIcon } from 'lucide-react'
+import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
 
 // ============================================
 // BUILDER MODAL COMPONENTS
@@ -6637,6 +6638,14 @@ FEEDBACK: [your explanation]`
                                     ) : (
                                       <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto bg-white p-0">
                                         {(() => {
+                                          if (mainTab === 'live' && tab.id === 'student1') {
+                                            return (
+                                              <div className="h-full w-full">
+                                                <EnhancedWhiteboard videoOverlay={false} />
+                                              </div>
+                                            )
+                                          }
+
                                           const doc =
                                             testPciSource === 'task'
                                               ? (taskBuilder as any).sourceDocument || (taskBuilder.activeExtensionId ? taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId && (e as any).sourceDocument) ? (taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId) as any).sourceDocument : undefined : undefined)
