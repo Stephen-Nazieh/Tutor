@@ -12,15 +12,19 @@ import {
   X,
   Square,
   Triangle,
-  Minus
+  Minus,
+  ArrowUpRight,
+  ChevronLeft
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface FloatingToolMenuProps {
   currentTool: string
   currentColor: string
+  currentLineWidth: number
   onToolChange: (tool: any) => void
   onColorChange: (color: string) => void
+  onLineWidthChange: (width: number) => void
   onClear: () => void
   isDrawing: boolean
   currentPointerPos: { x: number; y: number } | null
@@ -32,18 +36,25 @@ const COLORS = [
   { name: 'Green', value: '#22c55e' },
   { name: 'Blue', value: '#3b82f6' },
   { name: 'Purple', value: '#a855f7' },
+  { name: 'Orange', value: '#f97316' },
+  { name: 'Pink', value: '#ec4899' },
 ]
+
+type MenuLevel = 'main' | 'erase' | 'shapes' | 'lines' | 'color' | 'pen'
 
 export function FloatingToolMenu({
   currentTool,
   currentColor,
+  currentLineWidth,
   onToolChange,
   onColorChange,
+  onLineWidthChange,
   onClear,
   isDrawing,
   currentPointerPos,
 }: FloatingToolMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [activeMenu, setActiveMenu] = useState<MenuLevel>('main')
   const [position, setPosition] = useState({ x: 20, y: 20 })
   const containerRef = useRef<HTMLDivElement>(null)
   
@@ -56,19 +67,16 @@ export function FloatingToolMenu({
         y: rect.top + rect.height / 2
       }
       
-      // Calculate distance between pointer and widget center
       const dx = currentPointerPos.x - widgetCenter.x
       const dy = currentPointerPos.y - widgetCenter.y
       const distance = Math.sqrt(dx * dx + dy * dy)
       
-      const evasionRadius = 150 // Distance within which the widget evades
+      const evasionRadius = 150 
       
       if (distance < evasionRadius) {
-        // Determine the safe corner or opposite side within the parent container
         const parent = containerRef.current.parentElement
         if (parent) {
           const parentRect = parent.getBoundingClientRect()
-          // Use pointer position relative to parent to determine where to jump
           const relX = currentPointerPos.x - parentRect.left
           const relY = currentPointerPos.y - parentRect.top
           
@@ -82,16 +90,40 @@ export function FloatingToolMenu({
           setPosition({ x: newX, y: newY })
         }
         
-        if (isOpen) setIsOpen(false) // Auto-collapse when evading
+        if (isOpen) setIsOpen(false)
+        setActiveMenu('main')
       }
     }
   }, [isDrawing, currentPointerPos, position, isOpen])
+
+  // Boundary constraint when opened to prevent clipping
+  useEffect(() => {
+    if (isOpen && containerRef.current && containerRef.current.parentElement) {
+      const parentRect = containerRef.current.parentElement.getBoundingClientRect()
+      const safeMargin = 120
+      
+      let newX = position.x
+      let newY = position.y
+      
+      // Add safe margins so the radial items (radius ~95) don't clip
+      if (newX < safeMargin) newX = safeMargin
+      if (newX > parentRect.width - safeMargin - 64) newX = parentRect.width - safeMargin - 64
+      
+      if (newY < safeMargin) newY = safeMargin
+      if (newY > parentRect.height - safeMargin - 64) newY = parentRect.height - safeMargin - 64
+      
+      if (newX !== position.x || newY !== position.y) {
+        setPosition({ x: newX, y: newY })
+      }
+    }
+  }, [isOpen, position.x, position.y])
 
   // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false)
+        setTimeout(() => setActiveMenu('main'), 200)
       }
     }
     
@@ -104,11 +136,11 @@ export function FloatingToolMenu({
     }
   }, [isOpen])
 
-  // Main floating button icon based on current tool
   const getIcon = () => {
     switch (currentTool) {
       case 'pen': return <PenTool className="h-6 w-6" />
       case 'line': return <Minus className="h-6 w-6" />
+      case 'arrow': return <ArrowUpRight className="h-6 w-6" />
       case 'rectangle': return <Square className="h-6 w-6" />
       case 'circle': return <Circle className="h-6 w-6" />
       case 'triangle': return <Triangle className="h-6 w-6" />
@@ -119,20 +151,55 @@ export function FloatingToolMenu({
     }
   }
 
-  // Radial menu items
-  const menuItems = [
-    { icon: <Pencil className="h-5 w-5" />, label: 'Pen', action: () => onToolChange('pen'), active: currentTool === 'pen' },
-    { icon: <Minus className="h-5 w-5" />, label: 'Line', action: () => onToolChange('line'), active: currentTool === 'line' },
-    { icon: <Square className="h-5 w-5" />, label: 'Rectangle', action: () => onToolChange('rectangle'), active: currentTool === 'rectangle' },
-    { icon: <Circle className="h-5 w-5" />, label: 'Circle', action: () => onToolChange('circle'), active: currentTool === 'circle' },
-    { icon: <Triangle className="h-5 w-5" />, label: 'Triangle', action: () => onToolChange('triangle'), active: currentTool === 'triangle' },
-    { icon: <Type className="h-5 w-5" />, label: 'Text', action: () => onToolChange('text'), active: currentTool === 'text' },
-    { icon: <Eraser className="h-5 w-5" />, label: 'Eraser', action: () => onToolChange('eraser'), active: currentTool === 'eraser' },
-    { icon: <MousePointer2 className="h-5 w-5" />, label: 'Select', action: () => onToolChange('select'), active: currentTool === 'select' },
-    { icon: <Trash2 className="h-5 w-5" />, label: 'Clear', action: () => { onClear(); setIsOpen(false) }, active: false, isDestructive: true },
-  ]
+  const getMenuItems = () => {
+    switch (activeMenu) {
+      case 'erase':
+        return [
+          { icon: <div className="h-2 w-2 bg-current rounded-full" />, label: 'Small', action: () => { onToolChange('eraser'); onLineWidthChange(10) }, active: currentTool === 'eraser' && currentLineWidth === 10 },
+          { icon: <div className="h-4 w-4 bg-current rounded-full" />, label: 'Medium', action: () => { onToolChange('eraser'); onLineWidthChange(20) }, active: currentTool === 'eraser' && currentLineWidth === 20 },
+          { icon: <div className="h-6 w-6 bg-current rounded-full" />, label: 'Large', action: () => { onToolChange('eraser'); onLineWidthChange(40) }, active: currentTool === 'eraser' && currentLineWidth === 40 },
+        ]
+      case 'shapes':
+        return [
+          { icon: <Square className="h-5 w-5" />, label: 'Rectangle', action: () => onToolChange('rectangle'), active: currentTool === 'rectangle' },
+          { icon: <Circle className="h-5 w-5" />, label: 'Circle', action: () => onToolChange('circle'), active: currentTool === 'circle' },
+          { icon: <Triangle className="h-5 w-5" />, label: 'Triangle', action: () => onToolChange('triangle'), active: currentTool === 'triangle' },
+        ]
+      case 'lines':
+        return [
+          { icon: <Minus className="h-5 w-5" />, label: 'Line', action: () => onToolChange('line'), active: currentTool === 'line' },
+          { icon: <ArrowUpRight className="h-5 w-5" />, label: 'Arrow', action: () => onToolChange('arrow'), active: currentTool === 'arrow' },
+        ]
+      case 'pen':
+        return [
+          { icon: <div className="h-1 w-1 bg-current rounded-full" />, label: 'Fine', action: () => { onToolChange('pen'); onLineWidthChange(2) }, active: currentTool === 'pen' && currentLineWidth === 2 },
+          { icon: <div className="h-2 w-2 bg-current rounded-full" />, label: 'Normal', action: () => { onToolChange('pen'); onLineWidthChange(4) }, active: currentTool === 'pen' && currentLineWidth === 4 },
+          { icon: <div className="h-4 w-4 bg-current rounded-full" />, label: 'Thick', action: () => { onToolChange('pen'); onLineWidthChange(8) }, active: currentTool === 'pen' && currentLineWidth === 8 },
+        ]
+      case 'color':
+        return COLORS.map(c => ({
+          icon: <div className="h-6 w-6 rounded-full" style={{ backgroundColor: c.value }} />,
+          label: c.name,
+          action: () => onColorChange(c.value),
+          active: currentColor === c.value
+        }))
+      case 'main':
+      default:
+        return [
+          { icon: <Eraser className="h-5 w-5" />, label: 'Erase', action: () => setActiveMenu('erase'), active: currentTool === 'eraser' },
+          { icon: <Trash2 className="h-5 w-5" />, label: 'Clear Board', action: () => { onClear(); setIsOpen(false) }, active: false, isDestructive: true },
+          { icon: <Square className="h-5 w-5" />, label: 'Shapes', action: () => setActiveMenu('shapes'), active: ['rectangle', 'circle', 'triangle'].includes(currentTool) },
+          { icon: <Minus className="h-5 w-5" />, label: 'Lines', action: () => setActiveMenu('lines'), active: ['line', 'arrow'].includes(currentTool) },
+          { icon: <Palette className="h-5 w-5" />, label: 'Colors', action: () => setActiveMenu('color'), active: false },
+          { icon: <Pencil className="h-5 w-5" />, label: 'Pen', action: () => setActiveMenu('pen'), active: currentTool === 'pen' },
+          { icon: <Type className="h-5 w-5" />, label: 'Text', action: () => onToolChange('text'), active: currentTool === 'text' },
+          { icon: <MousePointer2 className="h-5 w-5" />, label: 'Select', action: () => onToolChange('select'), active: currentTool === 'select' },
+        ]
+    }
+  }
 
-  const radius = 90 // Slightly larger radius for the radial menu to accommodate more items
+  const menuItems = getMenuItems()
+  const radius = 95 
 
   return (
     <motion.div
@@ -155,7 +222,6 @@ export function FloatingToolMenu({
         <AnimatePresence>
           {isOpen && (
             <>
-              {/* Tools */}
               {menuItems.map((item, index) => {
                 const angle = (index * (Math.PI * 2)) / menuItems.length - Math.PI / 2
                 const x = Math.cos(angle) * radius
@@ -167,7 +233,7 @@ export function FloatingToolMenu({
                     initial={{ opacity: 0, x: 0, y: 0, scale: 0 }}
                     animate={{ opacity: 1, x, y, scale: 1 }}
                     exit={{ opacity: 0, x: 0, y: 0, scale: 0 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 20, delay: index * 0.05 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 20, delay: index * 0.03 }}
                     onClick={(e) => {
                       e.stopPropagation()
                       item.action()
@@ -184,36 +250,22 @@ export function FloatingToolMenu({
                   </motion.button>
                 )
               })}
-
-              {/* Colors Arch (below the circle) */}
-              <motion.div 
-                className="absolute top-[100px] flex gap-2 rounded-full bg-white/90 p-2 shadow-lg backdrop-blur-md border border-slate-200"
-                initial={{ opacity: 0, y: -20, scale: 0.8 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.8 }}
-                transition={{ type: 'spring', delay: 0.2 }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                {COLORS.map((c) => (
-                  <button
-                    key={c.name}
-                    className={cn(
-                      "h-8 w-8 rounded-full shadow-sm transition-transform hover:scale-110",
-                      currentColor === c.value && "ring-2 ring-cyan-400 ring-offset-2"
-                    )}
-                    style={{ backgroundColor: c.value }}
-                    onClick={() => onColorChange(c.value)}
-                    title={c.name}
-                  />
-                ))}
-              </motion.div>
             </>
           )}
         </AnimatePresence>
 
         {/* Main Center Button */}
         <motion.button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => {
+            if (isOpen && activeMenu !== 'main') {
+              setActiveMenu('main')
+            } else {
+              if (isOpen) {
+                setTimeout(() => setActiveMenu('main'), 200)
+              }
+              setIsOpen(!isOpen)
+            }
+          }}
           className={cn(
             "relative z-10 flex h-16 w-16 items-center justify-center rounded-full shadow-[0_0_15px_rgba(0,0,0,0.15)] transition-colors",
             isOpen ? "bg-slate-800 text-white" : "bg-white text-slate-800 hover:bg-slate-50",
@@ -225,7 +277,11 @@ export function FloatingToolMenu({
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          {isOpen ? <X className="h-6 w-6" /> : getIcon()}
+          {isOpen ? (
+            activeMenu === 'main' ? <X className="h-6 w-6" /> : <ChevronLeft className="h-6 w-6" />
+          ) : (
+            getIcon()
+          )}
         </motion.button>
       </div>
     </motion.div>

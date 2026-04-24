@@ -99,7 +99,7 @@ interface TextElement {
 
 interface ShapeElement {
   id: string
-  type: 'rectangle' | 'circle' | 'line' | 'triangle'
+  type: 'rectangle' | 'circle' | 'line' | 'triangle' | 'arrow'
   x: number
   y: number
   width: number
@@ -273,7 +273,7 @@ export function EnhancedWhiteboard({
   const [color, setColor] = useState('#000000')
   const [lineWidth, setLineWidth] = useState(3)
   const [tool, setTool] = useState<
-    'pen' | 'eraser' | 'text' | 'hand' | 'line' | 'rectangle' | 'circle' | 'triangle' | 'select'
+    'pen' | 'eraser' | 'text' | 'hand' | 'line' | 'arrow' | 'rectangle' | 'circle' | 'triangle' | 'select'
   >('pen')
 
   // Line drawing state
@@ -449,7 +449,7 @@ export function EnhancedWhiteboard({
     )
 
     currentPage.strokes.forEach(stroke => {
-      if (stroke.type === 'eraser') drawEraserStroke(ctx, stroke.points)
+      if (stroke.type === 'eraser') drawEraserStroke(ctx, stroke.points, stroke.width || 20)
       else drawStroke(ctx, stroke.points, stroke.color, stroke.width)
     })
 
@@ -457,11 +457,11 @@ export function EnhancedWhiteboard({
     currentPage.texts.forEach(text => drawTextElement(ctx, text))
 
     if (currentStroke.length > 0) {
-      if (tool === 'eraser') drawEraserStroke(ctx, currentStroke)
+      if (tool === 'eraser') drawEraserStroke(ctx, currentStroke, lineWidth)
       else drawStroke(ctx, currentStroke, color, lineWidth)
     }
 
-    if (lineStart && tempLineEnd) {
+    if (lineStart && tempLineEnd && (tool === 'line' || tool === 'arrow')) {
       ctx.strokeStyle = color
       ctx.lineWidth = lineWidth
       ctx.lineCap = 'round'
@@ -469,6 +469,16 @@ export function EnhancedWhiteboard({
       ctx.moveTo(lineStart.x, lineStart.y)
       ctx.lineTo(tempLineEnd.x, tempLineEnd.y)
       ctx.stroke()
+      if (tool === 'arrow') {
+        const headlen = 15;
+        const angle = Math.atan2(tempLineEnd.y - lineStart.y, tempLineEnd.x - lineStart.x);
+        ctx.beginPath();
+        ctx.moveTo(tempLineEnd.x, tempLineEnd.y);
+        ctx.lineTo(tempLineEnd.x - headlen * Math.cos(angle - Math.PI / 6), tempLineEnd.y - headlen * Math.sin(angle - Math.PI / 6));
+        ctx.moveTo(tempLineEnd.x, tempLineEnd.y);
+        ctx.lineTo(tempLineEnd.x - headlen * Math.cos(angle + Math.PI / 6), tempLineEnd.y - headlen * Math.sin(angle + Math.PI / 6));
+        ctx.stroke();
+      }
     }
 
     if (tempShape) drawShape(ctx, tempShape, true)
@@ -560,10 +570,10 @@ export function EnhancedWhiteboard({
     ctx.stroke()
   }
 
-  const drawEraserStroke = (ctx: CanvasRenderingContext2D, points: Point[]) => {
+  const drawEraserStroke = (ctx: CanvasRenderingContext2D, points: Point[], width: number) => {
     if (points.length < 2) return
     ctx.globalCompositeOperation = 'destination-out'
-    ctx.lineWidth = 20
+    ctx.lineWidth = width
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
     ctx.beginPath()
@@ -578,11 +588,21 @@ export function EnhancedWhiteboard({
     ctx.lineWidth = shape.lineWidth
     ctx.lineCap = 'round'
 
-    if (shape.type === 'line') {
+    if (shape.type === 'line' || shape.type === 'arrow') {
       ctx.beginPath()
       ctx.moveTo(shape.x, shape.y)
       ctx.lineTo(shape.width, shape.height)
       ctx.stroke()
+      if (shape.type === 'arrow') {
+        const headlen = 15;
+        const angle = Math.atan2(shape.height - shape.y, shape.width - shape.x);
+        ctx.beginPath();
+        ctx.moveTo(shape.width, shape.height);
+        ctx.lineTo(shape.width - headlen * Math.cos(angle - Math.PI / 6), shape.height - headlen * Math.sin(angle - Math.PI / 6));
+        ctx.moveTo(shape.width, shape.height);
+        ctx.lineTo(shape.width - headlen * Math.cos(angle + Math.PI / 6), shape.height - headlen * Math.sin(angle + Math.PI / 6));
+        ctx.stroke();
+      }
     } else if (shape.type === 'rectangle') {
       ctx.strokeRect(shape.x, shape.y, shape.width, shape.height)
     } else if (shape.type === 'circle') {
@@ -698,7 +718,7 @@ export function EnhancedWhiteboard({
 
     for (let i = currentPage.shapes.length - 1; i >= 0; i--) {
       const shape = currentPage.shapes[i]
-      if (shape.type === 'line') {
+      if (shape.type === 'line' || shape.type === 'arrow') {
         const minX = Math.min(shape.x, shape.width) - 10
         const maxX = Math.max(shape.x, shape.width) + 10
         const minY = Math.min(shape.y, shape.height) - 10
@@ -866,7 +886,7 @@ export function EnhancedWhiteboard({
       return
     }
 
-    if (tool === 'line') {
+    if (tool === 'line' || tool === 'arrow') {
       if (!lineStart) {
         setLineStart(point)
       } else {
@@ -966,7 +986,7 @@ export function EnhancedWhiteboard({
       return
     }
 
-    if (lineStart && tool === 'line') {
+    if (lineStart && (tool === 'line' || tool === 'arrow')) {
       setTempLineEnd(point)
       return
     }
@@ -1325,8 +1345,10 @@ export function EnhancedWhiteboard({
           <FloatingToolMenu
             currentTool={tool}
             currentColor={color}
+            currentLineWidth={lineWidth}
             onToolChange={setTool}
             onColorChange={setColor}
+            onLineWidthChange={setLineWidth}
             onClear={clearPage}
             isDrawing={isDrawing}
             currentPointerPos={pointerPos}
