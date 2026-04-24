@@ -6645,7 +6645,7 @@ FEEDBACK: [your explanation]`
                                         {(() => {
                                           const doc =
                                             testPciSource === 'task'
-                                              ? taskBuilder.sourceDocument || (taskBuilder.activeExtensionId ? taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId)?.sourceDocument : undefined)
+                                              ? (taskBuilder as any).sourceDocument || (taskBuilder.activeExtensionId ? taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId && (e as any).sourceDocument) ? (taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId) as any).sourceDocument : undefined : undefined)
                                               : assessmentSourceDocument || (assessmentBuilder as any).sourceDocument
                                           const versionId = testPciViewMode.startsWith('dmi_')
                                             ? testPciViewMode.replace('dmi_', '')
@@ -7405,7 +7405,7 @@ FEEDBACK: [your explanation]`
                                                       `dmi_${taskDmiVersions[0].id}`
                                                     )
                                                   } else {
-                                                    const hasDoc = !!(taskBuilder.sourceDocument || (taskBuilder.activeExtensionId ? taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId)?.sourceDocument : undefined))
+                                                    const hasDoc = !!((taskBuilder as any).sourceDocument || (taskBuilder.activeExtensionId ? taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId && (e as any).sourceDocument) ? (taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId) as any).sourceDocument : undefined : undefined))
                                                     setTestPciViewMode(hasDoc ? 'pdf' : 'text')
                                                   }
                                                   setTestPciActiveTab('classroom')
