@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { TeachingAssistant } from './teaching-assistant'
+import { FloatingToolMenu } from './floating-tool-menu'
 import {
   Plus,
   Trash2,
@@ -366,6 +367,7 @@ export function EnhancedWhiteboard({
   // Asset sidebar state
   const [showAssetSidebar, setShowAssetSidebar] = useState(false)
   const [assets, setAssets] = useState<Asset[]>([])
+  const [pointerPos, setPointerPos] = useState<{ x: number; y: number } | null>(null)
   const [draggingAsset, setDraggingAsset] = useState<Asset | null>(null)
 
   const currentPage = pages[currentPageIndex]
@@ -917,6 +919,7 @@ export function EnhancedWhiteboard({
   }
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    setPointerPos({ x: e.clientX, y: e.clientY })
     const point = screenToCanvas(e.clientX, e.clientY)
 
     if (isDraggingVideo) {
@@ -1318,6 +1321,18 @@ export function EnhancedWhiteboard({
     <div className="flex h-full flex-col overflow-hidden rounded-lg bg-slate-900">
       {/* Main Content Area */}
       <div className="relative flex flex-1 overflow-hidden">
+        {!readOnly && (
+          <FloatingToolMenu
+            currentTool={tool}
+            currentColor={color}
+            onToolChange={setTool}
+            onColorChange={setColor}
+            onClear={clearPage}
+            isDrawing={isDrawing}
+            currentPointerPos={pointerPos}
+          />
+        )}
+        
         {/* Floating Toolbar - Clean & Modern */}
         {!readOnly && (
           <div className="absolute left-6 top-1/2 z-30 flex -translate-y-1/2 flex-col gap-3 rounded-2xl border border-white/40 bg-white/70 p-2 shadow-2xl ring-1 ring-black/[0.05] backdrop-blur-xl">
