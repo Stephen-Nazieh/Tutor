@@ -4400,7 +4400,7 @@ FEEDBACK: [your explanation]`
                               : 'animate-pulse text-red-500 drop-shadow-[0_0_8px_rgba(220,38,38,0.8)]')
                           : ''
                       )} />
-                      {isSessionActive ? 'End' : 'Go Live'}
+                      {isSessionActive ? 'Go Live' : 'Go Live'}
                     </div>
                   </TabsTrigger>
                   <TabsTrigger 
