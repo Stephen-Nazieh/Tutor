@@ -99,6 +99,8 @@ function StudentFeedbackContent() {
     objectives: string[] | null
     roomUrl: string | null
     token: string | null
+    tutorUsername: string | null
+    courseCategory: string | null
   } | null>(null)
   const [myBoardPages, setMyBoardPages] = useState<WhiteboardPage[]>(createDefaultWhiteboardPages)
   const [myBoardPageIndex, setMyBoardPageIndex] = useState(0)
@@ -118,7 +120,15 @@ function StudentFeedbackContent() {
   // Assets state
   const [courseAssets, setCourseAssets] = useState<any[]>([])
   const [assetsLoading, setAssetsLoading] = useState(false)
-  const [foldersOpen, setFoldersOpen] = useState({ tasks: true, assets: true })
+  const [foldersOpen, setFoldersOpen] = useState<Record<string, boolean>>({
+    tutorRoot: true,
+    courseCategory: true,
+    tasks: true,
+    assessments: true,
+    homework: true,
+    reports: true,
+    recordedSessions: true,
+  })
 
   // Portal target for TabsList
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null)
@@ -231,6 +241,8 @@ function StudentFeedbackContent() {
           objectives: data?.session?.objectives ?? null,
           roomUrl: data?.roomUrl ?? null,
           token: data?.token ?? null,
+          tutorUsername: data?.session?.tutor?.profile?.name || 'Tutor',
+          courseCategory: data?.session?.category || 'General',
         })
       } catch {
         // ignore
@@ -387,92 +399,255 @@ function StudentFeedbackContent() {
             <h2 className="text-sm font-semibold text-[#1F2933]">Directory</h2>
           </div>
           <ScrollArea className="flex-1 p-3">
-            <div className="space-y-4">
-              {/* Tasks Folder */}
+            <div className="space-y-1">
+              {/* Tutor Root Folder */}
               <div>
                 <button
                   className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
-                  onClick={() => setFoldersOpen(prev => ({ ...prev, tasks: !prev.tasks }))}
+                  onClick={() => setFoldersOpen(prev => ({ ...prev, tutorRoot: !prev.tutorRoot }))}
                 >
-                  {foldersOpen.tasks ? (
-                    <ChevronDown className="h-4 w-4 text-slate-500" />
+                  {foldersOpen.tutorRoot ? (
+                    <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
                   ) : (
-                    <ChevronRight className="h-4 w-4 text-slate-500" />
+                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
                   )}
-                  <Folder className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm font-medium text-slate-700">Deployed Tasks</span>
-                  {unseenTaskIds.length > 0 && (
-                    <span className="ml-auto rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] text-white">
-                      {unseenTaskIds.length}
-                    </span>
-                  )}
+                  <Folder className="h-4 w-4 shrink-0 text-slate-400" fill="currentColor" />
+                  <span className="truncate text-sm font-medium text-slate-700">
+                    Tutor@{sessionContext?.tutorUsername || 'username'}
+                  </span>
                 </button>
-                {foldersOpen.tasks && (
-                  <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                    {tasks.length === 0 && (
-                      <span className="px-2 py-1 text-xs text-slate-500">
-                        No tasks deployed yet
-                      </span>
-                    )}
-                    {tasks.map(task => (
-                      <button
-                        key={task.id}
-                        onClick={() => handleSelectTask(task.id)}
-                        className={cn(
-                          'flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
-                          activeTaskId === task.id
-                            ? 'bg-blue-50 font-medium text-blue-700'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                        )}
-                      >
-                        <FileText className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{task.title}</span>
-                        {unseenTaskIds.includes(task.id) && (
-                          <div className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
 
-              {/* Assets Folder */}
-              <div>
-                <button
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
-                  onClick={() => setFoldersOpen(prev => ({ ...prev, assets: !prev.assets }))}
-                >
-                  {foldersOpen.assets ? (
-                    <ChevronDown className="h-4 w-4 text-slate-500" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 text-slate-500" />
-                  )}
-                  <Folder className="h-4 w-4 text-green-500" />
-                  <span className="text-sm font-medium text-slate-700">Course Assets</span>
-                </button>
-                {foldersOpen.assets && (
-                  <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                    {assetsLoading ? (
-                      <span className="flex items-center gap-2 px-2 py-1 text-xs text-slate-500">
-                        <Loader2 className="h-3 w-3 animate-spin" /> Loading...
-                      </span>
-                    ) : courseAssets.length === 0 ? (
-                      <span className="px-2 py-1 text-xs text-slate-500">No assets available</span>
-                    ) : (
-                      courseAssets.map(asset => (
-                        <a
-                          key={asset.resourceId}
-                          href={asset.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
-                          title={asset.name}
-                        >
-                          <FileText className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                          <span className="truncate">{asset.name}</span>
-                        </a>
-                      ))
-                    )}
+                {foldersOpen.tutorRoot && (
+                  <div className="mt-1 flex flex-col gap-1 pl-4">
+                    {/* Course Category Folder */}
+                    <div>
+                      <button
+                        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                        onClick={() =>
+                          setFoldersOpen(prev => ({
+                            ...prev,
+                            courseCategory: !prev.courseCategory,
+                          }))
+                        }
+                      >
+                        {foldersOpen.courseCategory ? (
+                          <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                        )}
+                        <Folder className="h-4 w-4 shrink-0 text-indigo-400" fill="currentColor" />
+                        <span className="truncate text-sm font-medium text-slate-700">
+                          {sessionContext?.courseCategory || 'Course Category'}
+                        </span>
+                      </button>
+
+                      {foldersOpen.courseCategory && (
+                        <div className="mt-1 flex flex-col gap-1 pl-4">
+                          {/* 1. Tasks */}
+                          <div>
+                            <button
+                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                              onClick={() =>
+                                setFoldersOpen(prev => ({ ...prev, tasks: !prev.tasks }))
+                              }
+                            >
+                              {foldersOpen.tasks ? (
+                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                              )}
+                              <Folder
+                                className="h-4 w-4 shrink-0 text-blue-400"
+                                fill="currentColor"
+                              />
+                              <span className="text-sm font-medium text-slate-700">Tasks</span>
+                              {unseenTaskIds.length > 0 && (
+                                <span className="ml-auto rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] text-white">
+                                  {unseenTaskIds.length}
+                                </span>
+                              )}
+                            </button>
+                            {foldersOpen.tasks && (
+                              <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                                {tasks.length === 0 && (
+                                  <span className="px-2 py-1 text-xs text-slate-500">
+                                    Empty folder
+                                  </span>
+                                )}
+                                {tasks.map(task => (
+                                  <button
+                                    key={task.id}
+                                    onClick={() => handleSelectTask(task.id)}
+                                    className={cn(
+                                      'flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                      activeTaskId === task.id
+                                        ? 'bg-blue-50 font-medium text-blue-700'
+                                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                    )}
+                                  >
+                                    <FileText className="h-3.5 w-3.5 shrink-0" />
+                                    <span className="truncate">{task.title}</span>
+                                    {unseenTaskIds.includes(task.id) && (
+                                      <div className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* 2. Assessments */}
+                          <div>
+                            <button
+                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                              onClick={() =>
+                                setFoldersOpen(prev => ({
+                                  ...prev,
+                                  assessments: !prev.assessments,
+                                }))
+                              }
+                            >
+                              {foldersOpen.assessments ? (
+                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                              )}
+                              <Folder
+                                className="h-4 w-4 shrink-0 text-purple-400"
+                                fill="currentColor"
+                              />
+                              <span className="text-sm font-medium text-slate-700">
+                                Assessments
+                              </span>
+                            </button>
+                            {foldersOpen.assessments && (
+                              <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                                <span className="px-2 py-1 text-xs text-slate-500">
+                                  Empty folder
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* 3. Homework */}
+                          <div>
+                            <button
+                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                              onClick={() =>
+                                setFoldersOpen(prev => ({ ...prev, homework: !prev.homework }))
+                              }
+                            >
+                              {foldersOpen.homework ? (
+                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                              )}
+                              <Folder
+                                className="h-4 w-4 shrink-0 text-emerald-400"
+                                fill="currentColor"
+                              />
+                              <span className="text-sm font-medium text-slate-700">Homework</span>
+                            </button>
+                            {foldersOpen.homework && (
+                              <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                                <span className="px-2 py-1 text-xs text-slate-500">
+                                  Empty folder
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* 4. Reports */}
+                          <div>
+                            <button
+                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                              onClick={() =>
+                                setFoldersOpen(prev => ({ ...prev, reports: !prev.reports }))
+                              }
+                            >
+                              {foldersOpen.reports ? (
+                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                              )}
+                              <Folder
+                                className="h-4 w-4 shrink-0 text-orange-400"
+                                fill="currentColor"
+                              />
+                              <span className="text-sm font-medium text-slate-700">Reports</span>
+                            </button>
+                            {foldersOpen.reports && (
+                              <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                                <span className="px-2 py-1 text-xs text-slate-500">
+                                  Empty folder
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* 5. Recorded Sessions */}
+                          <div>
+                            <button
+                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                              onClick={() =>
+                                setFoldersOpen(prev => ({
+                                  ...prev,
+                                  recordedSessions: !prev.recordedSessions,
+                                }))
+                              }
+                            >
+                              {foldersOpen.recordedSessions ? (
+                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                              )}
+                              <Folder
+                                className="h-4 w-4 shrink-0 text-rose-400"
+                                fill="currentColor"
+                              />
+                              <span className="text-sm font-medium text-slate-700">
+                                Recorded sessions
+                              </span>
+                            </button>
+                            {foldersOpen.recordedSessions && (
+                              <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                                <span className="px-2 py-1 text-xs text-slate-500">
+                                  Empty folder
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Legacy Assets Mapping - Fallback to Course Category root for now */}
+                          {courseAssets.length > 0 && (
+                            <div className="mt-2 flex flex-col gap-0.5 pl-6">
+                              <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                                Shared Assets
+                              </div>
+                              {assetsLoading ? (
+                                <span className="flex items-center gap-2 px-2 py-1 text-xs text-slate-500">
+                                  <Loader2 className="h-3 w-3 animate-spin" /> Loading...
+                                </span>
+                              ) : (
+                                courseAssets.map(asset => (
+                                  <a
+                                    key={asset.resourceId}
+                                    href={asset.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                                    title={asset.name}
+                                  >
+                                    <FileText className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                                    <span className="truncate">{asset.name}</span>
+                                  </a>
+                                ))
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -601,8 +776,8 @@ function StudentFeedbackContent() {
                 </div>
               )}
 
-              <TabsContent value="task" className="flex-1 outline-none">
-                <Card className="min-h-[420px]">
+              <TabsContent value="task" className="flex flex-1 flex-col outline-none">
+                <Card className="flex min-h-[420px] flex-1 flex-col">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between gap-3">
                       <span>{activeTask?.title || 'Select a task to begin'}</span>
@@ -709,21 +884,59 @@ function StudentFeedbackContent() {
                     )}
                   </CardContent>
                 </Card>
+
+                <div className="mt-4 w-full rounded-2xl border border-cyan-300 bg-white/90 shadow-[0_0_15px_rgba(34,211,238,0.4)] backdrop-blur-md transition-all duration-300 focus-within:shadow-[0_0_25px_rgba(34,211,238,0.6)]">
+                  <div className="relative flex w-full flex-col p-px">
+                    <div className="flex w-full flex-col">
+                      <AutoTextarea
+                        placeholder="Type a message to the class..."
+                        className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-4 py-4 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                        value={chatInput}
+                        onChange={event => setChatInput(event.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault()
+                            if (chatInput.trim() && socket) {
+                              socket.emit('chat_message', { text: chatInput.trim() })
+                              setChatInput('')
+                            }
+                          }
+                        }}
+                      />
+                      <div className="flex w-full items-center justify-end gap-2 px-2 pb-2">
+                        <Button
+                          size="icon"
+                          className="h-9 w-9 rounded-xl bg-slate-400 shadow-sm hover:bg-slate-500 disabled:opacity-30"
+                          disabled={!chatInput.trim() || !socket}
+                          onClick={() => {
+                            if (chatInput.trim() && socket) {
+                              socket.emit('chat_message', { text: chatInput.trim() })
+                              setChatInput('')
+                            }
+                          }}
+                          title="Send"
+                        >
+                          <Send className="h-4 w-4 text-white" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
 
               <TabsContent value="my-board" className="flex-1 outline-none">
-                <Card className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden shadow-xl ring-1 ring-black/5">
+                <div className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden">
                   <EnhancedWhiteboard
                     pages={myBoardPages}
                     currentPageIndex={myBoardPageIndex}
                     onPagesChange={setMyBoardPages}
                     onPageIndexChange={setMyBoardPageIndex}
                   />
-                </Card>
+                </div>
               </TabsContent>
 
               <TabsContent value="tutor-board" className="flex-1 outline-none">
-                <Card className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden shadow-xl ring-1 ring-black/5">
+                <div className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden">
                   <EnhancedWhiteboard
                     readOnly
                     pages={tutorBoardPages}
@@ -731,44 +944,9 @@ function StudentFeedbackContent() {
                     onPagesChange={setTutorBoardPages}
                     onPageIndexChange={setTutorBoardPageIndex}
                   />
-                </Card>
+                </div>
               </TabsContent>
             </Tabs>
-          </div>
-        </div>
-
-        <div className="border-t bg-white p-4">
-          <div className="mx-auto flex max-w-5xl items-end gap-3">
-            <div className="relative flex-1">
-              <AutoTextarea
-                placeholder="Type a message to the class..."
-                className="min-h-[52px] w-full pr-12"
-                value={chatInput}
-                onChange={event => setChatInput(event.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    if (chatInput.trim() && socket) {
-                      socket.emit('chat_message', { text: chatInput.trim() })
-                      setChatInput('')
-                    }
-                  }
-                }}
-              />
-              <Button
-                size="icon"
-                className="absolute bottom-2 right-2 h-8 w-8"
-                disabled={!chatInput.trim() || !socket}
-                onClick={() => {
-                  if (chatInput.trim() && socket) {
-                    socket.emit('chat_message', { text: chatInput.trim() })
-                    setChatInput('')
-                  }
-                }}
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
         </div>
       </div>
