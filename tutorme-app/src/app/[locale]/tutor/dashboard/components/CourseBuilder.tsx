@@ -6090,22 +6090,22 @@ FEEDBACK: [your explanation]`
                                               }
                                               className="flex h-full min-h-0 flex-col"
                                             >
-                                            <TabsList className="mb-1 grid w-full grid-cols-3 gap-1 rounded-xl p-px shadow-sm">
+                                            <TabsList className="mb-1 grid w-full grid-cols-3 gap-1 bg-transparent border-0 shadow-none">
                                               <TabsTrigger
                                                 value="analytics"
-                                                className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 text-xs px-1"
+                                                className="w-full rounded-lg border-transparent bg-transparent text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 data-[state=active]:border-cyan-200/70 data-[state=active]:shadow-sm text-xs px-1 transition-all"
                                               >
                                                 Analytics
                                               </TabsTrigger>
                                               <TabsTrigger
                                                 value="poll"
-                                                className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 text-xs px-1"
+                                                className="w-full rounded-lg border-transparent bg-transparent text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 data-[state=active]:border-cyan-200/70 data-[state=active]:shadow-sm text-xs px-1 transition-all"
                                               >
                                                 Poll
                                               </TabsTrigger>
                                               <TabsTrigger
                                                 value="question"
-                                                className="w-full rounded-lg border border-cyan-200/70 bg-white/80 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 text-xs px-1"
+                                                className="w-full rounded-lg border-transparent bg-transparent text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 data-[state=active]:border-cyan-200/70 data-[state=active]:shadow-sm text-xs px-1 transition-all"
                                               >
                                                 Question
                                               </TabsTrigger>
