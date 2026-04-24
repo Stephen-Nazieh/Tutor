@@ -1318,7 +1318,7 @@ export function EnhancedWhiteboard({
   }, [readOnly, selectedObject, textOverlays, currentPage, inlineTextInput])
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-lg bg-slate-900">
+    <div className="relative flex h-full flex-col overflow-hidden rounded-lg bg-slate-900">
       {/* Main Content Area */}
       <div className="relative flex flex-1 overflow-hidden">
         {!readOnly && (
@@ -1333,72 +1333,6 @@ export function EnhancedWhiteboard({
           />
         )}
         
-        {/* Floating Toolbar - Clean & Modern */}
-        {!readOnly && (
-          <div className="absolute left-6 top-1/2 z-30 flex -translate-y-1/2 flex-col gap-3 rounded-2xl border border-white/40 bg-white/70 p-2 shadow-2xl ring-1 ring-black/[0.05] backdrop-blur-xl">
-            <div className="flex flex-col gap-1.5">
-              {[
-                { id: 'select', icon: MousePointer2, label: 'Select' },
-                { id: 'hand', icon: Hand, label: 'Pan' },
-                { id: 'pen', icon: Edit3, label: 'Draw' },
-                { id: 'line', icon: Minus, label: 'Line' },
-                { id: 'rectangle', icon: Square, label: 'Box' },
-                { id: 'circle', icon: Circle, label: 'Circle' },
-                { id: 'triangle', icon: Triangle, label: 'Triangle' },
-                { id: 'text', icon: Type, label: 'Text' },
-                { id: 'eraser', icon: Trash2, label: 'Erase' },
-              ].map(item => (
-                <Button
-                  key={item.id}
-                  variant={tool === item.id ? 'default' : 'ghost'}
-                  size="sm"
-                  className={cn(
-                    'h-10 w-10 rounded-xl p-0 transition-all',
-                    tool === item.id
-                      ? 'scale-105 bg-blue-600 text-white shadow-lg shadow-blue-500/30'
-                      : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
-                  )}
-                  onClick={() => {
-                    const next = item.id as typeof tool
-                    setTool(next)
-                    if (next !== 'text') {
-                      setTextOverlays(o => o.filter(x => x.text.trim()))
-                    }
-                  }}
-                  title={item.label}
-                >
-                  <item.icon className="h-5 w-5" />
-                </Button>
-              ))}
-            </div>
-
-            <Separator className="bg-gray-200/50" />
-
-            <div className="flex flex-col items-center gap-2 pt-1">
-              {COLORS.slice(0, 5).map(c => (
-                <button
-                  key={c}
-                  onClick={() => setColor(c)}
-                  className={cn(
-                    'h-6 w-6 rounded-full border-2 shadow-sm transition-all',
-                    color === c
-                      ? 'scale-125 border-white ring-2 ring-blue-400'
-                      : 'border-transparent hover:scale-110'
-                  )}
-                  style={{ backgroundColor: c }}
-                />
-              ))}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 rounded-lg p-0 text-gray-400 hover:bg-gray-100"
-                onClick={() => setShowBackgroundPanel(!showBackgroundPanel)}
-              >
-                <Palette className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        )}
         {/* Asset Sidebar */}
         {showAssetSidebar && (
           <div className="w-80 overflow-hidden border-l border-gray-100 bg-white/50 backdrop-blur-sm">
@@ -1927,17 +1861,17 @@ export function EnhancedWhiteboard({
 
       {/* Bottom Page Navigation - only show when using internal state */}
       {!externalPages && (
-        <div className="flex items-center gap-2 border-t border-slate-700 bg-slate-800 px-4 py-2">
-          <Button variant="outline" size="sm" onClick={addPage} className="h-8 gap-1">
+        <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-2xl border border-white/40 bg-white/70 px-4 py-2 shadow-2xl ring-1 ring-black/[0.05] backdrop-blur-xl">
+          <Button variant="ghost" size="sm" onClick={addPage} className="h-8 gap-1 rounded-xl text-slate-700 hover:bg-slate-100">
             <Plus className="h-4 w-4" /> New Page
           </Button>
-          <div className="mx-1 h-6 w-px bg-slate-600" />
+          <div className="mx-1 h-6 w-px bg-slate-200" />
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
             disabled={currentPageIndex === 0}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 rounded-xl p-0 text-slate-700 hover:bg-slate-100 disabled:opacity-30"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -1946,13 +1880,18 @@ export function EnhancedWhiteboard({
               <button
                 key={page.id}
                 onClick={() => setCurrentPageIndex(index)}
-                className={`flex items-center gap-1 whitespace-nowrap rounded px-3 py-1.5 text-sm transition-colors ${index === currentPageIndex ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
+                className={cn(
+                  "flex items-center gap-1 whitespace-nowrap rounded-xl px-3 py-1.5 text-sm transition-all",
+                  index === currentPageIndex 
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20" 
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                )}
               >
                 <Grid3X3 className="h-3 w-3" />
                 <span className="max-w-[80px] truncate">{page.name}</span>
                 {pages.length > 1 && index === currentPageIndex && (
                   <X
-                    className="ml-1 h-3 w-3 rounded opacity-70 hover:bg-red-500 hover:opacity-100"
+                    className="ml-1 h-3 w-3 rounded-full opacity-70 transition-colors hover:bg-white/20 hover:opacity-100"
                     onClick={e => {
                       e.stopPropagation()
                       deletePage(index)
@@ -1963,23 +1902,14 @@ export function EnhancedWhiteboard({
             ))}
           </div>
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => setCurrentPageIndex(Math.min(pages.length - 1, currentPageIndex + 1))}
             disabled={currentPageIndex === pages.length - 1}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 rounded-xl p-0 text-slate-700 hover:bg-slate-100 disabled:opacity-30"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <div className="flex-1" />
-          <span className="text-xs text-slate-500">
-            {tool === 'line' && !lineStart && 'Click to start line'}
-            {tool === 'line' && lineStart && 'Click to end line'}
-            {tool === 'rectangle' && 'Drag to draw rectangle'}
-            {tool === 'circle' && 'Drag to draw circle'}
-            {tool === 'triangle' && 'Drag to draw triangle'}
-            {selectedObject && 'Drag to move, Delete key to remove'}
-          </span>
         </div>
       )}
     </div>

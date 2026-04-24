@@ -10,7 +10,9 @@ import {
   MousePointer2,
   Trash2,
   X,
-  Highlighter
+  Square,
+  Triangle,
+  Minus
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -106,7 +108,10 @@ export function FloatingToolMenu({
   const getIcon = () => {
     switch (currentTool) {
       case 'pen': return <PenTool className="h-6 w-6" />
-      case 'highlighter': return <Highlighter className="h-6 w-6" />
+      case 'line': return <Minus className="h-6 w-6" />
+      case 'rectangle': return <Square className="h-6 w-6" />
+      case 'circle': return <Circle className="h-6 w-6" />
+      case 'triangle': return <Triangle className="h-6 w-6" />
       case 'eraser': return <Eraser className="h-6 w-6" />
       case 'text': return <Type className="h-6 w-6" />
       case 'select': return <MousePointer2 className="h-6 w-6" />
@@ -117,13 +122,17 @@ export function FloatingToolMenu({
   // Radial menu items
   const menuItems = [
     { icon: <Pencil className="h-5 w-5" />, label: 'Pen', action: () => onToolChange('pen'), active: currentTool === 'pen' },
-    { icon: <Eraser className="h-5 w-5" />, label: 'Eraser', action: () => onToolChange('eraser'), active: currentTool === 'eraser' },
+    { icon: <Minus className="h-5 w-5" />, label: 'Line', action: () => onToolChange('line'), active: currentTool === 'line' },
+    { icon: <Square className="h-5 w-5" />, label: 'Rectangle', action: () => onToolChange('rectangle'), active: currentTool === 'rectangle' },
+    { icon: <Circle className="h-5 w-5" />, label: 'Circle', action: () => onToolChange('circle'), active: currentTool === 'circle' },
+    { icon: <Triangle className="h-5 w-5" />, label: 'Triangle', action: () => onToolChange('triangle'), active: currentTool === 'triangle' },
     { icon: <Type className="h-5 w-5" />, label: 'Text', action: () => onToolChange('text'), active: currentTool === 'text' },
+    { icon: <Eraser className="h-5 w-5" />, label: 'Eraser', action: () => onToolChange('eraser'), active: currentTool === 'eraser' },
     { icon: <MousePointer2 className="h-5 w-5" />, label: 'Select', action: () => onToolChange('select'), active: currentTool === 'select' },
     { icon: <Trash2 className="h-5 w-5" />, label: 'Clear', action: () => { onClear(); setIsOpen(false) }, active: false, isDestructive: true },
   ]
 
-  const radius = 80 // Radius for the radial menu
+  const radius = 90 // Slightly larger radius for the radial menu to accommodate more items
 
   return (
     <motion.div
