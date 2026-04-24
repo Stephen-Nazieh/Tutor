@@ -46,8 +46,10 @@ export async function GET(request: NextRequest) {
   const directory: Record<string, Record<string, Record<string, any[]>>> = {}
 
   enrollments.forEach(en => {
-    const tutorUsername = en.tutorName ? `Tutor@${en.tutorName.replace(/\\s+/g, '')}` : 'Tutor@Unknown'
-    
+    const tutorUsername = en.tutorName
+      ? `Tutor@${en.tutorName.replace(/\\s+/g, '')}`
+      : 'Tutor@Unknown'
+
     let category = 'General'
     if (Array.isArray(en.courseCategory) && en.courseCategory.length > 0) {
       category = en.courseCategory[0]
@@ -75,24 +77,30 @@ export async function GET(request: NextRequest) {
 
   // Populate materials into their respective folders
   // Sort descending so the last is on top
-  const sortedMaterials = [...deployedMaterials].sort((a, b) => b.deployedAt.getTime() - a.deployedAt.getTime())
+  const sortedMaterials = [...deployedMaterials].sort(
+    (a, b) => b.deployedAt.getTime() - a.deployedAt.getTime()
+  )
 
   sortedMaterials.forEach(material => {
     // Find the enrollment to know the tutor and category
     const en = enrollments.find(e => e.courseId === material.courseId)
     if (!en) return
 
-    const tutorUsername = en.tutorName ? `Tutor@${en.tutorName.replace(/\\s+/g, '')}` : 'Tutor@Unknown'
+    const tutorUsername = en.tutorName
+      ? `Tutor@${en.tutorName.replace(/\\s+/g, '')}`
+      : 'Tutor@Unknown'
     let category = 'General'
-    if (Array.isArray(en.courseCategory) && en.courseCategory.length > 0) category = en.courseCategory[0]
-    else if (en.courseCategory && typeof en.courseCategory === 'string') category = String(en.courseCategory)
+    if (Array.isArray(en.courseCategory) && en.courseCategory.length > 0)
+      category = en.courseCategory[0]
+    else if (en.courseCategory && typeof en.courseCategory === 'string')
+      category = String(en.courseCategory)
 
     // Ensure the structure exists
     if (!directory[tutorUsername]?.[category]) return
 
     // Format title with session sequence (e.g. "Task Title (s1)")
     const formattedTitle = `${material.title} (s${material.sessionSequence})`
-    
+
     const item = {
       id: material.id,
       itemId: material.itemId,
@@ -100,7 +108,7 @@ export async function GET(request: NextRequest) {
       type: material.type,
       deployedAt: material.deployedAt,
       content: material.content,
-      sessionId: material.sessionId
+      sessionId: material.sessionId,
     }
 
     switch (material.type) {

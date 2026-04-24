@@ -1,4 +1,3 @@
-import { drizzleDb } from './src/lib/db/drizzle'
 import { Pool } from 'pg'
 
 import dotenv from 'dotenv'
@@ -12,10 +11,12 @@ async function fix() {
   const crypto = require('crypto')
   const content = fs.readFileSync('drizzle/0018_lush_carmella_unuscione.sql', 'utf8')
   // Drizzle hashes just the content
-  const hash = crypto.createHash('sha256').update(content).digest('hex')
-  
+  const _hash = crypto.createHash('sha256').update(content).digest('hex')
+
   try {
-    const res = await pool.query('SELECT * FROM "drizzle"."__drizzle_migrations" ORDER BY id DESC LIMIT 5')
+    const res = await pool.query(
+      'SELECT * FROM "drizzle"."__drizzle_migrations" ORDER BY id DESC LIMIT 5'
+    )
     console.log(res.rows)
   } catch (e) {
     console.error(e)

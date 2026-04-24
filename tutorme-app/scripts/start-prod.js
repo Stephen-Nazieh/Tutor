@@ -22,7 +22,6 @@ async function start() {
   }
 
   const serverJs = path.join(process.cwd(), 'server.js')
-  const serverTs = path.join(process.cwd(), 'server.ts')
   const hasServerJs = fs.existsSync(serverJs)
 
   const command = hasServerJs ? 'node' : 'npx'
@@ -31,7 +30,7 @@ async function start() {
   console.log(`[Startup] Launching server: ${command} ${args.join(' ')}`)
   const child = spawn(command, args, { stdio: 'inherit' })
 
-  const forwardSignal = (signal) => {
+  const forwardSignal = signal => {
     if (!child.killed) {
       child.kill(signal)
     }
@@ -40,12 +39,12 @@ async function start() {
   process.on('SIGTERM', () => forwardSignal('SIGTERM'))
   process.on('SIGINT', () => forwardSignal('SIGINT'))
 
-  child.on('exit', (code) => {
+  child.on('exit', code => {
     process.exit(code ?? 0)
   })
 }
 
-start().catch((error) => {
+start().catch(error => {
   console.error('[Startup] Failed to start:', error)
   process.exit(1)
 })

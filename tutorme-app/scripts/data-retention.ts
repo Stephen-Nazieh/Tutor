@@ -20,18 +20,24 @@ async function main() {
   const auditCutoff = new Date(now.getTime() - AUDIT_RETENTION_DAYS * 24 * 60 * 60 * 1000)
 
   const [webhookResult, auditResult] = await Promise.all([
-    drizzleDb.delete(webhookEvent).where(lt(webhookEvent.createdAt, webhookCutoff)).returning({ id: webhookEvent.id }),
-    drizzleDb.delete(userActivityLog).where(lt(userActivityLog.createdAt, auditCutoff)).returning({ id: userActivityLog.id })
+    drizzleDb
+      .delete(webhookEvent)
+      .where(lt(webhookEvent.createdAt, webhookCutoff))
+      .returning({ id: webhookEvent.id }),
+    drizzleDb
+      .delete(userActivityLog)
+      .where(lt(userActivityLog.createdAt, auditCutoff))
+      .returning({ id: userActivityLog.id }),
   ])
 
   console.log(
     `Data retention: deleted ${webhookResult.length} webhook events (older than ${WEBHOOK_RETENTION_DAYS}d), ` +
-    `${auditResult.length} activity logs (older than ${AUDIT_RETENTION_DAYS}d).`
+      `${auditResult.length} activity logs (older than ${AUDIT_RETENTION_DAYS}d).`
   )
 }
 
 main()
-  .catch((e) => {
+  .catch(e => {
     console.error(e)
     process.exit(1)
   })

@@ -602,7 +602,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
       // Add categories from published courses
       if (Array.isArray((insightsProps as any)?.courses)) {
-        (insightsProps as any).courses.forEach((c: any) => {
+        ;(insightsProps as any).courses.forEach((c: any) => {
           if (c.isPublished && Array.isArray(c.categories)) {
             c.categories.forEach((cat: any) => folders.add(cat))
           }
@@ -1521,7 +1521,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
             activeExtensionId: null,
           })
         }
-        
+
         // Auto-deploy to student homework folder
         if (insightsProps?.onDeployTask) {
           insightsProps.onDeployTask({
@@ -1529,11 +1529,12 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
             title: homeworkItem.title || 'Homework',
             content: homeworkItem.description || '',
             source: 'homework',
-            dmiItems: homeworkItem.dmiItems?.map(i => ({
-              id: i.id,
-              questionNumber: i.questionNumber,
-              questionText: i.questionText,
-            })) || [],
+            dmiItems:
+              homeworkItem.dmiItems?.map(i => ({
+                id: i.id,
+                questionNumber: i.questionNumber,
+                questionText: i.questionText,
+              })) || [],
             deployedAt: Date.now(),
             polls: [],
             questions: [],
@@ -1546,7 +1547,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
               : undefined,
           })
         }
-        
+
         toast.success('Moved to homework')
       },
       [cloneAssessment, loadAssessmentIntoBuilder, nodes]
@@ -3770,7 +3771,7 @@ FEEDBACK: [your explanation]`
 
               {/* Option 1: Tasks (One task per page) */}
               <Button
-                className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:bg-slate-50 hover:border-slate-300"
+                className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:border-slate-300 hover:bg-slate-50"
                 variant="outline"
                 onClick={() => {
                   if (!assetToLoad) return
@@ -3873,7 +3874,7 @@ FEEDBACK: [your explanation]`
 
               {/* Option 2: Task + Extensions */}
               <Button
-                className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:bg-slate-50 hover:border-slate-300"
+                className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:border-slate-300 hover:bg-slate-50"
                 variant="outline"
                 onClick={() => {
                   if (!assetToLoad) return
@@ -3972,7 +3973,7 @@ FEEDBACK: [your explanation]`
 
               {/* Option 3: Assessment */}
               <Button
-                className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:bg-slate-50 hover:border-slate-300"
+                className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:border-slate-300 hover:bg-slate-50"
                 variant="outline"
                 onClick={() => {
                   if (!assetToLoad) return
@@ -4532,11 +4533,11 @@ FEEDBACK: [your explanation]`
           {portalTarget ? (
             createPortal(
               <div className="mb-0 min-h-[48px] w-full shrink-0">
-                <TabsList className="grid h-[48px] w-full grid-cols-3 gap-2 border-0 bg-transparent shadow-none p-0">
+                <TabsList className="grid h-[48px] w-full grid-cols-3 gap-2 border-0 bg-transparent p-0 shadow-none">
                   <TabsTrigger
                     value="live"
                     className={cn(
-                      'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
+                      'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
                       mainTab === 'live'
                         ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
                         : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
@@ -4578,7 +4579,7 @@ FEEDBACK: [your explanation]`
                   <TabsTrigger
                     value="test-pci"
                     className={cn(
-                      'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
+                      'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
                       mainTab === 'test-pci'
                         ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
                         : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
@@ -4595,7 +4596,7 @@ FEEDBACK: [your explanation]`
                   <TabsTrigger
                     value="builder"
                     className={cn(
-                      'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
+                      'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
                       mainTab === 'builder'
                         ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
                         : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
@@ -6674,8 +6675,24 @@ FEEDBACK: [your explanation]`
 
                                           const doc =
                                             testPciSource === 'task'
-                                              ? taskSourceDocument || (taskBuilder as any).sourceDocument || (taskBuilder.activeExtensionId ? taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId && (e as any).sourceDocument) ? (taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId) as any).sourceDocument : undefined : undefined)
-                                              : assessmentSourceDocument || (assessmentBuilder as any).sourceDocument
+                                              ? taskSourceDocument ||
+                                                (taskBuilder as any).sourceDocument ||
+                                                (taskBuilder.activeExtensionId
+                                                  ? taskBuilder.extensions.find(
+                                                      (e: any) =>
+                                                        e.id === taskBuilder.activeExtensionId &&
+                                                        (e as any).sourceDocument
+                                                    )
+                                                    ? (
+                                                        taskBuilder.extensions.find(
+                                                          (e: any) =>
+                                                            e.id === taskBuilder.activeExtensionId
+                                                        ) as any
+                                                      ).sourceDocument
+                                                    : undefined
+                                                  : undefined)
+                                              : assessmentSourceDocument ||
+                                                (assessmentBuilder as any).sourceDocument
                                           const versionId = testPciViewMode.startsWith('dmi_')
                                             ? testPciViewMode.replace('dmi_', '')
                                             : null
@@ -6796,175 +6813,183 @@ FEEDBACK: [your explanation]`
                                   </TabsContent>
                                 ))}
                               </Tabs>
-                              {testPciActiveTab !== 'insights' && !(mainTab === 'live' && testPciActiveTab === 'student1') && (
-                                <div className="mt-1 w-full rounded-2xl border border-cyan-300 bg-white/90 shadow-[0_0_15px_rgba(34,211,238,0.4)] backdrop-blur-md transition-all duration-300 focus-within:shadow-[0_0_25px_rgba(34,211,238,0.6)]">
-                                  <div className="relative flex w-full flex-col p-px">
-                                    <div className="flex w-full flex-col">
-                                      <MentionTextarea
-                                        mentionItems={mentionItems}
-                                        className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-4 py-4 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                                        placeholder={
-                                          testPciActiveTab === 'classroom'
-                                            ? 'Enter answer (goes to both students)...'
-                                            : 'Ask your AI coach or share a reflection...'
-                                        }
-                                        value={testPciInputs[testPciActiveTab] || ''}
-                                        onChange={(e: any) =>
-                                          setTestPciInputs(prev => ({
-                                            ...prev,
-                                            [testPciActiveTab]: e.target.value,
-                                          }))
-                                        }
-                                        onKeyDown={(e: any) => {
-                                          if (e.key === 'Enter' && !e.shiftKey) {
-                                            const currentInput =
-                                              testPciInputs[testPciActiveTab] || ''
-                                            if (currentInput.trim() && !testPciLoading) {
-                                              e.preventDefault()
-                                              handleTestPciSubmit()
-                                            }
+                              {testPciActiveTab !== 'insights' &&
+                                !(mainTab === 'live' && testPciActiveTab === 'student1') && (
+                                  <div className="mt-1 w-full rounded-2xl border border-cyan-300 bg-white/90 shadow-[0_0_15px_rgba(34,211,238,0.4)] backdrop-blur-md transition-all duration-300 focus-within:shadow-[0_0_25px_rgba(34,211,238,0.6)]">
+                                    <div className="relative flex w-full flex-col p-px">
+                                      <div className="flex w-full flex-col">
+                                        <MentionTextarea
+                                          mentionItems={mentionItems}
+                                          className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-4 py-4 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                          placeholder={
+                                            testPciActiveTab === 'classroom'
+                                              ? 'Enter answer (goes to both students)...'
+                                              : 'Ask your AI coach or share a reflection...'
                                           }
-                                        }}
-                                      />
-                                      <div className="flex w-full items-center justify-end gap-2 px-2 pb-2">
-                                        {testPciActiveTab === 'classroom' && (
-                                          <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                              <Button
-                                                variant="outline"
-                                                size="icon"
-                                                className="h-9 w-9 rounded-xl border-gray-300 shadow-sm hover:bg-gray-100"
-                                                title="Toggle View Mode"
+                                          value={testPciInputs[testPciActiveTab] || ''}
+                                          onChange={(e: any) =>
+                                            setTestPciInputs(prev => ({
+                                              ...prev,
+                                              [testPciActiveTab]: e.target.value,
+                                            }))
+                                          }
+                                          onKeyDown={(e: any) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                              const currentInput =
+                                                testPciInputs[testPciActiveTab] || ''
+                                              if (currentInput.trim() && !testPciLoading) {
+                                                e.preventDefault()
+                                                handleTestPciSubmit()
+                                              }
+                                            }
+                                          }}
+                                        />
+                                        <div className="flex w-full items-center justify-end gap-2 px-2 pb-2">
+                                          {testPciActiveTab === 'classroom' && (
+                                            <DropdownMenu>
+                                              <DropdownMenuTrigger asChild>
+                                                <Button
+                                                  variant="outline"
+                                                  size="icon"
+                                                  className="h-9 w-9 rounded-xl border-gray-300 shadow-sm hover:bg-gray-100"
+                                                  title="Toggle View Mode"
+                                                >
+                                                  <Plus className="h-4 w-4" />
+                                                </Button>
+                                              </DropdownMenuTrigger>
+                                              <DropdownMenuContent
+                                                align="end"
+                                                className="max-h-64 w-56 overflow-y-auto"
                                               >
-                                                <Plus className="h-4 w-4" />
-                                              </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent
-                                              align="end"
-                                              className="max-h-64 w-56 overflow-y-auto"
-                                            >
-                                              {testPciSource === 'task' ? (
-                                                <>
-                                                  <DropdownMenuItem
-                                                    onClick={() => setTestPciViewMode('pdf')}
-                                                    className="flex items-center gap-2"
-                                                  >
-                                                    <FileText className="h-4 w-4" />
-                                                    PDF Document
-                                                    {testPciViewMode === 'pdf' && (
-                                                      <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
-                                                    )}
-                                                  </DropdownMenuItem>
-                                                </>
-                                              ) : (
-                                                <>
-                                                  {assessmentDmiVersions.length > 0 && (
-                                                    <div className="text-muted-foreground px-2 py-1.5 text-xs font-semibold">
-                                                      DMI Versions
-                                                    </div>
-                                                  )}
-                                                  {assessmentDmiVersions.map(version => (
+                                                {testPciSource === 'task' ? (
+                                                  <>
                                                     <DropdownMenuItem
-                                                      key={version.id}
-                                                      onClick={() =>
-                                                        setTestPciViewMode(`dmi_${version.id}`)
-                                                      }
+                                                      onClick={() => setTestPciViewMode('pdf')}
                                                       className="flex items-center gap-2"
                                                     >
-                                                      <Wand2 className="h-4 w-4 text-indigo-500" />
-                                                      Version {version.versionNumber}
-                                                      {testPciViewMode === `dmi_${version.id}` && (
+                                                      <FileText className="h-4 w-4" />
+                                                      PDF Document
+                                                      {testPciViewMode === 'pdf' && (
                                                         <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
                                                       )}
                                                     </DropdownMenuItem>
-                                                  ))}
-                                                </>
-                                              )}
-                                            </DropdownMenuContent>
-                                          </DropdownMenu>
-                                        )}
-                                        <Button
-                                          size="icon"
-                                          className="h-9 w-9 rounded-xl bg-slate-400 shadow-sm hover:bg-slate-500 disabled:opacity-30"
-                                          disabled={
-                                            !(testPciInputs[testPciActiveTab] || '').trim() ||
-                                            testPciLoading
-                                          }
-                                          onClick={handleTestPciSubmit}
-                                          title="Send"
-                                        >
-                                          <Send className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                          size="icon"
-                                          className="h-9 w-9 rounded-xl bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 disabled:opacity-30"
-                                          disabled={testPciLoading}
-                                          onClick={() => {
-                                            if (onSave) {
-                                              onSave(
-                                                nodes.map(n => n.lessons[0] || ({} as any)),
-                                                { developmentMode: devMode, previewDifficulty }
-                                              )
-                                              toast.success('Course and PCI saved')
-                                            }
-                                          }}
-                                          title="Save Course & PCI"
-                                        >
-                                          <Save className="h-4 w-4" />
-                                        </Button>
-                                        {insightsProps?.onDeployTask && (
+                                                  </>
+                                                ) : (
+                                                  <>
+                                                    {assessmentDmiVersions.length > 0 && (
+                                                      <div className="text-muted-foreground px-2 py-1.5 text-xs font-semibold">
+                                                        DMI Versions
+                                                      </div>
+                                                    )}
+                                                    {assessmentDmiVersions.map(version => (
+                                                      <DropdownMenuItem
+                                                        key={version.id}
+                                                        onClick={() =>
+                                                          setTestPciViewMode(`dmi_${version.id}`)
+                                                        }
+                                                        className="flex items-center gap-2"
+                                                      >
+                                                        <Wand2 className="h-4 w-4 text-indigo-500" />
+                                                        Version {version.versionNumber}
+                                                        {testPciViewMode ===
+                                                          `dmi_${version.id}` && (
+                                                          <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
+                                                        )}
+                                                      </DropdownMenuItem>
+                                                    ))}
+                                                  </>
+                                                )}
+                                              </DropdownMenuContent>
+                                            </DropdownMenu>
+                                          )}
                                           <Button
                                             size="icon"
-                                            className="h-9 w-9 rounded-xl bg-indigo-500 text-white shadow-sm hover:bg-indigo-600 disabled:opacity-30"
-                                            disabled={testPciLoading || (!loadedTaskId && !loadedAssessmentId)}
+                                            className="h-9 w-9 rounded-xl bg-slate-400 shadow-sm hover:bg-slate-500 disabled:opacity-30"
+                                            disabled={
+                                              !(testPciInputs[testPciActiveTab] || '').trim() ||
+                                              testPciLoading
+                                            }
+                                            onClick={handleTestPciSubmit}
+                                            title="Send"
+                                          >
+                                            <Send className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            size="icon"
+                                            className="h-9 w-9 rounded-xl bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 disabled:opacity-30"
+                                            disabled={testPciLoading}
                                             onClick={() => {
-                                              if (testPciSource === 'task') {
-                                                const task = findTaskById(loadedTaskId || '')
-                                                if (task) {
-                                                  insightsProps.onDeployTask({
-                                                    id: task.id,
-                                                    title: task.title || 'Task',
-                                                    content: task.description || '',
-                                                    source: 'task',
-                                                    dmiItems: task.dmiItems?.map(item => ({
-                                                      id: item.id,
-                                                      questionNumber: item.questionNumber,
-                                                      questionText: item.questionText,
-                                                    })) || [],
-                                                    deployedAt: Date.now(),
-                                                    polls: [],
-                                                    questions: [],
-                                                    sourceDocument: task.sourceDocument
-                                                      ? {
-                                                          fileName: task.sourceDocument.fileName,
-                                                          fileUrl: task.sourceDocument.fileUrl,
-                                                          mimeType: task.sourceDocument.mimeType || 'application/pdf',
-                                                        }
-                                                      : undefined,
-                                                  })
-                                                  toast.success('Task DMI deployed to live class')
-                                                }
-                                              } else {
-                                                handleDeployAssessmentDmi()
+                                              if (onSave) {
+                                                onSave(
+                                                  nodes.map(n => n.lessons[0] || ({} as any)),
+                                                  { developmentMode: devMode, previewDifficulty }
+                                                )
+                                                toast.success('Course and PCI saved')
                                               }
                                             }}
-                                            title="Deploy to Class"
+                                            title="Save Course & PCI"
                                           >
-                                            <Play className="h-4 w-4" />
+                                            <Save className="h-4 w-4" />
                                           </Button>
-                                        )}
+                                          {insightsProps?.onDeployTask && (
+                                            <Button
+                                              size="icon"
+                                              className="h-9 w-9 rounded-xl bg-indigo-500 text-white shadow-sm hover:bg-indigo-600 disabled:opacity-30"
+                                              disabled={
+                                                testPciLoading ||
+                                                (!loadedTaskId && !loadedAssessmentId)
+                                              }
+                                              onClick={() => {
+                                                if (testPciSource === 'task') {
+                                                  const task = findTaskById(loadedTaskId || '')
+                                                  if (task) {
+                                                    insightsProps.onDeployTask({
+                                                      id: task.id,
+                                                      title: task.title || 'Task',
+                                                      content: task.description || '',
+                                                      source: 'task',
+                                                      dmiItems:
+                                                        task.dmiItems?.map(item => ({
+                                                          id: item.id,
+                                                          questionNumber: item.questionNumber,
+                                                          questionText: item.questionText,
+                                                        })) || [],
+                                                      deployedAt: Date.now(),
+                                                      polls: [],
+                                                      questions: [],
+                                                      sourceDocument: task.sourceDocument
+                                                        ? {
+                                                            fileName: task.sourceDocument.fileName,
+                                                            fileUrl: task.sourceDocument.fileUrl,
+                                                            mimeType:
+                                                              task.sourceDocument.mimeType ||
+                                                              'application/pdf',
+                                                          }
+                                                        : undefined,
+                                                    })
+                                                    toast.success('Task DMI deployed to live class')
+                                                  }
+                                                } else {
+                                                  handleDeployAssessmentDmi()
+                                                }
+                                              }}
+                                              title="Deploy to Class"
+                                            >
+                                              <Play className="h-4 w-4" />
+                                            </Button>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div className="border-border/50 bg-muted/20 border-t px-1 py-1">
+                                        <p className="text-muted-foreground text-[10px]">
+                                          Tip: Start line with &quot;1.&quot;, &quot;-&quot;, or
+                                          &quot;a.&quot; for auto-numbering. Use Tab/Shift+Tab to
+                                          indent.
+                                        </p>
                                       </div>
                                     </div>
-                                    <div className="border-border/50 bg-muted/20 border-t px-1 py-1">
-                                      <p className="text-muted-foreground text-[10px]">
-                                        Tip: Start line with &quot;1.&quot;, &quot;-&quot;, or
-                                        &quot;a.&quot; for auto-numbering. Use Tab/Shift+Tab to
-                                        indent.
-                                      </p>
-                                    </div>
                                   </div>
-                                </div>
-                              )}
+                                )}
                             </div>
                           </div>
                         </div>
@@ -7443,106 +7468,126 @@ FEEDBACK: [your explanation]`
                                                   mentionItems={mentionItems}
                                                   placeholder="Ask the PCI assistant..."
                                                   className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-4 py-4 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                                              value={activeTaskPciInput}
-                                              onChange={(e: any) => {
-                                                const value = e.target.value
-                                                if (taskBuilder.activeExtensionId) {
-                                                  setTaskExtensionPciInputs(prev => ({
-                                                    ...prev,
-                                                    [taskBuilder.activeExtensionId as string]:
-                                                      value,
-                                                  }))
-                                                } else {
-                                                  setTaskPciInputMap(prev => ({
-                                                    ...prev,
-                                                    [loadedTaskId || '']: value,
-                                                  }))
-                                                }
-                                              }}
-                                              onKeyDown={(e: any) => {
-                                                if (e.key === 'Enter' && !e.shiftKey) {
-                                                  e.preventDefault()
-                                                  handlePciSend('task')
-                                                }
-                                              }}
-                                            />
-                                            <div className="flex w-full items-center justify-end gap-2 px-2 pb-2">
-                                              <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                className="h-8 rounded-full bg-white text-xs font-medium text-gray-600 shadow-sm hover:text-gray-900"
-                                                onClick={() => {
-                                                  const content = taskBuilder.activeExtensionId
-                                                    ? taskBuilder.extensions.find(
-                                                        e => e.id === taskBuilder.activeExtensionId
-                                                      )?.content || taskBuilder.taskContent
-                                                    : taskBuilder.taskContent
+                                                  value={activeTaskPciInput}
+                                                  onChange={(e: any) => {
+                                                    const value = e.target.value
+                                                    if (taskBuilder.activeExtensionId) {
+                                                      setTaskExtensionPciInputs(prev => ({
+                                                        ...prev,
+                                                        [taskBuilder.activeExtensionId as string]:
+                                                          value,
+                                                      }))
+                                                    } else {
+                                                      setTaskPciInputMap(prev => ({
+                                                        ...prev,
+                                                        [loadedTaskId || '']: value,
+                                                      }))
+                                                    }
+                                                  }}
+                                                  onKeyDown={(e: any) => {
+                                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                                      e.preventDefault()
+                                                      handlePciSend('task')
+                                                    }
+                                                  }}
+                                                />
+                                                <div className="flex w-full items-center justify-end gap-2 px-2 pb-2">
+                                                  <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 rounded-full bg-white text-xs font-medium text-gray-600 shadow-sm hover:text-gray-900"
+                                                    onClick={() => {
+                                                      const content = taskBuilder.activeExtensionId
+                                                        ? taskBuilder.extensions.find(
+                                                            e =>
+                                                              e.id === taskBuilder.activeExtensionId
+                                                          )?.content || taskBuilder.taskContent
+                                                        : taskBuilder.taskContent
 
-                                                  setTestPciScores({})
-                                                  setTestPciInputs({
-                                                    classroom: '',
-                                                    student1: '',
-                                                    student2: '',
-                                                  })
+                                                      setTestPciScores({})
+                                                      setTestPciInputs({
+                                                        classroom: '',
+                                                        student1: '',
+                                                        student2: '',
+                                                      })
 
-                                                  setTestPciContent({
-                                                    classroom: content,
-                                                    student1: content,
-                                                    student2: content,
-                                                  })
-                                                  setTestPciSource('task')
-                                                  if (taskDmiVersions.length > 0) {
-                                                    setTestPciViewMode(
-                                                      `dmi_${taskDmiVersions[0].id}`
-                                                    )
-                                                  } else {
-                                                    const hasDoc = !!(taskSourceDocument || (taskBuilder as any).sourceDocument || (taskBuilder.activeExtensionId ? taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId && (e as any).sourceDocument) ? (taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId) as any).sourceDocument : undefined : undefined))
-                                                    setTestPciViewMode(hasDoc ? 'pdf' : 'text')
-                                                  }
-                                                  setTestPciActiveTab('classroom')
-                                                  setMainTab('test-pci')
-                                                  toast.success(
-                                                    'Test PCI prefilled with task content'
-                                                  )
-                                                }}
-                                              >
-                                                Test
-                                              </Button>
-                                              <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                className="h-8 rounded-full bg-white text-xs font-medium text-gray-600 shadow-sm hover:text-gray-900"
-                                                onClick={() => {
-                                                  toast.success('Task saved successfully')
-                                                }}
-                                              >
-                                                Save
-                                              </Button>
-                                              <Button
-                                                type="button"
-                                                variant="default"
-                                                size="icon"
-                                                className="h-8 w-8 shrink-0 rounded-full"
-                                                disabled={
-                                                  taskPciLoading || !activeTaskPciInput.trim()
-                                                }
-                                                onClick={() => handlePciSend('task')}
-                                                aria-label="Send"
-                                              >
-                                                {taskPciLoading ? (
-                                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                                ) : (
-                                                  <Send className="h-4 w-4" />
-                                                )}
-                                              </Button>
+                                                      setTestPciContent({
+                                                        classroom: content,
+                                                        student1: content,
+                                                        student2: content,
+                                                      })
+                                                      setTestPciSource('task')
+                                                      if (taskDmiVersions.length > 0) {
+                                                        setTestPciViewMode(
+                                                          `dmi_${taskDmiVersions[0].id}`
+                                                        )
+                                                      } else {
+                                                        const hasDoc = !!(
+                                                          taskSourceDocument ||
+                                                          (taskBuilder as any).sourceDocument ||
+                                                          (taskBuilder.activeExtensionId
+                                                            ? taskBuilder.extensions.find(
+                                                                (e: any) =>
+                                                                  e.id ===
+                                                                    taskBuilder.activeExtensionId &&
+                                                                  (e as any).sourceDocument
+                                                              )
+                                                              ? (
+                                                                  taskBuilder.extensions.find(
+                                                                    (e: any) =>
+                                                                      e.id ===
+                                                                      taskBuilder.activeExtensionId
+                                                                  ) as any
+                                                                ).sourceDocument
+                                                              : undefined
+                                                            : undefined)
+                                                        )
+                                                        setTestPciViewMode(hasDoc ? 'pdf' : 'text')
+                                                      }
+                                                      setTestPciActiveTab('classroom')
+                                                      setMainTab('test-pci')
+                                                      toast.success(
+                                                        'Test PCI prefilled with task content'
+                                                      )
+                                                    }}
+                                                  >
+                                                    Test
+                                                  </Button>
+                                                  <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 rounded-full bg-white text-xs font-medium text-gray-600 shadow-sm hover:text-gray-900"
+                                                    onClick={() => {
+                                                      toast.success('Task saved successfully')
+                                                    }}
+                                                  >
+                                                    Save
+                                                  </Button>
+                                                  <Button
+                                                    type="button"
+                                                    variant="default"
+                                                    size="icon"
+                                                    className="h-8 w-8 shrink-0 rounded-full"
+                                                    disabled={
+                                                      taskPciLoading || !activeTaskPciInput.trim()
+                                                    }
+                                                    onClick={() => handlePciSend('task')}
+                                                    aria-label="Send"
+                                                  >
+                                                    {taskPciLoading ? (
+                                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                      <Send className="h-4 w-4" />
+                                                    )}
+                                                  </Button>
+                                                </div>
+                                              </div>
                                             </div>
                                           </div>
                                         </div>
                                       </div>
-                                    </div>
-                                    </div>
                                     </TabsContent>
                                   </Tabs>
                                 </div>
@@ -7905,106 +7950,108 @@ FEEDBACK: [your explanation]`
                                                   mentionItems={mentionItems}
                                                   placeholder="Ask the PCI assistant..."
                                                   className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-4 py-4 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                                              value={
-                                                assessmentPciInputMap[loadedAssessmentId || ''] ||
-                                                ''
-                                              }
-                                              onChange={(e: any) =>
-                                                setAssessmentPciInputMap(prev => ({
-                                                  ...prev,
-                                                  [loadedAssessmentId || '']: e.target.value,
-                                                }))
-                                              }
-                                              onKeyDown={(e: any) => {
-                                                if (e.key === 'Enter' && !e.shiftKey) {
-                                                  e.preventDefault()
-                                                  handlePciSend('assessment')
-                                                }
-                                              }}
-                                            />
-                                            <div className="flex w-full items-center justify-end gap-2 px-2 pb-2">
-                                              <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                className="h-8 rounded-full bg-white text-xs font-medium text-gray-600 shadow-sm hover:text-gray-900"
-                                                onClick={() => {
-                                                  const content = assessmentBuilder.taskContent
-
-                                                  setTestPciScores({})
-                                                  setTestPciInputs({
-                                                    classroom: '',
-                                                    student1: '',
-                                                    student2: '',
-                                                  })
-
-                                                  setTestPciContent({
-                                                    classroom: content,
-                                                    student1: content,
-                                                    student2: content,
-                                                  })
-                                                  setTestPciSource('assessment')
-                                                  if (assessmentDmiVersions.length > 0) {
-                                                    setTestPciViewMode(
-                                                      `dmi_${assessmentDmiVersions[0].id}`
-                                                    )
-                                                  } else {
-                                                    const hasDoc = !!((assessmentBuilder as any).sourceDocument)
-                                                    setTestPciViewMode(hasDoc ? 'pdf' : 'text')
-                                                  }
-                                                  setTestPciActiveTab('classroom')
-                                                  setMainTab('test-pci')
-                                                  toast.success(
-                                                    'Test PCI prefilled with assessment content'
-                                                  )
-                                                }}
-                                              >
-                                                Test
-                                              </Button>
-                                              <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                className="h-8 rounded-full bg-white text-xs font-medium text-gray-600 shadow-sm hover:text-gray-900"
-                                                onClick={() => {
-                                                  toast.success('Assessment saved successfully')
-                                                }}
-                                              >
-                                                Save
-                                              </Button>
-                                              <Button
-                                                type="button"
-                                                variant="default"
-                                                size="icon"
-                                                className="h-8 w-8 shrink-0 rounded-full"
-                                                disabled={
-                                                  assessmentPciLoadingMap[
-                                                    loadedAssessmentId || ''
-                                                  ] ||
-                                                  false ||
-                                                  !(
+                                                  value={
                                                     assessmentPciInputMap[
                                                       loadedAssessmentId || ''
                                                     ] || ''
-                                                  ).trim()
-                                                }
-                                                onClick={() => handlePciSend('assessment')}
-                                                aria-label="Send"
-                                              >
-                                                {assessmentPciLoadingMap[
-                                                  loadedAssessmentId || ''
-                                                ] || false ? (
-                                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                                ) : (
-                                                  <Send className="h-4 w-4" />
-                                                )}
-                                              </Button>
+                                                  }
+                                                  onChange={(e: any) =>
+                                                    setAssessmentPciInputMap(prev => ({
+                                                      ...prev,
+                                                      [loadedAssessmentId || '']: e.target.value,
+                                                    }))
+                                                  }
+                                                  onKeyDown={(e: any) => {
+                                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                                      e.preventDefault()
+                                                      handlePciSend('assessment')
+                                                    }
+                                                  }}
+                                                />
+                                                <div className="flex w-full items-center justify-end gap-2 px-2 pb-2">
+                                                  <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 rounded-full bg-white text-xs font-medium text-gray-600 shadow-sm hover:text-gray-900"
+                                                    onClick={() => {
+                                                      const content = assessmentBuilder.taskContent
+
+                                                      setTestPciScores({})
+                                                      setTestPciInputs({
+                                                        classroom: '',
+                                                        student1: '',
+                                                        student2: '',
+                                                      })
+
+                                                      setTestPciContent({
+                                                        classroom: content,
+                                                        student1: content,
+                                                        student2: content,
+                                                      })
+                                                      setTestPciSource('assessment')
+                                                      if (assessmentDmiVersions.length > 0) {
+                                                        setTestPciViewMode(
+                                                          `dmi_${assessmentDmiVersions[0].id}`
+                                                        )
+                                                      } else {
+                                                        const hasDoc = !!(assessmentBuilder as any)
+                                                          .sourceDocument
+                                                        setTestPciViewMode(hasDoc ? 'pdf' : 'text')
+                                                      }
+                                                      setTestPciActiveTab('classroom')
+                                                      setMainTab('test-pci')
+                                                      toast.success(
+                                                        'Test PCI prefilled with assessment content'
+                                                      )
+                                                    }}
+                                                  >
+                                                    Test
+                                                  </Button>
+                                                  <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 rounded-full bg-white text-xs font-medium text-gray-600 shadow-sm hover:text-gray-900"
+                                                    onClick={() => {
+                                                      toast.success('Assessment saved successfully')
+                                                    }}
+                                                  >
+                                                    Save
+                                                  </Button>
+                                                  <Button
+                                                    type="button"
+                                                    variant="default"
+                                                    size="icon"
+                                                    className="h-8 w-8 shrink-0 rounded-full"
+                                                    disabled={
+                                                      assessmentPciLoadingMap[
+                                                        loadedAssessmentId || ''
+                                                      ] ||
+                                                      false ||
+                                                      !(
+                                                        assessmentPciInputMap[
+                                                          loadedAssessmentId || ''
+                                                        ] || ''
+                                                      ).trim()
+                                                    }
+                                                    onClick={() => handlePciSend('assessment')}
+                                                    aria-label="Send"
+                                                  >
+                                                    {assessmentPciLoadingMap[
+                                                      loadedAssessmentId || ''
+                                                    ] || false ? (
+                                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                      <Send className="h-4 w-4" />
+                                                    )}
+                                                  </Button>
+                                                </div>
+                                              </div>
                                             </div>
                                           </div>
                                         </div>
                                       </div>
-                                    </div>
-                                    </div>
                                     </TabsContent>
                                   </Tabs>
                                 </div>

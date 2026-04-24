@@ -25,7 +25,7 @@ if (require.main === module) {
     .then(() => {
       console.log('[Migrations] Completed successfully')
     })
-    .catch((error) => {
+    .catch(error => {
       console.error('[Migrations] Failed to run migrations:', error)
       process.exit(1)
     })

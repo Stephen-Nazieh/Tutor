@@ -36,7 +36,7 @@ runMigrations()
   .then(() => {
     process.exit(0)
   })
-  .catch((error) => {
+  .catch(error => {
     console.error('[Migrations] Fatal error:', error)
     process.exit(1)
   })

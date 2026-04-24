@@ -1,8 +1,9 @@
-import { defineConfig } from 'drizzle-kit';
-import path from 'node:path';
+import { defineConfig } from 'drizzle-kit'
 
 const connectionString =
-  process.env.DIRECT_URL || process.env.DATABASE_URL || 'postgresql://tutorme:tutorme_password@localhost:5433/tutorme';
+  process.env.DIRECT_URL ||
+  process.env.DATABASE_URL ||
+  'postgresql://tutorme:tutorme_password@localhost:5433/tutorme'
 
 export default defineConfig({
   schema: './src/lib/db/schema/index.ts',
@@ -11,4 +12,4 @@ export default defineConfig({
   dbCredentials: {
     url: connectionString,
   },
-});
+})

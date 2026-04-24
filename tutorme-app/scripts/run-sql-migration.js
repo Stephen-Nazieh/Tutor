@@ -9,7 +9,7 @@ const { Pool } = require('pg')
 
 async function runSqlMigration() {
   const sqlFile = process.argv[2] || 'drizzle/0037_cleanup_deprecated_schema.sql'
-  
+
   const databaseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL
   if (!databaseUrl) {
     console.error('[ERROR] DATABASE_URL or DIRECT_URL environment variable is required')

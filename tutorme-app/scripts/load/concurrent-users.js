@@ -17,6 +17,6 @@ export const options = {
 
 export default function () {
   const res = http.get(BASE_URL + '/api/health')
-  check(res, { 'health status 200': (r) => r.status === 200 })
+  check(res, { 'health status 200': r => r.status === 200 })
   sleep(0.5)
 }

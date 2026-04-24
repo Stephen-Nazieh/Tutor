@@ -29,9 +29,7 @@ export default function TutorCourseEnrollmentsPage() {
   const courseId = typeof params?.id === 'string' ? params.id : ''
   const locale = typeof params?.locale === 'string' ? params.locale : 'en'
   const hasLocalePrefix = pathname.startsWith(`/${locale}/`)
-  const coursePath = hasLocalePrefix
-    ? `/${locale}/tutor/dashboard`
-    : `/tutor/dashboard`
+  const coursePath = hasLocalePrefix ? `/${locale}/tutor/dashboard` : `/tutor/dashboard`
 
   const [loading, setLoading] = useState(true)
   const [enrollments, setEnrollments] = useState<EnrollmentItem[]>([])

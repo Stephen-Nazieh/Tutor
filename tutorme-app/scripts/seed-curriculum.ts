@@ -25,27 +25,44 @@ const IELTS_STRUCTURE = {
             title: 'Section 1 & 2: Social Contexts',
             objectives: ['Understand everyday conversations', 'Follow monologues on social topics'],
             keyConcepts: ['Booking forms', 'Customer service', 'Event information'],
-            exercises: [{ type: 'multiple_choice', question: 'What is the main purpose of the call?', options: ['Book a table', 'Cancel reservation', 'Change time'], correctAnswer: 'A' }]
+            exercises: [
+              {
+                type: 'multiple_choice',
+                question: 'What is the main purpose of the call?',
+                options: ['Book a table', 'Cancel reservation', 'Change time'],
+                correctAnswer: 'A',
+              },
+            ],
           }),
-          learningObjectives: ['Understand everyday conversations', 'Follow monologues on social topics'],
+          learningObjectives: [
+            'Understand everyday conversations',
+            'Follow monologues on social topics',
+          ],
           keyConcepts: ['Booking forms', 'Customer service', 'Event information'],
-          exercises: [{ type: 'multiple_choice', question: 'What is the main purpose of the call?', options: ['Book a table', 'Cancel reservation', 'Change time'], correctAnswer: 'A' }],
+          exercises: [
+            {
+              type: 'multiple_choice',
+              question: 'What is the main purpose of the call?',
+              options: ['Book a table', 'Cancel reservation', 'Change time'],
+              correctAnswer: 'A',
+            },
+          ],
           duration: 30,
-          difficulty: 'easy'
+          difficulty: 'easy',
         },
         {
           title: 'Section 3 & 4: Academic Contexts',
           content: JSON.stringify({
             title: 'Section 3 & 4: Academic Contexts',
             objectives: ['Follow academic discussions', 'Understand lectures'],
-            keyConcepts: ['Research projects', 'Academic vocabulary', 'Note-taking']
+            keyConcepts: ['Research projects', 'Academic vocabulary', 'Note-taking'],
           }),
           learningObjectives: ['Follow academic discussions', 'Understand lectures'],
           keyConcepts: ['Research projects', 'Academic vocabulary', 'Note-taking'],
           duration: 35,
-          difficulty: 'medium'
-        }
-      ]
+          difficulty: 'medium',
+        },
+      ],
     },
     {
       title: 'Reading Module',
@@ -57,27 +74,27 @@ const IELTS_STRUCTURE = {
           title: 'Skimming and Scanning',
           content: JSON.stringify({
             title: 'Skimming and Scanning',
-            objectives: ['Read quickly for gist', 'Locate specific information']
+            objectives: ['Read quickly for gist', 'Locate specific information'],
           }),
           learningObjectives: ['Read quickly for gist', 'Locate specific information'],
           keyConcepts: ['Topic sentences', 'Keywords', 'Paragraph structure'],
           duration: 25,
-          difficulty: 'easy'
+          difficulty: 'easy',
         },
         {
           title: 'True/False/Not Given',
           content: JSON.stringify({
             title: 'True/False/Not Given',
-            objectives: ['Distinguish between fact and opinion', 'Identify paraphrasing']
+            objectives: ['Distinguish between fact and opinion', 'Identify paraphrasing'],
           }),
           learningObjectives: ['Distinguish between fact and opinion', 'Identify paraphrasing'],
           keyConcepts: ['Statement analysis', 'Paraphrasing', 'Inference'],
           duration: 30,
-          difficulty: 'hard'
-        }
-      ]
-    }
-  ]
+          difficulty: 'hard',
+        },
+      ],
+    },
+  ],
 }
 
 async function seedCurriculum() {
@@ -124,8 +141,8 @@ async function seedCurriculum() {
       order: i,
       builderData: {
         skills: modData.skills,
-        estimatedHours: modData.estimatedHours
-      }
+        estimatedHours: modData.estimatedHours,
+      },
     })
 
     console.log('Created module:', modData.title)
@@ -151,8 +168,8 @@ async function seedCurriculum() {
           content: lessonData.content,
           exercises: lessonData.exercises || [],
           materials: [],
-          aiConfidence: 0.95
-        }
+          aiConfidence: 0.95,
+        },
       })
 
       console.log('  Created lesson:', lessonData.title)

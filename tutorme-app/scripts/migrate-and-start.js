@@ -12,7 +12,7 @@ async function start() {
   console.log('--- [Survivor Startup Sequence] ---')
   console.log(`[Startup] CWD: ${cwd}`)
   console.log(`[Startup] PORT: ${process.env.PORT || '3003'}`)
-  
+
   // 1. Diagnostics: List all files at start to be 100% sure where we are
   try {
     const listDir = (dir, depth = 0) => {
@@ -21,7 +21,7 @@ async function start() {
       console.log(`[Startup] dir(${dir}): ${items.join(', ')}`)
     }
     listDir(cwd)
-  } catch (e) {}
+  } catch (_e) {}
 
   // 2. Start migrations in BACKGROUND (Don't block the server listen check)
   const migrationsScript = path.join(cwd, 'scripts/run-migrations.js')
@@ -30,9 +30,9 @@ async function start() {
     // We spawning a separate process for migrations to avoid blocking the loop
     const migrator = spawn('node', [migrationsScript], {
       stdio: 'inherit',
-      env: process.env
+      env: process.env,
     })
-    migrator.on('close', (code) => {
+    migrator.on('close', code => {
       console.log(`[Startup] Background transitions exited with code ${code}`)
     })
   }
@@ -42,9 +42,9 @@ async function start() {
   const potentialServers = [
     path.join(cwd, 'server-production.js'),
     path.join(cwd, 'server.js'),
-    path.join(cwd, '.next/standalone/server.js')
+    path.join(cwd, '.next/standalone/server.js'),
   ]
-  
+
   let serverPath = null
   for (const p of potentialServers) {
     if (fs.existsSync(p)) {
@@ -85,15 +85,15 @@ async function start() {
     env: {
       ...process.env,
       // Aggressive memory limit for node if env tells us
-      NODE_OPTIONS: process.env.NODE_OPTIONS || '--max-old-space-size=768'
-    }
+      NODE_OPTIONS: process.env.NODE_OPTIONS || '--max-old-space-size=768',
+    },
   })
 
-  child.on('error', (err) => {
+  child.on('error', err => {
     console.error('❌ [Startup] Child process error:', err)
   })
 
-  child.on('exit', (code) => {
+  child.on('exit', code => {
     console.log(`[Startup] Server process exited with code ${code}`)
     // If it crashes, we wait a bit before exiting the parent so Cloud Run logs it
     setTimeout(() => process.exit(code || 0), 5000)
@@ -101,8 +101,10 @@ async function start() {
 }
 
 // Global survivors
-process.on('uncaughtException', (err) => console.error('🔥 [Startup] Uncaught Exception:', err))
-process.on('unhandledRejection', (reason) => console.error('🔥 [Startup] Unhandled Rejection:', reason))
+process.on('uncaughtException', err => console.error('🔥 [Startup] Uncaught Exception:', err))
+process.on('unhandledRejection', reason =>
+  console.error('🔥 [Startup] Unhandled Rejection:', reason)
+)
 
 start().catch(err => {
   console.error('🔥 [Startup] Fatal Error:', err)

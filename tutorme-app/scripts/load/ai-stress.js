@@ -22,7 +22,7 @@ export default function () {
   if (!AUTH_TOKEN) {
     console.warn('AUTH_TOKEN not set; skipping AI stress or use public endpoint')
     const res = http.get(`${BASE_URL}/api/health`)
-    check(res, { 'health ok': (r) => r.status === 200 })
+    check(res, { 'health ok': r => r.status === 200 })
     sleep(1)
     return
   }
@@ -36,6 +36,6 @@ export default function () {
       },
     }
   )
-  check(res, { 'ai chat accepted': (r) => r.status === 200 || r.status === 401 })
+  check(res, { 'ai chat accepted': r => r.status === 200 || r.status === 401 })
   sleep(2)
 }

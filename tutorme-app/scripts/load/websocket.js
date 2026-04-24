@@ -15,9 +15,9 @@ export const options = {
 export default function () {
   const res = ws.connect(WS_URL, {}, function (socket) {
     socket.on('open', () => {
-      check(true, { 'ws connected': (v) => v })
+      check(true, { 'ws connected': v => v })
     })
     socket.setTimeout(() => socket.close(), 5000)
   })
-  check(res, { 'ws session ok': (r) => r === true })
+  check(res, { 'ws session ok': r => r === true })
 }

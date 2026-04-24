@@ -1,21 +1,16 @@
 #!/usr/bin/env tsx
 /**
  * Test Script: Create, Schedule, and Publish a Course
- * 
+ *
  * Usage:
  *   npx tsx scripts/test-course-creation.ts <session_cookie>
- * 
+ *
  * Or set environment variable:
  *   TUTOR_SESSION_TOKEN=<token> npx tsx scripts/test-course-creation.ts
  */
 
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  curriculum,
-  curriculumModule,
-  curriculumLesson,
-  courseBatch,
-} from '@/lib/db/schema'
+import { curriculum, curriculumModule, curriculumLesson, courseBatch } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import crypto from 'crypto'
 
@@ -74,16 +69,13 @@ interface CreatedCourse {
 /**
  * Create a course directly via database (bypasses HTTP API)
  */
-async function createCourseDirect(
-  tutorId: string,
-  input: CourseInput
-): Promise<CreatedCourse> {
+async function createCourseDirect(tutorId: string, input: CourseInput): Promise<CreatedCourse> {
   console.log('📝 Creating course...')
-  
+
   const now = new Date()
   const curriculumId = crypto.randomUUID()
-  
-  const result = await drizzleDb.transaction(async (tx) => {
+
+  const result = await drizzleDb.transaction(async tx => {
     // 1. Create curriculum
     const [newCurriculum] = await tx
       .insert(curriculum)
@@ -175,7 +167,7 @@ async function createCourseDirect(
   }
 
   console.log('✅ Course created:', course.id)
-  
+
   return {
     id: course.id,
     name: course.name,
@@ -215,7 +207,7 @@ async function createCourseDirect(
  */
 async function publishCourse(courseId: string): Promise<void> {
   console.log('📢 Publishing course...')
-  
+
   await drizzleDb
     .update(curriculum)
     .set({ isPublished: true, updatedAt: new Date() })
@@ -229,7 +221,7 @@ async function publishCourse(courseId: string): Promise<void> {
  */
 async function main() {
   const tutorId = process.argv[2] || process.env.TUTOR_ID
-  
+
   if (!tutorId) {
     console.error('❌ Error: Tutor ID required')
     console.error('Usage: npx tsx scripts/test-course-creation.ts <tutor_id>')
@@ -281,7 +273,7 @@ async function main() {
     const verified = await drizzleDb.query.curriculum.findFirst({
       where: eq(curriculum.id, course.id),
     })
-    
+
     if (verified?.isPublished) {
       console.log('✅ Verification passed: Course is published')
     } else {
@@ -299,7 +291,6 @@ async function main() {
     console.log(`  URL: ${BASE_URL}/tutor/courses/${course.id}`)
     console.log(`  Insights: ${BASE_URL}/tutor/insights?courseId=${course.id}`)
     console.log('')
-
   } catch (error) {
     console.error('')
     console.error('❌ TEST FAILED')

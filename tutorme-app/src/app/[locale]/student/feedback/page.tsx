@@ -140,7 +140,7 @@ function StudentFeedbackContent() {
         if (res.ok) {
           const data = await res.json()
           setStudentDirectory(data.directory || {})
-          
+
           // Open all top-level and second-level folders by default
           const newFoldersOpen: Record<string, boolean> = {
             tasks: true,
@@ -149,26 +149,27 @@ function StudentFeedbackContent() {
             reports: true,
             recordedSessions: true,
           }
-          
-          let sessionTasks: LiveTask[] = []
+
+          const sessionTasks: LiveTask[] = []
 
           if (data.directory) {
             Object.keys(data.directory).forEach(tutor => {
               newFoldersOpen[`tutor_${tutor}`] = true
               Object.keys(data.directory[tutor]).forEach(category => {
                 newFoldersOpen[`cat_${tutor}_${category}`] = true
-                
+
                 // Extract tasks for the current active session
                 const catTasks = data.directory[tutor][category].tasks || []
                 catTasks.forEach((t: any) => {
                   if (selectedSessionId && t.sessionId === selectedSessionId) {
                     try {
-                      const parsed = typeof t.content === 'string' ? JSON.parse(t.content) : t.content
+                      const parsed =
+                        typeof t.content === 'string' ? JSON.parse(t.content) : t.content
                       // Make sure we use the formatted title (s1, s2 etc)
                       parsed.title = t.title
                       sessionTasks.push(parsed as LiveTask)
                     } catch (e) {
-                      console.error("Failed to parse task content", e)
+                      console.error('Failed to parse task content', e)
                     }
                   }
                 })
@@ -176,7 +177,7 @@ function StudentFeedbackContent() {
             })
           }
           setFoldersOpen(newFoldersOpen)
-          
+
           // Pre-populate tasks if we joined late
           if (sessionTasks.length > 0) {
             setTasks(prev => {
@@ -389,13 +390,15 @@ function StudentFeedbackContent() {
       setTasks(prev => prev.map(item => (item.id === payload.task.id ? payload.task : item)))
     }
 
-    const handleTaskSequence = (payload: { taskId: string, sequence: number }) => {
-      setTasks(prev => prev.map(item => {
-        if (item.id === payload.taskId && !item.title.includes(`(s${payload.sequence})`)) {
-          return { ...item, title: `${item.title} (s${payload.sequence})` }
-        }
-        return item
-      }))
+    const handleTaskSequence = (payload: { taskId: string; sequence: number }) => {
+      setTasks(prev =>
+        prev.map(item => {
+          if (item.id === payload.taskId && !item.title.includes(`(s${payload.sequence})`)) {
+            return { ...item, title: `${item.title} (s${payload.sequence})` }
+          }
+          return item
+        })
+      )
     }
 
     socket.on('task:deployed', handleTaskDeployed)

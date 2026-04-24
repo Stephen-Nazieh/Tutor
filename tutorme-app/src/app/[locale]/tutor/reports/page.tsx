@@ -300,9 +300,9 @@ export default function TutorReports() {
     <div className="min-h-screen bg-[#fafafc]">
       <div className="w-full">
         {/* Header Container */}
-        <div className="bg-[#fafafc] px-4 pt-4 sm:px-6 pb-2">
+        <div className="bg-[#fafafc] px-4 pb-2 pt-4 sm:px-6">
           <div className="flex w-full flex-col gap-4">
-            <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] border border-[#E5E7EB]">
+            <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
                 <Link href="/tutor/dashboard">
                   <Button variant="ghost" size="icon">
@@ -349,154 +349,156 @@ export default function TutorReports() {
           </div>
         </div>
 
-        <div className="px-4 sm:px-6 pt-4">
+        <div className="px-4 pt-4 sm:px-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <div className="mb-6 min-h-[52px] shrink-0">
-            <TabsList className="grid h-full w-full grid-cols-4 gap-2 border-0 bg-transparent shadow-none p-0">
-              <TabsTrigger
-                value="overview"
-                className={cn(
-                  'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
-                  activeTab === 'overview'
-                    ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
-                    : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
-                )}
-              >
-                <BookOpen className="h-4 w-4" />
-                Overview
-              </TabsTrigger>
-              <TabsTrigger
-                value="revenue"
-                className={cn(
-                  'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
-                  activeTab === 'revenue'
-                    ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
-                    : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
-                )}
-              >
-                <DollarSign className="h-4 w-4" />
-                Revenue Insights
-              </TabsTrigger>
-              <TabsTrigger
-                value="students"
-                className={cn(
-                  'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
-                  activeTab === 'students'
-                    ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
-                    : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
-                )}
-              >
-                <Users className="h-4 w-4" />
-                Student Roster
-              </TabsTrigger>
-              <TabsTrigger
-                value="engagement"
-                className={cn(
-                  'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
-                  activeTab === 'engagement'
-                    ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
-                    : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
-                )}
-              >
-                <Activity className="h-4 w-4" />
-                Engagement
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          {/* Revenue Tab */}
-          <TabsContent value="revenue" className="h-full">
-            <div className="h-[800px] overflow-hidden rounded-xl bg-white">
-              <RevenueDashboard />
-            </div>
-          </TabsContent>
-
-          {/* Students Tab */}
-          <TabsContent value="students" className="space-y-6">
-            <Card className="border-2 border-gray-400 shadow-sm">
-              <CardHeader>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <CardTitle>Student Roster</CardTitle>
-                    <CardDescription>Manage and view all enrolled students</CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Search students..."
-                      value={searchQuery}
-                      onChange={e => setSearchQuery(e.target.value)}
-                      className="w-64"
-                    />
-                    <Select value={selectedCluster} onValueChange={setSelectedCluster}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Filter by cluster" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Students</SelectItem>
-                        <SelectItem value="advanced">Advanced</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                        <SelectItem value="struggling">Needs Support</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {filteredStudents.length === 0 ? (
-                    <div className="py-10 text-center text-sm text-gray-500">
-                      {searchQuery ? 'No students match your search.' : 'No students enrolled yet.'}
-                    </div>
-                  ) : (
-                    filteredStudents.map(student => (
-                      <div
-                        key={student.id}
-                        className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-gray-50"
-                      >
-                        <div className="flex items-center gap-4">
-                          <Avatar>
-                            <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{student.name}</p>
-                            <p className="text-sm text-gray-500">{student.email}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
-                            <p className="text-sm text-gray-500">Courses</p>
-                            <p className="font-medium">{student.courseCount ?? 0}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm text-gray-500">Classes</p>
-                            <p className="font-medium">{student.classCount ?? 0}</p>
-                          </div>
-                          {student.cluster && (
-                            <Badge className={getClusterBadgeClass(student.cluster)}>
-                              {getClusterLabel(student.cluster)}
-                            </Badge>
-                          )}
-                          <Link href={`/tutor/reports/${student.id}`}>
-                            <Button variant="ghost" size="icon">
-                              <ChevronRight className="h-4 w-4" />
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
-                    ))
+            <div className="mb-6 min-h-[52px] shrink-0">
+              <TabsList className="grid h-full w-full grid-cols-4 gap-2 border-0 bg-transparent p-0 shadow-none">
+                <TabsTrigger
+                  value="overview"
+                  className={cn(
+                    'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
+                    activeTab === 'overview'
+                      ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
+                      : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
                   )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                >
+                  <BookOpen className="h-4 w-4" />
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger
+                  value="revenue"
+                  className={cn(
+                    'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
+                    activeTab === 'revenue'
+                      ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
+                      : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
+                  )}
+                >
+                  <DollarSign className="h-4 w-4" />
+                  Revenue Insights
+                </TabsTrigger>
+                <TabsTrigger
+                  value="students"
+                  className={cn(
+                    'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
+                    activeTab === 'students'
+                      ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
+                      : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
+                  )}
+                >
+                  <Users className="h-4 w-4" />
+                  Student Roster
+                </TabsTrigger>
+                <TabsTrigger
+                  value="engagement"
+                  className={cn(
+                    'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
+                    activeTab === 'engagement'
+                      ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
+                      : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
+                  )}
+                >
+                  <Activity className="h-4 w-4" />
+                  Engagement
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-          {/* Engagement Tab */}
-          <TabsContent value="engagement" className="space-y-6">
-            <EngagementDashboard classId={selectedClassId} />
-          </TabsContent>
+            {/* Revenue Tab */}
+            <TabsContent value="revenue" className="h-full">
+              <div className="h-[800px] overflow-hidden rounded-xl bg-white">
+                <RevenueDashboard />
+              </div>
+            </TabsContent>
 
-          {/* Courses & Classes Tab */}
-          <CoursesAndClassesTab />
+            {/* Students Tab */}
+            <TabsContent value="students" className="space-y-6">
+              <Card className="border-2 border-gray-400 shadow-sm">
+                <CardHeader>
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <CardTitle>Student Roster</CardTitle>
+                      <CardDescription>Manage and view all enrolled students</CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Search students..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        className="w-64"
+                      />
+                      <Select value={selectedCluster} onValueChange={setSelectedCluster}>
+                        <SelectTrigger className="w-40">
+                          <SelectValue placeholder="Filter by cluster" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Students</SelectItem>
+                          <SelectItem value="advanced">Advanced</SelectItem>
+                          <SelectItem value="intermediate">Intermediate</SelectItem>
+                          <SelectItem value="struggling">Needs Support</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {filteredStudents.length === 0 ? (
+                      <div className="py-10 text-center text-sm text-gray-500">
+                        {searchQuery
+                          ? 'No students match your search.'
+                          : 'No students enrolled yet.'}
+                      </div>
+                    ) : (
+                      filteredStudents.map(student => (
+                        <div
+                          key={student.id}
+                          className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-gray-50"
+                        >
+                          <div className="flex items-center gap-4">
+                            <Avatar>
+                              <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium">{student.name}</p>
+                              <p className="text-sm text-gray-500">{student.email}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <p className="text-sm text-gray-500">Courses</p>
+                              <p className="font-medium">{student.courseCount ?? 0}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm text-gray-500">Classes</p>
+                              <p className="font-medium">{student.classCount ?? 0}</p>
+                            </div>
+                            {student.cluster && (
+                              <Badge className={getClusterBadgeClass(student.cluster)}>
+                                {getClusterLabel(student.cluster)}
+                              </Badge>
+                            )}
+                            <Link href={`/tutor/reports/${student.id}`}>
+                              <Button variant="ghost" size="icon">
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Engagement Tab */}
+            <TabsContent value="engagement" className="space-y-6">
+              <EngagementDashboard classId={selectedClassId} />
+            </TabsContent>
+
+            {/* Courses & Classes Tab */}
+            <CoursesAndClassesTab />
           </Tabs>
         </div>
       </div>

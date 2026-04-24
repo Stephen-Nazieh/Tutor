@@ -29,16 +29,16 @@ function pickHandleCandidate(
 ): string {
   if (profileUsername) {
     const normalized = normalizeHandle(profileUsername)
-    if (HANDLE_REGEX.test(normalized) && !isReservedHandle(normalized) && !usedHandles.has(normalized)) {
+    if (
+      HANDLE_REGEX.test(normalized) &&
+      !isReservedHandle(normalized) &&
+      !usedHandles.has(normalized)
+    ) {
       return normalized
     }
   }
 
-  const seedCandidates = [
-    profileName,
-    email.split('@')[0],
-    'user',
-  ].filter(Boolean) as string[]
+  const seedCandidates = [profileName, email.split('@')[0], 'user'].filter(Boolean) as string[]
 
   for (const seed of seedCandidates) {
     const base = normalizeHandleSeed(seed)
@@ -69,9 +69,7 @@ async function main() {
     .where(isNotNull(user.handle))
 
   const usedHandles = new Set(
-    existing
-      .map((row) => row.handle?.toLowerCase())
-      .filter(Boolean) as string[]
+    existing.map(row => row.handle?.toLowerCase()).filter(Boolean) as string[]
   )
 
   const usersToBackfill = await drizzleDb
@@ -91,13 +89,15 @@ async function main() {
   let profileUpdates = 0
 
   for (const row of usersToBackfill) {
-    const nextHandle = pickHandleCandidate(row.profileUsername, row.profileName, row.email, usedHandles)
+    const nextHandle = pickHandleCandidate(
+      row.profileUsername,
+      row.profileName,
+      row.email,
+      usedHandles
+    )
     usedHandles.add(nextHandle)
 
-    await drizzleDb
-      .update(user)
-      .set({ handle: nextHandle })
-      .where(eq(user.id, row.userId))
+    await drizzleDb.update(user).set({ handle: nextHandle }).where(eq(user.id, row.userId))
     handleUpdates += 1
 
     if (row.profileId) {
@@ -131,11 +131,13 @@ async function main() {
     profileUpdates += 1
   }
 
-  console.log(`Backfill complete. Handles created: ${handleUpdates}. Profile usernames updated: ${profileUpdates}.`)
+  console.log(
+    `Backfill complete. Handles created: ${handleUpdates}. Profile usernames updated: ${profileUpdates}.`
+  )
 }
 
 main()
-  .catch((err) => {
+  .catch(err => {
     console.error('Handle backfill failed:', err)
     process.exit(1)
   })

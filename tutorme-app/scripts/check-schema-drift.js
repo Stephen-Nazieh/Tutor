@@ -42,7 +42,7 @@ const checks = [
             FROM information_schema.columns
             WHERE table_name = 'LiveSession' AND column_name = 'status'`,
     required: true,
-    validate: (row) => {
+    validate: row => {
       if (row.data_type === 'USER-DEFINED' && row.udt_name === 'LiveSessionStatus') {
         return { ok: true }
       }
@@ -151,7 +151,7 @@ async function run() {
   }
 }
 
-run().catch((err) => {
+run().catch(err => {
   console.error('Unexpected error:', err)
   process.exit(1)
 })

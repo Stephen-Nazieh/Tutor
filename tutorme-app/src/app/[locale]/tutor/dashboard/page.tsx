@@ -423,7 +423,9 @@ function TutorDashboardContent() {
         const result = await res.json().catch(() => ({}))
         if (!res.ok) {
           if (res.status === 409) {
-            toast.info('You have an active or scheduled session for this slot. Please select it below.')
+            toast.info(
+              'You have an active or scheduled session for this slot. Please select it below.'
+            )
             handleOpenSessionsModal(course)
             return
           }
@@ -710,9 +712,14 @@ function TutorDashboardContent() {
                   ) : (
                     enrolledCourses.map(course => {
                       const courseClasses = classes.filter(c => c.courseId === course.id)
-                      const hasActive = courseClasses.some(c => c.status === 'active' || c.status === 'live' || c.status === 'preparing')
+                      const hasActive = courseClasses.some(
+                        c =>
+                          c.status === 'active' || c.status === 'live' || c.status === 'preparing'
+                      )
                       const nextSession = courseClasses.find(c => c.status === 'scheduled')
-                      const isWithin1Hour = nextSession && (new Date(nextSession.scheduledAt).getTime() - Date.now() <= 3600000)
+                      const isWithin1Hour =
+                        nextSession &&
+                        new Date(nextSession.scheduledAt).getTime() - Date.now() <= 3600000
 
                       return (
                         <div
@@ -737,17 +744,24 @@ function TutorDashboardContent() {
                               <Badge
                                 variant={hasActive || isWithin1Hour ? 'default' : 'secondary'}
                                 className={cn(
-                                  "cursor-pointer transition-colors",
-                                  hasActive ? "bg-green-500 hover:bg-green-600 text-white" :
-                                  isWithin1Hour ? "bg-orange-500 hover:bg-orange-600 text-white" :
-                                  "hover:bg-slate-200"
+                                  'cursor-pointer transition-colors',
+                                  hasActive
+                                    ? 'bg-green-500 text-white hover:bg-green-600'
+                                    : isWithin1Hour
+                                      ? 'bg-orange-500 text-white hover:bg-orange-600'
+                                      : 'hover:bg-slate-200'
                                 )}
                                 onClick={() => handleOpenSessionsModal(course)}
                               >
                                 {course.sessionCount ?? 0} sessions
                               </Badge>
-                              <Link href={withLocalePath(`/tutor/courses/${course.id}/enrollments`)}>
-                                <Badge variant="secondary" className="cursor-pointer hover:bg-slate-200">
+                              <Link
+                                href={withLocalePath(`/tutor/courses/${course.id}/enrollments`)}
+                              >
+                                <Badge
+                                  variant="secondary"
+                                  className="cursor-pointer hover:bg-slate-200"
+                                >
                                   {course.enrollmentCount} enrolled
                                 </Badge>
                               </Link>
@@ -897,7 +911,11 @@ function TutorDashboardContent() {
                               <Button
                                 variant="default"
                                 size="sm"
-                                onClick={() => router.push(withLocalePath(`/tutor/insights?sessionId=${session.id}`))}
+                                onClick={() =>
+                                  router.push(
+                                    withLocalePath(`/tutor/insights?sessionId=${session.id}`)
+                                  )
+                                }
                               >
                                 Open Session
                               </Button>

@@ -14,6 +14,7 @@
  * - Teaching Assistant panel with AI-powered features
  */
 
+import { motion } from 'framer-motion'
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -273,12 +274,31 @@ export function EnhancedWhiteboard({
   const [color, setColor] = useState('#000000')
   const [lineWidth, setLineWidth] = useState(3)
   const [tool, setTool] = useState<
-    'pen' | 'eraser' | 'text' | 'hand' | 'line' | 'arrow' | 'rectangle' | 'circle' | 'triangle' | 'select'
+    | 'pen'
+    | 'eraser'
+    | 'text'
+    | 'hand'
+    | 'line'
+    | 'arrow'
+    | 'rectangle'
+    | 'circle'
+    | 'triangle'
+    | 'select'
+    | 'marquee-zoom'
   >('pen')
 
   // Line drawing state
   const [lineStart, setLineStart] = useState<Point | null>(null)
   const [tempLineEnd, setTempLineEnd] = useState<Point | null>(null)
+  const [marqueeStart, setMarqueeStart] = useState<Point | null>(null)
+  const [tempMarqueeEnd, setTempMarqueeEnd] = useState<Point | null>(null)
+  const [activeLocalZoom, setActiveLocalZoom] = useState<{
+    x: number
+    y: number
+    width: number
+    height: number
+    dataUrl: string
+  } | null>(null)
 
   // Shape preview state
   const [shapeStart, setShapeStart] = useState<Point | null>(null)
@@ -462,29 +482,43 @@ export function EnhancedWhiteboard({
     }
 
     if (lineStart && tempLineEnd && (tool === 'line' || tool === 'arrow')) {
-      ctx.strokeStyle = color
-      ctx.lineWidth = lineWidth
-      ctx.lineCap = 'round'
+      ctx.save()
       ctx.beginPath()
       ctx.moveTo(lineStart.x, lineStart.y)
       ctx.lineTo(tempLineEnd.x, tempLineEnd.y)
       ctx.stroke()
       if (tool === 'arrow') {
-        const headlen = 15;
-        const angle = Math.atan2(tempLineEnd.y - lineStart.y, tempLineEnd.x - lineStart.x);
-        ctx.beginPath();
-        ctx.moveTo(tempLineEnd.x, tempLineEnd.y);
-        ctx.lineTo(tempLineEnd.x - headlen * Math.cos(angle - Math.PI / 6), tempLineEnd.y - headlen * Math.sin(angle - Math.PI / 6));
-        ctx.moveTo(tempLineEnd.x, tempLineEnd.y);
-        ctx.lineTo(tempLineEnd.x - headlen * Math.cos(angle + Math.PI / 6), tempLineEnd.y - headlen * Math.sin(angle + Math.PI / 6));
-        ctx.stroke();
+        const headlen = 15
+        const angle = Math.atan2(tempLineEnd.y - lineStart.y, tempLineEnd.x - lineStart.x)
+        ctx.beginPath()
+        ctx.moveTo(tempLineEnd.x, tempLineEnd.y)
+        ctx.lineTo(
+          tempLineEnd.x - headlen * Math.cos(angle - Math.PI / 6),
+          tempLineEnd.y - headlen * Math.sin(angle - Math.PI / 6)
+        )
+        ctx.moveTo(tempLineEnd.x, tempLineEnd.y)
+        ctx.lineTo(
+          tempLineEnd.x - headlen * Math.cos(angle + Math.PI / 6),
+          tempLineEnd.y - headlen * Math.sin(angle + Math.PI / 6)
+        )
+        ctx.stroke()
       }
+      ctx.restore()
     }
 
-    if (tempShape) drawShape(ctx, tempShape, true)
-    if (selectedObject) drawSelectionHighlight(ctx, selectedObject)
-
-    ctx.restore()
+    if (marqueeStart && tempMarqueeEnd && tool === 'marquee-zoom') {
+      ctx.save()
+      ctx.strokeStyle = '#3b82f6'
+      ctx.lineWidth = 2 / scale
+      ctx.setLineDash([5 / scale, 5 / scale])
+      ctx.strokeRect(
+        marqueeStart.x,
+        marqueeStart.y,
+        tempMarqueeEnd.x - marqueeStart.x,
+        tempMarqueeEnd.y - marqueeStart.y
+      )
+      ctx.restore()
+    }
   }, [
     pages,
     currentPageIndex,
@@ -594,14 +628,20 @@ export function EnhancedWhiteboard({
       ctx.lineTo(shape.width, shape.height)
       ctx.stroke()
       if (shape.type === 'arrow') {
-        const headlen = 15;
-        const angle = Math.atan2(shape.height - shape.y, shape.width - shape.x);
-        ctx.beginPath();
-        ctx.moveTo(shape.width, shape.height);
-        ctx.lineTo(shape.width - headlen * Math.cos(angle - Math.PI / 6), shape.height - headlen * Math.sin(angle - Math.PI / 6));
-        ctx.moveTo(shape.width, shape.height);
-        ctx.lineTo(shape.width - headlen * Math.cos(angle + Math.PI / 6), shape.height - headlen * Math.sin(angle + Math.PI / 6));
-        ctx.stroke();
+        const headlen = 15
+        const angle = Math.atan2(shape.height - shape.y, shape.width - shape.x)
+        ctx.beginPath()
+        ctx.moveTo(shape.width, shape.height)
+        ctx.lineTo(
+          shape.width - headlen * Math.cos(angle - Math.PI / 6),
+          shape.height - headlen * Math.sin(angle - Math.PI / 6)
+        )
+        ctx.moveTo(shape.width, shape.height)
+        ctx.lineTo(
+          shape.width - headlen * Math.cos(angle + Math.PI / 6),
+          shape.height - headlen * Math.sin(angle + Math.PI / 6)
+        )
+        ctx.stroke()
       }
     } else if (shape.type === 'rectangle') {
       ctx.strokeRect(shape.x, shape.y, shape.width, shape.height)
@@ -986,6 +1026,11 @@ export function EnhancedWhiteboard({
       return
     }
 
+    if (marqueeStart && tool === 'marquee-zoom') {
+      setTempMarqueeEnd(point)
+      return
+    }
+
     if (lineStart && (tool === 'line' || tool === 'arrow')) {
       setTempLineEnd(point)
       return
@@ -1354,7 +1399,153 @@ export function EnhancedWhiteboard({
             currentPointerPos={pointerPos}
           />
         )}
-        
+
+        {/* Floating Zoom Widget */}
+        <div className="absolute bottom-6 right-6 z-20 flex items-center gap-1 rounded-2xl border border-white/40 bg-white/70 px-2 py-1 shadow-2xl ring-1 ring-black/[0.05] backdrop-blur-xl">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setScale(s => Math.max(0.1, s - 0.1))}
+            className="h-8 w-8 rounded-xl p-0 text-slate-700 hover:bg-slate-100"
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+          <span className="w-12 text-center text-xs font-medium text-slate-700">
+            {Math.round(scale * 100)}%
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setScale(s => Math.min(5, s + 0.1))}
+            className="h-8 w-8 rounded-xl p-0 text-slate-700 hover:bg-slate-100"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          <div className="mx-1 h-6 w-px bg-slate-300" />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setTool('marquee-zoom')
+              setActiveLocalZoom(null)
+            }}
+            className={cn(
+              'h-8 w-8 rounded-xl p-0 text-slate-700 hover:bg-slate-100',
+              tool === 'marquee-zoom' && 'bg-blue-100 text-blue-600'
+            )}
+            title="Area Zoom"
+          >
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Active Local Zoom Overlay */}
+        {activeLocalZoom && (
+          <motion.div
+            drag
+            dragMomentum={false}
+            className="absolute z-40 overflow-hidden rounded-xl border-4 border-blue-500 bg-white shadow-2xl"
+            style={{
+              left: activeLocalZoom.x,
+              top: activeLocalZoom.y,
+              width: activeLocalZoom.width,
+              height: activeLocalZoom.height,
+              touchAction: 'none',
+            }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+          >
+            <img
+              src={activeLocalZoom.dataUrl}
+              alt="Zoomed area"
+              className="h-full w-full object-contain"
+              draggable={false}
+            />
+            <Button
+              variant="destructive"
+              size="sm"
+              className="absolute right-2 top-2 h-8 w-8 rounded-full p-0 opacity-80 shadow-md hover:opacity-100"
+              onClick={() => setActiveLocalZoom(null)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </motion.div>
+        )}
+
+        {/* Floating Zoom Widget */}
+        <div className="absolute bottom-6 right-6 z-20 flex items-center gap-1 rounded-2xl border border-white/40 bg-white/70 px-2 py-1 shadow-2xl ring-1 ring-black/[0.05] backdrop-blur-xl">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setScale(s => Math.max(0.1, s - 0.1))}
+            className="h-8 w-8 rounded-xl p-0 text-slate-700 hover:bg-slate-100"
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+          <span className="w-12 text-center text-xs font-medium text-slate-700">
+            {Math.round(scale * 100)}%
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setScale(s => Math.min(5, s + 0.1))}
+            className="h-8 w-8 rounded-xl p-0 text-slate-700 hover:bg-slate-100"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          <div className="mx-1 h-6 w-px bg-slate-300" />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setTool('marquee-zoom')
+              setActiveLocalZoom(null)
+            }}
+            className={cn(
+              'h-8 w-8 rounded-xl p-0 text-slate-700 hover:bg-slate-100',
+              tool === 'marquee-zoom' && 'bg-blue-100 text-blue-600'
+            )}
+            title="Area Zoom"
+          >
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Active Local Zoom Overlay */}
+        {activeLocalZoom && (
+          <motion.div
+            drag
+            dragMomentum={false}
+            className="absolute z-40 overflow-hidden rounded-xl border-4 border-blue-500 bg-white shadow-2xl"
+            style={{
+              left: activeLocalZoom.x,
+              top: activeLocalZoom.y,
+              width: activeLocalZoom.width,
+              height: activeLocalZoom.height,
+              touchAction: 'none',
+            }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+          >
+            <img
+              src={activeLocalZoom.dataUrl}
+              alt="Zoomed area"
+              className="h-full w-full object-contain"
+              draggable={false}
+            />
+            <Button
+              variant="destructive"
+              size="sm"
+              className="absolute right-2 top-2 h-8 w-8 rounded-full p-0 opacity-80 shadow-md hover:opacity-100"
+              onClick={() => setActiveLocalZoom(null)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </motion.div>
+        )}
+
         {/* Asset Sidebar */}
         {showAssetSidebar && (
           <div className="w-80 overflow-hidden border-l border-gray-100 bg-white/50 backdrop-blur-sm">
@@ -1771,16 +1962,6 @@ export function EnhancedWhiteboard({
               </Button>
             </div>
           )}
-
-          {/* Page Info */}
-          <div
-            role="presentation"
-            onMouseDown={e => e.stopPropagation()}
-            className="absolute bottom-4 left-4 rounded bg-slate-800/80 px-3 py-1 text-sm text-slate-300"
-          >
-            Page {currentPageIndex + 1} of {pages.length} • {Math.round(scale * 100)}%
-            {selectedObject && <span className="ml-2 text-blue-400">• Object selected</span>}
-          </div>
         </div>
 
         {/* Video Fullscreen Overlay - 70% centered */}
@@ -1882,12 +2063,21 @@ export function EnhancedWhiteboard({
       </div>
 
       {/* Bottom Page Navigation - only show when using internal state */}
-      {!externalPages && (
+      {true && (
         <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-2xl border border-white/40 bg-white/70 px-4 py-2 shadow-2xl ring-1 ring-black/[0.05] backdrop-blur-xl">
-          <Button variant="ghost" size="sm" onClick={addPage} className="h-8 gap-1 rounded-xl text-slate-700 hover:bg-slate-100">
-            <Plus className="h-4 w-4" /> New Page
-          </Button>
-          <div className="mx-1 h-6 w-px bg-slate-200" />
+          {!readOnly && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={addPage}
+                className="h-8 gap-1 rounded-xl text-slate-700 hover:bg-slate-100"
+              >
+                <Plus className="h-4 w-4" /> New Page
+              </Button>
+              <div className="mx-1 h-6 w-px bg-slate-200" />
+            </>
+          )}
           <Button
             variant="ghost"
             size="sm"
@@ -1903,15 +2093,15 @@ export function EnhancedWhiteboard({
                 key={page.id}
                 onClick={() => setCurrentPageIndex(index)}
                 className={cn(
-                  "flex items-center gap-1 whitespace-nowrap rounded-xl px-3 py-1.5 text-sm transition-all",
-                  index === currentPageIndex 
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20" 
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  'flex items-center gap-1 whitespace-nowrap rounded-xl px-3 py-1.5 text-sm transition-all',
+                  index === currentPageIndex
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 )}
               >
                 <Grid3X3 className="h-3 w-3" />
                 <span className="max-w-[80px] truncate">{page.name}</span>
-                {pages.length > 1 && index === currentPageIndex && (
+                {pages.length > 1 && index === currentPageIndex && !readOnly && (
                   <X
                     className="ml-1 h-3 w-3 rounded-full opacity-70 transition-colors hover:bg-white/20 hover:opacity-100"
                     onClick={e => {
