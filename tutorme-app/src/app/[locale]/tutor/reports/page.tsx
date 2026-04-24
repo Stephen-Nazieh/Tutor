@@ -354,7 +354,7 @@ export default function TutorReports() {
                 className={cn(
                   'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
                   activeTab === 'overview'
-                    ? 'bg-[linear-gradient(145deg,rgba(44,47,51,0.55),rgba(58,63,69,0.45))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
                     : 'bg-white text-[#1F2933] shadow-[0_10px_22px_rgba(0,0,0,0.10)]'
                 )}
               >
@@ -366,7 +366,7 @@ export default function TutorReports() {
                 className={cn(
                   'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
                   activeTab === 'revenue'
-                    ? 'bg-[linear-gradient(145deg,rgba(44,47,51,0.55),rgba(58,63,69,0.45))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
                     : 'bg-white text-[#1F2933] shadow-[0_10px_22px_rgba(0,0,0,0.10)]'
                 )}
               >
@@ -378,7 +378,7 @@ export default function TutorReports() {
                 className={cn(
                   'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
                   activeTab === 'students'
-                    ? 'bg-[linear-gradient(145deg,rgba(44,47,51,0.55),rgba(58,63,69,0.45))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
                     : 'bg-white text-[#1F2933] shadow-[0_10px_22px_rgba(0,0,0,0.10)]'
                 )}
               >
@@ -390,7 +390,7 @@ export default function TutorReports() {
                 className={cn(
                   'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
                   activeTab === 'engagement'
-                    ? 'bg-[linear-gradient(145deg,rgba(44,47,51,0.55),rgba(58,63,69,0.45))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
                     : 'bg-white text-[#1F2933] shadow-[0_10px_22px_rgba(0,0,0,0.10)]'
                 )}
               >
