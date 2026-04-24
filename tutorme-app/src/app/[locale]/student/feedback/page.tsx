@@ -20,6 +20,7 @@ import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useSocket } from '@/hooks/use-socket'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import {
   ListTodo,
   MessageSquare,
@@ -29,6 +30,10 @@ import {
   Layout,
   ArrowLeft,
   FileText,
+  ChevronRight,
+  ChevronLeft,
+  ChevronDown,
+  Folder,
 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
@@ -103,6 +108,18 @@ function StudentFeedbackContent() {
   const [tutorBoardPageIndex, setTutorBoardPageIndex] = useState(0)
   const saveBoardsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Left Panel state
+  const [leftPanelHidden, setLeftPanelHidden] = useState(false)
+  const [leftPanelWidth, setLeftPanelWidth] = useState(300)
+  const [leftPanelResizing, setLeftPanelResizing] = useState(false)
+  const leftResizeStartX = useRef(0)
+  const leftResizeStartW = useRef(300)
+
+  // Assets state
+  const [courseAssets, setCourseAssets] = useState<any[]>([])
+  const [assetsLoading, setAssetsLoading] = useState(false)
+  const [foldersOpen, setFoldersOpen] = useState({ tasks: true, assets: true })
+
   // Portal target for TabsList
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null)
   useEffect(() => {
@@ -110,6 +127,40 @@ function StudentFeedbackContent() {
     if (el) {
       setPortalTarget(el)
     }
+  }, [])
+
+  useEffect(() => {
+    if (!leftPanelResizing) return
+    const onMove = (e: MouseEvent) => {
+      const delta = e.clientX - leftResizeStartX.current
+      const newW = Math.max(200, Math.min(500, leftResizeStartW.current + delta))
+      setLeftPanelWidth(newW)
+    }
+    const onUp = () => setLeftPanelResizing(false)
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+    return () => {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+    }
+  }, [leftPanelResizing])
+
+  useEffect(() => {
+    const loadAssets = async () => {
+      setAssetsLoading(true)
+      try {
+        const res = await fetch('/api/student/resources', { credentials: 'include' })
+        if (res.ok) {
+          const data = await res.json()
+          setCourseAssets(data.resources || [])
+        }
+      } catch (err) {
+        console.error('Failed to load assets:', err)
+      } finally {
+        setAssetsLoading(false)
+      }
+    }
+    loadAssets()
   }, [])
 
   useEffect(() => {
@@ -312,284 +363,412 @@ function StudentFeedbackContent() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
-      <div className="bg-[#fafafc] px-4 pt-4 sm:px-6 pb-2">
-        <div className="flex w-full flex-col gap-4">
-          <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] border border-[#E5E7EB]">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div className="flex flex-col justify-center">
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold tracking-tight">Live Classroom</h1>
-                </div>
-              </div>
-            </div>
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-gray-50">
+      {/* Floating collapsed/expanded pill */}
+      <div
+        className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
+        style={{ left: leftPanelHidden ? 0 : leftPanelWidth - 16 }}
+        onClick={() => setLeftPanelHidden(!leftPanelHidden)}
+        title={leftPanelHidden ? 'Show directory' : 'Hide directory'}
+      >
+        {leftPanelHidden ? (
+          <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
+        ) : (
+          <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
+        )}
+      </div>
 
-            <div className="flex flex-col items-end justify-between gap-4">
-              <div className="mt-0 flex shrink-0 items-center gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowTasksPanel(true)}
-                  className="gap-2 font-medium text-slate-700 hover:text-slate-900"
+      {!leftPanelHidden && (
+        <div
+          className="absolute inset-y-0 left-0 z-40 flex h-full flex-col border-r border-[#E5E7EB] bg-white shadow-2xl transition-all"
+          style={{ width: leftPanelWidth }}
+        >
+          <div className="flex h-[60px] shrink-0 items-center justify-between border-b border-[#E5E7EB] px-4">
+            <h2 className="text-sm font-semibold text-[#1F2933]">Directory</h2>
+          </div>
+          <ScrollArea className="flex-1 p-3">
+            <div className="space-y-4">
+              {/* Tasks Folder */}
+              <div>
+                <button
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                  onClick={() => setFoldersOpen(prev => ({ ...prev, tasks: !prev.tasks }))}
                 >
-                  <ListTodo className="h-4 w-4" />
-                  Directory
+                  {foldersOpen.tasks ? (
+                    <ChevronDown className="h-4 w-4 text-slate-500" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-slate-500" />
+                  )}
+                  <Folder className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm font-medium text-slate-700">Deployed Tasks</span>
                   {unseenTaskIds.length > 0 && (
-                    <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
+                    <span className="ml-auto rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] text-white">
                       {unseenTaskIds.length}
                     </span>
                   )}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowFeedbackPanel(true)}
-                  className="gap-2 font-medium text-slate-700 hover:text-slate-900"
-                >
-                  <MessageSquare className="h-4 w-4" />
-                  Feedback
-                </Button>
+                </button>
+                {foldersOpen.tasks && (
+                  <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                    {tasks.length === 0 && (
+                      <span className="px-2 py-1 text-xs text-slate-500">
+                        No tasks deployed yet
+                      </span>
+                    )}
+                    {tasks.map(task => (
+                      <button
+                        key={task.id}
+                        onClick={() => handleSelectTask(task.id)}
+                        className={cn(
+                          'flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                          activeTaskId === task.id
+                            ? 'bg-blue-50 font-medium text-blue-700'
+                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                        )}
+                      >
+                        <FileText className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{task.title}</span>
+                        {unseenTaskIds.includes(task.id) && (
+                          <div className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
-        </div>
-        {sessionContext && (sessionContext.topic || sessionContext.objectives) && (
-          <div className="border-t border-blue-100 bg-blue-50/60 px-4 py-2 text-sm text-blue-900">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-              {sessionContext.topic && (
-                <span>
-                  <span className="font-semibold">Lesson:</span> {sessionContext.topic}
-                </span>
-              )}
-            </div>
-            {sessionContext.objectives && sessionContext.objectives.length > 0 && (
-              <div className="mt-1 text-xs text-blue-800">
-                <span className="font-semibold">Objectives:</span>{' '}
-                {sessionContext.objectives.map((obj, idx) => (
-                  <span key={idx}>
-                    {idx + 1}) {obj}{' '}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-        <div id="student-live-tabs-portal" className="mt-2 w-full" />
-      </div>
 
-      {sessionContext?.roomUrl && (
-        <div className="h-44 w-full border-b bg-black sm:h-52">
-          <DailyVideoFrame roomUrl={sessionContext.roomUrl} token={sessionContext.token} />
+              {/* Assets Folder */}
+              <div>
+                <button
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                  onClick={() => setFoldersOpen(prev => ({ ...prev, assets: !prev.assets }))}
+                >
+                  {foldersOpen.assets ? (
+                    <ChevronDown className="h-4 w-4 text-slate-500" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-slate-500" />
+                  )}
+                  <Folder className="h-4 w-4 text-green-500" />
+                  <span className="text-sm font-medium text-slate-700">Course Assets</span>
+                </button>
+                {foldersOpen.assets && (
+                  <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                    {assetsLoading ? (
+                      <span className="flex items-center gap-2 px-2 py-1 text-xs text-slate-500">
+                        <Loader2 className="h-3 w-3 animate-spin" /> Loading...
+                      </span>
+                    ) : courseAssets.length === 0 ? (
+                      <span className="px-2 py-1 text-xs text-slate-500">No assets available</span>
+                    ) : (
+                      courseAssets.map(asset => (
+                        <a
+                          key={asset.resourceId}
+                          href={asset.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                          title={asset.name}
+                        >
+                          <FileText className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                          <span className="truncate">{asset.name}</span>
+                        </a>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </ScrollArea>
+
+          <div
+            className="absolute bottom-0 right-0 top-0 w-2 cursor-col-resize hover:bg-blue-500/20 active:bg-blue-500/40"
+            onMouseDown={e => {
+              setLeftPanelResizing(true)
+              leftResizeStartX.current = e.clientX
+              leftResizeStartW.current = leftPanelWidth
+            }}
+          />
         </div>
       )}
 
-      <div className="flex-1 p-4 pt-4 sm:p-6">
-        <div className="flex h-full flex-col gap-6">
-          <Tabs defaultValue="task" className="flex flex-1 flex-col">
-            {portalTarget ? (
-              createPortal(
-                <div className="mb-0 min-h-[48px] w-full shrink-0">
-                  <TabsList className="grid h-[48px] w-full grid-cols-3 gap-2 border-0 bg-transparent shadow-none p-0">
-                    <TabsTrigger
-                      value="task"
-                      className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] data-[state=inactive]:shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
-                    >
-                      Classroom
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="my-board"
-                      className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] data-[state=inactive]:shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
-                    >
-                      My Board
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="tutor-board"
-                      className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] data-[state=inactive]:shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
-                    >
-                      Tutor Board
-                    </TabsTrigger>
-                  </TabsList>
-                </div>,
-                portalTarget
-              )
-            ) : (
-              <div className="hidden">
-                <TabsList>
-                  <TabsTrigger value="task">Classroom</TabsTrigger>
-                  <TabsTrigger value="my-board">My Board</TabsTrigger>
-                  <TabsTrigger value="tutor-board">Tutor Board</TabsTrigger>
-                </TabsList>
+      <div className="flex flex-1 flex-col overflow-y-auto">
+        <div className="bg-[#fafafc] px-4 pb-2 pt-4 sm:px-6">
+          <div className="flex w-full flex-col gap-4">
+            <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <div className="flex flex-col justify-center">
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-2xl font-bold tracking-tight">Live Classroom</h1>
+                  </div>
+                </div>
               </div>
-            )}
 
-            <TabsContent value="task" className="flex-1 outline-none">
-              <Card className="min-h-[420px]">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between gap-3">
-                    <span>{activeTask?.title || 'Select a task to begin'}</span>
-                    <Button variant="ghost" size="icon">
-                      <Bell className="h-4 w-4" />
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="h-[calc(100vh-280px)] min-h-[600px] flex-1 space-y-4 overflow-hidden p-0">
-                  {activeTask ? (
-                    <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
-                      {(activeTask.sourceDocument || activeTask.content) && (
-                        <ResizablePanel
-                          defaultSize={activeTask.dmiItems?.length ? 50 : 100}
-                          minSize={20}
-                        >
-                          <div className="h-full w-full overflow-y-auto p-4">
-                            {activeTask.sourceDocument ? (
-                              <div className="h-full space-y-2">
-                                <p className="text-xs font-semibold uppercase text-gray-500">
-                                  Document
-                                </p>
-                                {activeTask.sourceDocument.mimeType === 'application/pdf' ? (
-                                  <div className="h-[calc(100%-24px)] w-full overflow-hidden rounded border">
-                                    <iframe
-                                      src={`${activeTask.sourceDocument.fileUrl}#toolbar=0&navpanes=0`}
-                                      title={activeTask.sourceDocument.fileName}
-                                      className="h-full w-full"
-                                    />
-                                  </div>
-                                ) : activeTask.sourceDocument.mimeType.startsWith('image/') ? (
-                                  <div className="overflow-hidden rounded border">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                      src={activeTask.sourceDocument.fileUrl}
-                                      alt={activeTask.sourceDocument.fileName}
-                                      className="h-auto max-h-[500px] w-full object-contain"
-                                    />
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center gap-2 rounded border bg-white p-4">
-                                    <FileText className="h-5 w-5 text-blue-600" />
-                                    <a
-                                      href={activeTask.sourceDocument.fileUrl}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="text-sm text-blue-600 underline"
-                                    >
-                                      Open {activeTask.sourceDocument.fileName}
-                                    </a>
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="rounded-lg border bg-white p-4 text-sm text-gray-700">
-                                <p className="whitespace-pre-wrap">{activeTask.content}</p>
-                              </div>
-                            )}
-                          </div>
-                        </ResizablePanel>
-                      )}
+              <div className="flex flex-col items-end justify-between gap-4">
+                <div className="mt-0 flex shrink-0 items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowTasksPanel(true)}
+                    className="gap-2 font-medium text-slate-700 hover:text-slate-900"
+                  >
+                    <ListTodo className="h-4 w-4" />
+                    Directory
+                    {unseenTaskIds.length > 0 && (
+                      <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
+                        {unseenTaskIds.length}
+                      </span>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowFeedbackPanel(true)}
+                    className="gap-2 font-medium text-slate-700 hover:text-slate-900"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    Feedback
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+          {sessionContext && (sessionContext.topic || sessionContext.objectives) && (
+            <div className="border-t border-blue-100 bg-blue-50/60 px-4 py-2 text-sm text-blue-900">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                {sessionContext.topic && (
+                  <span>
+                    <span className="font-semibold">Lesson:</span> {sessionContext.topic}
+                  </span>
+                )}
+              </div>
+              {sessionContext.objectives && sessionContext.objectives.length > 0 && (
+                <div className="mt-1 text-xs text-blue-800">
+                  <span className="font-semibold">Objectives:</span>{' '}
+                  {sessionContext.objectives.map((obj, idx) => (
+                    <span key={idx}>
+                      {idx + 1}) {obj}{' '}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          <div id="student-live-tabs-portal" className="mt-2 w-full" />
+        </div>
 
-                      {(activeTask.sourceDocument || activeTask.content) &&
-                      activeTask.dmiItems?.length ? (
-                        <ResizableHandle withHandle />
-                      ) : null}
+        {sessionContext?.roomUrl && (
+          <div className="h-44 w-full border-b bg-black sm:h-52">
+            <DailyVideoFrame roomUrl={sessionContext.roomUrl} token={sessionContext.token} />
+          </div>
+        )}
 
-                      {activeTask.dmiItems && activeTask.dmiItems.length > 0 && (
-                        <ResizablePanel
-                          defaultSize={activeTask.sourceDocument || activeTask.content ? 50 : 100}
-                          minSize={20}
-                        >
-                          <div className="h-full w-full overflow-y-auto bg-gray-50/50 p-4">
-                            <div className="space-y-2">
-                              <p className="text-xs font-semibold uppercase text-gray-500">
-                                Task Prompts (DMI)
-                              </p>
+        <div className="flex-1 p-4 pt-4 sm:p-6">
+          <div className="flex h-full flex-col gap-6">
+            <Tabs defaultValue="task" className="flex flex-1 flex-col">
+              {portalTarget ? (
+                createPortal(
+                  <div className="mb-0 min-h-[48px] w-full shrink-0">
+                    <TabsList className="grid h-[48px] w-full grid-cols-3 gap-2 border-0 bg-transparent p-0 shadow-none">
+                      <TabsTrigger
+                        value="task"
+                        className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+                      >
+                        Classroom
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="my-board"
+                        className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+                      >
+                        My Board
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="tutor-board"
+                        className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+                      >
+                        Tutor Board
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>,
+                  portalTarget
+                )
+              ) : (
+                <div className="hidden">
+                  <TabsList>
+                    <TabsTrigger value="task">Classroom</TabsTrigger>
+                    <TabsTrigger value="my-board">My Board</TabsTrigger>
+                    <TabsTrigger value="tutor-board">Tutor Board</TabsTrigger>
+                  </TabsList>
+                </div>
+              )}
+
+              <TabsContent value="task" className="flex-1 outline-none">
+                <Card className="min-h-[420px]">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between gap-3">
+                      <span>{activeTask?.title || 'Select a task to begin'}</span>
+                      <Button variant="ghost" size="icon">
+                        <Bell className="h-4 w-4" />
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="h-[calc(100vh-280px)] min-h-[600px] flex-1 space-y-4 overflow-hidden p-0">
+                    {activeTask ? (
+                      <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
+                        {(activeTask.sourceDocument || activeTask.content) && (
+                          <ResizablePanel
+                            defaultSize={activeTask.dmiItems?.length ? 50 : 100}
+                            minSize={20}
+                          >
+                            <div className="h-full w-full overflow-y-auto p-4">
+                              {activeTask.sourceDocument ? (
+                                <div className="h-full space-y-2">
+                                  <p className="text-xs font-semibold uppercase text-gray-500">
+                                    Document
+                                  </p>
+                                  {activeTask.sourceDocument.mimeType === 'application/pdf' ? (
+                                    <div className="h-[calc(100%-24px)] w-full overflow-hidden rounded border">
+                                      <iframe
+                                        src={`${activeTask.sourceDocument.fileUrl}#toolbar=0&navpanes=0`}
+                                        title={activeTask.sourceDocument.fileName}
+                                        className="h-full w-full"
+                                      />
+                                    </div>
+                                  ) : activeTask.sourceDocument.mimeType.startsWith('image/') ? (
+                                    <div className="overflow-hidden rounded border">
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img
+                                        src={activeTask.sourceDocument.fileUrl}
+                                        alt={activeTask.sourceDocument.fileName}
+                                        className="h-auto max-h-[500px] w-full object-contain"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-2 rounded border bg-white p-4">
+                                      <FileText className="h-5 w-5 text-blue-600" />
+                                      <a
+                                        href={activeTask.sourceDocument.fileUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-sm text-blue-600 underline"
+                                      >
+                                        Open {activeTask.sourceDocument.fileName}
+                                      </a>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="rounded-lg border bg-white p-4 text-sm text-gray-700">
+                                  <p className="whitespace-pre-wrap">{activeTask.content}</p>
+                                </div>
+                              )}
+                            </div>
+                          </ResizablePanel>
+                        )}
+
+                        {(activeTask.sourceDocument || activeTask.content) &&
+                        activeTask.dmiItems?.length ? (
+                          <ResizableHandle withHandle />
+                        ) : null}
+
+                        {activeTask.dmiItems && activeTask.dmiItems.length > 0 && (
+                          <ResizablePanel
+                            defaultSize={activeTask.sourceDocument || activeTask.content ? 50 : 100}
+                            minSize={20}
+                          >
+                            <div className="h-full w-full overflow-y-auto bg-gray-50/50 p-4">
                               <div className="space-y-2">
-                                {activeTask.dmiItems.map(item => (
-                                  <div
-                                    key={item.id}
-                                    className="rounded-lg border bg-white p-3 shadow-sm"
-                                  >
-                                    <p className="mb-1 text-xs font-semibold text-blue-600">
-                                      Q{item.questionNumber}
-                                    </p>
-                                    <p className="text-sm font-medium text-gray-800">
-                                      {item.questionText}
-                                    </p>
-                                  </div>
-                                ))}
+                                <p className="text-xs font-semibold uppercase text-gray-500">
+                                  Task Prompts (DMI)
+                                </p>
+                                <div className="space-y-2">
+                                  {activeTask.dmiItems.map(item => (
+                                    <div
+                                      key={item.id}
+                                      className="rounded-lg border bg-white p-3 shadow-sm"
+                                    >
+                                      <p className="mb-1 text-xs font-semibold text-blue-600">
+                                        Q{item.questionNumber}
+                                      </p>
+                                      <p className="text-sm font-medium text-gray-800">
+                                        {item.questionText}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </ResizablePanel>
-                      )}
-                    </ResizablePanelGroup>
-                  ) : (
-                    <div className="flex h-full items-center justify-center p-8">
-                      <div className="rounded-lg border border-dashed border-gray-200 p-8 text-center text-sm text-gray-500">
-                        Choose a task from the Tasks panel to view it here.
+                          </ResizablePanel>
+                        )}
+                      </ResizablePanelGroup>
+                    ) : (
+                      <div className="flex h-full items-center justify-center p-8">
+                        <div className="rounded-lg border border-dashed border-gray-200 p-8 text-center text-sm text-gray-500">
+                          Choose a task from the Tasks panel to view it here.
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-            <TabsContent value="my-board" className="flex-1 outline-none">
-              <Card className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden shadow-xl ring-1 ring-black/5">
-                <EnhancedWhiteboard
-                  pages={myBoardPages}
-                  currentPageIndex={myBoardPageIndex}
-                  onPagesChange={setMyBoardPages}
-                  onPageIndexChange={setMyBoardPageIndex}
-                />
-              </Card>
-            </TabsContent>
+              <TabsContent value="my-board" className="flex-1 outline-none">
+                <Card className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden shadow-xl ring-1 ring-black/5">
+                  <EnhancedWhiteboard
+                    pages={myBoardPages}
+                    currentPageIndex={myBoardPageIndex}
+                    onPagesChange={setMyBoardPages}
+                    onPageIndexChange={setMyBoardPageIndex}
+                  />
+                </Card>
+              </TabsContent>
 
-            <TabsContent value="tutor-board" className="flex-1 outline-none">
-              <Card className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden shadow-xl ring-1 ring-black/5">
-                <EnhancedWhiteboard
-                  readOnly
-                  pages={tutorBoardPages}
-                  currentPageIndex={tutorBoardPageIndex}
-                  onPagesChange={setTutorBoardPages}
-                  onPageIndexChange={setTutorBoardPageIndex}
-                />
-              </Card>
-            </TabsContent>
-          </Tabs>
+              <TabsContent value="tutor-board" className="flex-1 outline-none">
+                <Card className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden shadow-xl ring-1 ring-black/5">
+                  <EnhancedWhiteboard
+                    readOnly
+                    pages={tutorBoardPages}
+                    currentPageIndex={tutorBoardPageIndex}
+                    onPagesChange={setTutorBoardPages}
+                    onPageIndexChange={setTutorBoardPageIndex}
+                  />
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
-      </div>
 
-      <div className="border-t bg-white p-4">
-        <div className="mx-auto flex max-w-5xl items-end gap-3">
-          <div className="relative flex-1">
-            <AutoTextarea
-              placeholder="Type a message to the class..."
-              className="min-h-[52px] w-full pr-12"
-              value={chatInput}
-              onChange={event => setChatInput(event.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
+        <div className="border-t bg-white p-4">
+          <div className="mx-auto flex max-w-5xl items-end gap-3">
+            <div className="relative flex-1">
+              <AutoTextarea
+                placeholder="Type a message to the class..."
+                className="min-h-[52px] w-full pr-12"
+                value={chatInput}
+                onChange={event => setChatInput(event.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    if (chatInput.trim() && socket) {
+                      socket.emit('chat_message', { text: chatInput.trim() })
+                      setChatInput('')
+                    }
+                  }
+                }}
+              />
+              <Button
+                size="icon"
+                className="absolute bottom-2 right-2 h-8 w-8"
+                disabled={!chatInput.trim() || !socket}
+                onClick={() => {
                   if (chatInput.trim() && socket) {
                     socket.emit('chat_message', { text: chatInput.trim() })
                     setChatInput('')
                   }
-                }
-              }}
-            />
-            <Button
-              size="icon"
-              className="absolute bottom-2 right-2 h-8 w-8"
-              disabled={!chatInput.trim() || !socket}
-              onClick={() => {
-                if (chatInput.trim() && socket) {
-                  socket.emit('chat_message', { text: chatInput.trim() })
-                  setChatInput('')
-                }
-              }}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+                }}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>

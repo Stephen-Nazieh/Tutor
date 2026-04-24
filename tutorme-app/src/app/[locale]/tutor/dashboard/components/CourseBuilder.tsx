@@ -6865,9 +6865,68 @@ FEEDBACK: [your explanation]`
                                             testPciLoading
                                           }
                                           onClick={handleTestPciSubmit}
+                                          title="Send"
                                         >
                                           <Send className="h-4 w-4" />
                                         </Button>
+                                        <Button
+                                          size="icon"
+                                          className="h-9 w-9 rounded-xl bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 disabled:opacity-30"
+                                          disabled={testPciLoading}
+                                          onClick={() => {
+                                            if (onSave) {
+                                              onSave(
+                                                nodes.map(n => n.lessons[0] || ({} as any)),
+                                                { developmentMode: devMode, previewDifficulty }
+                                              )
+                                              toast.success('Course and PCI saved')
+                                            }
+                                          }}
+                                          title="Save Course & PCI"
+                                        >
+                                          <Save className="h-4 w-4" />
+                                        </Button>
+                                        {insightsProps?.onDeployTask && (
+                                          <Button
+                                            size="icon"
+                                            className="h-9 w-9 rounded-xl bg-indigo-500 text-white shadow-sm hover:bg-indigo-600 disabled:opacity-30"
+                                            disabled={testPciLoading || (!loadedTaskId && !loadedAssessmentId)}
+                                            onClick={() => {
+                                              if (testPciSource === 'task') {
+                                                const task = findTaskById(loadedTaskId || '')
+                                                if (task) {
+                                                  insightsProps.onDeployTask({
+                                                    id: task.id,
+                                                    title: task.title || 'Task',
+                                                    content: task.description || '',
+                                                    source: 'task',
+                                                    dmiItems: task.dmiItems?.map(item => ({
+                                                      id: item.id,
+                                                      questionNumber: item.questionNumber,
+                                                      questionText: item.questionText,
+                                                    })) || [],
+                                                    deployedAt: Date.now(),
+                                                    polls: [],
+                                                    questions: [],
+                                                    sourceDocument: task.sourceDocument
+                                                      ? {
+                                                          fileName: task.sourceDocument.fileName,
+                                                          fileUrl: task.sourceDocument.fileUrl,
+                                                          mimeType: task.sourceDocument.mimeType || 'application/pdf',
+                                                        }
+                                                      : undefined,
+                                                  })
+                                                  toast.success('Task DMI deployed to live class')
+                                                }
+                                              } else {
+                                                handleDeployAssessmentDmi()
+                                              }
+                                            }}
+                                            title="Deploy to Class"
+                                          >
+                                            <Play className="h-4 w-4" />
+                                          </Button>
+                                        )}
                                       </div>
                                     </div>
                                     <div className="border-border/50 bg-muted/20 border-t px-1 py-1">
