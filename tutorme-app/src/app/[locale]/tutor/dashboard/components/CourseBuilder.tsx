@@ -253,33 +253,71 @@ import { ChevronLeft as ChevronLeftIcon } from 'lucide-react'
 
 function InsightsReportView({
   type,
-  onMentionStudent
+  onMentionStudent,
 }: {
   type: 'poll' | 'question'
   onMentionStudent: (studentName: string) => void
 }) {
   const [reportType, setReportType] = useState<'simple' | 'detailed'>('simple')
-  const [selectedGroup, setSelectedGroup] = useState<{ label: string, students: string[] } | null>(null)
+  const [selectedGroup, setSelectedGroup] = useState<{ label: string; students: string[] } | null>(
+    null
+  )
 
   const simpleData = [
-    { label: 'Option A', count: 12, percent: 40, students: ['Alice', 'Bob', 'Charlie', 'Dave', 'Eve'] },
+    {
+      label: 'Option A',
+      count: 12,
+      percent: 40,
+      students: ['Alice', 'Bob', 'Charlie', 'Dave', 'Eve'],
+    },
     { label: 'Option B', count: 9, percent: 30, students: ['Frank', 'Grace', 'Heidi'] },
     { label: 'Option C', count: 6, percent: 20, students: ['Ivan', 'Judy'] },
-    { label: 'Option D', count: 3, percent: 10, students: ['Mallory'] }
+    { label: 'Option D', count: 3, percent: 10, students: ['Mallory'] },
   ]
 
   const detailedData = [
-    { group: 'Male', data: [{ label: 'Option A', count: 5, students: ['Alice', 'Bob'] }, { label: 'Option B', count: 4, students: ['Charlie'] }] },
-    { group: 'Female', data: [{ label: 'Option A', count: 7, students: ['Dave', 'Eve'] }, { label: 'Option B', count: 5, students: ['Frank'] }] },
-    { group: 'US', data: [{ label: 'Option A', count: 8, students: ['Grace', 'Heidi'] }, { label: 'Option B', count: 3, students: ['Ivan'] }] },
-    { group: 'UK', data: [{ label: 'Option A', count: 4, students: ['Judy'] }, { label: 'Option B', count: 6, students: ['Mallory'] }] }
+    {
+      group: 'Male',
+      data: [
+        { label: 'Option A', count: 5, students: ['Alice', 'Bob'] },
+        { label: 'Option B', count: 4, students: ['Charlie'] },
+      ],
+    },
+    {
+      group: 'Female',
+      data: [
+        { label: 'Option A', count: 7, students: ['Dave', 'Eve'] },
+        { label: 'Option B', count: 5, students: ['Frank'] },
+      ],
+    },
+    {
+      group: 'US',
+      data: [
+        { label: 'Option A', count: 8, students: ['Grace', 'Heidi'] },
+        { label: 'Option B', count: 3, students: ['Ivan'] },
+      ],
+    },
+    {
+      group: 'UK',
+      data: [
+        { label: 'Option A', count: 4, students: ['Judy'] },
+        { label: 'Option B', count: 6, students: ['Mallory'] },
+      ],
+    },
   ]
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden mb-2 rounded-2xl border border-cyan-100 bg-white/60 shadow-sm backdrop-blur-md p-3">
-      <div className="flex items-center justify-between mb-3 border-b border-cyan-100 pb-2">
-        <span className="text-sm font-semibold text-cyan-800 uppercase tracking-wider">{type === 'poll' ? 'Poll Results' : 'Question Results'}</span>
-        <Button variant="outline" size="sm" className="h-7 text-xs bg-white text-cyan-700 hover:bg-cyan-50" onClick={() => setReportType(r => r === 'simple' ? 'detailed' : 'simple')}>
+    <div className="mb-2 flex flex-1 flex-col overflow-hidden rounded-2xl border border-cyan-100 bg-white/60 p-3 shadow-sm backdrop-blur-md">
+      <div className="mb-3 flex items-center justify-between border-b border-cyan-100 pb-2">
+        <span className="text-sm font-semibold uppercase tracking-wider text-cyan-800">
+          {type === 'poll' ? 'Poll Results' : 'Question Results'}
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 bg-white text-xs text-cyan-700 hover:bg-cyan-50"
+          onClick={() => setReportType(r => (r === 'simple' ? 'detailed' : 'simple'))}
+        >
           {reportType === 'simple' ? 'Detailed Report' : 'Simple Report'}
         </Button>
       </div>
@@ -287,13 +325,22 @@ function InsightsReportView({
         {reportType === 'simple' ? (
           <div className="space-y-4">
             {simpleData.map(item => (
-              <div key={item.label} className="cursor-pointer hover:bg-white p-2 rounded-xl transition-colors border border-transparent hover:border-cyan-100 shadow-sm" onClick={() => setSelectedGroup({ label: item.label, students: item.students })}>
-                <div className="flex justify-between text-xs font-medium text-slate-700 mb-1.5">
+              <div
+                key={item.label}
+                className="cursor-pointer rounded-xl border border-transparent p-2 shadow-sm transition-colors hover:border-cyan-100 hover:bg-white"
+                onClick={() => setSelectedGroup({ label: item.label, students: item.students })}
+              >
+                <div className="mb-1.5 flex justify-between text-xs font-medium text-slate-700">
                   <span>{item.label}</span>
-                  <span className="text-cyan-600">{item.count} ({item.percent}%)</span>
+                  <span className="text-cyan-600">
+                    {item.count} ({item.percent}%)
+                  </span>
                 </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-cyan-500 rounded-full" style={{ width: `${item.percent}%` }} />
+                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-cyan-500"
+                    style={{ width: `${item.percent}%` }}
+                  />
                 </div>
               </div>
             ))}
@@ -301,13 +348,26 @@ function InsightsReportView({
         ) : (
           <div className="space-y-5">
             {detailedData.map(group => (
-              <div key={group.group} className="bg-white/50 p-2 rounded-xl border border-slate-100">
-                <h4 className="text-xs font-semibold text-slate-700 mb-2">{group.group}</h4>
+              <div key={group.group} className="rounded-xl border border-slate-100 bg-white/50 p-2">
+                <h4 className="mb-2 text-xs font-semibold text-slate-700">{group.group}</h4>
                 <div className="space-y-2">
                   {group.data.map(item => (
-                    <div key={item.label} className="cursor-pointer hover:bg-white p-1.5 rounded-lg transition-colors flex items-center justify-between group/item" onClick={() => setSelectedGroup({ label: `${group.group} - ${item.label}`, students: item.students })}>
-                      <span className="text-xs text-slate-600 group-hover/item:text-cyan-700">{item.label}</span>
-                      <span className="text-xs font-medium text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded-full">{item.count}</span>
+                    <div
+                      key={item.label}
+                      className="group/item flex cursor-pointer items-center justify-between rounded-lg p-1.5 transition-colors hover:bg-white"
+                      onClick={() =>
+                        setSelectedGroup({
+                          label: `${group.group} - ${item.label}`,
+                          students: item.students,
+                        })
+                      }
+                    >
+                      <span className="text-xs text-slate-600 group-hover/item:text-cyan-700">
+                        {item.label}
+                      </span>
+                      <span className="rounded-full bg-cyan-50 px-2 py-0.5 text-xs font-medium text-cyan-600">
+                        {item.count}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -317,25 +377,35 @@ function InsightsReportView({
         )}
       </div>
 
-      <Dialog open={!!selectedGroup} onOpenChange={(o) => !o && setSelectedGroup(null)}>
+      <Dialog open={!!selectedGroup} onOpenChange={o => !o && setSelectedGroup(null)}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle className="text-lg">Students in {selectedGroup?.label}</DialogTitle>
           </DialogHeader>
-          <div className="max-h-[300px] mt-2 overflow-y-auto">
+          <div className="mt-2 max-h-[300px] overflow-y-auto">
             <div className="space-y-2 pr-4">
               {selectedGroup?.students.map(s => (
-                <div key={s} className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-xl cursor-pointer border border-slate-100 transition-colors" onClick={() => {
-                  onMentionStudent(s)
-                  setSelectedGroup(null)
-                }}>
+                <div
+                  key={s}
+                  className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-100 p-3 transition-colors hover:bg-slate-50"
+                  onClick={() => {
+                    onMentionStudent(s)
+                    setSelectedGroup(null)
+                  }}
+                >
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-700 font-medium text-xs">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-100 text-xs font-medium text-cyan-700">
                       {s.charAt(0)}
                     </div>
                     <span className="text-sm font-medium text-slate-700">{s}</span>
                   </div>
-                  <Button size="sm" variant="ghost" className="h-8 text-xs text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50">@ Mention</Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 text-xs text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700"
+                  >
+                    @ Mention
+                  </Button>
                 </div>
               ))}
             </div>
@@ -491,6 +561,15 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [assetPickerTarget, setAssetPickerTarget] = useState<'task' | 'assessment' | null>(null)
     const [assetViewSearch, setAssetViewSearch] = useState('')
     const [assetViewFolder, setAssetViewFolder] = useState<string>('All')
+
+    const designatedFolder = useMemo(() => {
+      const liveCourse = insightsProps?.courses?.find(c => c.id === courseId)
+      if (liveCourse && (liveCourse as any).categories?.length > 0) {
+        return (liveCourse as any).categories[0]
+      }
+      return courseName?.trim() || 'Uncategorized'
+    }, [insightsProps?.courses, courseId, courseName])
+
     const [assetFoldersList, setAssetFoldersList] = useState<string[]>(() => {
       if (typeof window !== 'undefined') {
         try {
@@ -506,11 +585,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // Compute the full list of folders combining custom folders and published course categories
     const computedAssetFolders = useMemo(() => {
       const folders = new Set<string>(assetFoldersList)
-      
+
       // Add custom folders that assets might already be in
       courseAssets.forEach(a => {
         if (a.folder) folders.add(a.folder)
       })
+
+      // Add designated folder if not already present
+      if (designatedFolder !== 'Uncategorized') folders.add(designatedFolder)
 
       // Add categories from published courses
       if (Array.isArray(insightsProps?.courses)) {
@@ -776,10 +858,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       if (activeItemId) setExtractedTextFontSizeMap(prev => ({ ...prev, [activeItemId]: val }))
     }
     const activeInsightsTaskId = mainBuilderTab === 'assessment' ? loadedAssessmentId : loadedTaskId
-    const activeInsightsTask =
-  activeInsightsTaskId
-    ? (nodes.flatMap(n => n.lessons.flatMap(l => [...l.tasks, ...(l.homework || [])])).find(item => item.id === activeInsightsTaskId) ?? null)
-    : null
+    const activeInsightsTask = activeInsightsTaskId
+      ? (nodes
+          .flatMap(n => n.lessons.flatMap(l => [...l.tasks, ...(l.homework || [])]))
+          .find(item => item.id === activeInsightsTaskId) ?? null)
+      : null
 
     // Insights panel state (per item)
     const [insightsTabMap, setInsightsTabMap] = useState<
@@ -799,17 +882,21 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       setInsightsTabMap(prev => ({ ...prev, [currentInsightsId]: val }))
 
     const showAIPoll = showAIPollMap[currentInsightsId] ?? false
-    const setShowAIPoll = (val: boolean) => setShowAIPollMap(prev => ({ ...prev, [currentInsightsId]: val }))
+    const setShowAIPoll = (val: boolean) =>
+      setShowAIPollMap(prev => ({ ...prev, [currentInsightsId]: val }))
 
     const showAIQuestion = showAIQuestionMap[currentInsightsId] ?? false
-    const setShowAIQuestion = (val: boolean) => setShowAIQuestionMap(prev => ({ ...prev, [currentInsightsId]: val }))
+    const setShowAIQuestion = (val: boolean) =>
+      setShowAIQuestionMap(prev => ({ ...prev, [currentInsightsId]: val }))
 
     const pollPrompt = pollPromptMap[currentInsightsId] ?? 'Did you find this task difficult'
     const setPollPrompt = (val: string) =>
       setPollPromptMap(prev => ({ ...prev, [currentInsightsId]: val }))
 
-    const questionPrompt = questionPromptMap[currentInsightsId] ?? 'Do you have a question about this task?'
-    const setQuestionPrompt = (val: string) => setQuestionPromptMap(prev => ({ ...prev, [currentInsightsId]: val }))
+    const questionPrompt =
+      questionPromptMap[currentInsightsId] ?? 'Do you have a question about this task?'
+    const setQuestionPrompt = (val: string) =>
+      setQuestionPromptMap(prev => ({ ...prev, [currentInsightsId]: val }))
 
     const mentionItems: MentionItem[] = useMemo(() => {
       const items: MentionItem[] = []
@@ -1464,7 +1551,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       if (!input.trim() || loading) return
 
       const userMessage = input.trim()
-      
+
       // Only clear input map if we didn't use an override
       if (!overrideMessage) {
         if (isTask) {
@@ -3117,6 +3204,17 @@ FEEDBACK: [your explanation]`
             e.preventDefault()
             e.stopPropagation()
 
+            if (
+              asset.folder &&
+              designatedFolder !== 'Uncategorized' &&
+              asset.folder !== designatedFolder
+            ) {
+              const confirmLoad = window.confirm(
+                `This document belongs to the folder "${asset.folder}", but you are currently editing "${designatedFolder}". Are you sure you want to load it here?`
+              )
+              if (!confirmLoad) return
+            }
+
             if (target === 'assessment') {
               if (!asset.url) {
                 toast.error(
@@ -3231,6 +3329,7 @@ FEEDBACK: [your explanation]`
             content: extractedText || `[Imported ${f.name}]`,
             url: fileUrl,
             mimeType: fileMimeType,
+            folder: designatedFolder !== 'Uncategorized' ? designatedFolder : undefined,
           }
 
           setCourseAssets(prev => [...prev, newAsset])
@@ -3397,6 +3496,18 @@ FEEDBACK: [your explanation]`
       mimeType?: string
       folder?: string
     }) => {
+      // Warn if loading from a folder that doesn't match the current course's designated folder
+      if (
+        asset.folder &&
+        designatedFolder !== 'Uncategorized' &&
+        asset.folder !== designatedFolder
+      ) {
+        const confirmLoad = window.confirm(
+          `This document belongs to the folder "${asset.folder}", but you are currently editing "${designatedFolder}". Are you sure you want to load it here?`
+        )
+        if (!confirmLoad) return
+      }
+
       setAssetToLoad(asset)
 
       // If we already opened the view assets modal from an assessment or task kebab menu,
@@ -3506,6 +3617,7 @@ FEEDBACK: [your explanation]`
                         content: textContent,
                         url: fileUrl || undefined,
                         mimeType: fileMimeType || undefined,
+                        folder: designatedFolder !== 'Uncategorized' ? designatedFolder : undefined,
                       }
                     })
                   )
@@ -3514,7 +3626,10 @@ FEEDBACK: [your explanation]`
                   e.target.value = ''
                 }}
               />
-              <span className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-700" title="Upload Asset">
+              <span
+                className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
+                title="Upload Asset"
+              >
                 <Plus className="h-4 w-4" />
               </span>
             </label>
@@ -3614,9 +3729,7 @@ FEEDBACK: [your explanation]`
         >
           <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>
-                Load as...
-              </DialogTitle>
+              <DialogTitle>Load as...</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4 py-4">
               <p className="text-sm text-gray-500">
@@ -3670,7 +3783,8 @@ FEEDBACK: [your explanation]`
                   const newCourseBuilderNodes = [...nodes]
                   const newTasks: Task[] = []
 
-                  const startIndex = newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.length
+                  const startIndex =
+                    newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.length
                   const groupNumber = startIndex + 1
 
                   pages.forEach((pageContent, idx) => {
@@ -3697,14 +3811,17 @@ FEEDBACK: [your explanation]`
                     const firstNew = newTasks[0]
                     setSelectedItem({ type: 'task', id: firstNew.id })
                     loadTaskIntoBuilder(firstNew)
-                    
+
                     // Show PDF by default, hide text
                     setTaskPdfVisibleMap(prev => ({ ...prev, [firstNew.id]: true }))
                     setTaskTextVisibleMap(prev => ({ ...prev, [firstNew.id]: false }))
 
                     // Auto-send first PCI message
                     setTimeout(() => {
-                      handlePciSend('task', `I just uploaded a document named '${assetToLoad?.name}'. Please provide a brief summary of its content, especially noting any diagrams or images if applicable, and ask me to confirm if you got it right so we can build a rubric together.`)
+                      handlePciSend(
+                        'task',
+                        `I just uploaded a document named '${assetToLoad?.name}'. Please provide a brief summary of its content, especially noting any diagrams or images if applicable, and ask me to confirm if you got it right so we can build a rubric together.`
+                      )
                     }, 500)
                   }
 
@@ -3744,9 +3861,7 @@ FEEDBACK: [your explanation]`
                   const nodeIndex = nodes.findIndex(m => m.id === nodeId)
                   const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
 
-                  const newTask = DEFAULT_TASK(
-                    nodes[nodeIndex].lessons[lessonIndex].tasks.length
-                  )
+                  const newTask = DEFAULT_TASK(nodes[nodeIndex].lessons[lessonIndex].tasks.length)
                   newTask.description = pages[0] || textToInsert
                   if (assetToLoad.url && assetToLoad.mimeType) {
                     newTask.sourceDocument = {
@@ -3804,10 +3919,13 @@ FEEDBACK: [your explanation]`
                   )
                   setLoadAsModalOpen(false)
                   setAssetToLoad(null)
-                  
+
                   // Auto-send first PCI message
                   setTimeout(() => {
-                    handlePciSend('task', `I just uploaded a document named '${assetToLoad?.name}'. Please provide a brief summary of its content, especially noting any diagrams or images if applicable, and ask me to confirm if you got it right so we can build a rubric together.`)
+                    handlePciSend(
+                      'task',
+                      `I just uploaded a document named '${assetToLoad?.name}'. Please provide a brief summary of its content, especially noting any diagrams or images if applicable, and ask me to confirm if you got it right so we can build a rubric together.`
+                    )
                   }, 500)
                 }}
               >
@@ -3905,7 +4023,10 @@ FEEDBACK: [your explanation]`
 
                   // Auto-send first PCI message
                   setTimeout(() => {
-                    handlePciSend('assessment', `I just uploaded a document named '${assetToLoad?.name}'. Please provide a brief summary of its content, especially noting any diagrams or images if applicable, and ask me to confirm if you got it right so we can build a rubric together.`)
+                    handlePciSend(
+                      'assessment',
+                      `I just uploaded a document named '${assetToLoad?.name}'. Please provide a brief summary of its content, especially noting any diagrams or images if applicable, and ask me to confirm if you got it right so we can build a rubric together.`
+                    )
                   }, 500)
                 }}
               >
@@ -4080,11 +4201,13 @@ FEEDBACK: [your explanation]`
                                 }}
                               >
                                 <option value="">Uncategorized</option>
-                                {computedAssetFolders.filter(f => f !== 'All').map(f => (
-                                  <option key={f} value={f}>
-                                    {f}
-                                  </option>
-                                ))}
+                                {computedAssetFolders
+                                  .filter(f => f !== 'All')
+                                  .map(f => (
+                                    <option key={f} value={f}>
+                                      {f}
+                                    </option>
+                                  ))}
                               </select>
 
                               {/* Kebab menu for Load / Delete */}
@@ -4345,10 +4468,10 @@ FEEDBACK: [your explanation]`
       : null
     const isSessionActive = activeSession?.status === 'active'
     const isLiveMode = saveMode !== undefined ? saveMode === 'live' : coursePropsModal.isLive
-    
+
     // Check if the portal target exists
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null)
-    
+
     useEffect(() => {
       const el = document.getElementById('course-builder-tabs-portal')
       if (el) {
@@ -4372,21 +4495,21 @@ FEEDBACK: [your explanation]`
               onMainTabChange(v as 'live' | 'builder' | 'test-pci')
             }
           }}
-          className="flex h-full w-full flex-1 flex-col px-4 sm:px-6 pt-0 bg-gray-50/50"
+          className="flex h-full w-full flex-1 flex-col bg-gray-50/50 px-4 pt-0 sm:px-6"
         >
           {portalTarget ? (
             createPortal(
-              <div className="min-h-[48px] shrink-0 w-full mb-0">
-                <TabsList className="grid w-full h-[48px] gap-2 grid-cols-3 bg-transparent border-0 shadow-none">
-                  <TabsTrigger 
-                    value="live" 
+              <div className="mb-0 min-h-[48px] w-full shrink-0">
+                <TabsList className="grid h-[48px] w-full grid-cols-3 gap-2 border-0 bg-transparent shadow-none">
+                  <TabsTrigger
+                    value="live"
                     className={cn(
                       'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
                       mainTab === 'live'
-                        ? (!isSessionActive 
-                            ? 'bg-white text-green-600 border border-green-200 shadow-sm' 
-                            : 'bg-white text-red-600 border border-red-200 shadow-sm')
-                        : 'text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm border border-transparent'
+                        ? !isSessionActive
+                          ? 'border border-green-200 bg-white text-green-600 shadow-sm'
+                          : 'border border-red-200 bg-white text-red-600 shadow-sm'
+                        : 'border border-transparent text-[#667085] hover:bg-white hover:text-[#344054] hover:shadow-sm'
                     )}
                     onClick={e => {
                       if (mainTab !== 'live') {
@@ -4409,24 +4532,26 @@ FEEDBACK: [your explanation]`
                         }
                       }}
                     >
-                      <VideoIcon className={cn(
-                        'h-4 w-4 transition-all duration-300', 
-                        isLiveMode 
-                          ? (!isSessionActive 
+                      <VideoIcon
+                        className={cn(
+                          'h-4 w-4 transition-all duration-300',
+                          isLiveMode
+                            ? !isSessionActive
                               ? 'animate-pulse text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
-                              : 'animate-pulse text-red-500 drop-shadow-[0_0_8px_rgba(220,38,38,0.8)]')
-                          : ''
-                      )} />
+                              : 'animate-pulse text-red-500 drop-shadow-[0_0_8px_rgba(220,38,38,0.8)]'
+                            : ''
+                        )}
+                      />
                       {isSessionActive ? 'Go Live' : 'Go Live'}
                     </div>
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="test-pci" 
+                  <TabsTrigger
+                    value="test-pci"
                     className={cn(
                       'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
                       mainTab === 'test-pci'
-                        ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-sm'
-                        : 'text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm border border-transparent'
+                        ? 'border border-[#BFDBFE] bg-white text-[#2563EB] shadow-sm'
+                        : 'border border-transparent text-[#667085] hover:bg-white hover:text-[#344054] hover:shadow-sm'
                     )}
                     onClick={e => {
                       if (mainTab !== 'test-pci') {
@@ -4437,13 +4562,13 @@ FEEDBACK: [your explanation]`
                     <TestTube2 className="h-4 w-4" />
                     Test
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="builder" 
+                  <TabsTrigger
+                    value="builder"
                     className={cn(
                       'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
                       mainTab === 'builder'
-                        ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-sm'
-                        : 'text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm border border-transparent'
+                        ? 'border border-[#BFDBFE] bg-white text-[#2563EB] shadow-sm'
+                        : 'border border-transparent text-[#667085] hover:bg-white hover:text-[#344054] hover:shadow-sm'
                     )}
                     onClick={e => {
                       if (mainTab !== 'builder') {
@@ -4457,7 +4582,8 @@ FEEDBACK: [your explanation]`
                         mainTab === 'builder'
                           ? 'pointer-events-auto cursor-pointer'
                           : 'pointer-events-none',
-                        isLiveMode && 'animate-pulse shadow-[0_0_8px_rgba(37,99,235,0.5)] border-blue-300/50 bg-blue-50/30'
+                        isLiveMode &&
+                          'animate-pulse border-blue-300/50 bg-blue-50/30 shadow-[0_0_8px_rgba(37,99,235,0.5)]'
                       )}
                       onPointerDown={e => {
                         if (mainTab === 'builder') {
@@ -4495,14 +4621,14 @@ FEEDBACK: [your explanation]`
             {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
             {leftPanelHidden && (
               <div
-                className="absolute left-0 top-1/2 z-50 -translate-y-1/2 flex h-16 w-8 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:bg-slate-50 hover:w-10"
+                className="absolute left-0 top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
                 onClick={() => setLeftPanelHidden(false)}
                 title="Show directory"
               >
                 <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
               </div>
             )}
-            
+
             {!leftPanelHidden && (
               <>
                 <div
@@ -4519,7 +4645,7 @@ FEEDBACK: [your explanation]`
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 hover:bg-[#F2F4F7] text-[#98A2B3]"
+                              className="h-7 w-7 text-[#98A2B3] hover:bg-[#F2F4F7]"
                               onClick={() => setLeftPanelHidden(true)}
                               title="Hide panel"
                               aria-label="Hide panel"
@@ -4730,9 +4856,13 @@ FEEDBACK: [your explanation]`
                                                   <ClipboardList className="h-4 w-4" />
                                                 </div>
                                                 <div className="min-w-0">
-                                                  <div className="text-sm font-semibold text-[#2B5FB8]">Tasks</div>
+                                                  <div className="text-sm font-semibold text-[#2B5FB8]">
+                                                    Tasks
+                                                  </div>
                                                   <div className="text-[11px] text-[#667085]">
-                                                    {taskCount > 0 ? `${taskCount} item${taskCount > 1 ? 's' : ''}` : 'No items yet'}
+                                                    {taskCount > 0
+                                                      ? `${taskCount} item${taskCount > 1 ? 's' : ''}`
+                                                      : 'No items yet'}
                                                   </div>
                                                 </div>
                                               </div>
@@ -4781,12 +4911,17 @@ FEEDBACK: [your explanation]`
                                                     >
                                                       <div
                                                         className={cn(
-                                                          'group/item relative overflow-hidden mb-2 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-2 shadow-sm transition-colors',
+                                                          'group/item relative mb-2 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 overflow-hidden rounded-xl border px-3 py-2 shadow-sm transition-colors',
                                                           selectedItem?.type === 'task' &&
                                                             selectedItem?.id === task.id
                                                             ? 'border-[#4A90FF] bg-[#F2F7FF] ring-1 ring-[#4A90FF]'
                                                             : 'border-[#E7ECF3] bg-white hover:bg-[#F8FAFC]',
-                                                          mainTab === 'test-pci' && !(testPciSource === 'task' && loadedTaskId === task.id) && 'opacity-40 pointer-events-none grayscale'
+                                                          mainTab === 'test-pci' &&
+                                                            !(
+                                                              testPciSource === 'task' &&
+                                                              loadedTaskId === task.id
+                                                            ) &&
+                                                            'pointer-events-none opacity-40 grayscale'
                                                         )}
                                                         onClick={e => {
                                                           if (
@@ -4868,7 +5003,7 @@ FEEDBACK: [your explanation]`
                                                           setMainBuilderTab('task')
                                                         }}
                                                       >
-                                                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#4A90FF]" />
+                                                        <div className="absolute bottom-0 left-0 top-0 w-1.5 bg-[#4A90FF]" />
                                                         <DragHandle className="shrink-0" />
                                                         <ListTodo className="h-3 w-3 shrink-0 text-[#2B5FB8]" />
                                                         {renamingItemId === task.id ? (
@@ -4917,12 +5052,14 @@ FEEDBACK: [your explanation]`
                                                             }}
                                                           />
                                                         ) : (
-                                                          <div className="min-w-0 flex-1 flex flex-col">
-                                                            <div className="text-sm font-medium text-[#1F2933] truncate flex items-center gap-2">
+                                                          <div className="flex min-w-0 flex-1 flex-col">
+                                                            <div className="flex items-center gap-2 truncate text-sm font-medium text-[#1F2933]">
                                                               {idx + 1}. {task.title}
                                                             </div>
                                                             {task.description && (
-                                                              <div className="text-[11px] text-[#667085] mt-0.5 truncate">{task.description.slice(0, 30)}...</div>
+                                                              <div className="mt-0.5 truncate text-[11px] text-[#667085]">
+                                                                {task.description.slice(0, 30)}...
+                                                              </div>
                                                             )}
                                                           </div>
                                                         )}
@@ -4945,17 +5082,28 @@ FEEDBACK: [your explanation]`
                                                           <DropdownMenuContent align="end">
                                                             {insightsProps?.onDeployTask && (
                                                               <DropdownMenuItem
-                                                                className="text-emerald-600 focus:text-emerald-600 font-medium"
+                                                                className="font-medium text-emerald-600 focus:text-emerald-600"
                                                                 onClick={e => {
                                                                   e.stopPropagation()
-                                                                  const dmiVersion = (task.dmiVersions || []).find(v => v.id === task.activeDmiVersionId) || (task.dmiVersions || [])[0]
+                                                                  const dmiVersion =
+                                                                    (task.dmiVersions || []).find(
+                                                                      v =>
+                                                                        v.id ===
+                                                                        task.activeDmiVersionId
+                                                                    ) || (task.dmiVersions || [])[0]
                                                                   insightsProps.onDeployTask({
                                                                     id: task.id,
                                                                     title: task.title,
-                                                                    content: task.description || task.title,
+                                                                    content:
+                                                                      task.description ||
+                                                                      task.title,
                                                                     source: 'task',
-                                                                    dmiItems: dmiVersion?.items || task.dmiItems || [],
-                                                                    sourceDocument: task.sourceDocument,
+                                                                    dmiItems:
+                                                                      dmiVersion?.items ||
+                                                                      task.dmiItems ||
+                                                                      [],
+                                                                    sourceDocument:
+                                                                      task.sourceDocument,
                                                                     deployedAt: Date.now(),
                                                                     polls: [],
                                                                     questions: [],
@@ -5261,7 +5409,9 @@ FEEDBACK: [your explanation]`
                                                                               ? 'opacity-80 hover:opacity-100'
                                                                               : 'opacity-0 group-hover/extension:opacity-100'
                                                                           )}
-                                                                          onClick={(e: any) => e.stopPropagation()}
+                                                                          onClick={(e: any) =>
+                                                                            e.stopPropagation()
+                                                                          }
                                                                         >
                                                                           <MoreVertical className="h-5 w-5 text-slate-700" />
                                                                         </Button>
@@ -5269,20 +5419,25 @@ FEEDBACK: [your explanation]`
                                                                       <DropdownMenuContent align="end">
                                                                         {insightsProps?.onDeployTask && (
                                                                           <DropdownMenuItem
-                                                                            className="text-emerald-600 focus:text-emerald-600 font-medium"
+                                                                            className="font-medium text-emerald-600 focus:text-emerald-600"
                                                                             onClick={e => {
                                                                               e.stopPropagation()
-                                                                              insightsProps.onDeployTask({
-                                                                                id: ext.id,
-                                                                                title: ext.name,
-                                                                                content: ext.description || ext.name,
-                                                                                source: 'task',
-                                                                                parentId: task.id,
-                                                                                isExtension: true,
-                                                                                deployedAt: Date.now(),
-                                                                                polls: [],
-                                                                                questions: [],
-                                                                              })
+                                                                              insightsProps.onDeployTask(
+                                                                                {
+                                                                                  id: ext.id,
+                                                                                  title: ext.name,
+                                                                                  content:
+                                                                                    ext.description ||
+                                                                                    ext.name,
+                                                                                  source: 'task',
+                                                                                  parentId: task.id,
+                                                                                  isExtension: true,
+                                                                                  deployedAt:
+                                                                                    Date.now(),
+                                                                                  polls: [],
+                                                                                  questions: [],
+                                                                                }
+                                                                              )
                                                                             }}
                                                                           >
                                                                             <Send className="mr-2 h-4 w-4" />
@@ -5293,35 +5448,77 @@ FEEDBACK: [your explanation]`
                                                                           className="text-red-500"
                                                                           onClick={(e: any) => {
                                                                             e.stopPropagation()
-                                                                            if (!confirm(`Delete "${ext.name}"?`)) return
-                                                                            setTaskExtensionPciMessages(prev => {
-                                                                              const next = { ...prev }
-                                                                              delete next[ext.id]
-                                                                              return next
-                                                                            })
-                                                                            setTaskExtensionPciInputs(prev => {
-                                                                              const next = { ...prev }
-                                                                              delete next[ext.id]
-                                                                              return next
-                                                                            })
-                                                                            setTaskBuilder(prev => ({
-                                                                              ...prev,
-                                                                              extensions: prev.extensions.filter(e => e.id !== ext.id),
-                                                                              activeExtensionId: prev.activeExtensionId === ext.id ? null : prev.activeExtensionId,
-                                                                            }))
+                                                                            if (
+                                                                              !confirm(
+                                                                                `Delete "${ext.name}"?`
+                                                                              )
+                                                                            )
+                                                                              return
+                                                                            setTaskExtensionPciMessages(
+                                                                              prev => {
+                                                                                const next = {
+                                                                                  ...prev,
+                                                                                }
+                                                                                delete next[ext.id]
+                                                                                return next
+                                                                              }
+                                                                            )
+                                                                            setTaskExtensionPciInputs(
+                                                                              prev => {
+                                                                                const next = {
+                                                                                  ...prev,
+                                                                                }
+                                                                                delete next[ext.id]
+                                                                                return next
+                                                                              }
+                                                                            )
+                                                                            setTaskBuilder(
+                                                                              prev => ({
+                                                                                ...prev,
+                                                                                extensions:
+                                                                                  prev.extensions.filter(
+                                                                                    e =>
+                                                                                      e.id !==
+                                                                                      ext.id
+                                                                                  ),
+                                                                                activeExtensionId:
+                                                                                  prev.activeExtensionId ===
+                                                                                  ext.id
+                                                                                    ? null
+                                                                                    : prev.activeExtensionId,
+                                                                              })
+                                                                            )
                                                                             if (loadedTaskId) {
-                                                                              setCourseBuilderNodes(prev =>
-                                                                                prev.map(mod => ({
-                                                                                  ...mod,
-                                                                                  lessons: mod.lessons.map(lesson => ({
-                                                                                    ...lesson,
-                                                                                    tasks: lesson.tasks.map(t =>
-                                                                                      t.id === loadedTaskId
-                                                                                        ? { ...t, extensions: (t.extensions || []).filter(e => e.id !== ext.id) }
-                                                                                        : t
-                                                                                    ),
-                                                                                  })),
-                                                                                }))
+                                                                              setCourseBuilderNodes(
+                                                                                prev =>
+                                                                                  prev.map(mod => ({
+                                                                                    ...mod,
+                                                                                    lessons:
+                                                                                      mod.lessons.map(
+                                                                                        lesson => ({
+                                                                                          ...lesson,
+                                                                                          tasks:
+                                                                                            lesson.tasks.map(
+                                                                                              t =>
+                                                                                                t.id ===
+                                                                                                loadedTaskId
+                                                                                                  ? {
+                                                                                                      ...t,
+                                                                                                      extensions:
+                                                                                                        (
+                                                                                                          t.extensions ||
+                                                                                                          []
+                                                                                                        ).filter(
+                                                                                                          e =>
+                                                                                                            e.id !==
+                                                                                                            ext.id
+                                                                                                        ),
+                                                                                                    }
+                                                                                                  : t
+                                                                                            ),
+                                                                                        })
+                                                                                      ),
+                                                                                  }))
                                                                               )
                                                                             }
                                                                           }}
@@ -5360,9 +5557,13 @@ FEEDBACK: [your explanation]`
                                                   <FileText className="h-4 w-4" />
                                                 </div>
                                                 <div className="min-w-0">
-                                                  <div className="text-sm font-semibold text-[#6D59D8]">Assessments</div>
+                                                  <div className="text-sm font-semibold text-[#6D59D8]">
+                                                    Assessments
+                                                  </div>
                                                   <div className="text-[11px] text-[#667085]">
-                                                    {assessments.length > 0 ? `${assessments.length} item${assessments.length > 1 ? 's' : ''}` : 'No items yet'}
+                                                    {assessments.length > 0
+                                                      ? `${assessments.length} item${assessments.length > 1 ? 's' : ''}`
+                                                      : 'No items yet'}
                                                   </div>
                                                 </div>
                                               </div>
@@ -5371,7 +5572,9 @@ FEEDBACK: [your explanation]`
                                                   variant="ghost"
                                                   size="sm"
                                                   className="h-6 w-6 rounded-md bg-[#6D59D8]/10 p-0 text-[#6D59D8] hover:bg-[#6D59D8]/20"
-                                                  onClick={() => addAssessment(node.id, primaryLesson.id)}
+                                                  onClick={() =>
+                                                    addAssessment(node.id, primaryLesson.id)
+                                                  }
                                                 >
                                                   <Plus className="h-4 w-4" />
                                                 </Button>
@@ -5407,14 +5610,19 @@ FEEDBACK: [your explanation]`
                                                     isLast={idx === assessments.length - 1}
                                                   >
                                                     <div
-                                                        className={cn(
-                                                          'group/item relative overflow-hidden mb-2 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-2 shadow-sm transition-colors',
-                                                          selectedItem?.type === 'homework' &&
+                                                      className={cn(
+                                                        'group/item relative mb-2 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 overflow-hidden rounded-xl border px-3 py-2 shadow-sm transition-colors',
+                                                        selectedItem?.type === 'homework' &&
+                                                          selectedItem?.id === hw.id
+                                                          ? 'border-[#8B6DFF] bg-[#F3EEFF] ring-1 ring-[#8B6DFF]'
+                                                          : 'border-[#E7ECF3] bg-white hover:bg-[#F8FAFC]',
+                                                        mainTab === 'test-pci' &&
+                                                          !(
+                                                            testPciSource === 'assessment' &&
                                                             selectedItem?.id === hw.id
-                                                            ? 'border-[#8B6DFF] bg-[#F3EEFF] ring-1 ring-[#8B6DFF]'
-                                                            : 'border-[#E7ECF3] bg-white hover:bg-[#F8FAFC]',
-                                                          mainTab === 'test-pci' && !(testPciSource === 'assessment' && selectedItem?.id === hw.id) && 'opacity-40 pointer-events-none grayscale'
-                                                        )}
+                                                          ) &&
+                                                          'pointer-events-none opacity-40 grayscale'
+                                                      )}
                                                       onClick={e => {
                                                         if (
                                                           (e.target as HTMLElement).closest('input')
@@ -5486,10 +5694,10 @@ FEEDBACK: [your explanation]`
                                                         setMainBuilderTab('assessment')
                                                       }}
                                                     >
-                                                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#8B6DFF]" />
-                                                        <DragHandle className="shrink-0" />
-                                                        <FileQuestion className="h-3 w-3 shrink-0 text-[#6D59D8]" />
-                                                        {renamingItemId === hw.id ? (
+                                                      <div className="absolute bottom-0 left-0 top-0 w-1.5 bg-[#8B6DFF]" />
+                                                      <DragHandle className="shrink-0" />
+                                                      <FileQuestion className="h-3 w-3 shrink-0 text-[#6D59D8]" />
+                                                      {renamingItemId === hw.id ? (
                                                         <Input
                                                           autoFocus
                                                           defaultValue={hw.title}
@@ -5527,12 +5735,14 @@ FEEDBACK: [your explanation]`
                                                           }}
                                                         />
                                                       ) : (
-                                                        <div className="min-w-0 flex-1 flex flex-col">
-                                                          <div className="text-sm font-medium text-[#1F2933] truncate flex items-center gap-2">
+                                                        <div className="flex min-w-0 flex-1 flex-col">
+                                                          <div className="flex items-center gap-2 truncate text-sm font-medium text-[#1F2933]">
                                                             {idx + 1}. {hw.title}
                                                           </div>
                                                           {hw.description && (
-                                                            <div className="text-[11px] text-[#667085] mt-0.5 truncate">{hw.description.slice(0, 30)}...</div>
+                                                            <div className="mt-0.5 truncate text-[11px] text-[#667085]">
+                                                              {hw.description.slice(0, 30)}...
+                                                            </div>
                                                           )}
                                                         </div>
                                                       )}
@@ -5556,16 +5766,24 @@ FEEDBACK: [your explanation]`
                                                         <DropdownMenuContent align="end">
                                                           {insightsProps?.onDeployTask && (
                                                             <DropdownMenuItem
-                                                              className="text-emerald-600 focus:text-emerald-600 font-medium"
+                                                              className="font-medium text-emerald-600 focus:text-emerald-600"
                                                               onClick={e => {
                                                                 e.stopPropagation()
-                                                                const dmiVersion = (hw.dmiVersions || []).find(v => v.id === hw.activeDmiVersionId) || (hw.dmiVersions || [])[0]
+                                                                const dmiVersion =
+                                                                  (hw.dmiVersions || []).find(
+                                                                    v =>
+                                                                      v.id === hw.activeDmiVersionId
+                                                                  ) || (hw.dmiVersions || [])[0]
                                                                 insightsProps.onDeployTask({
                                                                   id: hw.id,
                                                                   title: hw.title,
-                                                                  content: hw.description || hw.title,
+                                                                  content:
+                                                                    hw.description || hw.title,
                                                                   source: 'assessment',
-                                                                  dmiItems: dmiVersion?.items || hw.dmiItems || [],
+                                                                  dmiItems:
+                                                                    dmiVersion?.items ||
+                                                                    hw.dmiItems ||
+                                                                    [],
                                                                   sourceDocument: hw.sourceDocument,
                                                                   deployedAt: Date.now(),
                                                                   polls: [],
@@ -5687,9 +5905,13 @@ FEEDBACK: [your explanation]`
                                                         <FolderOpen className="h-4 w-4" />
                                                       </div>
                                                       <div className="min-w-0">
-                                                        <div className="text-sm font-semibold text-[#1E9E72]">Homework</div>
+                                                        <div className="text-sm font-semibold text-[#1E9E72]">
+                                                          Homework
+                                                        </div>
                                                         <div className="text-[11px] text-[#667085]">
-                                                          {hwItems.length > 0 ? `${hwItems.length} item${hwItems.length > 1 ? 's' : ''}` : 'No items yet'}
+                                                          {hwItems.length > 0
+                                                            ? `${hwItems.length} item${hwItems.length > 1 ? 's' : ''}`
+                                                            : 'No items yet'}
                                                         </div>
                                                       </div>
                                                     </div>
@@ -5717,211 +5939,226 @@ FEEDBACK: [your explanation]`
                                                       items={hwItems.map(h => h.id)}
                                                       strategy={verticalListSortingStrategy}
                                                     >
-                                                    {hwItems.map((hw, hwIdx) => (
-                                                      <SortableTreeItem
-                                                        key={hw.id}
-                                                        id={hw.id}
-                                                        depth={0}
-                                                        dragHandle={false}
-                                                        isLast={hwIdx === hwItems.length - 1}
-                                                      >
-                                                        <div
+                                                      {hwItems.map((hw, hwIdx) => (
+                                                        <SortableTreeItem
+                                                          key={hw.id}
+                                                          id={hw.id}
+                                                          depth={0}
+                                                          dragHandle={false}
+                                                          isLast={hwIdx === hwItems.length - 1}
+                                                        >
+                                                          <div
                                                             className={cn(
-                                                              'group/item relative overflow-hidden mb-2 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-2 shadow-sm transition-colors',
+                                                              'group/item relative mb-2 ml-0 mr-0 flex min-w-0 cursor-pointer items-center gap-1.5 overflow-hidden rounded-xl border px-3 py-2 shadow-sm transition-colors',
                                                               selectedItem?.type === 'homework' &&
                                                                 selectedItem?.id === hw.id
                                                                 ? 'border-[#2FC98F] bg-[#ECFBF4] ring-1 ring-[#2FC98F]'
                                                                 : 'border-[#E7ECF3] bg-white hover:bg-[#F8FAFC]',
-                                                              mainTab === 'test-pci' && !(testPciSource === 'assessment' && selectedItem?.id === hw.id) && 'opacity-40 pointer-events-none grayscale'
+                                                              mainTab === 'test-pci' &&
+                                                                !(
+                                                                  testPciSource === 'assessment' &&
+                                                                  selectedItem?.id === hw.id
+                                                                ) &&
+                                                                'pointer-events-none opacity-40 grayscale'
                                                             )}
-                                                          onClick={() => {
-                                                            setSelectedItem({
-                                                              type: 'homework',
-                                                              id: hw.id,
-                                                            })
-                                                            loadAssessmentIntoBuilder(hw)
-                                                            setMainBuilderTab('assessment')
-                                                          }}
-                                                        >
-                                                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#2FC98F]" />
+                                                            onClick={() => {
+                                                              setSelectedItem({
+                                                                type: 'homework',
+                                                                id: hw.id,
+                                                              })
+                                                              loadAssessmentIntoBuilder(hw)
+                                                              setMainBuilderTab('assessment')
+                                                            }}
+                                                          >
+                                                            <div className="absolute bottom-0 left-0 top-0 w-1.5 bg-[#2FC98F]" />
                                                             <DragHandle className="shrink-0" />
                                                             <FolderOpen className="h-3 w-3 shrink-0 text-[#1E9E72]" />
                                                             {renamingItemId === hw.id ? (
-                                                            <Input
-                                                              autoFocus
-                                                              defaultValue={hw.title}
-                                                              className="h-6 flex-1 text-xs font-semibold text-emerald-700"
-                                                              onClick={e => e.stopPropagation()}
-                                                              onBlur={e => {
-                                                                const newTitle =
-                                                                  e.target.value.trim()
-                                                                if (
-                                                                  newTitle &&
-                                                                  newTitle !== hw.title
-                                                                ) {
-                                                                  setCourseBuilderNodes(prev =>
-                                                                    prev.map(n => ({
-                                                                      ...n,
-                                                                      lessons: n.lessons.map(l => ({
-                                                                        ...l,
-                                                                        homework: l.homework.map(
-                                                                          h =>
-                                                                            h.id === hw.id
-                                                                              ? {
-                                                                                  ...h,
-                                                                                  title: newTitle,
-                                                                                }
-                                                                              : h
-                                                                        ),
-                                                                      })),
-                                                                    }))
-                                                                  )
-                                                                  if (
-                                                                    loadedAssessmentId === hw.id
-                                                                  ) {
-                                                                    setAssessmentBuilder(prev => ({
-                                                                      ...prev,
-                                                                      title: newTitle,
-                                                                    }))
-                                                                  }
-                                                                }
-                                                                setRenamingItemId(null)
-                                                              }}
-                                                              onKeyDown={e => {
-                                                                if (e.key === 'Enter') {
-                                                                  ;(
-                                                                    e.target as HTMLInputElement
-                                                                  ).blur()
-                                                                }
-                                                              }}
-                                                            />
-                                                          ) : (
-                                                            <div className="min-w-0 flex-1 flex flex-col">
-                                                              <div className="text-sm font-medium text-[#1F2933] truncate flex items-center gap-2">
-                                                                {hwIdx + 1}. {hw.title}
-                                                              </div>
-                                                              {hw.description && (
-                                                                <div className="text-[11px] text-[#667085] mt-0.5 truncate">{hw.description.slice(0, 30)}...</div>
-                                                              )}
-                                                            </div>
-                                                          )}
-                                                          <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                              <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className={cn(
-                                                                  'h-7 w-7 transition-opacity hover:bg-[#F2F4F7]',
-                                                                  directoryMenusAlwaysVisible
-                                                                    ? 'opacity-80 hover:opacity-100'
-                                                                    : 'opacity-0 group-hover/item:opacity-100'
-                                                                )}
+                                                              <Input
+                                                                autoFocus
+                                                                defaultValue={hw.title}
+                                                                className="h-6 flex-1 text-xs font-semibold text-emerald-700"
                                                                 onClick={e => e.stopPropagation()}
-                                                              >
-                                                                <MoreVertical className="h-5 w-5 text-[#98A2B3]" />
-                                                              </Button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent align="end">
-                                                              <DropdownMenuItem
-                                                                onClick={e => {
-                                                                  e.stopPropagation()
-                                                                  setSelectedItem({
-                                                                    type: 'homework',
-                                                                    id: hw.id,
-                                                                  })
-                                                                  loadAssessmentIntoBuilder(hw)
-                                                                  setMainBuilderTab('assessment')
-                                                                  setAssetPickerTarget('assessment')
-                                                                  setAssetsViewOpen(true)
-                                                                  setLoadAsStep(
-                                                                    'assessment-options'
-                                                                  )
-                                                                }}
-                                                              >
-                                                                Load
-                                                              </DropdownMenuItem>
-                                                              <DropdownMenuItem
-                                                                onClick={e => {
-                                                                  e.stopPropagation()
-                                                                  setRenamingItemId(hw.id)
-                                                                }}
-                                                              >
-                                                                Rename
-                                                              </DropdownMenuItem>
-                                                              <DropdownMenuItem
-                                                                onClick={e => {
-                                                                  e.stopPropagation()
-                                                                  setEditingData(hw)
-                                                                  setActiveModal({
-                                                                    type: 'homework',
-                                                                    isOpen: true,
-                                                                    nodeId: node.id,
-                                                                    lessonId: primaryLesson.id,
-                                                                    itemId: hw.id,
-                                                                  })
-                                                                }}
-                                                              >
-                                                                Edit
-                                                              </DropdownMenuItem>
-                                                              <DropdownMenuItem
-                                                                onClick={e => {
-                                                                  e.stopPropagation()
-                                                                  duplicateAssessment(
-                                                                    node.id,
-                                                                    primaryLesson.id,
-                                                                    hw
-                                                                  )
-                                                                }}
-                                                              >
-                                                                Duplicate
-                                                              </DropdownMenuItem>
-                                                              <DropdownMenuItem
-                                                                className="text-red-500"
-                                                                onClick={e => {
-                                                                  e.stopPropagation()
+                                                                onBlur={e => {
+                                                                  const newTitle =
+                                                                    e.target.value.trim()
                                                                   if (
-                                                                    !confirm(
-                                                                      `Delete "${hw.title}"?`
-                                                                    )
-                                                                  )
-                                                                    return
-                                                                  setCourseBuilderNodes(prev =>
-                                                                    prev.map(mod =>
-                                                                      mod.id !== node.id
-                                                                        ? mod
-                                                                        : {
-                                                                            ...mod,
-                                                                            lessons:
-                                                                              mod.lessons.map(
-                                                                                les =>
-                                                                                  les.id !==
-                                                                                  primaryLesson.id
-                                                                                    ? les
-                                                                                    : {
-                                                                                        ...les,
-                                                                                        homework: (
-                                                                                          les.homework ||
-                                                                                          []
-                                                                                        ).filter(
-                                                                                          x =>
-                                                                                            x.id !==
-                                                                                            hw.id
-                                                                                        ),
-                                                                                      }
+                                                                    newTitle &&
+                                                                    newTitle !== hw.title
+                                                                  ) {
+                                                                    setCourseBuilderNodes(prev =>
+                                                                      prev.map(n => ({
+                                                                        ...n,
+                                                                        lessons: n.lessons.map(
+                                                                          l => ({
+                                                                            ...l,
+                                                                            homework:
+                                                                              l.homework.map(h =>
+                                                                                h.id === hw.id
+                                                                                  ? {
+                                                                                      ...h,
+                                                                                      title:
+                                                                                        newTitle,
+                                                                                    }
+                                                                                  : h
                                                                               ),
-                                                                          }
+                                                                          })
+                                                                        ),
+                                                                      }))
                                                                     )
-                                                                  )
+                                                                    if (
+                                                                      loadedAssessmentId === hw.id
+                                                                    ) {
+                                                                      setAssessmentBuilder(
+                                                                        prev => ({
+                                                                          ...prev,
+                                                                          title: newTitle,
+                                                                        })
+                                                                      )
+                                                                    }
+                                                                  }
+                                                                  setRenamingItemId(null)
                                                                 }}
-                                                              >
-                                                                Delete
-                                                              </DropdownMenuItem>
-                                                            </DropdownMenuContent>
-                                                          </DropdownMenu>
-                                                        </div>
-                                                      </SortableTreeItem>
-                                                    ))}
-                                                  </SortableContext>
+                                                                onKeyDown={e => {
+                                                                  if (e.key === 'Enter') {
+                                                                    ;(
+                                                                      e.target as HTMLInputElement
+                                                                    ).blur()
+                                                                  }
+                                                                }}
+                                                              />
+                                                            ) : (
+                                                              <div className="flex min-w-0 flex-1 flex-col">
+                                                                <div className="flex items-center gap-2 truncate text-sm font-medium text-[#1F2933]">
+                                                                  {hwIdx + 1}. {hw.title}
+                                                                </div>
+                                                                {hw.description && (
+                                                                  <div className="mt-0.5 truncate text-[11px] text-[#667085]">
+                                                                    {hw.description.slice(0, 30)}...
+                                                                  </div>
+                                                                )}
+                                                              </div>
+                                                            )}
+                                                            <DropdownMenu>
+                                                              <DropdownMenuTrigger asChild>
+                                                                <Button
+                                                                  variant="ghost"
+                                                                  size="icon"
+                                                                  className={cn(
+                                                                    'h-7 w-7 transition-opacity hover:bg-[#F2F4F7]',
+                                                                    directoryMenusAlwaysVisible
+                                                                      ? 'opacity-80 hover:opacity-100'
+                                                                      : 'opacity-0 group-hover/item:opacity-100'
+                                                                  )}
+                                                                  onClick={e => e.stopPropagation()}
+                                                                >
+                                                                  <MoreVertical className="h-5 w-5 text-[#98A2B3]" />
+                                                                </Button>
+                                                              </DropdownMenuTrigger>
+                                                              <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem
+                                                                  onClick={e => {
+                                                                    e.stopPropagation()
+                                                                    setSelectedItem({
+                                                                      type: 'homework',
+                                                                      id: hw.id,
+                                                                    })
+                                                                    loadAssessmentIntoBuilder(hw)
+                                                                    setMainBuilderTab('assessment')
+                                                                    setAssetPickerTarget(
+                                                                      'assessment'
+                                                                    )
+                                                                    setAssetsViewOpen(true)
+                                                                    setLoadAsStep(
+                                                                      'assessment-options'
+                                                                    )
+                                                                  }}
+                                                                >
+                                                                  Load
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                  onClick={e => {
+                                                                    e.stopPropagation()
+                                                                    setRenamingItemId(hw.id)
+                                                                  }}
+                                                                >
+                                                                  Rename
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                  onClick={e => {
+                                                                    e.stopPropagation()
+                                                                    setEditingData(hw)
+                                                                    setActiveModal({
+                                                                      type: 'homework',
+                                                                      isOpen: true,
+                                                                      nodeId: node.id,
+                                                                      lessonId: primaryLesson.id,
+                                                                      itemId: hw.id,
+                                                                    })
+                                                                  }}
+                                                                >
+                                                                  Edit
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                  onClick={e => {
+                                                                    e.stopPropagation()
+                                                                    duplicateAssessment(
+                                                                      node.id,
+                                                                      primaryLesson.id,
+                                                                      hw
+                                                                    )
+                                                                  }}
+                                                                >
+                                                                  Duplicate
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                  className="text-red-500"
+                                                                  onClick={e => {
+                                                                    e.stopPropagation()
+                                                                    if (
+                                                                      !confirm(
+                                                                        `Delete "${hw.title}"?`
+                                                                      )
+                                                                    )
+                                                                      return
+                                                                    setCourseBuilderNodes(prev =>
+                                                                      prev.map(mod =>
+                                                                        mod.id !== node.id
+                                                                          ? mod
+                                                                          : {
+                                                                              ...mod,
+                                                                              lessons:
+                                                                                mod.lessons.map(
+                                                                                  les =>
+                                                                                    les.id !==
+                                                                                    primaryLesson.id
+                                                                                      ? les
+                                                                                      : {
+                                                                                          ...les,
+                                                                                          homework:
+                                                                                            (
+                                                                                              les.homework ||
+                                                                                              []
+                                                                                            ).filter(
+                                                                                              x =>
+                                                                                                x.id !==
+                                                                                                hw.id
+                                                                                            ),
+                                                                                        }
+                                                                                ),
+                                                                            }
+                                                                      )
+                                                                    )
+                                                                  }}
+                                                                >
+                                                                  Delete
+                                                                </DropdownMenuItem>
+                                                              </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                          </div>
+                                                        </SortableTreeItem>
+                                                      ))}
+                                                    </SortableContext>
                                                   </div>
                                                 )}
                                               </>
@@ -6100,30 +6337,30 @@ FEEDBACK: [your explanation]`
                                           {/* Recording status removed from Insights tab */}
 
                                           <Tabs
-                                              value={insightsTab}
-                                              onValueChange={value =>
-                                                setInsightsTab(
-                                                  value as 'analytics' | 'poll' | 'question'
-                                                )
-                                              }
-                                              className="flex h-full min-h-0 flex-col"
-                                            >
-                                            <TabsList className="mb-1 grid w-full grid-cols-3 gap-1 bg-transparent border-0 shadow-none">
+                                            value={insightsTab}
+                                            onValueChange={value =>
+                                              setInsightsTab(
+                                                value as 'analytics' | 'poll' | 'question'
+                                              )
+                                            }
+                                            className="flex h-full min-h-0 flex-col"
+                                          >
+                                            <TabsList className="mb-1 grid w-full grid-cols-3 gap-1 border-0 bg-transparent shadow-none">
                                               <TabsTrigger
                                                 value="analytics"
-                                                className="w-full rounded-lg border-transparent bg-transparent text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 data-[state=active]:border-cyan-200/70 data-[state=active]:shadow-sm text-xs px-1 transition-all"
+                                                className="w-full rounded-lg border-transparent bg-transparent px-1 text-xs text-[#667085] transition-all hover:bg-white hover:text-[#344054] hover:shadow-sm data-[state=active]:border-cyan-200/70 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 data-[state=active]:shadow-sm"
                                               >
                                                 Analytics
                                               </TabsTrigger>
                                               <TabsTrigger
                                                 value="poll"
-                                                className="w-full rounded-lg border-transparent bg-transparent text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 data-[state=active]:border-cyan-200/70 data-[state=active]:shadow-sm text-xs px-1 transition-all"
+                                                className="w-full rounded-lg border-transparent bg-transparent px-1 text-xs text-[#667085] transition-all hover:bg-white hover:text-[#344054] hover:shadow-sm data-[state=active]:border-cyan-200/70 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 data-[state=active]:shadow-sm"
                                               >
                                                 Poll
                                               </TabsTrigger>
                                               <TabsTrigger
                                                 value="question"
-                                                className="w-full rounded-lg border-transparent bg-transparent text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 data-[state=active]:border-cyan-200/70 data-[state=active]:shadow-sm text-xs px-1 transition-all"
+                                                className="w-full rounded-lg border-transparent bg-transparent px-1 text-xs text-[#667085] transition-all hover:bg-white hover:text-[#344054] hover:shadow-sm data-[state=active]:border-cyan-200/70 data-[state=active]:bg-cyan-100 data-[state=active]:text-cyan-900 data-[state=active]:shadow-sm"
                                               >
                                                 Question
                                               </TabsTrigger>
@@ -6146,15 +6383,18 @@ FEEDBACK: [your explanation]`
 
                                             <TabsContent
                                               value="poll"
-                                              className="flex flex-1 flex-col justify-end pt-2 data-[state=active]:flex data-[state=inactive]:hidden overflow-hidden"
+                                              className="flex flex-1 flex-col justify-end overflow-hidden pt-2 data-[state=active]:flex data-[state=inactive]:hidden"
                                             >
                                               {showAIPoll ? (
-                                                <div className="flex-1 overflow-hidden mb-2 rounded-2xl border border-cyan-100 bg-white/60 shadow-sm backdrop-blur-md">
-                                                  <AITeachingAssistant 
+                                                <div className="mb-2 flex-1 overflow-hidden rounded-2xl border border-cyan-100 bg-white/60 shadow-sm backdrop-blur-md">
+                                                  <AITeachingAssistant
                                                     mode="poll"
-                                                    currentTopic={activeInsightsTask?.title || 'General Course Content'}
+                                                    currentTopic={
+                                                      activeInsightsTask?.title ||
+                                                      'General Course Content'
+                                                    }
                                                     nodes={nodes}
-                                                    onSelectPrompt={(text) => {
+                                                    onSelectPrompt={text => {
                                                       setPollPrompt(text)
                                                       setShowAIPoll(false)
                                                     }}
@@ -6162,9 +6402,25 @@ FEEDBACK: [your explanation]`
                                                   />
                                                 </div>
                                               ) : (
-                                                <InsightsReportView type="poll" onMentionStudent={(name) => setPollPrompt(pollPrompt ? `${pollPrompt} @[${name}](student:${name}) ` : `@[${name}](student:${name}) `)} />
+                                                <InsightsReportView
+                                                  type="poll"
+                                                  onMentionStudent={name =>
+                                                    setPollPrompt(
+                                                      pollPrompt
+                                                        ? `${pollPrompt} @[${name}](student:${name}) `
+                                                        : `@[${name}](student:${name}) `
+                                                    )
+                                                  }
+                                                />
                                               )}
-                                              <div className={cn("flex flex-col rounded-2xl border border-cyan-100 bg-white/40 p-px shadow-xl backdrop-blur-md transition-all duration-300", showAIPoll ? "h-[30%] min-h-[120px]" : "h-[40%] min-h-[150px]")}>
+                                              <div
+                                                className={cn(
+                                                  'flex flex-col rounded-2xl border border-cyan-100 bg-white/40 p-px shadow-xl backdrop-blur-md transition-all duration-300',
+                                                  showAIPoll
+                                                    ? 'h-[30%] min-h-[120px]'
+                                                    : 'h-[40%] min-h-[150px]'
+                                                )}
+                                              >
                                                 <div className="flex flex-1 flex-col space-y-0.5 p-1">
                                                   <div className="flex items-center justify-between">
                                                     <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
@@ -6189,7 +6445,12 @@ FEEDBACK: [your explanation]`
                                                       <Button
                                                         size="icon"
                                                         variant="ghost"
-                                                        className={cn("h-9 w-9 rounded-xl hover:bg-cyan-100 hover:text-cyan-700 disabled:opacity-30", showAIPoll ? "bg-cyan-100 text-cyan-700" : "text-cyan-600")}
+                                                        className={cn(
+                                                          'h-9 w-9 rounded-xl hover:bg-cyan-100 hover:text-cyan-700 disabled:opacity-30',
+                                                          showAIPoll
+                                                            ? 'bg-cyan-100 text-cyan-700'
+                                                            : 'text-cyan-600'
+                                                        )}
                                                         title="Generate with Socratic AI"
                                                         onClick={() => setShowAIPoll(!showAIPoll)}
                                                         disabled={!activeInsightsTaskId}
@@ -6252,15 +6513,18 @@ FEEDBACK: [your explanation]`
 
                                             <TabsContent
                                               value="question"
-                                              className="flex flex-1 flex-col justify-end pt-2 data-[state=active]:flex data-[state=inactive]:hidden overflow-hidden"
+                                              className="flex flex-1 flex-col justify-end overflow-hidden pt-2 data-[state=active]:flex data-[state=inactive]:hidden"
                                             >
                                               {showAIQuestion ? (
-                                                <div className="flex-1 overflow-hidden mb-2 rounded-2xl border border-cyan-100 bg-white/60 shadow-sm backdrop-blur-md">
-                                                  <AITeachingAssistant 
+                                                <div className="mb-2 flex-1 overflow-hidden rounded-2xl border border-cyan-100 bg-white/60 shadow-sm backdrop-blur-md">
+                                                  <AITeachingAssistant
                                                     mode="question"
-                                                    currentTopic={activeInsightsTask?.title || 'General Course Content'}
+                                                    currentTopic={
+                                                      activeInsightsTask?.title ||
+                                                      'General Course Content'
+                                                    }
                                                     nodes={nodes}
-                                                    onSelectPrompt={(text) => {
+                                                    onSelectPrompt={text => {
                                                       setQuestionPrompt(text)
                                                       setShowAIQuestion(false)
                                                     }}
@@ -6268,9 +6532,25 @@ FEEDBACK: [your explanation]`
                                                   />
                                                 </div>
                                               ) : (
-                                                <InsightsReportView type="question" onMentionStudent={(name) => setQuestionPrompt(questionPrompt ? `${questionPrompt} @[${name}](student:${name}) ` : `@[${name}](student:${name}) `)} />
+                                                <InsightsReportView
+                                                  type="question"
+                                                  onMentionStudent={name =>
+                                                    setQuestionPrompt(
+                                                      questionPrompt
+                                                        ? `${questionPrompt} @[${name}](student:${name}) `
+                                                        : `@[${name}](student:${name}) `
+                                                    )
+                                                  }
+                                                />
                                               )}
-                                              <div className={cn("flex flex-col rounded-2xl border border-cyan-100 bg-white/40 p-px shadow-xl backdrop-blur-md transition-all duration-300", showAIQuestion ? "h-[30%] min-h-[120px]" : "h-[40%] min-h-[150px]")}>
+                                              <div
+                                                className={cn(
+                                                  'flex flex-col rounded-2xl border border-cyan-100 bg-white/40 p-px shadow-xl backdrop-blur-md transition-all duration-300',
+                                                  showAIQuestion
+                                                    ? 'h-[30%] min-h-[120px]'
+                                                    : 'h-[40%] min-h-[150px]'
+                                                )}
+                                              >
                                                 <div className="flex flex-1 flex-col space-y-0.5 p-1">
                                                   <div className="flex items-center justify-between">
                                                     <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
@@ -6295,9 +6575,16 @@ FEEDBACK: [your explanation]`
                                                       <Button
                                                         size="icon"
                                                         variant="ghost"
-                                                        className={cn("h-9 w-9 rounded-xl hover:bg-cyan-100 hover:text-cyan-700 disabled:opacity-30", showAIQuestion ? "bg-cyan-100 text-cyan-700" : "text-cyan-600")}
+                                                        className={cn(
+                                                          'h-9 w-9 rounded-xl hover:bg-cyan-100 hover:text-cyan-700 disabled:opacity-30',
+                                                          showAIQuestion
+                                                            ? 'bg-cyan-100 text-cyan-700'
+                                                            : 'text-cyan-600'
+                                                        )}
                                                         title="Generate with Socratic AI"
-                                                        onClick={() => setShowAIQuestion(!showAIQuestion)}
+                                                        onClick={() =>
+                                                          setShowAIQuestion(!showAIQuestion)
+                                                        }
                                                         disabled={!activeInsightsTaskId}
                                                       >
                                                         <Sparkles className="h-4 w-4" />
@@ -6361,25 +6648,42 @@ FEEDBACK: [your explanation]`
                                             )
                                           }
 
-                                          const doc = testPciSource === 'task' ? taskBuilder.sourceDocument : assessmentSourceDocument
-                                          const versionId = testPciViewMode.startsWith('dmi_') ? testPciViewMode.replace('dmi_', '') : null
-                                          const versions = testPciSource === 'task' ? taskDmiVersions : assessmentDmiVersions
-                                          const version = versionId ? versions.find(v => v.id === versionId) : versions[0]
+                                          const doc =
+                                            testPciSource === 'task'
+                                              ? taskBuilder.sourceDocument
+                                              : assessmentSourceDocument
+                                          const versionId = testPciViewMode.startsWith('dmi_')
+                                            ? testPciViewMode.replace('dmi_', '')
+                                            : null
+                                          const versions =
+                                            testPciSource === 'task'
+                                              ? taskDmiVersions
+                                              : assessmentDmiVersions
+                                          const version = versionId
+                                            ? versions.find(v => v.id === versionId)
+                                            : versions[0]
                                           const hasDoc = !!(doc?.fileUrl || doc?.extractedText)
                                           const hasDmi = !!version
 
                                           if (!hasDoc && !hasDmi) {
                                             return (
                                               <p className="text-muted-foreground whitespace-pre-wrap text-sm">
-                                                {testPciContent[tab.id] || `${tab.label} view content`}
+                                                {testPciContent[tab.id] ||
+                                                  `${tab.label} view content`}
                                               </p>
                                             )
                                           }
 
                                           return (
-                                            <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
+                                            <ResizablePanelGroup
+                                              orientation="horizontal"
+                                              className="h-full w-full"
+                                            >
                                               {hasDoc && (
-                                                <ResizablePanel defaultSize={hasDmi ? 50 : 100} minSize={20}>
+                                                <ResizablePanel
+                                                  defaultSize={hasDmi ? 50 : 100}
+                                                  minSize={20}
+                                                >
                                                   <div className="h-full w-full pr-1">
                                                     {doc?.fileUrl ? (
                                                       <iframe
@@ -6397,17 +6701,28 @@ FEEDBACK: [your explanation]`
                                               )}
                                               {hasDoc && hasDmi && <ResizableHandle withHandle />}
                                               {hasDmi && (
-                                                <ResizablePanel defaultSize={hasDoc ? 50 : 100} minSize={20}>
-                                                  <div className="h-full w-full overflow-y-auto rounded-md border bg-white p-4 ml-1">
+                                                <ResizablePanel
+                                                  defaultSize={hasDoc ? 50 : 100}
+                                                  minSize={20}
+                                                >
+                                                  <div className="ml-1 h-full w-full overflow-y-auto rounded-md border bg-white p-4">
                                                     <div className="space-y-4">
                                                       {version.items.map(item => (
-                                                        <div key={item.id} className="rounded-lg border bg-gray-50 p-3">
+                                                        <div
+                                                          key={item.id}
+                                                          className="rounded-lg border bg-gray-50 p-3"
+                                                        >
                                                           <p className="text-sm font-medium text-gray-900">
-                                                            <span className="mr-1 text-indigo-600">Q{item.questionNumber}:</span>
+                                                            <span className="mr-1 text-indigo-600">
+                                                              Q{item.questionNumber}:
+                                                            </span>
                                                             {item.questionText}
                                                           </p>
                                                           <p className="mt-2 whitespace-pre-wrap text-sm text-gray-600">
-                                                            <span className="font-medium">Answer:</span> {item.answer}
+                                                            <span className="font-medium">
+                                                              Answer:
+                                                            </span>{' '}
+                                                            {item.answer}
                                                           </p>
                                                         </div>
                                                       ))}
@@ -6588,10 +6903,12 @@ FEEDBACK: [your explanation]`
                             {/* Left: current task name */}
                             <div className="flex min-w-0 flex-1 items-center gap-2 px-3 text-sm font-semibold text-[#1F2933]">
                               <span className="truncate">
-                                {mainBuilderTab === 'task' 
-                                  ? (taskBuilder.activeExtensionId 
-                                      ? taskBuilder.extensions.find(x => x.id === taskBuilder.activeExtensionId)?.name || 'Extension'
-                                      : taskBuilder.title || 'Select a Task')
+                                {mainBuilderTab === 'task'
+                                  ? taskBuilder.activeExtensionId
+                                    ? taskBuilder.extensions.find(
+                                        x => x.id === taskBuilder.activeExtensionId
+                                      )?.name || 'Extension'
+                                    : taskBuilder.title || 'Select a Task'
                                   : ''}
                               </span>
                             </div>
@@ -6616,8 +6933,8 @@ FEEDBACK: [your explanation]`
                             {/* Right: current assessment name */}
                             <div className="flex min-w-0 flex-1 items-center justify-end gap-2 px-3 text-sm font-semibold text-[#1F2933]">
                               <span className="truncate">
-                                {mainBuilderTab === 'assessment' 
-                                  ? (assessmentBuilder.title || 'Select an Assessment')
+                                {mainBuilderTab === 'assessment'
+                                  ? assessmentBuilder.title || 'Select an Assessment'
                                   : ''}
                               </span>
                             </div>
@@ -6643,14 +6960,14 @@ FEEDBACK: [your explanation]`
                                     <TabsList className="mb-px grid h-[46px] w-full grid-cols-2 gap-2 rounded-xl bg-transparent p-0 shadow-none">
                                       <TabsTrigger
                                         value="content"
-                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=active]:font-medium data-[state=active]:text-[#2B5FB8] data-[state=inactive]:bg-white data-[state=inactive]:hover:bg-slate-50"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50"
                                       >
                                         <LayoutPanelTop className="mr-2 h-4 w-4 shrink-0" />
                                         Slide
                                       </TabsTrigger>
                                       <TabsTrigger
                                         value="pci"
-                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:bg-white data-[state=inactive]:hover:bg-slate-50"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:hover:bg-slate-50"
                                       >
                                         <Brain className="mr-2 h-4 w-4 shrink-0" />
                                         PCI
@@ -6720,14 +7037,16 @@ FEEDBACK: [your explanation]`
                                                     setTaskTextVisible(false)
                                                   }}
                                                   className={cn(
-                                                    "h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-700",
-                                                    taskPdfVisible && taskTextVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+                                                    'h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-700',
+                                                    taskPdfVisible && taskTextVisible
+                                                      ? 'opacity-100'
+                                                      : 'pointer-events-none opacity-0'
                                                   )}
                                                   title="Hide Text"
                                                 >
                                                   <ChevronLeft className="h-5 w-5" />
                                                 </Button>
-                                                <div className="flex items-center justify-center absolute left-1/2 -translate-x-1/2 gap-1 rounded-lg border border-[#E5E7EB] bg-slate-50/50 p-1">
+                                                <div className="absolute left-1/2 flex -translate-x-1/2 items-center justify-center gap-1 rounded-lg border border-[#E5E7EB] bg-slate-50/50 p-1">
                                                   <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -6859,11 +7178,11 @@ FEEDBACK: [your explanation]`
                                         {/* Right Panel (Preview) */}
                                         {taskPdfVisible && (
                                           <div
-                                          className={cn(
-                                            'relative flex h-full flex-col bg-[#FBFCFD]',
-                                            taskTextVisible ? 'w-1/2' : 'w-full'
-                                          )}
-                                        >
+                                            className={cn(
+                                              'relative flex h-full flex-col bg-[#FBFCFD]',
+                                              taskTextVisible ? 'w-1/2' : 'w-full'
+                                            )}
+                                          >
                                             {!taskTextVisible && (
                                               <div className="absolute left-2 top-2 z-10 flex gap-2">
                                                 <Button
@@ -7065,7 +7384,7 @@ FEEDBACK: [your explanation]`
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                className="h-8 rounded-full text-xs font-medium text-gray-600 hover:text-gray-900 bg-white shadow-sm"
+                                                className="h-8 rounded-full bg-white text-xs font-medium text-gray-600 shadow-sm hover:text-gray-900"
                                                 onClick={() => {
                                                   const content = taskBuilder.activeExtensionId
                                                     ? taskBuilder.extensions.find(
@@ -7105,7 +7424,7 @@ FEEDBACK: [your explanation]`
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                className="h-8 rounded-full text-xs font-medium text-gray-600 hover:text-gray-900 bg-white shadow-sm"
+                                                className="h-8 rounded-full bg-white text-xs font-medium text-gray-600 shadow-sm hover:text-gray-900"
                                                 onClick={() => {
                                                   toast.success('Task saved successfully')
                                                 }}
@@ -7157,14 +7476,14 @@ FEEDBACK: [your explanation]`
                                     <TabsList className="mb-px grid h-[46px] w-full grid-cols-2 gap-2 rounded-xl bg-transparent p-0 shadow-none">
                                       <TabsTrigger
                                         value="content"
-                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=active]:font-medium data-[state=active]:text-[#2B5FB8] data-[state=inactive]:bg-white data-[state=inactive]:hover:bg-slate-50"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50"
                                       >
                                         <LayoutPanelTop className="mr-2 h-4 w-4 shrink-0" />
                                         Assessment
                                       </TabsTrigger>
                                       <TabsTrigger
                                         value="pci"
-                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:bg-white data-[state=inactive]:hover:bg-slate-50"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:hover:bg-slate-50"
                                       >
                                         <Brain className="mr-2 h-4 w-4 shrink-0" />
                                         PCI
@@ -7195,7 +7514,7 @@ FEEDBACK: [your explanation]`
                                       >
                                         {/* Centered Pill for Test, Generate DMI, and Version History */}
                                         <div className="pointer-events-none absolute left-1/2 top-0 z-20 flex -translate-x-1/2 items-center justify-center">
-                                          <div className="pointer-events-auto flex h-11 items-center gap-1 bg-white/90 px-2 backdrop-blur-sm border-x border-b border-[#E5E7EB] rounded-b-xl shadow-sm">
+                                          <div className="pointer-events-auto flex h-11 items-center gap-1 rounded-b-xl border-x border-b border-[#E5E7EB] bg-white/90 px-2 shadow-sm backdrop-blur-sm">
                                             <span className="text-xs font-light text-gray-400">
                                               (
                                             </span>
@@ -7267,14 +7586,16 @@ FEEDBACK: [your explanation]`
                                                     setAssessmentTextVisible(false)
                                                   }}
                                                   className={cn(
-                                                    "h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-700",
-                                                    assessmentPdfVisible && assessmentTextVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+                                                    'h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-700',
+                                                    assessmentPdfVisible && assessmentTextVisible
+                                                      ? 'opacity-100'
+                                                      : 'pointer-events-none opacity-0'
                                                   )}
                                                   title="Hide Text"
                                                 >
                                                   <ChevronLeft className="h-5 w-5" />
                                                 </Button>
-                                                <div className="flex items-center justify-center absolute left-1/2 -translate-x-1/2 gap-1 rounded-lg border border-[#E5E7EB] bg-slate-50/50 p-1">
+                                                <div className="absolute left-1/2 flex -translate-x-1/2 items-center justify-center gap-1 rounded-lg border border-[#E5E7EB] bg-slate-50/50 p-1">
                                                   <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -7513,7 +7834,7 @@ FEEDBACK: [your explanation]`
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                className="h-8 rounded-full text-xs font-medium text-gray-600 hover:text-gray-900 bg-white shadow-sm"
+                                                className="h-8 rounded-full bg-white text-xs font-medium text-gray-600 shadow-sm hover:text-gray-900"
                                                 onClick={() => {
                                                   const content = assessmentBuilder.taskContent
 
@@ -7549,7 +7870,7 @@ FEEDBACK: [your explanation]`
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                className="h-8 rounded-full text-xs font-medium text-gray-600 hover:text-gray-900 bg-white shadow-sm"
+                                                className="h-8 rounded-full bg-white text-xs font-medium text-gray-600 shadow-sm hover:text-gray-900"
                                                 onClick={() => {
                                                   toast.success('Assessment saved successfully')
                                                 }}
@@ -7562,18 +7883,22 @@ FEEDBACK: [your explanation]`
                                                 size="icon"
                                                 className="h-8 w-8 shrink-0 rounded-full"
                                                 disabled={
-                                                  assessmentPciLoadingMap[loadedAssessmentId || ''] ||
+                                                  assessmentPciLoadingMap[
+                                                    loadedAssessmentId || ''
+                                                  ] ||
                                                   false ||
                                                   !(
-                                                    assessmentPciInputMap[loadedAssessmentId || ''] ||
-                                                    ''
+                                                    assessmentPciInputMap[
+                                                      loadedAssessmentId || ''
+                                                    ] || ''
                                                   ).trim()
                                                 }
                                                 onClick={() => handlePciSend('assessment')}
                                                 aria-label="Send"
                                               >
-                                                {assessmentPciLoadingMap[loadedAssessmentId || ''] ||
-                                                false ? (
+                                                {assessmentPciLoadingMap[
+                                                  loadedAssessmentId || ''
+                                                ] || false ? (
                                                   <Loader2 className="h-4 w-4 animate-spin" />
                                                 ) : (
                                                   <Send className="h-4 w-4" />

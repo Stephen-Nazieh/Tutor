@@ -100,16 +100,12 @@ function TutorInsightsPageInner() {
     async (newName: string) => {
       setCourseName(newName)
       if (!courseId || courseId === 'insights-draft' || !newName.trim()) return
-      
+
       // Optimistically update lists so dropdown matches instantly
       if (saveMode === 'draft') {
-        setDraftCourses(prev =>
-          prev.map(c => (c.id === courseId ? { ...c, name: newName } : c))
-        )
+        setDraftCourses(prev => prev.map(c => (c.id === courseId ? { ...c, name: newName } : c)))
       } else {
-        setCourses(prev =>
-          prev.map(c => (c.id === courseId ? { ...c, name: newName } : c))
-        )
+        setCourses(prev => prev.map(c => (c.id === courseId ? { ...c, name: newName } : c)))
       }
 
       if (saveMode === 'draft') {
@@ -127,8 +123,8 @@ function TutorInsightsPageInner() {
         }
         return
       }
-      
-      // Debounce the API call for live courses could be done here, 
+
+      // Debounce the API call for live courses could be done here,
       // but for now we just rely on the optimistic update.
       const match = courses.find(c => c.id === courseId)
       if (match && newName !== match.name) {
@@ -718,11 +714,11 @@ function TutorInsightsPageInner() {
         detachedCourseName={dataMode === 'detached' ? detachedCourseName : undefined}
         insightsProps={{
           courseId,
-          courses: courses.map(course => ({ 
-            id: course.id, 
+          courses: courses.map(course => ({
+            id: course.id,
             name: course.name,
             categories: course.categories,
-            isPublished: course.isPublished
+            isPublished: course.isPublished,
           })),
           onCourseChange: value => {
             setCourseId(value)

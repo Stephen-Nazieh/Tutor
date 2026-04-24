@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, courseLesson, courseVariant, liveSession } from '@/lib/db/schema'
+import { course, courseLesson, courseVariant, liveSession, tutorAsset } from '@/lib/db/schema'
 import { eq, and, inArray, gte, sql } from 'drizzle-orm'
 import crypto from 'crypto'
 
@@ -458,6 +458,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
                   `Run: npm run db:apply-schema`
               )
             }
+          }
+        }
+      }
+
+      // Rename assets folder if it's the first time publishing and the folder matches the draft course name
+      if (result.length > 0 && templateCourse.name) {
+        const firstCategory = result[0].category
+        const assets = await tx
+          .select({ assetId: tutorAsset.assetId, metadata: tutorAsset.metadata })
+          .from(tutorAsset)
+          .where(eq(tutorAsset.tutorId, userId))
+
+        for (const a of assets) {
+          const meta = a.metadata as any
+          if (meta && meta.folder === templateCourse.name) {
+            await tx
+              .update(tutorAsset)
+              .set({ metadata: { ...meta, folder: firstCategory } })
+              .where(eq(tutorAsset.assetId, a.assetId))
           }
         }
       }

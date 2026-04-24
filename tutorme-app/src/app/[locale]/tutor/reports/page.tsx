@@ -347,51 +347,51 @@ export default function TutorReports() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <div className="min-h-[52px] shrink-0 mb-6">
-            <TabsList className="grid w-full h-full gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)] grid-cols-4">
-              <TabsTrigger 
-                value="overview" 
+          <div className="mb-6 min-h-[52px] shrink-0">
+            <TabsList className="grid h-full w-full grid-cols-4 gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)]">
+              <TabsTrigger
+                value="overview"
                 className={cn(
                   'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
                   activeTab === 'overview'
-                    ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
-                    : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
+                    ? 'border border-[#BFDBFE] bg-white text-[#2563EB] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
+                    : 'text-[#667085] hover:bg-white/70 hover:text-[#344054]'
                 )}
               >
                 <BookOpen className="h-4 w-4" />
                 Overview
               </TabsTrigger>
-              <TabsTrigger 
-                value="revenue" 
+              <TabsTrigger
+                value="revenue"
                 className={cn(
                   'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
                   activeTab === 'revenue'
-                    ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
-                    : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
+                    ? 'border border-[#BFDBFE] bg-white text-[#2563EB] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
+                    : 'text-[#667085] hover:bg-white/70 hover:text-[#344054]'
                 )}
               >
                 <DollarSign className="h-4 w-4" />
                 Revenue Insights
               </TabsTrigger>
-              <TabsTrigger 
-                value="students" 
+              <TabsTrigger
+                value="students"
                 className={cn(
                   'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
                   activeTab === 'students'
-                    ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
-                    : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
+                    ? 'border border-[#BFDBFE] bg-white text-[#2563EB] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
+                    : 'text-[#667085] hover:bg-white/70 hover:text-[#344054]'
                 )}
               >
                 <Users className="h-4 w-4" />
                 Student Roster
               </TabsTrigger>
-              <TabsTrigger 
-                value="engagement" 
+              <TabsTrigger
+                value="engagement"
                 className={cn(
                   'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
                   activeTab === 'engagement'
-                    ? 'bg-white text-[#2563EB] border border-[#BFDBFE] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
-                    : 'text-[#667085] hover:text-[#344054] hover:bg-white/70'
+                    ? 'border border-[#BFDBFE] bg-white text-[#2563EB] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
+                    : 'text-[#667085] hover:bg-white/70 hover:text-[#344054]'
                 )}
               >
                 <Activity className="h-4 w-4" />
@@ -536,9 +536,11 @@ function ItemAIChat({
     setIsLoading(true)
 
     try {
-      const courseSessions = course ? sessions.filter(
-        s => s.courseId === course.id || s.subject === course.name
-      ) : session ? [session] : []
+      const courseSessions = course
+        ? sessions.filter(s => s.courseId === course.id || s.subject === course.name)
+        : session
+          ? [session]
+          : []
 
       const contextPayload = {
         courseName: course?.name,
@@ -609,9 +611,15 @@ function ItemAIChat({
 
   const mentionItems = useMemo(() => {
     const items: { id: string; type: string; label: string; subtitle?: string }[] = []
-    courses.forEach(c => items.push({ id: c.id, type: 'course', label: c.name, subtitle: 'Course' }))
-    sessions.forEach(s => items.push({ id: s.id, type: 'session', label: s.title, subtitle: 'Session' }))
-    students.forEach(s => items.push({ id: s.id, type: 'student', label: s.name, subtitle: 'Student' }))
+    courses.forEach(c =>
+      items.push({ id: c.id, type: 'course', label: c.name, subtitle: 'Course' })
+    )
+    sessions.forEach(s =>
+      items.push({ id: s.id, type: 'session', label: s.title, subtitle: 'Session' })
+    )
+    students.forEach(s =>
+      items.push({ id: s.id, type: 'student', label: s.name, subtitle: 'Student' })
+    )
     return items
   }, [courses, sessions, students])
 
@@ -619,35 +627,35 @@ function ItemAIChat({
   const isSession = !!session
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 shrink-0">
-        <span className="text-sm font-semibold text-gray-800 uppercase tracking-wider">
-          {isCourse 
-            ? `ASK AI ABOUT ${course.name}` 
-            : isSession 
-            ? `ASK AI ABOUT ${session.title}` 
-            : 'ASK AI ABOUT YOUR COURSES & STUDENTS'}
+      <div className="flex shrink-0 items-center justify-between p-4">
+        <span className="text-sm font-semibold uppercase tracking-wider text-gray-800">
+          {isCourse
+            ? `ASK AI ABOUT ${course.name}`
+            : isSession
+              ? `ASK AI ABOUT ${session.title}`
+              : 'ASK AI ABOUT YOUR COURSES & STUDENTS'}
         </span>
-        <Badge variant="outline" className="text-[10px] font-medium text-gray-500 bg-white">
+        <Badge variant="outline" className="bg-white text-[10px] font-medium text-gray-500">
           AI Integrated
         </Badge>
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col p-0 min-h-0">
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex min-h-0 flex-1 flex-col p-0">
+        <div className="flex-1 space-y-4 overflow-y-auto p-4">
           {messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
-              <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center">
+            <div className="flex h-full flex-col items-center justify-center space-y-3 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50">
                 <Bot className="h-6 w-6 text-blue-500" />
               </div>
-              <p className="text-sm text-gray-500 max-w-[280px]">
-                {isCourse 
-                  ? "Ask me anything about student performance, engagement, or insights for this course." 
-                  : isSession 
-                  ? "Ask me about attendance, participation, or metrics for this specific session." 
-                  : "Select a course or session to ask specific questions, or ask me general questions about your students."}
+              <p className="max-w-[280px] text-sm text-gray-500">
+                {isCourse
+                  ? 'Ask me anything about student performance, engagement, or insights for this course.'
+                  : isSession
+                    ? 'Ask me about attendance, participation, or metrics for this specific session.'
+                    : 'Select a course or session to ask specific questions, or ask me general questions about your students.'}
               </p>
             </div>
           ) : (
@@ -668,9 +676,9 @@ function ItemAIChat({
                   <div
                     className={cn(
                       'max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm',
-                      msg.role === 'user' 
-                        ? 'bg-blue-600 text-white rounded-tr-sm' 
-                        : 'border border-gray-100 bg-white text-gray-800 rounded-tl-sm'
+                      msg.role === 'user'
+                        ? 'rounded-tr-sm bg-blue-600 text-white'
+                        : 'rounded-tl-sm border border-gray-100 bg-white text-gray-800'
                     )}
                   >
                     <div className="whitespace-pre-line leading-relaxed">{msg.content}</div>
@@ -697,18 +705,18 @@ function ItemAIChat({
         </div>
 
         {/* Input Area */}
-        <div className="p-4 shrink-0">
-          <div className="relative flex items-end gap-2 rounded-2xl border border-gray-200 bg-white p-1 pl-3 shadow-sm focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-200 transition-all">
+        <div className="shrink-0 p-4">
+          <div className="relative flex items-end gap-2 rounded-2xl border border-gray-200 bg-white p-1 pl-3 shadow-sm transition-all focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-200">
             <MentionTextarea
               mentionItems={mentionItems}
               placeholder={
-                isCourse 
-                  ? "Ask about course performance..." 
-                  : isSession 
-                  ? "Ask about this session..." 
-                  : "Ask a general question..."
+                isCourse
+                  ? 'Ask about course performance...'
+                  : isSession
+                    ? 'Ask about this session...'
+                    : 'Ask a general question...'
               }
-              className="max-h-[120px] min-h-[44px] w-full resize-none bg-transparent py-3 text-sm outline-none placeholder:text-gray-400 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
+              className="max-h-[120px] min-h-[44px] w-full resize-none border-0 bg-transparent py-3 text-sm shadow-none outline-none placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -717,15 +725,15 @@ function ItemAIChat({
             <Button
               size="icon"
               className={cn(
-                "mb-1 mr-1 h-9 w-9 shrink-0 rounded-xl transition-all",
-                input.trim() 
-                  ? "bg-blue-600 text-white shadow-md hover:bg-blue-700" 
-                  : "bg-gray-200 text-white hover:bg-gray-200"
+                'mb-1 mr-1 h-9 w-9 shrink-0 rounded-xl transition-all',
+                input.trim()
+                  ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700'
+                  : 'bg-gray-200 text-white hover:bg-gray-200'
               )}
               onClick={handleSend}
               disabled={isLoading || !input.trim()}
             >
-              <Send className="h-4 w-4 ml-0.5" />
+              <Send className="ml-0.5 h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -738,13 +746,20 @@ function ItemAIChat({
 function CoursesAndClassesTab() {
   const [courses, setCourses] = useState<CourseItem[]>([])
   const [coursesLoading, setCoursesLoading] = useState(true)
-  const [selectedItem, setSelectedItem] = useState<{ type: 'course' | 'session', id: string } | null>(null)
+  const [selectedItem, setSelectedItem] = useState<{
+    type: 'course' | 'session'
+    id: string
+  } | null>(null)
   const [sessionsOverview, setSessionsOverview] = useState<SessionOverviewItem[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
   const [students, setStudents] = useState<Student[]>([])
 
-  const selectedCourse = selectedItem?.type === 'course' ? courses.find(c => c.id === selectedItem.id) || null : null
-  const selectedSession = selectedItem?.type === 'session' ? sessionsOverview.find(s => s.id === selectedItem.id) || null : null
+  const selectedCourse =
+    selectedItem?.type === 'course' ? courses.find(c => c.id === selectedItem.id) || null : null
+  const selectedSession =
+    selectedItem?.type === 'session'
+      ? sessionsOverview.find(s => s.id === selectedItem.id) || null
+      : null
 
   useEffect(() => {
     const loadCourses = async () => {
@@ -824,14 +839,16 @@ function CoursesAndClassesTab() {
     : []
 
   return (
-    <TabsContent value="overview" className="flex flex-col h-[calc(100vh-140px)] space-y-4">
+    <TabsContent value="overview" className="flex h-[calc(100vh-140px)] flex-col space-y-4">
       {/* Top Row - Course List & Sessions Side by Side */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 shrink-0 h-[280px]">
+      <div className="grid h-[280px] shrink-0 grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="flex flex-col overflow-hidden">
-          <div className="py-2 shrink-0">
-            <h3 className="text-sm font-semibold text-gray-800">Courses & Classes ({courses.length})</h3>
+          <div className="shrink-0 py-2">
+            <h3 className="text-sm font-semibold text-gray-800">
+              Courses & Classes ({courses.length})
+            </h3>
           </div>
-          <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+          <div className="flex-1 space-y-2 overflow-y-auto pr-2">
             {coursesLoading ? (
               <div className="flex h-full items-center justify-center py-10 text-sm text-gray-500">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -846,22 +863,29 @@ function CoursesAndClassesTab() {
                 <div
                   key={course.id}
                   className={cn(
-                    'cursor-pointer rounded-xl border bg-white p-3 transition-colors shadow-sm',
+                    'cursor-pointer rounded-xl border bg-white p-3 shadow-sm transition-colors',
                     selectedItem?.type === 'course' && selectedItem.id === course.id
                       ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-400/20'
-                      : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                   )}
                   onClick={() => {
                     setSelectedItem(
-                      selectedItem?.type === 'course' && selectedItem.id === course.id ? null : { type: 'course', id: course.id }
+                      selectedItem?.type === 'course' && selectedItem.id === course.id
+                        ? null
+                        : { type: 'course', id: course.id }
                     )
                   }}
                 >
                   <div className="flex items-start justify-between">
-                    <div className="font-medium text-sm text-gray-900">{course.name}</div>
-                    <Badge variant="secondary" className="text-[10px] bg-blue-600 text-white hover:bg-blue-700">Course</Badge>
+                    <div className="text-sm font-medium text-gray-900">{course.name}</div>
+                    <Badge
+                      variant="secondary"
+                      className="bg-blue-600 text-[10px] text-white hover:bg-blue-700"
+                    >
+                      Course
+                    </Badge>
                   </div>
-                  <div className="text-muted-foreground text-xs mt-1 truncate">
+                  <div className="text-muted-foreground mt-1 truncate text-xs">
                     {course.description || course.categories[0] || 'Untitled'}
                   </div>
                 </div>
@@ -871,10 +895,10 @@ function CoursesAndClassesTab() {
         </div>
 
         <div className="flex flex-col overflow-hidden">
-          <div className="py-2 shrink-0">
+          <div className="shrink-0 py-2">
             <h3 className="text-sm font-semibold text-gray-800">Sessions</h3>
           </div>
-          <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+          <div className="flex-1 space-y-2 overflow-y-auto pr-2">
             {sessionsLoading ? (
               <div className="text-muted-foreground flex h-full items-center justify-center py-10 text-sm">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -893,23 +917,32 @@ function CoursesAndClassesTab() {
                   <div
                     key={sessionItem.id}
                     className={cn(
-                      'cursor-pointer rounded-xl border bg-white p-3 transition-colors shadow-sm',
+                      'cursor-pointer rounded-xl border bg-white p-3 shadow-sm transition-colors',
                       selectedItem?.type === 'session' && selectedItem.id === sessionItem.id
                         ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-400/20'
-                        : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                     )}
                     onClick={() => {
                       setSelectedItem(
-                        selectedItem?.type === 'session' && selectedItem.id === sessionItem.id ? null : { type: 'session', id: sessionItem.id }
+                        selectedItem?.type === 'session' && selectedItem.id === sessionItem.id
+                          ? null
+                          : { type: 'session', id: sessionItem.id }
                       )
                     }}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{sessionItem.title}</p>
-                        <p className="text-muted-foreground text-xs truncate mt-0.5">{sessionItem.subject}</p>
+                        <p className="truncate text-sm font-medium text-gray-900">
+                          {sessionItem.title}
+                        </p>
+                        <p className="text-muted-foreground mt-0.5 truncate text-xs">
+                          {sessionItem.subject}
+                        </p>
                       </div>
-                      <Badge variant={isOngoing ? 'default' : isEnded ? 'secondary' : 'outline'} className="text-[10px] shrink-0">
+                      <Badge
+                        variant={isOngoing ? 'default' : isEnded ? 'secondary' : 'outline'}
+                        className="shrink-0 text-[10px]"
+                      >
                         {statusLabel}
                       </Badge>
                     </div>
@@ -922,59 +955,67 @@ function CoursesAndClassesTab() {
       </div>
 
       {/* Analytics Strip (Minimal) */}
-      <div className="shrink-0 flex items-center bg-gray-50 rounded-xl border border-gray-200 px-4 py-3 gap-6 overflow-x-auto">
+      <div className="flex shrink-0 items-center gap-6 overflow-x-auto rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
         {selectedCourse ? (
           <>
-            <div className="flex items-center gap-2 text-blue-600 font-semibold border-r border-gray-200 pr-6 shrink-0">
+            <div className="flex shrink-0 items-center gap-2 border-r border-gray-200 pr-6 font-semibold text-blue-600">
               <BarChart3 className="h-4 w-4" />
               <span className="text-sm">{selectedCourse.name}</span>
             </div>
             <div className="flex items-center gap-8 text-sm">
               <div className="flex flex-col">
-                <span className="text-[10px] text-gray-500 uppercase font-medium">Published</span>
-                <span className="font-medium text-gray-900">{formatDate(selectedCourse.createdAt)}</span>
+                <span className="text-[10px] font-medium uppercase text-gray-500">Published</span>
+                <span className="font-medium text-gray-900">
+                  {formatDate(selectedCourse.createdAt)}
+                </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] text-gray-500 uppercase font-medium">Sessions</span>
+                <span className="text-[10px] font-medium uppercase text-gray-500">Sessions</span>
                 <span className="font-medium text-gray-900">{courseSessions.length}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] text-gray-500 uppercase font-medium">Category</span>
-                <span className="font-medium text-gray-900">{selectedCourse.categories[0] || 'N/A'}</span>
+                <span className="text-[10px] font-medium uppercase text-gray-500">Category</span>
+                <span className="font-medium text-gray-900">
+                  {selectedCourse.categories[0] || 'N/A'}
+                </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] text-gray-500 uppercase font-medium">Students</span>
+                <span className="text-[10px] font-medium uppercase text-gray-500">Students</span>
                 <span className="font-medium text-gray-900">{students.length}</span>
               </div>
             </div>
           </>
         ) : selectedSession ? (
           <>
-            <div className="flex items-center gap-2 text-blue-600 font-semibold border-r border-gray-200 pr-6 shrink-0">
+            <div className="flex shrink-0 items-center gap-2 border-r border-gray-200 pr-6 font-semibold text-blue-600">
               <BarChart3 className="h-4 w-4" />
               <span className="text-sm">{selectedSession.title}</span>
             </div>
             <div className="flex items-center gap-8 text-sm">
               <div className="flex flex-col">
-                <span className="text-[10px] text-gray-500 uppercase font-medium">Status</span>
+                <span className="text-[10px] font-medium uppercase text-gray-500">Status</span>
                 <span className="font-medium text-gray-900">{selectedSession.status}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] text-gray-500 uppercase font-medium">Scheduled</span>
-                <span className="font-medium text-gray-900">{formatDate(selectedSession.scheduledAt)}</span>
+                <span className="text-[10px] font-medium uppercase text-gray-500">Scheduled</span>
+                <span className="font-medium text-gray-900">
+                  {formatDate(selectedSession.scheduledAt)}
+                </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] text-gray-500 uppercase font-medium">Subject</span>
-                <span className="font-medium text-gray-900">{selectedSession.subject || 'N/A'}</span>
+                <span className="text-[10px] font-medium uppercase text-gray-500">Subject</span>
+                <span className="font-medium text-gray-900">
+                  {selectedSession.subject || 'N/A'}
+                </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] text-gray-500 uppercase font-medium">Students</span>
+                <span className="text-[10px] font-medium uppercase text-gray-500">Students</span>
                 <span className="font-medium text-gray-900">{students.length}</span>
               </div>
             </div>
           </>
         ) : (
-          <div className="flex items-center gap-2 text-gray-500 w-full justify-center">
+          <div className="flex w-full items-center justify-center gap-2 text-gray-500">
             <BarChart3 className="h-4 w-4" />
             <span className="text-sm font-medium">Select a course or class to view analytics</span>
           </div>
@@ -982,13 +1023,13 @@ function CoursesAndClassesTab() {
       </div>
 
       {/* AI Chat Component (Always Rendered, Flexible Height) */}
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <ItemAIChat 
-          course={selectedCourse} 
-          session={selectedSession} 
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <ItemAIChat
+          course={selectedCourse}
+          session={selectedSession}
           courses={courses}
-          sessions={sessionsOverview} 
-          students={students} 
+          sessions={sessionsOverview}
+          students={students}
         />
       </div>
     </TabsContent>

@@ -291,17 +291,20 @@ function CourseBuilderInsightsRouteInner({
           ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
         },
         credentials: 'include',
-        body: JSON.stringify({
-          lessons,
-          developmentMode: 'single',
-          previewDifficulty: 'all',
-        }, (key, value) => {
-          // Remove any DOM nodes or Window objects
-          if (value && (value instanceof Window || value instanceof Node)) {
-            return undefined
+        body: JSON.stringify(
+          {
+            lessons,
+            developmentMode: 'single',
+            previewDifficulty: 'all',
+          },
+          (key, value) => {
+            // Remove any DOM nodes or Window objects
+            if (value && (value instanceof Window || value instanceof Node)) {
+              return undefined
+            }
+            return value
           }
-          return value
-        }),
+        ),
       })
 
       if (!saveRes.ok) {
@@ -318,7 +321,9 @@ function CourseBuilderInsightsRouteInner({
     }
   }
 
-  const currentCourse = (saveMode === 'draft' ? draftCourses : courses)?.find(c => c.id === courseId)
+  const currentCourse = (saveMode === 'draft' ? draftCourses : courses)?.find(
+    c => c.id === courseId
+  )
 
   return (
     <div
@@ -326,9 +331,9 @@ function CourseBuilderInsightsRouteInner({
       data-tutor-route="insights-builder"
       style={model.themeStyle}
     >
-      <div className="bg-gray-50 sticky top-0 z-10 w-full pb-2">
-        <div className="flex w-full flex-col gap-6 px-4 pt-6 sm:px-6 pb-0">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full">
+      <div className="sticky top-0 z-10 w-full bg-gray-50 pb-2">
+        <div className="flex w-full flex-col gap-6 px-4 pb-0 pt-6 sm:px-6">
+          <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <Link href="/tutor/dashboard">
                 <Button variant="ghost" size="icon">
@@ -338,51 +343,57 @@ function CourseBuilderInsightsRouteInner({
 
               <div className="flex flex-col justify-center">
                 <div className="flex items-center gap-2">
-                  {activeMainTab !== 'live' && saveMode === 'draft' && insightsProps.onCourseChange && (
-                    <Select
-                      value={courseId ?? ''}
-                      onValueChange={v => insightsProps.onCourseChange?.(v)}
-                    >
-                      <SelectTrigger className="h-9 w-[160px] text-sm font-semibold border-none bg-transparent shadow-none hover:bg-slate-100 transition-colors focus:ring-0">
-                        <SelectValue placeholder="Select course">
-                          {saveMode === 'draft'
-                            ? draftCourses?.find(c => c.id === courseId)?.name || courseName || 'Select course'
-                            : courses?.find(c => c.id === courseId)?.name || courseName || 'Select course'}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {courses && courses.length > 0 && (
-                          <SelectItem
-                            value="__live-header__"
-                            disabled
-                            className="text-muted-foreground text-xs font-semibold"
-                          >
-                            Live Courses
-                          </SelectItem>
-                        )}
-                        {courses?.map(c => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                        {draftCourses && draftCourses.length > 0 && (
-                          <SelectItem
-                            value="__draft-header__"
-                            disabled
-                            className="text-muted-foreground text-xs font-semibold"
-                          >
-                            Draft Courses
-                          </SelectItem>
-                        )}
-                        {draftCourses?.map(c => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                  
+                  {activeMainTab !== 'live' &&
+                    saveMode === 'draft' &&
+                    insightsProps.onCourseChange && (
+                      <Select
+                        value={courseId ?? ''}
+                        onValueChange={v => insightsProps.onCourseChange?.(v)}
+                      >
+                        <SelectTrigger className="h-9 w-[160px] border-none bg-transparent text-sm font-semibold shadow-none transition-colors hover:bg-slate-100 focus:ring-0">
+                          <SelectValue placeholder="Select course">
+                            {saveMode === 'draft'
+                              ? draftCourses?.find(c => c.id === courseId)?.name ||
+                                courseName ||
+                                'Select course'
+                              : courses?.find(c => c.id === courseId)?.name ||
+                                courseName ||
+                                'Select course'}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {courses && courses.length > 0 && (
+                            <SelectItem
+                              value="__live-header__"
+                              disabled
+                              className="text-muted-foreground text-xs font-semibold"
+                            >
+                              Live Courses
+                            </SelectItem>
+                          )}
+                          {courses?.map(c => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                          {draftCourses && draftCourses.length > 0 && (
+                            <SelectItem
+                              value="__draft-header__"
+                              disabled
+                              className="text-muted-foreground text-xs font-semibold"
+                            >
+                              Draft Courses
+                            </SelectItem>
+                          )}
+                          {draftCourses?.map(c => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+
                   {activeMainTab === 'builder' && saveMode === 'draft' && onCreateCourse && (
                     <Button
                       size="sm"
@@ -397,7 +408,7 @@ function CourseBuilderInsightsRouteInner({
 
                   {onCourseNameChange && courseId && courseId !== 'insights-draft' && (
                     <input
-                      className="h-9 min-w-[200px] border-none bg-transparent px-2 text-sm font-semibold focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none hover:bg-slate-100 rounded-md transition-colors placeholder:text-gray-400"
+                      className="h-9 min-w-[200px] rounded-md border-none bg-transparent px-2 text-sm font-semibold transition-colors placeholder:text-gray-400 hover:bg-slate-100 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                       value={courseName || ''}
                       onChange={e => {
                         const newName = e.target.value
@@ -408,7 +419,7 @@ function CourseBuilderInsightsRouteInner({
                       placeholder="Course Name..."
                     />
                   )}
-                  
+
                   {activeMainTab === 'live' && (
                     <h1 className="text-foreground flex items-center gap-2 text-2xl font-bold tracking-tight">
                       {model.course?.name && (
@@ -432,42 +443,47 @@ function CourseBuilderInsightsRouteInner({
                     </h1>
                   )}
                   {activeMainTab === 'live' && (sessionCategory || sessionNationality) && (
-                    <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ml-2">
+                    <span className="bg-muted text-muted-foreground ml-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium">
                       {sessionCategory && sessionNationality
                         ? `${sessionCategory} — ${sessionNationality}`
                         : sessionCategory || sessionNationality}
                     </span>
                   )}
-                  {activeMainTab !== 'live' && currentCourse && (currentCourse as any).categories?.length > 0 ? (
-                    <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ml-2">
+                  {activeMainTab !== 'live' &&
+                  currentCourse &&
+                  (currentCourse as any).categories?.length > 0 ? (
+                    <span className="bg-muted text-muted-foreground ml-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium">
                       {(currentCourse as any).categories.join(', ')}
                     </span>
                   ) : null}
                 </div>
               </div>
             </div>
-            
-            <div className="flex flex-col items-end gap-4 h-full justify-between pb-0">
-              <div className="flex shrink-0 items-center gap-2 mt-0">
-                    {activeMainTab === 'builder' && insightsProps.sessionId && onSyncToLiveSession && (
-                      <Button
-                        variant="outline"
-                        onClick={async () => {
-                          const cb = (model.courseBuilderRef.current as any)?.saveAll
-                          if (typeof cb === 'function') await cb()
-                          const syncCb = (model.courseBuilderRef.current as any)?.syncToLive
-                          if (typeof syncCb === 'function') syncCb()
-                          onSyncToLiveSession()
-                        }}
-                      >
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                        Sync
-                      </Button>
-                    )}
+
+            <div className="flex h-full flex-col items-end justify-between gap-4 pb-0">
+              <div className="mt-0 flex shrink-0 items-center gap-2">
+                {activeMainTab === 'builder' && insightsProps.sessionId && onSyncToLiveSession && (
+                  <Button
+                    variant="outline"
+                    onClick={async () => {
+                      const cb = (model.courseBuilderRef.current as any)?.saveAll
+                      if (typeof cb === 'function') await cb()
+                      const syncCb = (model.courseBuilderRef.current as any)?.syncToLive
+                      if (typeof syncCb === 'function') syncCb()
+                      onSyncToLiveSession()
+                    }}
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Sync
+                  </Button>
+                )}
                 {activeMainTab === 'builder' &&
                   (onSaveCourse ||
                     (onCreateCourse && !insightsProps.sessionId) ||
-                    (onDeleteCourse && !insightsProps.sessionId && ((courses && courses.length > 1) || (draftCourses && draftCourses.length > 1))) ||
+                    (onDeleteCourse &&
+                      !insightsProps.sessionId &&
+                      ((courses && courses.length > 1) ||
+                        (draftCourses && draftCourses.length > 1))) ||
                     (onCourseNameChange && courseId && courseId !== 'insights-draft')) && (
                     <>
                       {onSaveCourse && (
@@ -487,7 +503,7 @@ function CourseBuilderInsightsRouteInner({
                       {courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
                         <Button
                           variant="default"
-                          className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                          className="gap-2 bg-blue-600 font-medium text-white hover:bg-blue-700"
                           onClick={handlePublishDraft}
                         >
                           <Calendar className="h-4 w-4" />
@@ -520,13 +536,13 @@ function CourseBuilderInsightsRouteInner({
               </div>
             </div>
           </div>
-          
+
           {/* The outer container for Course Builder Tabs */}
-          <div id="course-builder-tabs-portal" className="w-full mt-2"></div>
+          <div id="course-builder-tabs-portal" className="mt-2 w-full"></div>
         </div>
       </div>
 
-      <div className="[&::-webkit-scrollbar-thumb]:bg-border flex w-full flex-1 flex-col overflow-hidden [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2 bg-gray-50/50">
+      <div className="[&::-webkit-scrollbar-thumb]:bg-border flex w-full flex-1 flex-col overflow-hidden bg-gray-50/50 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-2">
         {model.savedVariants.length > 0 && (
           <Card className="mb-8 w-full border border-emerald-200/50 bg-emerald-50/30 shadow-xl backdrop-blur-md">
             <CardHeader className="pb-2 pt-4">

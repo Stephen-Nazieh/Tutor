@@ -405,7 +405,10 @@ export default function StudentTutorDirectoryPage() {
               </CardHeader>
               <CardContent className="space-y-2 p-4 pt-0">
                 <div className="flex items-center gap-2">
-                  <StarRating rating={tutor.averageRating || 0} count={tutor.totalReviewCount || 0} />
+                  <StarRating
+                    rating={tutor.averageRating || 0}
+                    count={tutor.totalReviewCount || 0}
+                  />
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {tutor.categories.slice(0, 3).map(category => (
@@ -466,7 +469,6 @@ export default function StudentTutorDirectoryPage() {
           ))
         )}
       </div>
-
     </div>
   )
 }

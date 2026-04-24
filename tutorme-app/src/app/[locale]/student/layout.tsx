@@ -104,96 +104,96 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
             )}
           >
             <div className="flex h-full w-64 flex-col">
-              <div className="flex shrink-0 min-w-[256px] items-center justify-between p-4">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={e => {
-                    e.stopPropagation()
-                    setDesktopNavOpen(false)
-                  }}
-                  title="Hide Navigation"
-                  className="text-gray-400"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-                <Link
-                  href="/student/dashboard"
-                  className="text-lg font-bold text-blue-600"
-                  aria-label="Student dashboard"
-                ></Link>
-              </div>
-            </div>
-
-            <nav className="flex-1 min-h-0 space-y-2 overflow-y-auto p-4">
-              {isLiveClassRoute ? (
-                <div>
-                  <p className="mb-1.5 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                    Live Class
-                  </p>
-                  <div className="space-y-0.5">
-                    {liveClassNavItems.map(item => {
-                      const Icon = item.icon
-                      const isActive =
-                        pathname === item.href || pathname.startsWith(item.href + '/')
-                      return (
-                        <Link
-                          key={`${item.label}:${item.href}`}
-                          href={item.href}
-                          onClick={e => e.stopPropagation()}
-                          className={cn(
-                            'flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors',
-                            isActive
-                              ? 'bg-blue-50 font-medium text-blue-700'
-                              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                          )}
-                        >
-                          <Icon className="h-5 w-5 flex-shrink-0" />
-                          <span className="text-sm font-medium">{item.label}</span>
-                        </Link>
-                      )
-                    })}
-                  </div>
+              <div className="flex min-w-[256px] shrink-0 items-center justify-between p-4">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={e => {
+                      e.stopPropagation()
+                      setDesktopNavOpen(false)
+                    }}
+                    title="Hide Navigation"
+                    className="text-gray-400"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  <Link
+                    href="/student/dashboard"
+                    className="text-lg font-bold text-blue-600"
+                    aria-label="Student dashboard"
+                  ></Link>
                 </div>
-              ) : (
-                navItems.map(item => {
-                  const Icon = item.icon
-                  const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={e => e.stopPropagation()}
-                      className={cn(
-                        'flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors',
-                        isActive
-                          ? 'bg-blue-50 font-medium text-blue-700'
-                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                      )}
-                    >
-                      <Icon className="h-5 w-5 flex-shrink-0" />
-                      <span className="text-sm font-medium">{item.label}</span>
-                    </Link>
-                  )
-                })
-              )}
-            </nav>
+              </div>
 
-            <div className="shrink-0 space-y-2 p-4">
-              <div className="pt-2">
-                <UserNav />
+              <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto p-4">
+                {isLiveClassRoute ? (
+                  <div>
+                    <p className="mb-1.5 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      Live Class
+                    </p>
+                    <div className="space-y-0.5">
+                      {liveClassNavItems.map(item => {
+                        const Icon = item.icon
+                        const isActive =
+                          pathname === item.href || pathname.startsWith(item.href + '/')
+                        return (
+                          <Link
+                            key={`${item.label}:${item.href}`}
+                            href={item.href}
+                            onClick={e => e.stopPropagation()}
+                            className={cn(
+                              'flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors',
+                              isActive
+                                ? 'bg-blue-50 font-medium text-blue-700'
+                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                            )}
+                          >
+                            <Icon className="h-5 w-5 flex-shrink-0" />
+                            <span className="text-sm font-medium">{item.label}</span>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  navItems.map(item => {
+                    const Icon = item.icon
+                    const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={e => e.stopPropagation()}
+                        className={cn(
+                          'flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors',
+                          isActive
+                            ? 'bg-blue-50 font-medium text-blue-700'
+                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        )}
+                      >
+                        <Icon className="h-5 w-5 flex-shrink-0" />
+                        <span className="text-sm font-medium">{item.label}</span>
+                      </Link>
+                    )
+                  })
+                )}
+              </nav>
+
+              <div className="shrink-0 space-y-2 p-4">
+                <div className="pt-2">
+                  <UserNav />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </aside>
+        </aside>
       )}
 
       {/* Floating collapsed pill */}
       {!isFeedbackRoute && !desktopNavOpen && (
         <div
-          className="fixed left-0 top-1/2 z-50 -translate-y-1/2 hidden h-16 w-8 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:bg-slate-50 hover:w-10 lg:flex"
+          className="fixed left-0 top-1/2 z-50 hidden h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50 lg:flex"
           onClick={() => setDesktopNavOpen(true)}
           title="Show navigation"
         >

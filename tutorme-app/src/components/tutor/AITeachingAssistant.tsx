@@ -72,7 +72,7 @@ export function AITeachingAssistant({
   const [activeTab, setActiveTab] = useState<'question'>('question')
   const [selectedPrompt, setSelectedPrompt] = useState<SocraticPrompt | null>(null)
   const [showFollowUps, setShowFollowUps] = useState(false)
-  
+
   const [socraticPrompts, setSocraticPrompts] = useState<SocraticPrompt[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -80,14 +80,17 @@ export function AITeachingAssistant({
     setIsLoading(true)
     try {
       // Summarize nodes to not overload token limit
-      const courseSummary = nodes.map(node => ({
-        lesson: node.title,
-        tasks: node.lessons[0]?.tasks?.map((t: any) => t.title).join(', ')
-      })).slice(0, 10)
+      const courseSummary = nodes
+        .map(node => ({
+          lesson: node.title,
+          tasks: node.lessons[0]?.tasks?.map((t: any) => t.title).join(', '),
+        }))
+        .slice(0, 10)
 
-      const specificInstructions = mode === 'poll' 
-        ? 'Generate exactly 3 Socratic poll questions that can be answered on a 1-5 scale (e.g., 1=Strongly Disagree, 5=Strongly Agree).'
-        : 'Generate exactly 3 close-ended Socratic questions (e.g., Yes/No, True/False, or Multiple Choice style) to check student understanding.'
+      const specificInstructions =
+        mode === 'poll'
+          ? 'Generate exactly 3 Socratic poll questions that can be answered on a 1-5 scale (e.g., 1=Strongly Disagree, 5=Strongly Agree).'
+          : 'Generate exactly 3 close-ended Socratic questions (e.g., Yes/No, True/False, or Multiple Choice style) to check student understanding.'
 
       const promptText = `You are a Socratic AI Teaching Assistant helping a tutor engage their students.
 The course structure is: ${JSON.stringify(courseSummary)}
@@ -107,7 +110,7 @@ Each object must match this interface:
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: promptText })
+        body: JSON.stringify({ message: promptText }),
       })
 
       if (res.ok) {
@@ -135,8 +138,8 @@ Each object must match this interface:
   }, [])
 
   return (
-    <Card className="flex h-full flex-col border-0 shadow-none bg-transparent">
-      <CardHeader className="pb-3 px-2 pt-2">
+    <Card className="flex h-full flex-col border-0 bg-transparent shadow-none">
+      <CardHeader className="px-2 pb-3 pt-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-blue-500">
@@ -148,7 +151,12 @@ Each object must match this interface:
             </div>
           </div>
           {onClose && (
-            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 text-gray-500 hover:text-gray-900">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="h-8 w-8 text-gray-500 hover:text-gray-900"
+            >
               <X className="h-4 w-4" />
             </Button>
           )}
@@ -163,7 +171,7 @@ Each object must match this interface:
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-xs px-0 text-gray-500 hover:text-gray-900"
+                  className="px-0 text-xs text-gray-500 hover:text-gray-900"
                   onClick={() => {
                     setSelectedPrompt(null)
                     setShowFollowUps(false)
@@ -179,7 +187,10 @@ Each object must match this interface:
 
                   <div className="mt-4 flex gap-2">
                     {onSelectPrompt && (
-                      <Button className="w-full gap-2" onClick={() => onSelectPrompt(selectedPrompt.question)}>
+                      <Button
+                        className="w-full gap-2"
+                        onClick={() => onSelectPrompt(selectedPrompt.question)}
+                      >
                         <MessageCircle className="h-4 w-4" />
                         Use this {mode === 'poll' ? 'Poll' : 'Question'}
                       </Button>
@@ -223,14 +234,18 @@ Each object must match this interface:
                     onClick={() => generatePrompts()}
                     disabled={isLoading}
                   >
-                    {isLoading ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Sparkles className="mr-1 h-3 w-3" />}
+                    {isLoading ? (
+                      <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                    ) : (
+                      <Sparkles className="mr-1 h-3 w-3" />
+                    )}
                     Regenerate
                   </Button>
                 </div>
 
                 {isLoading ? (
                   <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                    <Loader2 className="h-6 w-6 animate-spin text-blue-500 mb-2" />
+                    <Loader2 className="mb-2 h-6 w-6 animate-spin text-blue-500" />
                     <p className="text-xs">Analyzing course content...</p>
                   </div>
                 ) : (
@@ -246,7 +261,7 @@ Each object must match this interface:
                       >
                         <div className="mb-1 flex items-center justify-between">
                           <span className="text-xs text-gray-500">{prompt.context}</span>
-                          <Badge variant="outline" className="text-[10px] h-4 font-normal">
+                          <Badge variant="outline" className="h-4 text-[10px] font-normal">
                             {prompt.difficulty}
                           </Badge>
                         </div>

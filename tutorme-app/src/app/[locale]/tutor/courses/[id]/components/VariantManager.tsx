@@ -481,7 +481,7 @@ export function VariantManager({
                   }
                   price={dialogVariant.price}
                   weeksToSchedule={dialogVariant.weeksToSchedule}
-                  onWeeksChange={weeks => 
+                  onWeeksChange={weeks =>
                     updateVariant(scheduleDialogIndex, v => ({
                       ...v,
                       weeksToSchedule: weeks,

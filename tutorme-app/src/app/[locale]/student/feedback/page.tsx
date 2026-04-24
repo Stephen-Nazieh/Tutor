@@ -313,14 +313,10 @@ function StudentFeedbackContent() {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      <div className="bg-gray-50 px-4 sm:px-6 pt-6 pb-2">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full">
+      <div className="bg-gray-50 px-4 pb-2 pt-6 sm:px-6">
+        <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => window.history.back()}
-            >
+            <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex flex-col justify-center">
@@ -329,9 +325,9 @@ function StudentFeedbackContent() {
               </div>
             </div>
           </div>
-          
-          <div className="flex flex-col items-end gap-4 justify-between">
-            <div className="flex shrink-0 items-center gap-2 mt-0">
+
+          <div className="flex flex-col items-end justify-between gap-4">
+            <div className="mt-0 flex shrink-0 items-center gap-2">
               <Button
                 variant="outline"
                 onClick={() => setShowTasksPanel(true)}
@@ -377,7 +373,7 @@ function StudentFeedbackContent() {
             )}
           </div>
         )}
-        <div id="student-live-tabs-portal" className="w-full mt-2" />
+        <div id="student-live-tabs-portal" className="mt-2 w-full" />
       </div>
 
       {sessionContext?.roomUrl && (
@@ -386,28 +382,28 @@ function StudentFeedbackContent() {
         </div>
       )}
 
-      <div className="flex-1 p-4 sm:p-6 pt-4">
+      <div className="flex-1 p-4 pt-4 sm:p-6">
         <div className="flex h-full flex-col gap-6">
           <Tabs defaultValue="task" className="flex flex-1 flex-col">
             {portalTarget ? (
               createPortal(
-                <div className="min-h-[48px] shrink-0 w-full mb-0">
-                  <TabsList className="grid w-full h-[48px] gap-2 grid-cols-3 bg-transparent border-0 shadow-none">
+                <div className="mb-0 min-h-[48px] w-full shrink-0">
+                  <TabsList className="grid h-[48px] w-full grid-cols-3 gap-2 border-0 bg-transparent shadow-none">
                     <TabsTrigger
                       value="task"
-                      className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:shadow-sm text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm border border-transparent"
+                      className="flex items-center justify-center gap-2 rounded-xl border border-transparent px-4 py-2.5 text-sm font-semibold text-[#667085] transition-all hover:bg-white hover:text-[#344054] hover:shadow-sm data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:shadow-sm"
                     >
                       Classroom
                     </TabsTrigger>
                     <TabsTrigger
                       value="my-board"
-                      className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:shadow-sm text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm border border-transparent"
+                      className="flex items-center justify-center gap-2 rounded-xl border border-transparent px-4 py-2.5 text-sm font-semibold text-[#667085] transition-all hover:bg-white hover:text-[#344054] hover:shadow-sm data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:shadow-sm"
                     >
                       My Board
                     </TabsTrigger>
                     <TabsTrigger
                       value="tutor-board"
-                      className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:shadow-sm text-[#667085] hover:text-[#344054] hover:bg-white hover:shadow-sm border border-transparent"
+                      className="flex items-center justify-center gap-2 rounded-xl border border-transparent px-4 py-2.5 text-sm font-semibold text-[#667085] transition-all hover:bg-white hover:text-[#344054] hover:shadow-sm data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:shadow-sm"
                     >
                       Tutor Board
                     </TabsTrigger>
@@ -435,15 +431,20 @@ function StudentFeedbackContent() {
                     </Button>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4 flex-1 h-[calc(100vh-280px)] min-h-[600px] overflow-hidden p-0">
+                <CardContent className="h-[calc(100vh-280px)] min-h-[600px] flex-1 space-y-4 overflow-hidden p-0">
                   {activeTask ? (
                     <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
                       {(activeTask.sourceDocument || activeTask.content) && (
-                        <ResizablePanel defaultSize={activeTask.dmiItems?.length ? 50 : 100} minSize={20}>
+                        <ResizablePanel
+                          defaultSize={activeTask.dmiItems?.length ? 50 : 100}
+                          minSize={20}
+                        >
                           <div className="h-full w-full overflow-y-auto p-4">
                             {activeTask.sourceDocument ? (
-                              <div className="space-y-2 h-full">
-                                <p className="text-xs font-semibold uppercase text-gray-500">Document</p>
+                              <div className="h-full space-y-2">
+                                <p className="text-xs font-semibold uppercase text-gray-500">
+                                  Document
+                                </p>
                                 {activeTask.sourceDocument.mimeType === 'application/pdf' ? (
                                   <div className="h-[calc(100%-24px)] w-full overflow-hidden rounded border">
                                     <iframe
@@ -483,25 +484,34 @@ function StudentFeedbackContent() {
                           </div>
                         </ResizablePanel>
                       )}
-                      
-                      {((activeTask.sourceDocument || activeTask.content) && activeTask.dmiItems?.length) ? (
+
+                      {(activeTask.sourceDocument || activeTask.content) &&
+                      activeTask.dmiItems?.length ? (
                         <ResizableHandle withHandle />
                       ) : null}
 
                       {activeTask.dmiItems && activeTask.dmiItems.length > 0 && (
-                        <ResizablePanel defaultSize={activeTask.sourceDocument || activeTask.content ? 50 : 100} minSize={20}>
-                          <div className="h-full w-full overflow-y-auto p-4 bg-gray-50/50">
+                        <ResizablePanel
+                          defaultSize={activeTask.sourceDocument || activeTask.content ? 50 : 100}
+                          minSize={20}
+                        >
+                          <div className="h-full w-full overflow-y-auto bg-gray-50/50 p-4">
                             <div className="space-y-2">
                               <p className="text-xs font-semibold uppercase text-gray-500">
                                 Task Prompts (DMI)
                               </p>
                               <div className="space-y-2">
                                 {activeTask.dmiItems.map(item => (
-                                  <div key={item.id} className="rounded-lg border bg-white p-3 shadow-sm">
-                                    <p className="text-xs font-semibold text-blue-600 mb-1">
+                                  <div
+                                    key={item.id}
+                                    className="rounded-lg border bg-white p-3 shadow-sm"
+                                  >
+                                    <p className="mb-1 text-xs font-semibold text-blue-600">
                                       Q{item.questionNumber}
                                     </p>
-                                    <p className="text-sm text-gray-800 font-medium">{item.questionText}</p>
+                                    <p className="text-sm font-medium text-gray-800">
+                                      {item.questionText}
+                                    </p>
                                   </div>
                                 ))}
                               </div>

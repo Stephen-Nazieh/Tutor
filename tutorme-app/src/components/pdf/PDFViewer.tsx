@@ -133,7 +133,7 @@ export function PDFViewer({
             )}
           </div>
 
-          <div className="flex items-center justify-end w-full">
+          <div className="flex w-full items-center justify-end">
             <button
               onClick={() => changeScale(-0.25)}
               disabled={scale <= 0.5}

@@ -8,7 +8,16 @@ import { AutoTextarea } from '@/components/ui/auto-textarea'
 
 export interface MentionItem {
   id: string
-  type: 'lesson' | 'task' | 'assessment' | 'extension' | 'dmi' | 'course' | 'session' | 'student' | string
+  type:
+    | 'lesson'
+    | 'task'
+    | 'assessment'
+    | 'extension'
+    | 'dmi'
+    | 'course'
+    | 'session'
+    | 'student'
+    | string
   label: string
   subtitle?: string
 }
@@ -279,7 +288,7 @@ export function MentionTextarea({
   )
 
   return (
-    <div ref={containerRef} className="relative flex flex-col gap-2 flex-1 w-full">
+    <div ref={containerRef} className="relative flex w-full flex-1 flex-col gap-2">
       {/* Mention pills */}
       {parsedMentions.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
