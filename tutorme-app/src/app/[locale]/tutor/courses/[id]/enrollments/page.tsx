@@ -30,8 +30,8 @@ export default function TutorCourseEnrollmentsPage() {
   const locale = typeof params?.locale === 'string' ? params.locale : 'en'
   const hasLocalePrefix = pathname.startsWith(`/${locale}/`)
   const coursePath = hasLocalePrefix
-    ? `/${locale}/tutor/courses/${courseId}`
-    : `/tutor/courses/${courseId}`
+    ? `/${locale}/tutor/dashboard`
+    : `/tutor/dashboard`
 
   const [loading, setLoading] = useState(true)
   const [enrollments, setEnrollments] = useState<EnrollmentItem[]>([])
@@ -69,7 +69,7 @@ export default function TutorCourseEnrollmentsPage() {
             Track students currently enrolled in this course.
           </p>
         </div>
-        <BackButton href={coursePath} />
+        <BackButton href={coursePath} iconDirection="right" />
       </div>
 
       <Card>

@@ -752,14 +752,6 @@ function TutorDashboardContent() {
                                 </Badge>
                               </Link>
                             </div>
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={() => handleEnterCourseClassroom(course)}
-                              disabled={launchingCourseId === course.id}
-                            >
-                              {launchingCourseId === course.id ? 'Launching…' : 'Open Session'}
-                            </Button>
                             <Button asChild variant="outline" size="sm">
                               <Link
                                 href={withLocalePath(

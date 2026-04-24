@@ -3733,18 +3733,18 @@ FEEDBACK: [your explanation]`
             }
           }}
         >
-          <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
+          <DialogContent className="rounded-2xl border border-slate-200 bg-white shadow-2xl sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Load as...</DialogTitle>
+              <DialogTitle className="text-xl font-semibold text-slate-900">Load as...</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4 py-4">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm font-medium text-slate-700">
                 Select how you would like to load &quot;{assetToLoad?.name}&quot;:
               </p>
 
               {/* Option 1: Tasks (One task per page) */}
               <Button
-                className="h-auto w-full justify-start gap-2 py-3"
+                className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:bg-slate-50 hover:border-slate-300"
                 variant="outline"
                 onClick={() => {
                   if (!assetToLoad) return
@@ -3836,10 +3836,10 @@ FEEDBACK: [your explanation]`
                   setAssetToLoad(null)
                 }}
               >
-                <ListTodo className="mt-1 h-4 w-4 shrink-0 text-orange-500" />
+                <ListTodo className="mt-1 h-5 w-5 shrink-0 text-orange-500" />
                 <div className="flex flex-col items-start text-left">
-                  <span>Tasks</span>
-                  <span className="mt-0.5 text-xs font-normal text-gray-500">
+                  <span className="font-semibold text-slate-900">Tasks</span>
+                  <span className="mt-1 text-xs font-normal text-slate-500">
                     Extract text and create one task per page
                   </span>
                 </div>
@@ -3847,7 +3847,7 @@ FEEDBACK: [your explanation]`
 
               {/* Option 2: Task + Extensions */}
               <Button
-                className="h-auto w-full justify-start gap-2 py-3"
+                className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:bg-slate-50 hover:border-slate-300"
                 variant="outline"
                 onClick={() => {
                   if (!assetToLoad) return
@@ -3935,10 +3935,10 @@ FEEDBACK: [your explanation]`
                   }, 500)
                 }}
               >
-                <Layers2 className="mt-1 h-4 w-4 shrink-0 text-green-500" />
+                <Layers2 className="mt-1 h-5 w-5 shrink-0 text-green-500" />
                 <div className="flex flex-col items-start text-left">
-                  <span>Task + Extensions</span>
-                  <span className="mt-0.5 text-xs font-normal text-gray-500">
+                  <span className="font-semibold text-slate-900">Task + Extensions</span>
+                  <span className="mt-1 text-xs font-normal text-slate-500">
                     First page as task, remaining as extensions
                   </span>
                 </div>
@@ -3946,7 +3946,7 @@ FEEDBACK: [your explanation]`
 
               {/* Option 3: Assessment */}
               <Button
-                className="h-auto w-full justify-start gap-2 py-3"
+                className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:bg-slate-50 hover:border-slate-300"
                 variant="outline"
                 onClick={() => {
                   if (!assetToLoad) return
@@ -4036,10 +4036,10 @@ FEEDBACK: [your explanation]`
                   }, 500)
                 }}
               >
-                <FileQuestion className="mt-1 h-4 w-4 shrink-0 text-purple-500" />
+                <FileQuestion className="mt-1 h-5 w-5 shrink-0 text-purple-500" />
                 <div className="flex flex-col items-start text-left">
-                  <span>Assessment</span>
-                  <span className="mt-0.5 text-xs font-normal text-gray-500">
+                  <span className="font-semibold text-slate-900">Assessment</span>
+                  <span className="mt-1 text-xs font-normal text-slate-500">
                     Load entire document into {loadedAssessmentId ? 'current' : 'a new'} assessment
                   </span>
                 </div>
@@ -6648,7 +6648,7 @@ FEEDBACK: [your explanation]`
 
                                           const doc =
                                             testPciSource === 'task'
-                                              ? (taskBuilder as any).sourceDocument || (taskBuilder.activeExtensionId ? taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId && (e as any).sourceDocument) ? (taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId) as any).sourceDocument : undefined : undefined)
+                                              ? taskSourceDocument || (taskBuilder as any).sourceDocument || (taskBuilder.activeExtensionId ? taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId && (e as any).sourceDocument) ? (taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId) as any).sourceDocument : undefined : undefined)
                                               : assessmentSourceDocument || (assessmentBuilder as any).sourceDocument
                                           const versionId = testPciViewMode.startsWith('dmi_')
                                             ? testPciViewMode.replace('dmi_', '')
@@ -6770,7 +6770,7 @@ FEEDBACK: [your explanation]`
                                   </TabsContent>
                                 ))}
                               </Tabs>
-                              {testPciActiveTab !== 'insights' && (
+                              {testPciActiveTab !== 'insights' && !(mainTab === 'live' && testPciActiveTab === 'student1') && (
                                 <div className="mt-1 w-full rounded-2xl border border-cyan-300 bg-white/90 shadow-[0_0_15px_rgba(34,211,238,0.4)] backdrop-blur-md transition-all duration-300 focus-within:shadow-[0_0_25px_rgba(34,211,238,0.6)]">
                                   <div className="relative flex w-full flex-col p-px">
                                     <div className="flex w-full flex-col">
@@ -7412,7 +7412,7 @@ FEEDBACK: [your explanation]`
                                                       `dmi_${taskDmiVersions[0].id}`
                                                     )
                                                   } else {
-                                                    const hasDoc = !!((taskBuilder as any).sourceDocument || (taskBuilder.activeExtensionId ? taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId && (e as any).sourceDocument) ? (taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId) as any).sourceDocument : undefined : undefined))
+                                                    const hasDoc = !!(taskSourceDocument || (taskBuilder as any).sourceDocument || (taskBuilder.activeExtensionId ? taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId && (e as any).sourceDocument) ? (taskBuilder.extensions.find((e: any) => e.id === taskBuilder.activeExtensionId) as any).sourceDocument : undefined : undefined))
                                                     setTestPciViewMode(hasDoc ? 'pdf' : 'text')
                                                   }
                                                   setTestPciActiveTab('classroom')

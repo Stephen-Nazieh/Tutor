@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -12,6 +12,7 @@ interface BackButtonProps {
   className?: string
   variant?: 'ghost' | 'outline' | 'default'
   size?: 'sm' | 'default' | 'icon'
+  iconDirection?: 'left' | 'right'
 }
 
 export function BackButton({
@@ -20,8 +21,11 @@ export function BackButton({
   className,
   variant = 'ghost',
   size = 'icon',
+  iconDirection = 'left',
 }: BackButtonProps) {
   const router = useRouter()
+
+  const Icon = iconDirection === 'right' ? ArrowRight : ArrowLeft
 
   const handleClick = () => {
     if (href) {
@@ -43,7 +47,7 @@ export function BackButton({
       className={cn('h-9 w-9 rounded-full p-0 transition-colors hover:bg-gray-100', className)}
       aria-label="Go back"
     >
-      <ArrowLeft className="h-5 w-5" />
+      <Icon className="h-5 w-5" />
     </Button>
   )
 
@@ -57,7 +61,7 @@ export function BackButton({
         aria-label="Go back"
       >
         <Link href={href} className="inline-flex">
-          <ArrowLeft className="h-5 w-5" />
+          <Icon className="h-5 w-5" />
         </Link>
       </Button>
     )
