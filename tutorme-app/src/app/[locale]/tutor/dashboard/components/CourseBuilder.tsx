@@ -4505,16 +4505,14 @@ FEEDBACK: [your explanation]`
           {portalTarget ? (
             createPortal(
               <div className="mb-0 min-h-[48px] w-full shrink-0">
-                <TabsList className="grid h-[48px] w-full grid-cols-3 gap-2 border-0 bg-transparent shadow-none">
+                <TabsList className="grid h-[48px] w-full grid-cols-3 gap-2 border-0 bg-transparent shadow-none p-0">
                   <TabsTrigger
                     value="live"
                     className={cn(
-                      'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                      'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
                       mainTab === 'live'
-                        ? !isSessionActive
-                          ? 'border border-green-200 bg-white text-green-600 shadow-sm'
-                          : 'border border-red-200 bg-white text-red-600 shadow-sm'
-                        : 'border border-transparent text-[#667085] hover:bg-white hover:text-[#344054] hover:shadow-sm'
+                        ? 'bg-[linear-gradient(145deg,rgba(44,47,51,0.55),rgba(58,63,69,0.45))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                        : 'bg-white text-[#1F2933] shadow-[0_10px_22px_rgba(0,0,0,0.10)]'
                     )}
                     onClick={e => {
                       if (mainTab !== 'live') {
@@ -4553,10 +4551,10 @@ FEEDBACK: [your explanation]`
                   <TabsTrigger
                     value="test-pci"
                     className={cn(
-                      'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                      'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
                       mainTab === 'test-pci'
-                        ? 'border border-[#BFDBFE] bg-white text-[#2563EB] shadow-sm'
-                        : 'border border-transparent text-[#667085] hover:bg-white hover:text-[#344054] hover:shadow-sm'
+                        ? 'bg-[linear-gradient(145deg,rgba(44,47,51,0.55),rgba(58,63,69,0.45))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                        : 'bg-white text-[#1F2933] shadow-[0_10px_22px_rgba(0,0,0,0.10)]'
                     )}
                     onClick={e => {
                       if (mainTab !== 'test-pci') {
@@ -4570,10 +4568,10 @@ FEEDBACK: [your explanation]`
                   <TabsTrigger
                     value="builder"
                     className={cn(
-                      'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                      'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
                       mainTab === 'builder'
-                        ? 'border border-[#BFDBFE] bg-white text-[#2563EB] shadow-sm'
-                        : 'border border-transparent text-[#667085] hover:bg-white hover:text-[#344054] hover:shadow-sm'
+                        ? 'bg-[linear-gradient(145deg,rgba(44,47,51,0.55),rgba(58,63,69,0.45))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                        : 'bg-white text-[#1F2933] shadow-[0_10px_22px_rgba(0,0,0,0.10)]'
                     )}
                     onClick={e => {
                       if (mainTab !== 'builder') {
