@@ -4511,8 +4511,8 @@ FEEDBACK: [your explanation]`
                     className={cn(
                       'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
                       mainTab === 'live'
-                        ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
-                        : 'bg-white text-[#1F2933] shadow-[0_10px_22px_rgba(0,0,0,0.10)]'
+                        ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
+                        : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
                     )}
                     onClick={e => {
                       if (mainTab !== 'live') {
@@ -4553,8 +4553,8 @@ FEEDBACK: [your explanation]`
                     className={cn(
                       'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
                       mainTab === 'test-pci'
-                        ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
-                        : 'bg-white text-[#1F2933] shadow-[0_10px_22px_rgba(0,0,0,0.10)]'
+                        ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
+                        : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
                     )}
                     onClick={e => {
                       if (mainTab !== 'test-pci') {
@@ -4570,8 +4570,8 @@ FEEDBACK: [your explanation]`
                     className={cn(
                       'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
                       mainTab === 'builder'
-                        ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
-                        : 'bg-white text-[#1F2933] shadow-[0_10px_22px_rgba(0,0,0,0.10)]'
+                        ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
+                        : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
                     )}
                     onClick={e => {
                       if (mainTab !== 'builder') {
@@ -6643,15 +6643,6 @@ FEEDBACK: [your explanation]`
                                     ) : (
                                       <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto bg-white p-0">
                                         {(() => {
-                                          if (tab.id !== 'classroom') {
-                                            return (
-                                              <p className="text-muted-foreground whitespace-pre-wrap text-sm">
-                                                {testPciContent[tab.id] ||
-                                                  `${tab.label} view content`}
-                                              </p>
-                                            )
-                                          }
-
                                           const doc =
                                             testPciSource === 'task'
                                               ? taskBuilder.sourceDocument
@@ -7416,6 +7407,7 @@ FEEDBACK: [your explanation]`
                                                   } else {
                                                     setTestPciViewMode('pdf')
                                                   }
+                                                  setTestPciActiveTab('classroom')
                                                   setMainTab('test-pci')
                                                   toast.success(
                                                     'Test PCI prefilled with task content'
@@ -7862,6 +7854,7 @@ FEEDBACK: [your explanation]`
                                                   } else {
                                                     setTestPciViewMode('text')
                                                   }
+                                                  setTestPciActiveTab('classroom')
                                                   setMainTab('test-pci')
                                                   toast.success(
                                                     'Test PCI prefilled with assessment content'
