@@ -367,6 +367,33 @@ function TutorDashboardContent() {
     []
   )
 
+  const handleOpenSessionsModal = useCallback(
+    async (course: EnrolledCourse) => {
+      if (loadingSessions) return
+      setSelectedCourseForCancel(course)
+      setCancelModalOpen(true)
+      setCourseSessions([])
+      setLoadingSessions(true)
+
+      try {
+        const res = await fetch(`/api/tutor/courses/${course.id}/sessions`, {
+          credentials: 'include',
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setCourseSessions(data.sessions || [])
+        } else {
+          toast.error('Failed to load course sessions')
+        }
+      } catch {
+        toast.error('Failed to load course sessions')
+      } finally {
+        setLoadingSessions(false)
+      }
+    },
+    [loadingSessions]
+  )
+
   const handleEnterCourseClassroom = useCallback(
     async (course: EnrolledCourse) => {
       if (launchingCourseId) return
@@ -394,6 +421,11 @@ function TutorDashboardContent() {
 
         const result = await res.json().catch(() => ({}))
         if (!res.ok) {
+          if (res.status === 409) {
+            toast.info('You have an active or scheduled session for this slot. Please select it below.')
+            handleOpenSessionsModal(course)
+            return
+          }
           toast.error(result?.error || 'Failed to launch classroom')
           return
         }
@@ -411,37 +443,7 @@ function TutorDashboardContent() {
         setLaunchingCourseId(null)
       }
     },
-    [launchingCourseId, router]
-  )
-
-  const handleOpenCancelModal = useCallback(
-    async (course: EnrolledCourse) => {
-      if (loadingSessions) return
-      setSelectedCourseForCancel(course)
-      setCancelModalOpen(true)
-      setCourseSessions([])
-      setLoadingSessions(true)
-
-      try {
-        const res = await fetch(`/api/tutor/courses/${course.id}/sessions`, {
-          credentials: 'include',
-        })
-
-        if (res.ok) {
-          const data = await res.json()
-          setCourseSessions(data.sessions || [])
-        } else {
-          toast.error('Failed to load course sessions')
-          setCourseSessions([])
-        }
-      } catch {
-        toast.error('Failed to load course sessions')
-        setCourseSessions([])
-      } finally {
-        setLoadingSessions(false)
-      }
-    },
-    [loadingSessions]
+    [launchingCourseId, router, handleOpenSessionsModal]
   )
 
   const handleCancelSession = useCallback(async (sessionId: string, reason?: string) => {
@@ -705,63 +707,71 @@ function TutorDashboardContent() {
                       No courses have enrolled students yet.
                     </div>
                   ) : (
-                    enrolledCourses.map(course => (
-                      <div
-                        key={course.id}
-                        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-white p-4"
-                      >
-                        <div className="min-w-0 space-y-1">
-                          <div className="flex items-center gap-2">
-                            <p className="truncate font-semibold text-slate-900">{course.name}</p>
+                    enrolledCourses.map(course => {
+                      const courseClasses = classes.filter(c => c.courseId === course.id)
+                      const hasActive = courseClasses.some(c => c.status === 'active' || c.status === 'live' || c.status === 'preparing')
+                      const nextSession = courseClasses.find(c => c.status === 'scheduled')
+                      const isWithin1Hour = nextSession && (new Date(nextSession.scheduledAt).getTime() - Date.now() <= 3600000)
+
+                      return (
+                        <div
+                          key={course.id}
+                          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-white p-4"
+                        >
+                          <div className="min-w-0 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <p className="truncate font-semibold text-slate-900">{course.name}</p>
+                            </div>
+                            <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
+                              <span>{(course.categories || [])[0] || 'Untitled'}</span>
+                              {course.price ? (
+                                <span>
+                                  • {course.currency ?? 'USD'} {course.price}
+                                </span>
+                              ) : null}
+                            </div>
                           </div>
-                          <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
-                            <span>{(course.categories || [])[0] || 'Untitled'}</span>
-                            {course.price ? (
-                              <span>
-                                • {course.currency ?? 'USD'} {course.price}
-                              </span>
-                            ) : null}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-muted-foreground flex items-center gap-2 text-xs">
-                            <Badge variant="secondary">{course.sessionCount ?? 0} sessions</Badge>
-                            <Badge variant="secondary">{course.enrollmentCount} enrolled</Badge>
-                          </div>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleEnterCourseClassroom(course)}
-                            disabled={launchingCourseId === course.id}
-                          >
-                            {launchingCourseId === course.id ? 'Launching…' : 'Open Session'}
-                          </Button>
-                          <Button asChild variant="outline" size="sm">
-                            <Link
-                              href={withLocalePath(
-                                `/tutor/insights?tab=builder&courseId=${course.id}`
-                              )}
+                          <div className="flex items-center gap-3">
+                            <div className="text-muted-foreground flex items-center gap-2 text-xs">
+                              <Badge
+                                variant={hasActive || isWithin1Hour ? 'default' : 'secondary'}
+                                className={cn(
+                                  "cursor-pointer transition-colors",
+                                  hasActive ? "bg-green-500 hover:bg-green-600 text-white" :
+                                  isWithin1Hour ? "bg-orange-500 hover:bg-orange-600 text-white" :
+                                  "hover:bg-slate-200"
+                                )}
+                                onClick={() => handleOpenSessionsModal(course)}
+                              >
+                                {course.sessionCount ?? 0} sessions
+                              </Badge>
+                              <Link href={withLocalePath(`/tutor/courses/${course.id}/enrollments`)}>
+                                <Badge variant="secondary" className="cursor-pointer hover:bg-slate-200">
+                                  {course.enrollmentCount} enrolled
+                                </Badge>
+                              </Link>
+                            </div>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleEnterCourseClassroom(course)}
+                              disabled={launchingCourseId === course.id}
                             >
-                              Edit
-                            </Link>
-                          </Button>
-                          <Button asChild variant="outline" size="sm">
-                            <Link href={withLocalePath(`/tutor/courses/${course.id}/enrollments`)}>
-                              Enrollment
-                            </Link>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenCancelModal(course)}
-                            className="text-orange-600 hover:bg-orange-50 hover:text-orange-700"
-                          >
-                            <Ban className="mr-1 h-4 w-4" />
-                            Cancel session
-                          </Button>
+                              {launchingCourseId === course.id ? 'Launching…' : 'Open Session'}
+                            </Button>
+                            <Button asChild variant="outline" size="sm">
+                              <Link
+                                href={withLocalePath(
+                                  `/tutor/insights?tab=builder&courseId=${course.id}`
+                                )}
+                              >
+                                Edit
+                              </Link>
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      )
+                    })
                   )}
                 </CardContent>
               </Card>
@@ -781,13 +791,13 @@ function TutorDashboardContent() {
           initialDate={scheduleDate}
         />
 
-        {/* Cancel Course Modal */}
+        {/* Course Sessions Modal */}
         <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Ban className="h-5 w-5 text-orange-500" />
-                Cancel Course Sessions
+                <Calendar className="h-5 w-5 text-blue-500" />
+                Course Sessions
               </DialogTitle>
               <DialogDescription>
                 {selectedCourseForCancel && (
@@ -866,8 +876,8 @@ function TutorDashboardContent() {
                               </p>
                             )}
                           </div>
-                          <div className="ml-4">
-                            {canCancel ? (
+                          <div className="ml-4 flex items-center gap-2">
+                            {canCancel && (
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -888,6 +898,15 @@ function TutorDashboardContent() {
                                 ) : (
                                   <Ban className="h-4 w-4" />
                                 )}
+                              </Button>
+                            )}
+                            {isActive || isScheduled ? (
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => router.push(withLocalePath(`/tutor/insights?sessionId=${session.id}`))}
+                              >
+                                Open Session
                               </Button>
                             ) : (
                               <Button variant="ghost" size="sm" disabled>

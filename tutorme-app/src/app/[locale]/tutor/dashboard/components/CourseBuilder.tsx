@@ -6760,7 +6760,7 @@ FEEDBACK: [your explanation]`
                                 ))}
                               </Tabs>
                               {testPciActiveTab !== 'insights' && (
-                                <div className="border-border bg-background mt-1 w-full rounded-2xl border shadow-xl backdrop-blur-md">
+                                <div className="mt-1 w-full rounded-2xl border border-cyan-300 bg-white/90 shadow-[0_0_15px_rgba(34,211,238,0.4)] backdrop-blur-md transition-all duration-300 focus-within:shadow-[0_0_25px_rgba(34,211,238,0.6)]">
                                   <div className="relative flex w-full flex-col p-px">
                                     <div className="flex w-full flex-col">
                                       <MentionTextarea
@@ -7340,11 +7340,13 @@ FEEDBACK: [your explanation]`
                                               PCI assistant error: {taskPciErrorHint}
                                             </div>
                                           )}
-                                          <div className="relative flex w-full items-end">
-                                            <MentionTextarea
-                                              mentionItems={mentionItems}
-                                              placeholder="Ask the PCI assistant..."
-                                              className="min-h-[44px] w-full border-0 pr-[130px] focus-visible:ring-0 focus-visible:ring-offset-0"
+                                          <div className="mt-2 w-full rounded-2xl border border-cyan-300 bg-white/90 shadow-[0_0_15px_rgba(34,211,238,0.4)] backdrop-blur-md transition-all duration-300 focus-within:shadow-[0_0_25px_rgba(34,211,238,0.6)]">
+                                            <div className="relative flex w-full flex-col p-px">
+                                              <div className="flex w-full flex-col">
+                                                <MentionTextarea
+                                                  mentionItems={mentionItems}
+                                                  placeholder="Ask the PCI assistant..."
+                                                  className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-4 py-4 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                               value={activeTaskPciInput}
                                               onChange={(e: any) => {
                                                 const value = e.target.value
@@ -7368,7 +7370,7 @@ FEEDBACK: [your explanation]`
                                                 }
                                               }}
                                             />
-                                            <div className="absolute bottom-1 right-1 flex items-center gap-1">
+                                            <div className="flex w-full items-center justify-end gap-2 px-2 pb-2">
                                               <Button
                                                 type="button"
                                                 variant="outline"
@@ -7443,6 +7445,8 @@ FEEDBACK: [your explanation]`
                                           </div>
                                         </div>
                                       </div>
+                                    </div>
+                                    </div>
                                     </TabsContent>
                                   </Tabs>
                                 </div>
@@ -7798,11 +7802,13 @@ FEEDBACK: [your explanation]`
                                               ] || ''}
                                             </div>
                                           )}
-                                          <div className="relative flex w-full items-end">
-                                            <MentionTextarea
-                                              mentionItems={mentionItems}
-                                              placeholder="Ask the PCI assistant..."
-                                              className="min-h-[44px] w-full border-0 pr-[130px] focus-visible:ring-0 focus-visible:ring-offset-0"
+                                          <div className="mt-2 w-full rounded-2xl border border-cyan-300 bg-white/90 shadow-[0_0_15px_rgba(34,211,238,0.4)] backdrop-blur-md transition-all duration-300 focus-within:shadow-[0_0_25px_rgba(34,211,238,0.6)]">
+                                            <div className="relative flex w-full flex-col p-px">
+                                              <div className="flex w-full flex-col">
+                                                <MentionTextarea
+                                                  mentionItems={mentionItems}
+                                                  placeholder="Ask the PCI assistant..."
+                                                  className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-4 py-4 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                               value={
                                                 assessmentPciInputMap[loadedAssessmentId || ''] ||
                                                 ''
@@ -7820,7 +7826,7 @@ FEEDBACK: [your explanation]`
                                                 }
                                               }}
                                             />
-                                            <div className="absolute bottom-1 right-1 flex items-center gap-1">
+                                            <div className="flex w-full items-center justify-end gap-2 px-2 pb-2">
                                               <Button
                                                 type="button"
                                                 variant="outline"
@@ -7901,6 +7907,8 @@ FEEDBACK: [your explanation]`
                                           </div>
                                         </div>
                                       </div>
+                                    </div>
+                                    </div>
                                     </TabsContent>
                                   </Tabs>
                                 </div>
