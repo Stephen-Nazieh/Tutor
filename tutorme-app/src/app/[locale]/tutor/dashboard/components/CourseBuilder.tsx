@@ -6665,10 +6665,12 @@ FEEDBACK: [your explanation]`
 
                                           if (!hasDoc && !hasDmi) {
                                             return (
-                                              <p className="text-muted-foreground whitespace-pre-wrap text-sm">
-                                                {testPciContent[tab.id] ||
-                                                  `${tab.label} view content`}
-                                              </p>
+                                              <div className="h-full w-full rounded-md border bg-white p-4">
+                                                <p className="text-muted-foreground whitespace-pre-wrap text-sm">
+                                                  {testPciContent[tab.id] ||
+                                                    `${tab.label} view content`}
+                                                </p>
+                                              </div>
                                             )
                                           }
 
@@ -7306,8 +7308,8 @@ FEEDBACK: [your explanation]`
                                       value="pci"
                                       className="mt-0.5 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
-                                      <div className="flex h-full min-h-0 flex-col rounded-2xl border border-[#E5E7EB] bg-white shadow-sm">
-                                        <div className="flex-1 space-y-px overflow-y-auto p-px">
+                                      <div className="flex h-full min-h-0 flex-col rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm">
+                                        <div className="flex-1 space-y-4 overflow-y-auto p-1">
                                           {activeTaskPciMessages.length === 0 && (
                                             <p className="text-muted-foreground text-xs">
                                               Start a PCI chat to build instructions with the
@@ -7759,8 +7761,8 @@ FEEDBACK: [your explanation]`
                                       value="pci"
                                       className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
-                                      <div className="flex h-full min-h-0 flex-col rounded-2xl border border-[#E5E7EB] bg-white shadow-sm">
-                                        <div className="flex-1 space-y-px overflow-y-auto p-px">
+                                      <div className="flex h-full min-h-0 flex-col rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm">
+                                        <div className="flex-1 space-y-4 overflow-y-auto p-1">
                                           {(
                                             assessmentPciMessagesMap[loadedAssessmentId || ''] || []
                                           ).length === 0 && (
