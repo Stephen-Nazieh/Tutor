@@ -348,14 +348,14 @@ export default function TutorReports() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="mb-6 min-h-[52px] shrink-0">
-            <TabsList className="grid h-full w-full grid-cols-4 gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)]">
+            <TabsList className="grid h-full w-full grid-cols-4 gap-2 border-0 bg-transparent shadow-none p-0">
               <TabsTrigger
                 value="overview"
                 className={cn(
-                  'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                  'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
                   activeTab === 'overview'
-                    ? 'border border-[#BFDBFE] bg-white text-[#2563EB] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
-                    : 'text-[#667085] hover:bg-white/70 hover:text-[#344054]'
+                    ? 'bg-[linear-gradient(145deg,rgba(44,47,51,0.55),rgba(58,63,69,0.45))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'bg-white text-[#1F2933] shadow-[0_10px_22px_rgba(0,0,0,0.10)]'
                 )}
               >
                 <BookOpen className="h-4 w-4" />
@@ -364,10 +364,10 @@ export default function TutorReports() {
               <TabsTrigger
                 value="revenue"
                 className={cn(
-                  'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                  'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
                   activeTab === 'revenue'
-                    ? 'border border-[#BFDBFE] bg-white text-[#2563EB] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
-                    : 'text-[#667085] hover:bg-white/70 hover:text-[#344054]'
+                    ? 'bg-[linear-gradient(145deg,rgba(44,47,51,0.55),rgba(58,63,69,0.45))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'bg-white text-[#1F2933] shadow-[0_10px_22px_rgba(0,0,0,0.10)]'
                 )}
               >
                 <DollarSign className="h-4 w-4" />
@@ -376,10 +376,10 @@ export default function TutorReports() {
               <TabsTrigger
                 value="students"
                 className={cn(
-                  'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                  'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
                   activeTab === 'students'
-                    ? 'border border-[#BFDBFE] bg-white text-[#2563EB] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
-                    : 'text-[#667085] hover:bg-white/70 hover:text-[#344054]'
+                    ? 'bg-[linear-gradient(145deg,rgba(44,47,51,0.55),rgba(58,63,69,0.45))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'bg-white text-[#1F2933] shadow-[0_10px_22px_rgba(0,0,0,0.10)]'
                 )}
               >
                 <Users className="h-4 w-4" />
@@ -388,10 +388,10 @@ export default function TutorReports() {
               <TabsTrigger
                 value="engagement"
                 className={cn(
-                  'flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+                  'flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all border-0',
                   activeTab === 'engagement'
-                    ? 'border border-[#BFDBFE] bg-white text-[#2563EB] shadow-[0_1px_2px_rgba(37,99,235,0.12)]'
-                    : 'text-[#667085] hover:bg-white/70 hover:text-[#344054]'
+                    ? 'bg-[linear-gradient(145deg,rgba(44,47,51,0.55),rgba(58,63,69,0.45))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'bg-white text-[#1F2933] shadow-[0_10px_22px_rgba(0,0,0,0.10)]'
                 )}
               >
                 <Activity className="h-4 w-4" />

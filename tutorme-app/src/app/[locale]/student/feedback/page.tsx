@@ -388,22 +388,22 @@ function StudentFeedbackContent() {
             {portalTarget ? (
               createPortal(
                 <div className="mb-0 min-h-[48px] w-full shrink-0">
-                  <TabsList className="grid h-[48px] w-full grid-cols-3 gap-2 border-0 bg-transparent shadow-none">
+                  <TabsList className="grid h-[48px] w-full grid-cols-3 gap-2 border-0 bg-transparent shadow-none p-0">
                     <TabsTrigger
                       value="task"
-                      className="flex items-center justify-center gap-2 rounded-xl border border-transparent px-4 py-2.5 text-sm font-semibold text-[#667085] transition-all hover:bg-white hover:text-[#344054] hover:shadow-sm data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:shadow-sm"
+                      className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(44,47,51,0.55),rgba(58,63,69,0.45))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.08)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] data-[state=inactive]:shadow-[0_10px_22px_rgba(0,0,0,0.10)]"
                     >
                       Classroom
                     </TabsTrigger>
                     <TabsTrigger
                       value="my-board"
-                      className="flex items-center justify-center gap-2 rounded-xl border border-transparent px-4 py-2.5 text-sm font-semibold text-[#667085] transition-all hover:bg-white hover:text-[#344054] hover:shadow-sm data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:shadow-sm"
+                      className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(44,47,51,0.55),rgba(58,63,69,0.45))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.08)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] data-[state=inactive]:shadow-[0_10px_22px_rgba(0,0,0,0.10)]"
                     >
                       My Board
                     </TabsTrigger>
                     <TabsTrigger
                       value="tutor-board"
-                      className="flex items-center justify-center gap-2 rounded-xl border border-transparent px-4 py-2.5 text-sm font-semibold text-[#667085] transition-all hover:bg-white hover:text-[#344054] hover:shadow-sm data-[state=active]:border data-[state=active]:border-[#BFDBFE] data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:shadow-sm"
+                      className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(44,47,51,0.55),rgba(58,63,69,0.45))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,255,255,0.08)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] data-[state=inactive]:shadow-[0_10px_22px_rgba(0,0,0,0.10)]"
                     >
                       Tutor Board
                     </TabsTrigger>
