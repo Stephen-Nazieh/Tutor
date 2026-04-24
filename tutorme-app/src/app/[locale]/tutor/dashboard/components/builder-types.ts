@@ -156,6 +156,7 @@ export interface QuizQuestion {
   explanation?: string
   matchingPairs?: Array<{ left: string; right: string }>
   extendEnabled?: boolean
+  source?: 'task' | 'assessment' | 'homework'
 }
 
 export interface Quiz extends WithDifficultyVariants {

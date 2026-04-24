@@ -140,7 +140,7 @@ function StudentFeedbackContent() {
         if (res.ok) {
           const data = await res.json()
           setStudentDirectory(data.directory || {})
-
+          
           // Open all top-level and second-level folders by default
           const newFoldersOpen: Record<string, boolean> = {
             tasks: true,
@@ -149,22 +149,53 @@ function StudentFeedbackContent() {
             reports: true,
             recordedSessions: true,
           }
+          
+          let sessionTasks: LiveTask[] = []
+
           if (data.directory) {
             Object.keys(data.directory).forEach(tutor => {
               newFoldersOpen[`tutor_${tutor}`] = true
               Object.keys(data.directory[tutor]).forEach(category => {
                 newFoldersOpen[`cat_${tutor}_${category}`] = true
+                
+                // Extract tasks for the current active session
+                const catTasks = data.directory[tutor][category].tasks || []
+                catTasks.forEach((t: any) => {
+                  if (selectedSessionId && t.sessionId === selectedSessionId) {
+                    try {
+                      const parsed = typeof t.content === 'string' ? JSON.parse(t.content) : t.content
+                      // Make sure we use the formatted title (s1, s2 etc)
+                      parsed.title = t.title
+                      sessionTasks.push(parsed as LiveTask)
+                    } catch (e) {
+                      console.error("Failed to parse task content", e)
+                    }
+                  }
+                })
               })
             })
           }
           setFoldersOpen(newFoldersOpen)
+          
+          // Pre-populate tasks if we joined late
+          if (sessionTasks.length > 0) {
+            setTasks(prev => {
+              const newTasks = [...prev]
+              sessionTasks.forEach(st => {
+                if (!newTasks.some(pt => pt.id === st.id)) {
+                  newTasks.push(st)
+                }
+              })
+              return newTasks
+            })
+          }
         }
       } catch (err) {
         console.error('Failed to load student directory:', err)
       }
     }
     loadDirectory()
-  }, [])
+  }, [selectedSessionId])
 
   useEffect(() => {
     const el = document.getElementById('student-live-tabs-portal')
@@ -358,12 +389,23 @@ function StudentFeedbackContent() {
       setTasks(prev => prev.map(item => (item.id === payload.task.id ? payload.task : item)))
     }
 
+    const handleTaskSequence = (payload: { taskId: string, sequence: number }) => {
+      setTasks(prev => prev.map(item => {
+        if (item.id === payload.taskId && !item.title.includes(`(s${payload.sequence})`)) {
+          return { ...item, title: `${item.title} (s${payload.sequence})` }
+        }
+        return item
+      }))
+    }
+
     socket.on('task:deployed', handleTaskDeployed)
     socket.on('task:updated', handleTaskUpdated)
+    socket.on('task:deployed:sequence', handleTaskSequence)
 
     return () => {
       socket.off('task:deployed', handleTaskDeployed)
       socket.off('task:updated', handleTaskUpdated)
+      socket.off('task:deployed:sequence', handleTaskSequence)
     }
   }, [socket])
 
@@ -536,7 +578,7 @@ function StudentFeedbackContent() {
                                               Empty folder
                                             </span>
                                           )}
-                                          {tasks.map(task => (
+                                          {[...tasks].reverse().map(task => (
                                             <button
                                               key={task.id}
                                               onClick={() => handleSelectTask(task.id)}
@@ -1034,7 +1076,7 @@ function StudentFeedbackContent() {
           </SheetHeader>
           <div className="mt-4 space-y-2">
             {tasks.length === 0 && <p className="text-sm text-gray-500">No tasks deployed yet.</p>}
-            {tasks.map(task => (
+            {[...tasks].reverse().map(task => (
               <button
                 key={task.id}
                 type="button"

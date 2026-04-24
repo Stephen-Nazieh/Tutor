@@ -73,7 +73,7 @@ export interface LiveTask {
   content: string
   description?: string
   instructions?: string
-  source: 'task' | 'assessment'
+  source: 'task' | 'assessment' | 'homework'
   dmiItems?: LiveTaskDmiItem[]
   deployedAt: number
   polls: LiveTaskPoll[]

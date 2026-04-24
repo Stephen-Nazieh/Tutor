@@ -138,6 +138,31 @@ export const poll = pgTable(
   })
 )
 
+export const deployedMaterial = pgTable(
+  'DeployedMaterial',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    sessionId: text('sessionId')
+      .notNull()
+      .references(() => liveSession.sessionId, { onDelete: 'cascade' }),
+    courseId: text('courseId')
+      .notNull()
+      .references(() => course.courseId, { onDelete: 'cascade' }),
+    type: text('type').notNull(), // 'task', 'assessment', 'homework', 'asset', 'recording'
+    itemId: text('itemId').notNull(), // ID of the specific item being deployed
+    title: text('title').notNull(),
+    content: jsonb('content'), // Snapshot of the item's content at deployment time
+    sessionSequence: integer('sessionSequence').notNull(), // e.g. 1 for 's1', 2 for 's2'
+    deployedAt: timestamp('deployedAt', { withTimezone: true }).notNull().defaultNow(),
+  },
+  table => ({
+    DeployedMaterial_sessionId_idx: index('DeployedMaterial_sessionId_idx').on(table.sessionId),
+    DeployedMaterial_courseId_idx: index('DeployedMaterial_courseId_idx').on(table.courseId),
+    DeployedMaterial_type_idx: index('DeployedMaterial_type_idx').on(table.type),
+    DeployedMaterial_deployedAt_idx: index('DeployedMaterial_deployedAt_idx').on(table.deployedAt),
+  })
+)
+
 export const pollOption = pgTable(
   'PollOption',
   {

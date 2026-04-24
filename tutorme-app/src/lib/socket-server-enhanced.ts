@@ -98,7 +98,7 @@ export interface LiveTask {
   content: string
   description?: string
   instructions?: string
-  source: 'task' | 'assessment'
+  source: 'task' | 'assessment' | 'homework'
   dmiItems?: LiveTaskDmiItem[]
   deployedAt: number
   polls: LiveTaskPoll[]
@@ -935,6 +935,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
         deployedAt: task.deployedAt || Date.now(),
         polls: Array.isArray(task.polls) ? task.polls : [],
         questions: Array.isArray(task.questions) ? task.questions : [],
+        sourceDocument: task.sourceDocument,
       }
 
       const existingIndex = room.tasks.findIndex(existing => existing.id === normalizedTask.id)
@@ -953,6 +954,46 @@ export async function initEnhancedSocketServer(server: NetServer) {
       void persistRoomToRedis(roomId, room)
       io.to(roomId).emit('task:deployed', normalizedTask)
       io.to(roomId).emit('task:updated', { task: normalizedTask })
+
+      // Persist to Database for Student Directory and Replays
+      try {
+        const { drizzleDb } = await import('./db/drizzle')
+        const { liveSession, deployedMaterial } = await import('./db/schema')
+        const { eq } = await import('drizzle-orm')
+        
+        const sessionRec = await drizzleDb.query.liveSession.findFirst({
+          where: eq(liveSession.sessionId, roomId),
+          columns: { courseId: true }
+        })
+
+        if (sessionRec?.courseId) {
+          // Find the chronological order of THIS session relative to all sessions in the course
+          const courseSessions = await drizzleDb.query.liveSession.findMany({
+            where: eq(liveSession.courseId, sessionRec.courseId),
+            orderBy: (sessions, { asc }) => [asc(sessions.scheduledAt)]
+          })
+          
+          // Determine if this is session 1, session 2, etc. based on when it was created
+          const sessionIndex = courseSessions.findIndex(s => s.sessionId === roomId)
+          const sessionSequence = sessionIndex >= 0 ? sessionIndex + 1 : 1
+          
+          await drizzleDb.insert(deployedMaterial).values({
+            sessionId: roomId,
+            courseId: sessionRec.courseId,
+            type: normalizedTask.source,
+            itemId: normalizedTask.id,
+            title: normalizedTask.title,
+            content: JSON.stringify(normalizedTask),
+            sessionSequence,
+            deployedAt: new Date(normalizedTask.deployedAt || Date.now())
+          })
+
+          // We notify clients of the session sequence so they can append "(s1, s2)" etc.
+          io.to(roomId).emit('task:deployed:sequence', { taskId: normalizedTask.id, sequence: sessionSequence })
+        }
+      } catch (err) {
+        console.error('Failed to persist deployed material to DB:', err)
+      }
     })
 
     socket.on(

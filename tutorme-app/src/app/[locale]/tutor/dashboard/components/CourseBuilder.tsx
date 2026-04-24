@@ -1521,6 +1521,32 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
             activeExtensionId: null,
           })
         }
+        
+        // Auto-deploy to student homework folder
+        if (insightsProps?.onDeployTask) {
+          insightsProps.onDeployTask({
+            id: homeworkItem.id,
+            title: homeworkItem.title || 'Homework',
+            content: homeworkItem.description || '',
+            source: 'homework',
+            dmiItems: homeworkItem.dmiItems?.map(i => ({
+              id: i.id,
+              questionNumber: i.questionNumber,
+              questionText: i.questionText,
+            })) || [],
+            deployedAt: Date.now(),
+            polls: [],
+            questions: [],
+            sourceDocument: homeworkItem.sourceDocument
+              ? {
+                  fileName: homeworkItem.sourceDocument.fileName,
+                  fileUrl: homeworkItem.sourceDocument.fileUrl,
+                  mimeType: homeworkItem.sourceDocument.mimeType || 'application/pdf',
+                }
+              : undefined,
+          })
+        }
+        
         toast.success('Moved to homework')
       },
       [cloneAssessment, loadAssessmentIntoBuilder, nodes]

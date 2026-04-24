@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { courseEnrollment, course, profile } from '@/lib/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { courseEnrollment, course, profile, deployedMaterial } from '@/lib/db/schema'
+import { eq, inArray } from 'drizzle-orm'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,14 +28,26 @@ export async function GET(request: NextRequest) {
     .leftJoin(profile, eq(course.creatorId, profile.userId))
     .where(eq(courseEnrollment.studentId, studentId))
 
+  if (enrollments.length === 0) {
+    return NextResponse.json({ directory: {} })
+  }
+
+  const courseIds = enrollments.map(e => e.courseId)
+
+  // Fetch all deployed materials for these courses
+  const deployedMaterials = await drizzleDb
+    .select()
+    .from(deployedMaterial)
+    .where(inArray(deployedMaterial.courseId, courseIds))
+    .orderBy(deployedMaterial.deployedAt) // Default ascending, we can reverse it in JS
+
   // Build the directory tree
-  const directory: Record<string, Record<string, { courseId: string; name: string }[]>> = {}
+  // Structure: Tutor@username -> Category -> Folders (tasks, assessments, homework, etc) -> items
+  const directory: Record<string, Record<string, Record<string, any[]>>> = {}
 
   enrollments.forEach(en => {
-    // Format tutor username (fallback to generic if null)
-    const tutorUsername = en.tutorName ? `Tutor@${en.tutorName.replace(/\s+/g, '')}` : 'Tutor@Unknown'
+    const tutorUsername = en.tutorName ? `Tutor@${en.tutorName.replace(/\\s+/g, '')}` : 'Tutor@Unknown'
     
-    // Extract category (fallback to General if null/empty)
     let category = 'General'
     if (Array.isArray(en.courseCategory) && en.courseCategory.length > 0) {
       category = en.courseCategory[0]
@@ -49,17 +61,65 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    if (!directory[tutorUsername]) {
-      directory[tutorUsername] = {}
-    }
+    if (!directory[tutorUsername]) directory[tutorUsername] = {}
     if (!directory[tutorUsername][category]) {
-      directory[tutorUsername][category] = []
+      directory[tutorUsername][category] = {
+        tasks: [],
+        assessments: [],
+        homework: [],
+        reports: [],
+        recordedSessions: [],
+      }
     }
+  })
+
+  // Populate materials into their respective folders
+  // Sort descending so the last is on top
+  const sortedMaterials = [...deployedMaterials].sort((a, b) => b.deployedAt.getTime() - a.deployedAt.getTime())
+
+  sortedMaterials.forEach(material => {
+    // Find the enrollment to know the tutor and category
+    const en = enrollments.find(e => e.courseId === material.courseId)
+    if (!en) return
+
+    const tutorUsername = en.tutorName ? `Tutor@${en.tutorName.replace(/\\s+/g, '')}` : 'Tutor@Unknown'
+    let category = 'General'
+    if (Array.isArray(en.courseCategory) && en.courseCategory.length > 0) category = en.courseCategory[0]
+    else if (en.courseCategory && typeof en.courseCategory === 'string') category = String(en.courseCategory)
+
+    // Ensure the structure exists
+    if (!directory[tutorUsername]?.[category]) return
+
+    // Format title with session sequence (e.g. "Task Title (s1)")
+    const formattedTitle = `${material.title} (s${material.sessionSequence})`
     
-    directory[tutorUsername][category].push({
-      courseId: en.courseId,
-      name: en.courseName || 'Unnamed Course'
-    })
+    const item = {
+      id: material.id,
+      itemId: material.itemId,
+      title: formattedTitle,
+      type: material.type,
+      deployedAt: material.deployedAt,
+      content: material.content,
+      sessionId: material.sessionId
+    }
+
+    switch (material.type) {
+      case 'task':
+        directory[tutorUsername][category].tasks.push(item)
+        break
+      case 'assessment':
+        directory[tutorUsername][category].assessments.push(item)
+        break
+      case 'homework':
+        directory[tutorUsername][category].homework.push(item)
+        break
+      case 'recording':
+        directory[tutorUsername][category].recordedSessions.push(item)
+        break
+      case 'report':
+        directory[tutorUsername][category].reports.push(item)
+        break
+    }
   })
 
   return NextResponse.json({ directory })
