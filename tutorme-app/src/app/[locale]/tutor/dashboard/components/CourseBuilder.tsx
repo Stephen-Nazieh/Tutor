@@ -3435,7 +3435,7 @@ FEEDBACK: [your explanation]`
               }}
               title="View all assets"
             >
-              <Eye className="h-4 w-4" />
+              <FolderOpen className="h-4 w-4" />
             </button>
             <label className="cursor-pointer">
               <input
@@ -4509,6 +4509,7 @@ FEEDBACK: [your explanation]`
                             >
                               <ChevronLeftIcon className="h-4 w-4" />
                             </Button>
+                            <div className="text-sm font-semibold text-[#1F2933]">Directory</div>
                           </div>
                         </div>
                         <div className="flex items-center gap-1">

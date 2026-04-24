@@ -121,14 +121,19 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       {/* Left Navigation Sidebar - Desktop */}
       <aside
         className={cn(
-          'sticky top-0 z-40 hidden h-screen w-64 shrink-0 flex-col border-r bg-white transition-all duration-300 lg:flex',
-          !desktopNavOpen && 'w-0 overflow-hidden border-r-0'
+          'relative z-40 hidden h-screen shrink-0 flex-col transition-all duration-300 lg:flex',
+          !desktopNavOpen && 'w-0 overflow-hidden'
         )}
       >
-        {/* We keep the inner content rendered always but hide it via overflow to prevent layout nudges */}
-        <div className="flex h-full w-64 flex-col">
-          <div className="flex min-w-[256px] items-center justify-between p-4">
-            <div className="flex items-center gap-2">
+        <div
+          className={cn(
+            'fixed bottom-0 left-0 top-0 z-40 hidden h-screen flex-col border-r bg-white transition-all duration-300 lg:flex',
+            desktopNavOpen ? 'w-64' : 'w-0 overflow-hidden border-r-0'
+          )}
+        >
+          <div className="flex h-full w-64 flex-col">
+            <div className="flex shrink-0 min-w-[256px] items-center justify-between p-4">
+              <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="icon"
@@ -153,7 +158,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
             </div>
           </div>
 
-          <nav className="flex-1 space-y-0.5 overflow-y-auto p-4">
+          <nav className="flex-1 min-h-0 space-y-0.5 overflow-y-auto p-4">
             {navItems.map(item => {
               const Icon = item.icon
               const href =
@@ -179,7 +184,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
             })}
           </nav>
 
-          <div className="space-y-1 p-4">
+          <div className="shrink-0 space-y-1 p-4">
             {bottomNavItems.map(item => {
               const Icon = item.icon
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/')

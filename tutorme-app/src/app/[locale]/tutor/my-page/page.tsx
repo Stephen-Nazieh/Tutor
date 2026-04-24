@@ -971,7 +971,7 @@ export default function TutorMyPage() {
         </div>
       </div>
 
-      <div className="mx-auto w-full space-y-8 px-6 py-8">
+      <div className="mx-auto w-full max-w-[1600px] space-y-8 px-6 py-8">
         <section className="relative overflow-hidden rounded-[32px] border border-[#E2E8F0] bg-white/95 p-8 shadow-lg">
           <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-[#1D4ED8]/10 via-[#4FD1C5]/10 to-[#F17623]/10" />
           <div className="relative flex flex-col gap-6 lg:flex-row lg:items-stretch">

@@ -255,7 +255,7 @@ export default function StudentDashboard() {
       </nav>
 
       {/* Main Content */}
-      <main className="w-full px-4 py-8 sm:px-6 lg:px-8" aria-busy={loading}>
+      <main className="mx-auto w-full max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8" aria-busy={loading}>
         {fetchError && (
           <div
             role="alert"

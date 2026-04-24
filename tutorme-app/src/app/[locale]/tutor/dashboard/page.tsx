@@ -533,7 +533,7 @@ function TutorDashboardContent() {
 
   return (
     <div className="bg-background text-foreground min-h-screen" style={themeStyle}>
-      <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-4 pb-4 lg:flex-row lg:items-center lg:justify-end">
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground text-xs uppercase tracking-[0.2em]">Theme</span>

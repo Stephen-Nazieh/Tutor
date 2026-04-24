@@ -92,13 +92,19 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       {!isFeedbackRoute && (
         <aside
           className={cn(
-            'sticky top-0 z-40 hidden h-screen w-64 shrink-0 flex-col border-r bg-white transition-all duration-300 lg:flex',
-            !desktopNavOpen && 'w-0 overflow-hidden border-r-0'
+            'relative z-40 hidden h-screen shrink-0 flex-col transition-all duration-300 lg:flex',
+            !desktopNavOpen && 'w-0 overflow-hidden'
           )}
         >
           {/* Inner content wrapper with fixed width to prevent layout shifts when collapsing */}
-          <div className="flex h-full w-64 flex-col">
-            <div className="flex min-w-[256px] items-center justify-between p-4">
+          <div
+            className={cn(
+              'fixed bottom-0 left-0 top-0 z-40 hidden h-screen flex-col border-r bg-white transition-all duration-300 lg:flex',
+              desktopNavOpen ? 'w-64' : 'w-0 overflow-hidden border-r-0'
+            )}
+          >
+            <div className="flex h-full w-64 flex-col">
+              <div className="flex shrink-0 min-w-[256px] items-center justify-between p-4">
               <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
@@ -120,7 +126,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
               </div>
             </div>
 
-            <nav className="flex-1 space-y-2 overflow-y-auto p-4">
+            <nav className="flex-1 min-h-0 space-y-2 overflow-y-auto p-4">
               {isLiveClassRoute ? (
                 <div>
                   <p className="mb-1.5 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
@@ -174,13 +180,14 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
               )}
             </nav>
 
-            <div className="space-y-2 p-4">
+            <div className="shrink-0 space-y-2 p-4">
               <div className="pt-2">
                 <UserNav />
               </div>
             </div>
           </div>
-        </aside>
+        </div>
+      </aside>
       )}
 
       {/* Floating collapsed pill */}
