@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course, courseLesson, courseVariant, liveSession, tutorAsset } from '@/lib/db/schema'
-import { eq, and, inArray, gte, sql } from 'drizzle-orm'
+import { eq, and, inArray, gte, lte, sql } from 'drizzle-orm'
 import crypto from 'crypto'
 
 // GET current variants for this template course
@@ -404,13 +404,36 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         if (schedule.length > 0) {
           const sessionDates = generateSessionDates(schedule, v.weeksToSchedule || 8)
 
-          // Fetch existing scheduled sessions for this course to avoid duplicates
-          const existingSessions = await tx
-            .select({ scheduledAt: liveSession.scheduledAt })
-            .from(liveSession)
-            .where(
-              and(eq(liveSession.courseId, publishedCourseId), eq(liveSession.status, 'scheduled'))
-            )
+          const scheduledAts = sessionDates.map(s => s.scheduledAt).filter(Boolean)
+          const minScheduledAt =
+            scheduledAts.length > 0
+              ? new Date(Math.min(...scheduledAts.map(d => d.getTime())))
+              : null
+          const maxScheduledAt =
+            scheduledAts.length > 0
+              ? new Date(Math.max(...scheduledAts.map(d => d.getTime())))
+              : null
+
+          const existingSessions =
+            minScheduledAt && maxScheduledAt
+              ? await tx
+                  .select({ scheduledAt: liveSession.scheduledAt })
+                  .from(liveSession)
+                  .where(
+                    and(
+                      eq(liveSession.tutorId, userId),
+                      inArray(liveSession.status, [
+                        'scheduled',
+                        'active',
+                        'preparing',
+                        'live',
+                        'paused',
+                      ]),
+                      gte(liveSession.scheduledAt, minScheduledAt),
+                      lte(liveSession.scheduledAt, maxScheduledAt)
+                    )
+                  )
+              : []
 
           const existingDates = new Set(
             existingSessions

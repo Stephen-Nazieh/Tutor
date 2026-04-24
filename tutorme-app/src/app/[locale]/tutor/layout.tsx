@@ -134,18 +134,6 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
           <div className="flex h-full w-64 flex-col">
             <div className="flex min-w-[256px] shrink-0 items-center justify-between p-4">
               <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={e => {
-                    e.stopPropagation()
-                    setDesktopNavOpen(false)
-                  }}
-                  title="Hide Navigation"
-                  className="text-gray-400"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
                 <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600"></Link>
               </div>
               <div className="flex items-center gap-2">
@@ -220,16 +208,21 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Floating collapsed pill */}
-      {!desktopNavOpen && (
-        <div
-          className="fixed left-0 top-1/2 z-50 hidden h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50 lg:flex"
-          onClick={() => setDesktopNavOpen(true)}
-          title="Show navigation"
-        >
+      {/* Floating collapsed/expanded pill */}
+      <div
+        className={cn(
+          'fixed top-1/2 z-50 hidden h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all duration-300 hover:w-10 hover:bg-slate-50 lg:flex',
+          desktopNavOpen ? 'left-64' : 'left-0'
+        )}
+        onClick={() => setDesktopNavOpen(!desktopNavOpen)}
+        title={desktopNavOpen ? 'Hide navigation' : 'Show navigation'}
+      >
+        {desktopNavOpen ? (
+          <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
+        ) : (
           <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Mobile Navigation Header */}
       <div className="fixed left-0 right-0 top-0 z-50 border-b bg-white lg:hidden">

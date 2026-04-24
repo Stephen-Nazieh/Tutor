@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, lt, gt, isNull, ne } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { oneOnOneBookingRequest, calendarEvent } from '@/lib/db/schema'
@@ -68,44 +68,72 @@ export async function PATCH(request: NextRequest) {
       const eventStart = new Date(`${slotDate}T${slotStartTime}:00`)
       const eventEnd = new Date(`${slotDate}T${slotEndTime}:00`)
 
-      // Create calendar event
-      const newEvent = await drizzleDb
-        .insert(calendarEvent)
-        .values({
-          eventId: nanoid(),
-          tutorId: existingRequest.tutorId,
-          title: `1-on-1 Session`,
-          description: `One-on-one tutoring session with student`,
-          startTime: eventStart,
-          endTime: eventEnd,
-          type: 'CONSULTATION', // Using existing enum value
-          status: 'CONFIRMED',
-          timezone: existingRequest.timezone,
-          isAllDay: false,
-          isRecurring: false,
-          isVirtual: true,
-          maxAttendees: 2,
-          attendees: [existingRequest.studentId],
-          reminders: [15, 60], // 15 min and 1 hour before
-          createdBy: existingRequest.tutorId,
-          isCancelled: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .returning()
+      const txResult = await drizzleDb.transaction(async tx => {
+        const conflicting = await tx
+          .select({ eventId: calendarEvent.eventId })
+          .from(calendarEvent)
+          .where(
+            and(
+              eq(calendarEvent.tutorId, existingRequest.tutorId),
+              lt(calendarEvent.startTime, eventEnd),
+              gt(calendarEvent.endTime, eventStart),
+              isNull(calendarEvent.deletedAt),
+              eq(calendarEvent.isCancelled, false),
+              ne(calendarEvent.status, 'CANCELLED')
+            )
+          )
+          .limit(1)
 
-      // Update request status
-      const updatedRequest = await drizzleDb
-        .update(oneOnOneBookingRequest)
-        .set({
-          status: 'ACCEPTED',
-          tutorNotes: validated.tutorNotes || existingRequest.tutorNotes,
-          tutorResponseAt: new Date(),
-          calendarEventId: newEvent[0].eventId,
-          updatedAt: new Date(),
-        })
-        .where(eq(oneOnOneBookingRequest.requestId, validated.requestId))
-        .returning()
+        if (conflicting.length > 0) {
+          return { conflict: true as const }
+        }
+
+        const [newEvent] = await tx
+          .insert(calendarEvent)
+          .values({
+            eventId: nanoid(),
+            tutorId: existingRequest.tutorId,
+            title: `1-on-1 Session`,
+            description: `One-on-one tutoring session with student`,
+            startTime: eventStart,
+            endTime: eventEnd,
+            type: 'CONSULTATION',
+            status: 'CONFIRMED',
+            timezone: existingRequest.timezone,
+            isAllDay: false,
+            isRecurring: false,
+            isVirtual: true,
+            maxAttendees: 2,
+            attendees: [existingRequest.studentId],
+            reminders: [15, 60],
+            createdBy: existingRequest.tutorId,
+            isCancelled: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .returning()
+
+        const [updatedRequest] = await tx
+          .update(oneOnOneBookingRequest)
+          .set({
+            status: 'ACCEPTED',
+            tutorNotes: validated.tutorNotes || existingRequest.tutorNotes,
+            tutorResponseAt: new Date(),
+            calendarEventId: newEvent.eventId,
+            updatedAt: new Date(),
+          })
+          .where(eq(oneOnOneBookingRequest.requestId, validated.requestId))
+          .returning()
+
+        return { conflict: false as const, updatedRequest, newEvent }
+      })
+
+      if (txResult.conflict) {
+        return NextResponse.json(
+          { error: 'This time slot is no longer available. Please choose another slot.' },
+          { status: 409 }
+        )
+      }
 
       // Send notification to student that request was accepted
       notify({
@@ -113,14 +141,14 @@ export async function PATCH(request: NextRequest) {
         type: 'class',
         title: '1-on-1 Request Accepted!',
         message: `Your tutor has accepted your 1-on-1 session request. Please complete payment to confirm your booking.`,
-        data: { requestId: updatedRequest[0].requestId, type: 'one-on-one-accepted' },
-        actionUrl: `/payment?requestId=${updatedRequest[0].requestId}`,
+        data: { requestId: txResult.updatedRequest.requestId, type: 'one-on-one-accepted' },
+        actionUrl: `/payment?requestId=${txResult.updatedRequest.requestId}`,
       }).catch(console.error)
 
       return NextResponse.json({
         success: true,
-        request: updatedRequest[0],
-        calendarEvent: newEvent[0],
+        request: txResult.updatedRequest,
+        calendarEvent: txResult.newEvent,
       })
     } else {
       // Reject the request

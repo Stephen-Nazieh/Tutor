@@ -1510,14 +1510,6 @@ function AvailabilityView({ availability, onToggle, onSave }: any) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg bg-blue-50 p-4">
-        <h3 className="mb-2 font-medium text-blue-900">Set Your Availability</h3>
-        <p className="text-sm text-blue-700">
-          Mark when you&apos;re available for classes. Students will only be able to book during
-          these times.
-        </p>
-      </div>
-
       <div className="space-y-4">
         {days.map((day, dayIndex) => {
           const isExpanded = expandedDays[day]

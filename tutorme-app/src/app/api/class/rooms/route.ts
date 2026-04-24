@@ -4,7 +4,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { eq, and, gte, desc, asc, SQL, inArray } from 'drizzle-orm'
+import { eq, and, gte, desc, asc, SQL, inArray, lt, or, isNull } from 'drizzle-orm'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
 import { CreateRoomSchema, validateRequest } from '@/lib/validation/schemas'
 import { dailyProvider } from '@/lib/video/daily-provider'
@@ -44,6 +44,38 @@ export const POST = withCsrf(
 
         // Create video room via Daily.co
         // Cap at 10 to stay within Daily.co plan limits (most plans support 10-20)
+        const slotStart = new Date(scheduledAt)
+        slotStart.setSeconds(0, 0)
+        const slotEnd = new Date(slotStart)
+        slotEnd.setMinutes(slotEnd.getMinutes() + 1)
+
+        const conflictingSession = await drizzleDb
+          .select({ sessionId: liveSession.sessionId })
+          .from(liveSession)
+          .where(
+            or(
+              and(
+                eq(liveSession.tutorId, userId),
+                inArray(liveSession.status, ['scheduled', 'active', 'preparing', 'live', 'paused']),
+                gte(liveSession.scheduledAt, slotStart),
+                lt(liveSession.scheduledAt, slotEnd)
+              ),
+              and(
+                eq(liveSession.tutorId, userId),
+                inArray(liveSession.status, ['active', 'preparing', 'live', 'paused']),
+                isNull(liveSession.endedAt)
+              )
+            )
+          )
+          .limit(1)
+
+        if (conflictingSession.length > 0) {
+          return NextResponse.json(
+            { error: 'You already have a session scheduled or running during this time slot.' },
+            { status: 409 }
+          )
+        }
+
         let room
         try {
           const maxParticipants = Math.min(data.maxStudents + 1, 10) // +1 for tutor, capped at 10

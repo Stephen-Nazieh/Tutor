@@ -4622,39 +4622,33 @@ FEEDBACK: [your explanation]`
 
           <div className="relative flex h-full w-full min-w-0 flex-1 gap-0 pb-6 pt-0">
             {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
-            {leftPanelHidden && (
-              <div
-                className="absolute left-0 top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
-                onClick={() => setLeftPanelHidden(false)}
-                title="Show directory"
-              >
+            {/* Floating collapsed/expanded pill */}
+            <div
+              className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
+              style={{ left: leftPanelHidden ? 0 : leftPanelWidth - 16 }}
+              onClick={() => setLeftPanelHidden(!leftPanelHidden)}
+              title={leftPanelHidden ? 'Show directory' : 'Hide directory'}
+            >
+              {leftPanelHidden ? (
                 <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
-              </div>
-            )}
+              ) : (
+                <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
+              )}
+            </div>
 
             {!leftPanelHidden && (
-              <>
-                <div
-                  ref={leftPanelRef}
-                  style={{ width: leftPanelWidth }}
-                  className="flex min-h-0 shrink-0 flex-col pr-4"
-                >
+              <div
+                className="absolute inset-y-0 left-0 z-40 flex min-h-0 flex-col"
+                ref={leftPanelRef}
+                style={{ width: leftPanelWidth }}
+              >
+                <div className="flex h-full min-h-0 flex-col pr-4">
                   <Card className="flex h-full min-h-0 flex-1 flex-col rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_6px_16px_rgba(0,0,0,0.06)]">
                     <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
                       {/* Header with Hide, Import, and +Lesson buttons */}
                       <div className="mb-4 flex min-h-[58px] items-center justify-between">
                         <div className="flex flex-col justify-center gap-1">
                           <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-[#98A2B3] hover:bg-[#F2F4F7]"
-                              onClick={() => setLeftPanelHidden(true)}
-                              title="Hide panel"
-                              aria-label="Hide panel"
-                            >
-                              <ChevronLeftIcon className="h-4 w-4" />
-                            </Button>
                             <div className="text-sm font-semibold text-[#1F2933]">Directory</div>
                           </div>
                         </div>
@@ -6259,7 +6253,7 @@ FEEDBACK: [your explanation]`
                   </Card>
                 </div>
                 <div
-                  className="hover:bg-primary/20 active:bg-primary/30 group flex w-2 shrink-0 cursor-col-resize items-center justify-center transition-colors"
+                  className="hover:bg-primary/20 active:bg-primary/30 group absolute right-0 top-0 flex h-full w-2 cursor-col-resize items-center justify-center transition-colors"
                   onMouseDown={e => {
                     e.preventDefault()
                     leftResizeStartX.current = e.clientX
@@ -6270,7 +6264,7 @@ FEEDBACK: [your explanation]`
                 >
                   <GripHorizontal className="text-muted-foreground group-hover:text-primary h-3 w-3 rotate-90" />
                 </div>
-              </>
+              </div>
             )}
 
             {/* CENTER PANEL - New Three-Section Design */}
