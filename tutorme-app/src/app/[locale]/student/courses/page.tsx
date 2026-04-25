@@ -879,14 +879,24 @@ function CourseCard({
   const isOngoing = !isPending && (!progress || !progress.isCompleted)
 
   return (
-    <Card
-      className="flex h-full cursor-pointer flex-col transition-shadow hover:shadow-lg"
+    <div
+      className={cn(
+        'group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-[20px] text-left transition-all duration-300',
+        'border border-[rgba(255,255,255,0.08)]',
+        'bg-[rgba(30,40,50,0.65)] backdrop-blur-[12px]',
+        'shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_25px_rgba(0,0,0,0.30)]',
+        'hover:-translate-y-[2px] hover:brightness-105',
+        'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]'
+      )}
+      style={{
+        backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
+      }}
       onClick={onDetails}
     >
-      <CardHeader>
+      <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between">
-          <div className="rounded-lg bg-indigo-100 p-3">
-            <SubjectIcon className="h-6 w-6 text-indigo-600" />
+          <div className="rounded-lg bg-[rgba(255,255,255,0.1)] p-3">
+            <SubjectIcon className="h-6 w-6 text-slate-100" />
           </div>
           <div className="flex items-start gap-2">
             <Button
@@ -896,24 +906,24 @@ function CourseCard({
                 e.stopPropagation()
                 onFavorite()
               }}
-              className="-mr-2 -mt-2 h-8 w-8 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
+              className="-mr-2 -mt-2 h-8 w-8 text-rose-400 hover:bg-[rgba(255,255,255,0.1)] hover:text-rose-500"
             >
               <Heart className={cn('h-4 w-4', isFavorite && 'fill-current')} />
             </Button>
           </div>
         </div>
-        <CardTitle className="mt-4">{course.name}</CardTitle>
+        <h3 className="mt-4 text-xl font-semibold text-slate-100">{course.name}</h3>
         {course.tutorHandle && (
-          <p className="mt-1 text-sm font-medium text-indigo-600">@{course.tutorHandle}</p>
+          <p className="mt-1 text-sm font-medium text-slate-300">@{course.tutorHandle}</p>
         )}
-        <CardDescription className="mt-2 line-clamp-2">
+        <p className="mt-2 line-clamp-2 text-sm text-slate-400">
           {course.description || 'No description available'}
-        </CardDescription>
-        <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+        </p>
+        <div className="mt-3 flex items-center gap-2 text-xs text-slate-300">
           <Clock className="h-3.5 w-3.5" />
           <button
             type="button"
-            className="font-medium text-indigo-600 hover:underline"
+            className="font-medium text-blue-400 hover:underline"
             onClick={e => {
               e.stopPropagation()
               onSchedule()
@@ -922,44 +932,43 @@ function CourseCard({
             Schedule
           </button>
           {course.availability?.summary && (
-            <span className="truncate text-gray-400">({course.availability.summary})</span>
+            <span className="truncate text-slate-400">({course.availability.summary})</span>
           )}
         </div>
-      </CardHeader>
 
-      <CardContent className="flex-1 space-y-4">
-        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-          <div className="flex items-center gap-1">
-            <Target className="h-4 w-4" />
-            <span>{course._count.lessons} lessons</span>
-          </div>
-        </div>
-
-        {progress && (
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Progress</span>
-              <span className="font-medium">{progressPercent}%</span>
+        <div className="mt-6 flex-1 space-y-4">
+          <div className="flex flex-wrap gap-4 text-sm text-slate-300">
+            <div className="flex items-center gap-1">
+              <Target className="h-4 w-4" />
+              <span>{course._count.lessons} lessons</span>
             </div>
-            <Progress value={progressPercent} className="h-2" />
           </div>
-        )}
 
-        {course.enrollment?.startDate && (
-          <div className="rounded-md bg-blue-50 p-2 text-xs text-blue-700">
-            Commence{isPending ? 's' : 'd'} on:{' '}
-            {new Date(course.enrollment.startDate).toLocaleDateString()}
-          </div>
-        )}
+          {progress && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-300">Progress</span>
+                <span className="font-medium text-slate-100">{progressPercent}%</span>
+              </div>
+              <Progress value={progressPercent} className="h-2 bg-[rgba(255,255,255,0.1)] [&>div]:bg-blue-500" />
+            </div>
+          )}
 
-        <p className="text-xs font-medium text-amber-600">No live sessions on record yet</p>
-      </CardContent>
+          {course.enrollment?.startDate && (
+            <div className="rounded-md bg-[rgba(255,255,255,0.05)] p-2 text-xs text-slate-300 border border-[rgba(255,255,255,0.1)]">
+              Commence{isPending ? 's' : 'd'} on:{' '}
+              <span className="text-slate-100 font-medium">{new Date(course.enrollment.startDate).toLocaleDateString()}</span>
+            </div>
+          )}
 
-      <CardFooter className="gap-2">
+          <p className="text-xs font-medium text-emerald-400">No live sessions on record yet</p>
+        </div>
+      </div>
+
+      <div className="flex gap-2 border-t border-[rgba(255,255,255,0.1)] p-4">
         {(isOngoing || isPending) && (
           <Button
-            className="h-9 w-full flex-1"
-            variant="default"
+            className="h-9 w-full flex-1 bg-emerald-600 hover:bg-emerald-500 text-white border-0"
             disabled={enteringClass === course.id}
             onClick={e => {
               e.stopPropagation()
@@ -975,16 +984,16 @@ function CourseCard({
         )}
         {progress?.isCompleted && (
           <Link href={`/student/feedback`} className="flex-1" onClick={e => e.stopPropagation()}>
-            <Button className="h-9 w-full" variant="outline">
-              <Trophy className="mr-2 h-4 w-4 text-yellow-500" />
+            <Button className="h-9 w-full bg-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.15)] text-slate-100 border-[rgba(255,255,255,0.2)]">
+              <Trophy className="mr-2 h-4 w-4 text-yellow-400" />
               View Results
             </Button>
           </Link>
         )}
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="h-9 px-3"
+          className="h-9 px-3 bg-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.15)] text-slate-100 border-[rgba(255,255,255,0.2)]"
           onClick={e => {
             e.stopPropagation()
             onDetails()
@@ -992,7 +1001,7 @@ function CourseCard({
         >
           Details
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   )
 }

@@ -13,10 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { BookOpen, Loader2, FileText, GraduationCap, Users } from 'lucide-react'
+import { BookOpen, Loader2, FileText, GraduationCap, Users, Clock } from 'lucide-react'
 import { TutorList } from './components/TutorList'
 import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
 import { BackButton } from '@/components/navigation'
+import { cn } from '@/lib/utils'
 
 interface CourseListItem {
   id: string
@@ -168,54 +169,61 @@ export default function SubjectCoursesPage() {
               <ul className="space-y-4">
                 {courses.map(c => (
                   <li key={c.id}>
-                    <Card className="border-border bg-card hover:border-accent transition-colors">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-foreground text-lg">{c.name}</CardTitle>
+                    <div
+                      className={cn(
+                        'group relative flex flex-col overflow-hidden rounded-[20px] text-left transition-all duration-300',
+                        'border border-[rgba(255,255,255,0.08)]',
+                        'bg-[rgba(30,40,50,0.65)] backdrop-blur-[12px]',
+                        'shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_25px_rgba(0,0,0,0.30)]',
+                        'hover:-translate-y-[2px] hover:brightness-105',
+                        'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]'
+                      )}
+                      style={{
+                        backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
+                      }}
+                    >
+                      <div className="flex flex-col p-5">
+                        <h3 className="text-xl font-semibold text-slate-100">{c.name}</h3>
                         {c.difficulty && (
-                          <CardDescription className="mt-1 flex flex-wrap gap-2">
-                            <span className="capitalize">{c.difficulty}</span>
-                          </CardDescription>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <span className="px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wider text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+                              {c.difficulty}
+                            </span>
+                          </div>
                         )}
-                      </CardHeader>
-                      <CardContent className="space-y-3">
+                        
                         {c.description && (
-                          <p className="text-muted-foreground line-clamp-2 text-sm">
+                          <p className="mt-4 text-sm text-slate-300 line-clamp-2">
                             {c.description}
                           </p>
                         )}
-                        <div className="text-muted-foreground flex flex-wrap gap-3 text-xs">
-                          <span>{c.estimatedHours}h estimated</span>
-                          <span>
-                            {c.modulesCount} modules · {c.lessonsCount} lessons
-                          </span>
-                          {c.studentCount > 0 && <span>{c.studentCount} students</span>}
-                          <span className="text-foreground font-medium">
+                        
+                        <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-slate-400">
+                          <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {c.estimatedHours}h estimated</span>
+                          <span className="flex items-center gap-1.5"><BookOpen className="h-3.5 w-3.5" /> {c.modulesCount} modules · {c.lessonsCount} lessons</span>
+                          {c.studentCount > 0 && <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> {c.studentCount} students</span>}
+                          <span className="ml-auto text-sm font-semibold text-emerald-400">
                             {formatPrice(c.price, c.currency)}
                           </span>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Button asChild className="w-full sm:w-auto">
-                            <Link
-                              href={`/student/subjects/${encodeURIComponent(subjectCode)}/courses/${encodeURIComponent(c.id)}`}
-                            >
-                              Select
-                            </Link>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            asChild
-                            className="border-border w-full sm:w-auto"
-                          >
-                            <Link
-                              href={`/student/subjects/${encodeURIComponent(subjectCode)}/courses/${encodeURIComponent(c.id)}/details`}
-                            >
-                              <FileText className="mr-1 h-3 w-3" />
-                              View course details
-                            </Link>
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-3 border-t border-[rgba(255,255,255,0.1)] p-4 bg-[rgba(0,0,0,0.1)]">
+                        <Link
+                          href={`/student/subjects/${encodeURIComponent(subjectCode)}/courses/${encodeURIComponent(c.id)}`}
+                          className="flex-1 inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-full transition-colors"
+                        >
+                          Select Course
+                        </Link>
+                        <Link
+                          href={`/student/subjects/${encodeURIComponent(subjectCode)}/courses/${encodeURIComponent(c.id)}/details`}
+                          className="flex-1 inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-slate-100 bg-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.2)] rounded-full transition-colors"
+                        >
+                          <FileText className="mr-2 h-4 w-4 text-[rgba(255,255,255,0.7)]" />
+                          View Details
+                        </Link>
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ul>
