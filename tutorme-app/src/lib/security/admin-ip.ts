@@ -40,11 +40,15 @@ export function getClientIp(req: Request | any): string {
   const trustProxy = process.env.TRUST_PROXY === 'true'
   const platformIp = req.ip || (req.socket && req.socket.remoteAddress)
 
-  const forwarded = typeof req.headers.get === 'function' ? req.headers.get('x-forwarded-for') : req.headers['x-forwarded-for']
-  const realIp = typeof req.headers.get === 'function' ? req.headers.get('x-real-ip') : req.headers['x-real-ip']
+  const forwarded =
+    typeof req.headers.get === 'function'
+      ? req.headers.get('x-forwarded-for')
+      : req.headers['x-forwarded-for']
+  const realIp =
+    typeof req.headers.get === 'function' ? req.headers.get('x-real-ip') : req.headers['x-real-ip']
 
   const ip = typeof forwarded === 'string' ? forwarded.split(',')[0]?.trim() : null
-  
+
   if (trustProxy) {
     return ip ?? realIp ?? platformIp ?? 'unknown'
   }

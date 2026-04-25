@@ -519,10 +519,10 @@ export async function initEnhancedSocketServer(server: NetServer) {
       if (!text || typeof text !== 'string') return
       const targetRoomId = roomId || socket.data.roomId
       if (!targetRoomId) return
-      
+
       const room = activeRooms.get(targetRoomId)
       if (!room) return
-      
+
       const msg: ChatMessage = {
         id: crypto.randomUUID(),
         userId: socket.data.userId || 'anonymous',
@@ -550,7 +550,6 @@ export async function initEnhancedSocketServer(server: NetServer) {
       if (name !== undefined) socket.data.name = name
       socket.join(roomId)
       socket.data.roomId = roomId
-
 
       // Get or create room from Redis first, then memory
       let room = activeRooms.get(roomId)
@@ -1007,16 +1006,22 @@ export async function initEnhancedSocketServer(server: NetServer) {
 
     socket.on(
       'insight:send',
-      (data: { roomId: string; taskId?: string; type: 'poll' | 'question' | 'tutor:state_sync'; prompt?: string; payload?: unknown }) => {
+      (data: {
+        roomId: string
+        taskId?: string
+        type: 'poll' | 'question' | 'tutor:state_sync'
+        prompt?: string
+        payload?: unknown
+      }) => {
         if (socket.data.role !== 'tutor') return
         const { roomId, taskId, type, prompt, payload } = data
         if (!roomId) return
-        
+
         if (type === 'tutor:state_sync') {
           io.to(roomId).emit('insight:receive', { type, payload })
           return
         }
-        
+
         if (!taskId) return
         const room = activeRooms.get(roomId)
         if (!room) return
@@ -1129,21 +1134,24 @@ export async function initEnhancedSocketServer(server: NetServer) {
       io.to(roomId).emit('student:state_update', {
         studentId: socket.data.userId,
         studentName: socket.data.name,
-        payload
+        payload,
       })
     })
 
     // --- Tutor Direct Messaging / Help ---
-    socket.on('tutor:direct_message', (data: { roomId: string; studentId: string; message: string }) => {
-      if (socket.data.role !== 'tutor') return
-      const { roomId, studentId, message } = data
-      if (!roomId || !studentId || !message) return
-      // Send message specifically tagged for that student
-      io.to(roomId).emit('student:direct_message', {
-        targetStudentId: studentId,
-        message
-      })
-    })
+    socket.on(
+      'tutor:direct_message',
+      (data: { roomId: string; studentId: string; message: string }) => {
+        if (socket.data.role !== 'tutor') return
+        const { roomId, studentId, message } = data
+        if (!roomId || !studentId || !message) return
+        // Send message specifically tagged for that student
+        io.to(roomId).emit('student:direct_message', {
+          targetStudentId: studentId,
+          message,
+        })
+      }
+    )
 
     // Enhanced disconnect handler with cleanup
     socket.on('disconnect', () => {

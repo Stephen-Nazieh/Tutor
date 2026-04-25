@@ -100,7 +100,11 @@ export function VariantScheduleEditor({
   }
 
   const effectiveWeeks =
-    scheduleRepeatWeekly && Array.isArray(schedule) && schedule.filter(Boolean).length > 0 && totalSessionsDesired !== '' && Number(totalSessionsDesired) > 0
+    scheduleRepeatWeekly &&
+    Array.isArray(schedule) &&
+    schedule.filter(Boolean).length > 0 &&
+    totalSessionsDesired !== '' &&
+    Number(totalSessionsDesired) > 0
       ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.filter(Boolean).length))
       : Math.max(1, numberOfWeeks || 8)
 
@@ -351,7 +355,9 @@ export function VariantScheduleEditor({
                   </div>
                   {DAYS.map((day, dayIndex) => {
                     const dateKey = formatDateKey(weekDates[dayIndex])
-                    const validScheduleArray = Array.isArray(schedule) ? schedule.filter(Boolean) : []
+                    const validScheduleArray = Array.isArray(schedule)
+                      ? schedule.filter(Boolean)
+                      : []
                     const matchingSlotIndex = validScheduleArray.findIndex(s => {
                       if (!s || s.dayOfWeek !== day) return false
                       if (!scheduleRepeatWeekly) {
@@ -444,11 +450,14 @@ export function VariantScheduleEditor({
                   Sessions
                 </div>
                 <div className="mt-0.5 text-2xl font-bold text-blue-900">{totalSessions}</div>
-                {scheduleRepeatWeekly && Array.isArray(schedule) && schedule.filter(Boolean).length > 0 && totalSessions > schedule.filter(Boolean).length && (
-                  <div className="mt-0.5 text-xs text-blue-600">
-                    Over {Math.ceil(totalSessions / schedule.filter(Boolean).length)} weeks
-                  </div>
-                )}
+                {scheduleRepeatWeekly &&
+                  Array.isArray(schedule) &&
+                  schedule.filter(Boolean).length > 0 &&
+                  totalSessions > schedule.filter(Boolean).length && (
+                    <div className="mt-0.5 text-xs text-blue-600">
+                      Over {Math.ceil(totalSessions / schedule.filter(Boolean).length)} weeks
+                    </div>
+                  )}
               </div>
               <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3">
                 <div className="text-xs font-medium uppercase tracking-wide text-emerald-700">

@@ -12,8 +12,17 @@ interface DailyVideoFrameProps {
 }
 
 export function DailyVideoFrame({ roomUrl, token, className, autoRecord }: DailyVideoFrameProps) {
-  const { call, isJoined, join, leave, toggleAudio, toggleVideo, isAudioEnabled, isVideoEnabled, startRecording } =
-    useDailyCall()
+  const {
+    call,
+    isJoined,
+    join,
+    leave,
+    toggleAudio,
+    toggleVideo,
+    isAudioEnabled,
+    isVideoEnabled,
+    startRecording,
+  } = useDailyCall()
   const joinedRef = useRef(false)
   const recordingRef = useRef(false)
 

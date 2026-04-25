@@ -660,15 +660,13 @@ function CoursePageInner() {
 
       {/* Course Sessions Modal */}
       <Dialog open={!!sessionsCourseId} onOpenChange={open => !open && setSessionsCourseId(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-indigo-600" />
               Course Sessions
             </DialogTitle>
-            <DialogDescription>
-              Select a session to enter.
-            </DialogDescription>
+            <DialogDescription>Select a session to enter.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             {isLoadingSessions ? (
@@ -676,30 +674,35 @@ function CoursePageInner() {
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
               </div>
             ) : courseSessions.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+              <div className="rounded-lg bg-gray-50 py-8 text-center text-gray-500">
                 No sessions found for this course.
               </div>
             ) : (
               <div className="space-y-4">
-                {courseSessions.map((session) => {
+                {courseSessions.map(session => {
                   const isScheduled = session.status === 'scheduled'
                   const isActive = session.status === 'active'
                   const isEnded = session.status === 'ended'
-                  
+
                   // Logic for upcoming (within 15 mins) and passed
                   const now = Date.now()
-                  const scheduledTime = session.scheduledAt ? new Date(session.scheduledAt).getTime() : now
-                  const isUpcomingClose = isScheduled && (scheduledTime - now <= 15 * 60 * 1000)
-                  const isPassedSession = isScheduled && (scheduledTime + 2 * 60 * 60 * 1000 < now)
-                  
+                  const scheduledTime = session.scheduledAt
+                    ? new Date(session.scheduledAt).getTime()
+                    : now
+                  const isUpcomingClose = isScheduled && scheduledTime - now <= 15 * 60 * 1000
+                  const isPassedSession = isScheduled && scheduledTime + 2 * 60 * 60 * 1000 < now
+
                   const canEnterLive = isActive || isUpcomingClose
-                  
+
                   return (
-                    <div key={session.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white border rounded-xl shadow-sm hover:shadow-md transition-shadow gap-4">
-                      <div className="space-y-1 flex-1">
+                    <div
+                      key={session.id}
+                      className="flex flex-col justify-between gap-4 rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center"
+                    >
+                      <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2">
                           <h4 className="font-semibold text-gray-900">{session.title}</h4>
-                          <Badge 
+                          <Badge
                             variant={isEnded ? 'secondary' : isActive ? 'default' : 'outline'}
                             className={
                               isActive && isPassedSession
@@ -711,7 +714,13 @@ function CoursePageInner() {
                                     : ''
                             }
                           >
-                            {isEnded ? 'Ended' : isActive ? (isPassedSession ? 'Passed (Open)' : 'Active') : 'Scheduled'}
+                            {isEnded
+                              ? 'Ended'
+                              : isActive
+                                ? isPassedSession
+                                  ? 'Passed (Open)'
+                                  : 'Active'
+                                : 'Scheduled'}
                           </Badge>
                         </div>
                         {session.scheduledAt && (
@@ -727,30 +736,35 @@ function CoursePageInner() {
                           </div>
                         )}
                         {isPassedSession && !isEnded && (
-                          <p className="text-xs text-amber-600 mt-1">
-                            This session has passed. If it was recorded, content will load automatically. Otherwise, contact your tutor for materials.
+                          <p className="mt-1 text-xs text-amber-600">
+                            This session has passed. If it was recorded, content will load
+                            automatically. Otherwise, contact your tutor for materials.
                           </p>
                         )}
                       </div>
-                      <div className="flex flex-col gap-2 min-w-[140px]">
-                        <Button 
+                      <div className="flex min-w-[140px] flex-col gap-2">
+                        <Button
                           onClick={() => {
                             setSessionsCourseId(null)
                             router.push(`/student/feedback?sessionId=${session.id}`)
                           }}
                           variant={canEnterLive ? 'default' : 'outline'}
-                          className={canEnterLive ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : ''}
+                          className={
+                            canEnterLive ? 'bg-indigo-600 text-white hover:bg-indigo-700' : ''
+                          }
                         >
                           Enter Session
                         </Button>
                         {isPassedSession && !isEnded && (
-                          <Button 
-                            variant="secondary" 
+                          <Button
+                            variant="secondary"
                             size="sm"
                             disabled={requestingSessionId === session.id}
                             onClick={() => handleRequestMaterials(session.id)}
                           >
-                            {requestingSessionId === session.id ? 'Sending...' : 'Request Materials'}
+                            {requestingSessionId === session.id
+                              ? 'Sending...'
+                              : 'Request Materials'}
                           </Button>
                         )}
                       </div>

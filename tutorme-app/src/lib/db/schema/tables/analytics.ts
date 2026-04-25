@@ -264,23 +264,24 @@ export const libraryTask = pgTable(
   })
 )
 
-export const studentTaskReport = pgTable(
-  'StudentTaskReport',
-  {
-    reportId: text('id').primaryKey().notNull(),
-    studentId: text('studentId').notNull().references(() => user.userId, { onDelete: 'cascade' }),
-    tutorId: text('tutorId').notNull().references(() => user.userId, { onDelete: 'cascade' }),
-    courseId: text('courseId'),
-    taskId: text('taskId'),
-    type: text('type').notNull(), // 'task', 'assessment', 'master'
-    title: text('title').notNull(),
-    status: text('status').notNull().default('requested'), // 'requested', 'draft', 'sent'
-    strengths: jsonb('strengths'), // array of strings
-    weaknesses: jsonb('weaknesses'), // array of strings
-    overallComments: text('overallComments'),
-    score: doublePrecision('score'),
-    createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow(),
-    sentAt: timestamp('sentAt', { withTimezone: true }),
-  }
-)
+export const studentTaskReport = pgTable('StudentTaskReport', {
+  reportId: text('id').primaryKey().notNull(),
+  studentId: text('studentId')
+    .notNull()
+    .references(() => user.userId, { onDelete: 'cascade' }),
+  tutorId: text('tutorId')
+    .notNull()
+    .references(() => user.userId, { onDelete: 'cascade' }),
+  courseId: text('courseId'),
+  taskId: text('taskId'),
+  type: text('type').notNull(), // 'task', 'assessment', 'master'
+  title: text('title').notNull(),
+  status: text('status').notNull().default('requested'), // 'requested', 'draft', 'sent'
+  strengths: jsonb('strengths'), // array of strings
+  weaknesses: jsonb('weaknesses'), // array of strings
+  overallComments: text('overallComments'),
+  score: doublePrecision('score'),
+  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow(),
+  sentAt: timestamp('sentAt', { withTimezone: true }),
+})

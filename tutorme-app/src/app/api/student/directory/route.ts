@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { courseEnrollment, course, profile, deployedMaterial, studentTaskReport } from '@/lib/db/schema'
+import {
+  courseEnrollment,
+  course,
+  profile,
+  deployedMaterial,
+  studentTaskReport,
+} from '@/lib/db/schema'
 import { eq, inArray, and } from 'drizzle-orm'
 
 export const dynamic = 'force-dynamic'
@@ -102,7 +108,7 @@ export async function GET(request: NextRequest) {
     const tutorUsername = en.tutorName
       ? `Tutor@${en.tutorName.replace(/\s+/g, '')}`
       : 'Tutor@Unknown'
-    
+
     let category = 'General'
     if (Array.isArray(en.courseCategory) && en.courseCategory.length > 0)
       category = en.courseCategory[0]
@@ -121,7 +127,7 @@ export async function GET(request: NextRequest) {
         strengths: report.strengths,
         weaknesses: report.weaknesses,
         overallComments: report.overallComments,
-        score: report.score
+        score: report.score,
       },
       sessionId: null,
       courseId: report.courseId,

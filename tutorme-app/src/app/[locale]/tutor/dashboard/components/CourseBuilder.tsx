@@ -864,7 +864,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
     // Sync tutor's active state to students for "Screen Mirroring"
     useEffect(() => {
-      if (mainTab === 'live' && insightsProps?.sessionId && insightsProps?.socket && !isStudentView && isMirroringToStudents) {
+      if (
+        mainTab === 'live' &&
+        insightsProps?.sessionId &&
+        insightsProps?.socket &&
+        !isStudentView &&
+        isMirroringToStudents
+      ) {
         const statePayload = {
           activeTab: testPciActiveTab,
           activeTaskId: loadedTaskId || loadedAssessmentId || null,
@@ -872,10 +878,19 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         insightsProps.socket.emit('insight:send', {
           roomId: insightsProps.sessionId,
           type: 'tutor:state_sync',
-          payload: statePayload
+          payload: statePayload,
         })
       }
-    }, [mainTab, testPciActiveTab, loadedTaskId, loadedAssessmentId, insightsProps?.sessionId, insightsProps?.socket, isStudentView, isMirroringToStudents])
+    }, [
+      mainTab,
+      testPciActiveTab,
+      loadedTaskId,
+      loadedAssessmentId,
+      insightsProps?.sessionId,
+      insightsProps?.socket,
+      isStudentView,
+      isMirroringToStudents,
+    ])
 
     const [extractedTextFontSizeMap, setExtractedTextFontSizeMap] = useState<
       Record<string, number>
@@ -4559,7 +4574,7 @@ FEEDBACK: [your explanation]`
                   <TabsTrigger
                     value="live"
                     className={cn(
-                      'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all cursor-pointer z-20',
+                      'z-20 flex cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
                       mainTab === 'live'
                         ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
                         : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
@@ -4570,14 +4585,12 @@ FEEDBACK: [your explanation]`
                       }
                     }}
                   >
-                    <div
-                      className="relative z-10 flex items-center gap-2 rounded-full px-2 py-0.5 transition-colors pointer-events-none"
-                    >
+                    <div className="pointer-events-none relative z-10 flex items-center gap-2 rounded-full px-2 py-0.5 transition-colors">
                       <VideoIcon
                         className={cn(
                           'h-4 w-4 transition-all duration-300',
-                          isSessionActive 
-                            ? 'text-red-500 drop-shadow-[0_0_8px_rgba(220,38,38,1)]' 
+                          isSessionActive
+                            ? 'text-red-500 drop-shadow-[0_0_8px_rgba(220,38,38,1)]'
                             : 'text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,1)]'
                         )}
                       />
@@ -6342,7 +6355,7 @@ FEEDBACK: [your explanation]`
                                       ) : (
                                         <TabsTrigger
                                           value={tab.id}
-                                          className="relative flex w-full items-center justify-center truncate rounded-xl border border-[#E5E7EB] bg-white px-2 py-2.5 text-[11px] sm:text-xs font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50"
+                                          className="relative flex w-full items-center justify-center truncate rounded-xl border border-[#E5E7EB] bg-white px-2 py-2.5 text-[11px] font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50 sm:text-xs"
                                           onDoubleClick={() => setEditingTabId(tab.id)}
                                         >
                                           {tab.label}
@@ -6814,7 +6827,8 @@ FEEDBACK: [your explanation]`
                                   </TabsContent>
                                 ))}
                               </Tabs>
-                              {testPciActiveTab !== 'insights' && testPciActiveTab !== 'student-monitor' &&
+                              {testPciActiveTab !== 'insights' &&
+                                testPciActiveTab !== 'student-monitor' &&
                                 !(mainTab === 'live' && testPciActiveTab === 'student1') && (
                                   <div className="mt-1 w-full rounded-2xl border border-cyan-300 bg-white/90 shadow-[0_0_15px_rgba(34,211,238,0.4)] backdrop-blur-md transition-all duration-300 focus-within:shadow-[0_0_25px_rgba(34,211,238,0.6)]">
                                     <div className="relative flex w-full flex-col p-px">
@@ -8639,16 +8653,22 @@ FEEDBACK: [your explanation]`
           <div className="fixed bottom-4 right-4 z-50 hidden w-72 overflow-hidden rounded-xl border border-slate-600 bg-black shadow-2xl sm:w-80">
             <div className="absolute right-2 top-2 z-10">
               <Button
-                variant={isMirroringToStudents ? "default" : "secondary"}
+                variant={isMirroringToStudents ? 'default' : 'secondary'}
                 size="sm"
                 onClick={() => setIsMirroringToStudents(!isMirroringToStudents)}
-                className="h-7 px-2 text-[10px] gap-1.5 shadow-lg opacity-90 hover:opacity-100"
+                className="h-7 gap-1.5 px-2 text-[10px] opacity-90 shadow-lg hover:opacity-100"
               >
-                <div className={`h-1.5 w-1.5 rounded-full ${isMirroringToStudents ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+                <div
+                  className={`h-1.5 w-1.5 rounded-full ${isMirroringToStudents ? 'animate-pulse bg-green-400' : 'bg-red-400'}`}
+                />
                 {isMirroringToStudents ? 'Syncing to Students' : 'Sync Paused'}
               </Button>
             </div>
-            <DailyVideoFrame roomUrl={sessionContext.roomUrl} token={sessionContext.token} autoRecord={!isStudentView} />
+            <DailyVideoFrame
+              roomUrl={sessionContext.roomUrl}
+              token={sessionContext.token}
+              autoRecord={!isStudentView}
+            />
           </div>
         )}
       </div>

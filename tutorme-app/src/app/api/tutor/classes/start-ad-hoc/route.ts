@@ -11,7 +11,8 @@ const SPECIAL_TOKENS = ['kim.kon#26', 'stephen#26'] // fallback token, should ma
 export const POST = withAuth(
   async (req: NextRequest, { user: currentUser }) => {
     try {
-      const { type, courseId, title, trainingToken, targetAudience, trainingCategory } = await req.json()
+      const { type, courseId, title, trainingToken, targetAudience, trainingCategory } =
+        await req.json()
 
       if (type === 'training') {
         // Verify token
@@ -20,7 +21,7 @@ export const POST = withAuth(
         }
 
         const sessionId = randomUUID()
-        
+
         await drizzleDb.insert(liveSession).values({
           sessionId,
           tutorId: currentUser.id,
@@ -39,29 +40,39 @@ export const POST = withAuth(
         })
 
         // Notify tutors based on target audience
-        const targetTutors = await drizzleDb.select({ id: user.userId }).from(user).where(eq(user.role, 'TUTOR'))
+        const targetTutors = await drizzleDb
+          .select({ id: user.userId })
+          .from(user)
+          .where(eq(user.role, 'TUTOR'))
 
-        const notifyPromises = targetTutors.map(t => 
+        const notifyPromises = targetTutors.map(t =>
           notify({
             userId: t.id,
             type: 'system',
             title: 'New Training Session Started',
             message: `A new ${trainingCategory || 'orientation'} training session has started!`,
-            actionUrl: `/tutor/sessions/${sessionId}`
+            actionUrl: `/tutor/sessions/${sessionId}`,
           })
         )
         await Promise.allSettled(notifyPromises)
 
         return NextResponse.json({ success: true, sessionId })
-      } 
-      
+      }
+
       if (type === 'teaching') {
         if (!courseId) {
-          return NextResponse.json({ error: 'Course ID is required for teaching sessions' }, { status: 400 })
+          return NextResponse.json(
+            { error: 'Course ID is required for teaching sessions' },
+            { status: 400 }
+          )
         }
 
         // Check if course is published and has students
-        const [courseRecord] = await drizzleDb.select().from(course).where(eq(course.courseId, courseId)).limit(1)
+        const [courseRecord] = await drizzleDb
+          .select()
+          .from(course)
+          .where(eq(course.courseId, courseId))
+          .limit(1)
         if (!courseRecord) {
           return NextResponse.json({ error: 'Course not found' }, { status: 404 })
         }
@@ -74,7 +85,9 @@ export const POST = withAuth(
           tutorId: currentUser.id,
           courseId,
           title: title || `${courseRecord.name} - Live Session`,
-          category: Array.isArray(courseRecord.categories) ? courseRecord.categories[0] || 'General' : 'General',
+          category: Array.isArray(courseRecord.categories)
+            ? courseRecord.categories[0] || 'General'
+            : 'General',
           status: 'active',
           startedAt: new Date(),
           scheduledAt: new Date(),

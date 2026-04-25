@@ -9,7 +9,14 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { withAuth, NotFoundError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, courseLesson, courseEnrollment, courseProgress, payment, user } from '@/lib/db/schema'
+import {
+  course,
+  courseLesson,
+  courseEnrollment,
+  courseProgress,
+  payment,
+  user,
+} from '@/lib/db/schema'
 import { eq, and, inArray, desc } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
 

@@ -5,17 +5,30 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Play, CalendarPlus, Loader2, GraduationCap } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { toast } from 'sonner'
 
 export default function TutorTrainingPage() {
   const router = useRouter()
   const [starting, setStarting] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
-  
+
   // Training fields
   const [token, setToken] = useState('')
   const [targetAudience, setTargetAudience] = useState('all')
@@ -28,20 +41,20 @@ export default function TutorTrainingPage() {
       const res = await fetch('/api/tutor/classes/start-ad-hoc', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          type: 'training', 
-          trainingToken: token, 
-          targetAudience, 
+        body: JSON.stringify({
+          type: 'training',
+          trainingToken: token,
+          targetAudience,
           trainingCategory: category,
-          title: 'Training Session'
-        })
+          title: 'Training Session',
+        }),
       })
-      
+
       if (!res.ok) {
         if (res.status === 403) throw new Error('Invalid token')
         throw new Error('Failed to start training session')
       }
-      
+
       const resData = await res.json()
       toast.success('Training session started!')
       router.push(`/tutor/sessions/${resData.sessionId}`)
@@ -77,11 +90,18 @@ export default function TutorTrainingPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3 sm:flex-row">
-            <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700" onClick={() => setDialogOpen(true)}>
+            <Button
+              className="gap-2 bg-indigo-600 hover:bg-indigo-700"
+              onClick={() => setDialogOpen(true)}
+            >
               <CalendarPlus className="h-4 w-4" />
               Create Training Session
             </Button>
-            <Button variant="outline" className="gap-2" onClick={() => router.push('/tutor/classes')}>
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => router.push('/tutor/classes')}
+            >
               <Play className="h-4 w-4" />
               View Existing Sessions
             </Button>
@@ -94,9 +114,7 @@ export default function TutorTrainingPage() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Start a Training Session</DialogTitle>
-            <DialogDescription>
-              Host a session for other tutors on the platform.
-            </DialogDescription>
+            <DialogDescription>Host a session for other tutors on the platform.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">

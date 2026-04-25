@@ -68,7 +68,7 @@ export const PATCH = withAuth(
       const updateData: any = {
         updatedAt: new Date(),
       }
-      
+
       if (status) updateData.status = status
       if (strengths) updateData.strengths = strengths
       if (weaknesses) updateData.weaknesses = weaknesses

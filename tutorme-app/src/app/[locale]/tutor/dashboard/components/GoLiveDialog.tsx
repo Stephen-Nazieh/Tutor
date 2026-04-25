@@ -72,19 +72,25 @@ export function GoLiveDialog({
   }
 
   return (
-    <Dialog 
-      open={open} 
-      onOpenChange={(isOpen) => {
+    <Dialog
+      open={open}
+      onOpenChange={isOpen => {
         onOpenChange(isOpen)
         if (!isOpen) setTimeout(() => setStep(1), 300)
       }}
     >
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{step === 1 ? 'Start a Session' : sessionType === 'teaching' ? 'Session Recording' : 'Training Details'}</DialogTitle>
+          <DialogTitle>
+            {step === 1
+              ? 'Start a Session'
+              : sessionType === 'teaching'
+                ? 'Session Recording'
+                : 'Training Details'}
+          </DialogTitle>
           <DialogDescription>
-            {step === 1 
-              ? 'Choose the type of session you want to start.' 
+            {step === 1
+              ? 'Choose the type of session you want to start.'
               : sessionType === 'teaching'
                 ? 'Important information about your teaching session.'
                 : 'Configure your training session access.'}
@@ -98,27 +104,29 @@ export function GoLiveDialog({
               onValueChange={v => setSessionType(v as 'teaching' | 'training')}
               className="flex flex-col space-y-2"
             >
-              <div 
-                className="flex items-center space-x-2 border p-4 rounded-lg cursor-pointer hover:bg-slate-50" 
+              <div
+                className="flex cursor-pointer items-center space-x-2 rounded-lg border p-4 hover:bg-slate-50"
                 onClick={() => setSessionType('teaching')}
               >
                 <RadioGroupItem value="teaching" id="teaching" />
                 <Label htmlFor="teaching" className="flex-1 cursor-pointer">
-                  <div className="font-semibold text-base">Start a Teaching Session</div>
-                  <div className="text-sm text-gray-500 font-normal mt-1">
-                    Deliver lessons to your enrolled students. Only enrolled students will be notified.
+                  <div className="text-base font-semibold">Start a Teaching Session</div>
+                  <div className="mt-1 text-sm font-normal text-gray-500">
+                    Deliver lessons to your enrolled students. Only enrolled students will be
+                    notified.
                   </div>
                 </Label>
               </div>
-              <div 
-                className="flex items-center space-x-2 border p-4 rounded-lg cursor-pointer hover:bg-slate-50" 
+              <div
+                className="flex cursor-pointer items-center space-x-2 rounded-lg border p-4 hover:bg-slate-50"
                 onClick={() => setSessionType('training')}
               >
                 <RadioGroupItem value="training" id="training" />
                 <Label htmlFor="training" className="flex-1 cursor-pointer">
-                  <div className="font-semibold text-base">Start a Training Session</div>
-                  <div className="text-sm text-gray-500 font-normal mt-1">
-                    Host a session for other tutors on the platform. Share your screen and interface.
+                  <div className="text-base font-semibold">Start a Training Session</div>
+                  <div className="mt-1 text-sm font-normal text-gray-500">
+                    Host a session for other tutors on the platform. Share your screen and
+                    interface.
                   </div>
                 </Label>
               </div>
@@ -127,24 +135,26 @@ export function GoLiveDialog({
 
           {step === 2 && sessionType === 'teaching' && (
             <div className="animate-in fade-in slide-in-from-right-2 space-y-4">
-              <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-lg">
-                <h4 className="font-semibold text-indigo-900 mb-2 flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+              <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-4">
+                <h4 className="mb-2 flex items-center gap-2 font-semibold text-indigo-900">
+                  <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
                   Auto-Recording Enabled
                 </h4>
-                <p className="text-sm text-indigo-800 leading-relaxed">
-                  Your teaching session will be recorded automatically from the beginning. 
-                  This ensures high-quality replays are available immediately after the session ends.
+                <p className="text-sm leading-relaxed text-indigo-800">
+                  Your teaching session will be recorded automatically from the beginning. This
+                  ensures high-quality replays are available immediately after the session ends.
                 </p>
-                <p className="text-sm text-indigo-800 leading-relaxed mt-3 font-medium">
-                  💡 Monetization Opportunity: Future students who enroll in this course later will still be able to access and learn from this recorded session, helping you generate passive value over time!
+                <p className="mt-3 text-sm font-medium leading-relaxed text-indigo-800">
+                  💡 Monetization Opportunity: Future students who enroll in this course later will
+                  still be able to access and learn from this recorded session, helping you generate
+                  passive value over time!
                 </p>
               </div>
             </div>
           )}
 
           {step === 2 && sessionType === 'training' && (
-            <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
+            <div className="animate-in fade-in slide-in-from-right-2 space-y-4">
               <div className="space-y-2">
                 <Label>Special Access Token</Label>
                 <Input
@@ -195,16 +205,17 @@ export function GoLiveDialog({
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleNext}>
-                Next
-              </Button>
+              <Button onClick={handleNext}>Next</Button>
             </>
           ) : (
             <>
               <Button variant="outline" onClick={handleBack} disabled={loading}>
                 Back
               </Button>
-              <Button onClick={handleConfirm} disabled={loading || (sessionType === 'training' && !token)}>
+              <Button
+                onClick={handleConfirm}
+                disabled={loading || (sessionType === 'training' && !token)}
+              >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {sessionType === 'teaching' ? 'Got it, Start Teaching' : 'Start Training'}
               </Button>

@@ -223,7 +223,9 @@ export const trainingAttendance = pgTable(
   table => ({
     TrainingAttendance_sessionId_idx: index('TrainingAttendance_sessionId_idx').on(table.sessionId),
     TrainingAttendance_tutorId_idx: index('TrainingAttendance_tutorId_idx').on(table.tutorId),
-    TrainingAttendance_sessionId_tutorId_key: uniqueIndex('TrainingAttendance_sessionId_tutorId_key').on(table.sessionId, table.tutorId),
+    TrainingAttendance_sessionId_tutorId_key: uniqueIndex(
+      'TrainingAttendance_sessionId_tutorId_key'
+    ).on(table.sessionId, table.tutorId),
   })
 )
 

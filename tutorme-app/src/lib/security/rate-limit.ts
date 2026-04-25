@@ -173,12 +173,21 @@ export function getClientIdentifier(req: Request | any): string {
   const trustProxy = process.env.TRUST_PROXY === 'true'
   const platformIp = req.ip || (req.socket && req.socket.remoteAddress)
 
-  const forwarded = typeof req.headers.get === 'function' ? req.headers.get('x-forwarded-for') : req.headers['x-forwarded-for']
-  const realIp = typeof req.headers.get === 'function' ? req.headers.get('x-real-ip') : req.headers['x-real-ip']
-  const cfIp = typeof req.headers.get === 'function' ? req.headers.get('cf-connecting-ip') : req.headers['cf-connecting-ip']
+  const forwarded =
+    typeof req.headers.get === 'function'
+      ? req.headers.get('x-forwarded-for')
+      : req.headers['x-forwarded-for']
+  const realIp =
+    typeof req.headers.get === 'function' ? req.headers.get('x-real-ip') : req.headers['x-real-ip']
+  const cfIp =
+    typeof req.headers.get === 'function'
+      ? req.headers.get('cf-connecting-ip')
+      : req.headers['cf-connecting-ip']
 
   const firstForwarded = typeof forwarded === 'string' ? forwarded.split(',')[0]?.trim() : undefined
-  const candidate = trustProxy ? firstForwarded || realIp || cfIp || platformIp : platformIp || realIp || cfIp
+  const candidate = trustProxy
+    ? firstForwarded || realIp || cfIp || platformIp
+    : platformIp || realIp || cfIp
   const ip = normalizeIp(candidate)
   if (ip !== 'unknown') return ip
 

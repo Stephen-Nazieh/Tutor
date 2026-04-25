@@ -179,15 +179,15 @@ function CourseBuilderInsightsRouteInner({
       toast.error('Please save your course first.')
       return
     }
-    
+
     try {
       const res = await fetch('/api/tutor/classes/start-ad-hoc', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'teaching', courseId, title: courseName })
+        body: JSON.stringify({ type: 'teaching', courseId, title: courseName }),
       })
       if (!res.ok) throw new Error('Failed to start session')
-      
+
       const data = await res.json()
       toast.success('Teaching session started!')
       model.router.push(`/tutor/sessions/${data.sessionId}`)
@@ -196,24 +196,28 @@ function CourseBuilderInsightsRouteInner({
     }
   }
 
-  const handleConfirmTraining = async (data: { token: string; targetAudience: string; category: string }) => {
+  const handleConfirmTraining = async (data: {
+    token: string
+    targetAudience: string
+    category: string
+  }) => {
     try {
       const res = await fetch('/api/tutor/classes/start-ad-hoc', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          type: 'training', 
-          trainingToken: data.token, 
-          targetAudience: data.targetAudience, 
+        body: JSON.stringify({
+          type: 'training',
+          trainingToken: data.token,
+          targetAudience: data.targetAudience,
           trainingCategory: data.category,
-          title: 'Training Session'
-        })
+          title: 'Training Session',
+        }),
       })
       if (!res.ok) {
         if (res.status === 403) throw new Error('Invalid token')
         throw new Error('Failed to start session')
       }
-      
+
       const resData = await res.json()
       toast.success('Training session started!')
       model.router.push(`/tutor/sessions/${resData.sessionId}`)
@@ -606,8 +610,8 @@ function CourseBuilderInsightsRouteInner({
                           className={cn(
                             'gap-2 font-medium text-white transition-all duration-300',
                             insightsProps.sessionId
-                              ? 'shadow-[0_0_15px_rgba(220,38,38,0.8)] bg-red-600 hover:bg-red-700'
-                              : 'ring-green-400 shadow-[0_0_15px_rgba(34,197,94,0.8)] bg-green-500 ring-1 hover:bg-green-600'
+                              ? 'bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.8)] hover:bg-red-700'
+                              : 'bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.8)] ring-1 ring-green-400 hover:bg-green-600'
                           )}
                           onClick={() => {
                             if (!insightsProps.sessionId && insightsProps.onStartSession) {
@@ -802,7 +806,7 @@ function CourseBuilderInsightsRouteInner({
         </DialogContent>
       </Dialog>
 
-      <GoLiveDialog 
+      <GoLiveDialog
         open={goLiveDialogOpen}
         onOpenChange={setGoLiveDialogOpen}
         onConfirmTeaching={handleConfirmTeaching}

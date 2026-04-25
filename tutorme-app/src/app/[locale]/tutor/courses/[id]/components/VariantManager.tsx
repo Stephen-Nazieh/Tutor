@@ -429,7 +429,7 @@ export function VariantManager({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border p-3 mt-4">
+              <div className="mt-4 flex items-center justify-between rounded-lg border p-3">
                 <div className="flex items-center gap-3">
                   <Calendar className="text-muted-foreground h-5 w-5" />
                   <div>
@@ -475,7 +475,7 @@ export function VariantManager({
           }
         }}
       >
-        <DialogContent className="sm:max-h-[800px] sm:max-w-[800px] h-[95vh] w-[95vw] max-h-[95vh] max-w-[95vw] overflow-hidden p-0 sm:h-[90vh] sm:w-[90vw]">
+        <DialogContent className="h-[95vh] max-h-[95vh] w-[95vw] max-w-[95vw] overflow-hidden p-0 sm:h-[90vh] sm:max-h-[800px] sm:w-[90vw] sm:max-w-[800px]">
           <div className="flex h-full flex-col bg-white">
             <DialogHeader className="border-b px-6 py-4">
               <DialogTitle>Edit Schedule</DialogTitle>
