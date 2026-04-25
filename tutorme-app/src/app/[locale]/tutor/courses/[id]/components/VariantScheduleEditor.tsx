@@ -155,9 +155,9 @@ export function VariantScheduleEditor({
         if (!scheduleRepeatWeekly) {
           if (s.date ? s.date !== dateKey : scheduleWeekOffset !== 0) return false
         }
-        const [sh, sm] = s.startTime.split(':').map(Number)
+        const [sh, sm] = (s.startTime || '00:00').split(':').map(Number)
         const startM = sh * 60 + sm
-        const endM = startM + s.durationMinutes
+        const endM = startM + (s.durationMinutes || 60)
         const [th, tm] = timeStr.split(':').map(Number)
         const slotM = th * 60 + tm
         return slotM >= startM && slotM < endM
@@ -345,9 +345,9 @@ export function VariantScheduleEditor({
                       if (!scheduleRepeatWeekly) {
                         if (s.date ? s.date !== dateKey : scheduleWeekOffset !== 0) return false
                       }
-                      const [sh, sm] = s.startTime.split(':').map(Number)
+                      const [sh, sm] = (s.startTime || '00:00').split(':').map(Number)
                       const startM = sh * 60 + sm
-                      const endM = startM + s.durationMinutes
+                      const endM = startM + (s.durationMinutes || 60)
                       const [th, tm] = timeStr.split(':').map(Number)
                       const slotM = th * 60 + tm
                       return slotM >= startM && slotM < endM
@@ -360,7 +360,7 @@ export function VariantScheduleEditor({
                         const aDate = a.date || ''
                         const bDate = b.date || ''
                         if (aDate !== bDate) return aDate.localeCompare(bDate)
-                        return a.startTime.localeCompare(b.startTime)
+                        return (a.startTime || '').localeCompare(b.startTime || '')
                       })
                       sessionNum =
                         sortedSessions.findIndex(
@@ -485,10 +485,10 @@ export function VariantScheduleEditor({
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {scheduleByDay[day]
-                        .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                        .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''))
                         .map((slot, idx) => (
                           <div
-                            key={`${day}-${idx}-${slot.startTime}`}
+                            key={`${day}-${idx}-${slot.startTime || '00:00'}`}
                             className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-800"
                           >
                             {slot.date && (

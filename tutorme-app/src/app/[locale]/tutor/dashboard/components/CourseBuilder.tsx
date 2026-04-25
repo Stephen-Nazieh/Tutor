@@ -4567,8 +4567,6 @@ FEEDBACK: [your explanation]`
                     onClick={e => {
                       if (mainTab !== 'live') {
                         setMainTab('live')
-                      } else if (!isSessionActive && insightsProps?.onStartSession) {
-                        insightsProps.onStartSession()
                       }
                     }}
                   >

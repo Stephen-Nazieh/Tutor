@@ -29,6 +29,7 @@ import {
   LayoutTemplate,
   Save,
   Calendar,
+  Video as VideoIcon,
 } from 'lucide-react'
 import Link from 'next/link'
 import {
@@ -527,6 +528,25 @@ function CourseBuilderInsightsRouteInner({
 
             <div className="flex h-full flex-col items-end justify-between gap-4 pb-0">
               <div className="mt-0 flex shrink-0 items-center gap-2">
+                {courseId && courseId !== 'insights-draft' && (
+                  <Button
+                    variant="default"
+                    className={cn(
+                      "gap-2 font-medium text-white transition-all duration-300",
+                      insightsProps.sessionId 
+                        ? "bg-red-600 hover:bg-red-700 shadow-[0_0_12px_rgba(220,38,38,0.5)] animate-pulse"
+                        : "bg-green-600 hover:bg-green-700 shadow-[0_0_12px_rgba(34,197,94,0.5)] animate-pulse"
+                    )}
+                    onClick={() => {
+                      if (!insightsProps.sessionId && insightsProps.onStartSession) {
+                        insightsProps.onStartSession()
+                      }
+                    }}
+                  >
+                    <VideoIcon className="h-4 w-4" />
+                    {insightsProps.sessionId ? 'Session Active' : 'Go Live'}
+                  </Button>
+                )}
                 {activeMainTab === 'builder' && onSaveModeChange && (
                   <Select
                     value={saveMode}
