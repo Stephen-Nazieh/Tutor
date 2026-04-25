@@ -110,6 +110,7 @@ function CoursePageInner() {
     try {
       const res = await fetch(`/api/student/sessions/${sessionId}/request-materials`, {
         method: 'POST',
+        credentials: 'include'
       })
       if (res.ok) {
         toast.success('Material request sent to tutor.')
@@ -264,15 +265,20 @@ function CoursePageInner() {
     setSessionsCourseId(courseId)
     setIsLoadingSessions(true)
     try {
-      const res = await fetch(`/api/student/courses/${courseId}/sessions`)
+      const res = await fetch(`/api/student/courses/${courseId}/sessions`, {
+        credentials: 'include'
+      })
       if (res.ok) {
         const data = await res.json()
         setCourseSessions(data.sessions || [])
       } else {
-        toast.error('Failed to load sessions')
+        const errorData = await res.json().catch(() => ({}))
+        console.error('Session load failed:', errorData, res.status)
+        toast.error(`Failed to load sessions: ${errorData.error || res.statusText}`)
         setSessionsCourseId(null)
       }
-    } catch {
+    } catch (e) {
+      console.error('Session load exception:', e)
       toast.error('Failed to load sessions')
       setSessionsCourseId(null)
     } finally {

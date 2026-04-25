@@ -51,7 +51,6 @@ export const POST = withCsrf(
         success: true,
         message: `Unenrolled from ${courseRow.name}`,
       })
-    },
-    { role: 'STUDENT' }
+    }
   )
 )

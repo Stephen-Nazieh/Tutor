@@ -135,7 +135,6 @@ export const POST = withCsrf(
         enrollment: enrollment!,
         progress: progress!,
       })
-    },
-    { role: 'STUDENT' }
+    }
   )
 )

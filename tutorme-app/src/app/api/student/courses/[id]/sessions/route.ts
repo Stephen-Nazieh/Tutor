@@ -12,8 +12,16 @@ export const GET = withAuth(
     const match = safeUrl.match(/\/courses\/([^/]+)\/sessions/)
     const courseId = match ? match[1] : ''
 
+    let ctxParams = 'none'
+    try {
+      const params = await context?.params
+      ctxParams = JSON.stringify(params)
+    } catch (e) {
+      ctxParams = String(e)
+    }
+
     if (!courseId || courseId === 'undefined' || courseId === 'null') {
-      return NextResponse.json({ error: 'Course ID is required' }, { status: 400 })
+      return NextResponse.json({ error: `Course ID is required. URL: ${safeUrl}, Context: ${ctxParams}` }, { status: 400 })
     }
 
     // Verify enrollment
@@ -26,7 +34,7 @@ export const GET = withAuth(
       .limit(1)
 
     if (!enrollment) {
-      return NextResponse.json({ error: 'Not enrolled in this course' }, { status: 403 })
+      return NextResponse.json({ error: `Not enrolled in this course. courseId: ${courseId}, studentId: ${studentId}` }, { status: 403 })
     }
 
     const sessions = await drizzleDb.query.liveSession.findMany({
@@ -48,6 +56,5 @@ export const GET = withAuth(
     }))
 
     return NextResponse.json({ sessions: formattedSessions })
-  },
-  { role: 'STUDENT' }
+  }
 )

@@ -125,7 +125,6 @@ export const POST = withCsrf(
         token,
         roomUrl: classSessionRow.roomUrl,
       })
-    },
-    { role: 'STUDENT' }
+    }
   )
 )

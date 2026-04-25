@@ -381,16 +381,21 @@ function TutorDashboardContent() {
           credentials: 'include',
         })
         if (res.ok) {
-          const data = await res.json()
-          setCourseSessions(data.sessions || [])
-        } else {
-          toast.error('Failed to load course sessions')
-        }
-      } catch {
-        toast.error('Failed to load course sessions')
-      } finally {
-        setLoadingSessions(false)
+        const data = await res.json()
+        setCourseSessions(data.sessions || [])
+      } else {
+        const errData = await res.json().catch(() => ({}))
+        console.error('Tutor session load failed:', errData, res.status)
+        toast.error(`Failed to load course sessions: ${errData.error || res.statusText}`)
+        setCancelModalOpen(false)
       }
+    } catch (e) {
+      console.error('Tutor session load exception:', e)
+      toast.error('Failed to load course sessions')
+      setCancelModalOpen(false)
+    } finally {
+      setLoadingSessions(false)
+    }
     },
     [loadingSessions]
   )

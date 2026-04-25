@@ -68,6 +68,5 @@ export const GET = withAuth(
         : null,
       progress: progress ?? null,
     })
-  },
-  { role: 'STUDENT' }
+  }
 )
