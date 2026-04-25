@@ -4537,7 +4537,7 @@ FEEDBACK: [your explanation]`
                   <TabsTrigger
                     value="live"
                     className={cn(
-                      'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
+                      'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all cursor-pointer z-20',
                       mainTab === 'live'
                         ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
                         : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
@@ -4545,6 +4545,15 @@ FEEDBACK: [your explanation]`
                     onClick={e => {
                       if (mainTab !== 'live') {
                         setMainTab('live')
+                      }
+                    }}
+                    onPointerDown={e => {
+                      if (mainTab === 'live') {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        if (!isSessionActive && insightsProps?.onStartSession) {
+                          insightsProps.onStartSession()
+                        }
                       }
                     }}
                   >
@@ -4555,15 +4564,6 @@ FEEDBACK: [your explanation]`
                           ? 'pointer-events-auto cursor-pointer'
                           : 'pointer-events-none'
                       )}
-                      onPointerDown={e => {
-                        if (mainTab === 'live') {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          if (!isSessionActive && insightsProps?.onStartSession) {
-                            insightsProps.onStartSession()
-                          }
-                        }
-                      }}
                     >
                       <VideoIcon
                         className={cn(

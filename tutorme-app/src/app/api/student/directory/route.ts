@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { courseEnrollment, course, profile, deployedMaterial } from '@/lib/db/schema'
-import { eq, inArray } from 'drizzle-orm'
+import { courseEnrollment, course, profile, deployedMaterial, studentTaskReport } from '@/lib/db/schema'
+import { eq, inArray, and } from 'drizzle-orm'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,7 +39,19 @@ export async function GET(request: NextRequest) {
     .select()
     .from(deployedMaterial)
     .where(inArray(deployedMaterial.courseId, courseIds))
-    .orderBy(deployedMaterial.deployedAt) // Default ascending, we can reverse it in JS
+    .orderBy(deployedMaterial.deployedAt)
+
+  // Fetch individual student reports
+  const studentReports = await drizzleDb
+    .select()
+    .from(studentTaskReport)
+    .where(
+      and(
+        eq(studentTaskReport.studentId, studentId),
+        eq(studentTaskReport.status, 'sent'),
+        inArray(studentTaskReport.courseId, courseIds)
+      )
+    )
 
   // Build the directory tree
   // Structure: Tutor@username -> Category -> Folders (tasks, assessments, homework, etc) -> items
@@ -80,6 +92,43 @@ export async function GET(request: NextRequest) {
   const sortedMaterials = [...deployedMaterials].sort(
     (a, b) => b.deployedAt.getTime() - a.deployedAt.getTime()
   )
+
+  // Populate individual reports
+  studentReports.forEach(report => {
+    if (!report.courseId) return
+    const en = enrollments.find(e => e.courseId === report.courseId)
+    if (!en) return
+
+    const tutorUsername = en.tutorName
+      ? `Tutor@${en.tutorName.replace(/\s+/g, '')}`
+      : 'Tutor@Unknown'
+    
+    let category = 'General'
+    if (Array.isArray(en.courseCategory) && en.courseCategory.length > 0)
+      category = en.courseCategory[0]
+    else if (en.courseCategory && typeof en.courseCategory === 'string')
+      category = String(en.courseCategory)
+
+    if (!directory[tutorUsername]?.[category]) return
+
+    const item = {
+      id: report.reportId,
+      itemId: report.taskId || report.reportId,
+      title: report.title,
+      type: 'report',
+      deployedAt: report.sentAt || report.updatedAt,
+      content: {
+        strengths: report.strengths,
+        weaknesses: report.weaknesses,
+        overallComments: report.overallComments,
+        score: report.score
+      },
+      sessionId: null,
+      courseId: report.courseId,
+    }
+
+    directory[tutorUsername][category].reports.push(item)
+  })
 
   sortedMaterials.forEach(material => {
     // Find the enrollment to know the tutor and category

@@ -35,6 +35,7 @@ import {
   ChevronDown,
   Folder,
 } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
@@ -102,6 +103,7 @@ function StudentFeedbackContent() {
     token: string | null
     tutorUsername: string | null
     courseCategory: string | null
+    courseId: string | null
   } | null>(null)
   const [myBoardPages, setMyBoardPages] = useState<WhiteboardPage[]>(createDefaultWhiteboardPages)
   const [myBoardPageIndex, setMyBoardPageIndex] = useState(0)
@@ -119,11 +121,13 @@ function StudentFeedbackContent() {
   const leftResizeStartW = useRef(300)
 
   // Assets state
+  const [selectedReport, setSelectedReport] = useState<any | null>(null)
+  const [reportModalOpen, setReportModalOpen] = useState(false)
   const [courseAssets, setCourseAssets] = useState<any[]>([])
   const [assetsLoading, setAssetsLoading] = useState(false)
-  const [studentDirectory, setStudentDirectory] = useState<Record<string, Record<string, any[]>>>(
-    {}
-  )
+  const [studentDirectory, setStudentDirectory] = useState<
+    Record<string, Record<string, Record<string, any[]>>>
+  >({})
   const [foldersOpen, setFoldersOpen] = useState<Record<string, boolean>>({
     tasks: true,
     assessments: true,
@@ -310,6 +314,7 @@ function StudentFeedbackContent() {
           token: data?.token ?? null,
           tutorUsername: data?.session?.tutor?.profile?.name || 'Tutor',
           courseCategory: data?.session?.category || 'General',
+          courseId: data?.session?.courseId ?? null,
         })
       } catch {
         // ignore
@@ -720,9 +725,56 @@ function StudentFeedbackContent() {
                                       </button>
                                       {foldersOpen.reports && (
                                         <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                          <span className="px-2 py-1 text-xs text-slate-500">
-                                            Empty folder
-                                          </span>
+                                          {(!courses.reports || courses.reports.length === 0) && (
+                                            <div className="px-2 py-2 flex flex-col gap-2">
+                                              <span className="text-xs text-slate-500">
+                                                No reports yet.
+                                              </span>
+                                              <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                className="h-7 text-xs w-full justify-start"
+                                                onClick={async () => {
+                                                  const cId = sessionContext?.courseId || searchParams?.get('courseId') || courses.tasks?.[0]?.courseId || courses.recordedSessions?.[0]?.courseId
+                                                  if (!cId) {
+                                                    toast.error('Could not determine course. Please try again.')
+                                                    return
+                                                  }
+                                                  try {
+                                                    const res = await fetch('/api/student/reports/request', {
+                                                      method: 'POST',
+                                                      headers: { 'Content-Type': 'application/json' },
+                                                      body: JSON.stringify({
+                                                        courseId: cId,
+                                                        type: 'master'
+                                                      })
+                                                    })
+                                                    if (res.ok) toast.success('Report request sent to tutor')
+                                                    else toast.error('Failed to request report')
+                                                  } catch (e) {
+                                                    toast.error('An error occurred')
+                                                  }
+                                                }}
+                                              >
+                                                Request Report
+                                              </Button>
+                                            </div>
+                                          )}
+                                          {courses.reports && [...courses.reports].reverse().map((report: any) => (
+                                            <button
+                                              key={report.id}
+                                              onClick={() => {
+                                                setSelectedReport(report)
+                                                setReportModalOpen(true)
+                                              }}
+                                              className="flex w-full items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100"
+                                            >
+                                              <FileText className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                                              <span className="truncate text-xs font-medium text-slate-600">
+                                                {report.title}
+                                              </span>
+                                            </button>
+                                          ))}
                                         </div>
                                       )}
                                     </div>
@@ -1274,6 +1326,65 @@ function StudentFeedbackContent() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Report Modal */}
+      <Dialog open={reportModalOpen} onOpenChange={setReportModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-indigo-600" />
+              {selectedReport?.title}
+            </DialogTitle>
+            <DialogDescription>
+              Sent on {selectedReport?.deployedAt ? new Date(selectedReport.deployedAt).toLocaleDateString() : 'Unknown date'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-6">
+            {selectedReport?.content?.strengths && selectedReport.content.strengths.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold text-green-700 uppercase tracking-wider mb-2">Strengths</h4>
+                <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                  {selectedReport.content.strengths.map((s: string, i: number) => (
+                    <li key={i}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {selectedReport?.content?.weaknesses && selectedReport.content.weaknesses.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold text-amber-700 uppercase tracking-wider mb-2">Areas for Improvement</h4>
+                <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                  {selectedReport.content.weaknesses.map((s: string, i: number) => (
+                    <li key={i}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {selectedReport?.content?.overallComments && (
+              <div>
+                <h4 className="text-sm font-semibold text-indigo-700 uppercase tracking-wider mb-2">Tutor Comments</h4>
+                <div className="p-4 bg-indigo-50 rounded-lg text-sm text-gray-800">
+                  {selectedReport.content.overallComments}
+                </div>
+              </div>
+            )}
+
+            {selectedReport?.content?.score !== undefined && selectedReport.content.score !== null && (
+              <div className="flex items-center justify-between border-t pt-4">
+                <span className="font-semibold text-gray-700">Overall Score</span>
+                <span className="text-xl font-bold text-indigo-600">{selectedReport.content.score}%</span>
+              </div>
+            )}
+          </div>
+          <div className="px-0 pb-0 pt-2 flex justify-end">
+            <Button variant="outline" onClick={() => setReportModalOpen(false)}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
