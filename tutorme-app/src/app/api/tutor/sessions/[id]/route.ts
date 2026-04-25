@@ -7,7 +7,8 @@ import { NextResponse } from 'next/server'
 import { eq, and } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { liveSession as liveSessionTable } from '@/lib/db/schema'
+import { liveSession as liveSessionTable, courseEnrollment } from '@/lib/db/schema'
+import { notifyMany } from '@/lib/notifications/notify'
 
 export const PATCH = withAuth(
   async (req, { user }) => {
@@ -49,6 +50,35 @@ export const PATCH = withAuth(
       })
       .where(and(eq(liveSessionTable.sessionId, sessionId), eq(liveSessionTable.tutorId, tutorId)))
       .returning()
+
+    // Notify enrolled students if this session belongs to a course
+    if (existingSession.courseId) {
+      try {
+        const enrollments = await drizzleDb
+          .select({ studentId: courseEnrollment.studentId })
+          .from(courseEnrollment)
+          .where(eq(courseEnrollment.courseId, existingSession.courseId))
+
+        const studentIds = enrollments.map(e => e.studentId)
+
+        if (studentIds.length > 0) {
+          const sessionName = existingSession.title || 'A session'
+          const message = reason
+            ? `The session "${sessionName}" has been cancelled. Reason: ${reason}`
+            : `The session "${sessionName}" has been cancelled.`
+
+          await notifyMany({
+            userIds: studentIds,
+            type: 'class',
+            title: 'Session Cancelled',
+            message,
+            actionUrl: `/student/courses`,
+          })
+        }
+      } catch (err) {
+        console.error('Failed to notify students of session cancellation:', err)
+      }
+    }
 
     return NextResponse.json({
       message: 'Session cancelled successfully',
