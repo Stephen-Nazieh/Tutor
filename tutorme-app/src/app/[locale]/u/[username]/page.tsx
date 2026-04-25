@@ -47,6 +47,7 @@ import {
   Search,
   ExternalLink,
   User,
+  BookOpen,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -1037,22 +1038,22 @@ export default function PublicTutorPage() {
         </div>
       </section>
 
-      <Card>
-        <CardHeader className="space-y-4">
+      <div className="bg-[#FFFFFF] border border-[rgba(0,0,0,0.05)] rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.10)] mt-8 overflow-hidden">
+        <div className="p-6 sm:p-8 space-y-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <CardTitle>Course Catalog</CardTitle>
-              <CardDescription>Published courses by @{tutor.username}</CardDescription>
+              <h2 className="text-xl font-bold text-slate-800">Course Catalog</h2>
+              <p className="text-slate-500 mt-1">Published courses by @{tutor.username}</p>
             </div>
 
             <div className="flex flex-1 flex-col items-stretch gap-3 sm:flex-row sm:items-center lg:justify-end">
               <div className="relative flex w-full max-w-lg items-center gap-2">
                 <div className="relative flex-1">
-                  <Search className="text-muted-foreground absolute left-2.5 top-2.5 h-4 w-4" />
+                  <Search className="text-slate-400 absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                   <Input
                     type="search"
                     placeholder="Search course..."
-                    className="h-9 w-full pl-9"
+                    className="h-10 w-full pl-9 bg-slate-50/50 border-slate-200"
                     value={courseSearchQuery}
                     onChange={e => setCourseSearchQuery(e.target.value)}
                   />
@@ -1061,7 +1062,7 @@ export default function PublicTutorPage() {
                   value={courseCountryFilter}
                   onValueChange={(val: any) => setCourseCountryFilter(val)}
                 >
-                  <SelectTrigger className="h-9 w-[120px]">
+                  <SelectTrigger className="h-10 w-[120px] bg-slate-50/50 border-slate-200">
                     <SelectValue placeholder="Country" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1077,7 +1078,7 @@ export default function PublicTutorPage() {
                   value={courseSortOrder}
                   onValueChange={(val: any) => setCourseSortOrder(val)}
                 >
-                  <SelectTrigger className="h-9 w-[140px]">
+                  <SelectTrigger className="h-10 w-[140px] bg-slate-50/50 border-slate-200">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1096,7 +1097,7 @@ export default function PublicTutorPage() {
                   type="button"
                   variant={catalogLayout === 'grid' ? 'default' : 'ghost'}
                   size="sm"
-                  className="h-9 gap-1 px-3"
+                  className={cn("h-8 gap-1 px-3", catalogLayout === 'grid' && "bg-white shadow-sm")}
                   onClick={() => setCatalogLayout('grid')}
                 >
                   <LayoutGrid className="h-4 w-4" />
@@ -1106,7 +1107,7 @@ export default function PublicTutorPage() {
                   type="button"
                   variant={catalogLayout === 'list' ? 'default' : 'ghost'}
                   size="sm"
-                  className="h-9 gap-1 px-3"
+                  className={cn("h-8 gap-1 px-3", catalogLayout === 'list' && "bg-white shadow-sm")}
                   onClick={() => setCatalogLayout('list')}
                 >
                   <List className="h-4 w-4" />
@@ -1116,7 +1117,7 @@ export default function PublicTutorPage() {
                   type="button"
                   variant={catalogLayout === 'compact' ? 'default' : 'ghost'}
                   size="sm"
-                  className="h-9 gap-1 px-3"
+                  className={cn("h-8 gap-1 px-3", catalogLayout === 'compact' && "bg-white shadow-sm")}
                   onClick={() => setCatalogLayout('compact')}
                 >
                   <PanelsTopLeft className="h-4 w-4" />
@@ -1125,10 +1126,13 @@ export default function PublicTutorPage() {
               </div>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div className="px-6 pb-8 sm:px-8">
           {filteredCourses.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No published courses found.</p>
+            <div className="py-12 text-center rounded-[14px] border border-[rgba(0,0,0,0.04)] bg-slate-50/50">
+              <BookOpen className="mx-auto h-12 w-12 text-slate-300 mb-3" />
+              <p className="text-slate-500 text-sm">No published courses found.</p>
+            </div>
           ) : (
             <div
               className={cn(
@@ -1391,8 +1395,8 @@ export default function PublicTutorPage() {
               )}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Book 1 on 1 Dialog */}
       <Book1on1Dialog
