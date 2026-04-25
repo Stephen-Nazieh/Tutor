@@ -25,7 +25,7 @@ type MonitoringPanelProps = {
   students?: any[] // Optional: pass the room's student list if available
 }
 
-export function MonitoringPanel({ socket, sessionId, students }: MonitoringPanelProps) {
+export function MonitoringPanel({ socket, sessionId }: MonitoringPanelProps) {
   const [studentStates, setStudentStates] = useState<Record<string, StudentUpdate>>({})
   
   // Solocorn Assistant State

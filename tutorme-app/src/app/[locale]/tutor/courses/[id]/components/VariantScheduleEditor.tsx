@@ -130,7 +130,7 @@ export function VariantScheduleEditor({
       return expanded
     }
     return [...validSchedule]
-  }, [schedule, scheduleRepeatWeekly, numberOfWeeks, totalSessionsDesired])
+  }, [schedule, scheduleRepeatWeekly, safeNumberOfWeeks, totalSessionsDesired])
 
   const priceNumber = Number(price)
   const scheduleCost = scheduleSummary.reduce((sum, slot) => {
