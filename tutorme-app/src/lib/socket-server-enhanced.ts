@@ -1007,10 +1007,17 @@ export async function initEnhancedSocketServer(server: NetServer) {
 
     socket.on(
       'insight:send',
-      (data: { roomId: string; taskId: string; type: 'poll' | 'question'; prompt: string }) => {
+      (data: { roomId: string; taskId?: string; type: 'poll' | 'question' | 'tutor:state_sync'; prompt?: string; payload?: unknown }) => {
         if (socket.data.role !== 'tutor') return
-        const { roomId, taskId, type, prompt } = data
-        if (!roomId || !taskId) return
+        const { roomId, taskId, type, prompt, payload } = data
+        if (!roomId) return
+        
+        if (type === 'tutor:state_sync') {
+          io.to(roomId).emit('insight:receive', { type, payload })
+          return
+        }
+        
+        if (!taskId) return
         const room = activeRooms.get(roomId)
         if (!room) return
 
@@ -1112,6 +1119,31 @@ export async function initEnhancedSocketServer(server: NetServer) {
         io.to(roomId).emit('task:updated', { task })
       }
     )
+
+    // --- Student Screen Mirroring / Monitoring ---
+    socket.on('student:state_sync', (data: { roomId: string; payload: unknown }) => {
+      if (socket.data.role !== 'student') return
+      const { roomId, payload } = data
+      if (!roomId) return
+      // Broadcast this student's state to tutors in the room
+      io.to(roomId).emit('student:state_update', {
+        studentId: socket.data.userId,
+        studentName: socket.data.name,
+        payload
+      })
+    })
+
+    // --- Tutor Direct Messaging / Help ---
+    socket.on('tutor:direct_message', (data: { roomId: string; studentId: string; message: string }) => {
+      if (socket.data.role !== 'tutor') return
+      const { roomId, studentId, message } = data
+      if (!roomId || !studentId || !message) return
+      // Send message specifically tagged for that student
+      io.to(roomId).emit('student:direct_message', {
+        targetStudentId: studentId,
+        message
+      })
+    })
 
     // Enhanced disconnect handler with cleanup
     socket.on('disconnect', () => {

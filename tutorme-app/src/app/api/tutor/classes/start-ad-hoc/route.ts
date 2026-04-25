@@ -6,7 +6,7 @@ import { eq, inArray } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { notify } from '@/lib/notifications/notify'
 
-const SPECIAL_TOKEN = 'kim.kon#26' // fallback token, should match the one in landing page
+const SPECIAL_TOKENS = ['kim.kon#26', 'stephen#26'] // fallback token, should match the one in landing page
 
 export const POST = withAuth(
   async (req: NextRequest, { user: currentUser }) => {
@@ -15,8 +15,7 @@ export const POST = withAuth(
 
       if (type === 'training') {
         // Verify token
-        const validTokens = ['kim.kon#26', 'stephen#26']
-        if (!validTokens.includes(trainingToken)) {
+        if (!SPECIAL_TOKENS.includes(trainingToken)) {
           return NextResponse.json({ error: 'Invalid access token' }, { status: 403 })
         }
 
@@ -40,12 +39,7 @@ export const POST = withAuth(
         })
 
         // Notify tutors based on target audience
-        let targetTutors = await drizzleDb.select({ id: user.userId }).from(user).where(eq(user.role, 'TUTOR'))
-        
-        // Simplified filtering for now, could be expanded based on db fields
-        if (targetAudience === 'math') {
-          // targetTutors = targetTutors.filter(t => t.subjects.includes('math'))
-        }
+        const targetTutors = await drizzleDb.select({ id: user.userId }).from(user).where(eq(user.role, 'TUTOR'))
 
         const notifyPromises = targetTutors.map(t => 
           notify({

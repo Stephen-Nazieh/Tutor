@@ -445,6 +445,8 @@ interface PreviewCardProps {
 // MAIN COURSE BUILDER COMPONENT
 // ============================================
 
+import { MonitoringPanel } from './MonitoringPanel'
+
 export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
   function CourseBuilder(
     {
@@ -465,6 +467,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       directoryMenusAlwaysVisible = false,
       saveMode,
       onSaveModeChange,
+      isStudentView = false,
     },
     ref
   ) {
@@ -771,6 +774,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     })
     const [testPciLoading, setTestPciLoading] = useState(false)
     const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
+    const [isMirroringToStudents, setIsMirroringToStudents] = useState(true)
+
     const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
     const [comingSoonDialog, setComingSoonDialog] = useState(false)
     const [alertDialog, setAlertDialog] = useState<{
@@ -818,6 +823,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         setTestPciTabs([
           { id: 'classroom', label: 'Classroom' },
           { id: 'student1', label: 'Whiteboards' },
+          { id: 'student-monitor', label: 'Monitor' },
           { id: 'insights', label: 'Insights' },
         ])
       }
@@ -855,6 +861,22 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // Track currently loaded item for saving back
     const [loadedTaskId, setLoadedTaskId] = useState<string | null>(null)
     const [loadedAssessmentId, setLoadedAssessmentId] = useState<string | null>(null)
+
+    // Sync tutor's active state to students for "Screen Mirroring"
+    useEffect(() => {
+      if (mainTab === 'live' && insightsProps?.sessionId && insightsProps?.socket && !isStudentView && isMirroringToStudents) {
+        const statePayload = {
+          activeTab: testPciActiveTab,
+          activeTaskId: loadedTaskId || loadedAssessmentId || null,
+        }
+        insightsProps.socket.emit('insight:send', {
+          roomId: insightsProps.sessionId,
+          type: 'tutor:state_sync',
+          payload: statePayload
+        })
+      }
+    }, [mainTab, testPciActiveTab, loadedTaskId, loadedAssessmentId, insightsProps?.sessionId, insightsProps?.socket, isStudentView, isMirroringToStudents])
+
     const [extractedTextFontSizeMap, setExtractedTextFontSizeMap] = useState<
       Record<string, number>
     >({})
@@ -4578,49 +4600,53 @@ FEEDBACK: [your explanation]`
                       {isSessionActive ? 'Go Live' : 'Go Live'}
                     </div>
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="test-pci"
-                    className={cn(
-                      'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
-                      mainTab === 'test-pci'
-                        ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
-                        : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
-                    )}
-                    onClick={e => {
-                      if (mainTab !== 'test-pci') {
-                        setMainTab('test-pci')
-                      }
-                    }}
-                  >
-                    <TestTube2 className="h-4 w-4" />
-                    Test
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="builder"
-                    className={cn(
-                      'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
-                      mainTab === 'builder'
-                        ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
-                        : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
-                    )}
-                    onClick={e => {
-                      if (mainTab !== 'builder') {
-                        setMainTab('builder')
-                      }
-                    }}
-                  >
-                    <div
-                      className={cn(
-                        'relative z-10 flex items-center gap-2 rounded-full px-2 py-0.5 transition-colors',
-                        mainTab === 'builder'
-                          ? 'pointer-events-auto cursor-pointer'
-                          : 'pointer-events-none'
-                      )}
-                    >
-                      <PencilRuler className="h-4 w-4" />
-                      Build
-                    </div>
-                  </TabsTrigger>
+                  {!isStudentView && (
+                    <>
+                      <TabsTrigger
+                        value="test-pci"
+                        className={cn(
+                          'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
+                          mainTab === 'test-pci'
+                            ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
+                            : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
+                        )}
+                        onClick={e => {
+                          if (mainTab !== 'test-pci') {
+                            setMainTab('test-pci')
+                          }
+                        }}
+                      >
+                        <TestTube2 className="h-4 w-4" />
+                        Test
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="builder"
+                        className={cn(
+                          'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
+                          mainTab === 'builder'
+                            ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
+                            : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
+                        )}
+                        onClick={e => {
+                          if (mainTab !== 'builder') {
+                            setMainTab('builder')
+                          }
+                        }}
+                      >
+                        <div
+                          className={cn(
+                            'relative z-10 flex items-center gap-2 rounded-full px-2 py-0.5 transition-colors',
+                            mainTab === 'builder'
+                              ? 'pointer-events-auto cursor-pointer'
+                              : 'pointer-events-none'
+                          )}
+                        >
+                          <PencilRuler className="h-4 w-4" />
+                          Build
+                        </div>
+                      </TabsTrigger>
+                    </>
+                  )}
                 </TabsList>
               </div>,
               portalTarget
@@ -4629,8 +4655,12 @@ FEEDBACK: [your explanation]`
             <div className="hidden">
               <TabsList>
                 <TabsTrigger value="live">Go Live</TabsTrigger>
-                <TabsTrigger value="test-pci">Test</TabsTrigger>
-                <TabsTrigger value="builder">Build</TabsTrigger>
+                {!isStudentView && (
+                  <>
+                    <TabsTrigger value="test-pci">Test</TabsTrigger>
+                    <TabsTrigger value="builder">Build</TabsTrigger>
+                  </>
+                )}
               </TabsList>
             </div>
           )}
@@ -6303,7 +6333,7 @@ FEEDBACK: [your explanation]`
                                 onValueChange={setTestPciActiveTab}
                                 className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-hidden"
                               >
-                                <TabsList className="mb-4 grid w-full grid-cols-3 gap-3 bg-transparent p-0 shadow-none">
+                                <TabsList className="mb-4 grid w-full grid-cols-4 gap-2 bg-transparent p-0 shadow-none">
                                   {testPciTabs.map(tab => (
                                     <div key={tab.id} className="relative w-full">
                                       {editingTabId === tab.id ? (
@@ -6328,7 +6358,7 @@ FEEDBACK: [your explanation]`
                                       ) : (
                                         <TabsTrigger
                                           value={tab.id}
-                                          className="relative flex w-full items-center justify-center truncate rounded-xl border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50"
+                                          className="relative flex w-full items-center justify-center truncate rounded-xl border border-[#E5E7EB] bg-white px-2 py-2.5 text-[11px] sm:text-xs font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50"
                                           onDoubleClick={() => setEditingTabId(tab.id)}
                                         >
                                           {tab.label}
@@ -6800,7 +6830,7 @@ FEEDBACK: [your explanation]`
                                   </TabsContent>
                                 ))}
                               </Tabs>
-                              {testPciActiveTab !== 'insights' &&
+                              {testPciActiveTab !== 'insights' && testPciActiveTab !== 'student-monitor' &&
                                 !(mainTab === 'live' && testPciActiveTab === 'student1') && (
                                   <div className="mt-1 w-full rounded-2xl border border-cyan-300 bg-white/90 shadow-[0_0_15px_rgba(34,211,238,0.4)] backdrop-blur-md transition-all duration-300 focus-within:shadow-[0_0_25px_rgba(34,211,238,0.6)]">
                                     <div className="relative flex w-full flex-col p-px">
@@ -8623,7 +8653,18 @@ FEEDBACK: [your explanation]`
         {/* Daily.co Video Frame for Tutor */}
         {insightsProps && sessionContext?.roomUrl && (
           <div className="fixed bottom-4 right-4 z-50 hidden w-72 overflow-hidden rounded-xl border border-slate-600 bg-black shadow-2xl sm:w-80">
-            <DailyVideoFrame roomUrl={sessionContext.roomUrl} token={sessionContext.token} />
+            <div className="absolute right-2 top-2 z-10">
+              <Button
+                variant={isMirroringToStudents ? "default" : "secondary"}
+                size="sm"
+                onClick={() => setIsMirroringToStudents(!isMirroringToStudents)}
+                className="h-7 px-2 text-[10px] gap-1.5 shadow-lg opacity-90 hover:opacity-100"
+              >
+                <div className={`h-1.5 w-1.5 rounded-full ${isMirroringToStudents ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+                {isMirroringToStudents ? 'Syncing to Students' : 'Sync Paused'}
+              </Button>
+            </div>
+            <DailyVideoFrame roomUrl={sessionContext.roomUrl} token={sessionContext.token} autoRecord={!isStudentView} />
           </div>
         )}
       </div>

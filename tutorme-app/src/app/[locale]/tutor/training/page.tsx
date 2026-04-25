@@ -45,8 +45,9 @@ export default function TutorTrainingPage() {
       const resData = await res.json()
       toast.success('Training session started!')
       router.push(`/tutor/sessions/${resData.sessionId}`)
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to start training session')
+    } catch (err) {
+      const error = err as Error
+      toast.error(error.message || 'Failed to start training session')
     } finally {
       setStarting(false)
       setDialogOpen(false)

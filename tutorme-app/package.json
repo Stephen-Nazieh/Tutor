@@ -19,8 +19,8 @@
     "lint:check": "eslint .",
     "lint:fix": "eslint . --fix",
     "security:check": "npm audit --audit-level=high",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"scripts/**/*.js\" \"**/*.js\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"scripts/**/*.js\" \"**/*.js\"",
     "typecheck": "tsc --noEmit",
     "type-check": "tsc --noEmit",
     "db:migrate": "drizzle-kit migrate",
@@ -160,7 +160,7 @@
     "esbuild": "^0.25.0"
   },
   "lint-staged": {
-    "*.{ts,tsx}": [
+    "*.{ts,tsx,js}": [
       "prettier --write",
       "eslint --fix"
     ],

@@ -8,12 +8,14 @@ interface DailyVideoFrameProps {
   roomUrl: string
   token?: string | null
   className?: string
+  autoRecord?: boolean
 }
 
-export function DailyVideoFrame({ roomUrl, token, className }: DailyVideoFrameProps) {
-  const { call, isJoined, join, leave, toggleAudio, toggleVideo, isAudioEnabled, isVideoEnabled } =
+export function DailyVideoFrame({ roomUrl, token, className, autoRecord }: DailyVideoFrameProps) {
+  const { call, isJoined, join, leave, toggleAudio, toggleVideo, isAudioEnabled, isVideoEnabled, startRecording } =
     useDailyCall()
   const joinedRef = useRef(false)
+  const recordingRef = useRef(false)
 
   useEffect(() => {
     if (!roomUrl || joinedRef.current) return
@@ -23,8 +25,23 @@ export function DailyVideoFrame({ roomUrl, token, className }: DailyVideoFramePr
     return () => {
       leave()
       joinedRef.current = false
+      recordingRef.current = false
     }
   }, [roomUrl, token, join, leave])
+
+  useEffect(() => {
+    if (isJoined && autoRecord && !recordingRef.current && call) {
+      recordingRef.current = true
+      // Short delay to ensure room is fully initialized before starting recording
+      setTimeout(() => {
+        try {
+          startRecording()
+        } catch (err) {
+          console.error('Failed to auto-start recording', err)
+        }
+      }, 3000)
+    }
+  }, [isJoined, autoRecord, call, startRecording])
 
   const containerRef = useRef<HTMLDivElement>(null)
 

@@ -341,6 +341,7 @@ export interface CourseBuilderProps {
   onLeftPanelHiddenChange?: (hidden: boolean) => void
   saveMode?: 'live' | 'draft'
   onSaveModeChange?: (mode: 'live' | 'draft') => void
+  isStudentView?: boolean
 }
 
 export interface CourseBuilderRef {

@@ -377,6 +377,19 @@ function StudentFeedbackContent() {
     }
   }, [selectedSessionId, myBoardPages, myBoardPageIndex, tutorBoardPages, tutorBoardPageIndex])
 
+  const [activeTab, setActiveTab] = useState<string>('task')
+  const [isMirroringToTutor, setIsMirroringToTutor] = useState<boolean>(true)
+
+  // Sync Student state to Tutor
+  useEffect(() => {
+    if (!socket || !selectedSessionId || !isMirroringToTutor) return
+    const payload = {
+      activeTab,
+      activeTaskId,
+    }
+    socket.emit('student:state_sync', { roomId: selectedSessionId, payload })
+  }, [socket, selectedSessionId, activeTab, activeTaskId, isMirroringToTutor])
+
   useEffect(() => {
     if (!socket) return
 
@@ -407,14 +420,41 @@ function StudentFeedbackContent() {
       )
     }
 
+    const handleInsightReceived = (payload: { type: string; payload: { activeTab?: string; activeTaskId?: string | null } }) => {
+      if (payload.type === 'tutor:state_sync') {
+        const state = payload.payload
+        if (state.activeTab === 'whiteboards') {
+          setActiveTab('tutor-board')
+        } else if (state.activeTab === 'classroom') {
+          setActiveTab('task')
+        }
+        if (state.activeTaskId) {
+          setActiveTaskId(state.activeTaskId)
+        }
+      }
+    }
+
+    const handleStudentDirectMessage = (payload: { targetStudentId: string; message: string }) => {
+      if (payload.targetStudentId === session?.user?.id) {
+        toast.message('Tutor Message', {
+          description: payload.message,
+          duration: 10000,
+        })
+      }
+    }
+
     socket.on('task:deployed', handleTaskDeployed)
     socket.on('task:updated', handleTaskUpdated)
     socket.on('task:deployed:sequence', handleTaskSequence)
+    socket.on('insight:receive', handleInsightReceived)
+    socket.on('student:direct_message', handleStudentDirectMessage)
 
     return () => {
       socket.off('task:deployed', handleTaskDeployed)
       socket.off('task:updated', handleTaskUpdated)
       socket.off('task:deployed:sequence', handleTaskSequence)
+      socket.off('insight:receive', handleInsightReceived)
+      socket.off('student:direct_message', handleStudentDirectMessage)
     }
   }, [socket])
 
@@ -760,7 +800,7 @@ function StudentFeedbackContent() {
                                               </Button>
                                             </div>
                                           )}
-                                          {courses.reports && [...courses.reports].reverse().map((report: any) => (
+                                          {courses.reports && [...courses.reports].reverse().map((report: { id: string; title?: string; status?: string; score?: number; content?: any; createdAt?: string }) => (
                                             <button
                                               key={report.id}
                                               onClick={() => {
@@ -930,7 +970,18 @@ function StudentFeedbackContent() {
         </div>
 
         {sessionContext?.roomUrl && (
-          <div className="h-44 w-full border-b bg-black sm:h-52">
+          <div className="relative h-44 w-full border-b bg-black sm:h-52">
+            <div className="absolute right-4 top-4 z-10">
+              <Button
+                variant={isMirroringToTutor ? "default" : "secondary"}
+                size="sm"
+                onClick={() => setIsMirroringToTutor(!isMirroringToTutor)}
+                className="gap-2 shadow-lg"
+              >
+                <div className={`h-2 w-2 rounded-full ${isMirroringToTutor ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+                {isMirroringToTutor ? 'Sharing screen with Tutor' : 'Screen share paused'}
+              </Button>
+            </div>
             <DailyVideoFrame roomUrl={sessionContext.roomUrl} token={sessionContext.token} />
           </div>
         )}

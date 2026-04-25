@@ -10,10 +10,22 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { FileText, Loader2, Send, Plus, Trash2 } from 'lucide-react'
 
+type ReportData = {
+  reportId: string
+  title: string
+  studentName?: string
+  createdAt: string
+  status: string
+  strengths?: string[]
+  weaknesses?: string[]
+  overallComments?: string
+  score?: number | null
+}
+
 export default function ReportsPage() {
-  const [reports, setReports] = useState<any[]>([])
+  const [reports, setReports] = useState<ReportData[]>([])
   const [loading, setLoading] = useState(true)
-  const [editingReport, setEditingReport] = useState<any | null>(null)
+  const [editingReport, setEditingReport] = useState<ReportData | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -41,7 +53,7 @@ export default function ReportsPage() {
     }
   }
 
-  const openEditor = (report: any) => {
+  const openEditor = (report: ReportData) => {
     setEditingReport(report)
     setStrengths(report.strengths || [])
     setWeaknesses(report.weaknesses || [])

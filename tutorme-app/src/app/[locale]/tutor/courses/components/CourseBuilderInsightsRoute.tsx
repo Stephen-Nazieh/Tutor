@@ -216,8 +216,9 @@ function CourseBuilderInsightsRouteInner({
       const resData = await res.json()
       toast.success('Training session started!')
       model.router.push(`/tutor/sessions/${resData.sessionId}`)
-    } catch (err: any) {
-      toast.error(err.message || 'Could not start training session')
+    } catch (err) {
+      const error = err as Error
+      toast.error(error.message || 'Could not start training session')
     }
   }
 
