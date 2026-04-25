@@ -5,19 +5,13 @@ import { liveSession, sessionReplayArtifact } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 
-function getSessionId(req: NextRequest): string {
-  const parts = req.nextUrl.pathname.split('/')
-  const idx = parts.indexOf('live-sessions')
-  return parts[idx + 1]
-}
-
-export async function PATCH(req: NextRequest) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ sessionId: string }> }) {
   const session = await getServerSession(authOptions, req)
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const liveSessionId = getSessionId(req)
+  const { sessionId: liveSessionId } = await params
   const body = await req.json().catch(() => ({}))
   const isRecording = Boolean(body?.isRecording)
   const recordingUrl = typeof body?.recordingUrl === 'string' ? body.recordingUrl : null

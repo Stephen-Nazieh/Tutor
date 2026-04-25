@@ -11,9 +11,9 @@ import { liveSession as liveSessionTable, courseEnrollment } from '@/lib/db/sche
 import { notifyMany } from '@/lib/notifications/notify'
 
 export const PATCH = withAuth(
-  async (req, { user }) => {
-    const tutorId = user.id
-    const sessionId = req.nextUrl.pathname.split('/').pop()
+  async (req, session, context) => {
+    const tutorId = session.user.id
+    const { id: sessionId } = (await context.params) as { id: string }
 
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 })

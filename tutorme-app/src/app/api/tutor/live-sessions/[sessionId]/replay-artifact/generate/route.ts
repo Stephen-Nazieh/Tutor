@@ -22,12 +22,6 @@ import { eq, and, asc, sql, inArray } from 'drizzle-orm'
 import { generateSessionSummary } from '@/lib/chat/summary'
 import { randomUUID } from 'crypto'
 
-function getSessionId(req: NextRequest): string {
-  const parts = req.nextUrl.pathname.split('/')
-  const idx = parts.indexOf('live-sessions')
-  return parts[idx + 1]
-}
-
 function buildTranscript(
   messages: Array<{
     timestamp: Date | null
@@ -45,13 +39,13 @@ function buildTranscript(
     .join('\n')
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ sessionId: string }> }) {
   const session = await getServerSession(authOptions, req)
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const liveSessionId = getSessionId(req)
+  const { sessionId: liveSessionId } = await params
 
   const sessionRows = await drizzleDb
     .select({

@@ -6,9 +6,9 @@ import { liveSession as liveSessionTable } from '@/lib/db/schema'
 import { notify } from '@/lib/notifications/notify'
 
 export const POST = withAuth(
-  async (req, { user }) => {
-    const studentId = user.id
-    const sessionId = req.nextUrl.pathname.split('/').slice(-2)[0]
+  async (req, sessionObj, context) => {
+    const studentId = sessionObj.user.id
+    const { id: sessionId } = (await context.params) as { id: string }
 
     // Verify session
     const [session] = await drizzleDb
@@ -27,7 +27,7 @@ export const POST = withAuth(
 
     // Send notification to tutor
     try {
-      const studentName = user.name || 'A student'
+      const studentName = sessionObj.user.name || 'A student'
       const sessionTitle = session.title || 'a session'
 
       await notify({

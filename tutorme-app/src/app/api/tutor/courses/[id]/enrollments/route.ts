@@ -5,9 +5,9 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import { courseEnrollment, user, profile } from '@/lib/db/schema'
 
 export const GET = withAuth(
-  async (_req, session) => {
+  async (_req, session, context) => {
     const tutorId = session.user.id
-    const courseId = _req.url.split('/courses/')[1]?.split('/')[0]
+    const { id: courseId } = (await context.params) as { id: string }
 
     if (!courseId) {
       return NextResponse.json({ error: 'Course ID is required' }, { status: 400 })

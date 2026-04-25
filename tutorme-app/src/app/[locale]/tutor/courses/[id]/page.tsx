@@ -56,6 +56,12 @@ import {
 import { toast } from 'sonner'
 import { BackButton } from '@/components/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import type { ScheduleItem } from './constants'
 import { DAYS, TIME_SLOT_OPTIONS } from './constants'
 import {
@@ -573,7 +579,7 @@ export default function TutorCoursePage() {
 
   if (!id) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex h-full min-h-[calc(100vh-64px)] items-center justify-center bg-white">
         <div className="text-muted-foreground text-center">
           <Loader2 className="mx-auto mb-2 h-8 w-8 animate-spin" />
           <p>Loading course…</p>
@@ -583,138 +589,156 @@ export default function TutorCoursePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="w-full space-y-6 p-4 sm:p-6">
+    <div className="h-full min-h-[calc(100vh-64px)] bg-white pb-8">
+      <div className="mx-auto w-full max-w-[1400px] space-y-6 px-4 pt-6 sm:px-6">
         {/* Back to Course Builder */}
         <div className="flex items-center gap-2">
           <BackButton href={`/tutor/insights?tab=builder&courseId=${id}`} />
         </div>
 
         {/* Course Details */}
-        <Card className="border-2 border-gray-400 shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5" />
+        <Card className="w-full border border-slate-200 bg-white/50 shadow-sm backdrop-blur-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <BookOpen className="h-5 w-5 text-indigo-500" />
               Course Details
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label>Course Name</Label>
-              <Input
-                value={courseName}
-                onChange={e => setCourseName(e.target.value)}
-                placeholder="Course name"
-              />
+          <CardContent className="space-y-5">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Course Name</Label>
+                <Input
+                  value={courseName}
+                  onChange={e => setCourseName(e.target.value)}
+                  placeholder="Course name"
+                  className="bg-white"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Course Description</Label>
+                <Textarea
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  placeholder="What will students learn in this course?"
+                  rows={1}
+                  className="min-h-[40px] resize-y bg-white"
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Course Description</Label>
-              <Textarea
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                placeholder="What will students learn in this course?"
-                rows={3}
-                className="resize-y"
-              />
-            </div>
-
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label>Categories</Label>
-              {/* Profile Settings Style Category Selector */}
-              <div className="flex flex-col gap-4 rounded-lg border lg:flex-row lg:items-start">
-                {/* Left Panel - Region & Country Selection */}
-                <div className="w-full space-y-4 border-b p-4 lg:w-[240px] lg:border-b-0 lg:border-r">
+              <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                {/* Top Panel - Region & Country Selection Dropdowns */}
+                <div className="flex flex-row items-start gap-4">
                   {/* Region Selection */}
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2 text-xs font-medium">
+                  <div className="flex-1 space-y-2">
+                    <Label className="flex items-center gap-2 text-xs font-medium text-slate-700">
                       <Globe className="h-3.5 w-3.5 text-[#4FD1C5]" />
                       Region
                     </Label>
-                    <div className="space-y-1.5">
-                      {REGIONS.map(region => (
-                        <label
-                          key={region.id}
-                          className="flex cursor-pointer items-center gap-2 rounded-md p-1.5 hover:bg-gray-50"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedRegions.includes(region.id)}
-                            onChange={() => toggleRegion(region.id)}
-                            className="rounded border-gray-300"
-                          />
-                          <span className="text-sm">{region.name}</span>
-                        </label>
-                      ))}
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="w-full justify-between bg-white font-normal">
+                          {selectedRegions.length === 0 
+                            ? 'Select Regions...' 
+                            : `${selectedRegions.length} Region${selectedRegions.length === 1 ? '' : 's'} Selected`}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56" align="start">
+                        <ScrollArea className="h-[200px]">
+                          {REGIONS.map(region => (
+                            <DropdownMenuCheckboxItem
+                              key={region.id}
+                              checked={selectedRegions.includes(region.id)}
+                              onCheckedChange={() => toggleRegion(region.id)}
+                            >
+                              {region.name}
+                            </DropdownMenuCheckboxItem>
+                          ))}
+                        </ScrollArea>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
 
                   {/* Country Selection */}
-                  <div className="space-y-2 border-t pt-4">
-                    <Label className="flex items-center gap-2 text-xs font-medium">
+                  <div className="flex-1 space-y-2">
+                    <Label className="flex items-center gap-2 text-xs font-medium text-slate-700">
                       <MapPin className="h-3.5 w-3.5 text-[#F17623]" />
                       Country
                     </Label>
-                    {selectedRegions.length === 0 ? (
-                      <p className="text-xs text-gray-400">Select a region to view countries</p>
-                    ) : availableCountries.length === 0 ? (
-                      <p className="text-xs text-gray-400">No countries available</p>
-                    ) : (
-                      <div className="max-h-[200px] space-y-1 overflow-y-auto">
-                        {availableCountries.map(country => (
-                          <label
-                            key={country.code}
-                            className="flex cursor-pointer items-center gap-2 rounded-md p-1.5 hover:bg-gray-50"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={selectedCountries.includes(country.code)}
-                              onChange={() => toggleCountry(country.code)}
-                              className="rounded border-gray-300"
-                            />
-                            <span className="text-sm">{country.name}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                    <p className="text-xs text-gray-500">{selectedCountries.length} selected</p>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="w-full justify-between bg-white font-normal" 
+                          disabled={selectedRegions.length === 0}
+                        >
+                          {selectedRegions.length === 0 
+                            ? 'Select Region First' 
+                            : selectedCountries.length === 0 
+                              ? 'Select Countries...' 
+                              : `${selectedCountries.length} Countr${selectedCountries.length === 1 ? 'y' : 'ies'} Selected`}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56" align="start">
+                        <ScrollArea className="h-[200px]">
+                          {availableCountries.length === 0 ? (
+                            <div className="p-4 text-center text-xs text-slate-500">No countries available</div>
+                          ) : (
+                            availableCountries.map(country => (
+                              <DropdownMenuCheckboxItem
+                                key={country.code}
+                                checked={selectedCountries.includes(country.code)}
+                                onCheckedChange={() => toggleCountry(country.code)}
+                              >
+                                {country.name}
+                              </DropdownMenuCheckboxItem>
+                            ))
+                          )}
+                        </ScrollArea>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
 
-                {/* Right Panel - Category Tabs */}
-                <div className="flex-1 overflow-hidden">
+                {/* Bottom Panel - Category Tabs */}
+                <div className="flex-1 overflow-hidden rounded-lg border border-slate-200 bg-white">
                   <Tabs
                     value={categoryTab}
                     onValueChange={setCategoryTab}
-                    className="flex h-full flex-col"
+                    className="flex flex-col"
                   >
-                    <div className="border-b px-4 pt-2">
-                      <TabsList className="grid h-9 w-full grid-cols-6">
-                        <TabsTrigger value="global" className="px-1 text-xs">
-                          <Globe className="mr-1 h-3 w-3" />
+                    <div className="border-b bg-slate-50/50 px-2 pt-2">
+                      <TabsList className="flex w-full flex-wrap gap-1 bg-transparent p-0">
+                        <TabsTrigger value="global" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                          <Globe className="mr-2 h-4 w-4" />
                           Global
                         </TabsTrigger>
-                        <TabsTrigger value="ap" className="px-1 text-xs">
-                          <Award className="mr-1 h-3 w-3" />
+                        <TabsTrigger value="ap" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                          <Award className="mr-2 h-4 w-4" />
                           AP
                         </TabsTrigger>
-                        <TabsTrigger value="alevel" className="px-1 text-xs">
-                          <GraduationCap className="mr-1 h-3 w-3" />A Level
+                        <TabsTrigger value="alevel" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                          <GraduationCap className="mr-2 h-4 w-4" />
+                          A Level
                         </TabsTrigger>
-                        <TabsTrigger value="ib" className="px-1 text-xs">
-                          <BookOpen className="mr-1 h-3 w-3" />
+                        <TabsTrigger value="ib" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                          <BookOpen className="mr-2 h-4 w-4" />
                           IB
                         </TabsTrigger>
-                        <TabsTrigger value="igcse" className="px-1 text-xs">
-                          <School className="mr-1 h-3 w-3" />
+                        <TabsTrigger value="igcse" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                          <School className="mr-2 h-4 w-4" />
                           IGCSE
                         </TabsTrigger>
                         <TabsTrigger
                           value="national"
-                          className="px-1 text-xs"
+                          className="data-[state=active]:bg-white data-[state=active]:shadow-sm"
                           disabled={nationalExams.length === 0}
                         >
-                          <Flag className="mr-1 h-3 w-3" />
+                          <Flag className="mr-2 h-4 w-4" />
                           National
                         </TabsTrigger>
                       </TabsList>
@@ -733,10 +757,9 @@ export default function TutorCoursePage() {
                       </div>
                     </div>
 
-                    {/* Tab Contents */}
-                    <div className="max-h-[300px] flex-1 overflow-hidden">
-                      <ScrollArea className="h-full p-4">
-                        {/* Global Tab */}
+                    {/* Tab Contents - using auto height so it doesn't get squished and hidden */}
+                    <div className="h-[280px] overflow-y-auto p-4">
+                      {/* Global Tab */}
                         <TabsContent value="global" className="mt-0">
                           <div className="space-y-4">
                             {GLOBAL_EXAMS_CATEGORIES.filter(
@@ -998,7 +1021,6 @@ export default function TutorCoursePage() {
                             )}
                           </div>
                         </TabsContent>
-                      </ScrollArea>
                     </div>
                   </Tabs>
                 </div>
@@ -1017,18 +1039,18 @@ export default function TutorCoursePage() {
             </div>
 
             {/* Pricing Section - Combined with Course Details */}
-            <div className="border-t pt-6">
-              <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-                <DollarSign className="h-5 w-5" />
+            <div className="border-t border-slate-200 pt-6">
+              <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-800">
+                <DollarSign className="h-5 w-5 text-indigo-500" />
                 Pricing
               </h3>
               <div className="space-y-6">
-                <div className="bg-muted/30 flex items-center justify-between rounded-lg border p-3">
+                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 p-4">
                   <div>
                     <Label htmlFor="isFree" className="text-sm font-medium">
                       Free course
                     </Label>
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-xs text-slate-500 mt-1">
                       Students can enroll without payment.
                     </p>
                   </div>
@@ -1041,7 +1063,7 @@ export default function TutorCoursePage() {
                     }}
                   />
                 </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="price">Cost per 1 hour session</Label>
                     <Input
@@ -1053,17 +1075,18 @@ export default function TutorCoursePage() {
                       onChange={e => setPrice(e.target.value)}
                       placeholder="$"
                       disabled={isFree}
+                      className="bg-white"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="currency">Currency</Label>
-                    <Input id="currency" value="USD" disabled className="bg-muted" />
+                    <Input id="currency" value="USD" disabled className="bg-slate-100 text-slate-500 cursor-not-allowed" />
                   </div>
                 </div>
                 {!isFree && price && Number(price) > 0 && (
-                  <div className="bg-muted/30 rounded-lg border p-3">
+                  <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-4 text-indigo-900">
                     <p className="text-sm">
-                      <span className="font-medium">Cost per session:</span> USD{' '}
+                      <span className="font-semibold">Cost per session:</span> USD{' '}
                       {Number(price).toFixed(2)}
                     </p>
                   </div>
@@ -1079,9 +1102,12 @@ export default function TutorCoursePage() {
         </Card>
 
         {/* Variant Manager */}
-        <Card className="border-2 border-gray-400 shadow-sm">
-          <CardHeader>
-            <CardTitle>Publish Variants</CardTitle>
+        <Card className="w-full border border-slate-200 bg-white/50 shadow-sm backdrop-blur-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Globe className="h-5 w-5 text-indigo-500" />
+              Publish Variants
+            </CardTitle>
             <CardDescription>
               Configure and publish course variants for each category and country combination.
             </CardDescription>
@@ -1103,8 +1129,8 @@ export default function TutorCoursePage() {
         </Card>
 
         {/* Bottom Actions */}
-        <div className="flex justify-end gap-3">
-          <Button size="sm" variant="outline" onClick={handleSaveAll} disabled={saving}>
+        <div className="flex justify-end gap-4 pb-12 pt-4">
+          <Button size="lg" variant="outline" onClick={handleSaveAll} disabled={saving} className="bg-white px-8">
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             {saving ? 'Saving…' : 'Save Template'}
           </Button>

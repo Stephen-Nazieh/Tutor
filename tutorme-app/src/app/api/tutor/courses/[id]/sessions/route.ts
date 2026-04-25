@@ -10,9 +10,9 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import { liveSession as liveSessionTable } from '@/lib/db/schema'
 
 export const GET = withAuth(
-  async (req, { user }) => {
-    const tutorId = user.id
-    const courseId = req.nextUrl.pathname.split('/').slice(-2)[0]
+  async (req, session, context) => {
+    const tutorId = session.user.id
+    const { id: courseId } = (await context.params) as { id: string }
 
     const statusParam = req.nextUrl.searchParams.get('status')
     const allowedStatuses = statusParam

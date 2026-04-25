@@ -260,10 +260,10 @@ export function VariantManager({
   return (
     <div className="space-y-6">
       {/* Global Defaults */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Globe className="h-5 w-5" />
+      <Card className="border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base text-slate-800">
+            <Globe className="h-5 w-5 text-indigo-500" />
             Global Defaults
           </CardTitle>
           <CardDescription>
@@ -275,20 +275,21 @@ export function VariantManager({
             <div className="space-y-1">
               <Label className="text-xs">Price</Label>
               <div className="flex items-center gap-2">
-                <DollarSign className="text-muted-foreground h-4 w-4" />
-                <Input
-                  type="number"
-                  min={0}
-                  value={globalPrice}
-                  onChange={e => setGlobalPrice(e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
+                    <DollarSign className="h-4 w-4 text-slate-400" />
+                    <Input
+                      type="number"
+                      min={0}
+                      value={globalPrice}
+                      onChange={e => setGlobalPrice(e.target.value)}
+                      placeholder="0.00"
+                      className="bg-white"
+                    />
+                  </div>
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Currency</Label>
               <Select value={globalCurrency} onValueChange={setGlobalCurrency}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -303,11 +304,12 @@ export function VariantManager({
             <div className="space-y-1">
               <Label className="text-xs">Language</Label>
               <div className="flex items-center gap-2">
-                <Languages className="text-muted-foreground h-4 w-4" />
+                <Languages className="h-4 w-4 text-slate-400" />
                 <Input
                   value={globalLanguage}
                   onChange={e => setGlobalLanguage(e.target.value)}
                   placeholder="e.g. English"
+                  className="bg-white"
                 />
               </div>
             </div>
@@ -344,11 +346,11 @@ export function VariantManager({
         )}
 
         {variants.map((variant, index) => (
-          <Card key={`${variant.category}|${variant.nationality}`} className="overflow-hidden">
-            <CardHeader className="bg-muted/30 py-4">
+          <Card key={`${variant.category}|${variant.nationality}`} className="overflow-hidden border border-slate-200 bg-white shadow-sm">
+            <CardHeader className="border-b bg-slate-50/50 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <CardTitle className="text-base">
+                  <CardTitle className="text-base text-slate-800">
                     {variant.category} - {variant.nationality}
                   </CardTitle>
                   {variant.isPublished ? (
@@ -377,7 +379,7 @@ export function VariantManager({
                 <div className="space-y-1">
                   <Label className="text-xs">Price</Label>
                   <div className="flex items-center gap-2">
-                    <DollarSign className="text-muted-foreground h-4 w-4" />
+                    <DollarSign className="h-4 w-4 text-slate-400" />
                     <Input
                       type="number"
                       min={0}
@@ -390,6 +392,7 @@ export function VariantManager({
                         }))
                       }}
                       placeholder="0.00"
+                      className="bg-white"
                     />
                   </div>
                 </div>
@@ -397,9 +400,11 @@ export function VariantManager({
                   <Label className="text-xs">Currency</Label>
                   <Select
                     value={variant.currency}
-                    onValueChange={val => updateVariant(index, v => ({ ...v, currency: val }))}
+                    onValueChange={val =>
+                      updateVariant(index, v => ({ ...v, currency: val }))
+                    }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -414,7 +419,7 @@ export function VariantManager({
                 <div className="space-y-1">
                   <Label className="text-xs">Language</Label>
                   <div className="flex items-center gap-2">
-                    <Languages className="text-muted-foreground h-4 w-4" />
+                    <Languages className="h-4 w-4 text-slate-400" />
                     <Input
                       value={variant.languageOfInstruction}
                       onChange={e =>
@@ -424,6 +429,7 @@ export function VariantManager({
                         }))
                       }
                       placeholder="e.g. English"
+                      className="bg-white"
                     />
                   </div>
                 </div>
