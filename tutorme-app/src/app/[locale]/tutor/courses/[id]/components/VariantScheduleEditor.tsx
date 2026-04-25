@@ -64,7 +64,7 @@ export function VariantScheduleEditor({
 }: VariantScheduleEditorProps) {
   const [scheduleWeekOffset, setScheduleWeekOffset] = useState(0)
   const [scheduleRepeatWeekly, setScheduleRepeatWeekly] = useState(false)
-  const [numberOfWeeks, setNumberOfWeeks] = useState(weeksToSchedule)
+  const [numberOfWeeks, setNumberOfWeeks] = useState(weeksToSchedule || 8)
   const [totalSessionsDesired, setTotalSessionsDesired] = useState<number | ''>('')
 
   const scheduleWeekStart = (() => {
@@ -100,14 +100,17 @@ export function VariantScheduleEditor({
   }
 
   const effectiveWeeks =
-    scheduleRepeatWeekly && Array.isArray(schedule) && schedule.filter(Boolean).length > 0 && totalSessionsDesired !== ''
+    scheduleRepeatWeekly && Array.isArray(schedule) && schedule.filter(Boolean).length > 0 && totalSessionsDesired !== '' && Number(totalSessionsDesired) > 0
       ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.filter(Boolean).length))
-      : numberOfWeeks
+      : Math.max(1, numberOfWeeks || 8)
 
-  // Add this effect to notify the parent when effectiveWeeks changes
+  // Safely fallback number of weeks if undefined
+  const safeNumberOfWeeks = numberOfWeeks || 8
   useEffect(() => {
-    onWeeksChange?.(effectiveWeeks)
-  }, [effectiveWeeks, onWeeksChange])
+    if (effectiveWeeks !== weeksToSchedule) {
+      onWeeksChange?.(effectiveWeeks)
+    }
+  }, [effectiveWeeks, weeksToSchedule, onWeeksChange])
 
   const scheduleSummary = useMemo(() => {
     if (!Array.isArray(schedule) || schedule.length === 0) return []
@@ -116,9 +119,9 @@ export function VariantScheduleEditor({
       const MAX_WEEKS = 52
       const weeks = Math.min(
         MAX_WEEKS,
-        totalSessionsDesired !== ''
+        totalSessionsDesired !== '' && Number(totalSessionsDesired) > 0 && validSchedule.length > 0
           ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / validSchedule.length))
-          : numberOfWeeks
+          : Math.max(1, safeNumberOfWeeks)
       )
       const expanded: ScheduleItem[] = []
       for (let w = 0; w < weeks; w++) {
@@ -219,9 +222,10 @@ export function VariantScheduleEditor({
                 type="number"
                 min={1}
                 max={52}
-                value={totalSessionsDesired !== '' ? effectiveWeeks : numberOfWeeks}
+                value={totalSessionsDesired !== '' ? effectiveWeeks : safeNumberOfWeeks}
                 onChange={e => {
-                  const v = Math.max(1, parseInt(e.target.value, 10) || 1)
+                  const val = parseInt(e.target.value, 10)
+                  const v = Math.max(1, Number.isNaN(val) ? 8 : val)
                   setNumberOfWeeks(v)
                   if (totalSessionsDesired !== '') setTotalSessionsDesired('')
                 }}

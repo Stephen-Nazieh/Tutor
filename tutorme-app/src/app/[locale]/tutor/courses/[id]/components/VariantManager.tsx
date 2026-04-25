@@ -139,7 +139,7 @@ export function VariantManager({
             price: globalPrice ? parseFloat(globalPrice) : null,
             currency: globalCurrency,
             languageOfInstruction: globalLanguage,
-            schedule: [...defaultSchedule],
+            schedule: Array.isArray(defaultSchedule) ? [...defaultSchedule] : [],
             weeksToSchedule: 8,
           })
           changed = true
@@ -183,15 +183,17 @@ export function VariantManager({
     []
   )
 
-  const openScheduleDialog = (index: number) => {
+  const openScheduleDialog = useCallback((index: number) => {
     setScheduleDialogIndex(index)
-    setScheduleDialogOpen(true)
-  }
+    setTimeout(() => {
+      setScheduleDialogOpen(true)
+    }, 0)
+  }, [])
 
-  const closeScheduleDialog = () => {
+  const closeScheduleDialog = useCallback(() => {
     setScheduleDialogOpen(false)
     setTimeout(() => setScheduleDialogIndex(null), 300)
-  }
+  }, [])
 
   const handleSave = async () => {
     if (variants.length === 0) {
@@ -250,6 +252,9 @@ export function VariantManager({
   }
 
   const dialogVariant = scheduleDialogIndex != null ? variants[scheduleDialogIndex] : null
+
+  // Ensure schedule component remounts cleanly when switching variants
+  const scheduleEditorKey = scheduleDialogIndex != null ? `schedule-editor-${scheduleDialogIndex}` : 'schedule-editor-empty'
 
   return (
     <div className="space-y-6">
@@ -429,14 +434,14 @@ export function VariantManager({
                   <div>
                     <p className="text-sm font-medium">Schedule</p>
                     <p className="text-muted-foreground text-xs">
-                      {variant.schedule.length > 0
+                      {Array.isArray(variant.schedule) && variant.schedule.length > 0
                         ? `${variant.schedule.length} slot${variant.schedule.length === 1 ? '' : 's'} configured`
                         : 'No slots configured'}
                     </p>
                   </div>
                 </div>
                 <Button type="button" variant="outline" onClick={() => openScheduleDialog(index)}>
-                  {variant.schedule.length > 0 ? 'Edit Schedule' : 'Add Class Slot'}
+                  {Array.isArray(variant.schedule) && variant.schedule.length > 0 ? 'Edit Schedule' : 'Add Class Slot'}
                 </Button>
               </div>
             </CardContent>
@@ -458,15 +463,17 @@ export function VariantManager({
       </div>
 
       {/* Schedule Dialog */}
-      <Dialog open={scheduleDialogOpen} onOpenChange={(open) => {
-        setScheduleDialogOpen(open)
-        if (!open) {
-          // Add small delay to prevent unmounting content before animation finishes
-          setTimeout(() => setScheduleDialogIndex(null), 300)
-        }
-      }}>
-        <DialogContent className="h-[95vh] max-h-[95vh] w-[95vw] max-w-[95vw] overflow-hidden p-0">
-          <div className="flex h-full flex-col">
+      <Dialog 
+        open={scheduleDialogOpen} 
+        onOpenChange={(open) => {
+          setScheduleDialogOpen(open)
+          if (!open) {
+            setTimeout(() => setScheduleDialogIndex(null), 300)
+          }
+        }}
+      >
+        <DialogContent className="h-[95vh] max-h-[95vh] w-[95vw] max-w-[95vw] overflow-hidden p-0 sm:max-w-[800px] sm:max-h-[800px] sm:w-[90vw] sm:h-[90vh]">
+          <div className="flex h-full flex-col bg-white">
             <DialogHeader className="border-b px-6 py-4">
               <DialogTitle>Edit Schedule</DialogTitle>
               <DialogDescription>
@@ -475,19 +482,22 @@ export function VariantManager({
                   : 'Configure schedule'}
               </DialogDescription>
             </DialogHeader>
-            {dialogVariant && scheduleDialogIndex != null && (
+            {dialogVariant && (
               <div className="flex-1 overflow-y-auto px-6 py-4">
                 <VariantScheduleEditor
-                  schedule={dialogVariant.schedule}
+                  key={scheduleEditorKey}
+                  schedule={Array.isArray(dialogVariant?.schedule) ? dialogVariant.schedule : []}
                   onScheduleChange={updater =>
+                    scheduleDialogIndex != null &&
                     updateVariant(scheduleDialogIndex, v => ({
                       ...v,
-                      schedule: updater(v.schedule),
+                      schedule: updater(Array.isArray(v.schedule) ? v.schedule : []),
                     }))
                   }
-                  price={dialogVariant.price}
-                  weeksToSchedule={dialogVariant.weeksToSchedule}
+                  price={typeof dialogVariant?.price === 'number' ? dialogVariant.price : 0}
+                  weeksToSchedule={dialogVariant?.weeksToSchedule || 8}
                   onWeeksChange={weeks =>
+                    scheduleDialogIndex != null &&
                     updateVariant(scheduleDialogIndex, v => ({
                       ...v,
                       weeksToSchedule: weeks,
