@@ -122,7 +122,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       <aside
         className={cn(
           'relative z-40 hidden h-screen shrink-0 flex-col transition-all duration-300 lg:flex',
-          !desktopNavOpen && 'w-0 overflow-hidden'
+          desktopNavOpen ? 'w-64' : 'w-0 overflow-hidden'
         )}
       >
         <div
