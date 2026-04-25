@@ -125,6 +125,7 @@ export async function GET(request: NextRequest) {
       },
       sessionId: null,
       courseId: report.courseId,
+      courseName: en.courseName,
     }
 
     directory[tutorUsername][category].reports.push(item)
@@ -158,6 +159,8 @@ export async function GET(request: NextRequest) {
       deployedAt: material.deployedAt,
       content: material.content,
       sessionId: material.sessionId,
+      courseId: material.courseId,
+      courseName: en.courseName,
     }
 
     switch (material.type) {

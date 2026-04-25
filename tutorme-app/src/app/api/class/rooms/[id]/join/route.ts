@@ -8,7 +8,7 @@ import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/mi
 import { getParamAsync } from '@/lib/api/params'
 import { dailyProvider } from '@/lib/video/daily-provider'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { liveSession, sessionParticipant, user, profile } from '@/lib/db/schema'
+import { liveSession, sessionParticipant, user, profile, course } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 export const POST = withCsrf(
@@ -101,9 +101,22 @@ export const POST = withCsrf(
             .limit(1)
         : [null]
 
+      let courseName = null
+      if (classSessionRow.courseId) {
+        const [courseRow] = await drizzleDb
+          .select({ name: course.name })
+          .from(course)
+          .where(eq(course.courseId, classSessionRow.courseId))
+          .limit(1)
+        if (courseRow) {
+          courseName = courseRow.name
+        }
+      }
+
       const classSession = {
         ...classSessionRow,
         tutor: tutorRow ? { profile: tutorProfile } : null,
+        course: courseName ? { name: courseName } : null,
         participants,
       }
 

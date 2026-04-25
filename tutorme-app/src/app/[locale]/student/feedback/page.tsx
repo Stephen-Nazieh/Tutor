@@ -101,9 +101,10 @@ function StudentFeedbackContent() {
     objectives: string[] | null
     roomUrl: string | null
     token: string | null
-    tutorUsername: string | null
-    courseCategory: string | null
+    tutorUsername: string
+    courseCategory: string
     courseId: string | null
+    courseName: string | null
   } | null>(null)
   const [myBoardPages, setMyBoardPages] = useState<WhiteboardPage[]>(createDefaultWhiteboardPages)
   const [myBoardPageIndex, setMyBoardPageIndex] = useState(0)
@@ -309,12 +310,13 @@ function StudentFeedbackContent() {
         if (cancelled) return
         setSessionContext({
           topic: data?.session?.topic ?? null,
-          objectives: data?.session?.objectives ?? null,
+          objectives: Array.isArray(data?.session?.objectives) ? data.session.objectives : (data?.session?.objectives ? [data.session.objectives] : null),
           roomUrl: data?.roomUrl ?? null,
           token: data?.token ?? null,
           tutorUsername: data?.session?.tutor?.profile?.name || 'Tutor',
           courseCategory: data?.session?.category || 'General',
           courseId: data?.session?.courseId ?? null,
+          courseName: data?.session?.course?.name ?? null,
         })
       } catch {
         // ignore
@@ -913,7 +915,9 @@ function StudentFeedbackContent() {
                 </Button>
                 <div className="flex flex-col justify-center">
                   <div className="flex items-center gap-2">
-                    <h1 className="text-2xl font-bold tracking-tight">Live Classroom</h1>
+                    <h1 className="text-xl font-bold tracking-tight">
+                      {sessionContext?.courseName || 'Live Classroom'}
+                    </h1>
                   </div>
                 </div>
               </div>
