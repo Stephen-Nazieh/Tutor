@@ -4685,7 +4685,7 @@ FEEDBACK: [your explanation]`
                 style={{ width: leftPanelWidth }}
               >
                 <div className="flex h-full min-h-0 flex-col pr-4">
-                  <Card className="flex h-full min-h-0 flex-1 flex-col rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_6px_16px_rgba(0,0,0,0.06)]">
+                  <Card className="flex h-full min-h-0 flex-1 flex-col rounded-[20px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]">
                     <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
                       {/* Header with Hide, Import, and +Lesson buttons */}
                       <div className="mb-4 flex min-h-[58px] items-center justify-between">
@@ -4783,7 +4783,7 @@ FEEDBACK: [your explanation]`
                                     depth={0}
                                     isLast={nodeIdx === nodes.length - 1}
                                     inlineDragHandle
-                                    className="mb-0 ml-0 overflow-hidden rounded-[24px] border border-[#E7ECF3] bg-white pl-0 shadow-[0_8px_24px_rgba(15,23,42,0.04)]"
+                                    className="lesson-card mb-0 ml-0 overflow-hidden rounded-[24px] border border-[#E7ECF3] bg-white pl-0 shadow-[0_8px_24px_rgba(15,23,42,0.04)] transition-[transform,box-shadow,border-color] duration-[160ms] ease-[ease] hover:-translate-y-[3px] hover:border-[rgba(37,99,235,0.35)] hover:shadow-[0_14px_32px_rgba(0,0,0,0.16),0_4px_10px_rgba(37,99,235,0.10)]"
                                   >
                                     <div className="group">
                                       <div
