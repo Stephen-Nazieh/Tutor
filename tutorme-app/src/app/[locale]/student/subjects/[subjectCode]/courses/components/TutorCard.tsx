@@ -1,11 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Star, Users, Calendar, Clock } from 'lucide-react'
+import { Star, Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Tutor {
@@ -40,9 +36,9 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
   const renderStars = (rating: number) => {
     return (
       <div className="flex items-center gap-1">
-        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-        <span className="text-foreground font-medium">{rating.toFixed(1)}</span>
-        <span className="text-muted-foreground text-sm">({tutor.reviewCount} reviews)</span>
+        <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+        <span className="text-slate-100 text-lg font-medium ml-1">{rating.toFixed(1)}</span>
+        <span className="text-slate-400 text-sm ml-1">({tutor.reviewCount})</span>
       </div>
     )
   }
@@ -50,11 +46,11 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
   // Format price display
   const formatPrice = () => {
     if (tutor.hourlyRate === null) {
-      return <span className="text-muted-foreground">Contact for pricing</span>
+      return <span className="text-slate-300">Contact for pricing</span>
     }
     return (
-      <span className="font-semibold text-green-600">
-        {tutor.currency} {tutor.hourlyRate.toFixed(2)}/hr
+      <span className="font-semibold text-slate-100">
+        {tutor.currency} {tutor.hourlyRate.toFixed(2)}<span className="text-slate-400 text-sm font-normal">/hr</span>
       </span>
     )
   }
@@ -62,11 +58,11 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
   // Format next available slot
   const formatAvailability = () => {
     if (!tutor.nextAvailableSlot) {
-      return <span className="text-muted-foreground">Check availability</span>
+      return <span className="text-slate-400">Check availability</span>
     }
     const date = new Date(tutor.nextAvailableSlot)
     return (
-      <span className="flex items-center gap-1 text-green-600">
+      <span className="flex items-center justify-end gap-1 text-emerald-400">
         <Calendar className="h-3 w-3" />
         Available{' '}
         {date.toLocaleDateString('en-US', {
@@ -78,61 +74,110 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
   }
 
   return (
-    <Card
+    <div
       className={cn(
-        'transition-all hover:-translate-y-0.5 hover:shadow-md',
-        'border-border bg-card'
+        'group relative overflow-hidden rounded-[20px] text-left transition-all duration-300',
+        'border border-[rgba(255,255,255,0.12)]',
+        'bg-[rgba(30,40,50,0.65)] backdrop-blur-[12px]',
+        'shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_12px_30px_rgba(0,0,0,0.35)]',
+        'hover:-translate-y-[2px] hover:brightness-105',
+        'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]'
       )}
+      style={{
+        backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(70, 110, 180, 0.75), rgba(25, 55, 110, 0.95))',
+      }}
     >
-      <CardContent className="p-4">
-        <div className="flex flex-col gap-4 sm:flex-row">
-          {/* Avatar and Basic Info */}
-          <div className="flex flex-1 items-start gap-4">
-            <Avatar className="border-border h-16 w-16 border-2">
-              <AvatarImage src={tutor.avatar || undefined} alt={tutor.name} />
-              <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-
-            <div className="min-w-0 flex-1">
-              <h3 className="text-foreground truncate text-lg font-semibold">{tutor.name}</h3>
-
-              {/* Rating */}
-              <div className="mt-1">{renderStars(tutor.rating)}</div>
-
-              {/* Bio - truncated */}
-              <p className="text-muted-foreground mt-2 line-clamp-2 text-sm">{tutor.bio}</p>
-
-              {/* Stats */}
-              <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-3 text-sm">
-                <Badge variant="secondary" className="bg-muted flex items-center gap-1">
-                  <Users className="h-3 w-3" />
-                  {tutor.totalStudents} students
-                </Badge>
-                <Badge variant="secondary" className="bg-muted flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {tutor.totalClasses} classes
-                </Badge>
-              </div>
-            </div>
+      <div className="flex flex-col p-5">
+        <div className="flex items-start gap-4">
+          {/* Avatar */}
+          <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_6px_16px_rgba(0,0,0,0.35)]">
+            <img src={tutor.avatar || undefined} alt={tutor.name} className="h-full w-full object-cover" />
           </div>
 
-          {/* Price and Action */}
-          <div className="sm:border-border flex flex-col items-start justify-between gap-3 sm:min-w-[160px] sm:items-end sm:border-l sm:pl-4">
-            <div className="text-right">
-              <div className="text-foreground text-lg">{formatPrice()}</div>
-              <div className="mt-1 text-sm">{formatAvailability()}</div>
+          <div className="min-w-0 flex-1 flex flex-col pt-1">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-slate-50 truncate text-xl font-semibold">{tutor.name}</h3>
+                <p className="mt-1 text-sm font-medium text-slate-300">
+                  @{tutor.name.toLowerCase().replace(/\s+/g, '')}
+                </p>
+              </div>
+              <button 
+                className="px-4 py-1.5 text-sm font-medium text-slate-100 rounded-full border border-[rgba(255,255,255,0.25)] bg-[rgba(255,255,255,0.08)] backdrop-blur-[6px] transition-colors hover:bg-[rgba(255,255,255,0.15)]"
+              >
+                Follow
+              </button>
             </div>
 
-            <Button asChild className="w-full sm:w-auto">
-              <Link href={`/student/classes?tutor=${tutor.id}&subject=${subjectCode}`}>
-                Book Session
-              </Link>
-            </Button>
+            {/* Bio - truncated */}
+            <p className="text-slate-300 mt-3 line-clamp-2 text-sm">{tutor.bio}</p>
           </div>
         </div>
-      </CardContent>
-    </Card>
+
+        {/* Rating */}
+        <div className="mt-6 mb-4">{renderStars(tutor.rating)}</div>
+
+        {/* Tags */}
+        <div className="flex flex-wrap items-center gap-2 mb-6">
+          <span className="px-3 py-1 text-sm text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+            IGCSE Physics
+          </span>
+          <span className="px-3 py-1 text-sm text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+            TOEFL iBT
+          </span>
+          <span className="px-3 py-1 text-sm text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+            general
+          </span>
+          <span className="px-3 py-1 text-sm text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+            +2
+          </span>
+        </div>
+
+        {/* Regions */}
+        <div className="flex flex-wrap items-center gap-2 mb-6">
+          <span className="px-3 py-1 text-sm text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+            Kuwait
+          </span>
+          <span className="px-3 py-1 text-sm text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+            Qatar
+          </span>
+          <span className="px-3 py-1 text-sm text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+            Global
+          </span>
+          <span className="px-3 py-1 text-sm text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+            +2
+          </span>
+        </div>
+
+        <div className="border-b border-[rgba(255,255,255,0.1)] mb-6" />
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] p-3">
+            <p className="text-xs text-slate-300 mb-1">Courses</p>
+            <p className="text-lg font-semibold text-slate-100">{tutor.totalClasses}</p>
+          </div>
+          <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] p-3">
+            <p className="text-xs text-slate-300 mb-1">Enrollments</p>
+            <p className="text-lg font-semibold text-slate-100">{tutor.totalStudents}</p>
+          </div>
+        </div>
+
+        {/* Price and Action */}
+        <div className="flex items-center justify-between pt-2">
+          <Link 
+            href={`/student/classes?tutor=${tutor.id}&subject=${subjectCode}`}
+            className="flex items-center gap-2 text-slate-100 hover:text-white transition-colors"
+          >
+            <Calendar className="h-6 w-6 text-[rgba(255,255,255,0.8)]" />
+            <span className="text-lg font-medium">Book 1 on 1</span>
+          </Link>
+          <div className="text-right">
+            <div className="text-slate-100 text-lg">{formatPrice()}</div>
+            <div className="mt-1 text-sm">{formatAvailability()}</div>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
