@@ -1,306 +1,1041 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  TrendingUp,
+  Users,
+  BookOpen,
+  ArrowLeft,
+  Download,
+  BarChart3,
+  Loader2,
+  Search,
+  ChevronRight,
+  Calendar,
+  Activity,
+  FileText,
+  FileSpreadsheet,
+  FileIcon,
+  Send,
+  Bot,
+  User,
+} from 'lucide-react'
+import Link from 'next/link'
 import { toast } from 'sonner'
-import { FileText, Loader2, Send, Plus, Trash2 } from 'lucide-react'
+import { EngagementDashboard } from '@/components/reports/engagement-dashboard'
+import { RevenueDashboard } from '../dashboard/components/RevenueDashboard'
+import { StudentReportsTab } from '@/components/reports/student-reports-tab'
+import { DollarSign } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
-type ReportData = {
-  reportId: string
+interface ClassOption {
+  id: string
   title: string
-  studentName?: string
-  createdAt: string
-  status: string
-  strengths?: string[]
-  weaknesses?: string[]
-  overallComments?: string
-  score?: number | null
+  categories?: string[]
+  type: 'class' | 'course'
 }
 
-export default function ReportsPage() {
-  const [reports, setReports] = useState<ReportData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [editingReport, setEditingReport] = useState<ReportData | null>(null)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
+interface ClassReportData {
+  classInfo: {
+    id: string
+    totalStudents: number
+    averageScore: number
+  }
+  charts: {
+    scoreDistribution: { range: string; count: number }[]
+    clusterDistribution: { name: string; count: number; color: string }[]
+  }
+  topStudents: {
+    id: string
+    name: string
+    averageScore: number
+    completionRate: number
+  }[]
+  studentsNeedingAttention: {
+    id: string
+    name: string
+    averageScore: number
+    issue: string
+  }[]
+  summary: {
+    totalStudents: number
+    averageScore: number
+    advancedCount: number
+    intermediateCount: number
+    strugglingCount: number
+  }
+}
 
-  // Edit form state
-  const [strengths, setStrengths] = useState<string[]>([])
-  const [weaknesses, setWeaknesses] = useState<string[]>([])
-  const [overallComments, setOverallComments] = useState('')
-  const [score, setScore] = useState<number | ''>('')
+interface Student {
+  id: string
+  name: string
+  email?: string
+  averageScore?: number
+  completionRate?: number
+  cluster?: string
+  courseCount?: number
+  classCount?: number
+}
 
+interface SessionOverviewItem {
+  id: string
+  title: string
+  subject: string
+  status: string
+  scheduledAt: string
+  startedAt?: string | null
+  endedAt?: string | null
+  courseId?: string | null
+}
+
+import { MentionTextarea } from '@/components/class/mention-textarea'
+
+interface CourseItem {
+  id: string
+  name: string
+  description: string | null
+  categories: string[]
+  isPublished: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+  id: string
+}
+
+export default function TutorReports() {
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('overview')
+  const [classData, setClassData] = useState<ClassReportData | null>(null)
+  const [students, setStudents] = useState<Student[]>([])
+  const [availableClasses, setAvailableClasses] = useState<ClassOption[]>([])
+  const [selectedClassId, setSelectedClassId] = useState<string>('')
+  const [isExporting, setIsExporting] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCluster, setSelectedCluster] = useState<string>('all')
+  const [globalAttentionStudents, setGlobalAttentionStudents] = useState<Student[]>([])
+  const [globalAllStudents, setGlobalAllStudents] = useState<Student[]>([])
+  const [loadingGlobals, setLoadingGlobals] = useState(true)
+
+  // Fetch real students and classes on mount
   useEffect(() => {
-    loadReports()
+    const loadData = async () => {
+      setLoadingGlobals(true)
+      try {
+        // Fetch students
+        const studentsRes = await fetch('/api/tutor/students', { credentials: 'include' })
+        let studentList: Student[] = []
+        if (studentsRes.ok) {
+          const data = await studentsRes.json()
+          studentList = (data.students ?? []).map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            email: s.email,
+            courseCount: s.courseCount ?? 0,
+            classCount: s.classCount ?? 0,
+            // We don't have real performance data yet; leave optional fields undefined
+          }))
+        }
+        setStudents(studentList)
+        setGlobalAllStudents(studentList)
+        setGlobalAttentionStudents(studentList.filter((s: Student) => s.cluster === 'struggling'))
+
+        // Fetch available classes for dropdown
+        const classesRes = await fetch('/api/tutor/classes?includeEnded=1', {
+          credentials: 'include',
+        })
+        if (classesRes.ok) {
+          const data = await classesRes.json()
+          const classes: ClassOption[] = (data.classes ?? []).map((c: any) => ({
+            id: c.id,
+            title: c.title,
+            categories: c.subject ? [c.subject] : [],
+            type: 'class',
+          }))
+          setAvailableClasses(classes)
+        }
+      } catch (error) {
+        console.error('Error loading report data:', error)
+      } finally {
+        setLoadingGlobals(false)
+        setIsLoading(false)
+      }
+    }
+
+    loadData()
   }, [])
 
-  const loadReports = async () => {
-    try {
-      const res = await fetch('/api/tutor/reports')
-      if (res.ok) {
-        const data = await res.json()
-        setReports(data.reports || [])
+  // Fetch report data when selected class changes
+  useEffect(() => {
+    if (!selectedClassId) {
+      setIsLoading(false)
+      return
+    }
+
+    const fetchReportData = async () => {
+      setIsLoading(true)
+      try {
+        // Build report from real student data (performance metrics not yet available)
+        const relevantStudents = students.length > 0 ? students : []
+        const reportData: ClassReportData = {
+          classInfo: {
+            id: selectedClassId,
+            totalStudents: relevantStudents.length,
+            averageScore: 0,
+          },
+          charts: {
+            scoreDistribution: [
+              { range: '0-59', count: 0 },
+              { range: '60-69', count: 0 },
+              { range: '70-79', count: 0 },
+              { range: '80-89', count: 0 },
+              { range: '90-100', count: 0 },
+            ],
+            clusterDistribution: [
+              { name: 'Advanced', count: 0, color: '#22c55e' },
+              { name: 'Intermediate', count: 0, color: '#eab308' },
+              { name: 'Struggling', count: 0, color: '#ef4444' },
+            ],
+          },
+          topStudents: [],
+          studentsNeedingAttention: [],
+          summary: {
+            totalStudents: relevantStudents.length,
+            averageScore: 0,
+            advancedCount: 0,
+            intermediateCount: 0,
+            strugglingCount: 0,
+          },
+        }
+        setClassData(reportData)
+      } catch (error) {
+        console.error('Error fetching report data:', error)
+      } finally {
+        setIsLoading(false)
       }
-    } catch (err) {
-      toast.error('Failed to load reports')
+    }
+
+    fetchReportData()
+  }, [selectedClassId, students])
+
+  const handleExportReport = async (format: 'pdf' | 'excel' | 'csv') => {
+    setIsExporting(true)
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      toast.success(`Report exported as ${format.toUpperCase()}`)
+    } catch (error) {
+      toast.error('Failed to export report')
     } finally {
-      setLoading(false)
+      setIsExporting(false)
     }
   }
 
-  const openEditor = (report: ReportData) => {
-    setEditingReport(report)
-    setStrengths(report.strengths || [])
-    setWeaknesses(report.weaknesses || [])
-    setOverallComments(report.overallComments || '')
-    setScore(report.score !== null && report.score !== undefined ? report.score : '')
-    setModalOpen(true)
-  }
+  const filteredStudents = students.filter(student => {
+    const matchesSearch =
+      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (student.email?.toLowerCase() ?? '').includes(searchQuery.toLowerCase())
+    const matchesCluster = selectedCluster === 'all' || student.cluster === selectedCluster
+    return matchesSearch && matchesCluster
+  })
 
-  const handleSave = async (sendNow: boolean) => {
-    if (!editingReport) return
-    setIsSaving(true)
-    try {
-      const res = await fetch('/api/tutor/reports', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          reportId: editingReport.reportId,
-          status: sendNow ? 'sent' : 'draft',
-          strengths,
-          weaknesses,
-          overallComments,
-          score: score === '' ? null : Number(score),
-        }),
-      })
-
-      if (res.ok) {
-        toast.success(sendNow ? 'Report sent to student!' : 'Draft saved')
-        setModalOpen(false)
-        loadReports()
-      } else {
-        toast.error('Failed to save report')
-      }
-    } catch (err) {
-      toast.error('An error occurred')
-    } finally {
-      setIsSaving(false)
+  const getClusterBadgeClass = (cluster?: string) => {
+    switch (cluster) {
+      case 'advanced':
+        return 'bg-green-100 text-green-700 hover:bg-green-100'
+      case 'intermediate':
+        return 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100'
+      case 'struggling':
+        return 'bg-red-100 text-red-700 hover:bg-red-100'
+      default:
+        return 'bg-gray-100 text-gray-700 hover:bg-gray-100'
     }
   }
 
-  const addStrength = () => setStrengths([...strengths, ''])
-  const updateStrength = (i: number, val: string) => {
-    const newArr = [...strengths]
-    newArr[i] = val
-    setStrengths(newArr)
+  const getClusterLabel = (cluster?: string) => {
+    switch (cluster) {
+      case 'advanced':
+        return 'Advanced'
+      case 'intermediate':
+        return 'Intermediate'
+      case 'struggling':
+        return 'Needs Support'
+      default:
+        return 'Not Assessed'
+    }
   }
-  const removeStrength = (i: number) => setStrengths(strengths.filter((_, idx) => idx !== i))
 
-  const addWeakness = () => setWeaknesses([...weaknesses, ''])
-  const updateWeakness = (i: number, val: string) => {
-    const newArr = [...weaknesses]
-    newArr[i] = val
-    setWeaknesses(newArr)
-  }
-  const removeWeakness = (i: number) => setWeaknesses(weaknesses.filter((_, idx) => idx !== i))
-
-  if (loading) {
+  if (isLoading && availableClasses.length === 0 && loadingGlobals) {
     return (
-      <div className="flex h-full items-center justify-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     )
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Student Reports</h1>
-        <p className="text-gray-500">
-          Manage requested reports, add feedback, and deploy them to students.
-        </p>
-      </div>
-
-      <div className="grid gap-4">
-        {reports.length === 0 ? (
-          <div className="rounded-xl border border-dashed bg-white p-12 text-center text-gray-500">
-            No report requests yet.
-          </div>
-        ) : (
-          reports.map(report => (
-            <Card key={report.reportId}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+    <div className="min-h-screen bg-[#fafafc]">
+      <div className="w-full">
+        {/* Header Container */}
+        <div className="bg-[#fafafc] px-4 pb-2 pt-4 sm:px-6">
+          <div className="flex w-full flex-col gap-4">
+            <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                <Link href="/tutor/dashboard">
+                  <Button variant="ghost" size="icon">
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                </Link>
                 <div>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <FileText className="h-5 w-5 text-indigo-600" />
-                    {report.title}
-                  </CardTitle>
-                  <CardDescription className="mt-1">
-                    Requested by <strong>{report.studentName || 'Student'}</strong> on{' '}
-                    {new Date(report.createdAt).toLocaleDateString()}
-                  </CardDescription>
+                  <h1 className="text-2xl font-bold">Analytics</h1>
                 </div>
-                <Badge
-                  variant={
-                    report.status === 'sent'
-                      ? 'default'
-                      : report.status === 'draft'
-                        ? 'secondary'
-                        : 'outline'
-                  }
-                  className={report.status === 'sent' ? 'bg-green-100 text-green-800' : ''}
+              </div>
+
+              {/* Export Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="gap-2"
+                    disabled={isExporting || !selectedClassId}
+                  >
+                    {isExporting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                    Export Report
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleExportReport('pdf')} className="gap-2">
+                    <FileText className="h-4 w-4 text-red-500" />
+                    Export as PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportReport('excel')} className="gap-2">
+                    <FileSpreadsheet className="h-4 w-4 text-green-500" />
+                    Export as Excel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportReport('csv')} className="gap-2">
+                    <FileIcon className="h-4 w-4 text-blue-500" />
+                    Export as CSV
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-4 pt-4 sm:px-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <div className="mb-6 min-h-[52px] shrink-0">
+              <TabsList className="grid h-full w-full grid-cols-4 gap-2 border-0 bg-transparent p-0 shadow-none">
+                <TabsTrigger
+                  value="overview"
+                  className={cn(
+                    'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
+                    activeTab === 'overview'
+                      ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
+                      : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
+                  )}
                 >
-                  {report.status.toUpperCase()}
-                </Badge>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-end">
-                  {report.status === 'sent' ? (
-                    <Button variant="outline" size="sm" onClick={() => openEditor(report)}>
-                      View / Edit Sent Report
-                    </Button>
+                  <BookOpen className="h-4 w-4" />
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger
+                  value="revenue"
+                  className={cn(
+                    'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
+                    activeTab === 'revenue'
+                      ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
+                      : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
+                  )}
+                >
+                  <DollarSign className="h-4 w-4" />
+                  Revenue Insights
+                </TabsTrigger>
+                <TabsTrigger
+                  value="students"
+                  className={cn(
+                    'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
+                    activeTab === 'students'
+                      ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
+                      : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
+                  )}
+                >
+                  <Users className="h-4 w-4" />
+                  Student Roster
+                </TabsTrigger>
+                <TabsTrigger
+                  value="reports"
+                  className={cn(
+                    'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
+                    activeTab === 'reports'
+                      ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
+                      : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
+                  )}
+                >
+                  <FileText className="h-4 w-4" />
+                  Student Reports
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* Revenue Tab */}
+            <TabsContent value="revenue" className="h-full">
+              <div className="h-[800px] overflow-hidden rounded-xl bg-white">
+                <RevenueDashboard />
+              </div>
+            </TabsContent>
+
+            {/* Students Tab */}
+            <TabsContent value="students" className="space-y-6">
+              <div className="rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-800">Student Roster</h2>
+                    <p className="text-sm text-slate-500 mt-1">Manage and view all enrolled students</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Search students..."
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      className="w-64 bg-slate-50/50 border-slate-200"
+                    />
+                    <Select value={selectedCluster} onValueChange={setSelectedCluster}>
+                      <SelectTrigger className="w-40 bg-slate-50/50 border-slate-200">
+                        <SelectValue placeholder="Filter by cluster" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Students</SelectItem>
+                        <SelectItem value="advanced">Advanced</SelectItem>
+                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                        <SelectItem value="struggling">Needs Support</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {filteredStudents.length === 0 ? (
+                    <div className="py-10 text-center text-sm text-slate-500 rounded-xl border border-dashed border-slate-200">
+                      {searchQuery
+                        ? 'No students match your search.'
+                        : 'No students enrolled yet.'}
+                    </div>
                   ) : (
-                    <Button
-                      className="bg-indigo-600 hover:bg-indigo-700"
-                      size="sm"
-                      onClick={() => openEditor(report)}
-                    >
-                      Generate & Send
-                    </Button>
+                    filteredStudents.map(student => (
+                      <div
+                        key={student.id}
+                        className="flex items-center justify-between rounded-[12px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] p-4 transition-all duration-200 ease-in-out hover:bg-slate-50 hover:shadow-sm"
+                      >
+                        <div className="flex items-center gap-4">
+                          <Avatar className="h-10 w-10">
+                            <AvatarFallback className="bg-indigo-50 text-indigo-600 font-medium">{student.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-semibold text-slate-800">{student.name}</p>
+                            <p className="text-xs font-medium text-slate-500">{student.email}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          <div className="text-right">
+                            <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-0.5">Courses</p>
+                            <p className="font-semibold text-slate-700">{student.courseCount ?? 0}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-0.5">Classes</p>
+                            <p className="font-semibold text-slate-700">{student.classCount ?? 0}</p>
+                          </div>
+                          {student.cluster && (
+                            <Badge className={cn(getClusterBadgeClass(student.cluster), "border-0 font-semibold")}>
+                              {getClusterLabel(student.cluster)}
+                            </Badge>
+                          )}
+                          <Link href={`/tutor/reports/${student.id}`}>
+                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-800 hover:bg-slate-100">
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          ))
+              </div>
+            </TabsContent>
+
+            {/* Reports Tab */}
+            <TabsContent value="reports" className="space-y-6">
+              <StudentReportsTab />
+            </TabsContent>
+
+            {/* Courses & Classes Tab */}
+            <CoursesAndClassesTab />
+          </Tabs>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Inline AI Chat for course insights
+function ItemAIChat({
+  course,
+  session,
+  courses,
+  sessions,
+  students,
+}: {
+  course: CourseItem | null
+  session?: SessionOverviewItem | null
+  courses: CourseItem[]
+  sessions: SessionOverviewItem[]
+  students: Student[]
+}) {
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [input, setInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, isLoading])
+
+  const handleSend = useCallback(async () => {
+    const text = input.trim()
+    if (!text || isLoading) return
+
+    const userMsg: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: text,
+    }
+    setMessages(prev => [...prev, userMsg])
+    setInput('')
+    setIsLoading(true)
+
+    try {
+      const courseSessions = course
+        ? sessions.filter(s => s.courseId === course.id || s.subject === course.name)
+        : session
+          ? [session]
+          : []
+
+      const contextPayload = {
+        courseName: course?.name,
+        courseDescription: course?.description,
+        courseCategory: course?.categories?.[0],
+        sessionTitle: session?.title,
+        sessionSubject: session?.subject,
+        sessionCount: courseSessions.length,
+        sessions: courseSessions.map(s => ({
+          title: s.title,
+          status: s.status,
+          scheduledAt: s.scheduledAt,
+        })),
+        enrolledStudents: students.map(s => ({
+          name: s.name,
+          courses: s.courseCount ?? 0,
+        })),
+      }
+
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          subject: course?.categories?.[0] ?? session?.subject ?? 'general',
+          context: {
+            ...contextPayload,
+            previousMessages: [...messages, userMsg].slice(-6).map(m => ({
+              role: m.role,
+              content: m.content,
+            })),
+          },
+        }),
+      })
+
+      const data = await res.json()
+      const assistantMsg: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content:
+          data.response ||
+          'I apologize, but I am having trouble responding right now. Please try again.',
+      }
+      setMessages(prev => [...prev, assistantMsg])
+    } catch {
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: 'I apologize, but I am having trouble responding right now. Please try again.',
+        },
+      ])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [input, isLoading, course, session, sessions, students, messages])
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault()
+        handleSend()
+      }
+    },
+    [handleSend]
+  )
+
+  const mentionItems = useMemo(() => {
+    const items: { id: string; type: string; label: string; subtitle?: string }[] = []
+    courses.forEach(c =>
+      items.push({ id: c.id, type: 'course', label: c.name, subtitle: 'Course' })
+    )
+    sessions.forEach(s =>
+      items.push({ id: s.id, type: 'session', label: s.title, subtitle: 'Session' })
+    )
+    students.forEach(s =>
+      items.push({ id: s.id, type: 'student', label: s.name, subtitle: 'Student' })
+    )
+    return items
+  }, [courses, sessions, students])
+
+  const isCourse = !!course
+  const isSession = !!session
+
+  return (
+    <div className="flex h-full flex-col overflow-hidden">
+      {/* Header */}
+      <div className="flex shrink-0 items-center justify-between p-4">
+        <span className="text-sm font-semibold uppercase tracking-wider text-gray-800">
+          {isCourse
+            ? `ASK AI ABOUT ${course.name}`
+            : isSession
+              ? `ASK AI ABOUT ${session.title}`
+              : 'ASK AI ABOUT YOUR COURSES & STUDENTS'}
+        </span>
+        <Badge variant="outline" className="bg-white text-[10px] font-medium text-gray-500">
+          AI Integrated
+        </Badge>
+      </div>
+
+      {/* Chat Area */}
+      <div className="flex min-h-0 flex-1 flex-col p-0">
+        <div className="flex-1 space-y-4 overflow-y-auto p-4">
+          {messages.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center space-y-3 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50">
+                <Bot className="h-6 w-6 text-blue-500" />
+              </div>
+              <p className="max-w-[280px] text-sm text-gray-500">
+                {isCourse
+                  ? 'Ask me anything about student performance, engagement, or insights for this course.'
+                  : isSession
+                    ? 'Ask me about attendance, participation, or metrics for this specific session.'
+                    : 'Select a course or session to ask specific questions, or ask me general questions about your students.'}
+              </p>
+            </div>
+          ) : (
+            <>
+              {messages.map(msg => (
+                <div
+                  key={msg.id}
+                  className={cn(
+                    'flex gap-3',
+                    msg.role === 'user' ? 'justify-end' : 'justify-start'
+                  )}
+                >
+                  {msg.role === 'assistant' && (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100">
+                      <Bot className="h-4 w-4 text-blue-600" />
+                    </div>
+                  )}
+                  <div
+                    className={cn(
+                      'max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm',
+                      msg.role === 'user'
+                        ? 'rounded-tr-sm bg-blue-600 text-white'
+                        : 'rounded-tl-sm border border-gray-100 bg-white text-gray-800'
+                    )}
+                  >
+                    <div className="whitespace-pre-line leading-relaxed">{msg.content}</div>
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100">
+                    <Bot className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div className="rounded-2xl rounded-tl-sm border border-gray-100 bg-white px-4 py-3 shadow-sm">
+                    <div className="flex gap-1.5">
+                      <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-400" />
+                      <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-400 delay-100" />
+                      <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-400 delay-200" />
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </>
+          )}
+        </div>
+
+        {/* Input Area */}
+        <div className="shrink-0 p-4">
+          <div className="relative flex items-end gap-2 rounded-2xl border border-gray-200 bg-white p-1 pl-3 shadow-sm transition-all focus-within:border-blue-300 focus-within:ring-1 focus-within:ring-blue-200">
+            <MentionTextarea
+              mentionItems={mentionItems}
+              placeholder={
+                isCourse
+                  ? 'Ask about course performance...'
+                  : isSession
+                    ? 'Ask about this session...'
+                    : 'Ask a general question...'
+              }
+              className="max-h-[120px] min-h-[44px] w-full resize-none border-0 bg-transparent py-3 text-sm shadow-none outline-none placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              rows={1}
+            />
+            <Button
+              size="icon"
+              className={cn(
+                'mb-1 mr-1 h-9 w-9 shrink-0 rounded-xl transition-all',
+                input.trim()
+                  ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700'
+                  : 'bg-gray-200 text-white hover:bg-gray-200'
+              )}
+              onClick={handleSend}
+              disabled={isLoading || !input.trim()}
+            >
+              <Send className="ml-0.5 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Courses & Classes Tab Component
+function CoursesAndClassesTab() {
+  const [courses, setCourses] = useState<CourseItem[]>([])
+  const [coursesLoading, setCoursesLoading] = useState(true)
+  const [selectedItem, setSelectedItem] = useState<{
+    type: 'course' | 'session'
+    id: string
+  } | null>(null)
+  const [sessionsOverview, setSessionsOverview] = useState<SessionOverviewItem[]>([])
+  const [sessionsLoading, setSessionsLoading] = useState(true)
+  const [students, setStudents] = useState<Student[]>([])
+
+  const selectedCourse =
+    selectedItem?.type === 'course' ? courses.find(c => c.id === selectedItem.id) || null : null
+  const selectedSession =
+    selectedItem?.type === 'session'
+      ? sessionsOverview.find(s => s.id === selectedItem.id) || null
+      : null
+
+  useEffect(() => {
+    const loadCourses = async () => {
+      setCoursesLoading(true)
+      try {
+        const res = await fetch('/api/tutor/courses', { credentials: 'include' })
+        if (!res.ok) throw new Error('Failed to load courses')
+        const data = await res.json()
+        const allCourses: CourseItem[] = (data.courses ?? []).map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          description: c.description,
+          categories: Array.isArray(c.categories) ? c.categories : [],
+          isPublished: c.isPublished,
+          createdAt: c.createdAt,
+          updatedAt: c.updatedAt,
+        }))
+        // Filter to published courses only
+        setCourses(allCourses.filter(c => c.isPublished))
+      } catch {
+        setCourses([])
+      } finally {
+        setCoursesLoading(false)
+      }
+    }
+
+    const loadSessionsOverview = async () => {
+      setSessionsLoading(true)
+      try {
+        const res = await fetch('/api/tutor/classes?includeEnded=1', { credentials: 'include' })
+        if (!res.ok) throw new Error('Failed to load sessions')
+        const data = await res.json()
+        setSessionsOverview((data.classes || []) as SessionOverviewItem[])
+      } catch {
+        setSessionsOverview([])
+      } finally {
+        setSessionsLoading(false)
+      }
+    }
+
+    const loadStudents = async () => {
+      try {
+        const res = await fetch('/api/tutor/students', { credentials: 'include' })
+        if (!res.ok) throw new Error('Failed to load students')
+        const data = await res.json()
+        setStudents(
+          (data.students ?? []).map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            email: s.email,
+            courseCount: s.courseCount ?? 0,
+            classCount: s.classCount ?? 0,
+          }))
+        )
+      } catch {
+        setStudents([])
+      }
+    }
+
+    loadCourses()
+    loadSessionsOverview()
+    loadStudents()
+  }, [])
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  }
+
+  const courseSessions = selectedCourse
+    ? sessionsOverview.filter(
+        s => s.courseId === selectedCourse.id || s.subject === selectedCourse.name
+      )
+    : []
+
+  return (
+    <TabsContent value="overview" className="flex h-[calc(100vh-140px)] flex-col space-y-4">
+      {/* Top Row - Course List & Sessions Side by Side */}
+      <div className="grid h-[280px] shrink-0 grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="flex flex-col overflow-hidden">
+          <div className="shrink-0 py-2">
+            <h3 className="text-sm font-semibold text-gray-800">
+              Courses & Classes ({courses.length})
+            </h3>
+          </div>
+          <div className="flex-1 space-y-2 overflow-y-auto pr-2">
+            {coursesLoading ? (
+              <div className="flex h-full items-center justify-center py-10 text-sm text-gray-500">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Loading courses...
+              </div>
+            ) : courses.length === 0 ? (
+              <div className="flex h-full items-center justify-center py-10 text-center text-sm text-gray-500">
+                No published courses found.
+              </div>
+            ) : (
+              courses.map(course => (
+                <div
+                  key={course.id}
+                  className={cn(
+                    'cursor-pointer rounded-xl border bg-white p-3 shadow-sm transition-colors',
+                    selectedItem?.type === 'course' && selectedItem.id === course.id
+                      ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-400/20'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  )}
+                  onClick={() => {
+                    setSelectedItem(
+                      selectedItem?.type === 'course' && selectedItem.id === course.id
+                        ? null
+                        : { type: 'course', id: course.id }
+                    )
+                  }}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="text-sm font-medium text-gray-900">{course.name}</div>
+                    <Badge
+                      variant="secondary"
+                      className="bg-blue-600 text-[10px] text-white hover:bg-blue-700"
+                    >
+                      Course
+                    </Badge>
+                  </div>
+                  <div className="text-muted-foreground mt-1 truncate text-xs">
+                    {course.description || course.categories[0] || 'Untitled'}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col overflow-hidden">
+          <div className="shrink-0 py-2">
+            <h3 className="text-sm font-semibold text-gray-800">Sessions</h3>
+          </div>
+          <div className="flex-1 space-y-2 overflow-y-auto pr-2">
+            {sessionsLoading ? (
+              <div className="text-muted-foreground flex h-full items-center justify-center py-10 text-sm">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Loading sessions...
+              </div>
+            ) : sessionsOverview.length === 0 ? (
+              <div className="text-muted-foreground flex h-full items-center justify-center py-10 text-center text-sm">
+                No sessions found.
+              </div>
+            ) : (
+              sessionsOverview.map((sessionItem: SessionOverviewItem) => {
+                const isOngoing = sessionItem.status === 'ACTIVE'
+                const isEnded = Boolean(sessionItem.endedAt) || sessionItem.status === 'COMPLETED'
+                const statusLabel = isOngoing ? 'Ongoing' : isEnded ? 'Ended' : 'Scheduled'
+                return (
+                  <div
+                    key={sessionItem.id}
+                    className={cn(
+                      'cursor-pointer rounded-xl border bg-white p-3 shadow-sm transition-colors',
+                      selectedItem?.type === 'session' && selectedItem.id === sessionItem.id
+                        ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-400/20'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    )}
+                    onClick={() => {
+                      setSelectedItem(
+                        selectedItem?.type === 'session' && selectedItem.id === sessionItem.id
+                          ? null
+                          : { type: 'session', id: sessionItem.id }
+                      )
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-gray-900">
+                          {sessionItem.title}
+                        </p>
+                        <p className="text-muted-foreground mt-0.5 truncate text-xs">
+                          {sessionItem.subject}
+                        </p>
+                      </div>
+                      <Badge
+                        variant={isOngoing ? 'default' : isEnded ? 'secondary' : 'outline'}
+                        className="shrink-0 text-[10px]"
+                      >
+                        {statusLabel}
+                      </Badge>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Analytics Strip (Minimal) */}
+      <div className="flex shrink-0 items-center gap-6 overflow-x-auto rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+        {selectedCourse ? (
+          <>
+            <div className="flex shrink-0 items-center gap-2 border-r border-gray-200 pr-6 font-semibold text-blue-600">
+              <BarChart3 className="h-4 w-4" />
+              <span className="text-sm">{selectedCourse.name}</span>
+            </div>
+            <div className="flex items-center gap-8 text-sm">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-medium uppercase text-gray-500">Published</span>
+                <span className="font-medium text-gray-900">
+                  {formatDate(selectedCourse.createdAt)}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-medium uppercase text-gray-500">Sessions</span>
+                <span className="font-medium text-gray-900">{courseSessions.length}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-medium uppercase text-gray-500">Category</span>
+                <span className="font-medium text-gray-900">
+                  {selectedCourse.categories[0] || 'N/A'}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-medium uppercase text-gray-500">Students</span>
+                <span className="font-medium text-gray-900">{students.length}</span>
+              </div>
+            </div>
+          </>
+        ) : selectedSession ? (
+          <>
+            <div className="flex shrink-0 items-center gap-2 border-r border-gray-200 pr-6 font-semibold text-blue-600">
+              <BarChart3 className="h-4 w-4" />
+              <span className="text-sm">{selectedSession.title}</span>
+            </div>
+            <div className="flex items-center gap-8 text-sm">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-medium uppercase text-gray-500">Status</span>
+                <span className="font-medium text-gray-900">{selectedSession.status}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-medium uppercase text-gray-500">Scheduled</span>
+                <span className="font-medium text-gray-900">
+                  {formatDate(selectedSession.scheduledAt)}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-medium uppercase text-gray-500">Subject</span>
+                <span className="font-medium text-gray-900">
+                  {selectedSession.subject || 'N/A'}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-medium uppercase text-gray-500">Students</span>
+                <span className="font-medium text-gray-900">{students.length}</span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex w-full items-center justify-center gap-2 text-gray-500">
+            <BarChart3 className="h-4 w-4" />
+            <span className="text-sm font-medium">Select a course or class to view analytics</span>
+          </div>
         )}
       </div>
 
-      {/* Editor Modal */}
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Report: {editingReport?.title}</DialogTitle>
-            <DialogDescription>For {editingReport?.studentName || 'Student'}</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6 py-4">
-            {/* Strengths */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium text-gray-900">Strengths</h4>
-                <Button variant="outline" size="sm" onClick={addStrength} className="h-7 text-xs">
-                  <Plus className="mr-1 h-3 w-3" /> Add
-                </Button>
-              </div>
-              {strengths.length === 0 && (
-                <p className="text-sm italic text-gray-500">No strengths added.</p>
-              )}
-              {strengths.map((str, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <Input
-                    value={str}
-                    onChange={e => updateStrength(i, e.target.value)}
-                    placeholder="E.g., Excellent grasp of algebraic concepts..."
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeStrength(i)}
-                    className="text-red-500 hover:bg-red-50 hover:text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-
-            {/* Weaknesses */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium text-gray-900">Areas for Improvement</h4>
-                <Button variant="outline" size="sm" onClick={addWeakness} className="h-7 text-xs">
-                  <Plus className="mr-1 h-3 w-3" /> Add
-                </Button>
-              </div>
-              {weaknesses.length === 0 && (
-                <p className="text-sm italic text-gray-500">No weaknesses added.</p>
-              )}
-              {weaknesses.map((wk, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <Input
-                    value={wk}
-                    onChange={e => updateWeakness(i, e.target.value)}
-                    placeholder="E.g., Needs more practice with geometry..."
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeWeakness(i)}
-                    className="text-red-500 hover:bg-red-50 hover:text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-
-            {/* Comments */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium text-gray-900">Overall Comments</h4>
-              <Textarea
-                rows={4}
-                value={overallComments}
-                onChange={e => setOverallComments(e.target.value)}
-                placeholder="Provide overall feedback..."
-              />
-            </div>
-
-            {/* Score */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium text-gray-900">Overall Score (%)</h4>
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                value={score}
-                onChange={e => setScore(e.target.value === '' ? '' : Number(e.target.value))}
-                placeholder="E.g., 85"
-                className="w-32"
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="flex gap-2">
-            <Button variant="outline" onClick={() => handleSave(false)} disabled={isSaving}>
-              Save Draft
-            </Button>
-            <Button
-              className="bg-indigo-600 hover:bg-indigo-700"
-              onClick={() => handleSave(true)}
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="mr-2 h-4 w-4" />
-              )}
-              Send to Student
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+      {/* AI Chat Component (Always Rendered, Flexible Height) */}
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <ItemAIChat
+          course={selectedCourse}
+          session={selectedSession}
+          courses={courses}
+          sessions={sessionsOverview}
+          students={students}
+        />
+      </div>
+    </TabsContent>
   )
 }
