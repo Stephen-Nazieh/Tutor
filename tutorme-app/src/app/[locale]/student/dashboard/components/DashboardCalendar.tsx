@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { InteractiveCalendar } from '@/app/[locale]/tutor/dashboard/components/InteractiveCalendar'
@@ -171,9 +170,9 @@ export function DashboardCalendar({
   }, [events])
 
   return (
-    <Card className="w-full">
+    <div className="w-full rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)] overflow-hidden">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <CardHeader className="pb-3">
+        <div className="p-6 pb-3">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="classes" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
@@ -186,9 +185,9 @@ export function DashboardCalendar({
               <span className="sm:hidden">Calendar</span>
             </TabsTrigger>
           </TabsList>
-        </CardHeader>
+        </div>
 
-        <CardContent>
+        <div className="p-6 pt-0">
           {/* My Calendar Tab */}
           <TabsContent value="calendar" className="mt-0 space-y-4">
             <InteractiveCalendar events={interactiveEvents} loading={loading} mode="student" />
@@ -201,7 +200,7 @@ export function DashboardCalendar({
                 <p className="text-muted-foreground text-sm">Loading your classes...</p>
               </div>
             ) : classes.length === 0 ? (
-              <div className="py-8 text-center">
+              <div className="py-12 text-center rounded-[14px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
                 <BookOpen className="text-muted-foreground/60 mx-auto mb-3 h-12 w-12" />
                 <p className="text-muted-foreground">You haven&apos;t booked any classes yet.</p>
                 <Button className="mt-4" asChild>
@@ -209,11 +208,11 @@ export function DashboardCalendar({
                 </Button>
               </div>
             ) : (
-              <div className="max-h-[400px] space-y-3 overflow-y-auto">
+              <div className="max-h-[400px] space-y-3 overflow-y-auto pr-2">
                 {classes.map(cls => (
                   <div
                     key={cls.id}
-                    className="border-border bg-muted/40 hover:bg-muted/70 rounded-lg border p-4 transition-colors"
+                    className="rounded-[14px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] p-4 shadow-[0_4px_14px_rgba(0,0,0,0.08)] transition-colors hover:bg-slate-50"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -257,8 +256,8 @@ export function DashboardCalendar({
               </div>
             )}
           </TabsContent>
-        </CardContent>
+        </div>
       </Tabs>
-    </Card>
+    </div>
   )
 }

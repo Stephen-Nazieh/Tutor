@@ -205,7 +205,7 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="bg-background text-foreground min-h-screen" style={themeStyle}>
+    <div className="bg-[#FFFFFF] text-foreground min-h-screen">
       {/* Navigation */}
       <nav className="safe-top border-border bg-secondary sticky top-0 z-50 border-b">
         <div className="w-full px-4 sm:px-6 lg:px-8">

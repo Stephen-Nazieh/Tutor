@@ -67,29 +67,23 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
     })
 
   return (
-    <div className="border-border from-background via-secondary to-card relative overflow-hidden rounded-3xl border bg-gradient-to-br p-8 shadow-2xl">
-      <div className="absolute inset-0 opacity-40">
-        <div className="bg-primary/20 absolute left-0 top-0 h-96 w-96 animate-pulse rounded-full opacity-50 mix-blend-multiply blur-[100px] filter" />
-        <div className="bg-accent/40 absolute right-0 top-0 h-96 w-96 animate-pulse rounded-full opacity-50 mix-blend-multiply blur-[100px] filter delay-1000" />
-        <div className="delay-2000 bg-secondary/40 absolute bottom-0 left-1/4 h-96 w-96 animate-pulse rounded-full opacity-50 mix-blend-multiply blur-[100px] filter" />
-      </div>
-
+    <div className="relative overflow-hidden rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] p-8 shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
       <div className="relative z-10">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-6">
           <div>
             <div className="mb-2 flex items-center gap-2">
               <Sparkles className="text-primary h-5 w-5" />
-              <span className="text-muted-foreground text-sm font-medium">
+              <span className="text-slate-500 text-sm font-medium">
                 {greeting}, {session?.user?.name?.split(' ')[0] || 'Student'}
               </span>
             </div>
-            <h1 className="text-foreground mb-2 text-4xl font-bold">Welcome Back!</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-slate-800 mb-2 text-4xl font-bold">Welcome Back!</h1>
+            <p className="text-slate-500">
               {formatDate(currentTime)} •{' '}
               {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
             </p>
           </div>
-          <div className="text-muted-foreground flex items-center gap-2 text-sm">
+          <div className="text-slate-500 flex items-center gap-2 text-sm">
             <Calendar className="h-4 w-4" />
             {classes.length > 0
               ? `${classes.length} upcoming class${classes.length > 1 ? 'es' : ''}`
@@ -97,7 +91,7 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
           </div>
         </div>
 
-        <div className="border-border bg-card/70 mb-8 grid grid-cols-7 gap-2 rounded-2xl border p-4 shadow-2xl backdrop-blur-md">
+        <div className="mb-8 grid grid-cols-7 gap-2 rounded-[14px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] p-4 shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
           {Array.from({ length: 7 }, (_, i) => {
             const d = new Date(currentTime)
             d.setDate(currentTime.getDate() + i)
@@ -108,35 +102,35 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
               <div
                 key={i}
                 onClick={() => setSelectedDay({ date: d, events: dayEvents })}
-                className="hover:bg-accent/40 group flex cursor-pointer flex-col items-center justify-center rounded-xl p-2 transition-colors"
+                className="hover:bg-slate-50 group flex cursor-pointer flex-col items-center justify-center rounded-xl p-2 transition-colors"
               >
-                <span className="text-muted-foreground mb-1 text-xs font-medium">
+                <span className="text-slate-500 mb-1 text-xs font-medium">
                   {d.toLocaleDateString('en-US', { weekday: 'short' })}
                 </span>
                 <span
                   className={cn(
                     'mt-1 flex h-8 w-8 items-center justify-center rounded-full text-lg font-bold',
                     i === 0
-                      ? 'bg-primary text-primary-foreground shadow-primary/30 shadow-md'
-                      : 'text-foreground group-hover:bg-accent/30'
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                      : 'text-slate-700 group-hover:bg-indigo-50'
                   )}
                 >
                   {d.getDate()}
                 </span>
                 <div className="mt-2 flex flex-col items-center gap-0.5">
                   {dayEvents.slice(0, 1).map(evt => (
-                    <span key={evt.id} className="text-primary text-[10px] font-medium">
+                    <span key={evt.id} className="text-indigo-600 text-[10px] font-medium">
                       {evt.timeLabel}
                     </span>
                   ))}
                   {dayEvents.length > 1 && (
-                    <span className="text-muted-foreground text-[8px]">
+                    <span className="text-slate-500 text-[8px]">
                       +{dayEvents.length - 1} more
                     </span>
                   )}
                   {!hasClasses && (
                     <div className="flex h-1.5 gap-1">
-                      <div className="bg-muted-foreground/60 h-1.5 w-1.5 rounded-full" />
+                      <div className="bg-slate-200 h-1.5 w-1.5 rounded-full" />
                     </div>
                   )}
                 </div>
@@ -146,16 +140,16 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
         </div>
 
         <Dialog open={!!selectedDay} onOpenChange={() => setSelectedDay(null)}>
-          <DialogContent className="border-border bg-card border sm:max-w-md">
+          <DialogContent className="border-slate-200 bg-white sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="text-slate-800">
                 {selectedDay?.date.toLocaleDateString('en-US', {
                   weekday: 'long',
                   month: 'long',
                   day: 'numeric',
                 })}
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-slate-500">
                 {selectedDay && selectedDay.events.length > 0
                   ? `${selectedDay.events.length} class${selectedDay.events.length > 1 ? 'es' : ''} scheduled`
                   : 'No classes scheduled'}
@@ -164,13 +158,13 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
 
             <div className="space-y-3 py-4">
               {selectedDay?.events.map(event => (
-                <div key={event.id} className="bg-muted/60 flex items-center gap-3 rounded-lg p-3">
-                  <div className="bg-primary/15 flex h-10 w-10 items-center justify-center rounded-lg">
-                    <BookOpen className="text-primary h-5 w-5" />
+                <div key={event.id} className="bg-slate-50 flex items-center gap-3 rounded-lg p-3 border border-slate-100">
+                  <div className="bg-indigo-50 flex h-10 w-10 items-center justify-center rounded-lg">
+                    <BookOpen className="text-indigo-600 h-5 w-5" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-foreground font-medium">{event.title}</p>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-slate-800 font-medium">{event.title}</p>
+                    <p className="text-slate-500 text-sm">
                       {event.timeLabel} • {event.duration} min
                     </p>
                   </div>
@@ -178,8 +172,8 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
               ))}
 
               {(!selectedDay || selectedDay.events.length === 0) && (
-                <div className="text-muted-foreground py-8 text-center">
-                  <Calendar className="text-muted-foreground/60 mx-auto mb-3 h-12 w-12" />
+                <div className="text-slate-500 py-8 text-center">
+                  <Calendar className="text-slate-300 mx-auto mb-3 h-12 w-12" />
                   <p>No classes scheduled for this day</p>
                 </div>
               )}
