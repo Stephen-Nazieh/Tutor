@@ -8,7 +8,20 @@ import { notify } from '@/lib/notifications/notify'
 export const POST = withAuth(
   async (req, sessionObj, context) => {
     const studentId = sessionObj.user.id
-    const { id: sessionId } = (await context.params) as { id: string }
+    
+    let sessionId = ''
+    try {
+      const params = await context?.params
+      sessionId = (params as any)?.id
+    } catch (e) {}
+    
+    if (!sessionId) {
+      const parts = req.nextUrl.pathname.split('/').filter(Boolean)
+      const reqIdx = parts.lastIndexOf('request-materials')
+      if (reqIdx > 0) {
+        sessionId = parts[reqIdx - 1]
+      }
+    }
 
     // Verify session
     const [session] = await drizzleDb

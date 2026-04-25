@@ -20,7 +20,20 @@ const voteSchema = z.object({
 // POST - Submit a vote
 export const POST = withAuth(async (req: NextRequest, session, context) => {
   try {
-    const { pollId } = (await context.params) as { pollId: string }
+    let pollId = ''
+    try {
+      const params = await context?.params
+      pollId = (params as any)?.pollId
+    } catch (e) {}
+
+    if (!pollId) {
+      const parts = req.nextUrl.pathname.split('/').filter(Boolean)
+      const voteIdx = parts.lastIndexOf('vote')
+      if (voteIdx > 0) {
+        pollId = parts[voteIdx - 1]
+      }
+    }
+
     if (!pollId) {
       return NextResponse.json({ error: 'Poll ID is required' }, { status: 400 })
     }

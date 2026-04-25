@@ -39,13 +39,25 @@ function buildTranscript(
     .join('\n')
 }
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ sessionId: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: any }) {
   const session = await getServerSession(authOptions, req)
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { sessionId: liveSessionId } = await params
+  let liveSessionId = ''
+  try {
+    const resolvedParams = await params
+    liveSessionId = resolvedParams?.sessionId
+  } catch (e) {}
+
+  if (!liveSessionId) {
+    const parts = req.nextUrl.pathname.split('/').filter(Boolean)
+    const replayIdx = parts.lastIndexOf('replay-artifact')
+    if (replayIdx > 0) {
+      liveSessionId = parts[replayIdx - 1]
+    }
+  }
 
   const sessionRows = await drizzleDb
     .select({

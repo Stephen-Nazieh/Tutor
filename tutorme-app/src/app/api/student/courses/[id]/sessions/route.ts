@@ -7,7 +7,20 @@ import { liveSession as liveSessionTable, courseEnrollment } from '@/lib/db/sche
 export const GET = withAuth(
   async (req, session, context) => {
     const studentId = session.user.id
-    const { id: courseId } = (await context.params) as { id: string }
+    
+    let courseId = ''
+    try {
+      const params = await context?.params
+      courseId = (params as any)?.id
+    } catch (e) {}
+    
+    if (!courseId) {
+      const parts = req.nextUrl.pathname.split('/').filter(Boolean)
+      const sessionsIdx = parts.lastIndexOf('sessions')
+      if (sessionsIdx > 0) {
+        courseId = parts[sessionsIdx - 1]
+      }
+    }
 
     // Verify enrollment
     const [enrollment] = await drizzleDb

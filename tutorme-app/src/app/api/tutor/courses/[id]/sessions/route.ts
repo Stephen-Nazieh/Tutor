@@ -12,7 +12,21 @@ import { liveSession as liveSessionTable } from '@/lib/db/schema'
 export const GET = withAuth(
   async (req, session, context) => {
     const tutorId = session.user.id
-    const { id: courseId } = (await context.params) as { id: string }
+    // Safely extract courseId whether context.params is a Promise or an object, or fallback to URL parsing
+    let courseId = ''
+    try {
+      const params = await context?.params
+      courseId = (params as any)?.id
+    } catch (e) {}
+    
+    if (!courseId) {
+      // Fallback string extraction that handles both /sessions and /sessions/ safely
+      const parts = req.nextUrl.pathname.split('/').filter(Boolean)
+      const sessionsIdx = parts.lastIndexOf('sessions')
+      if (sessionsIdx > 0) {
+        courseId = parts[sessionsIdx - 1]
+      }
+    }
 
     const statusParam = req.nextUrl.searchParams.get('status')
     const allowedStatuses = statusParam

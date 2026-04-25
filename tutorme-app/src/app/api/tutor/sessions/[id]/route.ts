@@ -13,7 +13,17 @@ import { notifyMany } from '@/lib/notifications/notify'
 export const PATCH = withAuth(
   async (req, session, context) => {
     const tutorId = session.user.id
-    const { id: sessionId } = (await context.params) as { id: string }
+    
+    let sessionId = ''
+    try {
+      const params = await context?.params
+      sessionId = (params as any)?.id
+    } catch (e) {}
+    
+    if (!sessionId) {
+      const parts = req.nextUrl.pathname.split('/').filter(Boolean)
+      sessionId = parts[parts.length - 1]
+    }
 
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 })

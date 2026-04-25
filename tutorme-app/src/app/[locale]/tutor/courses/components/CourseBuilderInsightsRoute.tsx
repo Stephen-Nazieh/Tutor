@@ -556,7 +556,7 @@ function CourseBuilderInsightsRouteInner({
                     </SelectContent>
                   </Select>
                 )}
-                {activeMainTab === 'builder' && insightsProps.sessionId && onSyncToLiveSession && (
+                {insightsProps.sessionId && onSyncToLiveSession && (
                   <Button
                     variant="outline"
                     onClick={async () => {
@@ -571,6 +571,24 @@ function CourseBuilderInsightsRouteInner({
                     Sync
                   </Button>
                 )}
+
+                {/* Always show Go Live if a real course is selected */}
+                {courseId && courseId !== 'insights-draft' && (
+                  <Button
+                    variant="default"
+                    className={cn(
+                      'gap-2 font-medium text-white transition-all duration-300',
+                      insightsProps.sessionId
+                        ? 'shadow-[0_0_15px_rgba(220,38,38,0.8)] bg-red-600 hover:bg-red-700'
+                        : 'ring-green-400 shadow-[0_0_15px_rgba(34,197,94,0.8)] bg-green-500 ring-1 hover:bg-green-600'
+                    )}
+                    onClick={handleStartSessionClick}
+                  >
+                    <VideoIcon className="h-4 w-4" />
+                    {insightsProps.sessionId ? 'Session Active' : 'Go Live'}
+                  </Button>
+                )}
+
                 {activeMainTab === 'builder' &&
                   (onSaveCourse ||
                     (onCreateCourse && !insightsProps.sessionId) ||
@@ -602,25 +620,6 @@ function CourseBuilderInsightsRouteInner({
                         >
                           <Calendar className="h-4 w-4" />
                           Schedule
-                        </Button>
-                      )}
-                      {courseId && courseId !== 'insights-draft' && (
-                        <Button
-                          variant="default"
-                          className={cn(
-                            'gap-2 font-medium text-white transition-all duration-300',
-                            insightsProps.sessionId
-                              ? 'bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.8)] hover:bg-red-700'
-                              : 'bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.8)] ring-1 ring-green-400 hover:bg-green-600'
-                          )}
-                          onClick={() => {
-                            if (!insightsProps.sessionId && insightsProps.onStartSession) {
-                              insightsProps.onStartSession()
-                            }
-                          }}
-                        >
-                          <VideoIcon className="h-4 w-4" />
-                          {insightsProps.sessionId ? 'Session Active' : 'Go Live'}
                         </Button>
                       )}
                       {onDeleteCourse &&

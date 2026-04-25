@@ -7,7 +7,20 @@ import { courseEnrollment, user, profile } from '@/lib/db/schema'
 export const GET = withAuth(
   async (_req, session, context) => {
     const tutorId = session.user.id
-    const { id: courseId } = (await context.params) as { id: string }
+    
+    let courseId = ''
+    try {
+      const params = await context?.params
+      courseId = (params as any)?.id
+    } catch (e) {}
+    
+    if (!courseId) {
+      const parts = _req.nextUrl.pathname.split('/').filter(Boolean)
+      const enrollIdx = parts.lastIndexOf('enrollments')
+      if (enrollIdx > 0) {
+        courseId = parts[enrollIdx - 1]
+      }
+    }
 
     if (!courseId) {
       return NextResponse.json({ error: 'Course ID is required' }, { status: 400 })

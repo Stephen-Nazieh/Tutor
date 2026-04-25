@@ -597,7 +597,7 @@ export default function TutorCoursePage() {
         </div>
 
         {/* Course Details */}
-        <Card className="w-full border border-slate-200 bg-white/50 shadow-sm backdrop-blur-sm">
+        <Card className="w-full border border-slate-200 bg-white/80 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-xl">
               <BookOpen className="h-5 w-5 text-indigo-500" />
@@ -630,7 +630,7 @@ export default function TutorCoursePage() {
 
             <div className="space-y-3">
               <Label>Categories</Label>
-              <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+              <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50/50 p-4 transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:bg-white/90">
                 {/* Top Panel - Region & Country Selection Dropdowns */}
                 <div className="flex flex-row items-start gap-4">
                   {/* Region Selection */}
@@ -711,7 +711,7 @@ export default function TutorCoursePage() {
                     onValueChange={setCategoryTab}
                     className="flex flex-col"
                   >
-                    <div className="border-b bg-slate-50/50 px-2 pt-2">
+                    <div className="bg-slate-50/50 px-2 pt-2">
                       <TabsList className="flex w-full flex-wrap justify-start gap-2 bg-transparent p-0">
                         <TabsTrigger 
                           value="global" 
@@ -760,7 +760,7 @@ export default function TutorCoursePage() {
                     </div>
 
                     {/* Search */}
-                    <div className="border-b px-4 py-2">
+                    <div className="px-4 py-2">
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                         <Input
@@ -1060,7 +1060,7 @@ export default function TutorCoursePage() {
                 Pricing
               </h3>
               <div className="space-y-6">
-                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 p-4 transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:bg-white/90">
                   <div>
                     <Label htmlFor="isFree" className="text-sm font-medium">
                       Free course
@@ -1117,7 +1117,7 @@ export default function TutorCoursePage() {
         </Card>
 
         {/* Variant Manager */}
-        <Card className="w-full border border-slate-200 bg-white/50 shadow-sm backdrop-blur-sm">
+        <Card className="w-full border border-slate-200 bg-white/80 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-xl">
               <Globe className="h-5 w-5 text-indigo-500" />
@@ -1145,7 +1145,7 @@ export default function TutorCoursePage() {
 
         {/* Bottom Actions */}
         <div className="flex justify-end gap-4 pb-12 pt-4">
-          <Button size="lg" variant="outline" onClick={handleSaveAll} disabled={saving} className="bg-white px-8">
+          <Button size="lg" variant="outline" onClick={handleSaveAll} disabled={saving} className="bg-white px-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             {saving ? 'Saving…' : 'Save Template'}
           </Button>

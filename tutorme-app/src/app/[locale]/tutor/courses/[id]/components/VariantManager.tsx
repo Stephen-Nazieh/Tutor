@@ -260,7 +260,7 @@ export function VariantManager({
   return (
     <div className="space-y-6">
       {/* Global Defaults */}
-      <Card className="border border-slate-200 bg-white shadow-sm">
+      <Card className="border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base text-slate-800">
             <Globe className="h-5 w-5 text-indigo-500" />
@@ -314,14 +314,14 @@ export function VariantManager({
               </div>
             </div>
             <div className="flex items-end">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={applyGlobalsToAll}
-                className="w-full"
-              >
-                Apply to all
-              </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={applyGlobalsToAll}
+              className="w-full shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow"
+            >
+              Apply to all
+            </Button>
             </div>
           </div>
         </CardContent>
@@ -346,7 +346,7 @@ export function VariantManager({
         )}
 
         {variants.map((variant, index) => (
-          <Card key={`${variant.category}|${variant.nationality}`} className="overflow-hidden border border-slate-200 bg-white shadow-sm">
+          <Card key={`${variant.category}|${variant.nationality}`} className="overflow-hidden border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
             <CardHeader className="border-b bg-slate-50/50 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -435,7 +435,7 @@ export function VariantManager({
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center justify-between rounded-lg border p-3">
+              <div className="mt-4 flex items-center justify-between rounded-lg border p-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-slate-50/50">
                 <div className="flex items-center gap-3">
                   <Calendar className="text-muted-foreground h-5 w-5" />
                   <div>
@@ -464,7 +464,7 @@ export function VariantManager({
           type="button"
           onClick={handleSave}
           disabled={saving || variants.length === 0}
-          className="bg-[#F17623] hover:bg-[#e06613]"
+          className="bg-[#F17623] hover:bg-[#e06613] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
         >
           {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           {saving ? 'Saving…' : `Save & Publish Variants (${publishedCount})`}
