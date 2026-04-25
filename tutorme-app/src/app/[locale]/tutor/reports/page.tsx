@@ -298,10 +298,10 @@ export default function TutorReports() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafc]">
+    <div className="min-h-screen bg-[#FFFFFF]">
       <div className="w-full">
         {/* Header Container */}
-        <div className="bg-[#fafafc] px-4 pb-2 pt-4 sm:px-6">
+        <div className="bg-[#FFFFFF] px-4 pb-2 pt-4 sm:px-6">
           <div className="flex w-full flex-col gap-4">
             <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
@@ -631,17 +631,17 @@ function ItemAIChat({
   const isSession = !!session
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between p-4">
-        <span className="text-sm font-semibold uppercase tracking-wider text-gray-800">
+      <div className="flex shrink-0 items-center justify-between border-b border-[rgba(0,0,0,0.04)] p-6">
+        <span className="text-sm font-bold uppercase tracking-wider text-slate-800">
           {isCourse
             ? `ASK AI ABOUT ${course.name}`
             : isSession
               ? `ASK AI ABOUT ${session.title}`
               : 'ASK AI ABOUT YOUR COURSES & STUDENTS'}
         </span>
-        <Badge variant="outline" className="bg-white text-[10px] font-medium text-gray-500">
+        <Badge variant="outline" className="bg-slate-50 text-[10px] font-semibold text-slate-500 border-slate-200">
           AI Integrated
         </Badge>
       </div>
@@ -843,191 +843,198 @@ function CoursesAndClassesTab() {
     : []
 
   return (
-    <TabsContent value="overview" className="flex h-[calc(100vh-140px)] flex-col space-y-4">
-      {/* Top Row - Course List & Sessions Side by Side */}
-      <div className="grid h-[280px] shrink-0 grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="flex flex-col overflow-hidden">
-          <div className="shrink-0 py-2">
-            <h3 className="text-sm font-semibold text-gray-800">
-              Courses & Classes ({courses.length})
-            </h3>
-          </div>
-          <div className="flex-1 space-y-2 overflow-y-auto pr-2">
-            {coursesLoading ? (
-              <div className="flex h-full items-center justify-center py-10 text-sm text-gray-500">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Loading courses...
-              </div>
-            ) : courses.length === 0 ? (
-              <div className="flex h-full items-center justify-center py-10 text-center text-sm text-gray-500">
-                No published courses found.
-              </div>
-            ) : (
-              courses.map(course => (
-                <div
-                  key={course.id}
-                  className={cn(
-                    'cursor-pointer rounded-xl border bg-white p-3 shadow-sm transition-colors',
-                    selectedItem?.type === 'course' && selectedItem.id === course.id
-                      ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-400/20'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  )}
-                  onClick={() => {
-                    setSelectedItem(
-                      selectedItem?.type === 'course' && selectedItem.id === course.id
-                        ? null
-                        : { type: 'course', id: course.id }
-                    )
-                  }}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="text-sm font-medium text-gray-900">{course.name}</div>
-                    <Badge
-                      variant="secondary"
-                      className="bg-blue-600 text-[10px] text-white hover:bg-blue-700"
-                    >
-                      Course
-                    </Badge>
-                  </div>
-                  <div className="text-muted-foreground mt-1 truncate text-xs">
-                    {course.description || course.categories[0] || 'Untitled'}
-                  </div>
+    <TabsContent value="overview" className="flex flex-col space-y-6 pb-12">
+      {/* Panel 1 - Shared Courses & Classes / Sessions */}
+      <div className="rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
+        <div className="grid h-[280px] shrink-0 grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="flex flex-col overflow-hidden">
+            <div className="shrink-0 pb-3">
+              <h3 className="text-base font-bold text-slate-800">
+                Courses & Classes ({courses.length})
+              </h3>
+            </div>
+            <div className="flex-1 space-y-3 overflow-y-auto pr-2">
+              {coursesLoading ? (
+                <div className="flex h-full items-center justify-center py-10 text-sm text-slate-500">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading courses...
                 </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        <div className="flex flex-col overflow-hidden">
-          <div className="shrink-0 py-2">
-            <h3 className="text-sm font-semibold text-gray-800">Sessions</h3>
-          </div>
-          <div className="flex-1 space-y-2 overflow-y-auto pr-2">
-            {sessionsLoading ? (
-              <div className="text-muted-foreground flex h-full items-center justify-center py-10 text-sm">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Loading sessions...
-              </div>
-            ) : sessionsOverview.length === 0 ? (
-              <div className="text-muted-foreground flex h-full items-center justify-center py-10 text-center text-sm">
-                No sessions found.
-              </div>
-            ) : (
-              sessionsOverview.map((sessionItem: SessionOverviewItem) => {
-                const isOngoing = sessionItem.status === 'ACTIVE'
-                const isEnded = Boolean(sessionItem.endedAt) || sessionItem.status === 'COMPLETED'
-                const statusLabel = isOngoing ? 'Ongoing' : isEnded ? 'Ended' : 'Scheduled'
-                return (
+              ) : courses.length === 0 ? (
+                <div className="flex h-full items-center justify-center py-10 text-center text-sm text-slate-500">
+                  No published courses found.
+                </div>
+              ) : (
+                courses.map(course => (
                   <div
-                    key={sessionItem.id}
+                    key={course.id}
                     className={cn(
-                      'cursor-pointer rounded-xl border bg-white p-3 shadow-sm transition-colors',
-                      selectedItem?.type === 'session' && selectedItem.id === sessionItem.id
-                        ? 'border-blue-400 bg-blue-50 ring-1 ring-blue-400/20'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      'cursor-pointer rounded-[12px] border p-4 transition-colors',
+                      selectedItem?.type === 'course' && selectedItem.id === course.id
+                        ? 'border-indigo-400 bg-indigo-50 ring-1 ring-indigo-400/20'
+                        : 'border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] hover:bg-slate-50'
                     )}
                     onClick={() => {
                       setSelectedItem(
-                        selectedItem?.type === 'session' && selectedItem.id === sessionItem.id
+                        selectedItem?.type === 'course' && selectedItem.id === course.id
                           ? null
-                          : { type: 'session', id: sessionItem.id }
+                          : { type: 'course', id: course.id }
                       )
                     }}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-gray-900">
-                          {sessionItem.title}
-                        </p>
-                        <p className="text-muted-foreground mt-0.5 truncate text-xs">
-                          {sessionItem.subject}
-                        </p>
-                      </div>
+                    <div className="flex items-start justify-between">
+                      <div className="text-sm font-semibold text-slate-800">{course.name}</div>
                       <Badge
-                        variant={isOngoing ? 'default' : isEnded ? 'secondary' : 'outline'}
-                        className="shrink-0 text-[10px]"
+                        variant="secondary"
+                        className="bg-indigo-100 text-[10px] text-indigo-700 hover:bg-indigo-200 border-0"
                       >
-                        {statusLabel}
+                        Course
                       </Badge>
                     </div>
+                    <div className="mt-1.5 truncate text-xs text-slate-500">
+                      {course.description || course.categories[0] || 'Untitled'}
+                    </div>
                   </div>
-                )
-              })
-            )}
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col overflow-hidden">
+            <div className="shrink-0 pb-3">
+              <h3 className="text-base font-bold text-slate-800">Sessions</h3>
+            </div>
+            <div className="flex-1 space-y-3 overflow-y-auto pr-2">
+              {sessionsLoading ? (
+                <div className="flex h-full items-center justify-center py-10 text-sm text-slate-500">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading sessions...
+                </div>
+              ) : sessionsOverview.length === 0 ? (
+                <div className="flex h-full items-center justify-center py-10 text-center text-sm text-slate-500">
+                  No sessions found.
+                </div>
+              ) : (
+                sessionsOverview.map((sessionItem: SessionOverviewItem) => {
+                  const isOngoing = sessionItem.status === 'ACTIVE'
+                  const isEnded = Boolean(sessionItem.endedAt) || sessionItem.status === 'COMPLETED'
+                  const statusLabel = isOngoing ? 'Ongoing' : isEnded ? 'Ended' : 'Scheduled'
+                  return (
+                    <div
+                      key={sessionItem.id}
+                      className={cn(
+                        'cursor-pointer rounded-[12px] border p-4 transition-colors',
+                        selectedItem?.type === 'session' && selectedItem.id === sessionItem.id
+                          ? 'border-indigo-400 bg-indigo-50 ring-1 ring-indigo-400/20'
+                          : 'border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] hover:bg-slate-50'
+                      )}
+                      onClick={() => {
+                        setSelectedItem(
+                          selectedItem?.type === 'session' && selectedItem.id === sessionItem.id
+                            ? null
+                            : { type: 'session', id: sessionItem.id }
+                        )
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-slate-800">
+                            {sessionItem.title}
+                          </p>
+                          <p className="mt-1 truncate text-xs text-slate-500">
+                            {sessionItem.subject}
+                          </p>
+                        </div>
+                        <Badge
+                          variant={isOngoing ? 'default' : isEnded ? 'secondary' : 'outline'}
+                          className={cn(
+                            "shrink-0 text-[10px] border-0",
+                            isOngoing ? "bg-emerald-500 text-white" : isEnded ? "bg-slate-100 text-slate-500" : "bg-blue-100 text-blue-700"
+                          )}
+                        >
+                          {statusLabel}
+                        </Badge>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Analytics Strip (Minimal) */}
-      <div className="flex shrink-0 items-center gap-6 overflow-x-auto rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-        {selectedCourse ? (
-          <>
-            <div className="flex shrink-0 items-center gap-2 border-r border-gray-200 pr-6 font-semibold text-blue-600">
-              <BarChart3 className="h-4 w-4" />
-              <span className="text-sm">{selectedCourse.name}</span>
+      {/* Panel 2 - Course Overview / Analytics Strip */}
+      <div className="rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
+        <div className="flex shrink-0 items-center gap-6 overflow-x-auto">
+          {selectedCourse ? (
+            <>
+              <div className="flex shrink-0 items-center gap-2 border-r border-slate-100 pr-6 font-bold text-indigo-600">
+                <BarChart3 className="h-5 w-5" />
+                <span className="text-base">{selectedCourse.name}</span>
+              </div>
+              <div className="flex items-center gap-8 text-sm">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Published</span>
+                  <span className="font-semibold text-slate-800">
+                    {formatDate(selectedCourse.createdAt)}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Sessions</span>
+                  <span className="font-semibold text-slate-800">{courseSessions.length}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Category</span>
+                  <span className="font-semibold text-slate-800">
+                    {selectedCourse.categories[0] || 'N/A'}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Students</span>
+                  <span className="font-semibold text-slate-800">{students.length}</span>
+                </div>
+              </div>
+            </>
+          ) : selectedSession ? (
+            <>
+              <div className="flex shrink-0 items-center gap-2 border-r border-slate-100 pr-6 font-bold text-indigo-600">
+                <BarChart3 className="h-5 w-5" />
+                <span className="text-base">{selectedSession.title}</span>
+              </div>
+              <div className="flex items-center gap-8 text-sm">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Status</span>
+                  <span className="font-semibold text-slate-800">{selectedSession.status}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Scheduled</span>
+                  <span className="font-semibold text-slate-800">
+                    {formatDate(selectedSession.scheduledAt)}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Subject</span>
+                  <span className="font-semibold text-slate-800">
+                    {selectedSession.subject || 'N/A'}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Students</span>
+                  <span className="font-semibold text-slate-800">{students.length}</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex w-full items-center justify-center gap-2 text-slate-500 py-2">
+              <BarChart3 className="h-5 w-5" />
+              <span className="text-sm font-semibold">Select a course or class to view analytics</span>
             </div>
-            <div className="flex items-center gap-8 text-sm">
-              <div className="flex flex-col">
-                <span className="text-[10px] font-medium uppercase text-gray-500">Published</span>
-                <span className="font-medium text-gray-900">
-                  {formatDate(selectedCourse.createdAt)}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-medium uppercase text-gray-500">Sessions</span>
-                <span className="font-medium text-gray-900">{courseSessions.length}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-medium uppercase text-gray-500">Category</span>
-                <span className="font-medium text-gray-900">
-                  {selectedCourse.categories[0] || 'N/A'}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-medium uppercase text-gray-500">Students</span>
-                <span className="font-medium text-gray-900">{students.length}</span>
-              </div>
-            </div>
-          </>
-        ) : selectedSession ? (
-          <>
-            <div className="flex shrink-0 items-center gap-2 border-r border-gray-200 pr-6 font-semibold text-blue-600">
-              <BarChart3 className="h-4 w-4" />
-              <span className="text-sm">{selectedSession.title}</span>
-            </div>
-            <div className="flex items-center gap-8 text-sm">
-              <div className="flex flex-col">
-                <span className="text-[10px] font-medium uppercase text-gray-500">Status</span>
-                <span className="font-medium text-gray-900">{selectedSession.status}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-medium uppercase text-gray-500">Scheduled</span>
-                <span className="font-medium text-gray-900">
-                  {formatDate(selectedSession.scheduledAt)}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-medium uppercase text-gray-500">Subject</span>
-                <span className="font-medium text-gray-900">
-                  {selectedSession.subject || 'N/A'}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-medium uppercase text-gray-500">Students</span>
-                <span className="font-medium text-gray-900">{students.length}</span>
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="flex w-full items-center justify-center gap-2 text-gray-500">
-            <BarChart3 className="h-4 w-4" />
-            <span className="text-sm font-medium">Select a course or class to view analytics</span>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* AI Chat Component (Always Rendered, Flexible Height) */}
-      <div className="min-h-0 flex-1 overflow-hidden">
+      {/* Panel 3 - Ask AI Component */}
+      <div className="h-[500px] shrink-0">
         <ItemAIChat
           course={selectedCourse}
           session={selectedSession}
