@@ -600,17 +600,20 @@ export default function TutorSettings() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
-      <header className="sticky top-0 z-10 border-b bg-white shadow-sm">
-        <div className="flex items-center gap-4 px-4 py-4">
-          <BackButton href="/tutor/dashboard" />
-          <div>
-            <h1 className="text-2xl font-bold">Account</h1>
-            <p className="text-gray-500">Manage your profile, billing, and security settings</p>
+      <header className="sticky top-0 z-10 w-full bg-gray-50 px-4 pb-2 pt-4 sm:px-6">
+        <div className="mx-auto max-w-5xl">
+          <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <BackButton href="/tutor/dashboard" />
+              <div className="flex flex-col justify-center">
+                <h1 className="text-lg font-bold text-slate-800">Account Settings</h1>
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="px-4 py-8">
+      <main className="mx-auto max-w-5xl px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 md:w-auto md:grid-cols-6">
             <TabsTrigger value="profile" className="gap-2">
