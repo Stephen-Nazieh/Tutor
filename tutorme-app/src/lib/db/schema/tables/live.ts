@@ -33,6 +33,10 @@ export const liveSession = pgTable(
     startedAt: timestamp('startedAt', { withTimezone: true }),
     endedAt: timestamp('endedAt', { withTimezone: true }),
     status: enums.liveSessionStatusEnum('status').notNull(),
+    sessionType: text('sessionType').notNull().default('teaching'), // 'teaching' | 'training'
+    trainingCategory: text('trainingCategory'),
+    trainingTargetAudience: text('trainingTargetAudience'),
+    trainingToken: text('trainingToken'),
     roomId: text('roomId'),
     roomUrl: text('roomUrl'),
     recordingUrl: text('recordingUrl'),
@@ -201,6 +205,25 @@ export const pollResponse = pgTable(
     PollResponse_pollId_respondentHash_key: uniqueIndex(
       'PollResponse_pollId_respondentHash_key'
     ).on(table.pollId, table.respondentHash),
+  })
+)
+
+export const trainingAttendance = pgTable(
+  'TrainingAttendance',
+  {
+    id: text('id').primaryKey().notNull(),
+    sessionId: text('sessionId')
+      .notNull()
+      .references(() => liveSession.sessionId, { onDelete: 'cascade' }),
+    tutorId: text('tutorId')
+      .notNull()
+      .references(() => user.userId, { onDelete: 'cascade' }),
+    attendedAt: timestamp('attendedAt', { withTimezone: true }).notNull().defaultNow(),
+  },
+  table => ({
+    TrainingAttendance_sessionId_idx: index('TrainingAttendance_sessionId_idx').on(table.sessionId),
+    TrainingAttendance_tutorId_idx: index('TrainingAttendance_tutorId_idx').on(table.tutorId),
+    TrainingAttendance_sessionId_tutorId_key: uniqueIndex('TrainingAttendance_sessionId_tutorId_key').on(table.sessionId, table.tutorId),
   })
 )
 

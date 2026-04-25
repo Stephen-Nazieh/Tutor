@@ -47,6 +47,7 @@ import {
 import { useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
+import { GoLiveDialog } from '../../dashboard/components/GoLiveDialog'
 import { toast } from 'sonner'
 import type { CourseBuilderInsightsProps } from './course-builder-types'
 import {
@@ -120,6 +121,7 @@ function CourseBuilderInsightsRouteInner({
     tabFromUrl ?? (insightsProps.sessionId ? 'live' : 'builder')
   )
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
+  const [goLiveDialogOpen, setGoLiveDialogOpen] = useState(false)
   const [renameValue, setRenameValue] = useState('')
   const [leftPanelHidden, setLeftPanelHidden] = useState(false)
 
@@ -155,6 +157,67 @@ function CourseBuilderInsightsRouteInner({
       const minutes = Math.floor(diff / 60000)
       const seconds = Math.floor((diff % 60000) / 1000)
       countdownText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} remaining`
+    }
+  }
+
+  const handleStartSessionClick = () => {
+    if (insightsProps.sessionId) {
+      if (insightsProps.onStartSession) {
+        insightsProps.onStartSession()
+      } else {
+        // Fallback if not provided from parent
+        setGoLiveDialogOpen(true)
+      }
+    } else {
+      setGoLiveDialogOpen(true)
+    }
+  }
+
+  const handleConfirmTeaching = async () => {
+    if (!courseId || courseId === 'insights-draft') {
+      toast.error('Please save your course first.')
+      return
+    }
+    
+    try {
+      const res = await fetch('/api/tutor/classes/start-ad-hoc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'teaching', courseId, title: courseName })
+      })
+      if (!res.ok) throw new Error('Failed to start session')
+      
+      const data = await res.json()
+      toast.success('Teaching session started!')
+      model.router.push(`/tutor/sessions/${data.sessionId}`)
+    } catch (err) {
+      toast.error('Could not start teaching session')
+    }
+  }
+
+  const handleConfirmTraining = async (data: { token: string; targetAudience: string; category: string }) => {
+    try {
+      const res = await fetch('/api/tutor/classes/start-ad-hoc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          type: 'training', 
+          trainingToken: data.token, 
+          targetAudience: data.targetAudience, 
+          trainingCategory: data.category,
+          title: 'Training Session'
+        })
+      })
+      if (!res.ok) {
+        if (res.status === 403) throw new Error('Invalid token')
+        throw new Error('Failed to start session')
+      }
+      
+      const resData = await res.json()
+      toast.success('Training session started!')
+      model.router.push(`/tutor/sessions/${resData.sessionId}`)
+    } catch (err: any) {
+      toast.error(err.message || 'Could not start training session')
     }
   }
 
@@ -628,6 +691,7 @@ function CourseBuilderInsightsRouteInner({
             insightsProps={{
               ...insightsProps,
               onEndSession: insightsProps.sessionId ? handleEndSession : undefined,
+              onStartSession: handleStartSessionClick,
               endingSession,
             }}
             onMainTabChange={setActiveMainTab}
@@ -716,6 +780,13 @@ function CourseBuilderInsightsRouteInner({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <GoLiveDialog 
+        open={goLiveDialogOpen}
+        onOpenChange={setGoLiveDialogOpen}
+        onConfirmTeaching={handleConfirmTeaching}
+        onConfirmTraining={handleConfirmTraining}
+      />
     </div>
   )
 }
