@@ -1186,11 +1186,11 @@ export default function PublicTutorPage() {
                       <div
                         className={cn(
                           'flex flex-1 p-4',
-                          isList && 'min-w-0 pr-3',
+                          isList && 'min-w-0 pr-3 flex-col sm:flex-row sm:items-center sm:gap-6',
                           isCompact && 'p-3'
                         )}
                       >
-                        <div className="flex flex-1 flex-col min-w-0 pr-4">
+                        <div className={cn("flex flex-col min-w-0", isList ? "flex-1" : "flex-1 pr-4")}>
                           <div className="flex items-start justify-between gap-2">
                             <h3
                               className={cn(
@@ -1212,40 +1212,85 @@ export default function PublicTutorPage() {
                           >
                             {desc}
                           </p>
-                          <dl
-                            className={cn(
-                              'mt-auto space-y-1.5 pt-3 text-slate-300',
-                              isCompact ? 'text-[11px]' : 'text-xs sm:text-sm'
-                            )}
-                          >
-                            <div className="flex gap-1">
-                              <dd className="font-medium text-slate-200">
-                                {course.lessonCount} lessons
-                              </dd>
+                          
+                          {!isList && (
+                            <dl
+                              className={cn(
+                                'mt-auto space-y-1.5 pt-3 text-slate-300',
+                                isCompact ? 'text-[11px]' : 'text-xs sm:text-sm'
+                              )}
+                            >
+                              <div className="flex gap-1">
+                                <dd className="font-medium text-slate-200">
+                                  {course.lessonCount} lessons
+                                </dd>
+                              </div>
+                              <div className="flex items-start gap-1">
+                                <dd className="min-w-0 text-slate-200">
+                                  {course.scheduleSummary ? (
+                                    <button
+                                      type="button"
+                                      onClick={e => {
+                                        e.preventDefault()
+                                        setScheduleCourse(course)
+                                      }}
+                                      className="inline-flex items-center gap-1 font-medium text-blue-400 transition-colors hover:text-blue-300 hover:underline"
+                                    >
+                                      <CalendarDays className="h-3.5 w-3.5" />
+                                      Schedule <ExternalLink className="h-3 w-3" />
+                                    </button>
+                                  ) : (
+                                    <span className="flex shrink-0 items-center gap-0.5 font-medium text-slate-300">
+                                      <CalendarDays className="h-3.5 w-3.5" />
+                                      Schedule to be announced
+                                    </span>
+                                  )}
+                                </dd>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2 pt-1">
+                                <Badge
+                                  variant={enrollmentStatus === 'ended' ? 'outline' : 'default'}
+                                  className={cn(
+                                    'text-[10px] font-semibold sm:text-xs transition-all hover:brightness-105',
+                                    enrollmentStatus === 'ongoing'
+                                      ? 'bg-emerald-600 text-white hover:bg-emerald-600 border-transparent'
+                                      : 'border-[rgba(255,255,255,0.2)] text-slate-300'
+                                  )}
+                                >
+                                  {enrollmentStatus === 'ended'
+                                    ? 'Enrollment ended'
+                                    : 'Enrollment ongoing'}
+                                </Badge>
+                              </div>
+                            </dl>
+                          )}
+                        </div>
+
+                        {/* Middle column (ONLY IN LIST MODE): Lessons, Schedule, Enrollment */}
+                        {isList && (
+                          <div className="flex flex-col shrink-0 gap-2.5 min-w-[200px] py-1">
+                            <div className="flex items-center gap-2 text-sm text-slate-200">
+                              <BookOpen className="h-4 w-4 text-slate-400" />
+                              <span>{course.lessonCount} lessons</span>
                             </div>
-                            <div className="flex items-start gap-1">
-                              <dd className="min-w-0 text-slate-200">
-                                {course.scheduleSummary ? (
-                                  <button
-                                    type="button"
-                                    onClick={e => {
-                                      e.preventDefault()
-                                      setScheduleCourse(course)
-                                    }}
-                                    className="inline-flex items-center gap-1 font-medium text-blue-400 transition-colors hover:text-blue-300 hover:underline"
-                                  >
-                                    <CalendarDays className="h-3.5 w-3.5" />
-                                    Schedule <ExternalLink className="h-3 w-3" />
-                                  </button>
-                                ) : (
-                                  <span className="flex shrink-0 items-center gap-0.5 font-medium text-slate-300">
-                                    <CalendarDays className="h-3.5 w-3.5" />
-                                    Schedule to be announced
-                                  </span>
-                                )}
-                              </dd>
+                            <div className="flex items-center gap-2 text-sm text-slate-200">
+                              <CalendarDays className="h-4 w-4 text-slate-400" />
+                              {course.scheduleSummary ? (
+                                <button
+                                  type="button"
+                                  onClick={e => {
+                                    e.preventDefault()
+                                    setScheduleCourse(course)
+                                  }}
+                                  className="inline-flex items-center gap-1 font-medium text-blue-400 transition-colors hover:text-blue-300 hover:underline"
+                                >
+                                  Schedule <ExternalLink className="h-3 w-3" />
+                                </button>
+                              ) : (
+                                <span className="font-medium text-slate-300">Schedule to be announced</span>
+                              )}
                             </div>
-                            <div className="flex flex-wrap items-center gap-2 pt-1">
+                            <div className="pt-0.5">
                               <Badge
                                 variant={enrollmentStatus === 'ended' ? 'outline' : 'default'}
                                 className={cn(
@@ -1260,10 +1305,11 @@ export default function PublicTutorPage() {
                                   : 'Enrollment ongoing'}
                               </Badge>
                             </div>
-                          </dl>
-                        </div>
+                          </div>
+                        )}
+
                         {/* Right column: Badge + Avatar */}
-                        <div className="flex shrink-0 flex-col items-end justify-between w-24 sm:w-28">
+                        <div className={cn("flex shrink-0 flex-col items-end justify-between w-24 sm:w-28", isList && "ml-4 h-full py-1")}>
                           <Badge 
                             variant="secondary" 
                             className="shrink-0 text-[10px] sm:text-xs bg-blue-600 hover:bg-blue-700 text-white border-0 mb-2 transition-all hover:brightness-105"
@@ -1281,34 +1327,56 @@ export default function PublicTutorPage() {
                           </div>
                         </div>
                       </div>
+                      
                       <div
                         className={cn(
                           'flex flex-col gap-3 border-t border-[rgba(255,255,255,0.1)] px-4 py-3',
-                          isList &&
-                            'w-full min-w-[200px] max-w-full justify-between border-l border-t-0 sm:w-52',
+                          isList ? 'w-full min-w-[180px] max-w-[200px] border-l border-t-0 justify-center' : 'w-full justify-between',
                           isCompact && 'gap-2 px-3 py-2'
                         )}
                       >
-                        <div className="flex w-full flex-wrap items-center justify-between gap-2">
-                          <StarRating rating={course.rating ?? null} count={course.reviewCount} className="text-slate-200" />
-                          {course.isFree ? (
-                            <span className="text-sm font-bold text-emerald-400">Free</span>
-                          ) : course.price != null && course.price > 0 ? (
-                            <span className="text-sm font-bold text-slate-100">
-                              ${course.price}{' '}
-                              <span className="text-[10px] font-normal text-slate-400">
-                                / 1h session
+                        {!isList && (
+                          <div className="flex w-full flex-wrap items-center justify-between gap-2">
+                            <StarRating rating={course.rating ?? null} count={course.reviewCount} className="text-slate-200" />
+                            {course.isFree ? (
+                              <span className="text-sm font-bold text-emerald-400">Free</span>
+                            ) : course.price != null && course.price > 0 ? (
+                              <span className="text-sm font-bold text-slate-100">
+                                ${course.price}{' '}
+                                <span className="text-[10px] font-normal text-slate-400">
+                                  / 1h session
+                                </span>
                               </span>
-                            </span>
-                          ) : (
-                            <span className="text-sm font-bold text-emerald-400">Free</span>
-                          )}
-                        </div>
+                            ) : (
+                              <span className="text-sm font-bold text-emerald-400">Free</span>
+                            )}
+                          </div>
+                        )}
+
+                        {isList && (
+                          <div className="flex w-full flex-col gap-4 px-2">
+                            <div>
+                              {course.isFree ? (
+                                <span className="text-lg font-bold text-emerald-400">Free</span>
+                              ) : course.price != null && course.price > 0 ? (
+                                <span className="text-lg font-bold text-slate-100">
+                                  ${course.price}{' '}
+                                  <span className="text-xs font-normal text-slate-400">
+                                    / 1h session
+                                  </span>
+                                </span>
+                              ) : (
+                                <span className="text-lg font-bold text-emerald-400">Free</span>
+                              )}
+                            </div>
+                            <div className="h-px w-full bg-[rgba(255,255,255,0.1)]" />
+                          </div>
+                        )}
 
                         <div
                           className={cn(
                             'mt-auto flex w-full flex-wrap items-center gap-4 pt-2',
-                            isList && 'justify-end'
+                            isList ? 'justify-between px-2' : 'justify-start'
                           )}
                         >
                           <button
@@ -1333,7 +1401,7 @@ export default function PublicTutorPage() {
                               onClick={() => handleEnterClassroom(course)}
                               disabled={launchingCourseId === course.id}
                             >
-                              <FileText className="mr-1.5 h-3.5 w-3.5" />
+                              <BookOpen className="mr-1.5 h-3.5 w-3.5" />
                               {launchingCourseId === course.id ? 'Launching…' : 'Classroom'}
                             </button>
                           ) : (
@@ -1382,7 +1450,7 @@ export default function PublicTutorPage() {
                                 onClick={() => void handleStudentEnterClassroom(course)}
                                 disabled={studentJoiningCourseId === course.id}
                               >
-                                <FileText className="mr-1.5 h-3.5 w-3.5" />
+                                <BookOpen className="mr-1.5 h-3.5 w-3.5" />
                                 {studentJoiningCourseId === course.id ? 'Enrolling…' : 'Classroom'}
                               </button>
                             </>
