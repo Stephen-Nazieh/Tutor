@@ -570,55 +570,65 @@ function CoursePageInner() {
                     </Card>
                   ) : (
                     followingTutors.map(tutor => (
-                      <Card
+                      <div
                         key={tutor.id}
-                        className="border-border bg-card relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md"
+                        className={cn(
+                          'group relative flex flex-col overflow-hidden rounded-[20px] text-left transition-all duration-300',
+                          'border border-[rgba(255,255,255,0.12)]',
+                          'bg-[rgba(30,40,50,0.65)] backdrop-blur-[12px]',
+                          'shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_12px_30px_rgba(0,0,0,0.35)]',
+                          'hover:-translate-y-[2px] hover:brightness-105',
+                          'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]'
+                        )}
+                        style={{
+                          backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(70, 110, 180, 0.75), rgba(25, 55, 110, 0.95))',
+                        }}
                       >
-                        <CardHeader className="space-y-3">
-                          <div className="flex items-start gap-3">
-                            {tutor.avatarUrl ? (
-                              <img
-                                src={tutor.avatarUrl}
-                                alt={tutor.name}
-                                className="border-border h-12 w-12 shrink-0 rounded-full border object-cover"
-                              />
-                            ) : (
-                              <div className="border-border bg-muted flex h-12 w-12 shrink-0 items-center justify-center rounded-full border text-lg font-bold">
-                                {tutor.name?.charAt(0)}
-                              </div>
-                            )}
-                            <div className="min-w-0 flex-1">
-                              <CardTitle className="text-foreground truncate text-lg">
-                                {tutor.name}
-                              </CardTitle>
-                              <CardDescription>@{tutor.username}</CardDescription>
+                        <div className="flex flex-col p-5 h-full">
+                          <div className="flex items-start gap-4">
+                            <div className="w-20 h-20 shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_6px_16px_rgba(0,0,0,0.35)]">
+                              {tutor.avatarUrl ? (
+                                <img
+                                  src={tutor.avatarUrl}
+                                  alt={tutor.name}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center bg-[rgba(255,255,255,0.05)] text-lg font-bold text-slate-100">
+                                  {tutor.name?.charAt(0)}
+                                </div>
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1 flex flex-col pt-1">
+                              <h3 className="text-slate-50 truncate text-lg font-semibold">{tutor.name}</h3>
+                              <p className="mt-1 text-xs font-medium text-slate-300">@{tutor.username}</p>
                             </div>
                           </div>
+                          
                           {tutor.bio && (
-                            <p className="text-muted-foreground line-clamp-2 text-sm">
+                            <p className="mt-4 text-slate-300 line-clamp-2 text-xs">
                               {tutor.bio}
                             </p>
                           )}
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex flex-wrap gap-2 text-xs">
+
+                          <div className="flex flex-wrap gap-1.5 mt-4 mb-4">
                             {tutor.specialties?.slice(0, 3).map((specialty: string) => (
-                              <Badge key={specialty} variant="secondary" className="bg-muted">
+                              <span key={specialty} className="px-2.5 py-0.5 text-[11px] text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
                                 {specialty}
-                              </Badge>
+                              </span>
                             ))}
                           </div>
-                        </CardContent>
-                        <CardFooter>
-                          <Button
-                            asChild
-                            size="sm"
-                            className="w-full bg-indigo-600 hover:bg-indigo-700"
-                          >
-                            <Link href={`/u/${tutor.username}`}>View Profile</Link>
-                          </Button>
-                        </CardFooter>
-                      </Card>
+
+                          <div className="mt-auto pt-4 border-t border-[rgba(255,255,255,0.1)]">
+                            <Link
+                              href={`/u/${tutor.username}`}
+                              className="flex items-center justify-center w-full py-2 text-sm font-medium text-slate-100 rounded-full border border-[rgba(255,255,255,0.25)] bg-[rgba(255,255,255,0.08)] backdrop-blur-[6px] transition-colors hover:bg-[rgba(255,255,255,0.15)] hover:text-white"
+                            >
+                              View Profile
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
                     ))
                   )}
                 </div>

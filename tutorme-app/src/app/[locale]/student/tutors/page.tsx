@@ -25,6 +25,7 @@ import {
   Star,
   Heart,
   Video,
+  Calendar,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
@@ -74,9 +75,9 @@ function getInitials(name: string): string {
 function StarRating({ rating, count }: { rating: number; count?: number }) {
   return (
     <div className="flex items-center gap-1 text-xs">
-      <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-      <span className="font-medium">{rating.toFixed(1)}</span>
-      {count !== undefined && <span className="text-muted-foreground">({count})</span>}
+      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+      <span className="font-medium text-slate-100 text-base ml-1">{rating.toFixed(1)}</span>
+      {count !== undefined && <span className="text-slate-400 ml-1">({count})</span>}
     </div>
   )
 }
@@ -364,108 +365,111 @@ export default function StudentTutorDirectoryPage() {
           </Card>
         ) : (
           tutors.map(tutor => (
-            <Card
+            <div
               key={tutor.id}
               className={cn(
-                'relative h-full cursor-pointer transition-all duration-500',
-                'border-border bg-card shadow-lg hover:-translate-y-3 hover:scale-[1.02] hover:shadow-2xl',
-                'ring-1 ring-black/5'
+                'group relative flex flex-col overflow-hidden rounded-[20px] text-left transition-all duration-300 cursor-pointer',
+                'border border-[rgba(255,255,255,0.12)]',
+                'bg-[rgba(30,40,50,0.65)] backdrop-blur-[12px]',
+                'shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_12px_30px_rgba(0,0,0,0.35)]',
+                'hover:-translate-y-[2px] hover:brightness-105',
+                'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]'
               )}
+              style={{
+                backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(70, 110, 180, 0.75), rgba(25, 55, 110, 0.95))',
+              }}
               onClick={() => router.push(`/${locale}/u/${tutor.username}`)}
             >
-              <Button
-                variant={following.has(tutor.id) ? 'default' : 'outline'}
-                size="sm"
-                onClick={e => {
-                  e.stopPropagation()
-                  toggleFollow(tutor.id)
-                }}
-                className="absolute right-2 top-2 z-10 h-7 gap-1 rounded-full px-2.5 text-xs"
-              >
-                {following.has(tutor.id) ? 'Following' : 'Follow'}
-              </Button>
-              <CardHeader className="space-y-2 p-4">
-                <div className="flex items-start gap-2">
-                  <Avatar className="border-border h-9 w-9 border">
-                    <AvatarImage src={tutor.avatarUrl || undefined} alt={`${tutor.name} avatar`} />
-                    <AvatarFallback className="bg-muted text-foreground text-xs">
-                      {getInitials(tutor.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1 pr-8">
-                    <CardTitle className="text-foreground truncate text-base">
-                      {tutor.name}
-                    </CardTitle>
-                    <CardDescription className="text-xs">@{tutor.username}</CardDescription>
+              <div className="flex flex-col p-5">
+                <div className="flex items-start gap-4">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_6px_16px_rgba(0,0,0,0.35)]">
+                    <img src={tutor.avatarUrl || undefined} alt={tutor.name} className="h-full w-full object-cover" />
+                  </div>
+
+                  <div className="min-w-0 flex-1 flex flex-col pt-1">
+                    <div className="flex justify-between items-start">
+                      <div className="min-w-0 flex-1 pr-2">
+                        <h3 className="text-slate-50 truncate text-lg font-semibold">{tutor.name}</h3>
+                        <p className="mt-1 text-xs font-medium text-slate-300">
+                          @{tutor.username}
+                        </p>
+                      </div>
+                      <button 
+                        onClick={e => {
+                          e.stopPropagation()
+                          toggleFollow(tutor.id)
+                        }}
+                        className="shrink-0 px-3 py-1 text-xs font-medium text-slate-100 rounded-full border border-[rgba(255,255,255,0.25)] bg-[rgba(255,255,255,0.08)] backdrop-blur-[6px] transition-colors hover:bg-[rgba(255,255,255,0.15)]"
+                      >
+                        {following.has(tutor.id) ? 'Following' : 'Follow'}
+                      </button>
+                    </div>
+
+                    <p className="text-slate-300 mt-2 line-clamp-2 text-xs">{tutor.bio || 'Experienced tutor ready to help you improve quickly.'}</p>
                   </div>
                 </div>
-                <p className="text-muted-foreground line-clamp-1 text-xs">
-                  {tutor.bio || 'Experienced tutor ready to help you improve quickly.'}
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-2 p-4 pt-0">
-                <div className="flex items-center gap-2">
+
+                <div className="mt-4 mb-3">
                   <StarRating
                     rating={tutor.averageRating || 0}
                     count={tutor.totalReviewCount || 0}
                   />
                 </div>
-                <div className="flex flex-wrap gap-2">
+
+                <div className="flex flex-wrap items-center gap-1.5 mb-3">
                   {tutor.categories.slice(0, 3).map(category => (
-                    <Badge key={`${tutor.id}:${category}`} variant="secondary" className="bg-muted">
+                    <span key={`${tutor.id}:${category}`} className="px-2.5 py-0.5 text-[11px] text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
                       {category}
-                    </Badge>
+                    </span>
                   ))}
                   {tutor.categories.length > 3 ? (
-                    <Badge variant="outline" className="border-border">
+                    <span className="px-2.5 py-0.5 text-[11px] text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
                       +{tutor.categories.length - 3}
-                    </Badge>
+                    </span>
                   ) : null}
                 </div>
+
                 {(tutor.tutorNationalities || []).length > 0 && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5 mb-4">
                     {(tutor.tutorNationalities || []).slice(0, 3).map(nat => (
-                      <Badge
-                        key={`${tutor.id}:nat:${nat}`}
-                        variant="outline"
-                        className="border-border"
-                      >
+                      <span key={`${tutor.id}:nat:${nat}`} className="px-2.5 py-0.5 text-[11px] text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
                         {nat}
-                      </Badge>
+                      </span>
                     ))}
                     {(tutor.tutorNationalities || []).length > 3 && (
-                      <Badge variant="outline" className="border-border">
+                      <span className="px-2.5 py-0.5 text-[11px] text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
                         +{(tutor.tutorNationalities || []).length - 3}
-                      </Badge>
+                      </span>
                     )}
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="border-border bg-muted/30 rounded-md border p-1.5">
-                    <p className="text-muted-foreground text-[10px]">Courses</p>
-                    <p className="text-foreground font-semibold">{tutor.courseCount}</p>
+                {!(tutor.tutorNationalities || []).length && <div className="mb-4" />}
+
+                <div className="border-b border-[rgba(255,255,255,0.1)] mb-4" />
+
+                <div className="grid grid-cols-2 gap-3 mb-4 mt-auto">
+                  <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] p-2.5">
+                    <p className="text-[10px] text-slate-300 mb-0.5">Courses</p>
+                    <p className="text-base font-semibold text-slate-100">{tutor.courseCount}</p>
                   </div>
-                  <div className="border-border bg-muted/30 rounded-md border p-1.5">
-                    <p className="text-muted-foreground text-[10px]">Enrollments</p>
-                    <p className="text-foreground font-semibold">{tutor.totalEnrollments}</p>
+                  <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] p-2.5">
+                    <p className="text-[10px] text-slate-300 mb-0.5">Enrollments</p>
+                    <p className="text-base font-semibold text-slate-100">{tutor.totalEnrollments}</p>
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full gap-2 border-blue-500 text-blue-600 hover:bg-blue-50"
-                  asChild
-                >
+
+                <div className="pt-2">
                   <Link
                     href={`/${locale}/u/${tutor.username}?book=1`}
                     onClick={e => e.stopPropagation()}
+                    className="flex items-center justify-center w-full gap-2 py-2 text-sm font-medium text-slate-100 rounded-full border border-[rgba(255,255,255,0.25)] bg-[rgba(255,255,255,0.08)] backdrop-blur-[6px] transition-colors hover:bg-[rgba(255,255,255,0.15)] hover:text-white"
                   >
-                    <Video className="h-4 w-4" />
+                    <Calendar className="h-4 w-4 text-[rgba(255,255,255,0.8)]" />
                     Book 1 on 1
                   </Link>
-                </Button>
-              </CardContent>
-            </Card>
+                </div>
+              </div>
+            </div>
           ))
         )}
       </div>
