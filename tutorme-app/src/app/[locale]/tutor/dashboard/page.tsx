@@ -829,6 +829,9 @@ function TutorDashboardContent() {
                 <ScrollArea className="max-h-[400px]">
                   <div className="space-y-3 pr-4">
                     {courseSessions.map(session => {
+                      const isPassedSession =
+                        session.scheduledAt &&
+                        new Date(session.scheduledAt).getTime() + 2 * 60 * 60 * 1000 < Date.now()
                       const isScheduled = session.status === 'scheduled'
                       const isActive = session.status === 'active'
                       const isEnded = session.status === 'ended'
@@ -845,7 +848,11 @@ function TutorDashboardContent() {
                               <Badge
                                 variant={isEnded ? 'secondary' : isActive ? 'default' : 'outline'}
                                 className={
-                                  isActive ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''
+                                  isActive && isPassedSession
+                                    ? 'bg-amber-100 text-amber-800 hover:bg-amber-100'
+                                    : isActive
+                                      ? 'bg-green-100 text-green-700 hover:bg-green-100'
+                                      : ''
                                 }
                               >
                                 {session.status}

@@ -921,7 +921,9 @@ function StudentFeedbackContent() {
                                   <p className="text-xs font-semibold uppercase text-gray-500">
                                     Document
                                   </p>
-                                  {activeTask.sourceDocument.mimeType === 'application/pdf' ? (
+                                  {activeTask.sourceDocument.mimeType === 'application/pdf' ||
+                                  !activeTask.sourceDocument.mimeType ||
+                                  !activeTask.sourceDocument.mimeType ? (
                                     <div className="h-[calc(100%-24px)] w-full overflow-hidden rounded border">
                                       <iframe
                                         src={`${activeTask.sourceDocument.fileUrl}#toolbar=0&navpanes=0`}
