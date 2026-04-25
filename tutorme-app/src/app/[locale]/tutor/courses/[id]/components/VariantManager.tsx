@@ -258,111 +258,107 @@ export function VariantManager({
     scheduleDialogIndex != null ? `schedule-editor-${scheduleDialogIndex}` : 'schedule-editor-empty'
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
       {/* Global Defaults */}
-      <Card className="border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base text-slate-800">
-            <Globe className="h-5 w-5 text-indigo-500" />
-            Global Defaults
-          </CardTitle>
-          <CardDescription>
-            Set default price, currency, and language for all variants.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-4">
-            <div className="space-y-1">
-              <Label className="text-xs">Price</Label>
-              <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-slate-400" />
-                    <Input
-                      type="number"
-                      min={0}
-                      value={globalPrice}
-                      onChange={e => setGlobalPrice(e.target.value)}
-                      placeholder="0.00"
-                      className="bg-white"
-                    />
-                  </div>
+      <div className="space-y-4">
+        <h3 className="flex items-center gap-2 text-base font-semibold text-slate-800">
+          <Globe className="h-4 w-4 text-indigo-500" />
+          Global Defaults
+        </h3>
+        <p className="text-sm text-slate-500">
+          Set default price, currency, and language for all variants.
+        </p>
+        <div className="grid gap-6 sm:grid-cols-4 pt-2">
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold text-slate-700">Price</Label>
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-slate-400" />
+              <Input
+                type="number"
+                min={0}
+                value={globalPrice}
+                onChange={e => setGlobalPrice(e.target.value)}
+                placeholder="0.00"
+                className="bg-transparent border-slate-200"
+              />
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Currency</Label>
-              <Select value={globalCurrency} onValueChange={setGlobalCurrency}>
-                <SelectTrigger className="bg-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {['USD', 'SGD', 'EUR', 'GBP', 'KRW', 'JPY', 'HKD', 'CNY', 'INR'].map(c => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold text-slate-700">Currency</Label>
+            <Select value={globalCurrency} onValueChange={setGlobalCurrency}>
+              <SelectTrigger className="bg-transparent border-slate-200">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {['USD', 'SGD', 'EUR', 'GBP', 'KRW', 'JPY', 'HKD', 'CNY', 'INR'].map(c => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold text-slate-700">Language</Label>
+            <div className="flex items-center gap-2">
+              <Languages className="h-4 w-4 text-slate-400" />
+              <Input
+                value={globalLanguage}
+                onChange={e => setGlobalLanguage(e.target.value)}
+                placeholder="e.g. English"
+                className="bg-transparent border-slate-200"
+              />
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Language</Label>
-              <div className="flex items-center gap-2">
-                <Languages className="h-4 w-4 text-slate-400" />
-                <Input
-                  value={globalLanguage}
-                  onChange={e => setGlobalLanguage(e.target.value)}
-                  placeholder="e.g. English"
-                  className="bg-white"
-                />
-              </div>
-            </div>
-            <div className="flex items-end">
+          </div>
+          <div className="flex items-end">
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               onClick={applyGlobalsToAll}
-              className="w-full shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow"
+              className="w-full bg-transparent border-slate-200 hover:bg-slate-50"
             >
               Apply to all
             </Button>
-            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      <div className="border-b border-[rgba(0,0,0,0.06)]" />
 
       {/* Variant List */}
-      <div className="space-y-3">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Course Variants</h3>
-          <div className="text-muted-foreground flex items-center gap-2 text-sm">
-            <Badge variant="outline">{variants.length} total</Badge>
-            <Badge variant="default">{publishedCount} published</Badge>
+          <h3 className="text-base font-semibold text-slate-800">Generated Variants</h3>
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <Badge variant="outline" className="border-slate-200 text-slate-600">{variants.length} total</Badge>
+            <Badge variant="default" className="bg-indigo-50 text-indigo-700 hover:bg-indigo-50 border-0">{publishedCount} published</Badge>
           </div>
         </div>
 
         {variants.length === 0 && (
-          <Card className="border-dashed">
-            <CardContent className="text-muted-foreground py-8 text-center text-sm">
-              Select categories and countries above to generate variant courses.
-            </CardContent>
-          </Card>
+          <div className="rounded-xl border border-dashed border-slate-200 py-12 text-center text-sm text-slate-500">
+            Select categories and countries above to generate variant courses.
+          </div>
         )}
 
-        {variants.map((variant, index) => (
-          <Card key={`${variant.category}|${variant.nationality}`} className="overflow-hidden border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-            <CardHeader className="border-b bg-slate-50/50 py-4">
-              <div className="flex items-center justify-between">
+        <div className="space-y-6">
+          {variants.map((variant, index) => (
+            <div key={`${variant.category}|${variant.nationality}`} className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+              <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-5 py-4">
                 <div className="flex items-center gap-3">
-                  <CardTitle className="text-base text-slate-800">
+                  <h4 className="text-sm font-semibold text-slate-800">
                     {variant.category} - {variant.nationality}
-                  </CardTitle>
+                  </h4>
                   {variant.isPublished ? (
-                    <Badge className="bg-emerald-500 text-white hover:bg-emerald-600">
+                    <Badge className="bg-emerald-500 text-white hover:bg-emerald-600 border-0">
                       Published
                     </Badge>
                   ) : (
-                    <Badge variant="secondary">Draft</Badge>
+                    <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-0">Draft</Badge>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground text-sm">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-slate-500">
                     {variant.isPublished ? 'Published' : 'Unpublished'}
                   </span>
                   <Switch
@@ -373,101 +369,101 @@ export function VariantManager({
                   />
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4 py-4">
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Price</Label>
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-slate-400" />
-                    <Input
-                      type="number"
-                      min={0}
-                      value={variant.price != null ? String(variant.price) : ''}
-                      onChange={e => {
-                        const val = e.target.value
-                        updateVariant(index, v => ({
-                          ...v,
-                          price: val === '' ? null : parseFloat(val),
-                        }))
-                      }}
-                      placeholder="0.00"
-                      className="bg-white"
-                    />
+              <div className="p-5">
+                <div className="grid gap-6 sm:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold text-slate-700">Price</Label>
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-slate-400" />
+                      <Input
+                        type="number"
+                        min={0}
+                        value={variant.price != null ? String(variant.price) : ''}
+                        onChange={e => {
+                          const val = e.target.value
+                          updateVariant(index, v => ({
+                            ...v,
+                            price: val === '' ? null : parseFloat(val),
+                          }))
+                        }}
+                        placeholder="0.00"
+                        className="bg-transparent border-slate-200"
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Currency</Label>
-                  <Select
-                    value={variant.currency}
-                    onValueChange={val =>
-                      updateVariant(index, v => ({ ...v, currency: val }))
-                    }
-                  >
-                    <SelectTrigger className="bg-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {['USD', 'SGD', 'EUR', 'GBP', 'KRW', 'JPY', 'HKD', 'CNY', 'INR'].map(c => (
-                        <SelectItem key={c} value={c}>
-                          {c}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Language</Label>
-                  <div className="flex items-center gap-2">
-                    <Languages className="h-4 w-4 text-slate-400" />
-                    <Input
-                      value={variant.languageOfInstruction}
-                      onChange={e =>
-                        updateVariant(index, v => ({
-                          ...v,
-                          languageOfInstruction: e.target.value,
-                        }))
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold text-slate-700">Currency</Label>
+                    <Select
+                      value={variant.currency}
+                      onValueChange={val =>
+                        updateVariant(index, v => ({ ...v, currency: val }))
                       }
-                      placeholder="e.g. English"
-                      className="bg-white"
-                    />
+                    >
+                      <SelectTrigger className="bg-transparent border-slate-200">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['USD', 'SGD', 'EUR', 'GBP', 'KRW', 'JPY', 'HKD', 'CNY', 'INR'].map(c => (
+                          <SelectItem key={c} value={c}>
+                            {c}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold text-slate-700">Language</Label>
+                    <div className="flex items-center gap-2">
+                      <Languages className="h-4 w-4 text-slate-400" />
+                      <Input
+                        value={variant.languageOfInstruction}
+                        onChange={e =>
+                          updateVariant(index, v => ({
+                            ...v,
+                            languageOfInstruction: e.target.value,
+                          }))
+                        }
+                        placeholder="e.g. English"
+                        className="bg-transparent border-slate-200"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="mt-4 flex items-center justify-between rounded-lg border p-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:bg-slate-50/50">
-                <div className="flex items-center gap-3">
-                  <Calendar className="text-muted-foreground h-5 w-5" />
-                  <div>
-                    <p className="text-sm font-medium">Schedule</p>
-                    <p className="text-muted-foreground text-xs">
-                      {Array.isArray(variant.schedule) && variant.schedule.length > 0
-                        ? `${variant.schedule.length} slot${variant.schedule.length === 1 ? '' : 's'} configured`
-                        : 'No slots configured'}
-                    </p>
+                <div className="mt-6 flex items-center justify-between rounded-xl border border-slate-200 p-4 transition-all duration-300 hover:bg-slate-50/50">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-5 w-5 text-indigo-500" />
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">Schedule</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {Array.isArray(variant.schedule) && variant.schedule.length > 0
+                          ? `${variant.schedule.length} slot${variant.schedule.length === 1 ? '' : 's'} configured`
+                          : 'No slots configured'}
+                      </p>
+                    </div>
                   </div>
+                  <Button type="button" variant="outline" className="border-slate-200 bg-transparent" onClick={() => openScheduleDialog(index)}>
+                    {Array.isArray(variant.schedule) && variant.schedule.length > 0
+                      ? 'Edit Schedule'
+                      : 'Add Class Slot'}
+                  </Button>
                 </div>
-                <Button type="button" variant="outline" onClick={() => openScheduleDialog(index)}>
-                  {Array.isArray(variant.schedule) && variant.schedule.length > 0
-                    ? 'Edit Schedule'
-                    : 'Add Class Slot'}
-                </Button>
               </div>
-            </CardContent>
-          </Card>
-        ))}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Save Action */}
-      <div className="flex justify-end gap-3">
+      <div className="flex justify-end gap-3 pt-6">
         <Button
           type="button"
           onClick={handleSave}
           disabled={saving || variants.length === 0}
-          className="bg-[#F17623] hover:bg-[#e06613] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-6 shadow-sm transition-all duration-300"
         >
           {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          {saving ? 'Saving…' : `Save & Publish Variants (${publishedCount})`}
+          {saving ? 'Saving…' : `Publish Variants (${publishedCount})`}
         </Button>
       </div>
 

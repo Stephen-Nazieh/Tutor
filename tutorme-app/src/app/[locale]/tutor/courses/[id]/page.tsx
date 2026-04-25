@@ -589,59 +589,65 @@ export default function TutorCoursePage() {
   }
 
   return (
-    <div className="h-full min-h-[calc(100vh-64px)] bg-white pb-8">
-      <div className="mx-auto w-full max-w-[1400px] space-y-6 px-4 pt-6 sm:px-6">
-        {/* Back to Course Builder */}
-        <div className="flex items-center gap-2">
-          <BackButton href={`/tutor/insights?tab=builder&courseId=${id}`} />
-        </div>
-
-        {/* Course Details */}
-        <Card className="w-full border border-slate-200 bg-white/80 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <BookOpen className="h-5 w-5 text-indigo-500" />
+    <div className="h-full min-h-[calc(100vh-64px)] bg-[#F8FAFC] pb-12">
+      <div className="mx-auto w-full max-w-[1400px] px-4 pt-8 sm:px-6">
+        
+        {/* Master Panel */}
+        <div className="bg-[#FFFFFF] rounded-[20px] shadow-[0_12px_30px_rgba(0,0,0,0.08)] px-6 py-8 sm:px-8 sm:py-10">
+          
+          {/* Header Row */}
+          <div className="mb-10 flex items-center gap-4">
+            <BackButton href={`/tutor/insights?tab=builder&courseId=${id}`} />
+            <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-800">
+              <BookOpen className="h-6 w-6 text-indigo-500" />
               Course Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
+            </h1>
+          </div>
+
+          <div className="space-y-10">
+            
+            {/* Section 1: Basic Info */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Course Name</Label>
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold text-slate-700">Course Name</Label>
                 <Input
                   value={courseName}
                   onChange={e => setCourseName(e.target.value)}
                   placeholder="Course name"
-                  className="bg-white"
+                  className="bg-transparent"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>Course Description</Label>
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold text-slate-700">Course Description</Label>
                 <Textarea
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                   placeholder="What will students learn in this course?"
                   rows={1}
-                  className="min-h-[40px] resize-y bg-white"
+                  className="min-h-[40px] resize-y bg-transparent"
                 />
               </div>
             </div>
 
-            <div className="space-y-3">
-              <Label>Categories</Label>
-              <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50/50 p-4 transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:bg-white/90">
+            <div className="border-b border-[rgba(0,0,0,0.06)]" />
+
+            {/* Section 2: Categories */}
+            <div className="space-y-6">
+              <h2 className="text-lg font-semibold text-slate-800">Categories</h2>
+              
+              <div className="flex flex-col gap-6">
                 {/* Top Panel - Region & Country Selection Dropdowns */}
-                <div className="flex flex-row items-start gap-4">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
                   {/* Region Selection */}
-                  <div className="flex-1 space-y-2">
-                    <Label className="flex items-center gap-2 text-xs font-medium text-slate-700">
-                      <Globe className="h-3.5 w-3.5 text-[#4FD1C5]" />
+                  <div className="flex-1 space-y-3">
+                    <Label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                      <Globe className="h-4 w-4 text-[#4FD1C5]" />
                       Region
                     </Label>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="w-full justify-between bg-white font-normal">
+                        <Button variant="outline" className="w-full justify-between bg-transparent font-normal border-slate-200">
                           {selectedRegions.length === 0 
                             ? 'Select Regions...' 
                             : `${selectedRegions.length} Region${selectedRegions.length === 1 ? '' : 's'} Selected`}
@@ -664,16 +670,16 @@ export default function TutorCoursePage() {
                   </div>
 
                   {/* Country Selection */}
-                  <div className="flex-1 space-y-2">
-                    <Label className="flex items-center gap-2 text-xs font-medium text-slate-700">
-                      <MapPin className="h-3.5 w-3.5 text-[#F17623]" />
+                  <div className="flex-1 space-y-3">
+                    <Label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                      <MapPin className="h-4 w-4 text-[#F17623]" />
                       Country
                     </Label>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button 
                           variant="outline" 
-                          className="w-full justify-between bg-white font-normal" 
+                          className="w-full justify-between bg-transparent font-normal border-slate-200" 
                           disabled={selectedRegions.length === 0}
                         >
                           {selectedRegions.length === 0 
@@ -704,46 +710,47 @@ export default function TutorCoursePage() {
                   </div>
                 </div>
 
-                {/* Bottom Panel - Category Tabs */}
-                <div className="flex-1 overflow-hidden rounded-lg border border-slate-200 bg-white">
+                {/* Category Tabs */}
+                <div className="flex flex-col gap-4">
                   <Tabs
                     value={categoryTab}
                     onValueChange={setCategoryTab}
-                    className="flex flex-col"
+                    className="flex flex-col w-full"
                   >
-                    <div className="bg-slate-50/50 px-2 pt-2">
-                      <TabsList className="flex w-full flex-wrap justify-start gap-2 bg-transparent p-0">
+                    {/* Tabs in direct flow, no background container */}
+                    <div className="border-b border-slate-200">
+                      <TabsList className="flex w-full flex-wrap justify-start gap-6 bg-transparent p-0">
                         <TabsTrigger 
                           value="global" 
-                          className="rounded-t-lg rounded-b-none border-b-2 border-transparent px-4 py-2 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+                          className="rounded-none border-b-2 border-transparent px-1 py-3 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none"
                         >
                           <Globe className="mr-2 h-4 w-4" />
                           Global
                         </TabsTrigger>
                         <TabsTrigger 
                           value="ap" 
-                          className="rounded-t-lg rounded-b-none border-b-2 border-transparent px-4 py-2 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+                          className="rounded-none border-b-2 border-transparent px-1 py-3 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none"
                         >
                           <Award className="mr-2 h-4 w-4" />
                           AP
                         </TabsTrigger>
                         <TabsTrigger 
                           value="alevel" 
-                          className="rounded-t-lg rounded-b-none border-b-2 border-transparent px-4 py-2 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+                          className="rounded-none border-b-2 border-transparent px-1 py-3 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none"
                         >
                           <GraduationCap className="mr-2 h-4 w-4" />
                           A Level
                         </TabsTrigger>
                         <TabsTrigger 
                           value="ib" 
-                          className="rounded-t-lg rounded-b-none border-b-2 border-transparent px-4 py-2 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+                          className="rounded-none border-b-2 border-transparent px-1 py-3 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none"
                         >
                           <BookOpen className="mr-2 h-4 w-4" />
                           IB
                         </TabsTrigger>
                         <TabsTrigger 
                           value="igcse" 
-                          className="rounded-t-lg rounded-b-none border-b-2 border-transparent px-4 py-2 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+                          className="rounded-none border-b-2 border-transparent px-1 py-3 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none"
                         >
                           <School className="mr-2 h-4 w-4" />
                           IGCSE
@@ -751,7 +758,7 @@ export default function TutorCoursePage() {
                         <TabsTrigger
                           value="national"
                           disabled={nationalExams.length === 0}
-                          className="rounded-t-lg rounded-b-none border-b-2 border-transparent px-4 py-2 font-medium text-slate-500 disabled:opacity-50 data-[state=active]:border-indigo-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+                          className="rounded-none border-b-2 border-transparent px-1 py-3 font-medium text-slate-500 disabled:opacity-50 data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none"
                         >
                           <Flag className="mr-2 h-4 w-4" />
                           National
@@ -759,24 +766,24 @@ export default function TutorCoursePage() {
                       </TabsList>
                     </div>
 
-                    {/* Search */}
-                    <div className="px-4 py-2">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    {/* Search - Integrated into flow without heavy borders */}
+                    <div className="pt-6 pb-2">
+                      <div className="relative max-w-md">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                         <Input
                           placeholder="Search categories..."
                           value={categorySearch}
                           onChange={e => setCategorySearch(e.target.value)}
-                          className="h-8 pl-9"
+                          className="h-10 pl-10 bg-transparent border-slate-200"
                         />
                       </div>
                     </div>
 
-                    {/* Tab Contents - using auto height so it doesn't get squished and hidden */}
-                    <div className="h-[280px] overflow-y-auto p-4">
+                    {/* Tab Contents - Auto height, no box styling */}
+                    <div className="py-4">
                       {/* Global Tab */}
                         <TabsContent value="global" className="mt-0">
-                          <div className="space-y-4">
+                          <div className="space-y-6">
                             {GLOBAL_EXAMS_CATEGORIES.filter(
                               cat =>
                                 !categorySearch ||
@@ -784,12 +791,12 @@ export default function TutorCoursePage() {
                                   e.toLowerCase().includes(categorySearch.toLowerCase())
                                 )
                             ).map(category => (
-                              <div key={category.id} className="space-y-2">
-                                <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                  <BookOpen className="h-4 w-4 text-[#1D4ED8]" />
+                              <div key={category.id} className="space-y-3">
+                                <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                                  <BookOpen className="h-4 w-4 text-indigo-600" />
                                   {category.label}
                                 </h4>
-                                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
                                   {category.exams
                                     .filter(
                                       exam =>
@@ -799,15 +806,15 @@ export default function TutorCoursePage() {
                                     .map(exam => (
                                       <label
                                         key={exam}
-                                        className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                        className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-50"
                                       >
                                         <input
                                           type="checkbox"
                                           checked={selectedCategories.includes(exam)}
                                           onChange={() => toggleCategory(exam)}
-                                          className="rounded border-gray-300"
+                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                         />
-                                        <span className="text-sm">{exam}</span>
+                                        <span className="text-sm text-slate-700">{exam}</span>
                                       </label>
                                     ))}
                                 </div>
@@ -818,7 +825,7 @@ export default function TutorCoursePage() {
 
                         {/* AP Tab */}
                         <TabsContent value="ap" className="mt-0">
-                          <div className="space-y-4">
+                          <div className="space-y-6">
                             {AP_CATEGORIES.filter(
                               cat =>
                                 !categorySearch ||
@@ -826,12 +833,12 @@ export default function TutorCoursePage() {
                                   e.toLowerCase().includes(categorySearch.toLowerCase())
                                 )
                             ).map(category => (
-                              <div key={category.id} className="space-y-2">
-                                <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                  <Award className="h-4 w-4 text-[#1D4ED8]" />
+                              <div key={category.id} className="space-y-3">
+                                <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                                  <Award className="h-4 w-4 text-indigo-600" />
                                   {category.label}
                                 </h4>
-                                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
                                   {category.exams
                                     .filter(
                                       exam =>
@@ -841,15 +848,15 @@ export default function TutorCoursePage() {
                                     .map(exam => (
                                       <label
                                         key={exam}
-                                        className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                        className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-50"
                                       >
                                         <input
                                           type="checkbox"
                                           checked={selectedCategories.includes(exam)}
                                           onChange={() => toggleCategory(exam)}
-                                          className="rounded border-gray-300"
+                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                         />
-                                        <span className="text-sm">{exam}</span>
+                                        <span className="text-sm text-slate-700">{exam}</span>
                                       </label>
                                     ))}
                                 </div>
@@ -860,7 +867,7 @@ export default function TutorCoursePage() {
 
                         {/* A Level Tab */}
                         <TabsContent value="alevel" className="mt-0">
-                          <div className="space-y-4">
+                          <div className="space-y-6">
                             {A_LEVEL_CATEGORIES.filter(
                               cat =>
                                 !categorySearch ||
@@ -868,12 +875,12 @@ export default function TutorCoursePage() {
                                   e.toLowerCase().includes(categorySearch.toLowerCase())
                                 )
                             ).map(category => (
-                              <div key={category.id} className="space-y-2">
-                                <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                  <GraduationCap className="h-4 w-4 text-[#1D4ED8]" />
+                              <div key={category.id} className="space-y-3">
+                                <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                                  <GraduationCap className="h-4 w-4 text-indigo-600" />
                                   {category.label}
                                 </h4>
-                                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
                                   {category.exams
                                     .filter(
                                       exam =>
@@ -883,15 +890,15 @@ export default function TutorCoursePage() {
                                     .map(exam => (
                                       <label
                                         key={exam}
-                                        className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                        className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-50"
                                       >
                                         <input
                                           type="checkbox"
                                           checked={selectedCategories.includes(exam)}
                                           onChange={() => toggleCategory(exam)}
-                                          className="rounded border-gray-300"
+                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                         />
-                                        <span className="text-sm">{exam}</span>
+                                        <span className="text-sm text-slate-700">{exam}</span>
                                       </label>
                                     ))}
                                 </div>
@@ -902,7 +909,7 @@ export default function TutorCoursePage() {
 
                         {/* IB Tab */}
                         <TabsContent value="ib" className="mt-0">
-                          <div className="space-y-4">
+                          <div className="space-y-6">
                             {IB_CATEGORIES.filter(
                               cat =>
                                 !categorySearch ||
@@ -910,12 +917,12 @@ export default function TutorCoursePage() {
                                   e.toLowerCase().includes(categorySearch.toLowerCase())
                                 )
                             ).map(category => (
-                              <div key={category.id} className="space-y-2">
-                                <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                  <BookOpen className="h-4 w-4 text-[#1D4ED8]" />
+                              <div key={category.id} className="space-y-3">
+                                <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                                  <BookOpen className="h-4 w-4 text-indigo-600" />
                                   {category.label}
                                 </h4>
-                                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
                                   {category.exams
                                     .filter(
                                       exam =>
@@ -925,15 +932,15 @@ export default function TutorCoursePage() {
                                     .map(exam => (
                                       <label
                                         key={exam}
-                                        className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                        className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-50"
                                       >
                                         <input
                                           type="checkbox"
                                           checked={selectedCategories.includes(exam)}
                                           onChange={() => toggleCategory(exam)}
-                                          className="rounded border-gray-300"
+                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                         />
-                                        <span className="text-sm">{exam}</span>
+                                        <span className="text-sm text-slate-700">{exam}</span>
                                       </label>
                                     ))}
                                 </div>
@@ -944,7 +951,7 @@ export default function TutorCoursePage() {
 
                         {/* IGCSE Tab */}
                         <TabsContent value="igcse" className="mt-0">
-                          <div className="space-y-4">
+                          <div className="space-y-6">
                             {IGCSE_CATEGORIES.filter(
                               cat =>
                                 !categorySearch ||
@@ -952,12 +959,12 @@ export default function TutorCoursePage() {
                                   e.toLowerCase().includes(categorySearch.toLowerCase())
                                 )
                             ).map(category => (
-                              <div key={category.id} className="space-y-2">
-                                <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                  <School className="h-4 w-4 text-[#1D4ED8]" />
+                              <div key={category.id} className="space-y-3">
+                                <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                                  <School className="h-4 w-4 text-indigo-600" />
                                   {category.label}
                                 </h4>
-                                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
                                   {category.exams
                                     .filter(
                                       exam =>
@@ -967,15 +974,15 @@ export default function TutorCoursePage() {
                                     .map(exam => (
                                       <label
                                         key={exam}
-                                        className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                        className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-50"
                                       >
                                         <input
                                           type="checkbox"
                                           checked={selectedCategories.includes(exam)}
                                           onChange={() => toggleCategory(exam)}
-                                          className="rounded border-gray-300"
+                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                         />
-                                        <span className="text-sm">{exam}</span>
+                                        <span className="text-sm text-slate-700">{exam}</span>
                                       </label>
                                     ))}
                                 </div>
@@ -986,10 +993,10 @@ export default function TutorCoursePage() {
 
                         {/* National Tab */}
                         <TabsContent value="national" className="mt-0">
-                          <div className="space-y-4">
+                          <div className="space-y-6">
                             {nationalExams.length === 0 ? (
-                              <div className="py-8 text-center text-gray-500">
-                                <Flag className="mx-auto mb-3 h-12 w-12 text-gray-300" />
+                              <div className="py-12 text-center text-slate-500">
+                                <Flag className="mx-auto mb-3 h-12 w-12 text-slate-300" />
                                 <p>Select countries to view national exams</p>
                               </div>
                             ) : (
@@ -1002,12 +1009,12 @@ export default function TutorCoursePage() {
                                     )
                                 )
                                 .map(category => (
-                                  <div key={category.id} className="space-y-2">
-                                    <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                                  <div key={category.id} className="space-y-3">
+                                    <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
                                       <Flag className="h-4 w-4 text-[#F17623]" />
                                       {category.label}
                                     </h4>
-                                    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
                                       {category.exams
                                         .filter(
                                           exam =>
@@ -1019,15 +1026,15 @@ export default function TutorCoursePage() {
                                         .map(exam => (
                                           <label
                                             key={exam}
-                                            className="flex cursor-pointer items-center gap-2 rounded-md p-2 hover:bg-gray-50"
+                                            className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-50"
                                           >
                                             <input
                                               type="checkbox"
                                               checked={selectedCategories.includes(exam)}
                                               onChange={() => toggleCategory(exam)}
-                                              className="rounded border-gray-300"
+                                              className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                             />
-                                            <span className="text-sm">{exam}</span>
+                                            <span className="text-sm text-slate-700">{exam}</span>
                                           </label>
                                         ))}
                                     </div>
@@ -1043,8 +1050,8 @@ export default function TutorCoursePage() {
 
               {/* Selected Categories Summary */}
               {selectedCategories.length > 0 && (
-                <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <div className="flex items-center gap-2 text-sm text-emerald-600 font-medium pt-2">
+                  <CheckCircle2 className="h-4 w-4" />
                   <span>
                     {selectedCategories.length} categor
                     {selectedCategories.length === 1 ? 'y' : 'ies'} selected
@@ -1053,19 +1060,21 @@ export default function TutorCoursePage() {
               )}
             </div>
 
-            {/* Pricing Section - Combined with Course Details */}
-            <div className="border-t border-slate-200 pt-6">
-              <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-800">
+            <div className="border-b border-[rgba(0,0,0,0.06)]" />
+
+            {/* Section 3: Pricing */}
+            <div className="space-y-6">
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-800">
                 <DollarSign className="h-5 w-5 text-indigo-500" />
-                Pricing
-              </h3>
-              <div className="space-y-6">
-                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 p-4 transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:bg-white/90">
+                Pricing Structure
+              </h2>
+              <div className="space-y-8 pt-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <Label htmlFor="isFree" className="text-sm font-medium">
+                    <Label htmlFor="isFree" className="text-sm font-semibold text-slate-700">
                       Free course
                     </Label>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-sm text-slate-500 mt-1">
                       Students can enroll without payment.
                     </p>
                   </div>
@@ -1078,9 +1087,10 @@ export default function TutorCoursePage() {
                     }}
                   />
                 </div>
+                
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Cost per 1 hour session</Label>
+                  <div className="space-y-3">
+                    <Label htmlFor="price" className="text-sm font-semibold text-slate-700">Cost per 1 hour session</Label>
                     <Input
                       id="price"
                       type="number"
@@ -1090,16 +1100,17 @@ export default function TutorCoursePage() {
                       onChange={e => setPrice(e.target.value)}
                       placeholder="$"
                       disabled={isFree}
-                      className="bg-white"
+                      className="bg-transparent border-slate-200"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="currency">Currency</Label>
-                    <Input id="currency" value="USD" disabled className="bg-slate-100 text-slate-500 cursor-not-allowed" />
+                  <div className="space-y-3">
+                    <Label htmlFor="currency" className="text-sm font-semibold text-slate-700">Currency</Label>
+                    <Input id="currency" value="USD" disabled className="bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed" />
                   </div>
                 </div>
+                
                 {!isFree && price && Number(price) > 0 && (
-                  <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-4 text-indigo-900">
+                  <div className="rounded-xl bg-indigo-50/50 p-4 text-indigo-900">
                     <p className="text-sm">
                       <span className="font-semibold">Cost per session:</span> USD{' '}
                       {Number(price).toFixed(2)}
@@ -1107,48 +1118,51 @@ export default function TutorCoursePage() {
                   </div>
                 )}
                 {isFree && (
-                  <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+                  <div className="rounded-xl bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
                     This course will be listed as free.
                   </div>
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Variant Manager */}
-        <Card className="w-full border border-slate-200 bg-white/80 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Globe className="h-5 w-5 text-indigo-500" />
-              Publish Variants
-            </CardTitle>
-            <CardDescription>
-              Configure and publish course variants for each category and country combination.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <VariantManager
-              templateCourseId={id}
-              selectedCategories={selectedCategories}
-              selectedCountryCodes={selectedCountries.length > 0 ? selectedCountries : ['GL']}
-              defaultPrice={price === '' ? null : Number(price)}
-              defaultCurrency="USD"
-              defaultLanguage={languageOfInstruction || 'English'}
-              defaultSchedule={schedule}
-              onSaved={() => {
-                // Optionally refresh course data after variants are saved
-              }}
-            />
-          </CardContent>
-        </Card>
+            <div className="border-b border-[rgba(0,0,0,0.06)]" />
 
-        {/* Bottom Actions */}
-        <div className="flex justify-end gap-4 pb-12 pt-4">
-          <Button size="lg" variant="outline" onClick={handleSaveAll} disabled={saving} className="bg-white px-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {saving ? 'Saving…' : 'Save Template'}
-          </Button>
+            {/* Section 4: Variant Manager */}
+            <div className="space-y-6">
+              <div>
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-800">
+                  <Globe className="h-5 w-5 text-indigo-500" />
+                  Publish Variants
+                </h2>
+                <p className="text-sm text-slate-500 mt-2">
+                  Configure and publish course variants for each category and country combination.
+                </p>
+              </div>
+              <div className="pt-4">
+                <VariantManager
+                  templateCourseId={id}
+                  selectedCategories={selectedCategories}
+                  selectedCountryCodes={selectedCountries.length > 0 ? selectedCountries : ['GL']}
+                  defaultPrice={price === '' ? null : Number(price)}
+                  defaultCurrency="USD"
+                  defaultLanguage={languageOfInstruction || 'English'}
+                  defaultSchedule={schedule}
+                  onSaved={() => {
+                    // Optionally refresh course data after variants are saved
+                  }}
+                />
+              </div>
+            </div>
+            
+            {/* Bottom Actions */}
+            <div className="flex justify-end gap-4 pt-8">
+              <Button size="lg" variant="default" onClick={handleSaveAll} disabled={saving} className="px-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full">
+                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {saving ? 'Saving…' : 'Save Details'}
+              </Button>
+            </div>
+
+          </div>
         </div>
       </div>
     </div>
